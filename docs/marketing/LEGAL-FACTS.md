@@ -6,6 +6,7 @@ The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/pri
 
 - Pattern Engine LLC is a Kansas limited liability company. Legal address: 2812 SW Huntoon St, Topeka, KS 66604.
 - Contact for support, privacy and legal notices: support@tabulaspeech.com.
+- Stripe legal name: Pattern Engine LLC. DBA on receipts: Tabula Speech.
 - No refunds for any purchase, except where the law requires one.
 - Free trial: 7 days, 8 rounds of hosted AI, no card.
 - Pass price: $5 a month or $50 a year. Packs and the two-app bundle are not priced yet.
@@ -21,7 +22,7 @@ The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/pri
 | Renewal reminder | 7 to 30 days before each yearly renewal (several state auto-renewal laws need a set window) | Terms §8, Refunds §5 |
 | Trial end | Ends after 7 days or 8 rounds, whichever comes first; does not convert to paid | Terms §7 |
 | Credit expiry | Packs: 12 months. Monthly Pass: rolls over while subscribed, up to a cap set on the plans page (number not public yet), expires at the end of the last paid period. Yearly Pass: end of term. Programs: July 31 | Terms §6, Refunds §4 |
-| Statement descriptor | "TABULA DEBATE" | Refunds |
+| Statement descriptor | "TABULA SPEECH" (long), "TABULA" (short) | Terms §8, Refunds §5 |
 | Chargebacks | Hosted AI may be suspended and unspent credits removed; the free app keeps working | Terms, Refunds |
 | Program refunds | None, unless a signed school agreement says otherwise | Refunds §7 |
 | Data requests | Answered within 30 days | Privacy |
