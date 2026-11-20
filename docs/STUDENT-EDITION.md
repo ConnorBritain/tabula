@@ -143,7 +143,7 @@ Practice mode never writes a block, a card, or a speech.
 | UHSAA (Utah) | Devices | Students follow the NSDA Unified Manual rules on devices and internet. | UHSAA Handbook 2026-27 |
 | ASDA | AI | AI tools allowed in scripted events and debate, but AI content must be cited aloud and in writing. Banned in limited-prep events. | ASDA 2025-26 Handbook |
 | UIL (Texas) | Devices, AI | UIL has a "Computers in Debate" guide (2024-25) and an AI statement (2025). I saw titles only, not the text. | UIL files (titles only) |
-| Idaho, Nebraska, Iowa | Recording, AI | From BUSINESS-PLAN.md §10: Idaho says judges may not record; Nebraska NSAA asks judges not to use AI for final decisions; an Iowa state rulebook needs all-party permission to record. | BUSINESS-PLAN.md §10, §13; search result for Iowa |
+| Idaho, Nebraska, Iowa | Recording, AI | From the judge app's earlier rules research: Idaho says judges may not record; Nebraska NSAA asks judges not to use AI for final decisions; an Iowa state rulebook needs all-party permission to record. | Earlier judge-app research (not re-checked); search result for Iowa |
 | TFA (Texas), OSAA (Oregon) | — | Not found. Check before any Texas or Oregon launch. | — |
 
 ### 4b. What this means
@@ -182,7 +182,7 @@ Allowed = fine in a competitive round where devices are allowed. Practice-only =
 
 ### 5a. Coach controls (Program plan)
 
-- A coach links students with a Program code (same code system as Programs in BUSINESS-PLAN.md §2b).
+- A coach links students with a Program code (the same code system the judge app's Program plan will use).
 - Per student or per team, the coach sets:
   - Which modes are open: Tournament only, or Tournament + Practice.
   - Is live transcription allowed in tournament mode? (Default: no.)
@@ -198,25 +198,25 @@ Allowed = fine in a competitive round where devices are allowed. Practice-only =
   1. The app asks: "Did everyone in the room agree to be recorded?" It shows a one-line script to read aloud.
   2. A visible "transcribing" light shows while the mic is on.
   3. The app logs "consent given" with a time, on the device only.
-- For students under 18 using hosted AI or recording features: **school or parent consent through a Program code** (same rule as BUSINESS-PLAN.md §12 Q7).
+- For students under 18 using hosted AI or recording features: **school or parent consent through a Program code** (the same rule the judge app uses for student judges).
 - Under 13: not allowed (COPPA). No marketing to middle-school students until a COPPA review.
 - All-party consent states (CA, FL, IL, MD, MA, MT, NV, NH, PA, WA and others): the app shows a stronger warning there. No-audio mode is always one tap away.
-- Audio stays on the device only until it is transcribed, then the app deletes it (same rule as BUSINESS-PLAN.md §6b).
+- Audio stays on the device only until it is transcribed, then the app deletes it (the same rule as the judge app).
 
 ### 5c. Privacy
 
 - **Names stay out of AI prompts.** Use the judge app's anonymize step (`L.anonymize` / `L.deanonymize` in `logic.js`): debater names become 1A/2A/1N/2N, team names become "the Aff team"/"the Neg team", and names go back in on the device.
 - Extend it to the locker: school names and author-of-file fields are stripped from text sent to AI.
-- The server keeps only account, ledger, and usage counts. No audio, no transcripts, no flows, no locker files, no student names (BUSINESS-PLAN.md §10 row 11).
-- FERPA and state student-privacy laws: have the SDPC National DPA ready before any school signs a Program (BUSINESS-PLAN.md §10 row 7).
+- The server keeps only account, ledger, and usage counts. No audio, no transcripts, no flows, no locker files, no student names.
+- FERPA and state student-privacy laws: have the SDPC National DPA ready before any school signs a Program.
 - No training on student data. No ads. No sale of data.
-- Voiceprints (telling speakers apart): not in the Student Edition. Biometric law risk (BUSINESS-PLAN.md §10 row 15).
+- Voiceprints (telling speakers apart): not in the Student Edition. Biometric law risk (IL BIPA, TX CUBI, WA).
 
 ---
 
 ## 6. Fit with the business plan
 
-The business plan says: **Free is the whole app; paid plans sell hosted AI with no key.** The Student Edition keeps that rule.
+The product rule is: **Free is the whole app; paid plans sell hosted AI with no key.** The Student Edition keeps that rule. Prices and plan details live in the private business plan, not in this public doc.
 
 | Feature | Free | Free + own key | Pass (18+ only) | Program (coach code) |
 |---|---|---|---|---|
@@ -237,7 +237,7 @@ Notes:
 - **Students under 18 cannot buy a Pass** (Stripe and ToS need 18+). So the Program plan is the main paid path for students. This makes the Student Edition a strong reason for a school to buy a Program.
 - **Free + own key** is open to students 13+, as in the judge app. Many students will not have a key. That is an equity issue; see §7.
 - A Program could be priced with a student seat count. Open question (§9).
-- Costs: practice features use the same cheap models as the judge app. A practice drill should cost less than one judge round (~107 credits). Measure before pricing.
+- Costs: practice features use the same cheap models as the judge app. A practice drill should cost less than one judged round. Measure before pricing.
 
 ---
 
@@ -247,7 +247,7 @@ Notes:
 |---|---|---|
 | **Cheating perception** | Opponents or judges think the student gets AI help in the round. A tournament bans the app. | Hard lock on all coaching features in tournament mode. Visible badge with a code. Tamper-evident round log. Public "what is on, what is locked" page. Tournament profiles that match each tournament's rules. Reach out to NSDA and NCFL before launch. |
 | **Real cheating** | A student uses a second device, a changed copy of the app, or a BYOK key with another tool. | Be honest: no local app can stop this. The log helps, but it is not proof. The answer is the same as for any laptop: tournament rules and judges. Tabula does not add any new channel for outside help (no chat, no remote view). AGPL code is open, so anyone can check what tournament mode does. |
-| **Unequal access** | Rich programs get AI practice; others do not. | Everything needed in a tournament is free. Paid features are practice only. UDL / Title I discount at 50% (BUSINESS-PLAN.md §2b). Works on Chromebooks and offline. No-audio mode needs no paid service. |
+| **Unequal access** | Rich programs get AI practice; others do not. | Everything needed in a tournament is free. Paid features are practice only. A discount for UDL and Title I programs. Works on Chromebooks and offline. No-audio mode needs no paid service. |
 | **Skill loss** | Students stop learning to flow. | Flow is manual by default. Transcription is an aid, off by default in tournaments. Flow drills compare the student's flow to the AI's, so the student practices flowing. Coaches can turn transcription off. |
 | **Rule change mid-season** | NSDA adopts the Nov 2025 AI-ban proposal, or a league bans AI tools. | Tournament profiles let a coach turn AI tools off in one tap. Manual flow, locker, and doc sending need no AI and keep working. |
 | **Recording minors without consent** | Legal and trust harm. | Transcription off by default in tournaments. Consent step and visible light. Audio deleted after transcription. Under-18 hosted use only through a Program with school consent. |
@@ -285,14 +285,131 @@ Done check for the MVP (when built): in tournament mode, no AI coaching call can
 3. **Contact the SpeechDrop maintainer now?** Ask about upload and a small endpoint. *Recommendation:* yes, now. Upload waits for the answer.
 4. **Live transcription in tournament mode at all?** It is the most useful aid and the biggest rule risk (NCFL 2026 bans it). *Recommendation:* allow it only when the debater turns it on, with the consent step, and only where the tournament allows it. Default off.
 5. **AI flow cleanup in tournament mode?** It is clerical, but it is an "AI tool", and some rules ban AI tools in the room. *Recommendation:* off by default; a coach or tournament profile may turn it on.
-6. **Program pricing for students:** add student seats to the $149/$349 Programs, or a separate student Program? *Recommendation:* same Programs; students draw from the same pool. Measure first.
+6. **Program pricing for students:** add student seats to the existing Program plans, or a separate student Program? *Recommendation:* same Programs; students draw from the same pool. Measure first.
 7. **Should a judge on Tabula see an opponent's tournament-mode badge code** (for example, through the SpeechDrop room)? It would raise trust, but it needs a server or shared room data. *Recommendation:* not in MVP.
 8. **Age floor for the free Student Edition:** 13+ as in the judge app? *Recommendation:* yes, 13+, with no hosted AI under 18 except through a Program.
 9. **Who checks rules each season?** The rules table (§4) will go stale. *Recommendation:* review it every August with the yearly provider-tier check.
 
 ---
 
-## 10. Sources
+## 10. Coach edition and connected roles
+
+The Student Edition is a teaching tool. Teaching happens between people: a coach and a student, a judge and a student. So a Coach role, and a link between the three roles, makes sense. This section says what to build and what **not** to digitize.
+
+### 10a. Guiding rule
+
+- **The tool serves the human relationships** (coach and student, judge and student). It never replaces them.
+- **People make the judgments.** The app does not grade, rank, or decide. A coach or a judge does.
+- **The app keeps as little data as it can.**
+- **Students own their record.** They can see it, export it, and delete it.
+
+### 10b. Right and fruitful (build these)
+
+- **Judge feedback that stays with the student over time.** Ballots and RFDs (the judge's "reason for decision") go into the student's own record. The student can read them again before the next tournament.
+- **Coach views of practice rounds.** A coach sees the practice rounds the coach runs, and what the student shares.
+- **Drills a coach assigns, with feedback.** For example "flow this 2NC" or "redo your 1AR". The coach writes the feedback.
+- **Evidence organization.** The locker from §3, shared inside a team when the team wants it.
+- **Case review that asks the student questions.** Socratic questions (§2b) on a case the student wrote. The app asks; the student answers; the coach reads.
+
+### 10c. Harmful to digitize (do not build these)
+
+- **AI that writes cases or blocks.** (Same as §1b.)
+- **Coaching during a real round.** No live coach view, no messages, no hints. (Same as §4c.)
+- **Rankings or tracking dashboards that watch kids.** No leaderboards, no "least active student" lists, no time-on-app counts, no activity feeds about a student.
+- **Streaks and points that gamify practice.** No streaks, badges for logins, or point totals. Practice is for learning, not for a score.
+- **Anything that replaces the talk between coach and student.** The app can hold a note or an assignment. It does not write the coach's feedback, and it does not send automatic "you are behind" messages.
+- **Keeping students' voices stored.** Audio is deleted after transcription (§5b). No audio goes to a coach or a server.
+
+A quick test for a new coach feature: **"Would a good coach do this with a notebook and a conversation?"** If yes, the app may make it easier. If it only exists because software can count things, do not build it.
+
+### 10d. The three roles and how they connect
+
+| Role | Has | Can see |
+|---|---|---|
+| **Student** | Their flows, locker, practice results, judge feedback, assignments | Only their own data, plus what their team shares |
+| **Coach** | A program space with team spaces; assignments; notes to a student | Practice rounds they run; what a student shares; assignment answers; team results the coach types in or imports |
+| **Judge** | The judge app (unchanged) | Their own rounds only |
+
+**Judge to student (ballot and RFD):**
+1. After a round, the judge app offers: "Send this feedback to the debaters?" Default: off. The judge chooses for each round.
+2. The judge sends only the written ballot comments and RFD the judge wrote or approved. No audio, no transcript, no AI draft the judge did not approve.
+3. The feedback reaches a student **only if the student has an account and has opted in** to receive judge feedback. The match uses a one-time round code the student gives the judge, or a code in the room's SpeechDrop folder. It never uses a name search.
+4. The student can keep it, hide it, or delete it. The student can choose to share it with the coach.
+5. A judge never sees a student's record. A judge's identity on feedback is shown only if the judge agrees; otherwise it says "Judge, Round 3".
+
+**Coach program and team spaces:**
+- A **program** is one school or club. It has one or more coaches.
+- A **team space** is a partnership or squad inside the program.
+- A student joins with a join code from the coach. A student can leave at any time and take their record with them.
+- Team results (wins, losses, speaker points) are typed in by the coach or student, or imported from Tabroom by the student. The app shows them as a plain list. No charts that rank students against each other.
+
+**Assignments:**
+- A coach makes an assignment: a title, a due date, and the material (a recorded speech to flow, a speech to redo, a case to review with questions).
+- The student does it in Practice mode and turns it in.
+- The coach writes the feedback. The app may show facts next to the work (for example, "3 arguments with no answer on this flow"). It does not grade.
+- No reminders beyond one due-date notice. No "late" flags sent to parents by the app.
+
+### 10e. What needs accounts and a server
+
+Everything in §1 to §9 can run on the device. The connected roles cannot. They need accounts and a server.
+
+| Need | Why |
+|---|---|
+| Accounts for coaches, students, and judges who send feedback | To know who may see what. |
+| A program and team directory | To join codes and roles. |
+| A feedback inbox | To carry a ballot or RFD from a judge to a student. |
+| Assignment storage | To carry an assignment to a student and the work back. |
+
+**Privacy rules for the server:**
+- **Data minimization.** Store only: account (email, role), program and team membership, assignments, written feedback, and the work a student chooses to turn in. **No audio. No full transcripts by default. No locker files** unless a team turns on sharing. No device or activity tracking.
+- **Names.** The server needs a display name for coaches to know their students. AI prompts still never get names (§5c).
+- **FERPA.** When a school uses a Program, student records are education records. Sign the SDPC National DPA. The school controls the program data. Tabula acts as a "school official" under the DPA.
+- **COPPA.** No accounts under 13. Students 13 to 17 join only through a program with school consent, or with parent consent.
+- **State student-privacy laws** (SOPIPA, NY Ed Law 2-d, IL SOPPA, and others): no ads, no sale, no profiling, no training on student data. List every subprocessor.
+- **Consent.** Judge feedback needs the judge's choice and the student's opt-in. Recording still needs the consent step in §5b.
+- **Retention and deletion.** Program data is deleted a set time after the season ends unless the student keeps it in their own record. A student can delete any item at any time. A school can delete its whole program. Backups expire on a fixed schedule.
+- **Student export.** One click exports the student's whole record (feedback, assignments, flows they saved) as plain files. The student keeps it after they graduate or change schools.
+- **Encryption.** In transit always. At rest on the server. Consider end-to-end encryption for judge feedback so the server cannot read it.
+
+### 10f. Open source and private parts
+
+- The app stays **open source (AGPL)**. The Student, Coach, and Judge roles in the app are all in the public repo.
+- The **server, billing, and coach backend may live in a private repo.** That is the owner's decided stance.
+- The app must still work fully with no server. All connected features are add-ons.
+- Publish the server's data rules (what it stores, how long, who can see it) in the public repo, so schools and families can check them.
+
+### 10g. Fit with the Program plan
+
+- Coach features live in the **Program** plan (the paid plan for schools and clubs). No prices are in this public doc.
+- **Free:** a student's own record on the device, and export. A judge choosing to send feedback is free.
+- **Program:** coach and team spaces, assignments, the feedback inbox on the server, and hosted AI for practice from a shared pool.
+- Keep a path for programs with no money (a discount or free seats for UDL and Title I programs), so connected roles do not become a rich-school feature.
+
+### 10h. Coach MVP (smallest first)
+
+Build in this order. Each step is useful alone.
+
+1. **Coach practice round.** A coach runs a practice round in the judge app and saves the RFD and comments to a file the coach gives the student. No server. (Uses the existing judge app.)
+2. **Student record on the device.** The student imports that file and any judge feedback file into a "My feedback" list. Export works. No server.
+3. **Accounts, program, and team join codes.** The first server step. Only membership: no content yet.
+4. **Assignments.** Coach makes one; student turns in practice work; coach writes feedback.
+5. **Judge feedback inbox.** Opt-in on both sides, with the round code. This comes last because it touches judges outside the program and needs the most privacy care.
+
+Not in the coach MVP: team results lists, shared team lockers, case review assignments, Tabroom import.
+
+### 10i. Open questions for the owner
+
+1. **Judge feedback match:** a round code the student gives the judge, or a code in the SpeechDrop room? *Recommendation:* the round code. It is simpler and works with no SpeechDrop link.
+2. **Judge names on feedback:** shown, hidden, or the judge's choice? *Recommendation:* the judge's choice; default hidden.
+3. **Retention after the season:** how long does program data live on the server? *Recommendation:* until 60 days after the season ends (for example, Aug 31), then delete, with an export reminder 30 days before.
+4. **Coach view of tournament rounds:** may a coach see a student's tournament-mode round logs? *Recommendation:* only if the student shares them; never automatically.
+5. **Parents:** do parents get any view? *Recommendation:* no parent dashboard. Parents can ask the student or the school for an export.
+6. **End-to-end encryption for feedback:** build it in the first server step, or later? *Recommendation:* design for it now; build it before the judge feedback inbox (MVP step 5).
+7. **Is this too much?** The connected roles are the largest build in this doc. *Recommendation:* ship MVP steps 1 and 2 (no server) first. Build steps 3 to 5 only if coaches ask for them.
+
+---
+
+## 11. Sources
 
 All seen 2026-11-19 through web search. Items marked *(copy)* are tournament-posted copies, not the official site. Items marked *(title only)* were not read in full.
 
@@ -315,4 +432,4 @@ All seen 2026-11-19 through web search. Items marked *(copy)* are tournament-pos
 - News Tribune, "AI changes the game, challenges ethics in speech and debate", 2026-05-12: https://www.newstribune.com/news/2026/may/12/ai-changes-the-game-challenges-ethics-in-speech/
 - TFA constitution page (rule text not found): https://texasforensicassociation.com/?p=592
 - SpeechDrop source (MIT): https://github.com/yunyu/SpeechDrop (no-API and CSRF notes come from the task brief; not re-checked here)
-- Tabula: BUSINESS-PLAN.md §2, §6b, §10, §12; `logic.js` anonymize/deanonymize.
+- Tabula: the private business plan (tiers, privacy checklist); `logic.js` anonymize/deanonymize.
