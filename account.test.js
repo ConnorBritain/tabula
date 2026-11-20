@@ -1,10 +1,10 @@
-// Tests for the Tabula account in the app (roles plan step 3): "School for this round" and the account paradigm.
+// Tests for the Tabula account in the app (roles plan step 3): "Judging for" and the account paradigm.
 // Spec: tabula-cloud docs/ACCOUNTS-AND-ROLES.md §5a, §6 and §9 step 3; docs/APP-CLIENT-PROPOSAL.md §3 and §3c.
 // Run with: node --test
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const L = require('./logic.js');
-const { readSource } = require('./test-sources.js');
+const { APP_FILES, readSource } = require('./test-sources.js');
 
 const ID_A = 'prog_lincoln01', ID_B = 'prog_central02';
 const PROFILE = { displayName: 'Sam', paradigm: 'Tech over truth.', photo: null, programs: [{ id: ID_A, name: 'Lincoln High', role: 'judge' }, { id: ID_B, name: 'Central', role: 'coach' }] };
@@ -118,9 +118,14 @@ test('hostedAiBody: roundId and programId always come from the round', () => {
 
 // Why: a guard only. Any page code that calls the hosted AI routes must build its body with hostedAiBody, or a call
 // could go out without the round's school and be charged to the wrong account.
+// No page code calls the hosted AI routes yet (2026-11-20), so today this checks that no file does so without it.
 test('page code calls the hosted AI routes only through hostedAiBody', () => {
-  const app = readSource('app.js');
-  if (app.includes('/api/v1/ai/')) assert.match(app, /L\.hostedAiBody\(/);
+  for (const f of APP_FILES) {
+    const src = readSource(f);
+    const calls = (src.match(/\/api\/v1\/ai\//g) || []).length;
+    const bodies = (src.match(/L\.hostedAiBody\(/g) || []).length;
+    assert.ok(bodies >= calls, f + ' calls /api/v1/ai/ ' + calls + ' time(s) but builds the body with hostedAiBody only ' + bodies + ' time(s)');
+  }
 });
 
 // Why: round content stays on the device (the roles plan rule). The account code may send only the profile fields.

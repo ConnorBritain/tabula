@@ -213,7 +213,10 @@ function renderAnalysis() {
   renderGlance();
   renderLensPicker();
   // Never overwrite the paradigm box while the judge is typing in it.
-  if (document.activeElement !== $('#lens-custom')) $('#lens-custom').value = myParadigm(); // the account's when signed in (js/account.js)
+  // Signed in, the box shows the account paradigm, read-only: it is edited in Settings (js/account.js).
+  $('#lens-custom').readOnly = Boolean(acctProfile);
+  $('#lens-custom-note').hidden = !acctProfile;
+  if (document.activeElement !== $('#lens-custom')) $('#lens-custom').value = myParadigm();
   if ($('#lens-pick').value === 'custom') $('#lens-custom-box').open = true;
   // Lens
   const lens = R.analysis.lens[currentLensKey()];
@@ -282,6 +285,7 @@ document.addEventListener('click', (ev) => {
 });
 $('#lens-pick').addEventListener('change', (ev) => { R.lensPick = ev.target.value; save(); renderAnalysis(); });
 $('#lens-custom').addEventListener('change', (ev) => {
+  if (acctProfile) return; // signed in, the account paradigm is the source (js/account.js)
   S.customParadigm = ev.target.value; saveSettings();
   // Keep only the saved answer for the current paradigm text; drop answers for old versions of it.
   const keep = L.lensKey('custom', S.customParadigm);

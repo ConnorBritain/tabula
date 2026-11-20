@@ -56,7 +56,7 @@
   // '' when the paradigm can be saved, else the reason in plain words.
   function paradigmError(text) {
     const n = cleanParadigm(text).length;
-    return n > MAX_PARADIGM ? 'Your paradigm is ' + n.toLocaleString('en-US') + ' characters. The limit is 5,000.' : '';
+    return n > MAX_PARADIGM ? 'Your paradigm is ' + n.toLocaleString('en-US') + ' characters. The limit is ' + MAX_PARADIGM.toLocaleString('en-US') + '.' : '';
   }
 
   // The paradigm the app judges by: the account's when signed in (profile not null), else the one on this device.

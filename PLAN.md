@@ -212,3 +212,14 @@ Each step: tests, a browser check in light and dark mode at laptop and phone wid
 - **License**: MIT or AGPL.
 - **A photo** for the About page (optional).
 - **Round-pack price** idea, when we get there.
+
+---
+
+## 9. Accounts in the app (roles plan step 3, built 2026-11-20)
+
+The roles plan is in the private tabula-cloud repo (docs/ACCOUNTS-AND-ROLES.md §5a, §6, §9).
+
+- **Judging for**: a signed-in judge who belongs to a school picks "Judging for: <school>" or "Just me" in Round setup or on the start screen. The device remembers the last choice. The choice locks when the first speech clock runs. Signed out, or with no school: no picker. Code: `js/judging.js`, `logic/account.js`.
+- **Paradigm**: signed in, the account paradigm is the one source. Settings → Your paradigm edits and saves it (`PUT /api/v1/me/profile`). The Analysis box shows it read-only. Signed out, the paradigm on this device works as before. On the first sign-in, the app offers once to copy the device paradigm up. Code: `js/account.js`.
+- Only the profile (name, paradigm, schools) goes to the server. Round content never does.
+- **Not done**: the app has no hosted AI caller yet, so nothing sends `programId` today. The round stores it (`R.programId`). The hosted caller must build each body with `L.hostedAiBody(R, call)`; a test fails if page code calls `/api/v1/ai/` without it.
