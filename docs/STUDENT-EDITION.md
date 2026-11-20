@@ -34,9 +34,13 @@ If a feature does what a debater does, it is **practice-only** (with Socratic qu
 
 ### 1e. Judging tools stay out of the student version (owner decision, 2026-11-19)
 
-Anything that helps a judge decide is **not in the student version at all**, in any mode. It belongs to the judge and coach versions only.
+Anything that helps a judge decide is **never a live marker in the student version**: not during a round, in any mode. It belongs to the judge and coach versions.
 
-- **Out:** Live Eval, "who is winning", where the student stands, lists of drops or unanswered arguments, what could win or lose the round, ballot guesses, decision drafts, impact calculus, and proactive evidence recommendations ("use this card here").
+**One exception: the post-mortem, after the round is closed** (owner decision, 2026-11-19). Once the round is over *and* closure is confirmed (the judge's feedback is submitted, or the student marks the round closed and confirms the decision is in), the student can open a post-mortem: a "What did I drop?" review and a look back at the round's key moments. It is a review for learning, never a hint while the round can still change. It stays locked until closure, and it never appears in tournament mode before closure.
+
+- **Out during a round:** Live Eval, "who is winning", where the student stands, lists of drops or unanswered arguments, what could win or lose the round, ballot guesses, decision drafts, impact calculus.
+- **Out at all times:** proactive evidence recommendations ("use this card here").
+- **After closure (post-mortem only):** the drop review and a look back at key moments, as facts with pointers to the flow, plus Socratic questions. The judge's own feedback sits next to it.
 - **Why:** these tools do the judging and the strategic reading of the round. That reading is the skill debate teaches.
 - **Coaches may still use them** with a student, in the coach version, for a coach-run practice round or a review. A person leads that talk; the app does not hand the student the answers.
 - **In instead: evidence playbooks** (see 3e). The student saves combinations of their own evidence that worked, names them, and pulls them up later. The student picks; the app only stores and finds.
@@ -90,7 +94,7 @@ For drills, practice rounds, and review after a round. All of it is off in tourn
 - **Feedback on recorded speeches.** Speed (words per minute), clarity (words the transcriber could not catch), time use per argument. Facts, not grades.
 - **Socratic questions about the student's own arguments.** The student picks one of their own arguments or cards; the app asks: "What is the warrant?", "What is the strongest answer to it?", "Why does it matter?". The student writes the answer. The app never writes the answer, and never points out drops or what the student missed in the round (see 1e).
 - **Redo a speech.** The student re-gives a rebuttal. The app flows it next to the first version, so the student can compare. It does not judge which version is better.
-- **No drop review and no Live Eval for students** (see 1e). A coach can review drops with a student in the coach version.
+- **Post-mortem after the round closes** (see 1e): a "What did I drop?" review and key moments, shown next to the judge's feedback, with Socratic questions. Locked until the round is closed and the decision is in. No Live Eval while a round is open. A coach can lead the same review in the coach version.
 
 Practice mode never writes a block, a card, or a speech.
 
@@ -183,7 +187,7 @@ Allowed = fine in a competitive round where devices are allowed. Practice-only =
 | AI flow from the student's typed notes (cleanup, column placement) | **Allowed, with care** | Clerical. It must not add content. Off if a tournament bans AI tools. |
 | Live transcription into the flow | **Allowed only where the tournament permits; off by default** | NCFL 2026 bans it. NSDA Nationals needs written consent. State consent laws apply. |
 | AI search of locker by meaning | **Allowed, with care** | Retrieval of own files. Off if the tournament bans AI tools. |
-| "What did I drop?" list | **Not in the student version** (coach version only) | Judging tool (§1e). In a round it would also be coaching. |
+| "What did I drop?" list | **Post-mortem only: after round closure is confirmed** | Judging tool (§1e). While the round is open it would be coaching. |
 | Socratic questions on the student's own arguments | **Practice-only** | Coaching, but the student does the thinking. |
 | Evidence playbooks (student-made) | **Allowed** | The student's own prepared evidence, like a tub of files. |
 | Speech feedback (speed, clarity, time use) | **Practice-only** | Needs recording. Coaching. |
@@ -245,7 +249,7 @@ The product rule is: **Free is the whole app; paid plans sell hosted AI with no 
 | SpeechDrop upload (after maintainer talk) | ✓ | ✓ | ✓ | ✓ |
 | Browser transcription (Chrome) | ✓ | ✓ | ✓ | ✓ |
 | AI flow cleanup, AI locker search | – | ✓ | credits | pool |
-| Practice: drills, feedback, Socratic questions | – | ✓ | credits | pool |
+| Practice: drills, feedback, Socratic questions, post-mortem after closure | – | ✓ | credits | pool |
 | Evidence playbooks | ✓ | ✓ | ✓ | ✓ |
 | Hosted transcription | – | own key | credits | pool |
 | Encrypted locker sync between devices | – | – | yearly | ✓ |
@@ -288,6 +292,7 @@ Notes:
 3. **Evidence locker v1**: import Word/PDF files, text search, build a speech doc, mark the speech, Verbatim-style export.
 4. **SpeechDrop v1**: open the room and list files (already works through `bridge.mjs`), plus "copy file / show in Finder" for a manual drop. **No upload yet.**
 5. **Evidence playbooks v1**: save, name and reuse sets of the student's own cards; save a speech doc as a playbook. No AI.
+6. **Post-mortem v1**: after the student confirms the round is closed and the decision is in, a "What did I drop?" list with pointers to the flow, next to the judge's feedback. BYOK only at first.
 
 Not in the MVP: SpeechDrop upload, coach controls, hosted AI for students, speech feedback, drills, locker sync.
 
