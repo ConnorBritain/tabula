@@ -1,6 +1,6 @@
 # No stripes, and a button system
 
-Status: proposal for the owner. Nothing in this file is built yet.
+Status: approved by the owner ("Yes, apply all", 2026-11-20) and built on 2026-11-20 (not yet committed). SPEC.md Part 2, V5, V7 and V12 now hold the rules. One D6 exemption: `.linkish` stays an underlined link-style action (see SPEC V5).
 Date: 2026-11-20.
 Scope: `index.html`, `assets/tokens.css`, `app.js`, `ui.js`, `about.html`, `docs/library/learn.css`.
 

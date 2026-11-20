@@ -28,9 +28,10 @@
   .wordmark, .display { font-family: var(--font-display); font-weight: var(--fw-5); font-style: italic; letter-spacing: -0.02em; }
   .wordmark { font-size: var(--fs-4); line-height: 1; }
   nav { display: flex; flex-wrap: nowrap; gap: var(--s0); min-width: 0; }
-  nav button { min-height: var(--h-md); background: none; border: 0; color: var(--text-2); padding: 0 var(--s3); border-radius: var(--r-md); cursor: pointer; font: inherit; font-size: var(--fs-2); font-weight: var(--fw-2); }
-  nav button:hover { color: var(--text); background: var(--sunk); }
-  nav button.on { color: var(--text); background: var(--border); font-weight: var(--fw-3); }
+  /* The main and Decide tabs are quiet buttons (.b.quiet). These rules add only the type size and the selected tab's
+     --border fill, which stays on hover. */
+  nav button { font-size: var(--fs-2); }
+  nav button.b.on, nav button.b.on:hover { color: var(--text); background: var(--border); }
   main { padding: var(--s4); max-width: 1440px; margin: 0 auto; }
   section.tab { display: none; } section.tab.on { display: block; }
   .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s4); margin-bottom: var(--s3); }
@@ -55,9 +56,19 @@
   button.b:hover { background: var(--sunk); border-color: var(--text-2); }
   button.b:active { background: var(--border); }
   button.b.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-  button.b.primary:hover { background: var(--text-2); border-color: var(--text-2); }
+  button.b.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  button.b.primary:active { background: var(--accent-press); border-color: var(--accent-press); }
+  /* Quiet: a text-only button for low-priority actions in a dense row (no fill, no edge at rest; a fill on hover). */
+  button.b.quiet { background: none; border-color: transparent; color: var(--text-2); }
+  button.b.quiet:hover { background: var(--sunk); border-color: transparent; color: var(--text); }
+  button.b.quiet:active { background: var(--border); color: var(--text); }
+  /* Danger: a solid fill, used only on the confirm button of a danger dialog (ui.js ask, kind 'danger'). */
+  button.b.danger { background: var(--danger-fill); color: var(--on-danger); border-color: var(--danger-fill); }
+  button.b.danger:hover { background: var(--danger-hover); border-color: var(--danger-hover); }
+  button.b.danger:active { background: var(--danger-press); border-color: var(--danger-press); }
   button.b:disabled, button.b:disabled:hover, button.b[aria-disabled="true"], button.b[aria-disabled="true"]:hover,
-  button.b.primary:disabled, button.b.primary[aria-disabled="true"] { background: var(--sunk); color: var(--text-3); border-color: var(--border); cursor: not-allowed; }
+  button.b.primary:disabled, button.b.primary[aria-disabled="true"], button.b.quiet:disabled, button.b.quiet[aria-disabled="true"],
+  button.b.danger:disabled, button.b.danger[aria-disabled="true"] { background: var(--sunk); color: var(--text-3); border-color: var(--border); cursor: not-allowed; }
   .row { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
   .row.nowrap { flex-wrap: nowrap; }
   .aff { color: var(--aff); } .neg { color: var(--neg); }
@@ -97,17 +108,24 @@
   /* The Flow grid (V6, V7, Q1, Q2): the one raised card. Mono text, one line height in every column, so rows line up.
      13 px, 14 px when the grid is 840 px wide or more, and 16 px on touch devices so iPad Safari does not zoom (Q-9). */
   #tab-flow { container: flow / inline-size; }
-  .flow { --fs-grid: var(--fs-1); display: grid; grid-template-columns: repeat(7, minmax(var(--col-min), 1fr)); gap: 0; overflow-x: auto; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
+  .flow { --fs-grid: var(--fs-1); display: grid; grid-template-columns: repeat(7, minmax(var(--col-min), 1fr)); grid-template-rows: auto 1fr; gap: 0; overflow-x: auto; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
   @container flow (min-width: 840px) { .flow { --fs-grid: var(--fs-2); } }
   @media (pointer: coarse) { .flow { --fs-grid: var(--fs-3); } }
-  .flow .col { border-right: 1px solid var(--border); min-width: 0; position: relative; }
+  /* Each column spans the two grid rows on a subgrid, so every header is as tall as the tallest one (a wrapped title,
+     a pill or the forced-colours side word) and the first text line starts at the same height in all seven columns. */
+  .flow .col { border-right: 1px solid var(--border); min-width: 0; position: relative; display: grid; grid-row: span 2; grid-template-rows: subgrid; }
   .flow .col:last-child { border-right: 0; }
   .flow .col h3 { position: sticky; top: 0; z-index: var(--z-sticky); display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s0) var(--s2); font-size: var(--fs-1); font-weight: var(--fw-4); line-height: var(--lh-grid); margin: 0; padding: var(--s2) var(--s3); border-bottom: 1px solid var(--border); }
   .flow .col.aff h3 { background: var(--aff-tint); color: var(--aff); }
   .flow .col.neg h3 { background: var(--neg-tint); color: var(--neg); }
-  .flow .col.is-current { box-shadow: inset 0 0 0 1px var(--border-ctl); }
-  .flow .col.is-current h3 { box-shadow: inset 0 -3px 0 var(--text); }
-  .col-mark { font-size: var(--fs-1); font-weight: var(--fw-3); color: var(--text); }
+  /* Current column: a 2 px --text outline on all four sides, the same look as the current speech tile. No bar.
+     It is drawn on a layer above the sticky header (same layer token, later in the page), so the header tint cannot
+     hide its top edge. It takes no clicks. */
+  .flow .col.is-current::after { content: ""; position: absolute; inset: 0; z-index: var(--z-sticky); pointer-events: none; outline: 2px solid var(--text); outline-offset: -2px; }
+  .col-mark { font-size: var(--fs-1); font-weight: var(--fw-3); line-height: var(--lh-grid); padding: 0 var(--s2); border-radius: var(--r-pill); color: var(--text); }
+  .col-mark.is-now { background: var(--accent); color: var(--on-accent); }
+  /* The edge is an outline, not a border, so the pill adds no height and the header does not grow when it shows. */
+  .col-mark.is-viewing { outline: 1px solid var(--border-ctl); outline-offset: -1px; color: var(--text-2); }
   .col-mark:empty { display: none; }
   .flow textarea { display: block; min-height: 64vh; border: 0; border-radius: 0; background: transparent; padding: var(--s2) var(--s3); font: var(--fs-grid)/var(--lh-grid) var(--font-mono); }
   .flow textarea:focus-visible { outline-offset: -2px; }
@@ -121,11 +139,11 @@
   .flow-hl > div { min-height: var(--lh-grid); }
   .flow-hl::after { content: ""; display: block; height: var(--lh-grid); }
   .flow-hl span { border-radius: var(--r-sm); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
-  .flow-hl .fm-drop { background: var(--caution-tint); text-decoration: underline dashed var(--caution); text-underline-offset: 3px; }
+  .flow-hl .fm-drop { background: var(--caution-tint); outline: 1px dashed var(--caution); outline-offset: -1px; }
   .flow-hl .fm-concede { background: var(--caution-tint); }
   .flow-hl .fm-extend { background: var(--border); }
   .flow-hl .fm-turn { box-shadow: inset 0 0 0 1px var(--border-ctl); }
-  .flow-hl .fm-weigh { text-decoration: underline var(--border-ctl); text-underline-offset: 3px; }
+  .flow-hl .fm-weigh { outline: 1px dotted var(--border-ctl); outline-offset: -1px; }
   .flow-empty { grid-column: 1 / -1; padding: var(--s4); margin: 0; }
   /* Tables, ballot, eval (14 px) */
   table { width: 100%; border-collapse: collapse; font-size: var(--fs-2); }
@@ -202,9 +220,6 @@
   button.b.small { min-height: var(--h-sm); padding: 0 var(--s2); font-size: var(--fs-1); }
   .subnav { display: flex; gap: var(--s0); margin: 0 0 var(--s3); border-bottom: 1px solid var(--border); padding-bottom: var(--s2); font-size: var(--fs-2); }
   .subnav[hidden] { display: none; }
-  .subnav button { min-height: var(--h-md); padding: 0 var(--s3); border: 0; border-radius: var(--r-md); background: none; color: var(--text-2); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-2); cursor: pointer; }
-  .subnav button:hover { color: var(--text); background: var(--sunk); }
-  .subnav button.on { color: var(--text); background: var(--border); font-weight: var(--fw-3); }
   /* The Flow workspace: speeches pane, the grid, Insights. Panes sit flat on the page colour (Q1): no fill, border or shadow.
      Insights is the 270 px pane when open, else a 32 px edge (V9, Q8). */
   .workspace { --right-w: var(--pane-right-w); display: none; gap: var(--s3); align-items: start; grid-template-columns: var(--pane-left-w) minmax(0, 1fr) var(--right-w); }
@@ -233,9 +248,10 @@
   /* The edge strip runs the full height of the grid row (the pane stretches; its max-height still caps it). */
   #workspace.ins-folded .pane-right { align-self: stretch; }
   #insights .ins-edge { display: flex; justify-content: center; align-items: flex-start; box-sizing: border-box; height: 100%; padding: var(--s2) 0; border-left: 1px solid var(--border); }
-  .ins-edge-btn { writing-mode: vertical-rl; min-width: var(--edge-w); min-height: 120px; padding: var(--s2) 0; border: 0; border-radius: var(--r-md); background: none; color: var(--text-2); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); cursor: pointer; }
-  .ins-edge-btn:hover { background: var(--sunk); color: var(--text); }
+  /* "Insights" is a quiet button (.b.quiet); "Connect AI" is a link-style action (.linkish). This rule is layout only. */
+  #insights .ins-edge-btn { writing-mode: vertical-rl; min-width: var(--edge-w); min-height: 120px; padding: var(--s2) 0; border-radius: var(--r-md); font-size: var(--fs-2); font-weight: var(--fw-3); }
   .ins-edge-btn.linkish { text-decoration: underline; color: var(--text); }
+  .ins-edge-btn.linkish:hover { background: var(--sunk); }
   .ins-lean { font-family: var(--font-display); font-weight: var(--fw-5); font-size: var(--fs-3); }
   .ins-meta { margin: var(--s0) 0 var(--s2); }
   .ins-why { margin: 0 0 var(--s2); }
@@ -317,13 +333,13 @@
     #workspace, #workspace.no-left { grid-template-columns: minmax(0, 1fr); }
     #workspace .pane-right { grid-column: 1 / -1; position: static; max-height: none; }
     #insights .ins-edge { height: auto; padding: 0; border-left: 0; border-top: 1px solid var(--border); justify-content: flex-start; }
-    .ins-edge-btn { writing-mode: horizontal-tb; min-height: var(--h-md); min-width: 0; padding: 0 var(--s2); }
+    #insights .ins-edge-btn { writing-mode: horizontal-tb; min-height: var(--h-md); min-width: 0; padding: 0 var(--s2); }
   }
   @media (max-width: 819.98px) {
     .workspace, .workspace.no-left { grid-template-columns: minmax(0, 1fr); }
     .pane-left, .pane-right { position: static; max-height: none; }
     #insights .ins-edge { height: auto; padding: 0; border-left: 0; border-top: 1px solid var(--border); justify-content: flex-start; }
-    .ins-edge-btn { writing-mode: horizontal-tb; min-height: 44px; min-width: 0; padding: 0 var(--s2); }
+    #insights .ins-edge-btn { writing-mode: horizontal-tb; min-height: 44px; min-width: 0; padding: 0 var(--s2); }
     .roundbar { gap: var(--s1) var(--s3); padding: var(--s2) var(--s3); }
     .roundbar .clock { font-size: var(--fs-5); }
     .rb-status { max-width: 180px; }
@@ -357,12 +373,14 @@
   #help-btn { font-family: var(--font-display); font-weight: var(--fw-5); font-size: var(--fs-3); }
   .help-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: var(--z-pop); width: 250px; background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); padding: var(--s1); box-shadow: var(--shadow-2); }
   .help-menu[hidden] { display: none; }
-  .help-menu a { display: block; padding: var(--s2); border-radius: var(--r-md); color: var(--text); font-size: var(--fs-2); text-decoration: none; }
-  .help-menu a:hover, .help-menu a:focus-visible { background: var(--sunk); }
+  .help-menu a { display: block; padding: var(--s2); border-radius: var(--r-md); color: var(--text-2); font-size: var(--fs-2); font-weight: var(--fw-3); text-decoration: none; }
+  /* Link items match the quiet menu buttons, so the menu has one look. */
+  .help-menu a:hover, .help-menu a:focus-visible { background: var(--sunk); color: var(--text); }
   .app-foot { margin: var(--s5) 0 0; text-align: center; font-size: var(--fs-1); color: var(--text-3); }
   .app-foot a { color: var(--text-3); }
-  .help-menu button { display: block; width: 100%; text-align: left; padding: var(--s2); border: 0; border-radius: var(--r-md); background: none; color: var(--text); font: inherit; font-size: var(--fs-2); cursor: pointer; }
-  .help-menu button:hover, .help-menu button:focus-visible { background: var(--sunk); }
+  /* Menu items are quiet buttons (.b.quiet), with the quiet text colour and weight. This rule is menu layout only. */
+  .help-menu button.b { display: block; width: 100%; min-height: 0; text-align: left; padding: var(--s2); border-width: 0; white-space: normal; }
+  .help-menu button.b:focus-visible { background: var(--sunk); color: var(--text); }
   .help-menu p { margin: 0; padding: var(--s2); font-size: var(--fs-1); }
   .help-sep { height: 1px; border: 0; background: var(--border); margin: var(--s1) 0; }
   #tour[hidden] { display: none; }
@@ -390,10 +408,13 @@
   .toast.is-error { background: var(--panel); color: var(--text); border: 1px solid var(--border-ctl); }
   .toast-icon { flex: none; padding: 5px 0; font-weight: var(--fw-5); color: var(--error); }
   .toast-msg { flex: 1; min-width: 0; padding: 5px 0; overflow-wrap: anywhere; }
-  .toast-act, .toast-x { flex: none; min-height: var(--h-sm); min-width: var(--h-sm); padding: 0 var(--s2); border-radius: var(--r-md); background: transparent; color: inherit; font: inherit; font-weight: var(--fw-3); cursor: pointer; }
+  .toast-act { flex: none; min-height: var(--h-sm); min-width: var(--h-sm); padding: 0 var(--s2); border-radius: var(--r-md); background: transparent; color: inherit; font: inherit; font-weight: var(--fw-3); cursor: pointer; }
   .toast-act { border: 1px solid currentColor; }
-  .toast-x { border: 0; font-size: var(--fs-3); line-height: 1; }
-  .toast-x:hover, .toast-act:hover { background: color-mix(in srgb, currentColor 20%, transparent); }
+  .toast-act:hover { background: color-mix(in srgb, currentColor 20%, transparent); }
+  /* The dismiss × is a quiet button (.b.quiet). On a toast it takes the toast's text colour, so it reads on the dark
+     info fill as well as on the light error card. */
+  .toast button.b.quiet { flex: none; min-height: var(--h-sm); min-width: var(--h-sm); padding: 0 var(--s2); color: inherit; font-size: var(--fs-3); line-height: 1; }
+  .toast button.b.quiet:hover, .toast button.b.quiet:active { color: inherit; background: color-mix(in srgb, currentColor 20%, transparent); }
   @keyframes toast-in { from { opacity: 0; } }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   /* The in-app dialog, ask() (spec 4.2). */
@@ -405,7 +426,6 @@
   .ask-foot:empty { display: none; }
   .ask-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2); margin-top: var(--s4); }
   .ask-x { position: absolute; top: var(--s3); right: var(--s3); }
-  button.b.danger { color: var(--error); border-color: var(--error); }
   /* Slice 2: the dialog's text box, list and choice cards (the welcome), and the primary button while it waits. */
   .ask-card.ask-choices { width: min(440px, calc(100% - 32px)); }
   .ask-btns.choices { display: grid; justify-content: stretch; }
@@ -691,23 +711,28 @@
     /* The full-screen sheet hides the first-run tour offer, which would sit on the single-key switch. It shows again when the sheet closes. */
     body:has(#keys-sheet:not([hidden])) .tour-offer { display: none; }
     .ks-head .b { min-height: 44px; }
-    .help-menu button, .help-menu a { min-height: 44px; }
+    .help-menu button.b, .help-menu a { min-height: 44px; }
     .study-card { padding: var(--s1) var(--s3); }
   }
   /* The print sheet (4.10): built from data just before printing, hidden on screen. */
   @media screen { #print-sheet { display: none; } }
   @page tabula-landscape { size: landscape; }
-  /* Windows high contrast (V12): side colours become real borders, and the current column gets the system highlight. */
+  /* Windows high contrast (V12): the side tints are gone, so the side shows as the word "Aff" or "Neg" in a small
+     pill (no stripes), and the current column gets the system highlight. */
   @media (forced-colors: active) {
-    .flow .col.aff h3, .mapsheet .mh.aff, .sp.aff, .mcard.aff { border-top: 3px solid CanvasText; }
-    .flow .col.neg h3, .mapsheet .mh.neg, .sp.neg, .mcard.neg { border-top: 3px dashed CanvasText; }
+    .flow .col.aff h3::after, .mapsheet .mh.aff::after, .sp.aff::after, .mcard.aff::after { content: "Aff"; }
+    .flow .col.neg h3::after, .mapsheet .mh.neg::after, .sp.neg::after, .mcard.neg::after { content: "Neg"; }
+    .flow .col h3::after, .mapsheet .mh::after, .sp::after, .mcard::after { display: inline-block; margin-inline-start: var(--s1); padding: 0 var(--s1); border: 1px solid CanvasText; border-radius: var(--r-pill); font-size: var(--fs-1); font-weight: var(--fw-3); line-height: var(--lh-ui); }
     .flow .col.is-current { outline: 2px solid Highlight; outline-offset: -2px; }
+    .flow .col.is-current::after { outline-color: Highlight; }
+    /* "Now" keeps a filled look in system colours, so it still differs from the outline "Viewing" pill. */
+    .col-mark.is-now { forced-color-adjust: none; background: CanvasText; color: Canvas; }
     .flow-hl { display: none; }
     .rec-strip { border-top: 1px solid CanvasText; }
     .tip-box { border: 1px solid CanvasText; }
     .b-tag-btn, .win-card, .rv-card, .ballot-bar, .draft-panel { border: 1px solid CanvasText; }
     .win-card:has(input:checked) { outline: 2px solid Highlight; }
-    .tally-bar span { border-right: 2px solid Canvas; background: CanvasText; }
+    .tally-bar { gap: var(--s0); } .tally-bar span { background: CanvasText; } /* a 2 px gap between segments, not a side border */
   }
   /* Print: the ballot only. tokens.css switches every colour to the light values (colour rule 7). */
   @media print {
@@ -747,11 +772,11 @@
   <div class="help-wrap">
     <button class="iconbtn" id="help-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="help-menu" aria-label="Help and tours" data-tip="Help and tours">?</button>
     <div class="help-menu" id="help-menu" role="menu" aria-label="Help" hidden>
-      <button role="menuitem" type="button" tabindex="-1" data-tour="main">Take the full tour</button>
-      <button role="menuitem" type="button" tabindex="-1" data-tour="page">Tour this page</button>
+      <button class="b quiet" role="menuitem" type="button" tabindex="-1" data-tour="main">Take the full tour</button>
+      <button class="b quiet" role="menuitem" type="button" tabindex="-1" data-tour="page">Tour this page</button>
       <hr class="help-sep">
-      <button role="menuitem" type="button" tabindex="-1" data-help="palette" id="help-palette">Search and commands <kbd class="menu-key" id="help-palette-key">⌘K</kbd></button>
-      <button role="menuitem" type="button" tabindex="-1" data-help="keys">Keyboard shortcuts <kbd class="menu-key">?</kbd></button>
+      <button class="b quiet" role="menuitem" type="button" tabindex="-1" data-help="palette" id="help-palette">Search and commands <kbd class="menu-key" id="help-palette-key">⌘K</kbd></button>
+      <button class="b quiet" role="menuitem" type="button" tabindex="-1" data-help="keys">Keyboard shortcuts <kbd class="menu-key">?</kbd></button>
       <hr class="help-sep">
       <a role="menuitem" id="library-link" href="learn/" target="_blank" rel="noopener" tabindex="-1" aria-label="Debate library (opens a new tab)">Debate library</a>
       <a role="menuitem" href="about.html" target="_blank" rel="noopener" tabindex="-1" aria-label="About Tabula (opens a new tab)">About Tabula</a>
@@ -769,7 +794,7 @@
 </header>
 <main>
 <nav id="subnav" class="subnav" aria-label="Decide" hidden>
-  <button data-tab="eval">Live Eval</button><button data-tab="analysis">Analysis</button><button data-tab="ballot">Ballot</button>
+  <button type="button" class="b quiet" data-tab="eval">Live Eval</button><button type="button" class="b quiet" data-tab="analysis">Analysis</button><button type="button" class="b quiet" data-tab="ballot">Ballot</button>
 </nav>
 
 <section class="tab" id="tab-setup">
@@ -899,7 +924,7 @@
   <div id="insights-body"></div>
   <div class="ins-edge">
     <button class="ins-edge-btn linkish" type="button" id="ins-connect" data-tab-go="ai" aria-label="Connect AI in Settings to get live insights">Connect AI</button>
-    <button class="ins-edge-btn" type="button" id="ins-show" data-pane="right" aria-label="Show the insights pane">Insights</button>
+    <button class="b quiet ins-edge-btn" type="button" id="ins-show" data-pane="right" aria-label="Show the insights pane">Insights</button>
   </div>
 </aside>
 </div>

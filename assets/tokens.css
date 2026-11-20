@@ -18,12 +18,15 @@
   /* Side colours. Data only. Never white text on --aff-fill or --neg-fill. */
   --aff: #0055b8; --aff-tint: #eaf1fb; --aff-edge: #b3cdee; --aff-fill: #0055b8;
   --neg: #c8161f; --neg-tint: #fdecec; --neg-edge: #f4c0c2; --neg-fill: #f2232d;
-  /* Status. Orange is only for errors and over time; green is only for done. */
+  /* Status. Orange is only for errors, over time and the confirm button of a danger dialog; green is only for done. */
   --error: #b93d0a; --error-tint: #fdf0e8;
   --caution: #7a5000; --caution-tint: #fff6dc;
   --ok: #1a7a3a; --ok-tint: #e8f6ec;
   /* Accent: neutral, never a side colour */
   --accent: #16191d; --on-accent: #fff; --ring: #16191d;
+  /* Buttons: primary hover and press. The solid danger fill is only for the confirm button of a danger dialog. */
+  --accent-hover: #3c434c; --accent-press: #000000;
+  --danger-fill: #b93d0a; --on-danger: #ffffff; --danger-hover: #9a3208; --danger-press: #7f2906;
   /* Shadow: --shadow-1 is for the Flow card only; --shadow-2 pop-ups and tips; --shadow-3 dialogs */
   --shadow-1: 0 1px 2px rgb(0 0 0 / .06), 0 4px 16px rgb(0 0 0 / .06);
   --shadow-2: 0 6px 18px rgb(0 0 0 / .14);
@@ -67,6 +70,8 @@
   --caution: #ffd27a; --caution-tint: #33290f;
   --ok: #6fd190; --ok-tint: #12291a;
   --accent: #e9ecef; --on-accent: #0f1114; --ring: #e9ecef;
+  --accent-hover: #c3c9d0; --accent-press: #ffffff;
+  --danger-fill: #ff9a5c; --on-danger: #0f1114; --danger-hover: #ffb382; --danger-press: #ffc8a3;
   --shadow-1: 0 1px 2px rgb(0 0 0 / .4), 0 4px 16px rgb(0 0 0 / .3);
 }
 @media (prefers-color-scheme: dark) {
@@ -81,6 +86,8 @@
     --caution: #ffd27a; --caution-tint: #33290f;
     --ok: #6fd190; --ok-tint: #12291a;
     --accent: #e9ecef; --on-accent: #0f1114; --ring: #e9ecef;
+    --accent-hover: #c3c9d0; --accent-press: #ffffff;
+    --danger-fill: #ff9a5c; --on-danger: #0f1114; --danger-hover: #ffb382; --danger-press: #ffc8a3;
     --shadow-1: 0 1px 2px rgb(0 0 0 / .4), 0 4px 16px rgb(0 0 0 / .3);
   }
 }
@@ -97,6 +104,8 @@
     --caution: #7a5000; --caution-tint: #fff6dc;
     --ok: #1a7a3a; --ok-tint: #e8f6ec;
     --accent: #16191d; --on-accent: #fff; --ring: #16191d;
+    --accent-hover: #3c434c; --accent-press: #000000;
+    --danger-fill: #b93d0a; --on-danger: #ffffff; --danger-hover: #9a3208; --danger-press: #7f2906;
     --shadow-1: none;
   }
 }

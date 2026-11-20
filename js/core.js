@@ -151,7 +151,7 @@ function showTab(id) {
   if (id === 'analysis') renderAnalysis();
   renderChip();
 }
-$('#nav').innerHTML = PLACES.map(([id, t]) => `<button data-tab="${id}">${t}</button>`).join('');
+$('#nav').innerHTML = PLACES.map(([id, t]) => `<button type="button" class="b quiet" data-tab="${id}">${t}</button>`).join('');
 document.querySelector('.brand').addEventListener('click', (e) => { e.preventDefault(); showTab('flow'); });
 $('#nav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
 $('#subnav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });

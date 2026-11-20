@@ -91,6 +91,8 @@ Until V0 lands, the earlier slices use today's variable names.
 | | `--caution` / `--caution-tint` | #7a5000 / #fff6dc | #ffd27a / #33290f | Last 30 s, warnings |
 | | `--ok` / `--ok-tint` | #1a7a3a / #e8f6ec | #6fd190 / #12291a | Done only. Never for "loading". |
 | Accent | `--accent` / `--on-accent` / `--ring` | =text / #fff / =text | =text / #0f1114 / =text | Neutral accent and focus ring |
+| Button | `--accent-hover` / `--accent-press` | #3c434c / #000000 | #c3c9d0 / #ffffff | Primary button hover and pressed fill (CHANGED 2026-11-20, docs/design/NO-STRIPES.md §5) |
+| | `--danger-fill` / `--on-danger` / `--danger-hover` / `--danger-press` | #b93d0a / #ffffff / #9a3208 / #7f2906 | #ff9a5c / #0f1114 / #ffb382 / #ffc8a3 | The solid danger button. Only the confirm button of a danger dialog. |
 | Font | `--font-sans` | ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif | same | Body text |
 | | `--font-display` | 'Inter Tight', var(--font-sans) | same | Page titles and the clock |
 | | `--font-mono` | ui-monospace, SFMono-Regular, Menlo, Consolas, monospace | same | Flow grid |
@@ -124,15 +126,24 @@ Until V0 lands, the earlier slices use today's variable names.
 | `--border-ctl` on panel | 3.69 | 3.52 | 3.0 |
 | `--border-ctl` on canvas | 3.39 | 3.81 | 3.0 |
 | Focus ring on panel | 17.63 | 14.72 | 3.0 |
+| `--on-accent` on `--accent-hover` | 10.00 | 11.33 | 4.5 |
+| `--on-accent` on `--accent-press` | 21.00 | 18.91 | 4.5 |
+| `--on-danger` on `--danger-fill` | 5.62 | 9.03 | 4.5 |
+| `--on-danger` on `--danger-hover` | 7.41 | 10.83 | 4.5 |
+| `--on-danger` on `--danger-press` | 9.45 | 12.64 | 4.5 |
+| `--danger-fill` on panel (button shape) | 5.62 | 8.34 | 3.0 |
+| `--text-2` on canvas (quiet button) | 9.17 | 11.33 | 4.5 |
+| `--text-2` on panel (quiet button) | 10.00 | 10.46 | 4.5 |
 
 **Colour rules**
 1. Aff blue and Neg red are for data only. The page frame and the focus ring stay neutral.
-2. Orange (`--error`) is only for errors and over time.
+2. Orange (`--error`) is only for errors and over time, and (as `--danger-fill`) for the confirm button of a danger dialog. That button always has a verb label, such as "Delete audio" (CHANGED 2026-11-20, owner decision D5).
 3. Nothing "live" or "recording" is red.
 4. Status colour comes only from the classes `.is-error`, `.is-caution` and `.is-ok`. Inline `.style.color` goes away.
 5. Colour never carries meaning alone. A word or an icon always goes with it.
 6. Never put white text on `--aff-fill` or `--neg-fill`.
 7. Print always uses the light values.
+8. No stripes. A stripe is a thin coloured bar used as an accent: a left, right, top or bottom border bar, a one-sided inset box-shadow, a bar under a header or tab, or a `::before` / `::after` bar. Show state with a fill, a full outline on all four sides, or a pill with a word. Allowed: plain 1 px neutral dividers (`--border`, `--border-ctl`), full control borders, full outlines, dots with a word, data bars that show a quantity, link underlines and diff marks. `no-stripes.test.mjs` checks index.html, about.html, docs/library/learn.css and js/*.js (owner rule, 2026-11-20; docs/design/NO-STRIPES.md).
 
 ---
 
@@ -564,14 +575,26 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
 | Error | 2 px `--error` border, `aria-invalid`, and a line that starts "Error:" tied with `aria-describedby` |
 | Read-only | `--sunk` fill |
 
-  Primary button hover is a solid `--text-2` fill. Checkboxes use `accent-color: var(--text)` inside a 24 px hit area.
+  Button kinds (CHANGED 2026-11-20, owner decisions D5 and D6; docs/design/NO-STRIPES.md §5). Old line: "Primary button hover is a solid `--text-2` fill."
+
+| Kind | Use | Default | Hover | Pressed |
+|---|---|---|---|---|
+| Primary `.b.primary` | The one main action in a view or dialog | `--accent` fill, `--on-accent` text | `--accent-hover` fill | `--accent-press` fill |
+| Secondary `.b` | Every other action, and Cancel | `--panel` fill, `--text`, 1 px `--border-ctl` | `--sunk` fill, `--text-2` edge | `--border` fill |
+| Quiet `.b.quiet` | Low-priority actions in a dense row, menu items, the main and Decide tabs, the toast dismiss (×). Never the only way to do a main task. | No fill, no edge, `--text-2` text | `--sunk` fill, `--text` | `--border` fill |
+| Danger `.b.danger` | Only the confirm button of a danger dialog (`ask()` with `kind: 'danger'`) | `--danger-fill` fill, `--on-danger` text | `--danger-hover` fill | `--danger-press` fill |
+
+  A selected tab (`.on`) keeps a `--border` fill and `--text`, also on hover. On a toast the quiet × takes the toast's own text colour, so it reads on the dark info fill. The help menu's link items use the same quiet text colour and weight as its buttons.
+  One exemption: `.linkish` is not a quiet button. It is an underlined action inside a sentence (for example "Connect AI"), and links keep their underline (NO-STRIPES.md §1). The toast's action button (`.toast-act`) keeps its 1 px `currentColor` edge, because it is the toast's one action, not a quiet one.
+  Disabled is the same for all kinds (the row above). An inline delete stays a secondary or quiet button with an Undo toast. About and the library use `.btn` (secondary) and `.btn.primary` with the same hover and pressed states. Checkboxes use `accent-color: var(--text)` inside a 24 px hit area.
 - **V6 Only the grid is raised (Q1).** `.flow` gets `--raised`, a 1 px border, `--r-lg` and `--shadow-1`. The panes lose their background, border and shadow. The 1.5 overlay stays flat. Tiles keep a `--panel` fill. The current tile gets a 2 px `--text` edge. The header sits flat on the canvas with its bottom line [A]. The round bar stays opaque. Other screens' cards do not change [A]. The always-on legend moves into a `(?)` tip [A].
   - **Check:** screenshots of every row of the 1.5 width table; computed panes and the overlay have `box-shadow: none`.
 - **V7 Grid look.** `#tab-flow` gets `container: flow / inline-size`. The grid text is 13 px, and 14 px when the container is 840 px wide or more. Line height is always 20 px, so rows line up across columns. Keep the mono font [A, Q-8]. On touch devices, the rule chosen in **Q-9** applies, so iPad Safari does not zoom when a column gets focus.
   - A 1 px line between columns. No row lines.
   - Sticky tinted headers. These need the shared vertical scroll from Slice A+B.
-  - **Current speech:** a 3 px `--text` bar under its header, a "Now" label, and a 1 px inset `--border-ctl` outline.
-  - **Viewed speech:** a "Viewing" label.
+  - **Current speech:** a 2 px `--text` outline on all four sides (the same look as the current speech tile) and a filled "Now" pill (`--accent` fill, `--on-accent` text, `--r-pill`). No bar under the header. (CHANGED 2026-11-20, owner decision D2. Old text: "a 3 px `--text` bar under its header, a "Now" label, and a 1 px inset `--border-ctl` outline.")
+  - **Viewed speech:** an outline "Viewing" pill (a 1 px `--border-ctl` outline, `--text-2` text). It is an outline, not a border, so the header does not grow when the pill shows.
+  - The current-column outline is drawn on a layer above the sticky header, so all four sides show. Each column spans two rows of a subgrid, so all seven headers are as tall as the tallest one and the first text line starts at the same height in every column.
   - A "Type here" placeholder, in the current column only [A].
   - Each textarea gets `aria-label="{speech} column, sheet {name}"`.
   - **Checks:** every column has the same font size and line height; line 40 sits at the same height in two columns; "Now" shows only on the running column; on iPad, a tap in a column does not change `visualViewport.scale`; zoom is not locked.
@@ -602,7 +625,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - Transcript button tip: "Show or hide the transcript".
   - Speech tile tip: "{label} · {Aff|Neg}{ · has transcript}".
   - **Checks:** a static test finds no `title="` on any element in index.html except `<iframe>` (an iframe needs a title for accessibility) and SVG `<title>` elements; unit test of `tipDelay` (sheet tab 1000 ms, others 500 ms).
-- **V12 Global rules.** A global `prefers-reduced-motion` block. A `forced-colors` block: Aff and Neg get real 3 px borders in `CanvasText`, and the current column gets a `Highlight` outline. Remove inline `style=""` from the touched markup. A ratchet test stores today's counts (93 in index.html, 46 in app.js). The test fails if a count goes up, and the stored number is lowered when a count goes down.
+- **V12 Global rules.** A global `prefers-reduced-motion` block. A `forced-colors` block: Aff and Neg headers, tiles and map cards show the word "Aff" or "Neg" in a small pill (1 px `CanvasText` edge on all sides, `--r-pill`, `--fs-1`), and the current column gets a `Highlight` outline. The "Now" pill keeps a filled look (`CanvasText` fill, `Canvas` text), so it still differs from the outline "Viewing" pill. (CHANGED 2026-11-20, owner decision D3. Old text: "Aff and Neg get real 3 px borders in `CanvasText`".) Remove inline `style=""` from the touched markup. A ratchet test stores today's counts (93 in index.html, 46 in app.js). The test fails if a count goes up, and the stored number is lowered when a count goes down.
 - **New files:** `assets/tokens.css`, `assets/theme-boot.js`, `tokens.test.js`. **Changed:** index.html, app.js, logic.js (`insightsMode`, `resolveTheme`, `tipDelay`), tour.js, about.html, learn.css, build-learn.mjs.
 
 ### 3.4 Slice 4: Decide and ballot
@@ -909,6 +932,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
 - No model or company names in copy. The only exception is `{provider}`, which names the provider of the judge's own key. The provider picker in Settings reads its names from providers.js and is the only other place names appear. A static test holds the banned list (6.1).
 - Errors come only from `aiErrorText`.
 - Copy never relies on colour alone.
+- No stripes (colour rule 8 in Part 2). A state is a word, a fill, a full outline or a pill, never a coloured bar on one side.
 
 ---
 

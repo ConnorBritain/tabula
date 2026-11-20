@@ -39,7 +39,7 @@
       a.addEventListener('click', () => { toastClose(t); t.action.run(); });
       el.append(a);
     }
-    const x = document.createElement('button'); x.type = 'button'; x.className = 'toast-x'; x.setAttribute('aria-label', 'Dismiss message'); x.textContent = '×';
+    const x = document.createElement('button'); x.type = 'button'; x.className = 'b quiet toast-x'; x.setAttribute('aria-label', 'Dismiss message'); x.textContent = '×';
     x.addEventListener('click', () => toastClose(t));
     el.append(x);
     // The timer waits while the pointer or focus is on the toast; then at least 2 s remain (WCAG 2.2.1).

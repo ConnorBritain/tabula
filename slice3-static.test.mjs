@@ -99,8 +99,12 @@ test('small controls have a 24 px hit area', () => {
 test('reduced motion and forced colours are handled', () => {
   assert.match(read('assets/tokens.css'), /@media \(prefers-reduced-motion: reduce\) \{\s*\*, \*::before, \*::after/);
   const fc = /@media \(forced-colors: active\) \{([\s\S]*?)\n  \}/.exec(STYLE)[1];
-  assert.match(fc, /\.aff[^{]*\{ border-top: 3px solid CanvasText; \}/);
-  assert.match(fc, /\.neg[^{]*\{ border-top: 3px dashed CanvasText; \}/);
+  // CHANGED 2026-11-20 because the owner approved docs/design/NO-STRIPES.md (D3: the side shows as a word, not a
+  // 3 px top border). Old check:
+  //   assert.match(fc, /\.aff[^{]*\{ border-top: 3px solid CanvasText; \}/);
+  //   assert.match(fc, /\.neg[^{]*\{ border-top: 3px dashed CanvasText; \}/);
+  assert.match(fc, /\.aff::after[^{]*\{ content: "Aff"; \}/);
+  assert.match(fc, /\.neg::after[^{]*\{ content: "Neg"; \}/);
   assert.match(fc, /is-current \{ outline: 2px solid Highlight/);
 });
 

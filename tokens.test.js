@@ -66,6 +66,24 @@ test('every Part 2 contrast pair passes in light and dark', () => {
   }
 });
 
+// Why: the button kinds (docs/design/NO-STRIPES.md §5) put text on new fills; under the minimum, a judge cannot read "Delete audio" or the primary label on hover or press (WCAG 1.4.3, 1.4.11).
+test('every button token pair passes in light and dark', () => {
+  const pairs = [
+    ['--on-accent', '--accent', 4.5], ['--on-accent', '--accent-hover', 4.5], ['--on-accent', '--accent-press', 4.5],
+    ['--on-danger', '--danger-fill', 4.5], ['--on-danger', '--danger-hover', 4.5], ['--on-danger', '--danger-press', 4.5],
+    ['--danger-fill', '--panel', 3], ['--danger-fill', '--canvas', 3],
+    ['--text-2', '--canvas', 4.5], ['--text-2', '--panel', 4.5], ['--text', '--sunk', 4.5], ['--text', '--border', 4.5],
+    ['--on-accent', '--text', 4.5],
+  ];
+  for (const [name, set] of [['light', LIGHT], ['dark', DARK], ['print', PRINT]]) {
+    for (const [fg, bg, min] of pairs) {
+      assert.ok(set[fg] && set[bg], `${name}: ${fg} and ${bg} are defined`);
+      const r = ratio(set[fg], set[bg]);
+      assert.ok(r >= min, `${name}: ${fg} on ${bg} is ${r.toFixed(2)}, needs ${min}`);
+    }
+  }
+});
+
 // Why: the contrast test is only as good as its maths; a wrong formula would pass every pair.
 test('the contrast helper matches known WCAG ratios', () => {
   assert.equal(Math.round(ratio('#000', '#fff') * 100) / 100, 21);

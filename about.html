@@ -20,30 +20,34 @@
   .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; }
   .brand img { height: 30px; width: auto; display: block; }
   .wordmark, h1, h2 { font-family: var(--font-display); }
-  .wordmark { font-weight: 800; font-style: italic; font-size: 24px; letter-spacing: -0.02em; }
-  .btn { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font-weight: 600; text-decoration: none; }
+  .wordmark { font-weight: var(--fw-5); font-style: italic; font-size: 24px; letter-spacing: -0.02em; }
+  /* Buttons: secondary (.btn) and primary (.btn.primary), with the app's hover and pressed states (spec V5). */
+  .btn { display: inline-flex; align-items: center; min-height: var(--h-lg); padding: 0 var(--s4); border-radius: var(--r-lg); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font-weight: var(--fw-3); text-decoration: none; }
+  .btn:hover { background: var(--sunk); border-color: var(--text-2); }
+  .btn:active { background: var(--border); }
   .btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-  .hero { padding: 40px 0 24px; }
-  h1 { font-size: clamp(34px, 6vw, 52px); line-height: 1.05; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 16px; }
+  .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn.primary:active { background: var(--accent-press); border-color: var(--accent-press); }
+  .hero { padding: 40px 0 var(--s5); }
+  h1 { font-size: clamp(34px, 6vw, 52px); line-height: 1.05; font-weight: var(--fw-5); letter-spacing: -0.03em; margin: 0 0 var(--s4); }
   h1 .aff { color: var(--aff); } h1 .neg { color: var(--neg); }
-  .lead { font-size: 19px; color: var(--text-2); margin: 0 0 24px; max-width: 620px; }
+  .lead { font-size: 19px; color: var(--text-2); margin: 0 0 var(--s5); max-width: 620px; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   section { padding: 28px 0; border-top: 1px solid var(--border); }
-  h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; }
-  p { margin: 0 0 12px; }
-  ul { margin: 0 0 12px; padding-left: 22px; }
+  h2 { font-size: 24px; font-weight: var(--fw-5); letter-spacing: -0.01em; margin: 0 0 var(--s3); }
+  p { margin: 0 0 var(--s3); }
+  ul { margin: 0 0 var(--s3); padding-left: 22px; }
   li + li { margin-top: 6px; }
-  .shot { border: 1px dashed var(--border-ctl); border-radius: 12px; padding: 40px 20px; text-align: center; color: var(--text-3); background: var(--panel); margin-top: 8px; }
-  .steps { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-  .step { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-  .step b { font-family: var(--font-display); font-size: 18px; display: block; margin-bottom: 4px; }
-  .who { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-  .who div { padding-left: 14px; box-shadow: inset 3px 0 0 var(--border-ctl); }
-  .who div:nth-child(1) { box-shadow: inset 3px 0 0 var(--aff-fill); }
-  .who div:nth-child(2) { box-shadow: inset 3px 0 0 var(--neg-fill); }
+  .shot { border: 1px dashed var(--border-ctl); border-radius: var(--r-xl); padding: 40px 20px; text-align: center; color: var(--text-3); background: var(--panel); margin-top: var(--s2); }
+  .steps { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .step { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--s4); }
+  .step b { font-family: var(--font-display); font-size: 18px; display: block; margin-bottom: var(--s1); }
+  /* "Who it is for": plain equal cards, the same as .step. No side bars, and no Aff or Neg colour (those are data only). */
+  .who { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .who div { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--s4); }
   /* A placeholder: text Connor still has to write. Easy to spot, easy to search for ("TODO"). */
-  .todo { background: var(--caution-tint); color: var(--caution); border-radius: 4px; padding: 0 4px; font-weight: 600; }
-  footer { border-top: 1px solid var(--border); padding: 24px 0 40px; color: var(--text-3); font-size: 14px; }
+  .todo { background: var(--caution-tint); color: var(--caution); border-radius: var(--r-sm); padding: 0 var(--s1); font-weight: var(--fw-3); }
+  footer { border-top: 1px solid var(--border); padding: var(--s5) 0 40px; color: var(--text-3); font-size: var(--fs-2); }
   footer a { color: var(--text-3); }
 </style>
 </head>

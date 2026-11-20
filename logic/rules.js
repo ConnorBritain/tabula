@@ -358,7 +358,7 @@
   }
   // V7 Which flow columns get the "Now" and "Viewing" marks. runId: the speech the clock times (or null);
   // curId: the speech on screen. CX speeches have no column. Returns column indexes or null:
-  // current = the column with the bar and outline (the running speech, else the one on screen),
+  // current = the column with the 2 px outline (the running speech, else the one on screen),
   // now = the running column (only while a clock runs), viewing = a different column the judge looks at.
   function flowMarks(runId, curId) {
     const runCol = runId ? speechColumn(runId) : null;

@@ -121,14 +121,19 @@ function renderFlow() {
   markFlowColumns();
   paintAllFlowMarks();
 }
-// The running speech's column gets a bar under its header, a "Now" label and a thin outline; a different column
-// the judge is looking at says "Viewing" (V7, spec 1.2). Only classes and labels change, so the caret stays put.
+// The running speech's column gets a 2 px outline on all four sides and a filled "Now" pill; a different column
+// the judge is looking at gets an outline "Viewing" pill (V7, spec 1.2). No bar (docs/design/NO-STRIPES.md).
+// Only classes and labels change, so the caret stays put.
 function markFlowColumns() {
   const m = L.flowMarks(R.run ? R.run.id : null, sp().id);
   document.querySelectorAll('#flow .col').forEach((col, i) => {
     col.classList.toggle('is-current', i === m.current);
     const mark = col.querySelector('.col-mark');
-    if (mark) mark.textContent = i === m.now ? 'Now' : i === m.viewing ? 'Viewing' : '';
+    if (mark) {
+      mark.textContent = i === m.now ? 'Now' : i === m.viewing ? 'Viewing' : '';
+      mark.classList.toggle('is-now', i === m.now);
+      mark.classList.toggle('is-viewing', i === m.viewing && i !== m.now);
+    }
     const ta = col.querySelector('textarea');
     if (ta) ta.placeholder = i === m.current ? 'Type here' : '';
   });
