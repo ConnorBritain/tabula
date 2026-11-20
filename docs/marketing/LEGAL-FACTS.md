@@ -20,7 +20,7 @@ The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/pri
 | Changes to documents | 30 days' notice for material changes | Terms, Privacy |
 | Renewal reminder | 7 to 30 days before each yearly renewal (several state auto-renewal laws need a set window) | Terms §8, Refunds §5 |
 | Trial end | Ends after 7 days or 8 rounds, whichever comes first; does not convert to paid | Terms §7 |
-| Credit expiry | Packs: 12 months. Monthly Pass: rolls over while subscribed, cap 1,500 credits, expires at the end of the last paid period. Yearly Pass: end of term. Programs: July 31 | Terms §6, Refunds §4 |
+| Credit expiry | Packs: 12 months. Monthly Pass: rolls over while subscribed, up to a cap set on the plans page (number not public yet), expires at the end of the last paid period. Yearly Pass: end of term. Programs: July 31 | Terms §6, Refunds §4 |
 | Statement descriptor | "TABULA DEBATE" | Refunds |
 | Chargebacks | Hosted AI may be suspended and unspent credits removed; the free app keeps working | Terms, Refunds |
 | Program refunds | None, unless a signed school agreement says otherwise | Refunds §7 |
