@@ -229,7 +229,7 @@ Allowed = fine in a competitive round where devices are allowed. Practice-only =
 
 - **Names stay out of AI prompts.** Use the judge app's anonymize step (`L.anonymize` / `L.deanonymize` in `logic.js`): debater names become 1A/2A/1N/2N, team names become "the Aff team"/"the Neg team", and names go back in on the device.
 - Extend it to the locker: school names and author-of-file fields are stripped from text sent to AI.
-- The server keeps only account, ledger, and usage counts. No audio, no transcripts, no flows, no locker files. No student names in usage rows, AI prompts or logs; Program and school-space accounts store a display name (§10e).
+- The server keeps only account, ledger, and usage counts. No audio, no transcripts, no flows, no locker files. No student names in usage rows, AI prompts or logs. Full field list: §10e, `docs/library/TRACKS.md` §5.5 and §6.4, and `BUSINESS-PLAN.md` §10 row 11.
 - FERPA and state student-privacy laws: have the SDPC National DPA ready before any school signs a Program.
 - No training on student data. No ads. No sale of data.
 - Voiceprints (telling speakers apart): not in the Student Edition. Biometric law risk (IL BIPA, TX CUBI, WA).
@@ -390,7 +390,7 @@ Everything in §1 to §9 can run on the device. The connected roles cannot. They
 | Assignment storage | To carry an assignment to a student and the work back. |
 
 **Privacy rules for the server:**
-- **Data minimization.** Store only: account (email, role), program and team membership, assignments, written feedback, and the work a student chooses to turn in. For Debate Library tracks, `docs/library/TRACKS.md` §6.4 lists the extra fields (birth year, last sign-in, badges, consent records). **No audio. No full transcripts by default. No locker files** unless a team turns on sharing. No device or activity tracking.
+- **Data minimization.** Store only: account (email, role), program and team membership, assignments, written feedback, and the work a student chooses to turn in. For Debate Library tracks, `docs/library/TRACKS.md` §5.5 (adult judge accounts) and §6.4 (students) list the extra fields (birth year, last sign-in, badges, consent records). **No audio. No full transcripts by default. No locker files** unless a team turns on sharing. No device or activity tracking.
 - **Names.** The server needs a display name for coaches to know their students. AI prompts still never get names (§5c).
 - **FERPA.** When a school uses a Program or a free school space (`docs/library/TRACKS.md` §6), student records are education records. Sign the SDPC National DPA. The school controls the program data. Tabula acts as a "school official" under the DPA.
 - **COPPA.** No accounts under 13. Students 13 to 17 join only through a program with school consent, or with parent consent.
@@ -421,7 +421,7 @@ All five steps are on the roadmap (owner decision, §10i). Build in this order. 
 
 1. **Coach practice round.** A coach runs a practice round in the judge app and saves the RFD and comments to a file the coach gives the student. No server. (Uses the existing judge app.)
 2. **Student record on the device.** The student imports that file and any judge feedback file into a "My feedback" list. Export works. No server.
-3. **Accounts, program, and team join codes.** The first server step. Only membership: no content yet.
+3. **Accounts, program, and team join codes.** The first server step. Only membership: no content yet. One school-space entity serves both the paid Program and the free school space (a free-tier flag; `docs/library/TRACKS.md` §6). Narrow Debate Library track assignment comes after this step and before step 4.
 4. **Assignments.** Coach makes one; student turns in practice work; coach writes feedback.
 5. **Judge feedback inbox.** Opt-in on both sides, with the round code. End-to-end encrypted from day one. This comes last because it touches judges outside the program and needs the most privacy care.
 

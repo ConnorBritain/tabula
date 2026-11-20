@@ -1,6 +1,6 @@
-# Debate Library: guided tracks, checks and completion badges (design doc, draft 2)
+# Debate Library: guided tracks, checks and completion badges (design doc, draft 3)
 
-Status: owner decisions recorded (§9). Ready to build Phase 1. Date: 2026-11-19. Docs only: nothing here is built.
+Status: owner decisions recorded (§9). **Phase 1 (first and second release) is built** (2026-11-19): `tracks.json`, the 6 parent judge checks (status: draft, waiting for coach review), `learn-tracks.mjs`, `check.js`, track pages, certificate, save/load/clear progress. The parent judge track shows as a draft (noindex, out of the sitemap) until each check has `status: reviewed`. Phases 2 and 3 are not built.
 Related docs: `docs/library/PLAN.md` (the library), `PLAN.md` (the app), `docs/STUDENT-EDITION.md` §10 (coach and student roles), `BUSINESS-PLAN.md` §10 (legal table; private, git-ignored).
 
 ## 0. Summary
@@ -34,32 +34,32 @@ Related docs: `docs/library/PLAN.md` (the library), `PLAN.md` (the app), `docs/S
 
 Each track lists library slugs from `docs/library/PLAN.md` §2, in order. Each step has a check. A step whose page is not written yet is marked *(planned)*.
 
-**Rule: a track goes live only when every step page exists, has passed coach review, and has a check.** A track with "coming soon" steps cannot be finished, so it cannot give a badge. Until then, the reading path on the library home page does the job.
+**Rule: a track goes live only when every step page exists and every step's check has `status: reviewed`.** The build enforces this (`trackState()` in `learn-tracks.mjs`; §3.2). Coach approval of the pages themselves is tracked in `docs/library/PLAN.md` §10, not by the build. A track with "coming soon" steps cannot be finished, so it cannot give a badge. Until then, the reading path on the library home page does the job.
 
-### 2.1 New parent judge (about 45 minutes: the 30 minutes of reading path A plus about 15 for the checks; the optional final check for a badge adds about 10)
+### 2.1 New parent judge (time: the `minutes` field in `tracks.json`; the optional final check for a badge adds about 10 minutes)
 
-Same order as reading path A (`docs/library/PLAN.md` §3). Promise: "You can judge a fair round today."
+Step order lives in `docs/library/tracks.json` (entry `judge`); if this table and that file differ, the file wins. This table gives what each check includes. Promise: "You can judge a fair round today."
 
 | # | Slug | The check tests that you can... |
 |---|---|---|
-| 1 | `debate-101` | Name which speech comes next, and which side gives it, from a short round story. |
-| 2 | `first-round-judge` | Choose what to do in a common room problem (a team asks you to time; a debater runs over time). |
-| 3 | `how-to-flow` | Find the dropped argument on a short flow. |
-| 4 | `speaker-points` | Say which of two described speeches deserves higher points, and why (no point scale, because scales vary by league). |
-| 5 | `ballot-and-rfd` | Pick the RFD that explains the decision, from three choices. Also a self-check (§3.3). |
-| 6 | `impact-calculus` | Choose which impact a team weighed better, and why. (The check covers only the plain summary, as path A says.) |
+| 1 | `debate-101` | Name which speech comes next, and which side gives it, at four points in the round. |
+| 2 | `first-round-judge` | Choose what to do in common judge problems: keeping time, a new argument in the 2AR, what to vote on, and being confused at the end. |
+| 3 | `how-to-flow` | Find the dropped part of a DA on a short flow, say what a drop means, why answers are lined up, and what to write. |
+| 4 | `speaker-points` | Say which of two described speakers deserves higher points, and why (no point scale, because scales vary by league); points apart from the win; what points rate. |
+| 5 | `ballot-and-rfd` | Pick the RFD that explains the decision, where to start deciding, and what to do when no one weighed. Also a self-check: write a short RFD on a topicality flow (§3.3). |
+| 6 | `impact-calculus` | Name the measure a team uses (size, likelihood, timing), and choose which team weighed better. (The check covers only the plain summary, as path A says.) |
 
-**Ready now:** all 6 pages are written. Only the checks are missing. This is the first track to build.
+**Status:** built (2026-11-19). All 6 pages are approved. The 6 checks are drafts (`status: draft`), so the track is a draft (noindex) until coach review.
 
 ### 2.2 Novice debater (first month)
 
-Same order as reading path B and `PATHS.novice` in `build-learn.mjs`. Promise: "You can run and answer the core arguments."
+Step order lives in `docs/library/tracks.json` (entry `novice`); if this table and that file differ, the file wins. This table gives what each check includes. Promise: "You can run and answer the core arguments."
 
 | # | Slug | The check tests that you can... |
 |---|---|---|
 | 1 | `debate-101` | (Same check as 2.1, step 1.) |
 | 2 | `speeches-and-times` | Say what a speech may and may not do (for example, no new arguments in rebuttals). |
-| 3 | `how-to-flow` | Find the dropped argument on a short flow. |
+| 3 | `how-to-flow` | (Same check as 2.1, step 3.) |
 | 4 | `flow-shorthand` | Read a line of shorthand and say what it means. |
 | 5 | `affirmative-case` | Read a short new case and say which part a given neg attack hits (the plan, the harm, or solvency). |
 | 6 | `stock-issues` | Spot which stock issue a neg answer attacks. |
@@ -67,9 +67,9 @@ Same order as reading path B and `PATHS.novice` in `build-learn.mjs`. Promise: "
 | 8 | `answering-disadvantages` *(planned)* | Pick the answer that is a turn, not just defense. |
 | 9 | `counterplans` | Say whether a CP competes with a given plan. |
 | 10 | `permutations` *(planned)* | Pick the perm that tests competition. |
-| 11 | `topicality` | Read a new plan and a short T shell, and say whether the plan meets the interpretation. |
+| 11 | `topicality` | Read a new plan and a short T shell: find its parts, and say whether the plan meets the interpretation. (One check, shared with 2.8, step 1.) |
 | 12 | `cross-examination` | Pick the CX question that sets up a later argument. |
-| 13 | `impact-calculus` | Weigh two impacts on magnitude and probability. |
+| 13 | `impact-calculus` | (Same check as 2.1, step 6.) |
 | 14 | `rebuttal-strategy` *(planned)* | Choose what the 2NR should go for, from a flow. |
 
 **Ready:** 11 of 14 pages written. Needs 3 wave-2 pages. **Badge:** yes, for students in Phase 3, so this track also needs its own hidden final-check pool (§5.3).
@@ -110,7 +110,7 @@ For judges who have done the parent track, or who judge often.
 | # | Slug | The check tests that you can... |
 |---|---|---|
 | 1 | `judge-paradigms` | Say how two paradigms would decide the same short flow differently. |
-| 2 | `ballot-and-rfd` | Self-check your own RFD against a model (§3.3). |
+| 2 | `ballot-and-rfd` | (Same check as 2.1, step 5, which includes the RFD self-check.) |
 | 3 | `presumption` *(planned)* | Say who wins when nothing changed in the round. |
 | 4 | `turns-case` *(planned)* | Spot a "DA turns case" claim and what it does to the weighing. |
 | 5 | `round-conduct` *(planned)* | Choose the right step when an evidence ethics claim comes up. |
@@ -151,7 +151,7 @@ For judges who have done the parent track, or who judge often.
 
 | # | Slug | The check tests that you can... |
 |---|---|---|
-| 1 | `topicality` | Find the interpretation, violation, standards and voter. |
+| 1 | `topicality` | (Same check as 2.2, step 11.) |
 | 2 | `topicality-interpretation` *(planned)* | Say whether a plan meets an interpretation. |
 | 3 | `topicality-standards` *(planned)* | Match a standard (limits, ground) to the claim it makes. |
 | 4 | `topicality-voters` *(planned)* | Tell competing interpretations from reasonability. |
@@ -161,14 +161,13 @@ For judges who have done the parent track, or who judge often.
 
 ### 2.9 One list for tracks and reading paths
 
-Today `build-learn.mjs` holds the reading paths in `PATHS`. Tracks 2.1 and 2.2 are the same lists. To keep one source:
+Built in Phase 1 (2026-11-19):
 
-- Move the lists into one data file, `docs/library/tracks.json`. Each entry has `id`, `name`, `promise`, `audience` (`judge` or `debater`), `badge` (true or false) and `steps` (slugs).
-- `tracks.json` **replaces** the hard-coded `PATHS` lists. `build-learn.mjs` keeps a `PATHS` export, but builds it from the `judge` and `novice` entries of `tracks.json`. Keep those two IDs as they are today, because the test below and the "Next on your path" box use them.
-- When `tracks.json` exists, `docs/library/PLAN.md` §3 drops its step lists and keeps only each path's promise and audience, plus one line: "The step lists live in `tracks.json`." §2.1 and §2.2 of this doc then point to `tracks.json` too, so the order lives in one place (plus `index.md`, which a test already checks against it).
-- Tracks 2.4 to 2.6 **replace** the Path C branches. Where their order differs from PLAN.md §3 (for example, Fiat comes second in 2.4), the track order wins. Tracks 2.7 and 2.8 are new.
-- The "Next on your path" box keeps today's labels ("New judge path", "New debater path") through a `pathName` field on those two entries, so the existing test keeps working. It shows only for entries that have a `pathName`.
-- The existing test (`index.md` lists each path in `PATHS` order) keeps working. Add a test that every step slug is in the `docs/library/PLAN.md` slug tables.
+- `docs/library/tracks.json` is the **one source** for track step lists. Its schema is checked by `loadTracks()` in `learn-tracks.mjs`; read that, not this doc, for the exact fields.
+- Two fields carry design meaning. `pathName` makes a track also a reading path: the "Next on your path" box shows only for those entries, with labels "New judge path" and "New debater path". `badge` marks a track that will give a badge in Phase 2 or 3, and `audience` (`judge` or `debater`) decides who may earn it (§5.2, §6.2: students never earn a judge badge). Phase 1 reads neither, and `loadTracks()` does not validate them yet. **Phase 2 must validate both**, because a wrong `audience` would weaken a privacy rule.
+- `build-learn.mjs` builds the reading paths from `tracks.json` with `readingPaths(tracks)`. The old hard-coded `PATHS` lists are gone. A test still checks that `index.md` lists each path's written pages in the same order.
+- `docs/library/PLAN.md` §3 points to `tracks.json` for the step lists.
+- Tracks 2.3 to 2.8 are not in `tracks.json` yet. When one is added, its order there wins, and this doc keeps only its check-intent table. Tracks 2.4 to 2.6 replace the PLAN.md §3 Path C branches.
 
 ## 3. Checks
 
@@ -176,17 +175,18 @@ Today `build-learn.mjs` holds the reading paths in `PATHS`. Tracks 2.1 and 2.2 a
 
 - One check file per page: `docs/library/checks/<slug>.md`. A sibling folder keeps check files out of the page list (`isPageFile()` only reads the top folder, and check files have no `slug:` key).
 - A track reuses a page's check. A page has one check, even if it is on three tracks.
-- Checks use the same license as the pages (CC BY-SA 4.0). Coaches may reuse questions.
+- Checks and `tracks.json` use the same license as the pages (CC BY-SA 4.0; `LICENSE.md` names both). Coaches may reuse questions.
 - Each check has 3 to 5 questions. To pass, you get every question right. You can try again at once, as many times as you want. Each answer shows a short "why". The goal is learning, not a score. No score is shown or kept, only "done".
 
 ### 3.2 File format
 
-The format looks like the Markdown the library already uses, so writers need to learn little. The builder needs no new dependency. But it needs a **new, small parser**, `parseCheck()`, because the page renderer `markdown()` would get it wrong: it turns `##` into a page section with an anchor, and it shows `- [x]` as plain text (its list reader has no checkbox rule). `parseCheck()` splits the file on `## `, finds the choices and the `**Why:**` line, and calls the existing `fence()` and `inline()` for each part. Check files are read only from `docs/library/checks/`, never by `loadPages()`.
+The format looks like the Markdown the library already uses, so writers need to learn little. The builder needs no new dependency. But it needs a **new, small parser**, `parseCheck()`, because the page renderer `markdown()` in `build-learn.mjs` is built for topic pages (its list reader has no checkbox rule). `parseCheck()` and the track and check rendering live in `learn-tracks.mjs`. The parser is strict and imports nothing from the builder; the renderer gets the builder's escape, inline and fence helpers passed in. Check files are read only from `docs/library/checks/`, never by `loadPages()`. The parser's error messages are the full rule list; the rules below are the ones writers meet most.
 
 ````markdown
 ---
 page: disadvantages
 version: 1
+status: draft
 ---
 
 ## Which part is missing?
@@ -217,13 +217,16 @@ The 2AC can point at the gap: "No internal link."
 
 Rules:
 
+- Front matter: `page` (the slug, same as the file name), `version` (a whole number), and `status` (`draft` or `reviewed`; default `draft`). **A track is live only when every step's check is `reviewed`** (§2 live rule). A reviewer's approval is what changes a check to `reviewed`. A draft track gets `noindex` and stays out of the sitemap (§3.4).
+- Each check has 3 to 5 questions.
 - `## heading` starts a question. The heading is the short question name.
-- The **last paragraph before the choices** is the question prompt. Paragraphs and flows above it are the setup.
+- The **paragraph right before the choices** is the question prompt. Paragraphs and flows above it are the setup. After the choices, only the `**Why:**` paragraph may follow.
+- Inside a question, use only paragraphs, code fences and the one choice list. No other lists, headings, tables or `>` quotes.
 - A code fence holds a flow. **Every flow has an "In words:" line under it**, because a screen reader reads a flow grid badly.
-- `- [x]` marks a right choice, `- [ ]` a wrong one. One `[x]` is a single-choice question (radio buttons). Two or more is "pick all that apply" (checkboxes).
+- `- [x]` marks a right choice, `- [ ]` a wrong one. One `[x]` is a single-choice question (radio buttons). Two or more is "pick all that apply" (checkboxes), and then the prompt must say "Pick all that apply"; with one right choice it must not. A choice question has 2 to 5 choices. No "all of the above".
 - `**Why:**` starts the explanation. Every question needs one.
 - `version:` goes up when the page or the check changes in a way that matters (§3.5).
-- A `**Self-check:**` block (§3.3) replaces the choices for writing tasks.
+- A `**Self-check:**` block (§3.3) replaces the choices for writing tasks, in exactly this order: task paragraph, `**Self-check:**`, checklist, `**Model answer:**`, `**Why:**`. The task is the paragraph before `**Self-check:**`. Under `**Self-check:**` comes the checklist, written as `- [ ]` items (inside a self-check block these are ticks for the reader, not quiz choices; at least 2 items). Then `**Model answer:**` gives a model answer. It still ends with `**Why:**`.
 
 More examples, to set the bar for writers:
 
@@ -254,7 +257,7 @@ The text you write **never leaves the browser** and is **not saved**. The page c
 
 **Without JavaScript** (and in search results): each question is a plain list of choices, and the answer and the "why" sit in a `<details>` box ("Show the answer"). The page is complete and useful. Nothing is saved.
 
-**With JavaScript:** the page loads one file, `learn/check.js`, with `<script src="../check.js" defer>` (topic pages) or `./check.js` (the home page). **Track pages need a build change:** `relHref()` and `shell()` today know only the home page (depth 0) and topic pages (depth 1). `learn/tracks/<id>/` is depth 2. So `shell()` must take a depth (or base path) for the CSS, script, brand, font, canonical and JSON-LD links. Reserve `tracks` as a slug, so no page `tracks.md` can collide. The CSP allows it, because it is on the same site. The script:
+**With JavaScript:** the page loads one file, `learn/check.js`, with `<script src="../check.js" defer>` (topic pages), `./check.js` (the home page) or `../../check.js` (track pages). Built: `shell()` now takes the page depth, so track pages at `learn/tracks/<id>/` (depth 2) get correct CSS, script, brand, font, canonical and JSON-LD links. `tracks` is a reserved slug, so no page `tracks.md` can collide. The CSP allows it, because it is on the same site. The script:
 
 - turns each question into a `<fieldset>` with a `<legend>` and radio buttons or checkboxes;
 - adds a "Check my answers" button (`type="button"`, not a form submit: the CSP has `form-action 'none'`);
@@ -272,33 +275,34 @@ Size target: `check.js` under 300 lines, no libraries. `learn.css` gets the chec
 
 **New track pages.** The build also makes `learn/tracks/index.html` (all tracks) and `learn/tracks/<id>/index.html` (one track: its promise, steps and links). Without JavaScript, a track page is an ordered list of links. With JavaScript, `check.js` adds a tick next to each finished step and a "Resume" link to the first unfinished one. The library home gets a short "Guided tracks" section that links to `learn/tracks/`.
 
-**Tests to add** (in `build-learn.test.mjs`):
+**Tests** (built in Phase 1; parser and track tests are in `learn-tracks.test.mjs`, page tests in `build-learn.test.mjs`):
 
-- every check's `page:` is a real page, and every question has at least one `[x]` and a "Why";
-- every track step has a check before the track can be marked live;
-- built pages still have no inline script. **This needs an edit to an existing test:** `build-learn.test.mjs` ("built pages hold no runnable script, only JSON-LD data") allows only `<script type="application/ld+json">` tags today, so the new `<script src="../check.js" defer>` tag would fail it. Change it to also allow exactly that tag, and keep it failing on any inline code and any `on*=` handler. The diff stays visible for review;
+- the parser rules in §3.2, the `page:` link to a real page, and the live rule (a track is live only when every check is `reviewed`);
+- built pages hold no inline script. The existing test was edited (the diff is visible): it allows only the JSON-LD data tag and `<script src="…check.js" defer>` (at any depth), and it fails on an `on*=` handler. **Phase 2:** allow `final-check.js` the same way;
 - built pages still pass the freshness test (`learn/` matches the Markdown).
 
-`node check-publish.mjs` already scans every page in `learn/` for `todo` and `href="#"`, so the track pages get those checks. Its remote-script scan lists only `index.html`, `app.js` and `about.html` today: **add `learn/check.js` to that list.**
+**Still open:** the guard test in §5.3 (a subfolder file or a `*.local.md` file in the source folder never reaches `learn/`). The existing "private and planning files are never published" test covers top-level `*.local.md` files only.
 
-The existing tests read every built page. Track pages must pass them too: a 140 to 160 character description, one H1, a canonical URL, the call to action, and working relative links and anchors. Track pages go in `learn/sitemap.xml` (they are public content).
+`node check-publish.mjs` already scans every page in `learn/` for `todo` and `href="#"`, so the track pages get those checks. Its remote-script scan now also covers `learn/check.js` (built). **Phase 2:** add `learn/final-check.js`.
 
-**Local helper.** `bridge.mjs` serves `learn/` only for `.html`, `.css`, `.xml`, `.png` and `.webp` today (`LEARN_TYPES`). Add `.js`, with a test in `bridge.test.mjs`, or the checks do not work through the helper.
+The existing tests read every built page. Track pages must pass them too: a 140 to 160 character description, one H1, a canonical URL, the call to action, and working relative links and anchors. Live track pages go in `learn/sitemap.xml` (they are public content). A draft track (a check not yet reviewed) and the track list while no track is live get `noindex` and stay out of the sitemap.
+
+**Local helper.** Built: `bridge.mjs` now serves `.js` from `learn/` (`LEARN_TYPES`), with a test in `bridge.test.mjs`, so the checks work through the helper.
 
 ### 3.5 Versions
 
-- Progress stores the check `version` for each step.
-- If the version goes up, the step stays done, but its tick shows "Page updated: review". The track stays finished. Old badges stay valid.
+- **Built:** progress stores the check `version` for each step. When the check's version is newer, the check's status line says the page was updated since then.
+- **Not built yet:** a "Page updated: review" note on the track-page tick, and track versions. The rule stays: the step stays done, the track stays finished, and old badges stay valid.
 - A big rewrite of a track (steps added or removed) gets a new track version. A badge names the track version it was earned on.
 
 ## 4. Phase 1: tracks with progress in the browser (no account)
 
 **What the user gets**
 
-The **first release** is small: checks, ticks on track pages, "Resume", and "Clear my progress". The certificate and export/import can follow in a **second Phase 1 release**. (The name "Phase 1b" means only the novice track, §10.) Versions (§3.5) can wait until a check first changes.
+**Built (2026-11-19): both releases below.** The **first release** was: checks, ticks on track pages, "Resume", and "Clear my progress". The certificate and export/import can follow in a **second Phase 1 release**. (The name "Phase 1b" means only the novice track, §10.) For versions, see §3.5 (part built).
 
 - Track pages with ticks, a "Resume" link, and a progress line ("4 of 6 steps done").
-- A **certificate of completion you print yourself.** At the end of a track, the track page offers "Print a certificate". It is a view that `check.js` draws on the track page, with print styles in `learn.css`. It is not a separate built page. You type the name you want on it. The name stays in the page and is never saved or sent. The certificate says what it is: "Completed the Tabula *New parent judge* track. A free, self-paced course from Tabula. Not a certification or endorsement by any league or tournament. Not verified." The user can print it or save it as a PDF.
+- A **certificate of completion you print yourself.** At the end of a track, the track page offers "Print a certificate". It is a view that `check.js` draws on the track page, with print styles in `learn.css`. It is not a separate built page. You type the name you want on it. The name stays in the page and is never saved or sent. The certificate says what it is: "completed the Tabula *New parent judge* track. A free, self-paced course from the Tabula Debate Library. Not a certification or endorsement by any league or tournament. Not verified." The user can print it or save it as a PDF.
 - **Export and import** progress as a small file, to move to another device. **Clear my progress** removes it all.
 
 **What is stored, and where**
@@ -314,7 +318,7 @@ The **first release** is small: checks, ticks on track pages, "Resume", and "Cle
 - On a **shared school computer**, the next user sees the progress. The track page shows a short note and the "Clear my progress" button.
 - A browser in private mode, or one that blocks storage, loses progress when it closes. `check.js` must work when storage throws (wrap every read and write in `try/catch`; the check still marks answers, it only cannot save).
 
-**Size:** about 1 to 1.5 weeks of code (track data file, check parser and renderer, `check.js`, track pages, certificate page, tests). Writing the checks for the parent judge track: about 1 to 2 hours per check, then coach review. **First release: the parent judge track only (6 checks).**
+**Size:** about 1 to 1.5 weeks of code (track data file, check parser and renderer, `check.js`, track pages, certificate page, tests). Writing the checks for the parent judge track: about 1 to 2 hours per check (about 2 days for 6), then coach review, which is a wait, not work. **First release: the parent judge track only (6 checks).**
 
 ## 5. Phase 2: judge completion badge on an account (adults only)
 
@@ -350,9 +354,9 @@ Decided (§9, item 3): the badge needs a **server-graded final check** from day 
 
 **Pool leaks.** With no limit on tries, someone could take the check many times to collect the pool. The 5-minute wait slows this. The **growing wait** (5, then 15, then 60 minutes after several fails in one day) slows it more, and tries stay unlimited (§9, item 11).
 
-**Pool rules.** No pool question may copy or lightly reword a public per-step check question, because those answers are public. The private-repo review checks this for every new question. The pool's format checks and tests live in the private repo. The server may reuse `parseCheck()` from this repo while Pattern Engine LLC holds all of its copyright; if outside contributions change that, write a separate parser. Final-check questions follow the same writing rules as other checks (§3.2), but they live in the **private server repo** (or server storage seeded from it), never in this repo. This repo is, or will be, public (AGPL on GitHub), so any committed file, and its git history, is public. The pool is also **not** CC BY-SA and not part of the library license (`LICENSE.md` covers the Markdown in `docs/library/`), so keep it out of that folder.
+**Pool rules.** No pool question may copy or lightly reword a public per-step check question, because those answers are public. The private-repo review checks this for every new question. The pool's format checks and tests live in the private repo. The server may reuse the question rules of `parseCheck()` (in `learn-tracks.mjs`, with no builder imports) while Pattern Engine LLC holds all of its copyright; if outside contributions change that, write a separate parser. **Not built:** `parseCheck()` today needs 3 to 5 questions per file and has no section tag. In Phase 2, either split the pool into files of 3 to 5 questions (one file per section, so the file names the section), or give `parseCheck()` a limits option and a `section` field. Final-check questions follow the same writing rules as other checks (§3.2), but they live in the **private server repo** (or server storage seeded from it), never in this repo. This repo is, or will be, public (AGPL on GitHub), so any committed file, and its git history, is public. The pool is also **not** CC BY-SA and not part of the library license (`LICENSE.md` covers the Markdown in `docs/library/`), so keep it out of that folder.
 
-**Guard.** When Phase 1 is built, add a test to `build-learn.test.mjs` that puts a subfolder file and a `*.local.md` file in the source folder and checks that neither reaches `learn/`. Today only code habits protect this (`loadPages()` reads one folder, `isPageFile()` skips `*.local.md`). Each question is tagged with its section (a page slug), so the server can name weak sections. Writers add new questions and retire old ones each season, because answers can leak over time. The pool gets the same coach review as the pages.
+**Guard (still open).** Add a test to `build-learn.test.mjs` that puts a subfolder file and a `*.local.md` file in the source folder and checks that neither reaches `learn/`. Today only code habits protect this (`loadPages()` reads one folder, `isPageFile()` skips `*.local.md`). Each question is tagged with its section (a page slug), so the server can name weak sections. Writers add new questions and retire old ones each season, because answers can leak over time. The pool gets the same coach review as the pages.
 
 **Code size.** Phase 2 browser code (the final check and the cool-down timer) goes in its own file, for example `learn/final-check.js`, so `check.js` stays small.
 
@@ -366,7 +370,7 @@ Decided (§9, item 3): the badge needs a **server-graded final check** from day 
   - the date;
   - the line from §7, after "Completed this course and passed its final check.": "A free, self-paced course from Tabula. Not a certification or endorsement by any league or tournament."
 - **The judge controls it.** The judge can turn the link off (revoke it) or delete the badge. A revoked link says "This link is no longer active" and nothing else.
-- **No search engines.** Verify pages send an `X-Robots-Tag: noindex` header (`_headers` today has one rule for all paths, so add one for `/v/*`), and they are left out of `learn/sitemap.xml`. Cloudflare Pages applies every matching rule, so the site CSP from `/*` must still reach `/v/*`. Add a test that checks it. There is no list or search of badge holders.
+- **No search engines.** Verify pages send an `X-Robots-Tag: noindex` header (`_headers` today has one rule for all paths, so add one for `/v/*`), and they are left out of `learn/sitemap.xml`. Verify pages are made by server code (Pages Functions or a Worker), and Cloudflare applies `_headers` only to static files, not to those responses. So the server code sets the CSP, `X-Content-Type-Options` and `X-Robots-Tag` itself, and a server test checks that response. There is no list or search of badge holders.
 - **No scripts on verify pages.** They are plain server-made HTML. The display name is escaped, because the page is on the same origin as the judge's API keys.
 - **QR code.** The server makes it as an SVG, or a small generator goes in `vendor/`. No third-party script (the CSP blocks it anyway).
 - **Where a judge can put it:** in their judge paradigm text (for example on Tabroom), in an email to a tournament, or as a QR code on the printed certificate.
@@ -409,7 +413,7 @@ Students are minors, so this phase follows the coach and student rules in `STUDE
 - **Private by default.** Only the student sees their badges.
 - **No public student profiles.** No public verify links for students. No public pages with a student's name or badges. Nothing is indexed by search engines.
 - **Sharing is the student's choice, and narrow.** A student in a school space can share any of their badges with their coach there, for an assigned track or not. A student can print a certificate (the name is typed at print time and not stored, as in Phase 1) and hand it to anyone.
-- **Coach view.** A coach sees track completion only for a track the coach **assigned**, and only as "done" or "not done". No scores, no tries, no time spent, no "who is behind" list. This matches the assignment rules in `STUDENT-EDITION.md` §10d.
+- **Coach view.** A coach sees track completion only for a track the coach **assigned**, or a badge the student chose to share (a student opt-in, the one exception), and only as "done" or "not done". No scores, no tries, no time spent, no "who is behind" list. This matches the assignment rules in `STUDENT-EDITION.md` §10d.
 - **No judge badges for students** (§9, item 10). Student accounts can earn debater-track badges only.
 - **No gamification.** No streaks, points, leaderboards, levels, or "badges for logging in" (`STUDENT-EDITION.md` §10c). A badge is only "finished this track".
 - **No automatic messages** (retention reminders excepted) about progress to the student, the coach, or parents.
@@ -434,23 +438,24 @@ Get a legal review before Phase 3 launches. The age-design laws change often and
 
 | Stored | For |
 |---|---|
-| Account ID, email, birth year, last sign-in date | Every student account |
+| Account ID, email, birth year | Every student account |
+| Last sign-in date | Parent-path accounts (and adult accounts, §5.5); set when a school-path account moves to the parent path |
 | Display name, school-space membership, assigned tracks, done or not done | School path only |
 | Parent email, consent date, notice version; a light parent account (§9, item 15) | Parent path only |
 | Badges: track ID, track version, date | Both paths |
 | Sign-in provider and that provider's user ID; during a final check, the attempt token, served question IDs and retry-wait state (same rules as §5.5) | Both paths |
 
-Not stored: final-check answers, time on pages, device data, activity trails. "Last sign-in date" is the only activity data, and it exists only to run the inactivity deletion rules (§6.4, account-life rules). Birth year (no month or day) exists only to block under-13 sign-up and to end parent consent at 18.
+Not stored: final-check answers, time on pages, device data, activity trails. "Last sign-in date" is the only long-lived activity data, and it exists only to run the inactivity deletion rules (§5.5 for adults, §6.2 "Retention" for the parent path). Birth year (no month or day) exists only to block under-13 sign-up and to end parent consent at 18.
 
 **Account-life rules** (owner decisions, 2026-11-19; §9, items 15 to 18):
 
 - **Parent account (data rights only).** The consenting parent gets a light account, with emailed-link sign-in. It shows only: a plain list of what is stored, export, delete, and withdraw consent. It shows no progress, no badge view beyond that list, and sends no alerts except the retention reminders. So it is not a parent dashboard (`STUDENT-EDITION.md` §10i item 5). It is deleted with the student's account.
-- **Consent record after deletion.** Keep the consent record (parent email, date, notice version) for 3 years after the account is deleted, as proof of consent, then delete it. It holds no student data.
-- **Turning 18.** Every student account stores a **birth year**. In the year the student turns 18, at the start of the next season, the account becomes an adult account, and the parent link and parent account end (with a notice to both). A school-space account stays in its space until the season ends.
-- **When school consent ends** (§9, item 20). If the school space is deleted, or the student leaves it, the student has **30 days** to add parent consent and move to the parent path, with reminders and an export link. If not, the account is deleted. The student's own badges (§6.4, moving rule) move with the account; school-space badges stay with the school until the space is deleted.
+- **Consent record after deletion.** Keep the consent record (parent email, date, notice version, and the deleted account's random ID) for 3 years after the account is deleted, as proof of consent, then delete it. The random ID ties the record to one account. The record holds no student name, email or birth year.
+- **Turning 18.** Every student account stores a **birth year**. In the year the student turns 18, at the start of the next season, the account becomes an adult account, and the parent link and parent account end (with a notice to both). At that point the birth year is deleted (adults store none, §8.3), and the adult rules apply, including the 24-month inactivity rule (§5.5). A school-space account stays in its space until the season ends. Exact check: an account is 18+ when the current year minus the birth year is 19 or more; when it is exactly 18, the account asks once "Have you had your 18th birthday?".
+- **When school consent ends** (§9, item 20). If the school space is deleted, or the student leaves it, the student has **30 days** to add parent consent and move to the parent path, with reminders and an export link. If not, the account is deleted. Reminders go 30 days, 7 days and 0 days before the deadline. If the account moves to the parent path, the student's own badges (moving rule, below) move with it. If the account is deleted, those badges survive only in the export the student can download during the 30 days. School-space badges stay with the school until the space is deleted.
 - **Moving between paths.** Badges earned before joining a school space stay the student's. Badges earned inside the school space are the school's data (the student keeps a copy in the export). Leaving a school space keeps the student's own badges.
 
-**Size:** about 4 to 6 weeks of code **after** these exist: accounts (round packs, §9 item 4), join codes (`STUDENT-EDITION.md` §10h step 3), Phase 2 server grading, and the novice track's hidden pool (Phase 1b). The free school space and a paid Program's space are **one thing**, built once in §10h step 3, with a free-tier flag. Phase 3 adds only the narrow track assignment (assign a track, see done or not done), the badge view, the age gate and the parent flow. It does not need the full assignment system (§10h step 4). The work: the age gate, the free school space, the parent-consent flow with notice and records, the light parent account, retention reminder jobs, the coach view, and the badges. Plus legal review and the data agreement.
+**Size:** about 4 to 6 weeks of code **after** these exist: accounts (round packs, §9 item 4), join codes (`STUDENT-EDITION.md` §10h step 3), Phase 2 server grading, and the novice track's hidden pool (Phase 1b). The free school space and a paid Program's space are **one thing**, built once in §10h step 3, with a free-tier flag (`STUDENT-EDITION.md` §10h now says so). The narrow track assignment sits between steps 3 and 4. Phase 3 adds only the narrow track assignment (assign a track, see done or not done), the badge view, the age gate and the parent flow. It does not need the full assignment system (§10h step 4). The work: the age gate, the free school space, the parent-consent flow with notice and records, the light parent account, retention reminder jobs, the coach view, and the badges. Plus legal review and the data agreement.
 
 ## 7. Naming: what to call a badge
 
@@ -466,7 +471,7 @@ Do not say (unless a league endorses it in writing):
 - "accredited", "licensed", "qualified", "official", "approved"
 - anything that suggests a league, NSDA, a state association, or a tournament stands behind it
 
-Every badge, certificate and verify page carries the line: "A free, self-paced course from Tabula. Not a certification or endorsement by any league or tournament."
+Every badge, certificate and verify page carries at least this line: "A free, self-paced course from Tabula" (or "from the Tabula Debate Library"), then "Not a certification or endorsement by any league or tournament." The built certificate uses the Debate Library form. Phase 2 verify pages must use the same wording.
 
 Talk to leagues (a state association or NSDA) only **after** the parent judge track has passed both coach reviews and been used for one season (§9, item 7).
 
@@ -502,7 +507,7 @@ The final-check grading, the retry wait and the hidden pool **cannot** wait: the
 
 ### 8.3 Note for Phase 3 sign-in
 
-Phase 3 sign-up asks for the user's birth year and refuses anyone under 13. A user aged 13 to 17 goes to the school or parent consent step (§6.1) before the account opens. Adults (Phase 2) only confirm 18+; no birth year is stored for them.
+Phase 3 sign-up asks for the user's birth year and refuses anyone under 13. Exact check: if the current year minus the birth year is 14 or more, go on; if it is 13, ask "Have you had your 13th birthday?" and go on only on yes; if it is less, refuse. Counsel should confirm this gate (it is the COPPA gate). A user aged 13 to 17 goes to the school or parent consent step (§6.1) before the account opens. Adults (Phase 2) only confirm 18+; no birth year is stored for them.
 
 School Google and Microsoft accounts for students under 18 often need the school's IT admin to approve a third-party app before sign-in works. Plan for a short "how to approve Tabula" page for school admins.
 
@@ -524,7 +529,7 @@ School Google and Microsoft accounts for students under 18 often need the school
 14. **Coaches see a real display name** for each student in a school space. `BUSINESS-PLAN.md` §10 row 11 is amended to match (§6.3).
 15. **Parents get a light account for data rights only:** see what is stored, export, delete, withdraw consent. No progress view, no alerts (§6.4).
 16. **Consent records are kept 3 years** after the account is deleted, then deleted.
-17. **Every student account stores a birth year** (not month or day). It blocks under-13 sign-up and ends parent consent at 18.
+17. **Every student account stores a birth year** (not month or day). It blocks under-13 sign-up and ends parent consent at 18. A one-time "Have you had your birthday?" question settles the edge year (§8.3, §6.4).
 18. **Badges split by where they were earned** when a student moves between the parent path and a school space (§6.4).
 19. **Inactive judge accounts are deleted 24 months after the last sign-in**, with reminders and an export link (§5.5).
 20. **When school consent ends** (space deleted, or the student leaves), the student has 30 days to add parent consent. If not, the account is deleted (§6.4).
@@ -533,11 +538,14 @@ School Google and Microsoft accounts for students under 18 often need the school
 
 | Phase | Work | Rough size | Depends on |
 |---|---|---|---|
-| **1** | `tracks.json`, check parser and renderer, `check.js`, track pages (with the `shell()` depth change), clear, tests, `bridge.mjs` `.js` type, `check-publish.mjs` scan; 6 parent judge checks. Second release: certificate view, export, import | 1 to 1.5 weeks of code, plus about 1 week to write the checks | Coach review of the 6 checks (§2 live rule) |
+| **1** | **Built 2026-11-19:** `tracks.json`, `learn-tracks.mjs` (parser and renderer), `check.js`, track pages, the `bridge.mjs` and `check-publish.mjs` changes, `TRACKS.md` excluded from publishing, `LICENSE.md` extended, the 6 parent judge checks, the certificate and save/load/clear. **Open:** the guard test (§5.3); the track-tick version note (§3.5) | Done | To go **live**: coach review of the 6 checks, then each check set to `status: reviewed`. The 6 pages are approved (`docs/library/PLAN.md` §10). |
 | **1b** | Novice track: 11 new checks (3 are shared with the judge track) | About 2 weeks of writing and review. The 3 wave-2 pages add about 2 to 3 weeks. Its hidden final-check pool (for Phase 3 student badges) adds about 1 to 2 weeks. | The 3 wave-2 pages and their coach review |
 | **2** | Judge badge: server-graded final check with retry wait and timer, verify link, revoke and delete, certificate with QR, privacy policy update; hidden pool of about 40 questions | 2 to 3 weeks of code, plus 1 to 2 weeks to write and review the pool | Round-pack accounts (§8). No date until those are scheduled. |
 | **3** | Free student badges: age gate, free school space, parent-consent flow, coach "assigned track done" view, export, retention | 4 to 6 weeks of code, plus legal review and the data agreement | Accounts (round packs), join codes (`STUDENT-EDITION.md` §10h step 3), Phase 2 grading, Phase 1b novice pool. No date until accounts are scheduled. |
 
 ## 11. Next step
 
-Build Phase 1 with the parent judge track only: `tracks.json`, the check parser and `check.js`, track pages, and 6 checks. Then write the 3 wave-2 pages for the novice track.
+1. Send the 6 parent judge checks (`docs/library/checks/`) to the two reviewers. They stay unnamed for now.
+2. After each check is approved, set its `status:` to `reviewed` and rebuild. When all 6 are reviewed, the track goes live (indexed, in the sitemap).
+3. Add the guard test from §5.3.
+4. Write the 3 wave-2 pages for the novice track, then its 11 new checks (Phase 1b).
