@@ -292,6 +292,12 @@
   .start-mark { display: block; margin: 0 auto; }
   .start-actions { display: flex; flex-wrap: wrap; gap: var(--s2); justify-content: center; }
   .start-actions .b { display: inline-flex; align-items: center; margin: 0; cursor: pointer; }
+  /* "School for this round" (roles plan step 3): only for a signed-in judge who belongs to a school. */
+  .judging-row { margin: 0 0 var(--s3); }
+  .judging-row[hidden] { display: none; }
+  .judging-row select { max-width: 100%; }
+  .start-panel .start-judging { margin: var(--s4) 0 0; }
+  .start-panel .start-judging p { margin: var(--s1) 0 0; }
   label.b { display: inline-flex; align-items: center; margin: 0; cursor: pointer; color: var(--text); font-size: var(--fs-2); font-weight: var(--fw-3); }
   #tab-flow.starting > :not(.start-panel):not(#round-open) { display: none !important; }
   /* The Flow tab row starts with the Speeches button (spec 1.5); app.js shows it when the pane is not inline. */
@@ -800,6 +806,11 @@
 <section class="tab" id="tab-setup">
   <div class="card" id="round-card">
     <h2>Round</h2>
+    <div class="judging-row" data-judging-row hidden>
+      <label for="judging-for">School for this round</label>
+      <select id="judging-for" class="w-auto" data-judging aria-describedby="judging-help"></select>
+      <p class="muted field-help" id="judging-help" data-judging-help></p>
+    </div>
     <div class="grid">
       <div><label>Tournament</label><input data-bind="tournament"></div>
       <div><label>Round</label><input data-bind="roundName" placeholder="Round 3"></div>
@@ -912,6 +923,11 @@
       <label for="round-open" class="b" id="start-open">Open a round file (.tab)</label>
       <button class="b" id="start-flow">Just start flowing</button>
     </div>
+    <div class="judging-row start-judging" data-judging-row hidden>
+      <label for="start-judging">School for this round</label>
+      <select id="start-judging" class="w-auto" data-judging aria-describedby="start-judging-help"></select>
+      <p class="muted field-help" id="start-judging-help" data-judging-help></p>
+    </div>
   </div>
   <input type="file" id="round-open" accept=".tab,application/json" hidden>
   <div class="flowbar"><button class="b small" id="speeches-btn" type="button" aria-expanded="false" aria-controls="tab-timer" hidden>Speeches</button><div class="flowtabs" id="flow-tabs"></div>
@@ -963,7 +979,8 @@
     <p class="muted help-line">Weigh the round as a judge with this paradigm would. Each paradigm keeps its own saved answer, so switching is free. It only runs again when you click Update. "(yours)" marks the paradigm set in Settings.</p>
     <details id="lens-custom-box" class="mt-3">
       <summary class="muted">My own paradigm (paste the full text)</summary>
-      <textarea id="lens-custom" class="mt-2" rows="6" aria-label="My own paradigm" placeholder="Paste your judging paradigm here."></textarea>
+      <textarea id="lens-custom" class="mt-2" rows="6" aria-label="My own paradigm" placeholder="Paste your judging paradigm here." aria-describedby="lens-custom-note"></textarea>
+      <p class="muted field-help" id="lens-custom-note" hidden>This is the paradigm in your Tabula account. To change it, go to Settings.</p>
     </details>
     <p id="lens-status" class="status-line" role="status" aria-live="polite"></p>
     <div id="lens-out" class="mt-3"></div>
@@ -1067,6 +1084,14 @@
       <div><label for="chunk-sec">Clip length for transcription</label><input type="number" id="chunk-sec" min="4" max="30" step="1" aria-describedby="chunk-sec-help"><p class="muted field-help" id="chunk-sec-help">Seconds, 4–30</p></div>
       <div><label>&nbsp;</label><label class="row check-row"><input type="checkbox" id="live-flow"> Live AI flow during speeches <span class="muted">(one AI call about every 30 s)</span></label></div>
     </div>
+  </div>
+  <div class="card" id="account-card" hidden>
+    <h2>Your paradigm</h2>
+    <p class="muted" id="acct-who"></p>
+    <label for="acct-paradigm">Paradigm</label>
+    <textarea id="acct-paradigm" rows="8" aria-describedby="acct-count" placeholder="Paste your judging paradigm here."></textarea>
+    <div class="row mt-2"><button class="b primary" id="acct-save" type="button">Save to my account</button><span class="muted" id="acct-count"></span></div>
+    <p id="acct-status" class="status-line" role="status" aria-live="polite"></p>
   </div>
   <div class="card" id="appearance-card">
     <h2>Appearance</h2>
@@ -1312,6 +1337,7 @@
 <script src="logic/decide.js"></script>
 <script src="logic/prompts.js"></script>
 <script src="logic/shell.js"></script>
+<script src="logic/account.js"></script>
 <script src="logic.js"></script>
 <script src="providers.js"></script>
 <script src="tour.js"></script>
@@ -1331,6 +1357,7 @@
 <script defer src="js/shell.js"></script>
 <script defer src="js/palette.js"></script>
 <script defer src="js/study.js"></script>
+<script defer src="js/account.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

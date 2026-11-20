@@ -187,12 +187,12 @@ function statusLine(el, name, entry, idle) {
   else if (errs[name]) { tone(el, errColor(errs[name])); el.textContent = L.AI_ERROR_PREFIX.analysis + ' ' + errs[name]; }
   else { tone(el); el.innerHTML = entry ? cacheNote(entry) : '<span class="muted">' + idle + '</span>'; }
 }
-function currentLensKey() { return L.lensKey($('#lens-pick').value, S.customParadigm) + (lvl() === 'expert' ? '' : '|' + lvl()); }
+function currentLensKey() { return L.lensKey($('#lens-pick').value, myParadigm()) + (lvl() === 'expert' ? '' : '|' + lvl()); }
 function renderLensPicker() {
   const sel = $('#lens-pick');
   const cur = sel.value || R.lensPick || R.ai.paradigm || 'policymaker';
   sel.innerHTML = Object.keys(L.PARADIGM_LABELS).map((k) => {
-    const has = R.analysis.lens[L.lensKey(k, S.customParadigm) + (lvl() === 'expert' ? '' : '|' + lvl())] ? ' (saved)' : '';
+    const has = R.analysis.lens[L.lensKey(k, myParadigm()) + (lvl() === 'expert' ? '' : '|' + lvl())] ? ' (saved)' : '';
     const yours = k === (R.ai.paradigm || 'policymaker') ? ' (yours)' : ''; // the paradigm set in Settings (spec 4.9)
     return `<option value="${k}">${escapeHtml(L.PARADIGM_LABELS[k])}${yours}${has}</option>`;
   }).join('');
@@ -213,14 +213,14 @@ function renderAnalysis() {
   renderGlance();
   renderLensPicker();
   // Never overwrite the paradigm box while the judge is typing in it.
-  if (document.activeElement !== $('#lens-custom')) $('#lens-custom').value = S.customParadigm || '';
+  if (document.activeElement !== $('#lens-custom')) $('#lens-custom').value = myParadigm(); // the account's when signed in (js/account.js)
   if ($('#lens-pick').value === 'custom') $('#lens-custom-box').open = true;
   // Lens
   const lens = R.analysis.lens[currentLensKey()];
   $('#lens-go').textContent = L.runVerb(Boolean(lens));
   $('#lens-go').disabled = busy.lens;
   statusLine($('#lens-status'), 'lens', lens, 'Not weighed under this paradigm yet. Click Run.');
-  if ($('#lens-pick').value === 'custom' && !(S.customParadigm || '').trim()) $('#lens-status').innerHTML = '<span class="is-caution">Paste your paradigm below first.</span>';
+  if ($('#lens-pick').value === 'custom' && !myParadigm().trim()) $('#lens-status').innerHTML = acctProfile ? '<span class="is-caution">Your account has no paradigm yet. Add it in Settings.</span>' : '<span class="is-caution">Paste your paradigm below first.</span>';
   const d = lens && lens.data;
   $('#lens-out').innerHTML = d ? `
     <div class="lean ${sideClass(d.winner)}">${e(sideLabel(d.winner))}${d.winner === 'aff' && R.aff.team ? ' (' + e(R.aff.team) + ')' : d.winner === 'neg' && R.neg.team ? ' (' + e(R.neg.team) + ')' : ''} <span class="pill">${e(d.confidence)} confidence</span></div>
@@ -291,9 +291,9 @@ $('#lens-custom').addEventListener('change', (ev) => {
 });
 $('#lens-go').addEventListener('click', () => {
   const key = $('#lens-pick').value;
-  if (key === 'custom' && !(S.customParadigm || '').trim()) { $('#lens-custom-box').open = true; return toast('Paste your paradigm first.'); }
+  if (key === 'custom' && !myParadigm().trim()) { $('#lens-custom-box').open = true; return toast(acctProfile ? 'Add your paradigm in Settings first.' : 'Paste your paradigm first.'); }
   const k = currentLensKey();
-  runTool('lens', L.LENS_TASK, L.LENS_SCHEMA, { paradigm: L.paradigmText(key, S.customParadigm) }, (v) => { R.analysis.lens[k] = v; });
+  runTool('lens', L.LENS_TASK, L.LENS_SCHEMA, { paradigm: L.paradigmText(key, myParadigm()) }, (v) => { R.analysis.lens[k] = v; });
 });
 $('#impact-go').addEventListener('click', () => { const box = LV(); runTool('impacts', L.IMPACT_TASK, L.IMPACT_SCHEMA, null, (v) => { box.impacts = v; }); });
 $('#map-go').addEventListener('click', () => runTool('map', L.MAP_TASK, L.MAP_SCHEMA, null, (v) => {
