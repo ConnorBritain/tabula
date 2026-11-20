@@ -1,7 +1,7 @@
 // Pure logic for the policy judge app. No DOM here, so Node tests can load it.
 // The code lives in logic/, one file per job. This file joins the parts into the one API the page (window.PolicyLogic),
 // the local helper and the tests use. In the page, index.html loads the parts in this order: logic/round.js,
-// logic/audio.js, logic/flow.js, logic/files.js, logic/rules.js, logic/decide.js, logic/prompts.js, logic/shell.js, then this file.
+// logic/audio.js, logic/flow.js, logic/files.js, logic/rules.js, logic/decide.js, logic/prompts.js, logic/shell.js, logic/account.js, then this file.
 // In Node, require('./logic.js') loads the parts itself. A part only uses parts that load before it.
 (function (root) {
   'use strict';
@@ -35,6 +35,8 @@
     EVAL_SCHEMA, buildEvalPrompt, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM, buildLiveFlowPrompt } = part('prompts');
   const { chipText, chipTip, CHIP_NAME_MS, chipNameDue, NET_TIP, netNote, speechLine, clockStatus, prepPausesLine,
     stepSpeechState, studyOn, studyMark, studyResult } = part('shell');
+  const { PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
+    activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody } = part('account');
 
   const api = {
     SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS, PARADIGMS,
@@ -68,6 +70,9 @@
     // Slice 5: shell and reach
     chipText, chipTip, CHIP_NAME_MS, chipNameDue, NET_TIP, netNote, speechLine, clockStatus, prepPausesLine,
     stepSpeechState, studyOn, studyMark, studyResult,
+    // Roles plan step 3: the account paradigm and "Judging for"
+    PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
+    activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PolicyLogic = api;

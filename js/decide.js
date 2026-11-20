@@ -580,7 +580,7 @@ $('#print-x').addEventListener('click', () => printDlg.close());
 $('#print-cancel').addEventListener('click', () => printDlg.close());
 function currentPrintModel(opts) {
   const o = opts || {};
-  const lens = R.analysis.lens[L.lensKey(R.ai.paradigm || 'policymaker', S.customParadigm) + (lvl() === 'expert' ? '' : '|' + lvl())];
+  const lens = R.analysis.lens[L.lensKey(R.ai.paradigm || 'policymaker', myParadigm()) + (lvl() === 'expert' ? '' : '|' + lvl())];
   const imp = LV().impacts && LV().impacts.data;
   const km = L.keyMoments(R.analysis.map && R.analysis.map.data).map((k) => k.text).join('\n');
   return L.printModel(R, { ...o, range: ptsRangeNow(), liveEval: LV().liveEval && LV().liveEval.data,

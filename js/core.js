@@ -146,6 +146,7 @@ function showTab(id) {
   if (place === 'ai') $('#settings-btn').setAttribute('aria-current', 'page'); else $('#settings-btn').removeAttribute('aria-current');
   if (id === 'ballot') renderBallot();
   if (id === 'log') { renderLog(); renderBackup(); }
+  if (id === 'setup') renderJudging(); // a speech may have run since: the school is then set for the round
   if (id === 'flow') { renderFlow(); renderInsights(); }
   if (id === 'eval') renderEval();
   if (id === 'analysis') renderAnalysis();
