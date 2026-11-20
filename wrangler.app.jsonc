@@ -1,0 +1,21 @@
+// The hosted app at debate.tabulaspeech.com: static files only, no server code.
+// Build first: node --test && node check-publish.mjs && node build-app.mjs
+// Deploy (owner's yes first): npx wrangler deploy -c wrangler.app.jsonc
+//
+// The route debate.tabulaspeech.com/* sends pages here. The tabula-cloud Worker's
+// route debate.tabulaspeech.com/api/v1/* is more specific, so the API stays there.
+// The proxied placeholder DNS record for debate.tabulaspeech.com stays as it is.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tabula-app",
+  "account_id": "36bbd78435b2291e928a50731e703509",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist/app"
+  },
+  "routes": [
+    { "pattern": "debate.tabulaspeech.com/*", "zone_name": "tabulaspeech.com" }
+  ],
+  "workers_dev": false,
+  "preview_urls": false
+}

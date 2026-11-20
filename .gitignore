@@ -15,3 +15,6 @@ private/
 
 # Wrangler local cache (created when wrangler runs in this folder).
 .wrangler/
+
+# Build output (build-app.mjs). Deployed, never committed.
+dist/
