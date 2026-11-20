@@ -165,3 +165,45 @@ test('a date stamp in a model id does not make an old model look newer', () => {
   assert.equal(P.pickModel('anthropic', ['claude-sonnet-4-5-20250929', 'claude-sonnet-5-5', 'claude-haiku-5-5'], 'deep'), 'claude-sonnet-5-5');
   assert.equal(P.chatModels('anthropic', ['claude-haiku-4-5-20251001', 'claude-haiku-5-5'])[0], 'claude-haiku-5-5');
 });
+
+// Why: an OpenRouter key also starts with "sk-"; read as an OpenAI key, every call would go to the wrong company and fail.
+test('an OpenRouter key is told apart from an OpenAI key', () => {
+  assert.equal(P.detectProvider('sk-or-v1-abc123'), 'openrouter');
+  assert.equal(P.detectProvider('sk-proj-abc123'), 'openai');
+  assert.equal(P.PROVIDERS.openrouter.transcribe, false, 'OpenRouter has no transcription endpoint');
+});
+
+// Why: OpenRouter lists hundreds of models, many of them batch-only, aliases or image models; picking one of those would fail every call.
+test('OpenRouter: picks a usable chat model and builds a chat request', () => {
+  const ids = ['~anthropic/claude-haiku-latest', 'anthropic/claude-haiku-5.5:batch', 'anthropic/claude-opus-5.5', 'anthropic/claude-haiku-5.5', 'google/gemini-3.1-flash-image', 'openai/gpt-oss-120b'];
+  const pick = P.pickModel('openrouter', ids, 'ai');
+  assert.ok(!/[:~]|image|opus/.test(pick), 'picked ' + pick);
+  assert.ok(P.chatModels('openrouter', ids).every((id) => !/[:~]|image/.test(id)));
+  const req = P.buildAIRequest('openrouter', { key: 'K', model: 'anthropic/claude-haiku-5.5', system: 'S', prompt: 'P', docs: [], schema: { type: 'object' }, title: (d) => d.name, maxTokens: 900 });
+  assert.equal(req.url, 'https://openrouter.ai/api/v1/chat/completions');
+  const body = JSON.parse(req.init.body);
+  assert.equal(body.model, 'anthropic/claude-haiku-5.5');
+  assert.equal(body.max_tokens, 900);
+  assert.equal(body.response_format.type, 'json_schema');
+  assert.equal(P.parseAIResponse('openrouter', { choices: [{ message: { content: 'hi' } }] }), 'hi');
+  assert.equal(P.modelsRequest('openrouter', 'K').url, 'https://openrouter.ai/api/v1/models');
+  assert.equal(P.pickModel('openrouter', ['anthropic/claude-opus-5.5', 'anthropic/claude-sonnet-5.5', 'anthropic/claude-haiku-5.5'], 'deep'), 'anthropic/claude-sonnet-5.5', 'deep tier is mid-tier, never premium');
+});
+
+// Why: the owner decided the app must not advertise one model or company over another; a "best value" line coming back would break that promise to judges.
+test('user-facing copy does not favor one model or company', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  for (const f of ['index.html', 'app.js', 'providers.js', 'README.md']) {
+    assert.doesNotMatch(fs.readFileSync(path.join(__dirname, f), 'utf8'), /best value|cheapest|cents a round|GPT-6 Luna/i, f);
+  }
+});
+
+// Why: "gemini" contains "mini", and "-pro" models are mid or top price; on OpenRouter either would be picked for routine calls and cost a judge far more.
+test('OpenRouter routine pick never lands on a Pro model', () => {
+  assert.equal(P.pickModel('openrouter', ['google/gemini-3.1-pro', 'openai/gpt-5.5-pro', 'openai/gpt-6-luna'], 'ai'), 'openai/gpt-6-luna');
+  assert.ok(!/pro/.test(P.pickModel('openrouter', ['google/gemini-3.1-pro', 'openai/gpt-5.5-pro', 'google/gemini-3.8-flash'], 'ai')));
+  assert.notEqual(P.pickModel('openrouter', ['openai/gpt-5.5-pro', 'anthropic/claude-sonnet-5.5'], 'deep'), 'openai/gpt-5.5-pro');
+  assert.equal(P.pickModel('openrouter', ['google/gemini-2.5-flash-lite', 'google/gemini-3.8-flash'], 'ai'), 'google/gemini-3.8-flash', '"lite" models are skipped, as for Gemini keys');
+  const body = JSON.parse(P.buildAIRequest('openrouter', { key: 'K', model: 'm', system: 'S', prompt: 'P', docs: [], schema: { type: 'object' }, title: (d) => d.name }).init.body);
+  assert.deepEqual(body.provider, { require_parameters: true }, 'only hosts that support structured replies');
+});

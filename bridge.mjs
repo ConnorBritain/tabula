@@ -11,7 +11,7 @@
 
 import http from 'node:http';
 import { spawn, execFile } from 'node:child_process';
-import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,10 +19,28 @@ import { createRequire } from 'node:module';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8765);
-const FILES = { '/': 'index.html', '/index.html': 'index.html', '/logic.js': 'logic.js', '/providers.js': 'providers.js', '/tour.js': 'tour.js', '/app.js': 'app.js', '/tap.js': 'tap.js', '/about': 'about.html', '/about.html': 'about.html' };
+const FILES = { '/': 'index.html', '/index.html': 'index.html', '/logic.js': 'logic.js', '/keys.js': 'keys.js', '/ui.js': 'ui.js', '/providers.js': 'providers.js', '/tour.js': 'tour.js', '/app.js': 'app.js', '/tap.js': 'tap.js', '/clipqueue.js': 'clipqueue.js', '/about': 'about.html', '/about.html': 'about.html' };
 for (const f of ['tabula-mark-black.webp', 'tabula-mark-white.webp', 'tabula-wordmark-black.webp', 'tabula-wordmark-white.webp', 'tabula-mark-black.png', 'tabula-mark-white.png', 'tabula-icon-64.png', 'fonts/InterTight-latin.woff2', 'fonts/InterTight-Italic-latin.woff2']) FILES['/assets/' + f] = 'assets/' + f;
 for (const f of ['mammoth-1.6.0.browser.min.js', 'mermaid-10.9.1.min.js', 'anthropic-sdk-0.137.0.bundle.mjs']) FILES['/vendor/' + f] = 'vendor/' + f;
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.webp': 'image/webp', '.png': 'image/png', '.woff2': 'font/woff2' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.webp': 'image/webp', '.png': 'image/png', '.woff2': 'font/woff2', '.css': 'text/css; charset=utf-8', '.xml': 'application/xml; charset=utf-8' };
+// The Debate Library (built by build-learn.mjs) is a folder of static pages, so it is served by path, not from FILES.
+// Only files inside learn/ with a known type are served. A page URL without its trailing slash is redirected,
+// because the pages use relative links that need it.
+const LEARN = path.join(ROOT, 'learn');
+const LEARN_TYPES = new Set(['.html', '.css', '.js', '.xml', '.png', '.webp']); // only what build-learn.mjs makes
+const isLearnPath = (p) => p === '/learn' || p.startsWith('/learn/');
+async function learnFile(pathname) {
+  let rel;
+  try { rel = decodeURIComponent(pathname.slice('/learn'.length)); } catch { return { status: 400 }; }
+  if (rel === '') return { redirect: '/learn/' };
+  const file = path.resolve(LEARN, '.' + (rel.endsWith('/') ? rel + 'index.html' : rel));
+  if (!file.startsWith(LEARN + path.sep)) return { status: 404 };
+  if (!path.extname(file)) return (await stat(file).catch(() => null))?.isDirectory() ? { redirect: pathname + '/' } : { status: 404 };
+  if (!LEARN_TYPES.has(path.extname(file))) return { status: 404 };
+  const type = TYPES[path.extname(file)];
+  const body = await readFile(file).catch(() => null);
+  return body ? { body, type } : { status: 404 };
+}
 const MAX_BODY = 30 * 1024 * 1024;
 const L = createRequire(import.meta.url)('./logic.js');
 // The same security rule (CSP) the hosted site sends (from _headers), so local testing blocks what the site blocks.
@@ -195,6 +213,11 @@ const server = http.createServer(async (req, res) => {
       if (!code) return send(res, 400, { error: 'that is not a SpeechDrop room code' });
       const out = sd[2] == null ? await speechDropList(code) : await speechDropFile(code, Number(sd[2]));
       return out.error ? send(res, out.status, { error: out.error }) : send(res, 200, out.body, out.type);
+    }
+    if (req.method === 'GET' && isLearnPath(url.pathname)) {
+      const r = await learnFile(url.pathname);
+      if (r.redirect) { res.writeHead(301, { Location: r.redirect, 'Cache-Control': 'no-store' }); return res.end(); }
+      return r.body ? send(res, 200, r.body, r.type) : send(res, r.status, { error: 'not found' });
     }
     if (req.method === 'GET' && FILES[url.pathname]) {
       const file = FILES[url.pathname];

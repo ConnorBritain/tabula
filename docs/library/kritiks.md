@@ -6,7 +6,7 @@ section: Kritiks
 level: intermediate
 reading_time: 9
 sheet: K
-related: [kritik-links, kritik-alternative, role-of-the-ballot, framework-vs-kritik, answering-kritiks, impact-calculus]
+related: [framework, kritik-links, kritik-alternative, role-of-the-ballot, framework-vs-kritik, answering-kritiks]
 updated: 2026-11-19
 ---
 
@@ -49,7 +49,7 @@ Specific links are stronger. "Your second advantage describes this region as a d
 
 ### Impact
 
-The impact explains what the harmful way of thinking leads to. Some kritik impacts are about real-world results (violence, exclusion, a cycle of conflict). Some are about the debate itself (what we learn, and what this round teaches). Some kritiks also argue that the aff's own advantages will fail, because they rest on a flawed idea. This is often called **"the K turns the case."**
+The impact explains what the harmful way of thinking leads to. Some kritik impacts are about real-world results (violence, exclusion, a cycle of conflict). Some are about the debate itself (what we learn, and what this round teaches). Some kritiks also argue that the aff's own advantages will fail, because they rest on a flawed idea. This is often called **"the K turns the case."** See [Turns case](turns-case.md).
 
 ### Alternative
 
@@ -95,6 +95,8 @@ A kritik can feel new to a parent judge. These steps help:
 5. **Weigh.** Compare the K's impact (with the alt) to the aff's advantages, using the framework that won.
 
 You do not need to know the authors or the philosophy behind the K. Judge it like any other argument: decide on what was explained, not on what you already know.
+
+Some affirmatives are critical too. See [Kritikal affirmatives](kritikal-affirmatives.md). For a fair summary of the kritik families debaters read most, see [Common kritik families](common-kritiks.md).
 
 ## Example in flow shorthand
 

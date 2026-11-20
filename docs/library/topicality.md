@@ -78,6 +78,8 @@ A full 2AC answer often has:
 4. **Reasonability:** the judge should not vote neg if the aff is reasonably topical.
 5. **Other arguments:** for example, "the neg's interpretation overlimits: it allows only one or two affs."
 
+Two related violations say the plan is topical only through its effects, or does topical things plus extra things. See [Effects and extra topicality](effects-and-extra-topicality.md).
+
 ## Example in flow shorthand
 
 A generic T argument about the word "substantial."

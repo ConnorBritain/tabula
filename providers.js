@@ -8,19 +8,19 @@
     google: {
       name: 'Google Gemini', short: 'Gemini', prefix: 'AIza', ai: true, transcribe: true, pdf: true,
       keyUrl: 'https://aistudio.google.com/apikey',
-      cost: 'Use a key with billing turned on: free-tier data may be used by Google. Fast, mid-priced (about $0.23 a round for the live flow).',
+      cost: 'Use a key with billing turned on: free-tier data may be used by Google.',
       steps: ['Open Google AI Studio and sign in with any Google account.', 'Click "Create API key".', 'Copy the key. It starts with AIza.', 'Paste it in the box above and click Connect.'],
     },
     openai: {
       name: 'OpenAI', short: 'OpenAI', prefix: 'sk-', ai: true, transcribe: true, pdf: true,
       keyUrl: 'https://platform.openai.com/api-keys',
-      cost: 'Best value: one key does AI and transcription, and its small model (GPT-6 Luna) scored close to Claude Sonnet and Opus in our live-flow test, at about 4 cents a round. Pay as you go: add a few dollars of credit under Billing first. A ChatGPT Plus plan does not include this.',
+      cost: 'Pay as you go. Add a few dollars of credit under Billing first. A ChatGPT Plus plan does not include this.',
       steps: ['Open the OpenAI API keys page and sign in.', 'Add credit under Settings → Billing (needed before keys work).', 'Click "Create new secret key" and copy it. It starts with sk-.', 'Paste it in the box above and click Connect.'],
     },
     anthropic: {
       name: 'Anthropic Claude', short: 'Claude', prefix: 'sk-ant-', ai: true, transcribe: false, pdf: true,
       keyUrl: 'https://console.anthropic.com/settings/keys',
-      cost: 'Pay as you go. Buy credit under Billing first. A Claude Pro plan does not include this. No transcription: pair it with OpenAI or Gemini, or use the free browser kind.',
+      cost: 'Pay as you go. Buy credit under Billing first. A Claude Pro plan does not include this. No transcription: pair it with a key that transcribes, or use the free browser kind.',
       steps: ['Open the Anthropic Console and sign in.', 'Buy credit under Billing (needed before keys work).', 'Click "Create Key" and copy it. It starts with sk-ant-.', 'Paste it in the box above and click Connect.'],
     },
     xai: {
@@ -28,6 +28,12 @@
       keyUrl: 'https://console.x.ai',
       cost: 'Pay as you go. Add credit in the xAI console first.',
       steps: ['Open the xAI console and sign in.', 'Add credit under Billing.', 'Open "API Keys", create a key and copy it. It starts with xai-.', 'Paste it in the box above and click Connect.'],
+    },
+    openrouter: {
+      name: 'OpenRouter', short: 'OpenRouter', prefix: 'sk-or-', ai: true, transcribe: false, pdf: false,
+      keyUrl: 'https://openrouter.ai/keys',
+      cost: 'One key reaches models from many companies. Pay as you go: add credit first. No transcription: pair it with another key, or use the free browser kind.',
+      steps: ['Open OpenRouter and sign in.', 'Add credit under Credits.', 'Open "Keys", create a key and copy it. It starts with sk-or-.', 'Paste it in the box above and click Connect.'],
     },
   };
 
@@ -41,6 +47,7 @@
   function detectProvider(key) {
     const k = String(key || '').trim();
     if (k.startsWith('sk-ant-')) return 'anthropic';
+    if (k.startsWith('sk-or-')) return 'openrouter'; // before OpenAI: both start with sk-
     if (k.startsWith('xai-')) return 'xai';
     if (k.startsWith('AIza')) return 'google';
     if (k.startsWith('sk-')) return 'openai';
@@ -63,8 +70,8 @@
   // server-side model map with prices instead of extending them.
   const PREMIUM = /(opus|fable|mythos|astra|ultra)/i;
   const TIER = {
-    ai: { anthropic: /haiku/i, openai: /luna|mini/i, google: /flash/i, xai: /fast|mini/i },
-    deep: { anthropic: /sonnet/i, openai: /\bsol\b/i, google: /\bpro\b/i, xai: /^grok-[\d.]+$/i },
+    ai: { anthropic: /haiku/i, openai: /luna|mini/i, google: /flash/i, xai: /fast|mini/i, openrouter: /\b(haiku|luna|flash|mini)\b/i },
+    deep: { anthropic: /sonnet/i, openai: /\bsol\b/i, google: /\bpro\b/i, xai: /^grok-[\d.]+$/i, openrouter: /sonnet|\bsol\b|gemini-[\d.]+-pro\b/i },
   };
   // Transcription models the provider has retired or announced for shutdown.
   const DEPRECATED = /^gpt-4o(-mini)?-transcribe$/i;
@@ -78,6 +85,9 @@
     if (provider === 'openai') pool = pool.filter((id) => /^(gpt|o\d)/i.test(id) && !/nano|preview|search|chat-latest|codex|\d{4}-\d{2}-\d{2}/i.test(id));
     if (provider === 'google') pool = pool.filter((id) => /^gemini/i.test(id) && !/lite|preview|exp|tuning|thinking|nano/i.test(id));
     if (provider === 'xai') pool = pool.filter((id) => /^grok/i.test(id) && !/non-reasoning|code|-\d{4}/i.test(id));
+    // OpenRouter: "vendor/model" ids; skip batch-only (:batch), moving aliases (~...) and media models.
+    // "-pro" OpenAI-style models are top-price there, so they are never picked automatically.
+    if (provider === 'openrouter') pool = pool.filter((id) => id.includes('/') && !/[:~]|image|audio|vision|embed|guard|lite|(gpt|o\d)[\w.-]*-pro\b/i.test(id));
     if (!pool.length) pool = list.filter((id) => !SKIP.test(id));
     return pool.sort(newest);
   }
@@ -135,6 +145,7 @@
     if (provider === 'google') return { url: 'https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', init: { headers: { 'x-goog-api-key': key } } };
     if (provider === 'openai') return { url: 'https://api.openai.com/v1/models', init: { headers: { Authorization: 'Bearer ' + key } } };
     if (provider === 'xai') return { url: 'https://api.x.ai/v1/models', init: { headers: { Authorization: 'Bearer ' + key } } };
+    if (provider === 'openrouter') return { url: 'https://openrouter.ai/api/v1/models', init: { headers: { Authorization: 'Bearer ' + key } } };
     if (provider === 'anthropic') return { url: 'https://api.anthropic.com/v1/models', init: { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' } } };
     return null;
   }
@@ -174,11 +185,15 @@
       if (schema) body.text = { format: { type: 'json_schema', name: 'reply', schema, strict: true } };
       return { url: 'https://api.openai.com/v1/responses', init: { method: 'POST', headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify(body) } };
     }
-    if (provider === 'xai') {
+    if (provider === 'xai' || provider === 'openrouter') {
+      // Both use the OpenAI-style chat format. Docs go as text (PDFs are listed, not read).
       const docText = docsAsText(docs, title);
       const body = { model, max_tokens: maxTokens, messages: [{ role: 'system', content: system }, { role: 'user', content: (docText ? docText + '\n\n' : '') + head + prompt }] };
       if (schema) body.response_format = { type: 'json_schema', json_schema: { name: 'reply', schema, strict: true } };
-      return { url: 'https://api.x.ai/v1/chat/completions', init: { method: 'POST', headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify(body) } };
+      // OpenRouter: route only to hosts that support the reply format the app asks for.
+      if (schema && provider === 'openrouter') body.provider = { require_parameters: true };
+      const url = provider === 'xai' ? 'https://api.x.ai/v1/chat/completions' : 'https://openrouter.ai/api/v1/chat/completions';
+      return { url, init: { method: 'POST', headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify(body) } };
     }
     if (provider === 'google') {
       const parts = [];
@@ -208,7 +223,7 @@
       }
       return out.join('');
     }
-    if (provider === 'xai') {
+    if (provider === 'xai' || provider === 'openrouter') {
       const ch = (j.choices || [])[0] || {};
       if (ch.finish_reason === 'length') throw new Error('the reply was cut off');
       if (ch.message && ch.message.refusal) throw new Error('the AI declined this request');

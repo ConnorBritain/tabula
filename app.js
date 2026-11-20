@@ -3,6 +3,8 @@
 // Tabula running on this computer (through the local helper), not on the website.
 const LOCAL_ORIGIN = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
 const L = window.PolicyLogic;
+const K = window.TabulaKeys;
+const IS_MAC = K.isMacPlatform(navigator.platform || navigator.userAgent);
 const $ = (s) => document.querySelector(s);
 const STORE = 'policyJudge.round.v1', LOG = 'policyJudge.log.v1', KEY = 'policyJudge.key';
 
@@ -14,11 +16,36 @@ const store = {
     catch { try { if (raw) localStorage.setItem(k + '.corrupt-backup', raw); } catch {} return d; }
   },
   set(k, v) {
-    try { localStorage.setItem(k, JSON.stringify(v)); return true; }
-    catch { toast('Warning: this browser is NOT saving. Copy your flow somewhere safe.'); return false; }
+    try { localStorage.setItem(k, JSON.stringify(v)); if (storageWarned) { storageWarned = ''; dismissToast('storage'); } return true; }
+    catch (err) { storageFailed(err); return false; }
   },
   del(k) { try { localStorage.removeItem(k); } catch {} },
 };
+// A failed save shows one error toast (key 'storage'), not one per keystroke. The clock still runs in memory.
+let storageWarned = '';
+function storageFailed(err) {
+  const kind = L.storageErrorKind(err);
+  if (storageWarned === kind) return;
+  storageWarned = kind;
+  toast(kind === 'full'
+    ? "This browser's storage for Tabula is full, so new changes are not saved. Delete old saved ballots in Ballots, or go to Round and use Save round file (.tab)."
+    : 'This browser is not saving. A refresh will lose the clock and your flow. To keep a copy, go to Round and use Save round file (.tab).', { kind: 'error', key: 'storage' });
+}
+
+// The shared toast, dialog, Esc stack and announcer live in ui.js (spec Slice 0).
+const { toast, dismissToast, announce, ask, askIsOpen, escLayer } = window.TabulaUI;
+
+// ---------- shortcuts (keys.js registry; spec 4.1, 1.3, 1.5) ----------
+// A dialog, the tour, the welcome screen or the node editor turns shortcuts off.
+function modalOpen() { return askIsOpen() || !$('#welcome').hidden || !$('#node-editor').hidden || Boolean(tourState); }
+document.addEventListener('keydown', (e) => {
+  const ae = document.activeElement;
+  const act = K.keyAction(
+    { code: e.code, key: e.key, meta: e.metaKey, ctrl: e.ctrlKey, alt: e.altKey, shift: e.shiftKey, altGraph: Boolean(e.getModifierState && e.getModifierState('AltGraph')), repeat: e.repeat, composing: e.isComposing || e.keyCode === 229 },
+    { place: PLACE_OF[R.tab] || 'setup', focus: K.focusKind(ae && { tagName: ae.tagName, type: ae.type, isContentEditable: ae.isContentEditable }), modal: modalOpen(), singleKeysOn: S.singleKeys !== false });
+  if (act === 'clock') { e.preventDefault(); toggleClock(); }
+  else if (act === 'speeches') { e.preventDefault(); toggleSpeechesPane(ae); }
+});
 
 // Prep per team for a new round: the judge's last choice, else the NSDA 8 minutes.
 function prepDefault() {
@@ -36,6 +63,9 @@ function freshRound() {
     ai: { paradigm: 'policymaker', notes: '', evidence: '', output: '' },
     ballot: { winner: '', pts: {}, ranks: {}, rfd: '' },
     id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), cur: 0, flowIdx: 0, tab: 'flow',
+    // The clocks (spec 1.1). run = the running speech { id, endAt, beeped, rec }; prepRun = { side, endAt }.
+    // savedAt stamps the clock fields as one unit, so a second tab can tell which clock is newer.
+    run: null, prepRun: null, savedAt: 0,
   };
 }
 let R = Object.assign(freshRound(), store.get(STORE, {}));
@@ -46,7 +76,6 @@ store.set(STORE, R);
 let restoring = false;
 const save = () => (restoring ? false : store.set(STORE, R));
 
-function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 1800); }
 const getPath = (o, p) => p.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
 function setPath(o, p, v) { const ks = p.split('.'); const last = ks.pop(); ks.reduce((a, k) => (a[k] ??= {}), o)[last] = v; }
 async function copy(text) {
@@ -89,16 +118,60 @@ document.querySelector('.brand').addEventListener('click', (e) => { e.preventDef
 $('#nav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
 $('#subnav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
 $('#settings-btn').addEventListener('click', () => showTab('ai'));
-// Side panes in the Flow workspace can be hidden; the choice is remembered.
+// Side panes in the Flow workspace. At 1440 px and up the speeches pane is inline and can be hidden (remembered).
+// From 820 to 1439 px it is a flat overlay over the grid that starts closed, so the 7 columns never reflow
+// (spec 1.5, Q4). It is not modal: no focus trap. Under 820 px the panes stack.
+let leftOpen = false, leftOpener = null;
+const paneMode = () => L.leftPaneMode(innerWidth, Boolean(S.hideLeft));
+const isOverlay = () => paneMode().startsWith('overlay');
 function applyPanes() {
-  $('#workspace').classList.toggle('no-left', Boolean(S.hideLeft));
-  $('#workspace').classList.toggle('no-right', Boolean(S.hideRight));
+  const overlay = isOverlay();
+  if (!overlay) leftOpen = false;
+  const ws = $('#workspace');
+  ws.classList.toggle('no-left', !overlay && Boolean(S.hideLeft));
+  ws.classList.toggle('no-right', Boolean(S.hideRight));
+  ws.classList.toggle('left-open', overlay && leftOpen);
+  const btn = $('#speeches-btn');
+  btn.hidden = !(overlay || S.hideLeft);
+  btn.setAttribute('aria-expanded', String(overlay ? leftOpen : !S.hideLeft));
+  btn.title = K.speechesTip(IS_MAC, S.singleKeys !== false);
 }
+function focusSpeechTile() { const t = $('#speech-list .sp.run') || $('#speech-list .sp.on'); if (t) t.focus(); }
+function openSpeeches(from) {
+  leftOpener = from && from !== document.body && !from.closest('#tab-timer') ? from : null;
+  leftOpen = true; applyPanes(); focusSpeechTile();
+}
+// restoreFocus: false when the judge clicked somewhere else (focus goes where they clicked).
+function closeSpeeches(restoreFocus = true) {
+  if (!leftOpen) return;
+  const hadFocus = $('#tab-timer').contains(document.activeElement);
+  leftOpen = false; applyPanes();
+  if (!restoreFocus) return;
+  if (leftOpener && document.contains(leftOpener) && !leftOpener.hidden) leftOpener.focus();
+  else if (hadFocus && document.activeElement.blur) document.activeElement.blur(); // back to "nothing focused", so Space still runs the clock
+}
+function toggleSpeechesPane(from) {
+  if (isOverlay()) return leftOpen ? closeSpeeches() : openSpeeches(from);
+  S.hideLeft = !S.hideLeft; saveSettings(); applyPanes();
+  if (!S.hideLeft) focusSpeechTile();
+}
+$('#speeches-btn').addEventListener('click', (e) => toggleSpeechesPane(e.currentTarget));
 document.addEventListener('click', (e) => {
   const b = e.target.closest && e.target.closest('[data-pane]'); if (!b) return;
-  if (b.dataset.pane === 'left') S.hideLeft = !S.hideLeft; else S.hideRight = !S.hideRight;
+  if (b.dataset.pane === 'left') { if (isOverlay()) return closeSpeeches(); S.hideLeft = !S.hideLeft; }
+  else S.hideRight = !S.hideRight;
   saveSettings(); applyPanes();
 });
+// A click in the grid closes the overlay; a click in the round bar or on a speech tile does not.
+document.addEventListener('pointerdown', (e) => {
+  if (!leftOpen || !e.target.closest) return;
+  if (e.target.closest('#tab-timer') || e.target.closest('#speeches-btn')) return;
+  if (e.target.closest('#workspace')) closeSpeeches(false);
+});
+escLayer('speeches', 40, () => leftOpen, () => closeSpeeches());
+addEventListener('resize', () => { applyPanes(); renderRecStrip(); }); // cheap class toggles, so no frame wait (frames pause in hidden tabs)
+// The pane mode changes at 1440 and 820 px; listen to those breakpoints too (some zoom and emulation changes fire no resize).
+for (const q of ['(min-width: 1440px)', '(min-width: 820px)']) matchMedia(q).addEventListener('change', () => { applyPanes(); renderRecStrip(); });
 
 // ---------- simple two-way binding ----------
 function bindAll() {
@@ -123,9 +196,9 @@ function markTouched(path) {
 $('#prep-min').value = Math.round(R.prepSeconds / 60);
 $('#prep-min').addEventListener('change', (e) => {
   const m = Math.max(0, Math.min(20, Number(e.target.value) || 0));
-  const used = prepRun || R.prepLeft.aff < R.prepSeconds || R.prepLeft.neg < R.prepSeconds;
+  const used = R.prepRun || R.prepLeft.aff < R.prepSeconds || R.prepLeft.neg < R.prepSeconds;
   if (used && !confirm('Prep is already in use. Reset both teams to ' + m + ' minutes?')) { e.target.value = Math.round(R.prepSeconds / 60); return; }
-  stopPrep(); R.prepSeconds = m * 60; R.prepLeft = { aff: m * 60, neg: m * 60 }; save(); renderPrep();
+  stopPrep(); R.prepSeconds = m * 60; R.prepLeft = { aff: m * 60, neg: m * 60 }; saveClocks(); renderPrep();
   S.prepMin = m; saveSettings(); renderPrepPresets();
 });
 function renderPrepPresets() { document.querySelectorAll('[data-prep-min]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.prepMin) * 60 === R.prepSeconds))); }
@@ -164,86 +237,137 @@ $('#round-open').addEventListener('change', async (e) => {
   }
   // 2. Only now stop the clocks, replace the round, then drop the old round's docs.
   stopAll(); resetting = true;
+  CQ.clear(); await clipStore.clear().catch(() => {}); // the old round's waiting audio is deleted now
   const oldId = R.id;
-  R = Object.assign(freshRound(), opened.round, { tab: 'flow', started: true });
+  R = Object.assign(freshRound(), opened.round, { tab: 'flow', started: true, run: null, prepRun: null }); // a saved file never brings a clock back
   save();
   docStore.clearRound(oldId).finally(() => location.reload());
 });
 $('#new-round').addEventListener('click', () => {
   if (!confirm('Clear this round? Saved ballots in the Log stay.')) return;
   resetting = true; stopAll();
+  CQ.clear(); clipStore.clear().catch(() => {}); // the old round's waiting audio is deleted now
   const oldId = R.id;
   R = freshRound(); save();
   docStore.clearRound(oldId).finally(() => location.reload());
 });
 
 // ---------- speech timer ----------
+// R.cur is the speech on screen (the viewed one). R.run is the speech the clock times (spec 1.2).
+// R.run is saved with the round, and time comes from the wall clock, so the clock survives a reload,
+// a crash or a sleeping device (spec 1.1). Pause writes R.timeLeft.
 const sp = () => L.SPEECHES[R.cur];
+const speechIdx = (id) => L.SPEECHES.findIndex((s) => s.id === id);
+const runSp = () => (R.run && L.SPEECHES[speechIdx(R.run.id)]) || sp();
 const fullTime = (s) => s.minutes * 60;
 const leftFor = (s) => (R.timeLeft[s.id] ?? fullTime(s));
-let running = null; // { endAt }
 let tick = null;
+// The clock fields are written as one unit with one time stamp (a second tab takes the newer unit).
+function saveClocks() { R.savedAt = Date.now(); save(); }
+function startTick() { clearInterval(tick); tick = setInterval(renderClock, 200); }
+function stopTick() { clearInterval(tick); tick = null; }
 
 function renderSpeeches() {
+  const runId = R.run && R.run.id;
   $('#speech-list').innerHTML = L.SPEECHES.map((s, i) => {
+    const isRun = s.id === runId;
     const done = R.timeLeft[s.id] != null && R.timeLeft[s.id] < fullTime(s);
     const hasTr = (R.transcripts[s.id] || '').trim() ? ' · transcript' : '';
-    const short = s.id.replace('CX-', 'CX ');
-    const info = done ? L.formatClock(Math.ceil(leftFor(s))) + ' left' : s.minutes + ' min';
-    return `<button class="sp ${s.side} ${i === R.cur ? 'on' : ''}" data-i="${i}" title="${s.label} · ${s.side.toUpperCase()}${hasTr}"${i === R.cur ? ' aria-current="true"' : ''}>${short}${hasTr ? '<i class="sp-dot" aria-label="has transcript"></i>' : ''}<small>${info}</small></button>`;
+    const short = L.shortSpeech(s.id);
+    const info = isRun ? '<small class="sp-run">Running</small>' : '<small>' + (done ? L.formatClock(Math.ceil(leftFor(s))) + ' left' : s.minutes + ' min') + '</small>';
+    return `<button class="sp ${s.side} ${i === R.cur ? 'on' : ''}${isRun ? ' run' : ''}" data-i="${i}" title="${s.label} · ${s.side.toUpperCase()}${hasTr}"${isRun ? ` aria-label="${s.label}, running"` : ''}${i === R.cur ? ' aria-current="true"' : ''}>${short}${hasTr ? '<i class="sp-dot" aria-label="has transcript"></i>' : ''}${info}</button>`;
   }).join('');
 }
 function renderClock() {
-  const s = sp();
-  const left = running ? (running.endAt - Date.now()) / 1000 : leftFor(s);
+  const s = runSp();
+  const left = R.run ? (R.run.endAt - Date.now()) / 1000 : leftFor(s);
+  // A running clock stops by itself at -9:59 (the same rule as after a reload).
+  if (R.run && left <= L.OVER_LIMIT) {
+    const id = R.run.id;
+    pauseSpeech();
+    toast('The ' + L.shortSpeech(id) + ' clock went 10 minutes over. It is paused at -9:59.', { kind: 'error', key: 'over-limit' });
+    return;
+  }
   const shown = Math.ceil(left);
   const c = $('#clock');
   c.textContent = L.formatClock(shown);
   c.classList.toggle('low', shown <= 30 && shown > 0);
   c.classList.toggle('over', shown <= 0);
   $('#cur-label').innerHTML = `<span class="${s.side}">${s.label}</span> <span class="muted">${s.speaker} · ${s.minutes} min</span>`;
-  $('#t-start').textContent = running ? 'Pause' : (leftFor(s) < fullTime(s) ? 'Resume' : 'Start');
+  $('#t-start').textContent = R.run ? 'Pause' : (leftFor(s) < fullTime(s) ? 'Resume' : 'Start');
   $('#mini-speech').textContent = `${s.label} ${L.formatClock(shown)}`;
-  if (running && left <= 0 && !running.beeped) { running.beeped = true; beep(); }
+  // The 0:00 beep plays once; more than 5 s late (after sleep or a reload) it is skipped.
+  if (R.run) {
+    const b = L.beepDecision(left, R.run.beeped);
+    if (b) {
+      // Another tab on this round may have beeped first: it saved beeped with the same run.
+      const first = b === 'beep' && !L.beepedElsewhere(store.get(STORE, null), R.run);
+      R.run.beeped = true; save(); if (first) beepOnce(R.run);
+    }
+  }
+  renderViewChip();
 }
+// "Viewing 1NC · 2AC running" with [Back to 2AC] while the judge looks at another speech.
+function renderViewChip() {
+  const lab = L.viewingLabel(sp().id, R.run && R.run.id);
+  const chip = $('#view-chip');
+  chip.hidden = !lab;
+  if (!lab) { chip.dataset.sr = ''; return; }
+  if (chip.dataset.sr === lab.sr) return;
+  chip.dataset.sr = lab.sr;
+  $('#view-text').textContent = lab.text; $('#view-back').textContent = lab.back;
+  announce(lab.sr);
+}
+// A tile click only changes the view. While a clock runs, it keeps running (and recording) for R.run.id.
 function selectSpeech(i) {
-  pauseSpeech();
   R.cur = i; save();
   renderSpeeches(); renderClock(); renderTranscript();
 }
+function backToRunning() { if (R.run) selectSpeech(speechIdx(R.run.id)); }
 function startSpeech() {
   stopPrep();
   if (!R.started) { R.started = true; save(); renderStart(); }
-  running = { endAt: Date.now() + leftFor(sp()) * 1000 };
-  tick = setInterval(renderClock, 200);
-  renderClock();
-  if ($('#rec-on').checked) startRec();
+  const s = sp();
+  const left = leftFor(s);
+  R.run = { id: s.id, endAt: Date.now() + left * 1000, startLeft: left, beeped: left <= 0, rec: false };
+  recStoppedByReload = false;
+  saveClocks(); startTick(); renderClock(); renderSpeeches();
+  if ($('#rec-on').checked) wantRec();
+  renderRecStrip();
 }
 function pauseSpeech() {
-  if (!running) return;
-  R.timeLeft[sp().id] = Math.max(-599, (running.endAt - Date.now()) / 1000);
-  running = null; clearInterval(tick); save();
+  if (!R.run) return;
+  const s = runSp();
+  R.timeLeft[s.id] = Math.max(L.OVER_LIMIT, (R.run.endAt - Date.now()) / 1000);
+  R.run = null; stopTick();
+  R.cur = speechIdx(s.id); // Q-5: pausing while viewing returns the view to the running speech
+  saveClocks();
   const wasBrowserRec = recWanted && activeEngine === 'browser';
-  stopRec(); renderClock(); renderSpeeches();
-  if (wasBrowserRec) scheduleFlow(sp().id, true);
+  recStoppedByReload = false;
+  stopRec(); renderClock(); renderSpeeches(); renderTranscript(); renderRecStrip();
+  if (wasBrowserRec) scheduleFlow(s.id, true);
 }
+function toggleClock() { if (R.run) pauseSpeech(); else startSpeech(); }
 $('#speech-list').addEventListener('click', (e) => { const b = e.target.closest('.sp'); if (b) selectSpeech(Number(b.dataset.i)); });
-$('#t-start').addEventListener('click', () => (running ? pauseSpeech() : startSpeech()));
-$('#t-reset').addEventListener('click', () => { pauseSpeech(); delete R.timeLeft[sp().id]; save(); renderClock(); renderSpeeches(); });
-$('#t-next').addEventListener('click', () => selectSpeech(Math.min(L.SPEECHES.length - 1, R.cur + 1)));
-document.addEventListener('keydown', (e) => {
-  if (e.code !== 'Space' || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
-  if (!$('#welcome').hidden || !$('#node-editor').hidden || tourState) return;
-  // Let Space type in text boxes. Anywhere else on this tab (even on a just-clicked
-  // button or the Transcribe checkbox) Space must start or pause the clock, not "click" again.
-  const el = document.activeElement;
-  const typing = el && (el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.tagName === 'SUMMARY' || el.tagName === 'A' || el.isContentEditable || (el.tagName === 'INPUT' && !['checkbox', 'radio', 'button'].includes(el.type)));
-  if (typing) return;
-  e.preventDefault();
-  if (el && el.blur) el.blur();
-  running ? pauseSpeech() : startSpeech();
-});
+$('#view-back').addEventListener('click', backToRunning);
+$('#t-start').addEventListener('click', toggleClock);
+// Reset and Next speech act on the running speech if one runs (pausing first returns the view to it); else on the viewed speech.
+$('#t-reset').addEventListener('click', () => { pauseSpeech(); delete R.timeLeft[sp().id]; saveClocks(); renderClock(); renderSpeeches(); });
+$('#t-next').addEventListener('click', () => { pauseSpeech(); selectSpeech(Math.min(L.SPEECHES.length - 1, R.cur + 1)); });
+// The device slept or the tab was hidden: the wall clock moved on, so redraw at once.
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderClock(); renderPrep(); } });
 
+// Two tabs on one round both reach 0:00 within one tick, and a localStorage write reaches the other tab a little
+// late. A Web Lock is shared by all tabs at once: the first tab takes it and beeps; the lock is held for 10 s, so the
+// other tab finds it taken and stays quiet (after 5 s beepDecision skips the beep anyway).
+function beepOnce(run) {
+  if (!navigator.locks) return beep();
+  navigator.locks.request('tabula-beep-' + run.id + '-' + run.endAt, { ifAvailable: true }, (lock) => {
+    if (!lock) return;
+    beep();
+    return new Promise((r) => setTimeout(r, 10000));
+  }).catch(beep);
+}
 let audioCtx;
 function beep() {
   try {
@@ -258,31 +382,80 @@ function beep() {
 }
 
 // ---------- prep ----------
-let prepRun = null; // { side, endAt, h }
+// R.prepRun = { side, endAt } is saved with the round, like the speech clock (spec 1.1b).
+let prepTick = null;
+function startPrepTick() { clearInterval(prepTick); prepTick = setInterval(renderPrep, 200); }
 function renderPrep() {
   for (const side of ['aff', 'neg']) {
-    const left = prepRun && prepRun.side === side ? (prepRun.endAt - Date.now()) / 1000 : R.prepLeft[side];
+    const pr = R.prepRun;
+    const mine = pr && pr.side === side;
+    const left = mine ? (pr.endAt - Date.now()) / 1000 : R.prepLeft[side];
     const el = $('#prep-' + side);
     el.textContent = L.formatClock(Math.max(0, Math.ceil(left)));
     el.style.color = left <= 0 ? 'var(--danger)' : '';
-    document.querySelector(`[data-prep="${side}"]`).textContent = prepRun && prepRun.side === side ? 'Stop' : 'Start';
-    if (prepRun && prepRun.side === side && left <= 0) { stopPrep(); beep(); }
+    document.querySelector(`[data-prep="${side}"]`).textContent = mine ? 'Stop' : 'Start';
+    if (mine && left <= 0) { stopPrep(); beep(); }
   }
 }
 function stopPrep() {
-  if (!prepRun) return;
-  R.prepLeft[prepRun.side] = Math.max(0, (prepRun.endAt - Date.now()) / 1000);
-  clearInterval(prepRun.h); prepRun = null; save(); renderPrep();
+  if (!R.prepRun) return;
+  R.prepLeft[R.prepRun.side] = Math.max(0, (R.prepRun.endAt - Date.now()) / 1000);
+  clearInterval(prepTick); prepTick = null; R.prepRun = null; saveClocks(); renderPrep();
 }
 document.querySelectorAll('[data-prep]').forEach((b) => b.addEventListener('click', () => {
   const side = b.dataset.prep;
-  if (prepRun && prepRun.side === side) return stopPrep();
+  if (R.prepRun && R.prepRun.side === side) return stopPrep();
   stopPrep(); pauseSpeech();
   if (R.prepLeft[side] <= 0) return toast(side.toUpperCase() + ' has no prep left');
-  prepRun = { side, endAt: Date.now() + R.prepLeft[side] * 1000, h: setInterval(renderPrep, 200) };
-  renderPrep();
+  R.prepRun = { side, endAt: Date.now() + R.prepLeft[side] * 1000 };
+  saveClocks(); startPrepTick(); renderPrep();
 }));
 function stopAll() { pauseSpeech(); stopPrep(); }
+
+// ---------- the clocks after a reload, a crash or sleep (spec 1.1) ----------
+// Nothing pauses on unload any more: the saved endAt is the truth, and the clock keeps "running" while closed.
+function restoreClocksOnLoad() {
+  const had = Boolean(R.run || R.prepRun), hadRec = Boolean(R.run && R.run.rec);
+  const runSpeech = R.run && L.SPEECHES.find((x) => x.id === R.run.id);
+  const { speech: rs, prep: rp } = L.restoreClocks(R.run, R.prepRun, Date.now(), R.prepSeconds, runSpeech ? fullTime(runSpeech) : undefined);
+  const name = rs.id ? L.shortSpeech(rs.id) : '';
+  if (rs.state === 'running') {
+    R.run = Object.assign({}, R.run, { endAt: rs.endAt }, rs.reason === 'clock-moved' ? { startLeft: rs.left } : {});
+    startTick();
+    if (rs.reason === 'clock-moved') toast('The device clock changed. The ' + name + ' clock is set back to its full time. Check it before you continue.', { kind: 'error', key: 'clock' });
+    else toast('The ' + name + ' clock kept running while the page reloaded.', { key: 'clock' });
+    // The mic does not restart by itself (browsers need a click first); the strip offers "Resume recording".
+    if (hadRec) recStoppedByReload = true;
+  } else {
+    if (rs.state === 'paused') {
+      R.timeLeft[rs.id] = rs.left;
+      if (rs.reason === 'over-limit') toast('The ' + name + ' clock ran more than 10 minutes over while Tabula was closed. It is paused at -9:59.', { kind: 'error', key: 'clock' });
+    }
+    R.run = null;
+  }
+  if (rp.state === 'running') { R.prepRun = { side: rp.side, endAt: rp.endAt }; startPrepTick(); }
+  else {
+    if (rp.state === 'paused') { R.prepLeft[rp.side] = 0; toast((rp.side === 'aff' ? 'Aff' : 'Neg') + ' prep ran out while the page reloaded.'); }
+    R.prepRun = null;
+  }
+  if (had) saveClocks();
+}
+// A second tab on the same round: the clock unit with the newer savedAt wins, so only one clock runs.
+// Flow text is not merged (the newest write wins).
+let otherTabWarned = false;
+addEventListener('storage', (e) => {
+  if (e.key !== STORE || !e.newValue) return;
+  let inc; try { inc = JSON.parse(e.newValue); } catch { return; }
+  if (!inc || inc.id !== R.id || !L.clockUnitIsNewer(R, inc)) return;
+  R.run = inc.run || null; R.prepRun = inc.prepRun || null;
+  R.timeLeft = inc.timeLeft || {}; R.prepLeft = inc.prepLeft || R.prepLeft; R.savedAt = inc.savedAt;
+  if (R.run) startTick(); else stopTick();
+  if (R.prepRun) startPrepTick(); else { clearInterval(prepTick); prepTick = null; }
+  // This tab's mic belonged to a clock that no longer runs here.
+  if (recWanted && (!R.run || R.run.id !== recSpeechId)) stopRec();
+  renderClock(); renderPrep(); renderSpeeches(); renderRecStrip();
+  if (!otherTabWarned) { otherTabWarned = true; toast('Tabula is open in another tab. Use one tab per round. The newest change wins.', { key: 'other-tab' }); }
+});
 
 // ---------- settings (kept across rounds) ----------
 const SETTINGS = 'policyJudge.settings.v1', OAKEY = 'policyJudge.openaiKey';
@@ -298,7 +471,10 @@ const saveSettings = () => (restoring ? false : store.set(SETTINGS, S));
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let rec = null, recWanted = false, recSpeechId = null;
 let recGen = 0, resetting = false;
-let mic = null, clipRec = null, clipTimer = null, clipQueue = Promise.resolve(), clipsPending = 0;
+let mic = null, clipRec = null, clipTimer = null;
+// The "Recording" strip (spec 1.6): recLive = the mic (or browser speech service) has really started;
+// recStoppedByReload = the clock came back running after a reload, but the mic did not (browsers need a click).
+let recLive = false, recStoppedByReload = false, recNoticeOpen = false;
 
 // A big, plain status line under the clock, so a judge always knows if audio is being captured.
 let recProblem = '', lastTextAt = 0;
@@ -306,6 +482,12 @@ function setRecStatus() {
   const el = $('#rec-status');
   if (!el) return;
   if (recProblem) { el.style.color = 'var(--danger)'; el.textContent = 'Not transcribing: ' + recProblem; return; }
+  // Clips waiting for a better connection: say so plainly, and that the audio stays on this device.
+  const q = CQ.state();
+  if (q.held) { el.style.color = 'var(--danger)'; el.textContent = 'Paused: ' + q.held.replace(/\.+$/, '') + '. ' + (q.backlog ? clipMinutes(q) + ' of audio is kept on this device until it is fixed.' : ''); return; }
+  if (q.degraded) { el.style.color = 'var(--warn)'; el.textContent = 'Connection trouble: recording safely. ' + clipMinutes(q) + ' of audio waiting, kept on this device only' + (q.retryInMs ? '. Trying again in ' + Math.ceil(q.retryInMs / 1000) + ' s.' : '.'); return; }
+  if (q.catchingUp) { el.style.color = 'var(--warn)'; el.textContent = 'Catching up: ' + clipMinutes(q) + ' of audio waiting, kept on this device only.'; return; }
+  if (!recWanted && q.backlog) { el.style.color = 'var(--muted)'; el.textContent = 'Finishing the transcript: ' + clipMinutes(q) + ' of audio waiting, kept on this device only.'; return; }
   if (!$('#rec-on').checked) { el.style.color = 'var(--muted)'; el.textContent = 'Transcribe is off. Tick the box to record.'; return; }
   if (!recWanted) { el.style.color = 'var(--muted)'; el.textContent = 'Ready. Recording starts when the speech clock starts.'; return; }
   const ago = lastTextAt ? Math.round((Date.now() - lastTextAt) / 1000) : null;
@@ -315,30 +497,124 @@ function setRecStatus() {
   el.style.color = 'var(--ok)';
   el.textContent = 'Recording (' + engine + ')' + (ago != null ? ' · last text ' + ago + ' s ago' : ' · waiting for first text…');
 }
-setInterval(setRecStatus, 1000);
+setInterval(() => { setRecStatus(); renderRecStrip(); }, 1000);
 // Remember the Transcribe box across refreshes (it was resetting to off).
 $('#rec-on').checked = S.recOn !== false;
 $('#rec-on').addEventListener('change', (e) => {
   S.recOn = e.target.checked; saveSettings(); recProblem = ''; setRecStatus();
   // Ticking it while the clock runs starts recording right away; unticking stops it.
-  if (running && e.target.checked && !recWanted) startRec();
-  if (!e.target.checked && recWanted) stopRec();
+  if (R.run && e.target.checked && !recWanted) wantRec();
+  if (!e.target.checked && recWanted) userStopRec();
+  renderRecStrip();
 });
 
+// ---------- recording notice and "Recording" strip (spec 1.6, Q19) ----------
+const MIC_BLOCKED = "The microphone is blocked. Allow it in your browser's site settings, then tick Transcribe again.";
+const OFFLINE_SR = 'You are offline. Your browser\'s speech service needs the internet, so words spoken now do not become text. The clock and flow still work.';
+// Recording would start now. The first time on this device, a plain notice asks first. The clock is
+// already running; only the mic waits for the choice.
+async function wantRec() {
+  if (L.needsRecNotice(S)) {
+    if (recNoticeOpen) return;
+    recNoticeOpen = true;
+    const v = await ask({
+      title: 'Before Tabula records',
+      body: [
+        "When the speech clock runs, Tabula records from this device's microphone. It turns the speech into text for your flow.",
+        'Audio stays on this device until its text comes back. Then Tabula deletes it.',
+        "To make the text, the audio goes to the speech service you chose in Settings. With the free option, that is your browser's own service.",
+        "Tell the debaters before you record. Follow your tournament's rules.",
+      ],
+      foot: 'You can change this later in Settings, under Audio.',
+      buttons: [{ label: "Don't record", value: 'no', kind: 'plain' }, { label: 'Record', value: 'yes', kind: 'primary' }],
+      cancelValue: 'no',
+      focus: 'yes', // Q-6: the owner chose "Record" for first focus
+    });
+    recNoticeOpen = false;
+    if (v !== 'yes') {
+      $('#rec-on').checked = false; S.recOn = false; saveSettings(); setRecStatus(); renderRecStrip();
+      toast('Recording is off. Tick Transcribe in the round bar to record.');
+      return;
+    }
+    S.recConsentAt = Date.now(); saveSettings(); renderRecNotice();
+    if (!R.run || !$('#rec-on').checked || recWanted) return; // the clock was paused while the notice was open
+  }
+  startRec();
+}
+// The judge stopped recording (strip button or Transcribe unticked). The clock keeps going.
+function userStopRec() {
+  stopRec();
+  if (R.run) { R.run.rec = false; save(); }
+  setRecStatus(); renderRecStrip();
+}
+function renderRecStrip() {
+  const strip = $('#rec-strip'); if (!strip) return;
+  const st = L.recStripState({ recWanted, live: recLive, stoppedByReload: recStoppedByReload && Boolean(R.run), speechId: recWanted ? recSpeechId : (R.run && R.run.id), online: navigator.onLine, engine: activeEngine, narrow: innerWidth < 820 });
+  if (strip.hidden !== Boolean(st.hidden)) { strip.hidden = Boolean(st.hidden); measureHeader(); }
+  if (st.hidden) return;
+  const text = $('#rec-strip-text');
+  const want = (st.dot ? '● ' : '') + st.text;
+  if (text.dataset.v !== want) {
+    text.dataset.v = want; text.textContent = '';
+    if (st.dot) { const d = document.createElement('span'); d.setAttribute('aria-hidden', 'true'); d.textContent = '● '; text.append(d); }
+    text.append(st.text);
+  }
+  const b = $('#rec-strip-btn'); b.textContent = st.buttonLabel; b.dataset.act = st.button;
+}
+$('#rec-strip-btn').addEventListener('click', (e) => {
+  if (e.currentTarget.dataset.act === 'resume') {
+    recStoppedByReload = false;
+    $('#rec-on').checked = true; S.recOn = true; saveSettings();
+    if (R.run) wantRec();
+    renderRecStrip();
+    return;
+  }
+  $('#rec-on').checked = false; S.recOn = false; saveSettings();
+  userStopRec();
+});
+// Offline: the strip says what happens to the words. The free browser service loses them, so say so once.
+addEventListener('offline', () => { renderRecStrip(); if (recWanted && activeEngine === 'browser') toast(OFFLINE_SR, { kind: 'error', key: 'offline-sr' }); });
+addEventListener('online', () => renderRecStrip());
+function renderRecNotice() {
+  const el = $('#rec-notice-status'); if (!el) return;
+  el.textContent = S.recConsentAt ? 'You chose Record on this device. The notice will not show again.' : 'The notice shows before the next recording.';
+}
+$('#rec-notice-reset').addEventListener('click', () => { delete S.recConsentAt; saveSettings(); renderRecNotice(); toast('The recording notice will show before the next recording.'); });
+// The mic went live: say so to screen readers, and remember it with the running clock (for the reload notice).
+function markRecLive() {
+  if (recLive || !recWanted) return;
+  recLive = true;
+  if (R.run && R.run.id === recSpeechId) { R.run.rec = true; save(); }
+  announce('Recording started for ' + L.shortSpeech(recSpeechId) + '.');
+  renderRecStrip();
+}
+
+// The (?) note next to the transcript title: how transcription works right now, in short lines.
+// extra = a transcription problem to show (AI flow problems are shown with the AI flow, not here).
 function setRecNote(extra) {
   const eng = S.trEngine;
-  const base = eng !== 'browser' && P.PROVIDERS[eng]
-    ? P.PROVIDERS[eng].name + ' transcription, a new clip every ' + S.chunkSec + ' s.'
-    : (SR ? 'Browser speech-to-text (Chrome sends audio to Google). Free but weak on fast speech. Connect Gemini, OpenAI or Grok in "AI + Keys" for better text.' : 'This browser has no speech-to-text. Connect Gemini, OpenAI or Grok in "AI + Keys".');
-  $('#rec-note').textContent = base + (S.liveFlow ? ' Live AI flow is on.' : '') + (extra ? ' — ' + extra : '');
-  // A problem (extra) lights up the (?) next to the transcript title, so it is not missed.
+  const lines = [];
+  if (eng !== 'browser' && P.PROVIDERS[eng]) {
+    lines.push('<b>Transcription: ' + escapeHtml(P.PROVIDERS[eng].short) + '</b>, a new clip every ' + S.chunkSec + ' s.');
+    lines.push('Audio stays on this device only until its text is back.');
+  } else if (SR) {
+    lines.push('<b>Transcription: free browser kind.</b>');
+    lines.push('Chrome sends the audio to Google. It misses words in fast speech.');
+    lines.push('For better text, connect OpenAI, Gemini or Grok in Settings.');
+  } else {
+    lines.push('<b>No transcription in this browser.</b> Connect OpenAI, Gemini or Grok in Settings.');
+  }
+  lines.push('Live AI flow: ' + (S.liveFlow ? 'on' : 'off') + '.');
+  if (extra) lines.push('<span class="tip-problem">' + escapeHtml(extra) + '</span>');
+  $('#rec-note').innerHTML = lines.map((l) => '<span class="tip-line">' + l + '</span>').join('');
+  // A transcription problem puts a small red dot on the (?).
   document.querySelector('.tr-head .tip').classList.toggle('warn', Boolean(extra));
 }
 
 let activeEngine = 'browser', recStartedAt = 0;
 function startRec() {
   if (testing) testAbort = true; // a speech starting ends the mic test
-  recWanted = true; recSpeechId = sp().id; recGen++; recProblem = ''; recStartedAt = Date.now();
+  recWanted = true; recSpeechId = runSp().id; recGen++; recProblem = ''; recStartedAt = Date.now(); recLive = false; recStoppedByReload = false;
   activeEngine = S.trEngine || 'browser';
   // The chosen engine has no key (for example after a refresh)? Use the free browser engine instead of failing silently.
   if (activeEngine !== 'browser' && !keys[activeEngine]) {
@@ -346,10 +622,12 @@ function startRec() {
     else { recWanted = false; recProblem = 'no key for ' + P.PROVIDERS[activeEngine].name + '. Connect it in "AI + Keys".'; renderRecBadge(); setRecStatus(); return; }
   }
   if (activeEngine !== 'browser') startOpenAIRec(); else startBrowserRec();
-  renderRecBadge(); setRecStatus();
+  if (activeEngine === 'browser' && !navigator.onLine) toast(OFFLINE_SR, { kind: 'error', key: 'offline-sr' });
+  renderRecBadge(); setRecStatus(); renderRecStrip();
 }
 function stopRec() {
-  recWanted = false;
+  if (recWanted || recLive) announce('Recording stopped.');
+  recWanted = false; recLive = false;
   if (rec) { try { rec.stop(); } catch {} rec = null; }
   clearTimeout(clipTimer);
   if (clipRec && clipRec.state !== 'inactive') clipRec.stop();
@@ -357,7 +635,7 @@ function stopRec() {
   stopStream();
   if (mic) { mic.getTracks().forEach((t) => t.stop()); mic = null; }
   meterShow(false);
-  renderRecBadge();
+  renderRecBadge(); renderRecStrip();
 }
 // ---------- live level meter (round bar) ----------
 let meterAt = 0;
@@ -375,7 +653,11 @@ function meterFeed(samples) {
   m.setAttribute('aria-label', 'Mic level: ' + info.label);
 }
 function renderRecBadge() {
-  $('#mini-rec').innerHTML = (recWanted ? '<span class="rec-dot"></span>REC ' : '') + (clipsPending ? '· transcribing… ' : '') + (flowBusy ? '· AI flowing…' : '');
+  const q = CQ.state();
+  const queue = !q.backlog ? '' : q.held ? '· paused ' : q.degraded ? '· connection trouble, ' + clipMinutes(q) + ' queued ' : '· transcribing… ';
+  $('#mini-rec').textContent = queue.replace(/^· /, '') + (flowBusy ? (queue ? '· ' : '') + 'AI flowing…' : ''); // the "Recording" strip shows the mic
+  // Paused clips (for example no key) can be thrown away by the judge.
+  const btn = document.getElementById('discard-audio'); if (btn) btn.hidden = !(q.held && q.backlog);
 }
 
 function startBrowserRec() {
@@ -393,8 +675,9 @@ function startBrowserRec() {
     if (sp().id === recSpeechId) setTranscriptView(base + (interim ? ' ' + interim : ''));
     scheduleFlow(recSpeechId, false);
   };
+  rec.onstart = () => markRecLive();
   rec.onerror = (ev) => {
-    if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') { recWanted = false; recProblem = 'the microphone is blocked. Click the mic icon in the address bar and allow it.'; setRecStatus(); }
+    if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') { recWanted = false; recLive = false; recProblem = 'the microphone is blocked. Click the mic icon in the address bar and allow it.'; setRecStatus(); renderRecStrip(); toast(MIC_BLOCKED, { kind: 'error', key: 'mic' }); }
     else if (ev.error === 'network') { recProblem = 'browser transcription needs internet.'; setRecStatus(); }
   };
   rec.onend = () => { if (recWanted) { try { rec.start(); } catch {} } else renderRecBadge(); };
@@ -420,15 +703,18 @@ async function startOpenAIRec() {
   try {
     got = mic || await openMic();
   } catch (err) {
-    recWanted = false; renderRecBadge();
+    recWanted = false; recLive = false; renderRecBadge();
     recProblem = 'the microphone is blocked or busy (' + (err && err.name || 'error') + '). Click the mic icon in the address bar and allow it.';
-    setRecStatus(); return;
+    setRecStatus(); renderRecStrip();
+    if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) toast(MIC_BLOCKED, { kind: 'error', key: 'mic' });
+    return;
   }
   // The judge may have paused (or paused and restarted) while the mic was opening.
   // A mic opened for a cancelled start is closed, so it never stays live.
   if (gen !== recGen || !recWanted) { if (got !== mic) got.getTracks().forEach((t) => t.stop()); return; }
   if (mic && mic !== got) mic.getTracks().forEach((t) => t.stop());
   mic = got;
+  markRecLive();
   const track = mic.getAudioTracks()[0];
   if (track) track.onended = () => { meterShow(false); if (recWanted) { recProblem = 'the microphone was disconnected. Pause and start the clock again.'; setRecStatus(); } };
   if (window.AudioWorkletNode) {
@@ -496,7 +782,7 @@ function cutClip(sess, isFinal) {
   sess.first = false;
   // Skip clips that are almost all overlap or silence (the model invents words in silence).
   if ((!isFinal && newSamples < 0.3 * sess.sr) || newSamples === 0 || L.rms(all) < SILENCE_RMS) { if (isFinal) scheduleFlow(sess.speechId, true); return; }
-  queueClip(new Blob([L.encodeWav(all, sess.sr)], { type: 'audio/wav' }), sess.speechId, isFinal, overlap);
+  queueClip(new Blob([L.encodeWav(all, sess.sr)], { type: 'audio/wav' }), sess.speechId, isFinal, overlap, all.length / sess.sr);
 }
 function stopStream() {
   const sess = stream;
@@ -509,13 +795,13 @@ function stopStream() {
 
 // Each clip is a full recording (stop + restart), so OpenAI gets a valid audio file every time.
 function recordClip(speechId) {
-  const parts = [];
+  const parts = [], startedAt = Date.now();
   const r = new MediaRecorder(mic);
   r.ondataavailable = (e) => { if (e.data && e.data.size) parts.push(e.data); };
   r.onstop = () => {
     const isFinal = !recWanted || recSpeechId !== speechId;
     const blob = new Blob(parts, { type: r.mimeType || 'audio/webm' });
-    if (blob.size > 3000) queueClip(blob, speechId, isFinal);
+    if (blob.size > 3000) queueClip(blob, speechId, isFinal, false, (Date.now() - startedAt) / 1000);
     else if (isFinal) scheduleFlow(speechId, true);
     if (!recWanted && mic) { mic.getTracks().forEach((t) => t.stop()); mic = null; }
   };
@@ -528,62 +814,92 @@ function recordClip(speechId) {
   }, S.chunkSec * 1000);
 }
 
-// Clips are sent one at a time, so text always lands in order.
-let trError = false;
-function queueClip(blob, speechId, isFinal, overlap) {
-  clipsPending++; renderRecBadge();
-  clipQueue = clipQueue.then(async () => {
-    try {
-      let text = await transcribeClip(blob, R.transcripts[speechId] || '');
-      if (resetting) return;
-      // On silence the model sometimes repeats the vocabulary hint. Drop that.
-      if (text.includes('policy debate. Terms:')) text = '';
-      if (text) {
-        if (overlap) text = L.mergeOverlap(R.transcripts[speechId], text);
-        R.transcripts[speechId] = L.appendChunk(R.transcripts[speechId], text); save();
-        lastTextAt = Date.now();
-        if (sp().id === speechId) setTranscriptView(R.transcripts[speechId]);
-        renderSpeeches();
-      }
-      if (trError) { trError = false; setRecNote(''); recProblem = ''; }
-    } catch (err) {
-      trError = true;
-      setRecNote('transcription error: ' + err.message);
-      recProblem = 'OpenAI error: ' + err.message;
-      setRecStatus();
-    } finally {
-      clipsPending--; renderRecBadge();
-      // The last clip of a speech forces one final flow pass.
-      scheduleFlow(speechId, isFinal);
+// ---------- the clip queue (see clipqueue.js) ----------
+// Each clip is saved on this device (IndexedDB) before it is sent, and deleted as soon as its text is back.
+// A bad connection never loses a clip: clips wait, are retried with growing pauses, and the texts are
+// applied strictly in order when the connection returns. Audio never goes into a backup or a .tab file.
+let trError = false, clipCounter = 0;
+const clipMinutes = (q) => { const m = q.queuedSec / 60; return m < 1 ? Math.max(1, Math.round(q.queuedSec)) + ' s' : (Math.round(m * 10) / 10) + ' min'; };
+let storeWarned = false;
+const CQ = window.ClipQueue.createClipQueue({
+  store: { put: (rec) => clipStore.put(rec), del: (id) => clipStore.del(id).catch(() => {}) },
+  onStoreError() {
+    if (storeWarned) return; storeWarned = true;
+    toast('Audio could not be saved on this device. Transcription goes on, but a reload now could lose waiting clips.');
+  },
+  // The transcript so far is read when a clip is sent. While several clips go at once (catching up), the later
+  // ones see a little less context; their order is still right, because texts are applied in order.
+  send: (rec, timeoutMs) => transcribeClip(rec.blob, R.transcripts[rec.speechId] || '', timeoutMs, rec.engine),
+  apply(rec, text) {
+    if (resetting || rec.roundId !== R.id) return;
+    // Remember applied clips (by id) with the transcript, so a reload never applies one twice.
+    // Ids, not times: a computer clock that is wrong or corrected must never make real clips look applied.
+    R.appliedClips = (R.appliedClips || []).concat(rec.id).slice(-200);
+    // On silence the model sometimes repeats the vocabulary hint. Drop that.
+    if (text.includes('policy debate. Terms:')) text = '';
+    if (text) {
+      if (rec.overlap) text = L.mergeOverlap(R.transcripts[rec.speechId], text);
+      R.transcripts[rec.speechId] = L.appendChunk(R.transcripts[rec.speechId], text);
+      lastTextAt = Date.now();
+      if (sp().id === rec.speechId) setTranscriptView(R.transcripts[rec.speechId]);
+      renderSpeeches();
     }
-  });
+    save(); // the text and the applied-clip list are saved together
+    if (trError) { trError = false; setRecNote(''); recProblem = ''; }
+    // The last clip of a speech forces one final flow pass.
+    scheduleFlow(rec.speechId, rec.isFinal);
+  },
+  drop(rec, err) {
+    trError = true;
+    setRecNote('Problem: ' + err.message);
+    recProblem = P.PROVIDERS[rec.engine] ? P.PROVIDERS[rec.engine].short + ' error: ' + err.message : err.message;
+    setRecStatus();
+    scheduleFlow(rec.speechId, rec.isFinal);
+  },
+  onChange() { renderRecBadge(); setRecStatus(); },
+});
+addEventListener('online', () => CQ.retryNow());
+document.getElementById('discard-audio').addEventListener('click', () => {
+  if (!confirm('Throw away the audio waiting to be transcribed? Its words will not reach the transcript.')) return;
+  CQ.clear(); clipStore.clear().catch(() => {}); recProblem = ''; setRecStatus(); renderRecBadge();
+});
+function queueClip(blob, speechId, isFinal, overlap, seconds) {
+  // seq orders clips across reloads too: time first, then a counter for clips cut in the same millisecond.
+  const seq = Date.now() * 1000 + (clipCounter++ % 1000);
+  CQ.add({ id: R.id + ':' + seq, roundId: R.id, speechId, seq, blob, isFinal, overlap: Boolean(overlap), seconds: seconds || S.chunkSec, engine: activeEngine, at: Date.now() });
 }
 
 function blobToBase64(blob) {
   return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.onerror = () => rej(fr.error); fr.readAsDataURL(blob); });
 }
 // Sends one audio clip to the chosen provider and returns the words.
-async function transcribeClip(blob, prevText) {
-  const eng = activeEngine;
+// Errors say if trying again could help (err.retryable): a timeout or a lost connection can; a rejected key cannot.
+async function transcribeClip(blob, prevText, timeoutMs = 30000, engine = activeEngine) {
+  const eng = engine;
+  const fail = (msg, retryable) => Object.assign(new Error(msg), { retryable });
+  // No key, or a rejected key: pause and keep the audio (err.hold) until the judge fixes it.
+  if (!keys[eng] && eng !== 'browser') throw Object.assign(fail('no ' + ((P.PROVIDERS[eng] || {}).short || eng) + ' key on this device. Connect it in Settings', false), { hold: true });
   const key = keys[eng];
   const ext = /wav/.test(blob.type) ? 'wav' : /mp4/.test(blob.type) ? 'mp4' : /ogg/.test(blob.type) ? 'ogg' : 'webm';
-  if (eng !== 'openai' && eng !== 'xai' && eng !== 'google') throw new Error('this engine cannot transcribe');
+  if (eng !== 'openai' && eng !== 'xai' && eng !== 'google') throw fail('this engine cannot transcribe', false);
   const audio = eng === 'google' ? await blobToBase64(blob) : null;
   let res;
   try {
     res = await withModel(eng, 'transcribe', (model) => {
       const { url, init } = transcribeRequest(eng, key, model, blob, ext, audio, prevText);
-      // A stuck request must not block every clip after it, so give up after 30 s.
-      return fetch(url, { ...init, signal: AbortSignal.timeout(30000) });
+      // A stuck request must not block the clips after it, so give up after the queue's time limit.
+      return fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
     });
   } catch (err) {
-    if (err && err.name === 'TimeoutError') throw new Error('no reply in 30 s; skipped one clip');
+    if (err && err.name === 'TimeoutError') throw fail('no reply in ' + Math.round(timeoutMs / 1000) + ' s; the clip is kept and tried again', true);
     if (err && !(err instanceof TypeError)) throw err; // a real error with its own message (fetch network failures are TypeErrors)
-    // Some error replies carry no browser (CORS) header, so a bad key can look like a network failure.
-    throw new Error('no reply. Check the ' + P.PROVIDERS[eng].short + ' key and the internet connection');
+    // No connection (or an error reply with no browser CORS header). The clip is kept and tried again.
+    throw fail('no reply. Check the internet connection (and the ' + P.PROVIDERS[eng].short + ' key)', true);
   }
   const j = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(friendlyError(res.status, j));
+  // Rejected key: pause and keep the audio. Busy or broken for a moment (408, 429, 5xx): try again.
+  // Anything else (400, 413...: bad audio): this clip will not work.
+  if (!res.ok) throw Object.assign(fail(friendlyError(res.status, j), res.status === 408 || res.status === 429 || res.status >= 500), { status: res.status, hold: res.status === 401 || res.status === 403 });
   if (eng === 'google') return P.parseAIResponse('google', j).trim();
   return (j.text || '').trim();
 }
@@ -653,7 +969,7 @@ async function runFlow(speechId, forced) {
     if (forced && S.autoBallot) scheduleBallotSoon();
     if (R.tab === 'flow' && R.flowView === 'ai') redrawAIFlowSafely();
   } catch (err) {
-    setRecNote('AI flow error: ' + err.message);
+    // Shown with the AI flow (its status line and a toast), not in the transcription note.
     if (err.status === 413 || /too long|too large|exceed/i.test(err.message || '')) {
       S.liveFlow = false; saveSettings(); $('#live-flow').checked = false; flowPending.clear();
       toast('Live AI flow turned off: the docs + transcript are too big. Remove a doc, then turn it back on.');
@@ -693,13 +1009,13 @@ function showDrawer(on) {
   if (on) { const t = $('#transcript-big'); t.scrollTop = t.scrollHeight; }
 }
 $('#tr-toggle').addEventListener('click', () => showDrawer($('#tr-drawer').hidden));
-// The (?) next to the transcript title: a click opens or closes it; hovering opens it only after 2 s,
+// The (?) next to the transcript title: a click opens or closes it; hovering opens it after half a second,
 // so passing over it with the mouse does not cover the transcript.
 (() => {
   const wrap = document.querySelector('.tr-head .tip-wrap'), btn = wrap.querySelector('.tip');
   let timer = null, pinned = false;
   const set = (on) => { wrap.classList.toggle('open', on); btn.setAttribute('aria-expanded', String(on)); };
-  wrap.addEventListener('mouseenter', () => { if (!pinned) timer = setTimeout(() => set(true), 2000); });
+  wrap.addEventListener('mouseenter', () => { if (!pinned) timer = setTimeout(() => set(true), 500); });
   wrap.addEventListener('mouseleave', () => { clearTimeout(timer); if (!pinned) set(false); });
   btn.addEventListener('click', () => {
     clearTimeout(timer);
@@ -708,12 +1024,16 @@ $('#tr-toggle').addEventListener('click', () => showDrawer($('#tr-drawer').hidde
     set(pinned);
   });
   document.addEventListener('click', (e) => { if (pinned && !wrap.contains(e.target)) { pinned = false; set(false); } });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && wrap.classList.contains('open')) { pinned = false; set(false); } });
+  escLayer('tip', 50, () => wrap.classList.contains('open'), () => { pinned = false; set(false); });
 })();
 $('#tr-drawer-close').addEventListener('click', () => showDrawer(false));
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#tr-drawer').hidden && !tourState) showDrawer(false); });
+escLayer('drawer', 30, () => !$('#tr-drawer').hidden, () => showDrawer(false));
 // The drawer sits just above the round bar, which can wrap to two lines on narrow screens.
 new ResizeObserver(([en]) => document.documentElement.style.setProperty('--rb-h', Math.ceil(en.target.getBoundingClientRect().height) + 'px')).observe(document.querySelector('.roundbar'));
+// The sticky header grows when the "Recording" strip shows; the panes and the overlay sit below it.
+// Measured on resize and right after the strip changes (resize observers wait for a paint, which a hidden tab skips).
+function measureHeader() { document.documentElement.style.setProperty('--header-h', Math.ceil(document.querySelector('header').getBoundingClientRect().height) + 'px'); }
+new ResizeObserver(measureHeader).observe(document.querySelector('header'));
 
 // ---------- flow ----------
 // A round nobody has touched opens on a calm start screen instead of an empty flow.
@@ -729,8 +1049,14 @@ function renderFlow() {
   if (R.flowView === 'ai') return renderAIFlow();
   const f = R.flows[R.flowIdx] || R.flows[0];
   $('#flow-tabs').innerHTML = viewToggle() + R.flows.map((x, i) => sheetTab(x.name, `data-i="${i}"`, i === R.flowIdx)).join('')
-    + '<button data-act="add">+ Sheet</button><button data-act="rename">Rename</button><button data-act="del">Delete</button>';
+    + '<button data-act="add">+ Sheet</button><button data-act="rename">Rename</button><button data-act="del">Delete</button>' + sheetLearnLink(f && f.name);
   $('#flow').innerHTML = L.FLOW_COLUMNS.map((c, i) => `<div class="col ${c.side}"><h3>${c.label}</h3><textarea data-col="${i}" spellcheck="false">${escapeHtml((f.cells || {})[i] || '')}</textarea></div>`).join('');
+}
+// A link from the open sheet to its Debate Library page (for example DA -> learn/disadvantages/). A real link, not a
+// tooltip, so keyboard and screen-reader users can reach it. Sheets with no page (for example "Notes") show nothing.
+function sheetLearnLink(name) {
+  const p = L.sheetPage(name);
+  return p ? `<a class="sheet-learn" href="learn/${p.slug}/" target="_blank" rel="noopener" aria-label="Learn about ${p.topic} in the Debate Library (opens a new tab)" title="Learn about ${p.topic}">ⓘ Learn</a>` : '';
 }
 function viewToggle() {
   return `<button data-view="mine" class="${R.flowView !== 'ai' ? 'on' : ''}">My flow</button><button data-view="ai" class="${R.flowView === 'ai' ? 'on' : ''}">AI flow</button><span style="width:12px"></span>`;
@@ -743,7 +1069,7 @@ function agoText(t) {
 }
 function flowStatusHtml() {
   if (flowBusy) return '<span style="color:var(--ok)">AI is flowing… (10–30 s)</span>';
-  if (lastFlowErr) return '<span style="color:var(--danger)">Last AI flow failed: ' + escapeHtml(lastFlowErr) + '</span>';
+  if (lastFlowErr) return '<span style="color:var(--danger)">Last AI flow failed: ' + escapeHtml(lastFlowErr) + ' Check the AI key in Settings.</span>';
   if (!aiReady()) return '<span style="color:var(--danger)">No AI is set up. Open "AI + Keys" to connect one.</span>';
   if (!S.liveFlow) return '<span style="color:var(--danger)">Live AI flow is off. Tick it in "AI + Keys".</span>';
   return '';
@@ -775,7 +1101,7 @@ function renderAIFlow() {
   $('#flow-tabs').innerHTML = viewToggle() + sheets.map((x, i) => sheetTab(x.name, `data-ai="${i}"`, i === aiIdx)).join('')
     + '<span style="width:12px"></span>' + L.FLOW_LEVELS.map((lv) => `<button data-level="${lv}" class="${lv === level ? 'on' : ''}">${lv[0].toUpperCase() + lv.slice(1)}</button>`).join('')
     + '<span style="width:12px"></span><button data-act="map-docs">Map docs to flow now</button>'
-    + `<span class="muted" style="margin-left:var(--s2)" id="ai-flow-ago">Updated ${ago}.</span>`
+    + `<span class="muted" style="margin-left:var(--s2)" id="ai-flow-ago">Updated ${ago}.</span>` + sheetLearnLink((sheets[aiIdx] || {}).name)
     + `<div id="ai-flow-status" style="flex-basis:100%;font-weight:600;margin-top:var(--s1)">${flowStatusHtml()}</div>`;
   const sh = sheets[aiIdx];
   // Every cell can be edited. An edited cell keeps the judge's text; if the AI writes something newer
@@ -863,37 +1189,68 @@ function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&am
 let DOCS = [];
 const docStore = {
   db: null,
+  opening: null,
   async open() {
     if (this.db) return this.db;
-    this.db = await new Promise((res, rej) => {
-      const r = indexedDB.open('policyJudge', 1);
-      r.onupgradeneeded = () => r.result.createObjectStore('docs', { keyPath: 'id' });
-      let failed = false;
-      r.onsuccess = () => { if (failed) r.result.close(); else res(r.result); };
-      r.onerror = () => { failed = true; rej(r.error); };
-      r.onblocked = () => { failed = true; rej(new Error('storage blocked')); };
-    }).catch((e) => { this.db = null; throw e; });
-    return this.db;
+    // One open request at a time; every caller waits for the same one.
+    this.opening ??= new Promise((res, rej) => {
+      const r = indexedDB.open('policyJudge', 2);
+      // Version 2 adds 'clips': audio waiting to be transcribed (deleted once its text is back).
+      r.onupgradeneeded = () => { const db = r.result; for (const name of ['docs', 'clips']) if (!db.objectStoreNames.contains(name)) db.createObjectStore(name, { keyPath: 'id' }); };
+      r.onsuccess = () => {
+        const db = r.result;
+        // A newer Tabula in another tab needs to update the database: step aside so it is not stuck.
+        db.onversionchange = () => { db.close(); if (this.db === db) this.db = null; toast('Tabula was updated in another tab. Reload this tab.'); };
+        this.db = db; res(db);
+      };
+      r.onerror = () => rej(r.error);
+      // An older Tabula tab still has the database open. Keep waiting (the update finishes when it closes);
+      // each storage step (storageStep) still gives up after 3 s, so the app does not freeze meanwhile.
+      r.onblocked = () => toast('Close other Tabula tabs or windows to finish an update.');
+    }).finally(() => { this.opening = null; });
+    return this.opening;
   },
-  async tx(mode, fn) {
-    // Never let a stuck browser database freeze the app: the whole step must finish in 3 s.
-    let timer;
-    const timeout = new Promise((_, rej) => { timer = setTimeout(() => rej(new Error('storage timed out')), 3000); });
-    const work = (async () => {
-      const db = await this.open();
-      return new Promise((res, rej) => {
-        const t = db.transaction('docs', mode); const req = fn(t.objectStore('docs'));
-        t.oncomplete = () => res(req && req.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error || new Error('storage aborted'));
-      });
-    })();
-    try { return await Promise.race([work, timeout]); } finally { clearTimeout(timer); }
-  },
+  async tx(mode, fn) { return storageStep('docs', mode, fn); },
   async list(roundId) { return ((await this.tx('readonly', (st) => st.getAll())) || []).filter((d) => d.roundId === roundId); },
   put(doc) { if (restoring) return Promise.resolve(); return this.tx('readwrite', (st) => st.put(doc)); }, // no stray writes during a restore
   del(id) { return this.tx('readwrite', (st) => st.delete(id)); },
   async clearRound(roundId) { try { for (const d of await this.list(roundId)) await this.del(d.id); } catch {} },
 };
 
+// One storage step on a store of the app's database. Never let a stuck browser database freeze the app:
+// the whole step (opening included) must finish in 3 s.
+async function storageStep(name, mode, fn) {
+  let timer;
+  const timeout = new Promise((_, rej) => { timer = setTimeout(() => rej(new Error('storage timed out')), 3000); });
+  const work = (async () => {
+    const db = await docStore.open();
+    return new Promise((res, rej) => {
+      const t = db.transaction(name, mode); const req = fn(t.objectStore(name));
+      t.oncomplete = () => res(req && req.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error || new Error('storage aborted'));
+    });
+  })();
+  try { return await Promise.race([work, timeout]); } finally { clearTimeout(timer); }
+}
+// Audio clips waiting for their text. Same database as the docs, its own store, never in a backup.
+const clipStore = {
+  tx(mode, fn) { return storageStep('clips', mode, fn); },
+  put(rec) { return this.tx('readwrite', (st) => st.put(rec)); },
+  del(id) { return this.tx('readwrite', (st) => st.delete(id)); },
+  all() { return this.tx('readonly', (st) => st.getAll()).then((x) => x || []); },
+  clear() { return this.tx('readwrite', (st) => st.clear()); },
+};
+// On start: audio from other rounds is deleted; this round's waiting clips (a reload mid-speech) are sent again.
+async function resumeClips() {
+  try {
+    const all = await clipStore.all();
+    for (const c of all) if (c.roundId !== R.id) await clipStore.del(c.id);
+    // Clips already applied (a reload between applying and deleting) are deleted, never applied twice.
+    const applied = new Set(R.appliedClips || []);
+    for (const c of all) if (c.roundId === R.id && applied.has(c.id)) await clipStore.del(c.id);
+    const mine = all.filter((c) => c.roundId === R.id && !applied.has(c.id));
+    if (mine.length) { CQ.resume(mine); toast(mine.length + ' audio clip' + (mine.length > 1 ? 's' : '') + ' from before the reload are being transcribed.'); }
+  } catch { /* storage unavailable: nothing to resume */ }
+}
 function fileToBase64(file) {
   return new Promise((res, rej) => {
     const fr = new FileReader();
@@ -1110,7 +1467,7 @@ document.querySelectorAll('.doc-quick').forEach((inp) => inp.addEventListener('c
 // The only doc bar outside Round lives in the Flow workspace's left pane (#tab-timer).
 function timerSpeechFor(bar, side) {
   if (!bar.closest('#tab-timer')) return undefined;
-  const cur = sp();
+  const cur = runSp(); // the speech the clock times, not one the judge is only looking back at
   return cur.side === side && L.speechColumn(cur.id) != null ? cur.id : undefined;
 }
 // Drag and drop: the side comes from the picker on the tab you are on.
@@ -1189,8 +1546,8 @@ S.models = P.cleanSavedModels(S.models); // older versions saved premium or reti
 S.modelChoice ??= {}; // models the judge picked in Settings (these win over automatic picks)
 S.modelLists ??= {}; // each provider's chat models, for the picker
 S.helper = {};
-// With several keys, start with the best value for the live flow (see evals/live-flow/RESULTS.md).
-if (!S.aiEngine) S.aiEngine = ['openai', 'google', 'anthropic', 'xai'].find((p) => keys[p]) || '';
+// With several keys and no choice yet, take the first connected provider in alphabetical order (no favorite).
+if (!S.aiEngine) S.aiEngine = ['anthropic', 'google', 'openai', 'openrouter', 'xai'].find((p) => keys[p]) || '';
 if (!S.trEngine) S.trEngine = S.engine === 'openai' && keys.openai ? 'openai' : 'browser';
 // Old single-key entries are removed only once the keys are safely saved in the new place.
 function saveKeys() { if (restoring) return; if (S.rememberKeys) { if (store.set(KEYS, keys)) { store.del(KEY); store.del(OAKEY); } } else store.del(KEYS); }
@@ -1220,14 +1577,17 @@ async function modelFor(provider, purpose) {
   const saved = (S.models[provider] || {})[purpose];
   if (saved) return saved;
   const req = P.modelsRequest(provider, keys[provider]);
-  const res = await fetch(req.url, req.init);
-  if (!res.ok) throw new Error('could not read the model list (' + res.status + ')');
+  let res;
+  try { res = await fetch(req.url, { ...req.init, signal: AbortSignal.timeout(15000) }); }
+  catch (err) { throw Object.assign(new Error(err && err.name === 'TimeoutError' ? 'the model list took over 15 s. Check the connection' : 'could not reach ' + P.PROVIDERS[provider].name + '. Check the connection'), { retryable: true }); }
+  // A busy or broken provider may work again soon; a rejected key will not.
+  if (!res.ok) throw Object.assign(new Error(friendlyError(res.status, await res.json().catch(() => ({})))), { retryable: res.status === 408 || res.status === 429 || res.status >= 500, hold: res.status === 401 || res.status === 403 });
   const ids = P.modelIds(provider, await res.json());
   S.modelLists[provider] = P.chatModels(provider, ids);
   const id = P.pickModel(provider, ids, purpose);
-  if (!id) throw new Error(P.chatModels(provider, ids).some(P.isPremium)
+  if (!id) throw Object.assign(new Error(P.chatModels(provider, ids).some(P.isPremium)
     ? 'this key only has premium models, which cost much more. Choose one under Settings → ' + P.PROVIDERS[provider].name + ' if you want it'
-    : 'no suitable ' + purpose + ' model found for ' + P.PROVIDERS[provider].name);
+    : 'no suitable ' + purpose + ' model found for ' + P.PROVIDERS[provider].name), { retryable: false });
   (S.models[provider] ??= {})[purpose] = id; saveSettings();
   return id;
 }
@@ -1367,7 +1727,7 @@ async function connectKey(raw) {
   const msg = $('#key-msg');
   const id = P.detectProvider(key);
   if (!key) { msg.style.color = 'var(--danger)'; msg.textContent = 'Paste a key first.'; return; }
-  if (!id) { msg.style.color = 'var(--danger)'; msg.textContent = 'This does not look like a key from Google (AIza…), OpenAI (sk-…), Anthropic (sk-ant-…) or xAI (xai-…). Check that you copied all of it.'; return; }
+  if (!id) { msg.style.color = 'var(--danger)'; msg.textContent = 'This does not look like a key from Google (AIza…), OpenAI (sk-…), Anthropic (sk-ant-…), xAI (xai-…) or OpenRouter (sk-or-…). Check that you copied all of it.'; return; }
   const p = P.PROVIDERS[id];
   msg.style.color = 'var(--muted)'; msg.textContent = 'Looks like ' + aOrAn(p.name) + ' key. Checking it…';
   $('#key-connect').disabled = true;
@@ -1391,6 +1751,7 @@ async function connectKey(raw) {
     msg.style.color = 'var(--ok)';
     msg.textContent = 'Connected ' + p.name + (p.transcribe ? ' — it can do AI tools and transcription.' : ' — it does AI tools. Transcription stays the free browser kind.');
     renderConnections(); setRecNote(''); setRecStatus();
+    CQ.retryNow(); // clips paused for a missing or rejected key can go now
   } catch (err) {
     msg.style.color = 'var(--danger)';
     msg.textContent = 'Could not connect ' + p.name + ': ' + (err.message || err);
@@ -1408,7 +1769,7 @@ $('#prov-list').addEventListener('click', (e) => {
   if (del) { if (!confirm('Remove the ' + P.PROVIDERS[del].name + ' key from this computer?')) return; delete keys[del]; delete S.models[del]; delete S.modelChoice[del]; delete S.modelLists[del]; saveKeys(); renderConnections(); setRecNote(''); }
   if (tst) connectKey(keys[tst]);
 });
-$('#ai-engine').addEventListener('change', (e) => { S.aiEngine = e.target.value; saveSettings(); });
+$('#ai-engine').addEventListener('change', (e) => { S.aiEngine = e.target.value; subShown = ''; saveSettings(); renderSubscriptions(); });
 $('#tr-engine').addEventListener('change', (e) => { S.trEngine = e.target.value; saveSettings(); setRecNote(''); });
 $('#remember-keys').addEventListener('change', (e) => { S.rememberKeys = e.target.checked; saveKeys(); saveSettings(); });
 
@@ -1417,6 +1778,7 @@ $('#remember-keys').addEventListener('change', (e) => { S.rememberKeys = e.targe
 const HELPER_CMD = 'node bridge.mjs';
 
 async function checkHelper() {
+  subShown = ''; // show what is true now, not an old click
   // The helper only exists on the judge's own computer. On the hosted site there is nothing to ask.
   if (!LOCAL_ORIGIN) { S.helper = {}; renderConnections(); return; }
   try {
@@ -1426,22 +1788,37 @@ async function checkHelper() {
   } catch { S.helper = {}; }
   renderConnections();
 }
+// "Use your AI subscription": a ChatGPT button and a Claude button. A button that is ready (the local helper
+// found the signed-in app) switches the AI tools to it; one that is not ready shows the steps for that app only.
+let subShown = '';
 function renderSubscriptions() {
-  if (!LOCAL_ORIGIN) {
-    $('#sub-body').innerHTML = '<p style="margin:0">A Claude or ChatGPT plan works only in the downloadable version of Tabula, on a Mac, through a small helper app. On this website, connect an API key above instead.</p>';
+  const h = S.helper || {};
+  document.querySelectorAll('.sub-btn').forEach((b) => {
+    b.setAttribute('aria-pressed', String(S.aiEngine === b.dataset.sub));
+    b.disabled = !LOCAL_ORIGIN;
+  });
+  const body = $('#sub-body');
+  if (!LOCAL_ORIGIN) { body.innerHTML = '<p style="margin:0">Subscriptions work only in the downloadable version of Tabula, through a small helper on your computer. On this website, connect an API key above.</p>'; return; }
+  const id = subShown || (P.SUBSCRIPTIONS[S.aiEngine] ? S.aiEngine : '');
+  if (!id) { body.innerHTML = ''; return; }
+  const s = P.SUBSCRIPTIONS[id], app = id === 'claude-cli' ? 'Claude Code' : 'Codex', cmd = id === 'claude-cli' ? 'claude' : 'codex';
+  if (h[id]) {
+    body.innerHTML = `<p style="margin:0">${S.aiEngine === id ? '<b>In use:</b> ' : ''}your ${escapeHtml(s.name.replace(' subscription', ''))} plan, through the ${app} app on this computer. Each answer takes 10–30 s. PDFs are not read on this path; save docs as .docx or text. Transcription stays separate.</p>`
+      + (id === 'codex-cli' ? `<div style="margin-top:var(--s2)"><label for="codex-model">Model (optional; leave empty to use your Codex setting)</label><input id="codex-model" value="${escapeHtml(S.codexModel || '')}" placeholder="a model your ChatGPT plan includes"></div>` : '');
     return;
   }
-  const h = S.helper || {};
-  const running = h['claude-cli'] || h['codex-cli'];
-  $('#sub-body').innerHTML = running
-    ? 'Helper running. ' + [h['claude-cli'] ? 'Claude subscription (Claude Code)' : '', h['codex-cli'] ? 'ChatGPT subscription (Codex)' : ''].filter(Boolean).join(' and ') + ' found. Pick it under "AI tools use" above. Each answer takes 10–30 s. PDFs are not read on this path; save docs as .docx or text.'
-      + (h['codex-cli'] ? `<div style="margin-top:var(--s2)"><label for="codex-model">Codex model (optional; leave empty to use your Codex setting)</label><input id="codex-model" value="${escapeHtml(S.codexModel || '')}" placeholder="a model your ChatGPT plan includes"></div>` : '')
-    : `<p style="margin:0 0 var(--s2)">A ChatGPT Plus or Claude Pro plan cannot be used by a web page directly. This app can use it through the official Claude Code or Codex app that is already signed in on this Mac.</p>
-       <ol style="margin:0 0 var(--s2);padding-left:20px"><li>Sign in once in Terminal with <code>claude</code> (Claude) or <code>codex</code> (ChatGPT).</li>
-       <li>Start this app with the helper instead of the plain server: <code>${escapeHtml(HELPER_CMD)}</code> (in the Tabula folder) <button class="b" id="copy-helper">Copy</button></li>
-       <li>Open <code>http://localhost:8765</code> again and click <button class="b" id="recheck-helper">Check again</button></li></ol>
-       <p style="margin:0">Transcription stays the free browser kind on this path.</p>`;
+  body.innerHTML = `<ol style="margin:0;padding-left:20px">
+      <li>Install the ${app} app and sign in once in Terminal: <code>${cmd}</code></li>
+      <li>Start Tabula with its helper: <code>${escapeHtml(HELPER_CMD)}</code> (in the Tabula folder) <button class="b small" id="copy-helper">Copy</button></li>
+      <li>Open <code>http://localhost:8765</code> again, then <button class="b small" id="recheck-helper">Check again</button></li></ol>`;
 }
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('.sub-btn'); if (!b) return;
+  const id = b.dataset.sub;
+  subShown = id;
+  if ((S.helper || {})[id]) { S.aiEngine = id; saveSettings(); renderConnections(); toast('AI tools now use your ' + P.SUBSCRIPTIONS[id].name.replace(' subscription', '') + ' plan.'); }
+  else renderSubscriptions();
+});
 document.addEventListener('change', (e) => { if (e.target.id === 'codex-model') { S.codexModel = e.target.value.trim(); saveSettings(); } });
 document.addEventListener('click', (e) => {
   if (e.target.id === 'copy-helper') copy(HELPER_CMD);
@@ -1542,7 +1919,10 @@ function tourShow() {
   const step = tour.steps[tourState.i];
   if (step.place) showTab(step.place);
   // A step inside a hidden pane opens that pane.
-  if ((step.target === '#speech-list' || step.target === '#tab-timer') && S.hideLeft) { S.hideLeft = false; applyPanes(); }
+  if (step.target === '#speech-list' || step.target === '#tab-timer') {
+    if (isOverlay()) { if (!leftOpen) { leftOpen = true; applyPanes(); } } // below 1440 px the pane is an overlay
+    else if (S.hideLeft) { S.hideLeft = false; applyPanes(); }
+  } else if (leftOpen) { leftOpen = false; applyPanes(); }
   if (step.target === '#insights' && S.hideRight) { S.hideRight = false; applyPanes(); }
   $('#tour-count').textContent = tour.title + ' · ' + (tourState.i + 1) + ' of ' + tour.steps.length;
   $('#tour-dots').innerHTML = tour.steps.map((_, k) => '<i class="' + (k === tourState.i ? 'on' : k < tourState.i ? 'done' : '') + '"></i>').join('');
@@ -1573,7 +1953,7 @@ function tourEnd(finished) {
   const st = tourState; tourState = null;
   $('#tour').hidden = true;
   for (const el of document.querySelectorAll('header, main, .roundbar')) el.inert = false;
-  S.hideLeft = st.hideLeft; S.hideRight = st.hideRight; applyPanes();
+  S.hideLeft = st.hideLeft; S.hideRight = st.hideRight; leftOpen = false; applyPanes();
   if (st.name === 'main') S.tourDone = true;
   saveSettings();
   if (st.place) showTab(st.place); // back to where the judge was
@@ -1595,8 +1975,7 @@ let tourScrollT = null;
 addEventListener('scroll', () => { if (tourState && !tourScrollT) tourScrollT = setTimeout(() => { tourScrollT = null; tourPlace(); }, 50); }, true);
 document.addEventListener('keydown', (e) => {
   if (!tourState) return;
-  if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); tourEnd(false); }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); e.stopImmediatePropagation(); tourGo(1); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); e.stopImmediatePropagation(); tourGo(1); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopImmediatePropagation(); tourGo(-1); }
   else if (e.key === 'Tab') { // keep focus inside the tour card
     const f = [...$('#tour-card').querySelectorAll('button:not([disabled])')];
@@ -1604,6 +1983,7 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault(); f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
   }
 }, true);
+escLayer('tour', 100, () => Boolean(tourState), () => tourEnd(false)); // Esc ends the tour
 // The ? menu
 function closeHelpMenu() { $('#help-menu').hidden = true; $('#help-btn').setAttribute('aria-expanded', 'false'); }
 $('#help-btn').addEventListener('click', (e) => {
@@ -1614,7 +1994,7 @@ $('#help-btn').addEventListener('click', (e) => {
 });
 $('#help-menu').addEventListener('click', (e) => { const b = e.target.closest('[data-tour]'); if (b) tourStart(b.dataset.tour); });
 document.addEventListener('click', (e) => { if (!$('#help-menu').hidden && !e.target.closest('.help-wrap')) closeHelpMenu(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#help-menu').hidden) { closeHelpMenu(); $('#help-btn').focus(); } });
+escLayer('help-menu', 60, () => !$('#help-menu').hidden, () => { closeHelpMenu(); $('#help-btn').focus(); });
 // The gentle offer after the welcome screen (never on top of a dialog).
 function offerTour() { if (!S.tourDone && !S.tourOffered) { S.tourOffered = true; saveSettings(); $('#tour-offer').hidden = false; } }
 $('#tour-offer-go').addEventListener('click', () => tourStart('main'));
@@ -1637,7 +2017,8 @@ $('#skip-ack').addEventListener('change', (e) => { $('#skip-go').disabled = !e.t
 $('#skip-go').addEventListener('click', () => { S.setupDone = true; S.aiSkipped = true; saveSettings(); showWelcome(false); showTab('setup'); setTimeout(offerTour, 400); });
 $('#skip-back').addEventListener('click', () => showWelcome(true));
 $('#show-welcome').addEventListener('click', () => showWelcome(true));
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#welcome').hidden && S.setupDone) showWelcome(false); });
+// Esc closes the welcome only after setup; before that it stays (and Esc must not close anything behind it).
+escLayer('welcome', 80, () => !$('#welcome').hidden, () => { if (S.setupDone) showWelcome(false); });
 
 $('#chunk-sec').value = S.chunkSec; $('#live-flow').checked = S.liveFlow;
 $('#chunk-sec').addEventListener('change', (e) => { S.chunkSec = Math.max(4, Math.min(30, Number(e.target.value) || 8)); e.target.value = S.chunkSec; saveSettings(); setRecNote(''); });
@@ -2056,7 +2437,8 @@ $('#ne-delete').addEventListener('click', () => {
   save(); closeNodeEditor(); renderAnalysis();
 });
 $('#ne-cancel').addEventListener('click', closeNodeEditor);
-$('#node-editor').addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNodeEditor(); if (e.key === 'Enter' && e.target.id === 'ne-label') $('#ne-save').click(); });
+$('#node-editor').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'ne-label') $('#ne-save').click(); });
+escLayer('node-editor', 70, () => !$('#node-editor').hidden, () => closeNodeEditor());
 $('#map-add').addEventListener('click', () => openNodeEditor({}));
 $('#map-out').addEventListener('click', (e) => {
   const card = e.target.closest('[data-node]');
@@ -2161,6 +2543,7 @@ $('#restore-file').addEventListener('change', async (e) => {
   // 1. Safety copy of the current data (with keys) before anything changes.
   await downloadBackup(true, 'before-restore');
   resetting = true; stopAll(); restoring = true;
+  CQ.clear(); await clipStore.clear().catch(() => {}); // waiting audio never carries over into restored data
   // 2. Snapshot everything, so any failure below puts the old data back exactly.
   const oldStorage = readAllStorage();
   const oldDocs = await readAllDocs();
@@ -2268,11 +2651,12 @@ $('#log-tsv').addEventListener('click', () => copy(L.toTSV([L.BALLOT_HEADER, ...
 $('#log-csv').addEventListener('click', () => download('policy_ballots.csv', L.toCSV([L.BALLOT_HEADER, ...store.get(LOG, [])])));
 
 // ---------- start ----------
-bindAll(); renderSpeeches(); renderClock(); renderPrep(); renderTranscript();
+restoreClocksOnLoad();
+bindAll(); renderSpeeches(); renderClock(); renderPrep(); renderTranscript(); renderRecStrip(); renderRecNotice();
+$('#t-start').title = K.startTip(IS_MAC, S.singleKeys !== false);
 renderConnections(); checkHelper(); renderReadLevel(); applyPanes(); renderAudio(); listMics();
-showTab(R.tab || 'flow'); renderPrepPresets(); showDrawer(Boolean(S.trDrawer));
+showTab(R.tab || 'flow'); renderPrepPresets(); showDrawer(Boolean(S.trDrawer)); resumeClips();
 renderSdList(); if (sdState().code) { sdFetchList(true); sdWatch(); } // resume watching this round's SpeechDrop room
 if (!S.setupDone) showWelcome(true);
-window.addEventListener('beforeunload', () => { if (running) pauseSpeech(); stopPrep(); });
 
 $('#print-btn').addEventListener('click', () => window.print());

@@ -26,6 +26,10 @@
     --r1: 6px; --r2: 8px; --r3: 12px;
     --h-ctl: 32px; --h-ctl-lg: 40px;
     --fs-xs: 12px; --fs-sm: 13px; --fs: 14px; --fs-md: 15px; --fs-lg: 18px;
+    /* Layers (spec S0.1). No raw z-index numbers: each layer has one name. V0 moves these to tokens.css. */
+    --z-sticky: 10; --z-bar: 20; --z-drawer: 30; --z-pop: 40; --z-dialog: 50; --z-tour: 60; --z-toast: 70; --z-tip: 80;
+    /* Layout (spec 1.5). --header-h and --rb-h are measured by app.js. */
+    --header-h: 52px; --pane-left-w: 290px; --pane-right-w: 270px; --col-min: 96px;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -41,7 +45,7 @@
   body { margin: 0; background: var(--bg); color: var(--ink); font: var(--fs)/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
   :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   /* Header: the live strip (current speech, clock, recording) is the one thing a judge glances at. */
-  header { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); align-items: center; padding: var(--s2) var(--s4); background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+  header { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); align-items: center; padding: var(--s2) var(--s4); background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: var(--z-sticky); }
   .brand { display: inline-flex; align-items: center; gap: var(--s2); color: var(--ink); text-decoration: none; margin-right: var(--s2); }
   .brand img { display: block; height: 26px; width: auto; }
   .wordmark, .display { font-family: var(--font-display); font-weight: 800; font-style: italic; letter-spacing: -0.02em; }
@@ -88,15 +92,14 @@
   .prep .card { text-align: center; }
   .prep .card h2 { margin-bottom: var(--s1); }
   .prep .t { font-family: var(--font-display); font-size: 32px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: var(--s2); }
-  .rec-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); margin-right: 6px; animation: blink 1.2s infinite; }
-  @keyframes blink { 50% { opacity: .25; } }
-  @media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } }
   /* Flow */
   .flowtabs { display: flex; flex-wrap: wrap; gap: var(--s1); align-items: center; margin-bottom: var(--s2); }
   .flowtabs button { min-height: 28px; font: inherit; font-size: var(--fs-sm); padding: 0 var(--s3); border-radius: var(--r1); border: 1px solid var(--line); background: var(--panel); color: var(--ink-2); cursor: pointer; }
   .flowtabs button:hover { background: var(--sunk); }
   .flowtabs button.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-  .flow { display: grid; grid-template-columns: repeat(7, minmax(136px, 1fr)); gap: 0; overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); }
+  .flowtabs .sheet-learn { margin-left: auto; display: inline-flex; align-items: center; min-height: 28px; padding: 0 var(--s3); border-radius: var(--r1); border: 1px solid var(--line); color: var(--ink-2); font-size: var(--fs-sm); text-decoration: none; }
+  .flowtabs .sheet-learn:hover { background: var(--sunk); }
+  .flow { display: grid; grid-template-columns: repeat(7, minmax(var(--col-min), 1fr)); gap: 0; overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); }
   .flow .col { border-right: 1px solid var(--line); min-width: 0; }
   .flow .col:last-child { border-right: 0; }
   .flow .col h3 { position: sticky; top: 0; font-size: var(--fs-sm); font-weight: 700; margin: 0; padding: var(--s2) var(--s3); border-bottom: 1px solid var(--line); }
@@ -143,7 +146,7 @@
   .chip.drop { background: var(--warn); color: var(--panel); }
   .chip.ext { background: var(--ok-bg); color: var(--ok); }
   .chip.con { background: var(--sunk); color: var(--muted); border: 1px solid var(--line-2); }
-  .overlay { position: fixed; inset: 0; background: rgba(10,12,15,.55); display: grid; place-items: center; z-index: 20; padding: var(--s4); }
+  .overlay { position: fixed; inset: 0; background: rgba(10,12,15,.55); display: grid; place-items: center; z-index: var(--z-dialog); padding: var(--s4); }
   .overlay[hidden] { display: none; }
   .overlay-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r3); padding: var(--s5); width: min(620px, 100%); max-height: calc(100vh - 32px); overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
   .choices { display: grid; gap: var(--s2); }
@@ -187,7 +190,7 @@
   .workspace.no-left.no-right { grid-template-columns: minmax(0, 1fr); }
   .workspace.no-left .pane-left, .workspace.no-right .pane-right { display: none !important; }
   .workspace .pane { display: block; min-width: 0; }
-  .pane-left, .pane-right { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); padding: var(--s3); position: sticky; top: 64px; max-height: calc(100vh - 140px); overflow: auto; }
+  .pane-left, .pane-right { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); padding: var(--s3); position: sticky; top: calc(var(--header-h) + 12px); max-height: calc(100vh - var(--header-h) - var(--rb-h, 76px) - 24px); overflow: auto; }
   .pane-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s2); }
   .pane-head h2, .pane-block h2 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; margin: 0; }
   .pane-block { margin-top: var(--s3); }
@@ -196,7 +199,7 @@
   .pane-left .sp { min-height: 40px; padding: var(--s1) 6px; position: relative; font-size: var(--fs-xs); }
   .pane-left .sp small { margin-top: 0; }
   .sp-dot { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
-  .workspace .pane-left { display: flex; flex-direction: column; height: calc(100vh - 140px); }
+  .workspace .pane-left { display: flex; flex-direction: column; height: calc(100vh - var(--header-h) - var(--rb-h, 76px) - 24px); }
   .transcript-block { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 220px; }
   .transcript-block textarea { flex: 1 1 auto; min-height: 160px; resize: none; }
   .pane-docs { margin-top: var(--s2); }
@@ -204,12 +207,16 @@
   .tr-head { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s2); }
   .tr-head h2 { margin: 0 !important; }
   .tip-wrap { position: relative; display: inline-flex; }
-  .tip { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--panel); color: var(--muted); font: 700 12px/1 var(--font-display); cursor: help; padding: 0; }
+  .tip { position: relative; width: 16px; height: 16px; border-radius: 50%; border: 1px solid var(--line-2); background: none; color: var(--muted); font: 700 10px/1 var(--font-display); cursor: help; padding: 0; }
   .tip:hover, .tip:focus-visible { color: var(--ink); border-color: var(--ink); }
-  .tip.warn { color: var(--on-accent, #fff); background: var(--warn); border-color: var(--warn); }
-  .tip-pop { display: none; position: absolute; left: -96px; top: calc(100% + 6px); z-index: 20; width: 228px; padding: var(--s2) var(--s3); background: var(--panel); color: var(--ink-2); border: 1px solid var(--line-2); border-radius: var(--r2); box-shadow: 0 10px 28px rgba(0,0,0,.18); font-size: var(--fs-xs); font-weight: 400; line-height: 1.45; }
+  .tip.warn::after { content: ''; position: absolute; top: -2px; right: -2px; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); } /* a transcription problem */
+  .tip-pop { display: none; position: absolute; left: -96px; top: calc(100% + 6px); z-index: var(--z-tip); width: 220px; padding: 8px 10px; background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-radius: var(--r1); box-shadow: 0 6px 18px rgba(0,0,0,.14); font-size: 12px; font-weight: 400; line-height: 1.4; }
+  .tip-line { display: block; }
+  .tip-line + .tip-line { margin-top: 4px; }
+  .tip-line b { color: var(--ink); font-weight: 600; }
+  .tip-problem { color: var(--danger); }
   .tip-pop:empty { display: none !important; }
-  .tip-wrap.open .tip-pop { display: block; } /* opened by a click, or by hovering 2 s (app.js) */
+  .tip-wrap.open .tip-pop { display: block; } /* opened by a click, or by hovering half a second (app.js) */
   .pane-docs .docbar { margin-top: var(--s2); }
   .sd-h { font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 700; margin: var(--s3) 0 var(--s1); }
   .sd-box { margin-top: var(--s2); }
@@ -239,47 +246,70 @@
   .pane-left .docbar input[type="file"] { width: 100% !important; min-width: 0; }
   .pane-toggles { display: none; gap: var(--s1); margin-bottom: var(--s2); }
   .workspace.no-left .pane-toggles, .workspace.no-right .pane-toggles { display: flex; }
-  .workspace:not(.no-left) #show-left, .workspace:not(.no-right) #show-right { display: none; }
+  .workspace:not(.no-right) #show-right { display: none; }
+  .workspace.no-left:not(.no-right) .pane-toggles { display: none; }
+  /* The Flow tab row starts with the Speeches button (spec 1.5); app.js shows it when the pane is not inline. */
+  .flowbar { display: flex; gap: var(--s1); align-items: flex-start; }
+  .flowbar .flowtabs { flex: 1; min-width: 0; }
+  #speeches-btn { min-height: 28px; flex: none; }
+  #speeches-btn[hidden] { display: none; }
+  #speeches-btn[aria-expanded="true"] { background: var(--sunk); border-color: var(--ink); }
   .ins-lean { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-md); }
   .ins-list { margin: var(--s1) 0 0; padding-left: 18px; font-size: var(--fs-sm); color: var(--ink-2); }
   .ins-list li + li { margin-top: 4px; }
-  .tr-drawer { position: fixed; left: var(--s3); right: var(--s3); bottom: calc(var(--rb-h, 64px) + 8px); z-index: 7; height: min(42vh, 420px); display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r3) var(--r3) 0 0; box-shadow: 0 -12px 32px rgba(0,0,0,.18); padding: var(--s3); }
+  .tr-drawer { position: fixed; left: var(--s3); right: var(--s3); bottom: calc(var(--rb-h, 64px) + 8px); z-index: var(--z-drawer); height: min(42vh, 420px); display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r3) var(--r3) 0 0; box-shadow: 0 -12px 32px rgba(0,0,0,.18); padding: var(--s3); }
   .tr-drawer[hidden] { display: none; }
   .tr-drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s2); }
   .tr-drawer-head h2 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; margin: 0; }
   .tr-drawer textarea { flex: 1; resize: none; font-size: var(--fs-md); line-height: 1.55; }
   body.drawer-open main { padding-bottom: calc(min(42vh, 420px) + 24px); }
   #tr-toggle.on { background: var(--sunk); border-color: var(--ink); }
-  .roundbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); padding: var(--s2) var(--s4); background: var(--panel); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(0,0,0,.06); }
+  .roundbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-bar); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); padding: var(--s2) var(--s4); background: var(--panel); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(0,0,0,.06); }
   .rb-speech { display: flex; align-items: baseline; gap: var(--s2); min-width: 190px; }
   .rb-speech #cur-label { font-size: var(--fs-sm); }
   .roundbar .clock { font-size: 34px; margin: 0; line-height: 1; letter-spacing: -0.02em; text-align: left; }
   .rb-ctl { display: flex; gap: var(--s1); }
-  .rb-rec { display: flex; align-items: center; gap: var(--s2); min-width: 0; flex: 1; }
+  .rb-rec { display: flex; align-items: center; gap: var(--s2); min-width: 7.5rem; flex: 1; } /* room for the box and its label; the status line shrinks with an ellipsis */
+  .rb-rec > label { flex: none; flex-wrap: nowrap; white-space: nowrap; } /* the Transcribe label never breaks under its box */
   .rb-status { font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }
   .rb-prep { display: flex; align-items: center; gap: var(--s2); font-size: var(--fs-sm); font-weight: 600; }
   .rb-prep .t { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-lg); font-variant-numeric: tabular-nums; }
   .rb-ai { font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
   body { padding-bottom: 76px; }
-  @media (max-width: 1180px) {
-    .workspace, .workspace.no-left { grid-template-columns: 260px minmax(0, 1fr); }
-    .workspace .pane-right { grid-column: 1 / -1; position: static; max-height: none; }
-    .workspace.no-left, .workspace.no-left.no-right { grid-template-columns: minmax(0, 1fr); }
+  /* Below 1440 px the speeches pane is a flat overlay on the grid (spec 1.5, Q4, Q1): the 7 columns never reflow.
+     No shadow: only the flow grid is raised. It closes with Hide, Esc, the same key, or a click in the grid. */
+  @media (min-width: 820px) and (max-width: 1439.98px) {
+    #workspace, #workspace.no-left { grid-template-columns: minmax(0, 1fr) var(--pane-right-w); }
+    #workspace.no-right, #workspace.no-left.no-right { grid-template-columns: minmax(0, 1fr); }
+    #workspace .pane-left { display: none !important; position: fixed; top: calc(var(--header-h) + var(--s2)); bottom: calc(var(--rb-h, 76px) + var(--s2)); left: var(--s4); width: min(300px, calc(100vw - 32px)); height: auto; max-height: none; z-index: var(--z-pop); box-shadow: none; border: 1px solid var(--muted); }
+    #workspace.left-open .pane-left { display: flex !important; }
   }
-  @media (max-width: 820px) {
+  @media (min-width: 820px) and (max-width: 1180px) {
+    #workspace, #workspace.no-left, #workspace.no-right, #workspace.no-left.no-right { grid-template-columns: minmax(0, 1fr); }
+    #workspace .pane-right { grid-column: 1 / -1; position: static; max-height: none; }
+  }
+  @media (max-width: 819.98px) {
     .workspace, .workspace.no-left, .workspace.no-right { grid-template-columns: minmax(0, 1fr); }
     .pane-left, .pane-right { position: static; max-height: none; }
     .roundbar { gap: var(--s1) var(--s3); padding: var(--s2) var(--s3); }
     .roundbar .clock { font-size: 28px; }
     .rb-status { max-width: 180px; }
     body { padding-bottom: 132px; }
-    .toast { bottom: 148px; }
     .tour-offer { bottom: 148px; right: var(--s3); left: var(--s3); width: auto; }
   }
+  .field-help { margin: 4px 0 0; font-size: var(--fs-xs); }
+  .sub-pick { margin-top: var(--s4); padding-top: var(--s3); border-top: 1px solid var(--line); }
+  .sub-pick h3 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; margin: 0 0 4px; }
+  .sub-pick > p { margin: 0 0 var(--s2); }
+  .sub-btn { min-width: 140px; justify-content: center; gap: 8px; font-weight: 600; }
+  .sub-logo { width: 16px; height: 16px; flex: none; margin-right: 8px; }
+  .sub-btn[aria-pressed="true"] { border-color: var(--ink); background: var(--sunk); }
+  #sub-body { margin-top: var(--s2); }
+  #sub-body:empty { display: none; }
   .model-picks { gap: var(--s3); margin-top: var(--s2); align-items: flex-end; }
   .model-pick { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-xs); color: var(--muted); min-width: 0; flex: 1 1 220px; }
   .model-pick select { max-width: 100%; }
-  .hover-tip { position: fixed; z-index: 50; max-width: 260px; padding: 4px 8px; border-radius: var(--r1); background: var(--ink); color: var(--bg); font-size: var(--fs-xs); font-weight: 600; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.2); }
+  .hover-tip { position: fixed; z-index: var(--z-tip); max-width: 260px; padding: 4px 8px; border-radius: var(--r1); background: var(--ink); color: var(--bg); font-size: var(--fs-xs); font-weight: 600; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.2); }
   .hover-tip[hidden] { display: none; }
   .meter { display: inline-block; width: 64px; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; vertical-align: middle; flex: none; }
   .meter.big { width: 140px; height: 10px; }
@@ -289,7 +319,7 @@
   .meter[data-level="loud"] i { background: var(--danger); }
   .help-wrap { position: relative; }
   #help-btn { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-md); }
-  .help-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: 250px; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r2); padding: var(--s1); box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+  .help-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: var(--z-pop); width: 250px; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r2); padding: var(--s1); box-shadow: 0 12px 32px rgba(0,0,0,.18); }
   .help-menu[hidden] { display: none; }
   .help-menu a { display: block; padding: var(--s2); border-radius: var(--r1); color: var(--ink); font-size: var(--fs-sm); text-decoration: none; }
   .help-menu a:hover, .help-menu a:focus-visible { background: var(--sunk); }
@@ -300,7 +330,7 @@
   .help-menu p { margin: 0; padding: var(--s2); font-size: var(--fs-xs); }
   .help-sep { height: 1px; background: var(--line); margin: var(--s1) 0; }
   #tour[hidden] { display: none; }
-  #tour { position: fixed; inset: 0; z-index: 40; }
+  #tour { position: fixed; inset: 0; z-index: var(--z-tour); }
   .tour-spot { position: fixed; border-radius: var(--r2); box-shadow: 0 0 0 9999px rgba(10,12,15,.55); outline: 2px solid var(--panel); pointer-events: none; }
   .tour-card { position: fixed; width: min(340px, calc(100vw - 24px)); background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r3); padding: var(--s4); box-shadow: 0 20px 50px rgba(0,0,0,.3); }
   .tour-card h2 { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; margin: 0 0 var(--s2); }
@@ -310,13 +340,54 @@
   .tour-dots i.done { background: var(--muted); }
   .tour-dots i.on { background: var(--ink); width: 16px; border-radius: 3px; }
   .tour-count { font-size: var(--fs-xs) !important; color: var(--muted) !important; margin-bottom: var(--s1) !important; font-variant-numeric: tabular-nums; }
-  .tour-offer { position: fixed; right: var(--s4); bottom: 92px; z-index: 25; width: 290px; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r3); padding: var(--s4); box-shadow: 0 16px 40px rgba(0,0,0,.22); }
+  .tour-offer { position: fixed; right: var(--s4); bottom: 92px; z-index: var(--z-pop); width: 290px; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r3); padding: var(--s4); box-shadow: 0 16px 40px rgba(0,0,0,.22); }
   .tour-offer[hidden] { display: none; }
   .tour-offer h2 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 800; margin: 0 0 var(--s1); }
   .tour-offer p { margin: 0 0 var(--s3); }
-  .toast { position: fixed; bottom: 92px; left: 50%; transform: translateX(-50%); max-width: min(560px, calc(100vw - 32px)); background: var(--accent); color: var(--on-accent); padding: var(--s2) var(--s4); border-radius: var(--r2); font-size: var(--fs-sm); opacity: 0; transition: opacity .15s; pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,.18); }
-  .toast.on { opacity: 1; }
+  /* Toasts (spec 4.3): bottom centre above the round bar, and above the transcript drawer when it is open.
+     The stack lets clicks through; each toast takes them. Newest at the bottom, at most 3. */
+  .toasts { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--rb-h, 76px) + 12px); z-index: var(--z-toast); width: min(560px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: var(--s2); pointer-events: none; }
+  body.drawer-open .toasts { bottom: calc(var(--rb-h, 76px) + 12px + min(42vh, 420px) + 20px); }
+  .toast { pointer-events: auto; display: flex; align-items: flex-start; gap: var(--s2); background: var(--accent); color: var(--on-accent); padding: var(--s1) var(--s1) var(--s1) var(--s4); border-radius: var(--r2); font-size: var(--fs-sm); box-shadow: 0 4px 16px rgba(0,0,0,.18); animation: toast-in .15s ease-out; }
+  .toast:not(.is-error) :focus-visible { outline-color: var(--on-accent); }
+  .toast.is-error { background: var(--panel); color: var(--ink); border: 1px solid var(--line-2); border-left: 4px solid var(--danger); padding-left: var(--s3); }
+  .toast-icon { flex: none; padding: 5px 0; font-weight: 800; color: var(--danger); }
+  .toast-msg { flex: 1; min-width: 0; padding: 5px 0; overflow-wrap: anywhere; }
+  .toast-act, .toast-x { flex: none; min-height: 28px; min-width: 28px; padding: 0 var(--s2); border-radius: var(--r1); background: transparent; color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
+  .toast-act { border: 1px solid currentColor; }
+  .toast-x { border: 0; font-size: var(--fs-md); line-height: 1; }
+  .toast-x:hover, .toast-act:hover { background: rgba(127,127,127,.2); }
+  @keyframes toast-in { from { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  /* The in-app dialog, ask() (spec 4.2). */
+  .overlay.ask { place-items: start center; padding-top: 20vh; }
+  .ask-card { position: relative; width: min(420px, calc(100% - 32px)); max-height: calc(80vh - 16px); }
+  .ask-card h2 { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; margin: 0 0 var(--s3); padding-right: 40px; }
+  .ask-body p { margin: 0 0 var(--s2); color: var(--ink-2); }
+  .ask-foot { margin: var(--s3) 0 0; }
+  .ask-foot:empty { display: none; }
+  .ask-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2); margin-top: var(--s4); }
+  .ask-x { position: absolute; top: var(--s3); right: var(--s3); }
+  button.b.danger { color: var(--danger); border-color: var(--danger); }
+  /* The "Recording" strip: a full-width row inside the sticky header while the mic is on (spec 1.6, Q19).
+     Steady and calm: no red, no orange, no blinking. */
+  .rec-strip { flex: 1 0 100%; order: 99; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); margin: 0 calc(-1 * var(--s4)) calc(-1 * var(--s2)); padding: var(--s1) var(--s4); background: var(--sunk); color: var(--ink); border-top: 1px solid var(--line-2); font-size: var(--fs-sm); font-weight: 600; }
+  .rec-strip[hidden] { display: none; }
+  .rec-strip .b.small { min-height: 28px; }
+  @media (forced-colors: active) { .rec-strip { border-top: 1px solid CanvasText; } }
+  /* View only (spec 1.2): the judge looks back at one speech while another one's clock runs. */
+  .view-chip { display: inline-flex; align-items: center; gap: var(--s2); font-size: var(--fs-sm); font-weight: 600; color: var(--ink-2); align-self: center; }
+  .view-chip[hidden] { display: none; }
+  .view-chip .b.small { min-height: var(--h-ctl); }
+  .sp.run { border-color: var(--ink); border-style: dashed; }
+  .sp .sp-run { display: block; font-size: var(--fs-xs); font-weight: 700; color: var(--ink); }
   .scroll { overflow-x: auto; }
+  @media (max-width: 819.98px) {
+    .toasts { left: var(--s4); right: var(--s4); width: auto; transform: none; }
+    .ask-btns { flex-direction: column-reverse; }
+    .ask-btns .b { width: 100%; }
+  }
   @media (max-width: 640px) {
     main { padding: var(--s3); }
     .mini { margin-left: 0; }
@@ -324,7 +395,7 @@
   }
   @media print {
     :root, :root:not([data-theme="light"]) { --bg: #fff; --panel: #fff; --sunk: #fff; --ink: #000; --ink-2: #222; --muted: #444; --line: #bbb; --line-2: #999; }
-    header, nav, .noprint, aside.pane, .roundbar, section.tab:not(#tab-ballot) { display: none !important; }
+    header, nav, .noprint, aside.pane, .roundbar, .toasts, section.tab:not(#tab-ballot) { display: none !important; }
     body { padding-bottom: 0; }
     section#tab-ballot { display: block !important; }
     body { background: #fff; color: #000; }
@@ -345,13 +416,15 @@
     <div class="help-menu" id="help-menu" role="menu" hidden>
       <button role="menuitem" data-tour="main">Take the full tour</button>
       <button role="menuitem" data-tour="page">Tour this page</button>
+      <a role="menuitem" id="library-link" href="learn/" target="_blank" rel="noopener">Debate library</a>
       <a role="menuitem" href="about.html" target="_blank" rel="noopener">About Tabula</a>
       <div class="help-sep"></div>
-      <p class="muted">Space starts and pauses the clock. Esc closes a tour or dialog.</p>
+      <p class="muted">On Flow, Space starts or pauses the clock when no button or box is selected. ⌘ Enter (Ctrl+Enter on Windows and Chromebook) works even while you type. Esc closes a tour or dialog.</p>
     </div>
   </div>
   <button class="iconbtn" id="settings-btn" data-tab="ai" aria-label="Settings: AI, keys and audio" title="Settings: AI, keys and audio"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   <span id="mini-speech" hidden></span>
+  <div class="rec-strip" id="rec-strip" hidden><span id="rec-strip-text"></span><button class="b small" id="rec-strip-btn" type="button"></button></div>
 </header>
 <main>
 <nav id="subnav" class="subnav" aria-label="Decide" hidden>
@@ -451,8 +524,8 @@
     </div>
   </div>
   <input type="file" id="round-open" accept=".tab,application/json" hidden>
-  <div class="pane-toggles"><button class="b small" data-pane="left" id="show-left">Show speeches</button><button class="b small" data-pane="right" id="show-right">Show insights</button></div>
-  <div class="flowtabs" id="flow-tabs"></div>
+  <div class="pane-toggles"><button class="b small" data-pane="right" id="show-right">Show insights</button></div>
+  <div class="flowbar"><button class="b small" id="speeches-btn" type="button" aria-expanded="false" aria-controls="tab-timer" hidden>Speeches</button><div class="flowtabs" id="flow-tabs"></div></div>
   <div class="flow" id="flow"></div>
   <p class="muted">Aff columns are blue. Neg columns are red. Keep each argument on the same line across columns so the clash lines up.</p>
 </section>
@@ -522,9 +595,9 @@
       <h2 style="margin:0">Connect AI</h2>
       <button class="b" id="show-welcome">Show the welcome screen</button>
     </div>
-    <p class="muted" style="margin:var(--s2) 0 var(--s3)">Paste a key from any provider below. The app works out which one it is and checks that it works. Best value: an OpenAI key. It does transcription and AI, and in our test its small model flowed about as well as Claude Sonnet for about 4 cents a round.</p>
+    <p class="muted" style="margin:var(--s2) 0 var(--s3)">Paste a key from any provider below. The app works out which one it is and checks that it works.</p>
     <div class="row" style="flex-wrap:nowrap">
-      <input type="password" id="key-paste" placeholder="Paste an API key here (starts with AIza…, sk-…, sk-ant-… or xai-…)" autocomplete="off" aria-label="API key">
+      <input type="password" id="key-paste" placeholder="Paste an API key here (starts with AIza…, sk-…, sk-ant-…, xai-… or sk-or-…)" autocomplete="off" aria-label="API key">
       <button class="b primary" id="key-connect">Connect</button>
     </div>
     <p id="key-msg" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
@@ -533,10 +606,15 @@
       <div><label for="ai-engine">AI tools (flow, Live Eval, analysis, decision) use</label><select id="ai-engine"></select></div>
       <div><label for="tr-engine">Transcription uses</label><select id="tr-engine"></select></div>
     </div>
-    <details id="sub-box" style="margin-top:var(--s3)">
-      <summary style="cursor:pointer;font-weight:600">Use a Claude or ChatGPT subscription instead of a key</summary>
-      <div id="sub-body" class="muted" style="margin-top:var(--s2)"></div>
-    </details>
+    <div class="sub-pick" id="sub-box">
+      <h3>Use your AI subscription</h3>
+      <p class="muted">No key needed: Tabula uses the app you already pay for, on this computer.</p>
+      <div class="row sub-btns" role="group" aria-label="AI subscription">
+        <button class="b sub-btn" data-sub="codex-cli" aria-pressed="false"><svg class="sub-logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>ChatGPT</button>
+        <button class="b sub-btn" data-sub="claude-cli" aria-pressed="false"><svg class="sub-logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg>Claude</button>
+      </div>
+      <div id="sub-body" class="muted"></div>
+    </div>
     <label class="row" style="margin-top:var(--s3);color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="remember-keys"> Remember keys on this computer (saved in this browser only, as plain text)</label>
   </div>
   <div class="card" id="audio-card">
@@ -555,6 +633,10 @@
       <button class="b" id="mic-test">Test the mic (5 s)</button>
       <span class="meter big" id="test-meter" role="img" aria-label="Mic test level" hidden><i></i></span>
       <span id="mic-test-result" role="status" aria-live="polite" style="font-weight:600"></span>
+    </div>
+    <div class="row" style="margin-top:var(--s3)">
+      <button class="b" id="rec-notice-reset" type="button">Show the recording notice again</button>
+      <span class="muted" id="rec-notice-status"></span>
     </div>
     <details style="margin-top:var(--s3)"><summary class="muted" style="cursor:pointer">Tips for a live room</summary>
       <ul class="muted" style="margin:var(--s2) 0 0;padding-left:20px">
@@ -578,7 +660,7 @@
           <option value="custom">My Tabroom paradigm (paste it on the Analysis tab)</option>
         </select>
       </div>
-      <div><label for="chunk-sec">Clip length for transcription (seconds, 4–30)</label><input type="number" id="chunk-sec" min="4" max="30" step="1"></div>
+      <div><label for="chunk-sec">Clip length for transcription</label><input type="number" id="chunk-sec" min="4" max="30" step="1" aria-describedby="chunk-sec-help"><p class="muted field-help" id="chunk-sec-help">Seconds, 4–30</p></div>
       <div><label>&nbsp;</label><label class="row" style="color:var(--ink);font-size:var(--fs)"><input type="checkbox" id="live-flow"> Live AI flow during speeches</label></div>
     </div>
   </div>
@@ -682,9 +764,9 @@
   <textarea id="transcript-big" placeholder="Speech-to-text lands here while the clock runs. You can type or fix it too." aria-label="Transcript of the current speech"></textarea>
 </section>
 <footer class="roundbar noprint" aria-label="Round controls">
-  <div class="rb-speech"><span id="cur-label"></span><span class="clock" id="clock" aria-live="off">8:00</span></div>
+  <div class="rb-speech"><span id="cur-label"></span><span class="clock" id="clock" aria-live="off">8:00</span><span class="view-chip" id="view-chip" hidden><span id="view-text"></span><button class="b small" id="view-back" type="button"></button></span></div>
   <div class="rb-ctl">
-    <button class="b primary" id="t-start" title="Start or pause (Space)">Start</button>
+    <button class="b primary" id="t-start" title="Start or pause (Space, or Ctrl+Enter while typing)" aria-keyshortcuts="Meta+Enter Control+Enter">Start</button>
     <button class="b" id="t-reset">Reset</button>
     <button class="b" id="t-next">Next speech</button>
     <button class="b" id="tr-toggle" aria-expanded="false" aria-controls="tr-drawer" title="Show or hide the transcript">Transcript</button>
@@ -693,6 +775,7 @@
     <label class="row" style="margin:0;color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="rec-on"> Transcribe</label>
     <span id="rb-meter" class="meter" role="img" aria-label="Mic level" hidden><i></i></span>
     <span id="rec-status" class="rb-status" role="status" aria-live="polite"></span>
+    <button class="b small" id="discard-audio" hidden>Discard waiting audio</button>
   </div>
   <div class="rb-prep"><span class="aff">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
   <div class="rb-prep"><span class="neg">Neg prep</span><span class="t" id="prep-neg">8:00</span><button class="b small" data-prep="neg">Start</button></div>
@@ -737,7 +820,7 @@
     <h1 id="welcome-title" class="display" style="font-size:26px;margin:0 0 var(--s1)">Welcome to Tabula</h1>
     <p class="muted" style="margin:0 0 var(--s4)">Timers, flow sheets and the ballot always work. AI adds live transcripts, an auto-flow, a Live Eval and analysis. How do you want to start?</p>
     <div class="choices" id="welcome-choices">
-      <button class="choice" data-choice="key"><strong>Connect an AI key</strong><span>Recommended. An OpenAI key is the best value: it does transcription and AI. Gemini, Claude and Grok work too. Step-by-step help included.</span></button>
+      <button class="choice" data-choice="key"><strong>Connect an AI key</strong><span>Recommended. Use a key from Google Gemini, OpenAI, Anthropic Claude, xAI Grok or OpenRouter. Step-by-step help included.</span></button>
       <button class="choice" data-choice="sub"><strong>Use my Claude or ChatGPT subscription</strong><span>Uses the Claude Code or Codex app already signed in on this Mac. Needs one Terminal command. Transcription stays the free browser kind.</span></button>
       <button class="choice" data-choice="skip"><strong>Skip — just flow</strong><span>No AI. Everything you type stays yours.</span></button>
     </div>
@@ -754,11 +837,26 @@
     </div>
   </div>
 </div>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="toasts noprint" id="toasts"></div>
+<div class="sr-only" id="toasts-polite" role="status" aria-live="polite"></div>
+<div class="sr-only" id="toasts-alert" role="alert" aria-live="assertive"></div>
+<div class="sr-only" id="sr-status" role="status" aria-live="polite"></div>
+<div id="ask" class="overlay ask" hidden>
+  <div class="overlay-card ask-card" id="ask-card" role="dialog" aria-modal="true" aria-labelledby="ask-title" aria-describedby="ask-body">
+    <h2 id="ask-title"></h2>
+    <button class="iconbtn ask-x" id="ask-x" type="button" aria-label="Close">×</button>
+    <div class="ask-body" id="ask-body"></div>
+    <p class="muted ask-foot" id="ask-foot"></p>
+    <div class="ask-btns" id="ask-btns"></div>
+  </div>
+</div>
 
 <script src="logic.js"></script>
 <script src="providers.js"></script>
 <script src="tour.js"></script>
+<script src="clipqueue.js"></script>
+<script src="keys.js"></script>
+<script src="ui.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -91,3 +91,24 @@ test('does not follow redirects', async () => {
 test('a broken %-escape in the code is refused, not a crash', async () => {
   assert.equal((await get('/api/speechdrop/%E0%A4%A', { 'X-Tabula': '1' })).status, 400);
 });
+
+// Why: the ? menu and the flow's "Learn" button open learn/ pages. If the helper does not serve them, judges who run Tabula this way get an error page.
+test('serves the Debate Library pages, adds the trailing slash, and refuses paths outside learn/', async () => {
+  const page = await get('/learn/disadvantages/');
+  assert.equal(page.status, 200);
+  assert.match(page.headers.get('content-type'), /^text\/html/);
+  assert.match(await page.text(), /<h1>Disadvantages \(DA\)<\/h1>/);
+  assert.equal((await get('/learn/')).status, 200);
+  assert.match((await get('/learn/learn.css')).headers.get('content-type'), /^text\/css/);
+  assert.match((await get('/learn/check.js')).headers.get('content-type'), /^text\/javascript/, 'the checks need their script');
+  const bare = await fetch(base + '/learn/disadvantages', { redirect: 'manual' });
+  assert.equal(bare.status, 301, 'relative links need the trailing slash');
+  assert.equal(bare.headers.get('location'), '/learn/disadvantages/');
+  assert.equal((await fetch(base + '/learn', { redirect: 'manual' })).headers.get('location'), '/learn/');
+  // fetch() would clean up "..", so send the raw path, the way an attacker would.
+  const raw = (p) => new Promise((res) => http.get({ host: '127.0.0.1', port: new URL(base).port, path: p }, (r) => { r.resume(); res(r.statusCode); }));
+  assert.equal(await raw('/learn/../bridge.mjs'), 404, 'no escaping learn/');
+  assert.equal(await raw('/learn/%2e%2e/bridge.mjs'), 404, 'no escaping learn/ with an encoded ..');
+  assert.equal(await raw('/learn/..%2fbridge.mjs'), 404, 'no escaping learn/ with an encoded /');
+  assert.equal((await get('/learn/nope/')).status, 404);
+});

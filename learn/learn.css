@@ -1,0 +1,123 @@
+/* Debate Library styles. Copied to learn/learn.css by build-learn.mjs.
+   Same tokens as the app (index.html) and about.html. Keep in sync until PLAN step 9 moves them to assets/tokens.css. */
+@font-face { font-family: 'Inter Tight'; font-style: normal; font-weight: 600 800; font-display: swap; src: url('../assets/fonts/InterTight-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Inter Tight'; font-style: italic; font-weight: 600 800; font-display: swap; src: url('../assets/fonts/InterTight-Italic-latin.woff2') format('woff2'); }
+:root {
+  --bg: #f4f5f7; --panel: #ffffff; --sunk: #f8f9fa; --ink: #16191d; --ink-2: #3c434c; --muted: #6a737d; --line: #e1e4e8; --line-2: #cfd4da;
+  --aff: #0055b8; --aff-bg: #eaf1fb; --neg: #c8161f; --neg-bg: #fdecec; --neg-fill: #f2232d; --aff-fill: #0055b8;
+  --accent: #16191d; --on-accent: #ffffff;
+  --font-display: 'Inter Tight', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1114; --panel: #171a1e; --sunk: #121418; --ink: #e9ecef; --ink-2: #c3c9d0; --muted: #8b949e; --line: #262b31; --line-2: #343a42;
+    --aff: #7fb0ff; --aff-bg: #122038; --neg: #ff7b74; --neg-bg: #361517; --aff-fill: #3b82f6;
+    --accent: #e9ecef; --on-accent: #0f1114;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+a { color: var(--aff); text-underline-offset: 2px; }
+.skip { position: absolute; left: -9999px; }
+.skip:focus { left: 16px; top: 8px; background: var(--panel); padding: 8px 12px; border-radius: 8px; z-index: 10; }
+.wrap { max-width: 780px; margin: 0 auto; padding: 0 16px; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+.brand img { height: 30px; width: auto; display: block; }
+.wordmark { font-family: var(--font-display); font-weight: 800; font-style: italic; font-size: 22px; letter-spacing: -0.02em; }
+.libname { color: var(--muted); font-weight: 600; font-size: 15px; }
+.btn { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+
+.crumbs { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+.crumbs a { color: var(--muted); }
+.meta { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; line-height: 1.2; }
+h1 { font-size: clamp(30px, 5.5vw, 44px); font-weight: 800; letter-spacing: -0.03em; margin: 8px 0 20px; }
+h2 { font-size: 24px; font-weight: 800; margin: 40px 0 12px; padding-top: 24px; border-top: 1px solid var(--line); }
+h3 { font-size: 19px; font-weight: 700; margin: 28px 0 8px; }
+h4 { font-size: 17px; margin: 20px 0 6px; }
+p { margin: 0 0 14px; }
+ul, ol { margin: 0 0 14px; padding-left: 24px; }
+li + li { margin-top: 6px; }
+code { font-family: var(--font-mono); font-size: 0.88em; background: var(--sunk); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+
+blockquote { margin: 0 0 20px; padding: 16px 18px; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--line-2); border-radius: 10px; }
+blockquote p:last-child { margin: 0; }
+blockquote.plain { border-left-color: var(--aff-fill); background: var(--aff-bg); font-size: 18px; }
+
+.table { overflow-x: auto; margin: 0 0 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+th { background: var(--sunk); font-weight: 700; }
+tr:last-child td { border-bottom: 0; }
+
+pre.flow { overflow-x: auto; margin: 0 0 10px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; font: 13px/1.5 var(--font-mono); }
+pre.flow code { background: none; border: 0; padding: 0; font-size: inherit; }
+
+.paths, .cta { margin: 36px 0 0; padding: 18px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+.paths h2 { margin: 0 0 8px; padding: 0; border: 0; font-size: 18px; }
+.paths ul { margin: 0; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.cta p { margin: 0; flex: 1 1 320px; }
+
+footer { margin-top: 36px; border-top: 1px solid var(--line); padding: 20px 0 40px; color: var(--muted); font-size: 14px; }
+footer a { color: var(--muted); }
+footer p { margin: 0 0 6px; }
+
+@media (max-width: 520px) {
+  .libname { display: none; }
+  body { font-size: 16px; }
+}
+
+/* ---------- guided tracks and checks (TRACKS.md §3.4) ---------- */
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.draft-note { display: inline-block; margin: 0 0 14px; padding: 4px 10px; border-radius: 6px; border: 1px dashed var(--line-2); color: var(--muted); font-size: 14px; }
+.check { margin: 40px 0 0; padding: 4px 20px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.check > h2 { border-top: 0; padding-top: 12px; margin-top: 8px; }
+.check-intro { color: var(--ink-2); }
+.q { padding: 4px 0 12px; border-top: 1px solid var(--line); }
+.q h3 { margin-top: 16px; }
+.q .prompt { font-weight: 600; }
+.q details { margin: 8px 0; }
+.q summary { cursor: pointer; color: var(--aff); }
+.choices-form { border: 0; margin: 0; padding: 0; }
+.choice { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; margin: 0 0 6px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.choice:hover { background: var(--sunk); }
+.choice input { margin-top: 5px; flex: none; }
+.mark { margin-left: auto; font-weight: 700; white-space: nowrap; }
+.mark.ok { color: var(--aff); }
+.mark.bad { color: var(--neg); }
+.hint { font-size: 14px; color: var(--muted); }
+.why-box { margin: 10px 0 0; padding: 10px 12px; background: var(--sunk); border-radius: 8px; }
+.why-box p { margin: 0; }
+.self-form label { display: block; font-weight: 600; margin: 6px 0; }
+.self-form textarea { width: 100%; font: inherit; padding: 8px; border: 1px solid var(--line-2); border-radius: 8px; background: var(--bg); color: var(--ink); }
+.self-form .btn { margin: 8px 0; cursor: pointer; font: inherit; }
+.self-reveal { margin-top: 8px; }
+.self-reveal ul { list-style: none; padding: 0; }
+.check-actions { margin: 16px 0 6px; }
+.check-actions .btn, .progress-tools .btn { cursor: pointer; font: inherit; }
+.check-status, .tools-status { font-weight: 600; min-height: 1.4em; }
+.track .steps li { padding: 6px 0; }
+.track .steps li.done a { color: var(--ink-2); }
+.tick { color: var(--aff); font-weight: 700; font-size: 14px; margin-left: 6px; }
+.track-progress { font-weight: 700; }
+.resume a { font-weight: 700; }
+.progress-tools { margin-top: 36px; }
+.progress-tools input[type="text"] { font: inherit; padding: 6px 8px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--bg); color: var(--ink); margin-left: 6px; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.track-list li { margin-bottom: 8px; }
+.cert { display: none; }
+@media print {
+  body.printing-cert .wrap > *:not(main), body.printing-cert main > *:not(.cert) { display: none !important; }
+  body.printing-cert .cert { display: block !important; text-align: center; padding: 80px 40px; border: 3px double #000; color: #000; background: #fff; }
+  .cert-kicker { font: 800 28px/1.2 var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; }
+  .cert-name { font: 800 40px/1.2 var(--font-display); margin: 40px 0 16px; }
+  .cert-fine { margin-top: 48px; font-size: 12px; color: #333; }
+}

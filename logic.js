@@ -44,6 +44,24 @@
     const rest = p[2].replace(/^\s*[-:–]\s*/, ': ').replace(/^\s+/, ' ');
     return { short, full: ARG_TYPES[p[1]] + rest };
   }
+  // The Debate Library page that explains each kind of sheet (learn/<slug>/), and how a link names it.
+  // A test checks that every library page's "sheet:" front matter matches this table, so the two never drift.
+  const SHEET_PAGES = {
+    Case: { slug: 'affirmative-case', topic: 'the Affirmative Case' },
+    T: { slug: 'topicality', topic: 'Topicality' },
+    DA: { slug: 'disadvantages', topic: 'Disadvantages' },
+    CP: { slug: 'counterplans', topic: 'Counterplans' },
+    K: { slug: 'kritiks', topic: 'Kritiks' },
+    FW: { slug: 'framework', topic: 'Framework' },
+  };
+  const SHEET_KEY = new RegExp('^(' + Object.keys(SHEET_PAGES).filter((k) => k !== 'Case').join('|') + ')(?![A-Za-z])');
+  // "DA - Econ" -> the DA page; "Case" or "Adv 1" -> the affirmative case page; "Case turns", "Notes" -> null.
+  function sheetPage(name) {
+    const short = sheetLabel(name).short;
+    if (/^(case|adv|advantage)\b(?!\s*(turns?|neg|defense)\b)/i.test(short)) return SHEET_PAGES.Case;
+    const m = short.match(SHEET_KEY);
+    return m ? SHEET_PAGES[m[1]] : null;
+  }
   const DEFAULT_PREP_SECONDS = 8 * 60;
   const SPEAKERS = ['1A', '2A', '1N', '2N'];
 
@@ -1181,8 +1199,160 @@
     return blocks.concat([{ type: 'text', text: (note || DOC_NOTE) + '\n\n' + promptText }]);
   }
 
+  // ---------- Slice 1: round safety (docs/design/SPEC.md §3.1) ----------
+  // A running clock stops by itself at -9:59 (599 s over), on screen and after a reload.
+  const OVER_LIMIT = -599;
+  const speechById = (id) => SPEECHES.find((s) => s.id === id) || null;
+
+  // 1.1 The speech clock after a reload, a crash or sleep. run = { id, endAt, ... } as saved with the round.
+  // Time always comes from the wall clock, so a closed tab keeps "running".
+  function restoreRun(run, now, speechLength) {
+    if (!run || typeof run !== 'object') return { state: 'none' };
+    const s = speechById(run.id);
+    if (!s || typeof run.endAt !== 'number' || !Number.isFinite(run.endAt) || !Number.isFinite(now)) return { state: 'none' };
+    const len = Number.isFinite(speechLength) ? speechLength : s.minutes * 60;
+    const left = (run.endAt - now) / 1000;
+    // run.startLeft is the time left when the clock was started (a resumed speech has less than the full time).
+    // More time than that, or than the speech has, means the device clock was moved back. 2 s allows for rounding.
+    const cap = Number.isFinite(run.startLeft) ? Math.min(len, run.startLeft + 2) : len;
+    // Start again from the full time (spec 1.1: the judge is told to check it).
+    if (left > cap) return { state: 'running', id: s.id, left: len, endAt: now + len * 1000, reason: 'clock-moved' };
+    if (left < OVER_LIMIT) return { state: 'paused', id: s.id, left: OVER_LIMIT, reason: 'over-limit' };
+    return { state: 'running', id: s.id, left, endAt: run.endAt };
+  }
+
+  // 1.1b A prep clock after a reload. prepRun = { side, endAt }. maxSeconds = the round's prep per team.
+  function restorePrep(prepRun, now, maxSeconds) {
+    if (!prepRun || typeof prepRun !== 'object') return { state: 'none' };
+    if (!['aff', 'neg'].includes(prepRun.side) || typeof prepRun.endAt !== 'number' || !Number.isFinite(prepRun.endAt) || !Number.isFinite(now)) return { state: 'none' };
+    const left = (prepRun.endAt - now) / 1000;
+    if (left <= 0) return { state: 'paused', side: prepRun.side, left: 0, reason: 'ran-out' };
+    if (Number.isFinite(maxSeconds) && left > maxSeconds) return { state: 'running', side: prepRun.side, left: maxSeconds, endAt: now + maxSeconds * 1000, reason: 'clock-moved' };
+    return { state: 'running', side: prepRun.side, left, endAt: prepRun.endAt };
+  }
+
+  // Both clocks at once. Only one may run: a prep start always pauses the speech, so prep wins
+  // and the speech is paused at its restored time (a damaged file or a race can save both).
+  function restoreClocks(run, prepRun, now, maxPrepSeconds, speechLength) {
+    let speech = restoreRun(run, now, speechLength);
+    const prep = restorePrep(prepRun, now, maxPrepSeconds);
+    if (speech.state === 'running' && prep.state === 'running') speech = { state: 'paused', id: speech.id, left: speech.left, reason: 'prep-running' };
+    return { speech, prep };
+  }
+
+  // The 0:00 beep plays once. It is skipped (but marked as done) when the page wakes or reloads more than 5 s late.
+  // Returns 'beep', 'skip' (mark it done, no sound) or null (nothing to do).
+  function beepDecision(left, beeped) {
+    if (beeped || !(left <= 0)) return null;
+    return left > -5 ? 'beep' : 'skip';
+  }
+
+  // A failed localStorage write: 'full' (the quota is used up) or 'blocked' (the browser refuses storage).
+  function storageErrorKind(err) {
+    const name = err && err.name;
+    const code = err && err.code;
+    if (name === 'QuotaExceededError' || name === 'NS_ERROR_DOM_QUOTA_REACHED' || code === 22 || code === 1014) return 'full';
+    return 'blocked';
+  }
+
+  // Two tabs on one round: the clock fields (run, prepRun, timeLeft, prepLeft) are one unit with one savedAt.
+  // The unit with the newer savedAt wins. Returns true when the incoming unit should replace ours.
+  function clockUnitIsNewer(ours, incoming) {
+    if (!incoming || typeof incoming !== 'object') return false;
+    const a = Number((ours && ours.savedAt) || 0), b = Number(incoming.savedAt || 0);
+    return Number.isFinite(b) && b > a;
+  }
+
+  // 1.2 View only. The short name of a speech on a label: "1NC", "CX 1A".
+  const shortSpeech = (id) => String(id).replace('CX-', 'CX ');
+  // The label while the judge looks at one speech and another one's clock runs. null when not viewing.
+  function viewingLabel(viewedId, runningId) {
+    if (!runningId || !viewedId || viewedId === runningId) return null;
+    const v = shortSpeech(viewedId), r = shortSpeech(runningId);
+    return { text: 'Viewing ' + v + ' · ' + r + ' running', back: 'Back to ' + r, sr: 'Viewing ' + v + '. ' + r + ' is still running.' };
+  }
+
+  // 1.4 How long a toast stays (ms). 0 means it stays until it is closed.
+  function toastMs(text, kind, hasAction) {
+    if (kind === 'error') return 0;
+    if (hasAction) return 10000;
+    const n = String(text || '').length;
+    return Math.min(10000, Math.max(4000, 1000 + 60 * n));
+  }
+
+  // 1.5 How the speeches pane works at this window width (spec 1.5 table).
+  function leftPaneMode(width, hideLeft) {
+    if (width >= 1440) return hideLeft ? 'hidden' : 'inline';
+    if (width >= 820) return 'overlay-closed';
+    return 'stacked';
+  }
+
+  // 1.6 The recording notice shows the first time on this device that recording would start.
+  function needsRecNotice(settings) {
+    const s = settings || {};
+    return !s.recConsentAt;
+  }
+  // 1.6 The "Recording" strip in the header. Returns { hidden } or { text, button } (button: 'stop' or 'resume').
+  // st: { recWanted, live, stoppedByReload, speechId, online, engine ('browser' or a provider id), narrow }
+  function recStripState(st) {
+    const s = st || {};
+    if (s.stoppedByReload && !s.recWanted) return { text: 'Recording stopped when the page reloaded. Words spoken since then were not recorded.', button: 'resume', buttonLabel: 'Resume recording' };
+    if (!s.recWanted) return { hidden: true };
+    if (!s.live) return { text: 'Starting microphone…', button: 'stop', buttonLabel: s.narrow ? 'Stop' : 'Stop recording' };
+    let text = 'Recording · ' + shortSpeech(s.speechId || '');
+    if (s.online === false) text += s.engine === 'browser' ? ' · no text while offline' : ' · text waits for the internet';
+    return { text, dot: true, button: 'stop', buttonLabel: s.narrow ? 'Stop' : 'Stop recording' };
+  }
+
+  // Has the stored copy of the round already beeped for this same run? A second tab on the round reads it
+  // before it beeps, so two open tabs give one beep, not two.
+  function beepedElsewhere(stored, run) {
+    const o = stored && stored.run;
+    return Boolean(o && run && o.id === run.id && o.endAt === run.endAt && o.beeped);
+  }
+
+  // ---------- Slice 0: shared UI rules (spec 4.2, 4.3, S0.4). ui.js does the DOM; these decide. ----------
+  // The Esc stack: the index of the open layer with the highest rank, or -1. layers: [{ rank, open }].
+  // On a tie the layer added first wins. Esc closes only that one layer.
+  function escTop(layers) {
+    let top = -1;
+    (layers || []).forEach((l, i) => { if (l && l.open && (top < 0 || l.rank > layers[top].rank)) top = i; });
+    return top;
+  }
+  // What a new toast does to the list. list: [{ key, msg, action }] oldest first; t: { key, msg, action }.
+  // Returns { reuse: index or -1, close: [indexes to close, in order] }.
+  // Rules (spec 4.3): the same key or text restarts that toast; only one toast with an action (Undo) at a time;
+  // at most 3 toasts, so the oldest goes first.
+  const TOAST_MAX = 3;
+  function toastPlan(list, t) {
+    const l = list || [];
+    const reuse = l.findIndex((x) => (t.key && x.key === t.key) || x.msg === t.msg);
+    if (reuse >= 0) return { reuse, close: [] };
+    const close = [];
+    if (t.action) l.forEach((x, i) => { if (x.action) close.push(i); });
+    let left = l.length - close.length;
+    for (let i = 0; i < l.length && left >= TOAST_MAX; i++) if (!close.includes(i)) { close.push(i); left--; }
+    return { reuse: -1, close: close.sort((a, b) => a - b) };
+  }
+  // The dialog button that gets focus first. buttons: [{ value, kind }]; opts: { focus, hasFocus, cancelValue }.
+  // An asked-for button wins; else the safe (cancel) button in a dialog with a danger button; else the primary one; else the first.
+  function askFirstFocus(buttons, opts) {
+    const b = buttons || [], o = opts || {};
+    const idx = (pred) => b.findIndex(pred);
+    let i = o.hasFocus ? idx((x) => x.value === o.focus) : -1;
+    if (i < 0 && b.some((x) => x.kind === 'danger')) i = idx((x) => x.value === o.cancelValue);
+    if (i < 0) i = idx((x) => x.kind === 'primary');
+    return i < 0 ? 0 : i;
+  }
+  // The focus trap: the button Tab (or Shift+Tab) goes to. Focus outside the list goes to the first (or last).
+  function trapNext(i, n, back) {
+    if (!(n > 0)) return -1;
+    if (i < 0) return back ? n - 1 : 0;
+    return (i + (back ? -1 : 1) + n) % n;
+  }
+
   const api = {
-    SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, DEFAULT_PREP_SECONDS, SPEAKERS, PARADIGMS,
+    SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS, PARADIGMS,
     BALLOT_HEADER, JUDGE_SYSTEM, POINTS_GUIDE,
     LOG_COLUMNS,
     formatClock, sheetSafe, csvCell, toCSV, toTSV, ballotRow, checkBallot, parseDecision, parseRfd, parseFeedback, buildJudgePrompt,
@@ -1194,6 +1364,10 @@
     speechesSoFar, nextSpeech, EVAL_SYSTEM, EVAL_SCHEMA, buildEvalPrompt,
     DOC_SIDES, DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech, parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, buildRoundFile, parseRoundFile, roundFileName, docTitle, buildDocBlocks, buildUserContent,
     speechColumn, FLOW_LEVELS, partText, aiFlowCell, flowCellText, editIsBehind, mergeMap, applyLiveFlow, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM, buildLiveFlowPrompt,
+    // Slice 1: round safety
+    OVER_LIMIT, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer, shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere,
+    // Slice 0: shared UI rules
+    escTop, toastPlan, TOAST_MAX, askFirstFocus, trapNext,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PolicyLogic = api;

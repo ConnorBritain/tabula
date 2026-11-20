@@ -78,7 +78,7 @@ test('the security rule allows exactly the AI hosts the app calls', () => {
   const csp = read('_headers').match(/Content-Security-Policy: (.+)/)[1];
   const directive = (name) => (csp.match(new RegExp('(?:^|; )' + name + ' ([^;]+)')) || [])[1].split(' ');
   const called = new Set();
-  for (const f of ['app.js', 'providers.js']) for (const m of read(f).matchAll(/['"`](https:\/\/(?:api\.[a-z0-9.-]+|generativelanguage\.googleapis\.com))\//g)) called.add(m[1]);
+  for (const f of ['app.js', 'providers.js']) for (const m of read(f).matchAll(/['"`](https:\/\/(?:api\.[a-z0-9.-]+|generativelanguage\.googleapis\.com|openrouter\.ai))\//g)) called.add(m[1]);
   assert.deepEqual(directive('connect-src').filter((h) => h.startsWith('https://')).sort(), [...called].sort());
   assert.deepEqual(directive('script-src'), ["'self'"], 'scripts only from this site (no blob:, no inline)');
   assert.match(app, /audioWorklet\.addModule\('tap\.js'\)/, 'the audio tap is a file, which script-src allows');

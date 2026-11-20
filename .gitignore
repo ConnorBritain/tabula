@@ -3,3 +3,6 @@ evals/.data/
 
 # The business plan stays private (prices, margins, strategy).
 BUSINESS-PLAN.md
+
+# Library reviewer names stay private until they agree to be named.
+docs/library/REVIEWERS.local.md

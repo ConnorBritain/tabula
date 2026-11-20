@@ -40,7 +40,7 @@
     settings: {
       title: 'Settings',
       steps: [
-        { place: 'ai', target: '#conn-card', title: 'Connect AI', body: 'Paste a key from Google, OpenAI, Anthropic or xAI. Tabula works out which one it is and checks it. Step-by-step help is under each provider.' },
+        { place: 'ai', target: '#conn-card', title: 'Connect AI', body: 'Paste a key from Google, OpenAI, Anthropic, xAI or OpenRouter. Tabula works out which one it is and checks it. Step-by-step help is under each provider.' },
         { place: 'ai', target: '#audio-card', title: 'Audio', body: 'Choose "In the room" or "Zoom", pick the microphone, and run the 5-second mic test before the round.' },
       ],
     },

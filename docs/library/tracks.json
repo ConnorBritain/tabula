@@ -1,0 +1,29 @@
+{
+  "about": "Guided tracks (docs/library/TRACKS.md). One source for the tracks and the reading paths. A track is live only when every step has a page and a check with status: reviewed. pathName shows the step in the 'Next on your path' box.",
+  "tracks": [
+    {
+      "id": "judge",
+      "name": "New parent judge",
+      "pathName": "New judge path",
+      "title": "New Parent Judge Track: Judge Your First Debate Round",
+      "description": "A free, self-paced track for new policy debate judges. Six short pages, each with a quick check. About 45 minutes. Progress stays in your browser.",
+      "promise": "You can judge a fair round today.",
+      "audience": "judge",
+      "badge": true,
+      "minutes": 45,
+      "steps": ["debate-101", "first-round-judge", "how-to-flow", "speaker-points", "ballot-and-rfd", "impact-calculus"]
+    },
+    {
+      "id": "novice",
+      "name": "Novice debater",
+      "pathName": "New debater path",
+      "title": "Novice Debater Track: Learn the Core Arguments",
+      "description": "A free, self-paced track for first-year policy debaters: speeches, flowing, the aff case, DAs, counterplans, topicality and weighing, with checks.",
+      "promise": "You can run and answer the core arguments.",
+      "audience": "debater",
+      "badge": true,
+      "minutes": 240,
+      "steps": ["debate-101", "speeches-and-times", "how-to-flow", "flow-shorthand", "affirmative-case", "stock-issues", "disadvantages", "answering-disadvantages", "counterplans", "permutations", "topicality", "cross-examination", "impact-calculus", "rebuttal-strategy"]
+    }
+  ]
+}

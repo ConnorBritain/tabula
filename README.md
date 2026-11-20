@@ -17,9 +17,10 @@ On first open, a welcome screen offers three paths: connect an AI key, use a sub
 | Provider | AI tools (flow, Live Eval, analysis, decision, ballot) | Transcription | Get a key |
 |---|---|---|---|
 | Google Gemini | yes | yes | https://aistudio.google.com/apikey (turn on billing: free-tier data may be used by Google) |
-| OpenAI | yes | yes | https://platform.openai.com/api-keys (best value: see evals/live-flow/RESULTS.md) |
+| OpenAI | yes | yes | https://platform.openai.com/api-keys |
 | Anthropic Claude | yes | no (uses browser transcription) | https://console.anthropic.com/settings/keys |
 | xAI Grok | yes (text docs only, not PDFs) | yes | https://console.x.ai |
+| OpenRouter | yes (text docs only, not PDFs) | no | https://openrouter.ai/keys |
 | Claude subscription (via Claude Code) | yes, through `node bridge.mjs` | no | sign in with `claude` |
 | ChatGPT subscription (via Codex) | yes, through `node bridge.mjs` | no | sign in with `codex` |
 | Browser (Chrome) | — | yes, free | nothing to set up |
@@ -48,4 +49,6 @@ node --test   # run this in the Tabula folder
 ## License
 
 Tabula is free software under the GNU Affero General Public License v3.0 (AGPL-3.0). See [LICENSE](LICENSE).
+Build the Debate Library pages with `node build-learn.mjs` (Markdown in `docs/library/` becomes HTML in `learn/`).
+The Debate Library text in `docs/library/` is licensed separately under CC BY-SA 4.0 (see [docs/library/LICENSE.md](docs/library/LICENSE.md)).
 Copyright © 2026 Pattern Engine LLC. Inter Tight font: SIL Open Font License (see assets/fonts/LICENSE.txt).

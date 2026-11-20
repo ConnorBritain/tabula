@@ -1,6 +1,6 @@
 # Tabula Debate Library: plan
 
-Status: draft for review. Owner: Pattern Engine LLC. License: same as the repo (AGPL-3.0) unless the owner picks a content license (see "Open questions").
+Status: the first 22 pages (5 first drafts and 17 wave-1 pages) are approved for v1 by both reviewers (2026-11-19). Wave 2 (39 pages) and wave 3 (16 pages) were written 2026-11-20 and wait for coach review. Every page in §2 now exists: 76 pages plus the library home. Owner: Pattern Engine LLC. Content license: CC BY-SA 4.0 (see `LICENSE.md` in this folder). The app code stays AGPL-3.0.
 
 ## 1. What this is
 
@@ -131,7 +131,7 @@ The "common families" page is the hardest page in the library to write fairly. I
 | Conditionality | `/learn/conditionality` | 2 |
 | Reasons to reject: the argument or the team | `/learn/reject-the-team` | 2 |
 | Common theory arguments (PICs bad, multiple actor fiat, international fiat, severance and intrinsic perms) | `/learn/common-theory` | 3 |
-| Fiat (what it is and what it is not) | `/learn/fiat` | 2 |
+| Fiat (what it is and what it is not) | `/learn/fiat` | 1 |
 
 ### 2.9 Framework
 
@@ -173,7 +173,7 @@ These are the examples that come back every year, whatever the resolution. Each 
 | The cap K against a policy aff | `/learn/example-cap-k` | 3 |
 | Framework vs a K aff | `/learn/example-fw-vs-k-aff` | 3 |
 
-**Count:** about 75 pages. 5 drafted now. Wave 1 is about 16 pages (17 with Fiat moved up). That is the right first public launch.
+**Count:** 76 pages plus the library home, all written (2026-11-20). Wave 1 (22 pages with the first drafts) is approved for v1; waves 2 and 3 wait for coach review.
 
 **Canonical pages (to stop overlap).** Some ideas show up in more than one section. One page owns each idea. Other pages give one or two sentences and link to it.
 
@@ -187,38 +187,22 @@ These are the examples that come back every year, whatever the resolution. Each 
 
 ## 3. Reading paths
 
-Each path is an ordered list on the library home page. The build step adds a small static "Reading paths" box at the foot of each page that is on a path, for example "New judge path: next, Speaker points". It needs no JavaScript and no URL parameter.
+Each path is an ordered list on the library home page. Guided tracks (`TRACKS.md`) add a short check after each page and save progress in the browser. The build step adds a small static "Reading paths" box at the foot of each page that is on a path, for example "New judge path: next, Speaker points". It needs no JavaScript and no URL parameter.
+
+**The step lists live in `tracks.json`** (one source for reading paths and guided tracks; see `TRACKS.md` §2.9). The home page (`index.md`) shows the same order, and a test checks it.
 
 ### Path A: new parent judge (30 minutes)
 
-1. Debate 101
-2. Judging your first round
-3. How to flow
-4. Speaker points
-5. The ballot and the RFD
-6. Impact calculus (the plain summary only)
-
-Promise: "You can judge a fair round today."
+Audience: a parent or community judge with no debate background. Track id `judge`. Promise: "You can judge a fair round today."
 
 ### Path B: novice debater (first month)
 
-1. Debate 101
-2. Speeches, order and times
-3. How to flow, then Flow shorthand
-4. The affirmative case, then Stock issues
-5. Disadvantages, then Answering a DA
-6. Counterplans, then Permutations
-7. Topicality
-8. Cross-examination
-9. Impact calculus
-10. Rebuttal strategy
-
-Promise: "You can run and answer the core arguments."
+Audience: a first-year debater. Track id `novice`. Wave 1 shows pages that exist as links, and later pages as plain "coming soon" text. Promise: "You can run and answer the core arguments."
 
 ### Path C: experienced flower (pick a branch)
 
-- **Theory branch:** Theory, Conditionality, Reject the team, Fiat, Common theory.
-- **Critical branch:** Kritiks, Role of the ballot, Kritik alternative, Framework vs kritik, Kritikal affirmatives, Framework vs K aff.
+- **Theory branch:** Theory, Fiat, Conditionality, Reject the team, Common theory.
+- **Critical branch:** Kritiks, Kritik links, Kritik alternative, Role of the ballot, Framework, Framework vs kritik, Kritikal affirmatives, Framework vs K aff.
 - **Judge branch:** Judge paradigms, Writing a paradigm, Presumption, Turns case, Giving feedback.
 
 Promise: "A fair, clear statement of each idea, good enough to send to your team."
@@ -325,7 +309,7 @@ The build adds two things that are not in the Markdown: the "Reading paths" box 
 
 ## 8. How the app links in
 
-The app does not change in this pass. These are proposals for a later build step.
+**Built (2026-11-19):** a "Debate library" item in the ? menu (`#library-link`; it was briefly a separate "i" button next to ?, and the owner moved it back into the ? menu); the sheet "ⓘ Learn" link in both the My flow and AI flow tab bars, with the `SHEET_PAGES` map (8.2; "Adv" sheets also map to the case page, "Case turns" sheets do not); and the local helper serving `learn/` (`bridge.mjs`). For a quick look without the helper, `.claude/launch.json` has a "library" static server on port 8771. Tests: `library-links.test.mjs` and the last test in `bridge.test.mjs`.
 
 ### 8.1 The ? help menu
 
@@ -354,14 +338,22 @@ Other hooks (term links in the Plain decision draft, a link from the ballot fill
 ## 9. Build and publish
 
 1. **Now:** Markdown source in `docs/library/`. Drafts are reviewed in the repo.
-2. **Wave 1:** about 17 pages. A tiny build script turns `docs/library/*.md` into static HTML in one output folder, `learn/` (`docs/library/disadvantages.md` → `learn/disadvantages/index.html`). The app bundle and the website both serve `learn/`. Style it with the shared tokens (`assets/tokens.css`, planned in PLAN.md step 9; it does not exist yet).
-3. **Link rule.** Source pages link as `[text](slug.md)`, so links work on GitHub. The build rewrites each one to `/learn/slug/`.
-4. **Forward links.** Drafts link to pages that are not written yet. Until wave 1 is done, the link checker checks each link against the slug tables in this file, not against the files on disk. After launch, it checks against the built pages, and a missing page fails the build.
-5. **Gate.** `node check-publish.mjs` checks only a fixed list of pages today (`PAGES`). Add the built `learn/` pages to that list, so the "no TODO, no `href="#"`" gate covers them.
-6. **Later:** the product help docs (PLAN.md step 10) and the library can share one docs site, with two sections: "Using Tabula" and "Debate library".
+2. **Wave 1:** about 17 pages. **Built:** `node build-learn.mjs` (no dependencies; tests in `build-learn.test.mjs`; styles in `docs/library/learn.css`) turns `docs/library/*.md` into static HTML in one output folder, `learn/` (`docs/library/disadvantages.md` → `learn/disadvantages/index.html`). The app bundle and the website both serve `learn/`. Style it with the shared tokens (`assets/tokens.css`, planned in PLAN.md step 9; it does not exist yet).
+3. **Link rule.** Source pages link as `[text](slug.md)`, so links work on GitHub. The build rewrites each one to a relative link (`../slug/`), because the same files are served at `tabuladebate.com/learn/` and inside the app.
+4. **Forward links.** Drafts link to pages that are not written yet (about 40 links today). The build must never publish a dead link. Rule: if a linked slug has no page yet, the build turns the link into plain text (the words stay, the link goes). When the page is written, the link comes back on the next build. The test `build-learn.test.mjs` then checks every remaining link and `#anchor` against the built pages, and a broken one fails `node --test`. A `related:` slug with no page is left out of the "Related pages" box.
+5. **Private files.** The build only takes pages with front matter, and it skips `PLAN.md`, `LICENSE.md` and any `*.local.md` file (for example `REVIEWERS.local.md`, which git also ignores).
+6. **Gate.** `node check-publish.mjs` now scans every built `learn/` page too. `node --test` fails if `learn/` is out of date with the Markdown, so always run `node build-learn.mjs` after editing a page.
+   The local helper (`bridge.mjs`) serves `learn/` by path (only files inside it, with a known type), and redirects a page URL without its trailing slash. A plain static server (and Cloudflare Pages) already serves it.
+7. **Live claims.** Do not publish wave 1 until both reviewers have reviewed it, because the home page says each page gets a coach review. **Done (2026-11-19):** both reviewers approved all 22 pages that existed then (the 5 first drafts and the 17 wave-1 pages) for v1. Later pages (wave 2 and up) and any changed page need the same review before they go live.
+8. **Later:** the product help docs (PLAN.md step 10) and the library can share one docs site, with two sections: "Using Tabula" and "Debate library".
 
-## 10. Open questions for the owner
+## 10. Decisions (2026-11-19)
 
-1. **Content license.** The app is AGPL-3.0. Docs are often shared under CC BY-SA 4.0 so coaches can copy them into handouts. Pick one.
-2. **URL root.** `/learn/` (recommended: short, clear) or `/library/`.
-3. **Reviewers.** Who are the 2 or 3 coaches who will review wave 1, and the theory and kritik pages?
+1. **Content license: CC BY-SA 4.0.** Coaches may copy and adapt pages for handouts, with credit, under the same license. See `LICENSE.md`. The app code stays AGPL-3.0.
+2. **URL root: `/learn/`.**
+3. **Reviewers:** two working high school coaches (Reviewer A and Reviewer B). Their names are kept in `docs/library/REVIEWERS.local.md`, which git ignores, until each one agrees to be named. Status (2026-11-19): both approved all 22 pages that existed then for v1: the 5 first drafts (`debate-101`, `how-to-flow`, `disadvantages`, `topicality`, `kritiks`) and the 17 wave-1 pages. **Not yet reviewed:** the wave-2 pages written 2026-11-20. This item is the one place that records page review status. **Both asked not to be named for now.** Keep "Reviewer A" and "Reviewer B" everywhere public. No credits page with their names until they say yes.
+4. **Local-circuit lens.** Both reviewers coach on a circuit with many lay and traditional judges. That fits the library's beginner-first aim. Pages describe the common national format, stay region-neutral, and say that local rules differ. Reviewers should flag any place where their local practice differs (for example, prep time, or how many judges expect stock issues).
+
+## 11. Wave 1 page list
+
+17 pages, plus the 5 drafts: library home (`index`), glossary, first-round-judge, speeches-and-times, cross-examination, flow-shorthand, evidence-and-cards, speaker-points, ballot-and-rfd, affirmative-case, stock-issues, counterplans, theory, fiat, framework, impact-calculus, judge-paradigms.

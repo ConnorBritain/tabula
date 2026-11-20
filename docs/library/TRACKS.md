@@ -34,7 +34,9 @@ Related docs: `docs/library/PLAN.md` (the library), `PLAN.md` (the app), `docs/S
 
 Each track lists library slugs from `docs/library/PLAN.md` §2, in order. Each step has a check. A step whose page is not written yet is marked *(planned)*.
 
-**Rule: a track goes live only when every step page exists and every step's check has `status: reviewed`.** The build enforces this (`trackState()` in `learn-tracks.mjs`; §3.2). Coach approval of the pages themselves is tracked in `docs/library/PLAN.md` §10, not by the build. A track with "coming soon" steps cannot be finished, so it cannot give a badge. Until then, the reading path on the library home page does the job.
+**Rule: a track goes live only when every step page exists and every step's check has `status: reviewed`.** The build enforces this (`trackState()` in `learn-tracks.mjs`; §3.2). Coach approval of the pages themselves is tracked in `docs/library/PLAN.md` §10 item 3, not by the build. Order: a page is reviewed first, then its check.
+
+The "Ready" counts and *(planned)* marks below are a snapshot (2026-11-20). For the current state, run `node build-learn.mjs`: `trackState()` reports each listed track as ready or live. A track with "coming soon" steps cannot be finished, so it cannot give a badge. Until then, the reading path on the library home page does the job.
 
 ### 2.1 New parent judge (time: the `minutes` field in `tracks.json`; the optional final check for a badge adds about 10 minutes)
 
@@ -64,15 +66,15 @@ Step order lives in `docs/library/tracks.json` (entry `novice`); if this table a
 | 5 | `affirmative-case` | Read a short new case and say which part a given neg attack hits (the plan, the harm, or solvency). |
 | 6 | `stock-issues` | Spot which stock issue a neg answer attacks. |
 | 7 | `disadvantages` | Find the missing part of a DA on a flow (example in §3.2). |
-| 8 | `answering-disadvantages` *(planned)* | Pick the answer that is a turn, not just defense. |
+| 8 | `answering-disadvantages` | Pick the answer that is a turn, not just defense. |
 | 9 | `counterplans` | Say whether a CP competes with a given plan. |
-| 10 | `permutations` *(planned)* | Pick the perm that tests competition. |
+| 10 | `permutations` | Pick the perm that tests competition. |
 | 11 | `topicality` | Read a new plan and a short T shell: find its parts, and say whether the plan meets the interpretation. (One check, shared with 2.8, step 1.) |
 | 12 | `cross-examination` | Pick the CX question that sets up a later argument. |
 | 13 | `impact-calculus` | (Same check as 2.1, step 6.) |
-| 14 | `rebuttal-strategy` *(planned)* | Choose what the 2NR should go for, from a flow. |
+| 14 | `rebuttal-strategy` | Choose what the 2NR should go for, from a flow. |
 
-**Ready:** 11 of 14 pages written. Needs 3 wave-2 pages. **Badge:** yes, for students in Phase 3, so this track also needs its own hidden final-check pool (§5.3).
+**Ready:** 14 of 14 pages written (the 3 wave-2 pages landed 2026-11-20). Listed in `tracks.json`, but it has no checks for 11 of its steps (3 are shared with the judge track), so it is not live. The 3 wave-2 pages still need coach review (`docs/library/PLAN.md` §10 item 3), then the 11 checks. **Badge:** yes, for students in Phase 3, so this track also needs its own hidden final-check pool (§5.3).
 
 ### 2.3 Intro to the K
 
@@ -81,14 +83,14 @@ Prerequisite (suggested, not enforced): the novice track, or `disadvantages` and
 | # | Slug | The check tests that you can... |
 |---|---|---|
 | 1 | `kritiks` | Label the link, impact and alternative in a short K shell (example in §3.2). |
-| 2 | `kritik-links` *(planned)* | Tell a specific link from a generic one. |
-| 3 | `kritik-alternative` *(planned)* | Say what the alternative asks the judge to do. |
-| 4 | `role-of-the-ballot` *(planned)* | Say what a given role-of-the-ballot claim would change about the decision. |
-| 5 | `framework-vs-kritik` *(planned)* | Pick the aff answer that says "weigh the plan". |
-| 6 | `answering-kritiks` *(planned)* | Pick the answer that is a permutation, and the one that is a link turn. |
+| 2 | `kritik-links` | Tell a specific link from a generic one. |
+| 3 | `kritik-alternative` | Say what the alternative asks the judge to do. |
+| 4 | `role-of-the-ballot` | Say what a given role-of-the-ballot claim would change about the decision. |
+| 5 | `framework-vs-kritik` | Match each side's framework claim to its answer (aff: weigh the plan; neg: weigh the kritik first), fair to both sides. |
+| 6 | `answering-kritiks` | Pick the answer that is a permutation, and the one that is a link turn. |
 | 7 | `example-cap-k` *(planned)* | Read a short flow of the cap K debate and say which side is ahead on the link. |
 
-**Ready:** 1 of 7. Wave 2 and 3 pages first. The `common-kritiks` page is left out on purpose: it is the hardest page to write fairly (`docs/library/PLAN.md` §2.7), and a quiz on it risks a "right answer" about a contested idea.
+**Ready:** 6 of 7 pages written. Missing: `example-cap-k` (wave 3). The `common-kritiks` page is left out on purpose: it is the hardest page to write fairly (`docs/library/PLAN.md` §2.7), and a quiz on it risks a "right answer" about a contested idea.
 
 ### 2.4 Theory basics
 
@@ -96,12 +98,12 @@ Prerequisite (suggested, not enforced): the novice track, or `disadvantages` and
 |---|---|---|
 | 1 | `theory` | Find the interpretation, violation, standards and voter in a theory shell. |
 | 2 | `fiat` | Tell a fiat answer from a solvency answer. |
-| 3 | `conditionality` *(planned)* | Say what "conditional" means for a CP the neg can drop. |
-| 4 | `reject-the-team` *(planned)* | Say whether an argument asks to reject the argument or the team. |
+| 3 | `conditionality` | Say what "conditional" means for a CP the neg can drop. |
+| 4 | `reject-the-team` | Say whether an argument asks to reject the argument or the team. |
 | 5 | `common-theory` *(planned)* | Read a short 1NC and say which theory argument the aff could make against it, and why. |
 | 6 | `example-condo-debate` *(planned)* | Read a condo flow and find what each side's interpretation is. |
 
-**Ready:** 2 of 6.
+**Ready:** 4 of 6 pages written. Missing: `common-theory`, `example-condo-debate` (wave 3).
 
 ### 2.5 Judging well: decisions and RFDs
 
@@ -111,53 +113,53 @@ For judges who have done the parent track, or who judge often.
 |---|---|---|
 | 1 | `judge-paradigms` | Say how two paradigms would decide the same short flow differently. |
 | 2 | `ballot-and-rfd` | (Same check as 2.1, step 5, which includes the RFD self-check.) |
-| 3 | `presumption` *(planned)* | Say who wins when nothing changed in the round. |
-| 4 | `turns-case` *(planned)* | Spot a "DA turns case" claim and what it does to the weighing. |
-| 5 | `round-conduct` *(planned)* | Choose the right step when an evidence ethics claim comes up. |
-| 6 | `giving-feedback` *(planned)* | Pick the oral feedback that is specific and kind. |
-| 7 | `writing-a-paradigm` *(planned)* | Self-check a short paradigm draft for the 4 things debaters look for. |
+| 3 | `presumption` | Say who wins when nothing changed in the round. |
+| 4 | `turns-case` | Spot a "DA turns case" claim and what it does to the weighing. |
+| 5 | `round-conduct` | Choose the right step when an evidence ethics claim comes up. |
+| 6 | `giving-feedback` | Pick the oral feedback that is specific and kind. |
+| 7 | `writing-a-paradigm` | Self-check a short paradigm draft for the 4 things debaters look for. |
 
-**Ready:** 2 of 7. This track has a badge, so it also needs its own hidden final-check pool (§5.3).
+**Ready:** 7 of 7 pages written; it needs its checks and coach review. This track has a badge, so it also needs its own hidden final-check pool (§5.3).
 
 ### 2.6 Policy vs K: framework
 
 | # | Slug | The check tests that you can... |
 |---|---|---|
 | 1 | `framework` | Say what a framework argument asks the judge to weigh. |
-| 2 | `framework-vs-kritik` *(planned)* | Pick the neg-K answer to "weigh the plan". |
-| 3 | `role-of-the-ballot` *(planned)* | (Same check as 2.3, step 4.) |
+| 2 | `framework-vs-kritik` | (Same check as 2.3, step 5.) |
+| 3 | `role-of-the-ballot` | (Same check as 2.3, step 4.) |
 | 4 | `kritikal-affirmatives` *(planned)* | Say what a K aff does instead of a plan. |
 | 5 | `framework-vs-k-aff` *(planned)* | Find the interpretation and the main standard in a T-USFG style shell. |
 | 6 | `example-fw-vs-k-aff` *(planned)* | Read the flow and say which impact each side weighs. |
 | 7 | `example-extinction-vs-structural` *(planned)* | Say what each side must win to make its impact come first. |
 
-**Ready:** 1 of 7. Checks here must be **fair to both sides**. No question has "policy is right" or "the K is right" as its answer. The questions test that you can see what each side argues. Both reviewers (Reviewer A and B) check this track.
+**Ready:** 3 of 7 pages written. Missing: `kritikal-affirmatives`, `framework-vs-k-aff`, `example-fw-vs-k-aff`, `example-extinction-vs-structural` (wave 3). Checks here must be **fair to both sides**. No question has "policy is right" or "the K is right" as its answer. The questions test that you can see what each side argues. Both reviewers (Reviewer A and B) check this track.
 
 ### 2.7 Counterplans and competition
 
 | # | Slug | The check tests that you can... |
 |---|---|---|
 | 1 | `counterplans` | Say whether a CP competes. |
-| 2 | `counterplan-text` *(planned)* | Spot what a CP text leaves out. |
-| 3 | `competition` *(planned)* | Tell mutual exclusivity from net benefits. |
-| 4 | `net-benefits` *(planned)* | Find the net benefit on a flow. |
-| 5 | `permutations` *(planned)* | Pick the perm that tests competition. |
-| 6 | `solvency-deficits` *(planned)* | Weigh a small solvency deficit against a net benefit. |
-| 7 | `example-states-cp` *(planned)* | Read the states CP flow and say what the aff must win. |
+| 2 | `counterplan-text` | Spot what a CP text leaves out. |
+| 3 | `competition` | Tell mutual exclusivity from net benefits. |
+| 4 | `net-benefits` | Find the net benefit on a flow. |
+| 5 | `permutations` | Pick the perm that tests competition. |
+| 6 | `solvency-deficits` | Weigh a small solvency deficit against a net benefit. |
+| 7 | `example-states-cp` | Read the states CP flow and say what the aff must win. |
 
-**Ready:** 1 of 7.
+**Ready:** 7 of 7 pages written; it needs its checks and coach review.
 
 ### 2.8 Topicality
 
 | # | Slug | The check tests that you can... |
 |---|---|---|
 | 1 | `topicality` | (Same check as 2.2, step 11.) |
-| 2 | `topicality-interpretation` *(planned)* | Say whether a plan meets an interpretation. |
-| 3 | `topicality-standards` *(planned)* | Match a standard (limits, ground) to the claim it makes. |
-| 4 | `topicality-voters` *(planned)* | Tell competing interpretations from reasonability. |
+| 2 | `topicality-interpretation` | Say whether a plan meets an interpretation. |
+| 3 | `topicality-standards` | Match a standard (limits, ground) to the claim it makes. |
+| 4 | `topicality-voters` | Tell competing interpretations from reasonability. |
 | 5 | `example-t-substantial` *(planned)* | Read the flow and say who wins the limits debate. |
 
-**Ready:** 1 of 5.
+**Ready:** 4 of 5 pages written. Missing: `example-t-substantial` (wave 3).
 
 ### 2.9 One list for tracks and reading paths
 
@@ -521,7 +523,7 @@ School Google and Microsoft accounts for students under 18 often need the school
 6. **Verify-page name: optional.** The judge types it (initials are fine). Adults only.
 7. **Leagues: after review and one season** of real use.
 8. **Free.** Tracks, checks, the judge badge and student badges are all free. Fairness comes first, even with more consent and reporting work.
-9. **Next track: novice debater**, after the parent judge track. It needs 3 wave-2 pages: `answering-disadvantages`, `permutations`, `rebuttal-strategy`.
+9. **Next track: novice debater**, after the parent judge track. It needs 3 wave-2 pages: `answering-disadvantages`, `permutations`, `rebuttal-strategy` (as decided 2026-11-19; all 3 were written 2026-11-20, see §2.2).
 10. **Students and judge tracks:** students may read the judge tracks and do their per-step checks, but cannot earn a judge badge for now.
 11. **The retry wait grows.** After several fails in one day: 5 minutes, then 15, then 60. Tries stay unlimited (§5.3).
 12. **The free school space covers badges and tracks only:** join code, assign a track, see done or not done, badges. **Track assignments** are this narrow thing. The full **assignments** of `STUDENT-EDITION.md` §10d (drills, speech redos, case review), the feedback inbox and hosted AI stay in the paid Program (§10g).
@@ -539,7 +541,7 @@ School Google and Microsoft accounts for students under 18 often need the school
 | Phase | Work | Rough size | Depends on |
 |---|---|---|---|
 | **1** | **Built 2026-11-19:** `tracks.json`, `learn-tracks.mjs` (parser and renderer), `check.js`, track pages, the `bridge.mjs` and `check-publish.mjs` changes, `TRACKS.md` excluded from publishing, `LICENSE.md` extended, the 6 parent judge checks, the certificate and save/load/clear. **Open:** the guard test (§5.3); the track-tick version note (§3.5) | Done | To go **live**: coach review of the 6 checks, then each check set to `status: reviewed`. The 6 pages are approved (`docs/library/PLAN.md` §10). |
-| **1b** | Novice track: 11 new checks (3 are shared with the judge track) | About 2 weeks of writing and review. The 3 wave-2 pages add about 2 to 3 weeks. Its hidden final-check pool (for Phase 3 student badges) adds about 1 to 2 weeks. | The 3 wave-2 pages and their coach review |
+| **1b** | Novice track: 11 new checks (3 are shared with the judge track) | About 2 weeks of writing and review. Its hidden final-check pool (for Phase 3 student badges) adds about 1 to 2 weeks. | All 14 pages exist (2026-11-20). Coach review of the 3 wave-2 pages (`answering-disadvantages`, `permutations`, `rebuttal-strategy`) and of the 11 checks |
 | **2** | Judge badge: server-graded final check with retry wait and timer, verify link, revoke and delete, certificate with QR, privacy policy update; hidden pool of about 40 questions | 2 to 3 weeks of code, plus 1 to 2 weeks to write and review the pool | Round-pack accounts (§8). No date until those are scheduled. |
 | **3** | Free student badges: age gate, free school space, parent-consent flow, coach "assigned track done" view, export, retention | 4 to 6 weeks of code, plus legal review and the data agreement | Accounts (round packs), join codes (`STUDENT-EDITION.md` §10h step 3), Phase 2 grading, Phase 1b novice pool. No date until accounts are scheduled. |
 
@@ -548,4 +550,5 @@ School Google and Microsoft accounts for students under 18 often need the school
 1. Send the 6 parent judge checks (`docs/library/checks/`) to the two reviewers. They stay unnamed for now.
 2. After each check is approved, set its `status:` to `reviewed` and rebuild. When all 6 are reviewed, the track goes live (indexed, in the sitemap).
 3. Add the guard test from §5.3.
-4. Write the 3 wave-2 pages for the novice track, then its 11 new checks (Phase 1b).
+4. Novice track (Phase 1b): its 3 wave-2 pages now exist. Send them for coach review, and write its 11 new checks.
+5. Later tracks: 2.5 (Judging well) and 2.7 (Counterplans) have all their pages; they need checks and coach review. Tracks 2.3, 2.4, 2.6 and 2.8 wait for the pages marked *(planned)* in §2. A track is added to `tracks.json` only with its checks, because `trackState()` needs a check for every step.

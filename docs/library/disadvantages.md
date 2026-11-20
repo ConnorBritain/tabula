@@ -6,7 +6,7 @@ section: Disadvantages
 level: beginner
 reading_time: 8
 sheet: DA
-related: [uniqueness, links, impacts, answering-disadvantages, counterplans, impact-calculus]
+related: [uniqueness, links, internal-links, impacts, answering-disadvantages, impact-calculus]
 updated: 2026-11-19
 ---
 
@@ -35,15 +35,17 @@ Uniqueness and the link work like a scale. If uniqueness is very strong ("the bu
 
 The link connects the plan to the problem. A good link is **specific**: it is about the plan or the kind of action the plan takes, not about the topic in general.
 
+The aff gets to imagine the plan passes. That is called **fiat**. So "it would never pass" is not a DA. Most DA links come from what the plan does once it is in place. A few, like the politics DA, link to the act of passing it, and teams can debate whether that fits fiat. See [Fiat](fiat.md).
+
 A **link turn** (L/T) is an aff answer that says the plan does the *opposite*: "The plan does not cost money; it saves money." If the link turn is right, the DA becomes a reason to vote aff.
 
 ### Internal link
 
-The internal link fills the gap between "the plan does X" and "Y bad thing happens." Many DAs have more than one internal link step. Each step is a place the chain can break. New debaters often skip this part. Judges notice.
+The internal link fills the gap between "the plan does X" and "Y bad thing happens." Many DAs have more than one internal link step. Each step is a place the chain can break. New debaters often skip this part. Judges notice. See [Internal links](internal-links.md).
 
 ### Impact
 
-The impact is the harm at the end. It can be large and unlikely (a war), or smaller and very likely (people lose a service). How big, how likely, and how soon it is all matter when the judge compares it to the aff's advantages. See [Impact calculus](impact-calculus.md).
+The impact is the harm at the end. It can be large and unlikely (a war), or smaller and very likely (people lose a service). How big, how likely, and how soon it is all matter when the judge compares it to the aff's advantages. See [Impacts](impacts.md) and [Impact calculus](impact-calculus.md).
 
 An **impact turn** is an aff answer that says the "bad" result is actually good. For example: "Cuts to that program would be good, because the program wastes money." Impact turns are risky. They work only if the aff wins that the result is truly good.
 
@@ -66,7 +68,7 @@ The aff (usually in the 2AC) has many choices. You can answer each part.
 **Weighing:**
 
 - **Case outweighs:** even if the DA is true, the aff's advantages are bigger, more likely, or come sooner.
-- **Case turns the DA** or **the DA does not turn case**: arguments about which harm makes the other worse.
+- **Case turns the DA** or **the DA does not turn case**: arguments about which harm makes the other worse. See [Turns case](turns-case.md).
 
 **Do not link turn and impact turn the same DA.** If you say "the plan prevents X" and "X is good," you have argued that the plan *prevents a good thing*. That is a new disadvantage, made by you, against your own plan. This is called a **double turn**. The neg will point it out.
 
@@ -79,6 +81,8 @@ At the end of the round, the judge asks:
 3. **Is there a counterplan?** If the neg also has a counterplan that gets the aff's advantage without the DA, then even a small risk of the DA can be enough. The DA is the **net benefit** to the counterplan. See [Counterplans](counterplans.md).
 
 Some judges think a DA can have "zero risk" if the aff wins strong defense. Others think almost every DA has *some* risk. Teams should argue this, and judges should decide from what is argued.
+
+For the DA shapes that come back every season, see [Common DA shapes](common-disadvantages.md).
 
 ## Example in flow shorthand
 
@@ -114,6 +118,6 @@ I: cuts hit school      4. Case outweighs:         DA turns case: same        Ca
 - [Uniqueness](uniqueness.md): why "it will not happen anyway" is the DA's foundation.
 - [Links and link turns](links.md): what makes a link specific.
 - [Answering a disadvantage](answering-disadvantages.md): a full 2AC block, step by step.
-- [Counterplans](counterplans.md): how a DA becomes a net benefit.
-- [Impact calculus](impact-calculus.md): how to compare a DA to the case.
-- [Common DA shapes](common-disadvantages.md): spending, politics, economy and trade-off DAs.
+- [Internal links](internal-links.md): the steps between the link and the harm.
+- [Impacts](impacts.md): what makes a harm count, and impact turns.
+- [Impact calculus](impact-calculus.md): how to compare a DA to the case, including "turns case".
