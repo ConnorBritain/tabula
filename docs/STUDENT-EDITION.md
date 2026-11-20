@@ -14,7 +14,7 @@ One line: **the AI is a clerk and a practice partner. It is never a second partn
 
 - **Flow.** It writes down what each speaker said, in the right column, next to the right argument.
 - **Transcribe.** It turns speech into text.
-- **Organize.** It sorts flows, tags, and files. It shows what is answered and what is not, as a fact, with no advice.
+- **Organize.** It sorts flows, tags, and files. It does not mark which arguments are answered or dropped (see 1e).
 - **File.** It puts cards and docs in the evidence locker, and sends a speech doc to SpeechDrop when the debater clicks Send.
 
 ### 1b. What the AI may not do
@@ -31,6 +31,15 @@ Ask one question: **"Does this do a thing a good clerk does, or a thing a debate
 - A debater picks, argues, answers, and decides.
 
 If a feature does what a debater does, it is **practice-only** (with Socratic questions, not answers) or it is **not built**.
+
+### 1e. Judging tools stay out of the student version (owner decision, 2026-11-19)
+
+Anything that helps a judge decide is **not in the student version at all**, in any mode. It belongs to the judge and coach versions only.
+
+- **Out:** Live Eval, "who is winning", where the student stands, lists of drops or unanswered arguments, what could win or lose the round, ballot guesses, decision drafts, impact calculus, and proactive evidence recommendations ("use this card here").
+- **Why:** these tools do the judging and the strategic reading of the round. That reading is the skill debate teaches.
+- **Coaches may still use them** with a student, in the coach version, for a coach-run practice round or a review. A person leads that talk; the app does not hand the student the answers.
+- **In instead: evidence playbooks** (see 3e). The student saves combinations of their own evidence that worked, names them, and pulls them up later. The student picks; the app only stores and finds.
 
 ### 1d. Why
 
@@ -79,9 +88,9 @@ For drills, practice rounds, and review after a round. All of it is off in tourn
 
 - **Drills.** Flow drills from a recorded or practice speech: the app compares the student's flow with its own flow and shows what the student missed. Speed drills. Line-by-line drills.
 - **Feedback on recorded speeches.** Speed (words per minute), clarity (words the transcriber could not catch), time use per argument. Facts, not grades.
-- **"What did I drop?" review, after the round.** The app lists arguments with no answer on the flow. It shows them as facts with a pointer to the flow cell. It does **not** say which drop mattered or what to say.
-- **Socratic questions instead of answers.** For a drop, the app asks: "What is the warrant of this argument?", "Which of your cards answers it?", "Why does this matter for the ballot?". The student writes the answer. The app never writes the answer for them.
-- **Redo a speech.** The student re-gives a rebuttal. The app flows it and shows which arguments are now answered.
+- **Socratic questions about the student's own arguments.** The student picks one of their own arguments or cards; the app asks: "What is the warrant?", "What is the strongest answer to it?", "Why does it matter?". The student writes the answer. The app never writes the answer, and never points out drops or what the student missed in the round (see 1e).
+- **Redo a speech.** The student re-gives a rebuttal. The app flows it next to the first version, so the student can compare. It does not judge which version is better.
+- **No drop review and no Live Eval for students** (see 1e). A coach can review drops with a student in the coach version.
 
 Practice mode never writes a block, a card, or a speech.
 
@@ -103,6 +112,14 @@ Practice mode never writes a block, a card, or a speech.
 - The student drags cards and blocks into a new doc, in order.
 - The app keeps Verbatim formatting so the doc opens cleanly in Word.
 - The app checks clerical things only: a card with no cite, an empty block, a missing heading.
+
+### 3e. Evidence playbooks (templates)
+
+- A **playbook** is a saved set of the student's own evidence: a named group of cards and blocks in a chosen order, for example "Answers to States CP" or "1NC vs. healthcare affs".
+- The student builds it by hand, or saves the cards from a speech doc that worked as a new playbook.
+- Pull one up to start a speech doc fast. Edit it, rename it, keep versions.
+- **The student picks every card.** The app stores, searches and copies; it never suggests which playbook or card to use.
+- Coaches can share a team playbook in the coach version; the student copies it into their own locker.
 
 ### 3c. Mark the speech
 
@@ -166,11 +183,12 @@ Allowed = fine in a competitive round where devices are allowed. Practice-only =
 | AI flow from the student's typed notes (cleanup, column placement) | **Allowed, with care** | Clerical. It must not add content. Off if a tournament bans AI tools. |
 | Live transcription into the flow | **Allowed only where the tournament permits; off by default** | NCFL 2026 bans it. NSDA Nationals needs written consent. State consent laws apply. |
 | AI search of locker by meaning | **Allowed, with care** | Retrieval of own files. Off if the tournament bans AI tools. |
-| "What did I drop?" list | **Practice-only** | In a round, a list of drops is coaching. |
-| Socratic questions | **Practice-only** | Same reason. |
+| "What did I drop?" list | **Not in the student version** (coach version only) | Judging tool (§1e). In a round it would also be coaching. |
+| Socratic questions on the student's own arguments | **Practice-only** | Coaching, but the student does the thinking. |
+| Evidence playbooks (student-made) | **Allowed** | The student's own prepared evidence, like a tub of files. |
 | Speech feedback (speed, clarity, time use) | **Practice-only** | Needs recording. Coaching. |
 | Flow drills vs. AI flow | **Practice-only** | Training tool. |
-| Live Eval, ballot guess, "who is winning" | **Practice-only** (for coach-run practice rounds) | Coaching. |
+| Live Eval, ballot guess, "who is winning", proactive evidence picks | **Not in the student version** (judge and coach versions only) | Judging tools (§1e). |
 | AI-written blocks, analytics, rebuttals | **Not allowed** | Writes arguments. Against §1 and NSDA original-work rules. |
 | AI-cut cards or AI summaries used as evidence | **Not allowed** | AI is not a citable source (NSDA, CHSSA). |
 | Strategy suggestions ("go for X") | **Not allowed** | Picks strategy. |
@@ -227,7 +245,8 @@ The product rule is: **Free is the whole app; paid plans sell hosted AI with no 
 | SpeechDrop upload (after maintainer talk) | ✓ | ✓ | ✓ | ✓ |
 | Browser transcription (Chrome) | ✓ | ✓ | ✓ | ✓ |
 | AI flow cleanup, AI locker search | – | ✓ | credits | pool |
-| Practice: drills, feedback, drop review, Socratic questions | – | ✓ | credits | pool |
+| Practice: drills, feedback, Socratic questions | – | ✓ | credits | pool |
+| Evidence playbooks | ✓ | ✓ | ✓ | ✓ |
 | Hosted transcription | – | own key | credits | pool |
 | Encrypted locker sync between devices | – | – | yearly | ✓ |
 | Coach controls, tournament profiles, shared logs | – | – | – | ✓ |
@@ -268,7 +287,7 @@ Notes:
    - No-audio mode on by default. Browser transcription opt-in, with the consent step.
 3. **Evidence locker v1**: import Word/PDF files, text search, build a speech doc, mark the speech, Verbatim-style export.
 4. **SpeechDrop v1**: open the room and list files (already works through `bridge.mjs`), plus "copy file / show in Finder" for a manual drop. **No upload yet.**
-5. **One practice feature: the "What did I drop?" review after the round**, with Socratic questions only. BYOK only at first.
+5. **Evidence playbooks v1**: save, name and reuse sets of the student's own cards; save a speech doc as a playbook. No AI.
 
 Not in the MVP: SpeechDrop upload, coach controls, hosted AI for students, speech feedback, drills, locker sync.
 
