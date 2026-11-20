@@ -9,7 +9,7 @@ The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/pri
 - Stripe legal name: Pattern Engine LLC. DBA on receipts: Tabula Speech.
 - No refunds for any purchase, except where the law requires one.
 - Free trial: 7 days, 8 rounds of hosted AI, no card.
-- Prices (Option A, 2026-11-20): Single Round $2; Round Packs $5, $10, $20; Weekend Pass $10; Monthly $15; Season $79 a year; All-Access $149 a year (sold only after Speech Events opens). Round counts per plan are not on the plans page yet; Terms §6.6 states that all 135 All-Access Rounds are granted at the start of the term.
+- Prices (Option A, 2026-11-20): Single Round $2; Round Packs $5, $10, $20; Weekend Pass $10; Monthly $15; Season $79 a year; All-Access $149 a year (sold only after Speech Events opens). Round counts are public on the plans page (owner, 2026-11-20): Single Round 1; packs 3, 7, 16; Weekend Pass 8; Monthly 13 a month; Season 70; All-Access 135 (all granted at the start of the term, Terms §6.6).
 - Seller: Pattern Engine LLC, doing business as Tabula Speech. Payment by card or a Stripe-offered method (Link, Apple Pay, Google Pay).
 
 ## Legal choices in the pages
@@ -23,7 +23,7 @@ The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/pri
 | Renewal reminder | 7 to 30 days before each Season or All-Access renewal, with the renewal date, price and how to cancel (several state auto-renewal laws need a set window) | Terms §8, Refunds §5 |
 | Trial end | Ends after 7 days or 8 Rounds, whichever comes first; does not convert to paid; the return rule applies to trial Rounds | Terms §7, §6.3 |
 | Unit | "Round": one debate round normally uses one Round; internal smaller units are never sold or shown | Terms §2, §6 |
-| Round expiry | Single Round and Round Pack: 12 months. Weekend Pass: 4 days after the first Round is committed (12 months if never committed). Monthly: rolls over while active, up to a cap shown on the plans page and at checkout; expires at the end of the last paid month. Season and All-Access: end of the 12-month term. Trial: when the trial ends. Programs: July 31 | Terms §6.6, Refunds §4 |
+| Round expiry | Single Round and Round Pack: 12 months. Weekend Pass: 4 days after the first Round is committed (12 months if never committed). Monthly: rolls over while active, up to a cap of 39 Rounds (public on the plans page); expires at the end of the last paid month. Season and All-Access: end of the 12-month term. Trial: when the trial ends. Programs: July 31 | Terms §6.6, Refunds §4 |
 | Return rule | A Round can be returned until the first speech is recorded; then it is committed. A returned Round goes back to its balance with the same expiry; it is not a refund | Terms §6.3, Refunds §1, §4 |
 | Spend order | Weekend Pass Rounds, then Subscription Rounds, then Single Round and Round Pack Rounds; soonest expiry first inside each group; Program Rounds kept apart | Terms §6.5, Refunds §4 |
 | Long rounds | The core of a debate round always finishes and never uses more than one Round; extra features may use another Round only if the user says yes | Terms §6.2, §6.4 |

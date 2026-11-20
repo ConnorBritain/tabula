@@ -4,10 +4,10 @@ slug: kritiks
 description: "A kritik (K) questions the ideas behind the plan. Learn the link, impact, alternative, framework and role of the ballot, and how to judge a kritik."
 section: Kritiks
 level: intermediate
-reading_time: 9
+reading_time: 7
 sheet: K
 related: [framework, kritik-links, kritik-alternative, role-of-the-ballot, framework-vs-kritik, answering-kritiks]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # Kritiks (K)
@@ -16,7 +16,7 @@ updated: 2026-11-19
 
 ## What a kritik does
 
-A disadvantage says the plan *causes* something bad. A kritik says the aff's *starting point* is the problem. For example, a kritik might argue:
+A disadvantage (DA) says the plan *causes* something bad. A kritik says the aff's *starting point* is the problem. For example, a kritik might argue:
 
 - the aff describes some groups of people as threats, and that way of describing people causes harm;
 - the aff assumes a certain economic system is natural, and that assumption hides who that system hurts;
@@ -26,7 +26,7 @@ Kritiks draw on ideas from philosophy, politics, history and the social sciences
 
 ## The parts
 
-A kritik in the 1NC usually has three core parts, and the debate around it adds two more.
+The neg reads a kritik in the 1NC, its first speech. There it usually has three core parts. The debate around it adds two more.
 
 | Part | The question it answers |
 |---|---|
@@ -75,14 +75,14 @@ The **role of the ballot** (ROB) is a short claim about what the judge's vote me
 
 ## How to answer a kritik (for the aff)
 
-A full 2AC answer often has:
+The aff first answers the K in the 2AC, its second speech. A full 2AC answer often has:
 
 1. **Framework:** the judge should weigh the plan's results, and the neg must offer a competing policy.
-2. **Perm:** the aff can do the plan *and* the alternative together. (Permutations are explained in [Permutations](permutations.md).)
+2. **Perm** (permutation): the aff can do the plan *and* the alternative together. See [Permutations](permutations.md).
 3. **No link** or **link defense:** the aff does not do what the K says, or the link is too general.
 4. **Case outweighs:** the aff's advantages are larger and more certain than the K's impact.
 5. **Alt fails:** the alternative does not solve, or is too vague to evaluate.
-6. **Impact turns** (the idea the K attacks is good): in some debates, the aff argues that the idea the K criticizes is actually good. This is risky but possible, and the aff must defend it with care.
+6. **Impact turn:** in some debates, the aff argues that the idea the K criticizes is actually good. This is risky but possible, and the aff must defend it with care.
 
 ## How to judge a kritik
 
@@ -102,20 +102,46 @@ Some affirmatives are critical too. See [Kritikal affirmatives](kritikal-affirma
 
 A generic **security kritik** against an aff whose advantage says a rival country is a threat that must be contained.
 
+The 1NC is the neg's first speech, and the 2AC is the aff's answer. The 2NR and 2AR are each team's last speech. Shorthand: L = link, I = impact, FW = framework, adv = advantage, "->" = "leads to", w/o = without. Names in parentheses, like (Scholar 19), are invented evidence authors and years.
+
 ```
-1NC                     2AC                      2NR                      2AR
-K: Security
-L: adv 2 calls rival    1. FW: weigh plan vs     FW: ideas shape          FW: "ideas shape
-   a "threat" to be        a policy alt             policy; weigh            policy" has no
-   controlled (Theorist)                            framing first            card; plan comes
-                                                                             first
-I: threat talk ->       2. Perm: do the plan,    Perm fails: adv 2        Perm solves: the
-   cycle of conflict       and drop adv 2's         still needs the          plan works w/o
-   (Scholar 19)            threat framing           threat to matter         adv 2's framing
-Alt: reject the         3. Alt fails: no         Alt = new way to see     Alt is vague;
-   threat frame            concrete action          rival -> less conflict   case is concrete
-                        4. Case outweighs        K turns case: threat     Case still wins
-                                                    talk makes adv fail      under any FW
+1NC
+  K: Security
+  L: adv 2 calls rival a
+    "threat" to be controlled
+    (Theorist)
+  I: threat talk -> cycle
+    of conflict (Scholar 19)
+  Alt: reject the threat frame
+
+2AC
+  1. FW: weigh plan vs a
+     policy alt
+  2. Perm: do the plan, and
+     drop adv 2's threat
+     framing
+  3. Alt fails: no concrete
+     action
+  4. Case outweighs
+
+2NR
+  FW: ideas shape policy;
+    weigh framing first
+  Perm fails: adv 2 still
+    needs the threat to matter
+  Alt = new way to see rival
+    -> less conflict
+  K turns case: threat talk
+    makes adv fail
+
+2AR
+  FW: "ideas shape policy"
+    has no card; plan first
+  Perm solves: the plan works
+    w/o adv 2's framing
+  Alt is vague; case is
+    concrete
+  Case still wins under any FW
 ```
 
 *How to read it:* the round turns on framework and the perm. If the judge weighs only the plan's results, the aff is ahead. If the judge weighs the aff's framing first, the neg is ahead, unless the perm solves. The perm fight is about whether the plan still works once the threat framing is dropped. A good RFD would say which framework won, and why.

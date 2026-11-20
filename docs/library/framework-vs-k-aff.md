@@ -4,7 +4,7 @@ slug: framework-vs-k-aff
 description: "Framework (T-USFG) asks whether the affirmative must defend government action. Learn the neg's standards, the aff's answers, and how judges decide this debate."
 section: Framework
 level: advanced
-reading_time: 10
+reading_time: 9
 related: [framework, kritikal-affirmatives, topicality, topicality-standards, role-of-the-ballot, example-fw-vs-k-aff]
 updated: 2026-11-20
 ---
@@ -45,7 +45,7 @@ This page covers framework against an aff with no plan. Framework against a neg 
 
 ## The aff's case
 
-**We meet.** Some affs argue they meet the neg's interpretation, at least in part. For example, the aff may defend some action related to the topic, or the 1AC may discuss government action directly. A we meet is strongest when the aff is closer to the plan end of the range.
+**We meet.** Some affs argue they meet the neg's interpretation ("we meet" it), at least in part. For example, the aff may defend some action related to the topic, or the 1AC may discuss government action directly. A we meet is strongest when the aff is closer to the plan end of the range, that is, closer to a usual plan.
 
 **Counter-interpretation.** The aff offers its own rule for what an aff must do. A common version: "The aff must be in the direction of the topic," or "The aff must relate to the resolution." The aff then argues its model still limits debate, because the topic's subject sets the boundary.
 
@@ -87,25 +87,48 @@ Judges hold strong and varied views on this debate. Some lean toward framework, 
 
 ## Example in flow shorthand
 
-A neg framework argument against a K aff with no plan. The middle speeches are left out. The TVA first came in the neg block.
+A neg framework argument against a K aff with no plan. The middle speeches are left out. The TVA first came in the neg block. Each group starts with one 1NC line (the neg's first speech). Then come the 2AC (the aff's answer), the 2NR and the 2AR (each side's last speech). Key: USFG = United States federal government. CI = counter-interpretation. Std = standard. Prep = prepare. X = any action in the topic.
 
 ```
-1NC                    2AC                    2NR                   2AR
-Interp: aff must       1. We meet: aff is     No we meet: being     (not extended)
-   defend USFG action     about the topic        about it is not
-   in the resolution                             defending it
-Violation: no plan     2. CI: aff must be     CI has no limit:      Limit is the topic's
-                          in the topic's         any aff can claim     subject; neg can
-                          direction              a direction           prep that
-Std: limits and        3. Fairness only       Fairness first: no    Exclusion outweighs:
-   fairness               serves education       fair round, no        their model shuts
-                                                 learning              out our method
-Std: clash and         4. Impact turn: their  TVA: a plan that      TVA drops the core:
-   skills                 model excludes our     does X keeps the      a plan changes
-                          method                 aff's core            what we say
+INTERP / WE MEET
+1NC: interp: aff must defend
+     USFG action in the
+     resolution
+2AC: 1. We meet: aff is about
+     the topic
+2NR: no we meet: being about it
+     is not defending it
+2AR: (not extended)
+
+VIOLATION / CI
+1NC: violation: no plan
+2AC: 2. CI: aff must be in the
+     topic's direction
+2NR: CI has no limit: any aff
+     can claim a direction
+2AR: limit is the topic's
+     subject; neg can prep that
+
+LIMITS AND FAIRNESS
+1NC: std: limits and fairness
+2AC: 3. Fairness only serves
+     education
+2NR: fairness first: no fair
+     round, no learning
+2AR: exclusion outweighs: their
+     model shuts out our method
+
+CLASH AND SKILLS
+1NC: std: clash and skills
+2AC: 4. Impact turn: their model
+     excludes our method
+2NR: TVA: a plan that does X
+     keeps the aff's core
+2AR: TVA drops the core: a plan
+     changes what we say
 ```
 
-*How to read it:* on the first row, the 2NR says being about the topic is not the same as defending it, and the 2AR does not extend the we meet. On the second row, the 2NR says the counter-interpretation has no limit, and the 2AR answers that the topic's subject is the limit. On the third row, the 2NR says fairness comes first, because there is no learning without a fair round. The 2AR says exclusion outweighs. On the fourth row, the 2NR answers the impact turn with a TVA, and the 2AR says the TVA drops the aff's core. The round turns on two questions: is the aff's counter-interpretation limited enough, and does fairness or exclusion matter more? A judge who thinks the TVA keeps the aff's core will find the neg ahead. A judge who thinks it does not will find the aff's impact turn stronger.
+*How to read it:* in the first group, the 2NR says being about the topic is not the same as defending it, and the 2AR does not extend the we meet. In the second group, the 2NR says the counter-interpretation has no limit, and the 2AR answers that the topic's subject is the limit. In the third group, the 2NR says fairness comes first, because there is no learning without a fair round. The 2AR says exclusion outweighs. In the fourth group, the 2NR answers the impact turn with a TVA, and the 2AR says the TVA drops the aff's core. The round turns on two questions: is the aff's counter-interpretation limited enough, and does fairness or exclusion matter more? A judge who thinks the TVA keeps the aff's core will find the neg ahead. A judge who thinks it does not will find the aff's impact turn stronger.
 
 ## Common mistakes
 

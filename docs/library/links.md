@@ -4,7 +4,7 @@ slug: links
 description: "The link connects the plan to a disadvantage. Learn what makes a link specific, how link turns work, why double turns backfire, and how judges weigh links."
 section: Disadvantages
 level: intermediate
-reading_time: 7
+reading_time: 6
 related: [disadvantages, uniqueness, internal-links, answering-disadvantages, fiat]
 updated: 2026-11-20
 ---
@@ -38,7 +38,7 @@ A topic link is the easiest to answer. The aff says, "That is about other plans,
 
 Links come in sizes. A plan that costs $1 million and a plan that costs $500 billion both "cost money." They do not push the world the same amount.
 
-Link size works with uniqueness. If the world is far from the brink (the point where the harm starts), the neg needs a big link. If the world is close to the brink, a small link can be enough. See [Uniqueness](uniqueness.md).
+Link size works with uniqueness. If the world is far from the brink, or threshold (the point where the harm starts), the neg needs a big link. If the world is close to the brink, a small link can be enough. See [Uniqueness](uniqueness.md).
 
 ## Fiat and the link
 
@@ -84,20 +84,32 @@ For typical links in common DA shapes, see [Common DA shapes](common-disadvantag
 
 ## Example in flow shorthand
 
-A generic DA about business costs. The middle speeches are left out to save space.
+A generic DA about business costs. The middle speeches are left out to save space. Each answer shows the speeches that argue it, top to bottom.
+
+Key: L/T = link turn. -> = so. Names in parentheses are invented authors.
 
 ```
-1NC                      2AC                      2NR                      2AR
-DA: Business costs
-L: plan adds rules       1. No link: plan sets    Plan text: 'require      Even so, cost is tiny
-   on firms (Analyst 21)    goals, not rules         firms to' -> direct      -> below threshold
-                                                     link (CX)
-                         2. L/T: clear rules      L/T is non-unique:       (no answer)
-                            cut legal costs          firms already get
-                            (Expert 22)              that saving now
+DA: BUSINESS COSTS
+
+LINK
+1NC: Plan adds rules on firms
+     (Analyst 21)
+2AC: 1. No link: plan sets
+     goals, not rules
+2NR: Plan text: 'require firms
+     to' -> direct link (CX)
+2AR: Even so, cost is tiny
+     -> below threshold
+
+LINK TURN
+2AC: 2. L/T: clear rules cut
+     legal costs (Expert 22)
+2NR: L/T is non-unique: firms
+     already get that saving
+2AR: (no answer)
 ```
 
-*How to read it:* the 1NC says the plan adds rules on firms. The 2AC answers "no link," because the plan only sets goals. It also reads a link turn: clear rules cut legal costs. The 2NR quotes the plan text from CX, "require firms to," to show a direct link. It answers the link turn by saying it is non-unique: firms already get that saving now. The 2AR shifts to link size: even if there is a link, the cost is too small to cross the threshold. The 2AR does not answer the point that the link turn is non-unique, so the link turn is no longer aff offense. The judge decides whether the small link is enough to cross the brink.
+*How to read it:* the 2NR uses the plan text, quoted in CX, to show a direct link. The 2AR shifts to link size, but drops the point that the link turn is non-unique. So the link turn is no longer aff offense. The judge decides whether the small link is enough to cross the brink.
 
 ## Common mistakes
 

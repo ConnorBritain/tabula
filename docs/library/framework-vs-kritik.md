@@ -4,7 +4,7 @@ slug: framework-vs-kritik
 description: "Framework against a kritik is the debate over what the judge weighs: the plan's results, the aff's ideas, or both. Learn each side's case and middle grounds."
 section: Framework
 level: intermediate
-reading_time: 9
+reading_time: 8
 related: [framework, kritiks, answering-kritiks, role-of-the-ballot, framework-vs-k-aff, turns-case]
 updated: 2026-11-20
 ---
@@ -21,7 +21,7 @@ Framework against a K is usually a claim about **how to weigh**, not a reason to
 
 ## The main interpretations
 
-An **interpretation** here is a team's proposed rule for what the judge weighs. These four are common, from most plan-focused to most idea-focused.
+An **interpretation** here is a team's proposed rule for what the judge weighs. Two words help. **Representations** (often "reps") are the words, images and framing a team uses. **Epistemology** means the study of how we know things. These four rules are common, from most plan-focused to most idea-focused.
 
 | Interpretation | What the judge weighs | Often run by |
 |---|---|---|
@@ -30,7 +30,7 @@ An **interpretation** here is a team's proposed rule for what the judge weighs. 
 | **Representations first** | The aff's words and framing, before the plan's results | The neg |
 | **Knowledge first** | How the aff knows what it claims, before what the plan does | The neg |
 
-**Representations** (often "reps") are the words, images and framing a team uses. The last row is often called **epistemology** first. Epistemology means the study of how we know things.
+The last row is often called **epistemology** first.
 
 ## The aff's case for weighing the plan
 
@@ -38,7 +38,7 @@ Teams that defend weighing the plan often argue:
 
 - **Predictability.** The aff prepared to defend its plan. If the judge weighs anything the aff said or assumed, the target can move in every round.
 - **Limits.** There are countless ways to criticize a speech's words. Weighing reps first gives the neg too many options to prepare against.
-- **Aff ground.** If the plan's results do not count, the aff's main arguments, its advantages, may count for nothing.
+- **Aff ground.** Ground means the arguments a side can count on. If the plan's results do not count, the aff's main arguments, its advantages, may count for nothing.
 - **Policy education.** Comparing the results of real choices is a useful skill. The resolution asks about a policy.
 - **Clash.** A shared focus on the plan makes both teams answer each other directly.
 
@@ -68,7 +68,7 @@ Teams should say which middle ground they want, if any. If one team offers a mid
 
 The best framework debaters plan to win even if they lose framework. These are called **"even if"** arguments.
 
-- **The aff:** "Even if you weigh ideas first, our case outweighs, or the perm solves."
+- **The aff:** "Even if you weigh ideas first, our case outweighs, or the perm solves." (A perm here tests whether the plan and the K's approach can work together.)
 - **The neg:** "Even if you weigh only the plan, the K turns the case." See [Turns case](turns-case.md).
 
 If one team wins under both frameworks, framework may not decide the round. That is common.
@@ -84,7 +84,7 @@ If one team wins under both frameworks, framework may not decide the round. That
 **For the neg (answering the aff's interpretation):**
 
 - **Say what your rule asks of the aff.** Show that the aff only has to defend its own words and reasons, so the aff can prepare.
-- **Answer limits with the link.** Say the K must still link to this aff, so the debate stays tied to the 1AC.
+- **Answer limits with the link.** Say the K must still link to this aff, so the debate stays tied to the 1AC (the aff's first speech).
 - **Say why a K can count under plan focus.** Explain how the K turns the case, so you win even if the aff wins framework.
 
 Both sides should answer each standard the other team extends. A dropped standard is easy for a judge to vote on.
@@ -101,21 +101,52 @@ Many judges have a view on this debate, and many say so in their paradigm. Even 
 
 ## Example in flow shorthand
 
-A neg capitalism kritik. The aff answered with framework. Only the framework rows are shown.
+A neg capitalism kritik. The aff answered with framework. Only the framework is shown. Each group is one argument, speech by speech. The 2AC is the aff's answer to the neg's first speech. The block is the neg's next two speeches. The 1AR is the aff's next speech. The 2NR and 2AR are each side's last speech. Key: squo = status quo, the world as it is now. CI = counter-interpretation. FW = framework. Ed = education. Ext = extend. Moots = makes pointless. ">" = outweighs.
 
 ```
-2AC                     Block                     1AR                      2NR                      2AR
-Interp: weigh plan vs   CI: reps first; aff       Reps first = any word    Fair: aff picked its     Ext interp: reps
-   squo or a policy        words shape policy        can lose a round         words and can defend     first moots 1AC
-Limits: K options are   K still needs a link;     Links can be to any      (no answer)              Dropped: endless
-   endless                 that is the limit         phrase; no limit                                  K options
-Education: policy       Reps education is         Both matter; policy      Reps ed: we learn why    Policy skills are
-   skills                  more portable             skills last for life     the problem exists       what lasts
-                        Middle: weigh plan, but   (no answer)              Even under plan FW,      Case > K turn: plan
-                           K can turn it                                      K turns case             works anyway
+THE RULE
+2AC:   weigh plan vs squo or a
+       policy
+Block: CI: reps first; aff words
+       shape policy
+1AR:   reps first = any word can
+       lose a round
+2NR:   fair: aff picked its words
+       and can defend them
+2AR:   Ext interp: reps first
+       moots the 1AC
+
+LIMITS
+2AC:   K options are endless
+Block: K still needs a link;
+       that is the limit
+1AR:   links can be to any
+       phrase; no limit
+2NR:   (no answer)
+2AR:   dropped: endless K options
+
+EDUCATION
+2AC:   policy skills
+Block: reps education is more
+       portable
+1AR:   both matter; policy skills
+       last for life
+2NR:   reps ed: we learn why the
+       problem exists
+2AR:   policy skills are what
+       lasts
+
+MIDDLE GROUND
+Block: weigh plan, but K can
+       turn it
+1AR:   (no answer)
+2NR:   even under plan FW, K
+       turns case
+2AR:   case > K turn: plan works
+       anyway
 ```
 
-*How to read it:* the 2AC asks the judge to weigh the plan. The block offers a counter-interpretation (reps first) and, on the fourth row, a middle ground. The 1AR answers the first three rows but not the middle ground. On the first row, the 2NR says reps first is fair, because the aff picked its own words and can defend them. On the second row, the 2NR does not answer the 1AR's limits point, and the 2AR extends it as dropped. The 2NR also makes an "even if": under the plan framework, the K still turns the case. So even if the aff wins framework, the round may come down to the fourth row: does the K turn the case, or does the plan work anyway?
+*How to read it:* the 2AC asks the judge to weigh the plan. The block offers a counter-interpretation (reps first) and, in the last group, a middle ground. The 1AR answers the first three groups but not the middle ground. In the rule group, the 2NR says reps first is fair, because the aff picked its own words and can defend them. In the limits group, the 2NR does not answer the 1AR's limits point, and the 2AR extends it as dropped. The 2NR also makes an "even if": under the plan framework, the K still turns the case. So even if the aff wins framework, the round may come down to the last group: does the K turn the case, or does the plan work anyway?
 
 ## Common mistakes
 

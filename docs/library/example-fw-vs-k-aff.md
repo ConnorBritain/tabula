@@ -4,7 +4,7 @@ slug: example-fw-vs-k-aff
 description: "Walk through one generic framework debate against a kritikal affirmative: the 2AC, block, 2NR and 2AR choices, a short flow, and how different judges decide it."
 section: Timeless examples
 level: advanced
-reading_time: 9
+reading_time: 7
 related: [examples, framework-vs-k-aff, kritikal-affirmatives, framework, topicality-voters, rebuttal-strategy]
 updated: 2026-11-20
 ---
@@ -28,7 +28,7 @@ A typical 1NC framework argument is short. It has:
 - **Standards:** limits, ground and predictability, which add up to fairness; and clash, which leads to education and skills.
 - **Voters:** fairness and education.
 
-Many negs also read case arguments, or presumption, in the 1NC. This page follows only the framework sheet.
+Many negs also read case arguments, or presumption (the claim that, with no good reason to vote aff, the judge should vote neg), in the 1NC. This page follows only the framework sheet.
 
 ## The 2AC choices
 
@@ -72,22 +72,59 @@ Most 2ARs combine the two, with an "even if" between them.
 
 ## Example in flow shorthand
 
-The framework sheet, from the 2AC to the 2AR. The 1NC is described above.
+The framework sheet, from the 2AC to the 2AR, one row at a time. The 1NC is described above. Key: CI = counter-interpretation, TVA = topical version of the aff, SSD = switch-side debate, Ks = kritiks, X = a stand-in for the topic area.
 
 ```
-2AC                       Block                    1AR                   2NR                    2AR
-CI: aff must be in        CI: no limit; any        Limit is the topic's  Neg can't prep every   Neg had generic Ks
-   the topic's direction     aff claims it            subject area          "direction" aff        and case answers
-Fairness is not an        Fairness first: the      Exclusion outweighs   Fairness: only thing   Ballot can fix our
-   impact by itself          game needs it            a game rule           a ballot can fix       exclusion too
-Impact turn: their        TVA: a plan for X        TVA drops the core;   TVA solves; SSD is     TVA still drops the
-   model excludes            keeps the core; SSD:     method is the aff     dropped by the 1AR     core (no SSD answer)
-                             say it on the neg
-Clash: we meet it;        Clash: skills from       (no answer)           Dropped: clash is      Our clash is deeper,
-   neg had answers           testing a plan                                 needed to learn        about method
+ROW 1: THE CI
+2AC: CI: aff must be in the
+  topic's direction
+Block: CI: no limit; any aff
+  claims it
+1AR: Limit is the topic's
+  subject area
+2NR: Neg can't prep every
+  "direction" aff
+2AR: Neg had generic Ks and
+  case answers
+
+ROW 2: FAIRNESS
+2AC: Fairness is not an impact
+  by itself
+Block: Fairness first: the game
+  needs it
+1AR: Exclusion outweighs a game
+  rule
+2NR: Fairness: only thing a
+  ballot can fix
+2AR: Ballot can fix our
+  exclusion too
+
+ROW 3: IMPACT TURN, TVA, SSD
+2AC: Impact turn: their model
+  excludes
+Block: TVA: a plan for X keeps
+  the core; SSD: say it on the
+  neg
+1AR: TVA drops the core; method
+  is the aff
+2NR: TVA solves; SSD is dropped
+  by the 1AR
+2AR: TVA still drops the core
+  (no SSD answer)
+
+ROW 4: CLASH
+2AC: Clash: we meet it; neg had
+  answers
+Block: Clash: skills from
+  testing a plan
+1AR: (no answer)
+2NR: Dropped: clash is needed
+  to learn
+2AR: Our clash is deeper, about
+  method
 ```
 
-*How to read it:* on the first row, the block says the counter-interpretation has no limit. The 1AR says the topic's subject is the limit. The 2NR says the neg cannot prepare for every "direction" aff, and the 2AR says the neg had general Ks and case answers. On the second row, the block says fairness comes first, and the 1AR says exclusion outweighs a game rule. The 2NR says fairness is the only thing a ballot can fix, and the 2AR says the ballot can fix the aff's exclusion too. On the third row, the block reads a TVA and SSD. The 1AR answers the TVA but not SSD, and the 2NR points that out. The 2AR repeats that the TVA drops the aff's core, and gives no answer to SSD. On the fourth row, the 1AR does not answer the block's clash argument, and the 2NR extends it as dropped. The 2AR then gives a new answer about clash. Most judges would treat that answer as too late, so the neg is ahead on clash.
+*How to read it:* on row 3, the 1AR answers the TVA but not SSD. The 2NR points that out, and the 2AR still gives no answer to SSD. On row 4, the 1AR does not answer the block's clash argument, and the 2NR extends it as dropped. The 2AR then gives a new answer about clash. Most judges would treat that answer as too late, so the neg is ahead on clash.
 
 ## How judges tend to decide it
 

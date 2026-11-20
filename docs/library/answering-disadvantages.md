@@ -108,26 +108,53 @@ For how to answer the DA shapes you will meet most often, see [Common DA shapes]
 
 ## Example in flow shorthand
 
-A generic trade-off DA: the plan pulls agency staff away from disaster work.
+A generic trade-off DA: the plan pulls agency staff away from disaster work. Each part shows the speeches that argue it, top to bottom. The 1NR is the second half of the neg block.
+
+Key: N/U = non-unique. L/T = link turn. Impact D = impact defense. Ext = extend (carry forward). ev = evidence. Names in parentheses are invented authors.
 
 ```
-1NC                   2AC                     1NR                   1AR
-DA: Agency trade-off
-U: agency on track    1. N/U: agency already  Ext U: newer ev says  Ext 1: their ev is
-   for disaster prep     behind (Analyst 22)     on track (Ana 23)     one region only
-L: plan moves staff   2. No link: plan funds  Hiring takes years;   Plan text: hires
-   to new program        new hires               staff move now        in year 1
-                      3. L/T: new program     (no answer)           Ext 3: L/T dropped
-                         trains staff for                              -> DA is aff offense
-                         disaster work too
-I: weak disaster      4. Impact D: staff      One big storm in      (not extended)
-   response              gaps take years to      year 1 is enough
-                         hurt response           (Expert 21)
-                      5. Case outweighs       DA comes faster       Case harm is now
-                                                                       too
+DA: AGENCY TRADE-OFF
+
+UNIQUENESS
+1NC: Agency on track for
+     disaster prep
+2AC: 1. N/U: agency already
+     behind (Analyst 22)
+1NR: Ext U: newer ev says on
+     track (Analyst 23)
+1AR: Ext 1: their ev is one
+     region only
+
+LINK
+1NC: Plan moves staff to
+     new program
+2AC: 2. No link: plan funds
+     new hires
+1NR: Hiring takes years;
+     staff move now
+1AR: Plan text: hires in
+     year 1
+2AC: 3. L/T: new program
+     trains staff for
+     disaster work too
+1NR: (no answer)
+1AR: Ext 3: L/T dropped
+     -> DA is aff offense
+
+IMPACT
+1NC: Weak disaster response
+2AC: 4. Impact D: staff gaps
+     take years to hurt
+     response
+1NR: One big storm in year 1
+     is enough (Expert 21)
+1AR: (not extended)
+2AC: 5. Case outweighs
+1NR: DA comes faster
+1AR: Case harm is now too
 ```
 
-*How to read it:* the 2AC gives five numbered answers. Answer 1 (non-unique) and answer 3 (link turn) work as a pair. Answer 4 is impact defense: the harm is slower than the neg says. It does not say disaster response is unimportant, so the link turn keeps its value. The 1NR reads newer uniqueness evidence and answers the no-link with "hiring takes years," but it does not answer the link turn. It answers answer 4 with a card that one big storm in year 1 is enough, and answers answer 5 with "DA comes faster." The 1AR extends answer 1 (the neg's evidence covers one region only) and points to the plan text, which hires in year 1. It extends the dropped link turn as aff offense. It does not extend answer 4, by choice. It answers "DA comes faster" by saying the case harm is happening now too.
+*How to read it:* answers 1 and 3 work as a pair: the harm is coming, and the plan stops it. Answer 4 says the harm is slower, not that disaster response is unimportant, so the link turn keeps its value. The 1NR never answers the link turn, so the 1AR extends it as aff offense. The 1AR lets answer 4 go, by choice.
 
 ## Common mistakes
 

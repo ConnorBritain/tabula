@@ -6,16 +6,18 @@ section: The round
 level: beginner
 reading_time: 6
 related: [debate-101, cross-examination, prep-time, how-to-flow, rebuttal-strategy]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # Speeches, order and times
 
-> **Plain version.** A policy round has eight speeches. Each of the four debaters gives two. The first four speeches are constructives, where teams build their arguments. The last four are rebuttals, where teams answer, pick their best arguments and explain why they win. After each constructive, the other team asks questions for three minutes. Each team also has a set amount of prep time to plan.
+> **Plain version.** A policy round has eight speeches. Each of the four debaters gives two. The first four speeches are constructives, where teams build their arguments. The last four are rebuttals, where teams answer, pick their best arguments and explain why they win. After each constructive, the other team asks questions for three minutes. This is cross-examination. Each team also has a set amount of prep time (planning time) to use between speeches.
 
 ## The order and the common times
 
-This is the common national high school format. Local leagues can use different times. For example, a state league or a novice division may change the rebuttal length or the prep time. Always check the tournament's rules.
+This is the common national high school format. "Aff" (affirmative) is the team for the plan. "Neg" (negative) is the team against it. "1st aff" means the aff's first speaker.
+
+Local leagues can use different times. For example, a state league or a novice division may change the rebuttal length or the prep time. Always check the tournament's rules.
 
 | # | Speech | Who speaks | Time |
 |---|---|---|---|
@@ -34,38 +36,38 @@ This is the common national high school format. Local leagues can use different 
 
 **Prep time:** each team gets a set total for the whole round. 8 or 10 minutes is common. See [Prep time](prep-time.md).
 
-**Who asks in cross-ex:** the usual rule is that the debater who is *not* about to speak asks the questions. That way the next speaker can prepare. Some leagues allow "open cross-ex," where both partners can ask or answer. Check the rules.
+**Who asks in cross-ex:** usually, the debater who is *not* about to speak asks the questions. That way, the next speaker can prepare. Some leagues allow "open cross-ex," where both partners can ask or answer. Check the rules.
 
 ## What each speech should do
 
 ### 1AC: first affirmative constructive
 
-The 1AC is mostly written before the round. It reads the **plan** and the **advantages**, with evidence. It should show the stock issues: there is a problem (harms), the world now does not fix it (inherency), and the plan does (solvency). See [The affirmative case](affirmative-case.md).
+The 1AC is mostly written before the round. It reads the **plan** (the change the aff wants) and the **advantages** (reasons the plan is good), with evidence. It should show the **stock issues**, the aff's basic jobs: there is a problem (harms), the world now does not fix it (inherency), and the plan does (solvency). See [The affirmative case](affirmative-case.md).
 
 ### 1NC: first negative constructive
 
-The 1NC brings the neg's arguments. There are two kinds:
+The 1NC brings the neg's arguments. Each big argument gets its own **sheet** (a page of notes). There are two kinds:
 
-- **Off-case** arguments start on new sheets: topicality, disadvantages, counterplans, kritiks.
+- **Off-case** arguments start on new sheets. They include topicality (the plan does not fit the topic), disadvantages (the plan causes harm), counterplans (a better plan) and kritiks (the ideas behind the plan are wrong).
 - **On-case** arguments answer the 1AC directly, on the case sheet.
 
-The 1NC usually starts with a roadmap: "Three off, then case."
+The 1NC usually starts with a **roadmap**, the order it will go in: "Three off, then case." That means three off-case arguments, then answers on the case.
 
 ### 2AC: second affirmative constructive
 
-The 2AC answers *every* neg argument from the 1NC. It also extends the case. This speech has a lot to cover in 8 minutes. Teams often bring pre-written answers, called **blocks** or **frontlines**.
+The 2AC answers *every* neg argument from the 1NC. It also **extends** the case: it carries the aff's arguments forward. This speech has a lot to cover in 8 minutes. Teams often bring pre-written answers, called **blocks** or **frontlines**.
 
 ### 2NC and 1NR: the negative block
 
-These two speeches come back to back, with only a cross-ex between them. Together they are called the **negative block**: 13 minutes of neg speaking. The partners split the arguments. For example, the 2NC takes the counterplan and the DA, and the 1NR takes topicality and case. They should not both answer the same arguments.
+These two speeches come back to back, with only a cross-ex between them. Together they are called the **negative block**: 13 minutes of neg speaking. The partners split the arguments. For example, the 2NC takes the counterplan and the DA (disadvantage), and the 1NR takes topicality and case. They should not both answer the same arguments.
 
 ### 1AR: first affirmative rebuttal
 
-The 1AR has 5 minutes to answer 13 minutes of the block. It must be efficient. It extends the aff's best answers on each sheet and keeps the case alive. An argument the 1AR drops is usually lost for the aff.
+The 1AR has 5 minutes to answer 13 minutes of the block. It must be efficient. It extends the aff's best answers on each sheet, and keeps the case alive. An argument the 1AR **drops** (does not answer) is usually lost for the aff.
 
 ### 2NR: second negative rebuttal
 
-The 2NR is the neg's last speech. It should **choose**. Most good 2NRs go for one or two arguments, not everything. It explains why those arguments win and why they outweigh the case. New arguments are not allowed here, except to answer new things from the 1AR.
+The 2NR is the neg's last speech. It should **choose**. Most good 2NRs go for one or two arguments, not everything. It explains why those arguments win, and why they outweigh the case. New arguments are not allowed here, except to answer new things from the 1AR.
 
 ### 2AR: second affirmative rebuttal
 
@@ -86,14 +88,45 @@ You will see these names on flows and ballots:
 
 ## Example in flow shorthand
 
-One topicality argument, followed through every speech that touches it.
+One topicality argument, followed through every speech that touches it. Topicality (T) says the plan does not fit the topic.
+
+Key:
+
+- **Int** (interpretation): the neg's meaning of a topic word. **>=** means "at least."
+- **Vio** (violation): how the plan breaks that meaning.
+- **Stds** (standards): reasons the meaning is better. **Limits** means it keeps the topic small enough.
+- **We meet:** the plan fits their meaning anyway.
+- **CI** (counter-interpretation): the aff's own meaning.
+- **Reasonable** (reasonability): the plan is close enough to the topic.
+- **Core aff:** a plan at the heart of the topic.
+- **Ext** = extend. **yr** = year. **>** = outweighs.
 
 ```
-1NC              2AC              2NC              1AR              2NR              2AR
-T: "substantial" 1. We meet       No we meet:      Ext we meet:     Go for T only.   We meet: plan
-Int: >= 10%      2. CI: "real     plan is 2%       plan is 12%      Plan is 2% at    is 12% once in
-Vio: plan = 2%      importance"   CI: no limit     by yr 2          start; CI = no   place. Reason-
-Stds: limits     3. Reasonable    Limits > all     Reasonable       limit; vote neg  ability: core aff
+1NC
+  T: "substantial"
+  Int: >= 10%
+  Vio: plan = 2%
+  Stds: limits
+2AC
+  1. We meet
+  2. CI: "real importance"
+  3. Reasonable
+2NC
+  No we meet: plan is 2%
+  CI: no limit
+  Limits > all
+1AR
+  Ext we meet: plan is 12%
+    by yr 2
+  Reasonable
+2NR
+  Go for T only. Plan is 2%
+    at start; CI = no limit;
+    vote neg
+2AR
+  We meet: plan is 12% once
+    in place. Reasonability:
+    core aff
 ```
 
 *How to read it:* the 2NC took T in the block, so the 1NR did not touch it. The 2NR chose to go for T alone. The 2AR extended "we meet" and reasonability, which the 1AR had made. It added nothing new.

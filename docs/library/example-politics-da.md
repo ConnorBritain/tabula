@@ -4,7 +4,7 @@ slug: example-politics-da
 description: "The politics DA says passing the plan costs a leader political capital, so another priority fails. Learn its shape, the usual answers, and the fiat debate."
 section: Timeless examples
 level: intermediate
-reading_time: 8
+reading_time: 6
 related: [examples, disadvantages, fiat, uniqueness, links, answering-disadvantages]
 updated: 2026-11-20
 ---
@@ -63,28 +63,56 @@ The politics DA raises a hard question about fiat, because its link often comes 
 
 ## Example in flow shorthand
 
-A generic politics DA. The middle speeches are left out to save space.
+A generic politics DA. The middle speeches are left out to save space. Each block is one part of the DA, with each speech's line on it, top to bottom. Key: "N/U" means non-unique, "L/T" means link turn, "ev" means evidence, "Ext" means extend, and "->" means "leads to". Names in parentheses are invented cards.
 
 ```
-1NC                     2AC                     2NR                      2AR
-DA: Politics
-U: leader's priority    1. N/U: bill lacks      Newer ev: deal is set    Their ev is one
-   bill passes now         votes (Author 23)       (Analyst, this week)     lawmaker's view
-   (Analyst 23)
-L: plan unpopular ->    2. L/T: winners win;    Winners win fails for    Ext L/T: a win shows
-   costs capital           a hard win builds       unpopular plans          strength
-                           capital
-                        3. Thumper: leader is   Budget fight is over;    (no answer)
-                           already in a budget     capital is back
-                           fight
-                        4. Fiat: plan passes    Fiat says plan passes,   Unfair to make aff
-                           at once; no fight       not how; cost is a       debate the whole
-                           to cost capital         real effect              agenda
-I: priority fails ->    5. No impact            Ext 1NC impact
-   economic harm
+DA: POLITICS
+
+UNIQUENESS
+1NC: Leader's priority bill
+     passes now (Analyst 23).
+2AC: 1. N/U: bill lacks votes
+     (Author 23).
+2NR: Newer ev: deal is set
+     (Analyst, this week).
+2AR: Their ev is one lawmaker's
+     view.
+
+LINK
+1NC: Plan unpopular -> costs
+     capital.
+2AC: 2. L/T: winners win; a hard
+     win builds capital.
+2NR: Winners win fails for
+     unpopular plans.
+2AR: Ext L/T: a win shows
+     strength.
+
+THUMPER
+2AC: 3. Thumper: leader is
+     already in a budget fight.
+2NR: Budget fight is over;
+     capital is back.
+2AR: (no answer)
+
+FIAT
+2AC: 4. Fiat: plan passes at
+     once; no fight to cost
+     capital.
+2NR: Fiat says plan passes, not
+     how; cost is a real effect.
+2AR: Unfair to make aff debate
+     the whole agenda.
+
+IMPACT
+1NC: Priority fails -> economic
+     harm.
+2AC: 5. No impact.
+2NR: Ext 1NC impact.
+2AR: (no answer)
 ```
 
-*How to read it:* on uniqueness, the 2AC says the priority bill lacks votes. The 2NR reads newer evidence that a deal is set. The 2AR says that evidence is one lawmaker's view. On the link, the 2AC reads winners win. The 2NR says winners win fails for unpopular plans. The 2AR extends the link turn: a win shows strength. The 2AC's thumper is a budget fight. The 2NR says that fight is over, and the 2AR does not answer, so the thumper is gone. On fiat, the 2AC says the plan passes at once, with no fight. The 2NR says fiat covers passage, not how, so the cost is a real effect. The 2AR says it is unfair to make the aff debate the whole agenda. On the impact, the 2NR extends the 1NC impact over the 2AC's "no impact," and the 2AR gives no answer on that row. The judge must decide the fiat question, and then whether winners win beats the capital link.
+*How to read it:* the 2AR does not answer the 2NR on the thumper, so the thumper is gone. It also gives no answer on the impact row. The judge must decide the fiat question, and then whether winners win beats the capital link.
 
 ## Common mistakes
 

@@ -90,7 +90,7 @@ document.addEventListener('keydown', (e) => {
   }
 }, true);
 escLayer('tour', 100, () => Boolean(tourState), () => tourEnd(false)); // Esc ends the tour
-// The ? menu (spec 5.3): tours · Search and commands · Keyboard shortcuts · Debate library · About Tabula.
+// The ? menu (spec 5.3): tours · Search and commands · Keyboard shortcuts · Debate library · About Tabula Debate.
 // Real menu keys: ↑ and ↓ wrap, Home and End jump, Esc returns focus to ?, and Tab closes the menu.
 const helpItems = () => [...$('#help-menu').querySelectorAll('[role="menuitem"]')];
 function closeHelpMenu() { $('#help-menu').hidden = true; $('#help-btn').setAttribute('aria-expanded', 'false'); }
@@ -139,7 +139,7 @@ async function openWelcome() {
   if (LOCAL_ORIGIN) choices.push({ label: 'Use an AI app you pay for', desc: 'Uses an AI app you already pay for on this computer. Needs one Terminal command.', value: 'sub' });
   choices.push({ label: 'Start without AI', desc: 'You can connect AI later in Settings.', value: 'skip' });
   // × or Esc means "Start without AI" without the skip page. A click on the dim layer does nothing.
-  const v = await ask({ title: 'Welcome to Tabula', body: 'The clock, flow and ballot work without AI. AI can add a transcript, an AI flow and feedback.', buttons: choices, variant: 'choices', backdrop: false, cancelValue: 'none' });
+  const v = await ask({ title: `Welcome to ${window.TabulaBrand.NAME}`, body: 'The clock, flow and ballot work without AI. AI can add a transcript, an AI flow and feedback.', buttons: choices, variant: 'choices', backdrop: false, cancelValue: 'none' });
   if (v === 'skip') {
     const go = await ask({
       title: 'Start without AI',

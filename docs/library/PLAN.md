@@ -17,6 +17,8 @@ The same Markdown files feed both. One source, two outputs.
 - A **novice debater** in their first season.
 - An **experienced flower**: a varsity debater, coach or ex-debater judge who wants a clean, fair statement of a theory idea, or wants a page to send to a novice.
 
+The full reader definitions, and which reader each page is written for, live in `READERS.md`.
+
 **What "done well" looks like**
 
 - A parent can read one page in 5 minutes and judge a fair round.
@@ -249,12 +251,14 @@ The build adds two things that are not in the Markdown: the "Reading paths" box 
 - The **Plain version** comes first and stands alone. A parent who stops reading after it should still be right.
 - One H1 per page. The H1 uses the common name and the short name: "Disadvantages (DA)".
 - The deeper sections go from simple to hard. Advanced material sits at the bottom, under a heading that says so.
-- Every **example** uses flow shorthand in a code block, with a one-line note under it. Keep it to the core moves.
+- Every **example** uses flow shorthand in a code block, with a one-line note under it. Keep it to the core moves. Every line in the block is 40 characters or fewer, so it reads on a phone: stack the speeches one under another instead of side by side. If the block uses short forms, put one line that starts with `Key:` just above it.
 - **Common mistakes** has 4 to 7 items. Each one names the mistake and the fix.
 - **Related pages** has 3 to 6 links, each with a few words on why to go there.
 - `sheet:` ties the page to a flow sheet in the app (T, DA, CP, K, FW, Case).
 
 ## 5. Tone and style
+
+Write each page for the reader `READERS.md` names for it, at the point in their season when they arrive.
 
 - **Plain words. Short sentences.** One idea per sentence. Target grade 7 to 8 reading level for the Plain version, and grade 9 to 10 for the rest. (This matches the app's "Plain" reading level.)
 - **Explain a term the first time it shows on a page**, even if another page explains it. Each page can be the first page a reader sees, because most come from search.

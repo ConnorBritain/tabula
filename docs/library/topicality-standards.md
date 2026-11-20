@@ -15,7 +15,7 @@ updated: 2026-11-20
 
 ## What standards do
 
-A topicality (T) argument has four parts: interpretation, violation, standards and voters. See [Topicality](topicality.md). The **interpretation** says what a word means. The **violation** says the plan is outside that meaning. The **standards** say why that meaning is the right one to use. The **voters** say why it matters enough to decide the round.
+A topicality (T) argument has four parts: interpretation, violation, standards and voters. See [Topicality](topicality.md). The **interpretation** says what a word means. The **violation** says the plan is outside that meaning. The **standards** say why that meaning is the right one to use. The **voters** say why it matters enough to decide the round. The aff answers with its own meaning, the **counter-interpretation** (CI).
 
 Standards are the bridge between the interpretation and the voters. "Limits" on its own is only a label. "Our interpretation limits the topic, so the neg can prepare, so the round is fair" is a full argument. The last step ties the standard to a voter, here fairness. See [Voters](topicality-voters.md).
 
@@ -74,7 +74,7 @@ Winning one standard is not enough if the other side wins a different one. Teams
 - "Precision is the only test that does not depend on what helps one side."
 - "Education outweighs. Learning is the reason schools support debate at all."
 
-Under **competing interpretations**, each standard a side wins is a reason to prefer its interpretation. Under **reasonability**, the aff only needs its interpretation to be good enough. That choice changes how much the standards need to prove. See [Voters](topicality-voters.md).
+Under **competing interpretations**, the judge picks the better meaning, so each standard a side wins is a reason to prefer its interpretation. Under **reasonability**, the aff only needs its interpretation to be good enough. That choice changes how much the standards need to prove. See [Voters](topicality-voters.md).
 
 ## How to answer standards
 
@@ -92,23 +92,47 @@ Under **competing interpretations**, each standard a side wins is a reason to pr
 
 ## Example in flow shorthand
 
-A generic T argument on the word "regulation." The neg says regulation means a binding rule; the plan is a tax credit. Only the standards rows are shown.
+A generic T argument on the word "regulation." The neg says regulation means a binding rule. The plan is a tax credit. Only the standards rows are shown, one group per neg standard.
+
+Key: "CI" = counter-interpretation, "reg" = regulation, "dict" = dictionary, "def" = definition, "Predict" = predictability, ">" = "comes before", "Ext" = extend, "->" = "leads to".
 
 ```
-1NC                      2AC                       2NR                        2AR
-Limits: broad meaning    1. CI caps affs at 30     Their 30 is a guess; no    Neg never showed
-   lets in any incentive    major programs            card counts them           more than 30
-   -> 100s of affs
-Ground: tax affs dodge   2. Neg keeps cost and     Core reg DA is lost;       Cost DA is core
-   core reg DA              spending DAs              cost DAs are generic       ground anyway
-Predict: legal dict is   3. Precision: field       Predict > precision: we    Field use IS what
-   what neg preps           uses word for both        prep from the legal def    neg should prep
-                                                                                 from
-Education: depth         (no answer)               Ext: depth on core         (no answer)
-                                                      mechanism
+-- Limits --
+1NC  Broad meaning lets in any
+     incentive -> 100s of affs
+2AC  CI caps affs at 30 major
+     programs
+2NR  Their 30 is a guess; no card
+     counts them
+2AR  Neg never showed more than
+     30
+
+-- Ground --
+1NC  Tax affs dodge core reg DA
+2AC  Neg keeps cost and spending
+     DAs
+2NR  Core reg DA is lost; cost
+     DAs are generic
+2AR  Cost DA is core ground anyway
+
+-- Predictability --
+1NC  Predict: legal dict is what
+     neg preps
+2AC  Precision: field uses word
+     for both
+2NR  Predict > precision: we prep
+     from the legal def
+2AR  Field use IS what neg should
+     prep from
+
+-- Education --
+1NC  Education: depth
+2AC  (no answer)
+2NR  Ext: depth on core mechanism
+2AR  (no answer)
 ```
 
-*How to read it:* there is one row per neg standard. On limits, the teams dispute the number of affs: the 2NR says the aff's "30" is a guess, and the 2AR says the neg never showed more. On ground, the 2AR claims the cost DA is core ground, so little is lost. On predictability, the 2AC answered with precision; the 2NR weighs predictability above precision, and the 2AR says the field's use is what the neg should prepare for. On education, the aff never answered in any speech, so the neg wins depth. The judge must still decide how much depth weighs against the other three rows.
+*How to read it:* on limits, the teams dispute the number of affs. On ground, the 2AR says the cost DA is core ground, so little is lost. On predictability, the 2NR weighs predictability above the aff's precision answer, and the 2AR says the field's use is what the neg should prepare for. The aff never answered education, so the neg wins depth. The judge must still decide how much depth weighs against the other three groups.
 
 ## Common mistakes
 

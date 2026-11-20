@@ -4,7 +4,7 @@ slug: inherency
 description: "Inherency says the problem will last without the plan. Learn structural, attitudinal, existential and gap inherency, how to attack it, and how to judge it."
 section: The affirmative case and stock issues
 level: beginner
-reading_time: 6
+reading_time: 7
 related: [stock-issues, harms, solvency, affirmative-case, uniqueness, presumption]
 updated: 2026-11-20
 ---
@@ -42,7 +42,7 @@ An **attitudinal** barrier is a lack of will. The law may allow the fix, but the
 
 ### Existential inherency
 
-**Existential** inherency says: the harm exists, and nothing now solves it, so something must be blocking a fix. It does not name the barrier. Some judges accept it as enough. Others think it is weak, because it does not explain *why* the status quo fails, and the neg can argue the fix is coming.
+**Existential** inherency says: the harm exists, and nothing now solves it, so something must be blocking a fix. It does not name the barrier. Some judges accept it as enough. Others think it is weak, because it does not explain *why* the status quo fails. The neg can also argue the fix is coming.
 
 ### Gap inherency
 
@@ -50,18 +50,23 @@ An **attitudinal** barrier is a lack of will. The law may allow the fix, but the
 
 ## Inherency and uniqueness
 
-On a disadvantage, **uniqueness** asks whether the bad thing is already happening. Inherency asks a similar question about the case: is the good result already happening? If the status quo already solves the harm, the aff's advantage is **non-unique**: the plan does not cause the good result, because it happens anyway. Many policy-style debaters use the word "uniqueness" for this case argument too. See [Uniqueness](uniqueness.md).
+Policy-style debaters often use another word for this idea: **uniqueness**.
 
-Some judges, often called **stock issues judges**, treat inherency as a must-win item. Others, often called **policymakers**, treat it as one factor in how much the plan adds. See [Judge paradigms](judge-paradigms.md).
+- On a **disadvantage** (a neg argument that the plan causes something bad), uniqueness asks whether the bad thing is already happening.
+- Inherency asks a similar question about the case: is the good result already happening?
+
+If the status quo already solves the harm, the aff's **advantage** (its reason the plan is good) is **non-unique**. The plan does not cause the good result, because it happens anyway. Many policy-style debaters use the word "uniqueness" for this case argument too. See [Uniqueness](uniqueness.md).
+
+Some judges, often called **stock issues judges**, treat inherency as a must-win item. Others, often called **policymakers** (judges who weigh costs against benefits), treat it as one factor in how much the plan adds. See [Judge paradigms](judge-paradigms.md).
 
 ## How to answer inherency (for the neg)
 
-- **Status quo solves:** a current law, program or trend is already fixing the harm. Read a card that names it.
+- **Status quo solves:** a current law, program or trend is already fixing the harm. Read a **card** (a quote from a source, with author and year) that names it.
 - **The barrier is gone:** the law the aff names has changed, or the officials who opposed the fix now support it.
 - **The gap is small:** the current program covers most of the problem, so the plan adds little.
-- **Minor repairs:** some traditional negs argue that a small change to a current program would fix the harm, without the plan. Judges differ on whether this is a fair neg position, and it can look like a counterplan. Teams should argue it if it comes up.
+- **Minor repairs:** some traditional negs argue that a small change to a current program would fix the harm, without the plan. Judges differ on whether this is a fair neg position. It can look like a **counterplan** (the neg's own, different plan). Teams should argue it if it comes up.
 
-A note on attitudinal inherency: if the aff proves that officials strongly oppose the fix, the neg can argue they will undercut the plan, which is called **circumvention** (see [Solvency](solvency.md)).
+A note on attitudinal inherency. Say the aff proves that officials strongly oppose the fix. Then the neg can argue they will undercut the plan. This is called **circumvention** (see [Solvency](solvency.md)).
 
 ## How to defend inherency (for the aff)
 
@@ -79,19 +84,39 @@ A note on attitudinal inherency: if the aff proves that officials strongly oppos
 
 ## Example in flow shorthand
 
-A gap inherency debate on a generic rural clinic case.
+A gap inherency debate on a generic rural clinic case. A **pilot** is a small trial program. Each neg attack is shown with the speeches that argue it.
+
+Key: Inh = inherency, SQ = status quo, Ext = extend (carry forward), Ev = evidence, fed = federal. "(Ev 23)" is an invented card.
 
 ```
-1AC                       1NC                       2AC                       2NR                       2AR
-Inh: fed program funds    1. SQ solves: new         New program is a          Ext SQ solves: pilot      Pilot = 5 sites;
-   city clinics only         pilot adds rural          pilot, 5 sites only       will expand next yr       no card it grows
-   (Analyst 21)              sites (Ev 23)             (same Ev 23)
-                          2. Attitude shift:        Ev says "consider,"       (dropped)                 Conceded: no
-                             officials support         not "fund"                                          change in policy
-                             rural care
+1AC  Inh: fed program
+     funds city clinics
+     only (Analyst 21)
+
+ATTACK 1
+1NC  SQ solves: new pilot
+     adds rural sites
+     (Ev 23)
+2AC  New program is a
+     pilot, 5 sites only
+     (same Ev 23)
+2NR  Ext SQ solves: pilot
+     will expand next yr
+2AR  Pilot = 5 sites;
+     no card it grows
+
+ATTACK 2
+1NC  Attitude shift:
+     officials support
+     rural care
+2AC  Ev says "consider,"
+     not "fund"
+2NR  (dropped)
+2AR  Conceded: no change
+     in policy
 ```
 
-*How to read it:* the 1AC claims gap inherency: the federal program funds only city clinics. The neg makes two attacks. On the first, the 2AC reads the neg's own card back: the pilot has only 5 sites. The 2NR says the pilot will expand, but the 2AR points out there is no card for that. On the second, the 2NR drops the 2AC answer, so the 2AR calls it conceded. A judge would likely say the aff keeps most of its inherency, because a 5-site pilot leaves most of the gap open.
+*How to read it:* the 2AC turned the neg's own card against it, and the neg dropped the second answer. A 5-site pilot leaves most of the gap open, so the aff likely keeps most of its inherency.
 
 ## Common mistakes
 

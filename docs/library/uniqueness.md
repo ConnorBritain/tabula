@@ -4,7 +4,7 @@ slug: uniqueness
 description: "Uniqueness asks if a disadvantage's harm is not happening now. Learn why it is the base of every DA, how it sets the link's direction, and how to answer it."
 section: Disadvantages
 level: intermediate
-reading_time: 7
+reading_time: 6
 related: [disadvantages, links, internal-links, answering-disadvantages, example-spending-da]
 updated: 2026-11-20
 ---
@@ -77,20 +77,37 @@ For uniqueness questions in common DA shapes, see [Common DA shapes](common-disa
 
 ## Example in flow shorthand
 
-A generic spending DA. The middle speeches are left out to save space.
+A generic spending DA. The middle speeches are left out to save space. Each part shows the speeches that argue it, top to bottom.
+
+Key: N/U = non-unique. L/T = link turn. $ = money. -> = so. Names in parentheses are invented authors.
 
 ```
-1NC                      2AC                        2NR                        2AR
-DA: Spending
-U: budget at its cap,    1. N/U: road bill adds     Road bill was paid for     Those cuts were never
-   no room for new $        $40B now (Author 22)       by cuts in same law ->     made; debt still up
-   (Analyst 21)                                        no net new $ (Ana 23)
-L: plan costs $50B       2. L/T: plan saves $       U controls direction:      If N/U wins, L/T is
-   (Expert 20)              by year 3                  if U holds, savings        offense: plan cuts
-                                                       barely matter              the deficit
+DA: SPENDING
+
+UNIQUENESS
+1NC: Budget at its cap, no room
+     for new $ (Analyst 21)
+2AC: 1. N/U: road bill adds
+     $40B now (Author 22)
+2NR: Road bill was paid for by
+     cuts in same law -> no net
+     new $ (Analyst 23)
+2AR: Those cuts were never
+     made; debt still up
+
+LINK
+1NC: Plan costs $50B (Expert 20)
+2AC: 2. L/T: plan saves $
+     by year 3
+2NR: U controls direction: if
+     U holds, savings barely
+     matter
+2AR: If N/U wins, L/T is
+     offense: plan cuts the
+     deficit
 ```
 
-*How to read it:* the 1NC says the budget is at its cap, with no room for new money (U), and the plan costs $50B (L). The 2AC's first answer is non-unique, using a thumper: a road bill adds $40B now. Its second answer is a link turn: the plan saves money by year 3. The 2NR says the road bill was paid for by cuts in the same law, so there is no net new money, and uniqueness holds. It adds that uniqueness controls the direction, so the savings barely matter. The 2AR says those cuts were never made and debt is still rising. Then it says that if non-unique wins, the link turn is aff offense. The judge decides uniqueness first. That answer tells the judge whether the link or the link turn counts more.
+*How to read it:* the 2AC's non-unique uses a thumper, the road bill. Both last speeches fight over uniqueness, because it decides which way the link points. The judge decides uniqueness first. That answer tells the judge whether the link or the link turn counts more.
 
 ## Common mistakes
 

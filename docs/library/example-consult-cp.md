@@ -4,7 +4,7 @@ slug: example-consult-cp
 description: "The consult counterplan asks an ally or other body about the plan, and acts only if it agrees. Learn how it competes, its net benefit, and the aff answers."
 section: Timeless examples
 level: advanced
-reading_time: 8
+reading_time: 7
 related: [examples, common-counterplans, competition, permutations, solvency-deficits, net-benefits]
 updated: 2026-11-20
 ---
@@ -56,7 +56,7 @@ The neg argues these differences make the counterplan a real choice. The aff oft
 
 ## The usual aff answers
 
-The **2AC** (second affirmative constructive) usually mixes several of these.
+The **2AC** (second affirmative constructive) usually mixes several of these. A **perm** (permutation) is the aff's test of whether both could be done together.
 
 - **Perm do both.** Consult the party and do the plan. The aff argues the party still feels respected. The neg answers that consultation is only real if the government is willing to accept a no. If the plan happens no matter what, the party knows it was not truly asked.
 - **Perm do the counterplan.** Do the counterplan: if the party agrees, the plan happens. The neg answers that this drops the certainty of the plan, so it is a **severance perm** (a perm that leaves out part of the plan). See [Permutations](permutations.md).
@@ -76,23 +76,42 @@ The **2AC** (second affirmative constructive) usually mixes several of these.
 
 ## Example in flow shorthand
 
-A generic consult counterplan. The middle speeches are left out to save space.
+A generic consult counterplan. The middle speeches are left out to save space. The 1NC comes first, then each 2AC answer with the 2NR and 2AR replies. Key: CP = counterplan, Solv = solvency, NB = net benefit, N/U = non-unique (the benefit is already here), adv = advantage, arg = argument, -> = leads to.
 
 ```
-1NC                     2AC                     2NR                     2AR
-CP: consult a close     1. Perm do both         Not real consult if     Ally still gets a
-   ally; adopt plan                                plan happens anyway     voice in how it is
-   only if ally agrees                                                     put in place
-Solv: ally says yes     2. Deficit: delay       Talks are short; harm   Even short delay
-   (Analyst 22)                                    is not urgent           costs lives in adv
-NB: consult builds      3. Consult CPs bad:     Tests certainty; core   Steals the plan;
-   trust -> ally helps     compete only on         neg ground; reject      reject the CP
-   on joint program        certainty               the arg at most
-                        4. N/U: ties already    Being asked is new      (no answer)
-                           strong                  and builds trust
+1NC
+CP: consult a close ally; adopt
+  plan only if ally agrees
+Solv: ally says yes (Analyst 22)
+NB: consult builds trust ->
+  ally helps on joint program
+
+2AC 1: Perm do both
+2NR: Not real consult if plan
+  happens anyway
+2AR: Ally still gets a voice in
+  how it is put in place
+
+2AC 2: Deficit: delay
+2NR: Talks are short; harm is
+  not urgent
+2AR: Even short delay costs
+  lives in adv
+
+2AC 3: Consult CPs bad: compete
+  only on certainty
+2NR: Tests certainty; core neg
+  ground; reject the arg at most
+2AR: Steals the plan; reject
+  the CP
+
+2AC 4: N/U: ties already strong
+2NR: Being asked is new and
+  builds trust
+2AR: (no answer)
 ```
 
-*How to read it:* on the perm, the 2AC says do both. The 2NR says consultation is not real if the plan happens anyway. The 2AR says the ally still gets a voice in how the plan is put in place. On solvency, the 2AC says consultation causes delay. The 2NR says the talks are short and the harm is not urgent. The 2AR says even a short delay costs lives in the advantage. On theory, both teams ask only to reject the counterplan, not the team, so the judge decides theory first. On the net benefit, the 2AC says ties with the ally are already strong. The 2NR says being asked is new and builds trust, and the 2AR does not answer that. If the counterplan survives theory, the judge asks whether the perm gets the trust benefit, and then weighs the delay against the net benefit.
+*How to read it:* on theory, both teams ask only to reject the counterplan, not the team, so the judge decides theory first. The 2AR never answers the 2NR's point that being asked is new and builds trust. If the counterplan survives theory, the judge asks whether the perm gets the trust benefit, and then weighs the delay against the net benefit.
 
 ## Common mistakes
 

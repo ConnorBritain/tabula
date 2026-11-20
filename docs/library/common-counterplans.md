@@ -4,7 +4,7 @@ slug: common-counterplans
 description: "Some counterplans come back every year: states, agent, advantage, process, consult and PICs. Learn how each competes, the usual aff answers, and the theory."
 section: Counterplans
 level: intermediate
-reading_time: 8
+reading_time: 7
 related: [counterplans, competition, permutations, example-states-cp, example-consult-cp, example-pic]
 updated: 2026-11-20
 ---
@@ -105,28 +105,44 @@ Full page: [Plan-inclusive counterplans](example-pic.md).
 
 ## Example in flow shorthand
 
-A generic advantage counterplan with a spending net benefit. The middle speeches are left out to save space.
+A generic advantage counterplan with a spending net benefit. The middle speeches are left out to save space. Each group follows one argument. Key: "adv" means advantage, "NB" means net benefit, "Ext" means extend, "$40B" means $40 billion, and "normal means" means the usual way the government pays for new programs.
 
 ```
-1NC                     2AC                     2NR                     2AR
-CP: agency runs a       1. Solv deficit: CP     Training covers both    Training is slow;
-   short training          misses the second       advantages (Analyst     adv 2 needs the
-   program instead         advantage               22)                     new program now
-NB: Spending DA -       2. Perm do both         Perm still costs the    Plan cost is small;
-   plan costs $40B                                 full $40B               DA risk is tiny
-                        3. No link: plan is     Ext link: $40B from     (no answer)
-                           paid by normal          a fixed budget
-                           means
+SOLVENCY
+1NC: CP: agency runs a short
+     training program instead
+2AC: 1. Solv deficit: CP misses
+     the second advantage
+2NR: Training covers both
+     advantages (Analyst 22)
+2AR: Training is slow; adv 2
+     needs the new program now
+
+THE PERM
+1NC: NB: Spending DA. Plan
+     costs $40B
+2AC: 2. Perm do both
+2NR: Perm still costs the full
+     $40B
+2AR: Plan cost is small; DA
+     risk is tiny
+
+THE LINK
+2AC: 3. No link: plan is paid
+     by normal means
+2NR: Ext link: $40B from a
+     fixed budget
+2AR: (no answer)
 ```
 
-*How to read it:* on solvency, the 2AC says the counterplan misses the second advantage. The 2NR says the training program covers both advantages. The 2AR says training is slow, and the second advantage needs the new program now. On the perm, the 2AC says do both. The 2NR says the perm still costs the full $40 billion, so it still links to the DA. The 2AR says the plan's cost is small, so the DA risk is tiny. On the link, the 2AC says "normal means" (the usual way the government pays for new programs) pays for the plan. The 2NR says the money comes from a fixed budget. The 2AR does not answer that. The judge must weigh the deficit on the second advantage against the risk of the spending DA.
+*How to read it:* the 2AR never answered the fixed-budget link. The judge must weigh the deficit on the second advantage against the risk of the spending DA.
 
 ## Common mistakes
 
 - **Neg: a counterplan with no net benefit.** Fix: pair every counterplan with a reason that doing both is worse.
 - **Neg: a process or consult counterplan with no answer to the perm.** Fix: explain why doing both loses the certainty, timing or net benefit.
 - **Aff: the same answers to every counterplan.** Fix: find the weak point for this shape. For an advantage counterplan, it is usually solvency. For a PIC, it is usually why the left-out part matters.
-- **Aff: theory in one line, then a long 2AR on it.** Fix: develop theory in the 1AR if you plan to win on it.
+- **Aff: theory in one line, then a long 2AR on it.** Fix: develop theory in the 1AR (the aff's first rebuttal) if you plan to win on it.
 - **Both: forgetting the net benefit is a DA.** Fix: answer and extend it like any DA.
 - **Judges: treating one shape as always fair or always unfair.** Fix: decide the theory as argued in the round.
 

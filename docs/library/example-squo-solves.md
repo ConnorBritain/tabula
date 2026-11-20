@@ -15,7 +15,7 @@ updated: 2026-11-20
 
 ## The shape
 
-"Status quo solves" is an **on-case** argument: the neg makes it on the case sheet, next to the aff's own arguments. It does not need a counterplan or a disadvantage. It needs one thing: proof that something now in place fixes the harm the aff names.
+"Status quo solves" is an **on-case** argument. The neg makes it on the case sheet: the part of the flow (debate notes) about the aff's own arguments. It does not need a counterplan (the neg's own plan) or a disadvantage (DA: a bad result the plan causes). It needs one thing: proof that something now in place fixes the harm the aff names.
 
 The neg usually points to one of three things.
 
@@ -68,7 +68,7 @@ More often, the neg pairs it with a small disadvantage. The case advantage is no
 ## How to judge it
 
 1. **Ask how much the status quo solves.** It is rarely all or nothing. Compare the size of the current fix with the size of the harm.
-2. **Compare the evidence.** In this fight, the newer and more specific card often wins. A card that names the current program beats a card that says "things are improving."
+2. **Compare the evidence.** In this fight, the newer and more specific card (a quoted piece of evidence) often wins. A card that names the current program beats a card that says "things are improving."
 3. **Check for the DA tension.** If the aff pointed it out, decide whether the neg's DAs survive.
 4. **Use the judge's own paradigm, or the framing the teams argue.** A **stock issues judge** treats inherency as a must-win item, so a strong "status quo solves" can end the round. A **policymaker judge** weighs the part of the harm the plan still adds. See [Judge paradigms](judge-paradigms.md).
 5. **If nothing is left,** decide presumption as argued.
@@ -77,20 +77,39 @@ More often, the neg pairs it with a small disadvantage. The case advantage is no
 
 A generic case that trains nurses for rural areas.
 
+Key: Inh = inherency, SQ = status quo, N/U = non-unique. Numbers match: answer 1 goes with point 1. "(dropped)" means no answer.
+
 ```
-1AC                     1NC                     2AC                     2NR                     2AR
-Inh: no program trains  1. SQ solves: new law   Law has no funding      Funds will come: law    No card for funds;
-   rural nurses            trains rural nurses     yet (Analyst 22)        has wide support        law is empty now
-   (Analyst 21)            (Expert 23)
-                        2. Trend: nurses move   Trend is slow: 2% a     (dropped)               Conceded: trend
-                           to rural areas          year; gap lasts                                 is too slow
-                                                   decades
-                                                3. SQ solves means      Law is small; plan is   Then SQ doesn't
-                                                   spending DA is N/U:     much bigger             solve: neg must
-                                                   law costs the same                              pick one
+1AC (aff):
+  Inh: no program trains rural
+    nurses (Analyst 21)
+1NC (neg):
+  1. SQ solves: new law trains
+    rural nurses (Expert 23)
+  2. Trend: nurses move to rural
+    areas
+2AC (aff):
+  1. Law has no funding yet
+    (Analyst 22)
+  2. Trend is slow: 2% a year;
+    gap lasts decades
+  3. SQ solves means spending DA
+    is N/U: law costs the same
+2NR (neg):
+  1. Funds will come: law has
+    wide support
+  2. (dropped)
+  3. Law is small; plan is much
+    bigger
+2AR (aff):
+  1. No card for funds; law is
+    empty now
+  2. Conceded: trend is too slow
+  3. Then SQ doesn't solve: neg
+    must pick one
 ```
 
-*How to read it:* the 1AC says no program trains rural nurses. The 1NC makes two attacks. On the first, the 2AC says the new law has no funding yet. The 2NR says funds will come, but reads no card, and the 2AR points that out. On the second, the 2NR drops the 2AC answer, so the 2AR calls it conceded: the trend is too slow. The 2AC also adds a third answer: if the law already does what the plan does, the spending DA (on its own sheet) is non-unique. The 2NR says the law is small and the plan is much bigger. The 2AR replies that if the law is small, the status quo does not solve, so the neg must pick one claim. A judge would likely say the aff keeps most of its inherency. The judge must still decide how much an unfunded law will do.
+*How to read it:* the 2NR says funds will come, but reads no card, and the 2AR points that out. The 2NR drops answer 2, so the 2AR calls it conceded. Answer 3 is about the spending DA, which sits on its own sheet. If the law is small, the status quo does not solve, so the neg must pick one claim. A judge would likely say the aff keeps most of its inherency. The judge must still decide how much an unfunded law will do.
 
 ## Common mistakes
 

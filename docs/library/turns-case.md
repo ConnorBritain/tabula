@@ -50,10 +50,10 @@ This is called **"outweighs and turns."** The two claims work as "even if" argum
 
 The names are close, so keep them apart.
 
-- A **case turn** is an on-case argument about the plan itself: "the plan makes the harm worse." See [Case turns and case defense](case-turns.md).
+- A **case turn** is an on-case argument (made on the case sheet, next to the aff's own arguments) about the plan itself: "the plan makes the harm worse." See [Case turns and case defense](case-turns.md).
 - **Turns case** is a weighing argument made from another sheet, usually a DA or K: "our impact makes your harm worse."
 
-On the flow, a turns case argument often appears on the DA sheet, but it is about the case. Many judges like it to be cross-applied to the case sheet so the link is clear.
+On the flow, a turns case argument often appears on the DA sheet, but it is about the case. Many judges like it to be cross-applied (carried over) to the case sheet, so the link is clear.
 
 ## How to make a turns case argument
 
@@ -83,19 +83,39 @@ On the flow, a turns case argument often appears on the DA sheet, but it is abou
 
 A state programs DA with a turns case argument. The neg says that when the federal government acts, states pull back their own care programs, and the plan's clinics need state staff.
 
+Key: L = link, I = impact, Ext = extend (carry a point forward), TF = timeframe, fed = federal government, "->" = "leads to."
+
 ```
-1NC                  2AC                  Block (2NC)          1AR                  2NR                  2AR
-DA: State programs
-L: fed acts ->       1. No link: states   Ext L: states exit   Ext 1 (Expert 22)    Ext L (Analyst 21)   Ext 1: states keep
-   states pull back     keep own programs    when fed acts                                                  own programs
-   (Analyst 21)         (Expert 22)          (Analyst 21)
-I: state care cut    2. Case outweighs    DA turns case:       TF: plan works in    Ext turn: staff      Their card says
-                                             plan's clinics       yr 1; states exit    leave once states    "over time" ->
-                                             need state staff     over years           exit. Outweighs      case solves first
-                                             (Analyst 22)                              and turns
+1NC (neg):
+  DA: State programs
+  L: fed acts -> states pull
+    back (Analyst 21)
+  I: state care cut
+2AC (aff):
+  1. No link: states keep own
+    programs (Expert 22)
+  2. Case outweighs
+Block (2NC, neg):
+  Ext L: states exit when fed
+    acts (Analyst 21)
+  DA turns case: plan's clinics
+    need state staff (Analyst 22)
+1AR (aff):
+  Ext 1 (Expert 22)
+  TF: plan works in yr 1; states
+    exit over years
+2NR (neg):
+  Ext L (Analyst 21)
+  Ext turn: staff leave once
+    states exit. Outweighs and
+    turns
+2AR (aff):
+  Ext 1: states keep own programs
+  Their card says "over time" ->
+    case solves first
 ```
 
-*How to read it:* the 1NC reads the DA: when the federal government acts, states pull back their own care programs. The 2AC says there is no link, because states keep their own programs, and that the case outweighs. The block extends the link. It adds that the DA turns case: the plan's clinics need state staff, so if states pull back, the plan fails (Analyst 22). The 1AR extends the no-link card and answers the turn with timeframe: the plan works in year 1, and states would exit only over years. The 2NR extends the link and the turn, says staff leave once states exit, and claims "outweighs and turns." The 2AR extends the no link, and says the neg's own card says states exit "over time," so the case solves first. The judge decides the link first. If there is no link, the turn falls with it. If there is a link, the judge settles the timing question before weighing.
+*How to read it:* the block adds the turn: if states pull back, the clinics lose staff, so the plan fails. The 1AR answers with timeframe. The 2AR points out that the neg's own card says states exit "over time." The judge decides the link first. If there is no link, the turn falls with it. If there is a link, the judge settles the timing question before weighing.
 
 ## Common mistakes
 

@@ -31,7 +31,7 @@ A made-up resolution helps. Say it reads: "The federal government should substan
 
 **What it says.** An effects violation says the plan's action is not itself support for X. The plan does something else, and that something else leads to more support for X later. For example, the plan changes a rule in area Y. The aff's evidence says that change will, in time, bring more support for X. The neg argues that the plan is topical only through its effects.
 
-**The interpretation.** The neg's rule is usually: "The plan's mandates must be topical. The plan text itself must increase support for X, not cause an increase later." Mandates are the actions that the plan text orders.
+**The interpretation.** The plan's **mandates** are the actions that the plan text orders. The neg's rule is usually: "The plan's mandates must be topical. The plan text itself must increase support for X, not cause an increase later."
 
 **The standards.** Common neg reasons:
 
@@ -51,7 +51,7 @@ A made-up resolution helps. Say it reads: "The federal government should substan
 
 ## Extra topicality
 
-**What it says.** An extra topicality violation says the plan has a topical part and a part outside the topic. For example, the plan has two planks. Plank 1 increases support for X. Plank 2 raises a tax in area Z, which is not about X at all. The neg argues that plank 2 is extra topical.
+**What it says.** An extra topicality violation says the plan has a topical part and a part outside the topic. For example, the plan has two **planks** (separate parts of the plan text). Plank 1 increases support for X. Plank 2 raises a tax in area Z, which is not about X at all. The neg argues that plank 2 is extra topical.
 
 **Why it matters.** The extra part often gives the aff an advantage it could not claim from the topical part alone. The neg says it could not prepare for that advantage. The extra part may also let the aff avoid the neg's core disadvantages.
 
@@ -65,7 +65,7 @@ A made-up resolution helps. Say it reads: "The federal government should substan
 
 - **We meet:** the second plank is part of the topical action. For example, it pays for plank 1, or it carries plank 1 out. Many teams argue that funding and enforcement planks are normal parts of a plan, not extra. Others dispute this when the plank does more than pay or enforce.
 - **No advantage from it:** the aff claims no advantage from the extra part, so the neg lost nothing.
-- **Sever it:** the judge can simply drop the extra part. See the remedy section below.
+- **Sever it:** the judge can simply drop (sever) the extra part. See the remedy section below.
 - **Not a voter:** extra T is a reason to cut the extra part, not a reason to vote neg.
 
 ## The remedy debate
@@ -90,21 +90,43 @@ Many judges lean toward cutting the extra part and its advantages when the aff o
 
 ## Example in flow shorthand
 
-A generic extra T argument. The plan has two planks: plank 1 increases support for X, and plank 2 raises a tax in area Z.
+A generic extra T argument. The plan has two planks: plank 1 increases support for X, and plank 2 raises a tax in area Z. The block and 1AR are left out.
+
+Key: "XT" = extra topicality, "adv" = advantage, "DA" = disadvantage, "Ext" = extend.
 
 ```
-1NC                     2AC                     2NR                     2AR
-Extra T: plank 2        1. Plank 2 only pays    Plank 2 is a new tax    Plank 2 funds plank 1;
-   raises a tax in area    for plank 1             policy, not a way       that is normal
-   Z; not in the topic                             to pay                  practice
-Standard: limits: any   2. Sever it: drop       Severance is unfair:    Fixes it: no tax adv;
-   add-on is allowed       plank 2 and its adv     aff shifts; our tax     neg keeps plank 1
-                                                   DA link is lost         links
-Voter: like T, vote     3. Not a voter: just    Ext voter: XT lets      Strike plank 2, not
-   neg                     cut the extra part      aff add anything        the team
+-- We meet --
+1NC  Extra T: plank 2 raises a
+     tax in area Z; not in the
+     topic
+2AC  Plank 2 only pays for
+     plank 1
+2NR  Plank 2 is a new tax policy,
+     not a way to pay
+2AR  Plank 2 funds plank 1; that
+     is normal practice
+
+-- Limits and severing --
+1NC  Standard: limits: any
+     add-on is allowed
+2AC  Sever it: drop plank 2 and
+     its adv
+2NR  Severance is unfair: aff
+     shifts; our tax DA link is
+     lost
+2AR  Fixes it: no tax adv; neg
+     keeps plank 1 links
+
+-- Voter --
+1NC  Voter: like T, vote neg
+2AC  Not a voter: just cut the
+     extra part
+2NR  Ext voter: XT lets aff add
+     anything
+2AR  Strike plank 2, not the team
 ```
 
-*How to read it:* The block and 1AR are left out. The 1NC said plank 2 is a new tax outside the topic, that allowing add-ons removes all limits, and that the judge should vote neg. The 2AC made three answers: plank 2 only pays for plank 1 (a we meet), the judge can sever plank 2 and its advantage, and extra T is not a voter. The 2NR said plank 2 is a new tax policy, that severing is unfair because the neg loses its tax DA link, and that extra T lets the aff add anything. The 2AR said funding planks are normal, that severing fixes the harm because the aff gives up the tax advantage, and that the judge should strike plank 2, not vote neg. Every row was answered. The judge first decides the we meet. If plank 2 is extra, the judge decides between severing it and voting neg.
+*How to read it:* every row was answered. The judge first decides the we meet. If plank 2 is extra, the judge decides between severing it and voting neg.
 
 ## Common mistakes
 

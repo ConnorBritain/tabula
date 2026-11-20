@@ -4,10 +4,10 @@ slug: topicality
 description: "Topicality (T) asks whether the plan fits the resolution. Learn the four parts: interpretation, violation, standards and voters, plus how judges decide T."
 section: Topicality
 level: beginner
-reading_time: 8
+reading_time: 7
 sheet: T
 related: [topicality-interpretation, topicality-standards, topicality-voters, stock-issues, theory, framework]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # Topicality (T)
@@ -16,13 +16,15 @@ updated: 2026-11-19
 
 ## Why topicality exists
 
-The resolution is announced months before the season. It tells the negative what to prepare for. If the aff could run any plan at all, the neg could never be ready. Topicality keeps the aff inside the shared space both teams agreed to study.
+The resolution is announced months before the season. It tells the neg (negative) what to prepare for. If the aff (affirmative) could run any plan at all, the neg could never be ready. Topicality keeps the aff inside the shared space both teams agreed to study.
 
 Topicality is also one of the classic **stock issues**: the basic jobs an aff must do. See [Stock issues](stock-issues.md).
 
 ## The four parts
 
-A T argument almost always has four parts. In the 1NC it can be short, often under a minute.
+A T argument almost always has four parts. In the 1NC (the neg's first speech) it can be short, often under a minute.
+
+In the table, "affs" means aff cases: the different plans an aff team could run.
 
 | Part | What it says | Example (generic) |
 |---|---|---|
@@ -33,9 +35,9 @@ A T argument almost always has four parts. In the 1NC it can be short, often und
 
 ### Interpretation
 
-The interpretation defines a word or phrase in the resolution. Good interpretations come from a source with a reason to be precise: a law, a legal dictionary, a field expert. A random online dictionary is weaker.
+The interpretation defines a word or phrase in the resolution. Good ones come from a source with a reason to be precise: a law, a legal dictionary, a field expert. A random online dictionary is weaker.
 
-The aff often answers with a **counter-interpretation** (CI): its own meaning of the word, which the plan does meet.
+The aff often answers with its own meaning of the word, which the plan does meet. This is a **counter-interpretation** (CI).
 
 ### Violation
 
@@ -45,17 +47,19 @@ The violation says how the plan falls outside the interpretation. It should be c
 
 Standards are the reasons one interpretation is better. The common ones:
 
-- **Limits:** the interpretation keeps the number of possible affs to a size the neg can prepare for. Too many affs means the neg cannot research them all.
-- **Ground:** the interpretation leaves the neg good arguments to make. If an aff is too small or too odd, the neg's usual DAs and counterplans may not apply.
+- **Limits:** the meaning keeps the number of possible affs to a size the neg can prepare for. Too many affs means the neg cannot research them all.
+- **Ground:** the meaning leaves the neg good arguments to make. If an aff is too small or too odd, the neg's usual arguments may not apply. Those include disadvantages (DAs: "the plan causes harm") and counterplans (CPs: "do this other plan instead").
 - **Precision:** the meaning is the one experts in the field use.
 - **Predictability:** both teams could expect this meaning before the round, so both could prepare.
-- **Education:** the interpretation leads to better learning about the topic.
+- **Education:** the meaning leads to better learning about the topic.
 
-The aff makes its own standards for its counter-interpretation. For example: "Our meaning allows more creative affs, which is good for education," or "Our meaning is how the field uses the word."
+The aff makes its own standards for its counter-interpretation. For example: "Our meaning allows more creative affs, which is good for education." Or: "Our meaning is how the field uses the word."
 
 ### Voters
 
-Voters say why topicality should decide the round. The two usual voters are **fairness** (the neg could not prepare) and **education** (debates about the topic teach the most). The neg also often says **T is a "voting issue"**: if the aff is not topical, the judge should vote neg, not just ignore one argument.
+Voters say why topicality should decide the round. The two usual voters are **fairness** (the neg could not prepare) and **education** (debates about the topic teach the most).
+
+The neg also often says **T is a "voting issue"**. That means: if the aff is not topical, the judge should vote neg, not just ignore one argument.
 
 ## How judges decide T: competing interpretations vs reasonability
 
@@ -64,7 +68,7 @@ This is the biggest choice in a T debate. Teams should argue it, and judges shou
 - **Competing interpretations:** the judge picks the *better* interpretation, like choosing the better of two policies. If the neg's interpretation is even a little better, and the plan violates it, the neg wins T.
 - **Reasonability:** the judge asks only whether the aff's meaning is *good enough*. If the aff is reasonably topical, the aff wins T, even if the neg's meaning is a bit better.
 
-Neg teams usually argue for competing interpretations. Aff teams usually argue for reasonability. Many judges default to competing interpretations, but many paradigms say otherwise. Read the judge's paradigm.
+Neg teams usually argue for competing interpretations. Aff teams usually argue for reasonability. Many judges default to competing interpretations, but many paradigms say otherwise. A **paradigm** is a judge's written note on how they decide rounds. Read it before the round.
 
 **"In-round abuse."** Some judges want the neg to show real harm in this round ("we lost our best DA"). Others say the harm is about the *precedent*: what debate would look like if this interpretation were allowed. Both views are common.
 
@@ -76,38 +80,62 @@ A full 2AC answer often has:
 2. **Counter-interpretation:** a better meaning, which the plan meets.
 3. **Standards** for the counter-interpretation, and answers to the neg's standards.
 4. **Reasonability:** the judge should not vote neg if the aff is reasonably topical.
-5. **Other arguments:** for example, "the neg's interpretation overlimits: it allows only one or two affs."
+5. **Other arguments.** For example: "The neg's interpretation overlimits: it allows only one or two affs."
 
 Two related violations say the plan is topical only through its effects, or does topical things plus extra things. See [Effects and extra topicality](effects-and-extra-topicality.md).
 
 ## Example in flow shorthand
 
-A generic T argument about the word "substantial."
+A generic T argument about the word "substantial." Each group follows one argument through the speeches.
+
+Key: "interp" = interpretation, "CI" = counter-interpretation, "ev" = evidence, "yr" = year, "->" = "leads to". "Legal Dict" and "Field Expert" are invented sources.
 
 ```
-1NC                     2AC                        2NR                          2AR
 T: "substantial"
-Interp: substantial =   1. We meet: plan is        No we meet: their ev         Extend we meet:
-   >= 10% change           12% by yr 2                counts yr 2, plan is          plan is 12% when
-   (Legal Dict)                                       2% at start                   fully in place
-Violation: plan is      2. CI: substantial =       Their CI has no             CI is how the
-   2% change               "of real importance"       number -> no limit          field uses it
-                           (Field Expert)
-Standards:              3. Limits: their interp    Limits outweigh:             Reasonability:
- - Limits                  leaves only 3 affs        any change counts            we are a core
- - Ground                                            under the CI                 aff; no prep lost
-Voters: fairness,       4. Reasonability           Competing interps:           Reasonability
-   education                                         reasonable = arbitrary      is the standard
+
+-- We meet --
+1NC  Interp: substantial = at
+     least 10% change (Legal Dict)
+     Violation: plan is 2% change
+2AC  We meet: plan is 12% by yr 2
+2NR  No we meet: their ev counts
+     yr 2; plan is 2% at start
+2AR  Extend we meet: plan is 12%
+     when fully in place
+
+-- Counter-interpretation --
+2AC  CI: substantial = "of real
+     importance" (Field Expert)
+2NR  Their CI has no number
+     -> no limit
+2AR  CI is how the field uses it
+
+-- Standards --
+1NC  Limits, ground
+2AC  Limits: their interp leaves
+     only 3 affs
+2NR  Limits outweigh: any change
+     counts under the CI
+2AR  Reasonability: we are a core
+     aff; no prep lost
+
+-- The test --
+1NC  Voters: fairness, education
+2AC  Reasonability
+2NR  Competing interps:
+     reasonable = arbitrary
+2AR  Reasonability is the
+     standard
 ```
 
-*How to read it:* the round turns on two questions. First, does "12% by year 2" meet "at least 10%"? Second, should the judge use competing interpretations or reasonability? A judge would explain both in the RFD.
+*How to read it:* the round turns on two questions. Does "12% by year 2" meet "at least 10%"? And should the judge use competing interpretations or reasonability? A judge would explain both in the RFD (reason for decision).
 
 ## Common mistakes
 
 - **Neg: a violation that is not clear.** Fix: set it up in cross-ex, and say in one sentence how the plan falls outside the interpretation.
 - **Neg: standards with no impact.** Fix: explain *why* limits or ground matter: "If any change counts, there are thousands of affs, and the neg cannot be ready for any of them."
 - **Aff: no counter-interpretation.** Fix: give a meaning the plan meets. Without one, the judge has only the neg's meaning to choose.
-- **Aff: "we meet" with no proof.** Fix: point to the plan text or a card that shows the plan meets.
+- **Aff: "we meet" with no proof.** Fix: point to the plan text or a card (a piece of evidence) that shows the plan meets.
 - **Both: no argument about competing interpretations vs reasonability.** Fix: say which one the judge should use, and why.
 - **Judges: voting on T only because "the aff felt off-topic."** Fix: decide on the interpretations and standards that were argued.
 

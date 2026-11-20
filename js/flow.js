@@ -108,6 +108,9 @@ function renderStart() {
 }
 $('#start-new').addEventListener('click', () => { R.started = true; save(); showTab('setup'); });
 $('#start-flow').addEventListener('click', () => { R.started = true; save(); renderFlow(); });
+// "Open a round file (.tab)" is a real button (owner, 2026-11-20), so Tab reaches it and Enter and Space press it;
+// it opens the hidden file input's picker. The input's change handler (core.js) does the rest.
+$('#start-open').addEventListener('click', () => $('#round-open').click());
 function renderFlow() {
   renderStart();
   if (R.flowView === 'ai') return renderAIFlow();

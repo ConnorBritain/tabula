@@ -11,7 +11,7 @@ updated: 2026-11-20
 
 # Conditionality (condo)
 
-> **Plain version.** The negative can offer its own options, such as a counterplan or a kritik. Conditionality, or condo, means the negative may drop an option later in the round. If it drops one, the judge simply compares the plan with the world as it is now. Some people think this is fair, because it lets the negative test the plan from several sides. Others think it is unfair, because the affirmative must answer every option and the negative keeps only the best one. Judges differ, so teams argue it in the round.
+> **Plain version.** The negative can offer its own options, such as a counterplan (its own plan) or a kritik (a challenge to the affirmative's ideas). Conditionality, or condo, means the negative may drop an option later in the round. If it drops one, the judge simply compares the plan with the world as it is now. Some people think this is fair, because it lets the negative test the plan from several sides. Others think it is unfair, because the affirmative must answer every option and the negative keeps only the best one. Judges differ, so teams argue it in the round.
 
 ## The three statuses
 
@@ -23,19 +23,19 @@ The **status** of an option tells the aff whether the neg can drop it. The aff o
 | **Conditional** | The neg may drop the option at any time, for any reason. |
 | **Dispositional ("dispo")** | The neg may drop it only under set conditions. |
 
-Definitions of dispositional vary. A common one: the neg may drop the counterplan only if the aff makes a **permutation** (a test that does both plans). Some teams also say the neg cannot drop it if the aff answers it with offense, such as a DA against the counterplan. Others do not use that limit. Because the word means different things to different teams, the aff should ask what the neg means in cross-ex.
+Definitions of dispositional vary. A common one: the neg may drop the counterplan only if the aff makes a **permutation** (a test that does both plans). Some teams also say the neg cannot drop it if the aff answers it with offense, such as a disadvantage (DA) against the counterplan. Others do not use that limit. Because the word means different things to different teams, the aff should ask what the neg means in cross-ex.
 
 **Kicking** is the slang word for dropping an option. "We kick the counterplan" means the neg no longer defends it.
 
 ## What happens when the neg kicks an option
 
-When the neg drops a counterplan, the counterplan leaves the round. The judge compares the plan with the **status quo**: the world as it is now, without the plan. The neg can still win with the other arguments it extended, such as a disadvantage (DA) or case arguments.
+When the neg drops a counterplan, the counterplan leaves the round. The judge compares the plan with the **status quo**: the world as it is now, without the plan. The neg can still win with the other arguments it extended, such as a DA or case arguments.
 
 Arguments made *about* a dropped option can still matter. For example, if the aff made a DA against the counterplan, that DA goes away with it. But if the neg made an admission in CX, the aff may still use it.
 
 ### Judge kick
 
-**Judge kick** is a related idea. Suppose the 2NR goes for the counterplan. At the end, the judge thinks the counterplan is worse than the plan. Should the judge then compare the plan with the status quo instead?
+**Judge kick** is a related idea. Suppose the 2NR (the neg's last speech) goes for the counterplan. At the end, the judge thinks the counterplan is worse than the plan. Should the judge then compare the plan with the status quo instead?
 
 - Some judges do this by default, because the counterplan was conditional all along.
 - Some judges do it only if the neg asks for it, and the aff has a chance to answer.
@@ -45,7 +45,7 @@ Judge kick is itself debated as theory. Read the paradigm, and argue it if it ma
 
 ## How a condo argument is built
 
-Condo is a **theory** argument: an argument about the rules of the round. It has the usual four parts. See [Theory](theory.md).
+Condo is a **theory** argument: an argument about the rules of the round. It has the usual four parts. See [Theory](theory.md). The aff usually first makes it in the 2AC, its speech that answers the neg's first speech.
 
 | Part | Example (generic) |
 |---|---|
@@ -74,7 +74,7 @@ This is one of the oldest debates in policy debate. Experienced coaches hold eve
 - **Contradictions.** The neg can say two things that cannot both be true, such as a kritik of state action and a counterplan where the state acts.
 - **Strategic cost.** The aff may avoid strong answers, such as offense against a counterplan, because the neg can kick a conditional counterplan and the answer goes with it. (Some dispo interpretations try to fix this. Ask in cross-ex.)
 - **Depth.** It rewards running many arguments over going deep on a few.
-- **New options later.** Counterplans added in the block make it worse, because the 1AR has less time than the 2AC.
+- **New options later.** Counterplans added in the block (the neg's two speeches in a row) make it worse, because the 1AR (the aff's next speech) has less time than the 2AC.
 
 ## How judges differ
 
@@ -92,7 +92,7 @@ Most judges who hold a view on condo say so in their paradigm. See [Judge paradi
 
 **For the aff:**
 
-- **Develop it.** A two-line condo argument in the 2AC rarely wins unless it is dropped. If you want to win on it, spend time on it in the 1AR and 2AR.
+- **Develop it.** A two-line condo argument in the 2AC rarely wins unless it is dropped. If you want to win on it, spend time on it in the 1AR and the 2AR (the aff's last speech).
 - **Use this round.** Point to specific harm: answers you could not make, or contradictions you had to answer.
 - **Ask for a remedy and defend it.** Say why the team, not just the argument, should lose.
 
@@ -111,16 +111,37 @@ Most judges who hold a view on condo say so in their paradigm. See [Judge paradi
 
 ## Example in flow shorthand
 
+Each group is one argument, speech by speech. Key: CI = counter-interpretation. Ext = extend. Arg = argument. CP = counterplan.
+
 ```
-2AC                 Block               1AR                 2NR                 2AR
-Interp: neg gets    CI: neg gets 2      Ext: even 2         2 options test      Split time meant
-   no condo            condo options       options split       the aff; 2AC        thin perms on
-   options                                 the 2AC             answered both       both CPs
-Voter: reject       Reject the arg:     Harm is done;       Reject the arg      Ignoring a CP
-   the team            ignore the CP       reject the team     at most             can't give back
-                                                                                   the 2AC's time
-                    Aff side bias:      (no answer)         Ext: aff side       (no answer)
-                       aff picks plan                          bias dropped
+THE RULE
+2AC:   interp: neg gets no condo
+       options
+Block: CI: neg gets 2 condo
+       options
+1AR:   Ext: even 2 options split
+       the 2AC
+2NR:   2 options test the aff;
+       2AC answered both
+2AR:   split time meant thin
+       perms on both CPs
+
+THE REMEDY
+2AC:   voter: reject the team
+Block: reject the arg: ignore
+       the CP
+1AR:   harm is done; reject the
+       team
+2NR:   reject the arg at most
+2AR:   ignoring a CP can't give
+       back the 2AC's time
+
+AFF SIDE BIAS
+Block: aff picks the plan
+1AR:   (no answer)
+2NR:   Ext: aff side bias
+       dropped
+2AR:   (no answer)
 ```
 
 *How to read it:* the neg ran two conditional counterplans. The 2AC argued the neg gets no conditional options. The block countered that two are fine, and that the remedy is to ignore the counterplan. The block also said the aff picks the plan, so the neg needs options (aff side bias). The 1AR did not answer that point, the 2NR extended it, and the 2AR still did not answer it. So the judge treats aff side bias as true. The judge must still weigh it against the 2AR's claim that the split time left the perms thin. Then the judge decides the remedy: ignore a counterplan, or vote aff.

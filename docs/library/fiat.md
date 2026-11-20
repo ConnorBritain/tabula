@@ -6,7 +6,7 @@ section: Theory
 level: beginner
 reading_time: 6
 related: [theory, affirmative-case, counterplans, common-theory, debate-101]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # Fiat
@@ -15,18 +15,18 @@ updated: 2026-11-19
 
 ## Why fiat exists
 
-The resolution says the government *should* do something. "Should" asks whether it is a good idea. If debates were about whether a plan would pass, every round would be a guess about politics, and most good ideas would lose because they are unlikely today. Fiat removes that question so the teams can debate the policy itself.
+The resolution (the topic sentence for the season) says the government *should* do something. "Should" asks whether it is a good idea. If debates were about whether a plan would pass, every round would be a guess about politics. Most good ideas would lose, because they are unlikely today. Fiat removes that question, so the teams can debate the policy itself.
 
 ## What fiat lets you assume
 
-- **The plan passes.** The aff does not have to prove that lawmakers would vote for it.
-- **The plan is put into effect** as written: the agent in the plan does what the plan says.
-- **The counterplan passes too.** The neg can use fiat for its counterplan, within limits argued in the round.
+- **The plan passes.** The aff (affirmative) does not have to prove that lawmakers would vote for it.
+- **The plan is put into effect** as written. The **agent** in the plan (the part of government that acts) does what the plan says.
+- **The counterplan passes too.** A counterplan is the neg's (negative's) other plan. The neg can use fiat for it, within limits argued in the round.
 
 ## What fiat does not let you assume
 
-- **That the plan works.** Fiat passes the plan. It does not make the plan solve. The aff still must prove solvency.
-- **That there are no side effects.** Fiat does not stop disadvantages. If the plan costs money or angers someone, that still counts.
+- **That the plan works.** Fiat passes the plan. It does not make the plan solve the problem. The aff still must prove **solvency**: that the plan works.
+- **That there are no side effects.** Fiat does not stop **disadvantages** (DAs): arguments that the plan causes harm. If the plan costs money or angers someone, that still counts.
 - **That other people act.** The aff fiats its own agent's action. It cannot fiat that other actors will cooperate, or that people will change their minds.
 - **Anything outside the plan text.** The aff gets what its plan says, not extra steps it adds later.
 
@@ -43,41 +43,63 @@ Neither one is "it would never pass." Both ask whether the plan will *work*.
 
 ## "It would never pass"
 
-Under fiat, most judges will not count this answer. Some critical teams argue that fiat is imaginary, and some judges and teams prefer real-world prediction. Read the judge's paradigm. Under the usual view, better neg arguments are: Better neg arguments are:
+Under fiat, most judges will not count this answer. Some critical teams (teams that run kritiks, which question the ideas behind the plan) argue that fiat is imaginary. Some judges and teams prefer real-world prediction. Read the judge's **paradigm**: their written note on how they decide rounds.
+
+Under the usual view, better neg arguments are:
 
 - the plan would not work (solvency);
 - passing it would cause harm (a disadvantage);
 - there is a better option (a counterplan).
 
-**A related idea.** Some disadvantages are about the *process* of passing the plan, such as the politics DA (the plan costs a leader political capital). Whether fiat allows these is itself debated. Many judges accept them; some judges think fiat means the plan passes with no political fight. See [The politics DA](example-politics-da.md).
+**A related idea.** Some disadvantages are about the *process* of passing the plan. One example is the politics DA: the plan costs a leader **political capital** (the goodwill a leader needs to pass other bills). Whether fiat allows these is itself debated. Many judges accept them. Some judges think fiat means the plan passes with no political fight. See [The politics DA](example-politics-da.md).
 
 ## Limits of fiat
 
-Teams often argue about how far fiat can go. These are theory debates, decided in the round. See [Theory](theory.md) and [Common theory arguments](common-theory.md).
+Teams often argue about how far fiat can go. These are **theory** debates: arguments about the rules of debate, decided in the round. See [Theory](theory.md) and [Common theory arguments](common-theory.md).
 
 - **Multiple actors:** can a counterplan fiat fifty state governments acting together?
 - **International actors:** can the neg fiat another country's government?
 - **Private actors:** can either team fiat a company or a person?
 - **Object fiat:** can the aff fiat the thing the plan acts on to behave a certain way?
 
-There is no single rule. The common argument for limits is that unlimited fiat makes debates unfair (one team can imagine anything). The common argument against tight limits is that testing a policy against real alternatives is educational.
+There is no single rule. The common argument for limits: unlimited fiat makes debates unfair, because one team can imagine anything. The common argument against tight limits: testing a policy against real alternatives is educational.
 
 ## How to judge fiat questions
 
 1. **Ignore "it would never pass"** unless the teams argued otherwise.
 2. **Check the plan text.** Fiat gives the aff what the plan says. If the aff later claims steps the plan does not include, the neg can say they are not fiated.
-3. **Decide fiat limits as theory.** If a team argues the other side's fiat is unfair, judge it like any theory argument: interpretation, standards, remedy.
+3. **Decide fiat limits as theory.** If a team argues the other side's fiat is unfair, judge it like any theory argument. Ask what rule each side wants (the interpretation), why that rule is better (the standards), and what to do about it (the remedy).
 
 ## Example in flow shorthand
 
+Each group follows one argument through the speeches.
+
+Key: "fed gov" = federal government, "Solv" = solvency, "Ext" = extend. "(Expert 22)" is an invented card (a piece of evidence) from a made-up source.
+
 ```
-1AC                       1NC                       2AC                       2NR                       2AR
-Plan: fed gov funds       1. Congress won't pass    Fiat: plan passes;        (no answer)               Fiat answers
-   program X                 it - too costly           "won't pass" is not                                 "won't pass";
-                                                       a reason to vote neg                                they dropped it
-Solv: X cuts problem      2. Solv: agencies         Plan text includes        Ext: plan funds but       Plan says "fund and
-   (Expert 22)               won't carry it out        "and direct agencies"     staff will stall -        direct" - the order
-                                                                                 circumvention             is fiated
+-- "Won't pass" --
+1AC  Plan: fed gov funds
+     program X
+1NC  1. Congress won't pass it -
+     too costly
+2AC  Fiat: plan passes; "won't
+     pass" is not a reason to
+     vote neg
+2NR  (no answer)
+2AR  Fiat answers "won't pass";
+     they dropped it
+
+-- Solvency --
+1AC  Solv: X cuts problem
+     (Expert 22)
+1NC  2. Solv: agencies won't
+     carry it out
+2AC  Plan text includes "and
+     direct agencies"
+2NR  Ext: plan funds but staff
+     will stall - circumvention
+2AR  Plan says "fund and direct"
+     - the order is fiated
 ```
 
 *How to read it:* the 1NC's first answer was a "would not pass" argument. The 2AC answered it with fiat, and the 2NR did not answer back, so it is gone. The second answer is fair: it is a circumvention argument. The 2AR replies that the plan text directs the agencies, so the agencies' first step is fiated. The judge counts that order as done. Then the judge decides whether the neg proved that staff would still stall after the order. If not, the aff keeps its solvency.

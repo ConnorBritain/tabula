@@ -4,7 +4,7 @@ slug: example-states-cp
 description: "The states counterplan has all fifty states do the plan instead of the federal government. Learn its shape, the fiat theory debate, and the usual aff answers."
 section: Timeless examples
 level: intermediate
-reading_time: 8
+reading_time: 6
 related: [counterplans, fiat, permutations, solvency-deficits, common-counterplans, examples]
 updated: 2026-11-20
 ---
@@ -34,7 +34,7 @@ The net benefit is the reason the states alone are better. It must be something 
 
 - **Federalism-style net benefits.** Federal action in this area takes power from the states, or weakens their role as places to try new ideas. The neg argues that this harm matters.
 - **Spending net benefits.** The plan costs federal money and forces cuts. The states counterplan does not use federal money. See [The spending DA](example-spending-da.md).
-- **Politics net benefits.** Passing the plan costs a federal leader political support. The states counterplan avoids that fight. Whether fiat allows this is itself debated. See [The politics DA](example-politics-da.md).
+- **Politics net benefits.** Passing the plan costs a federal leader political support. The states counterplan avoids that fight. Whether fiat (imagining a policy passes) allows this is itself debated. See [The politics DA](example-politics-da.md).
 
 ## The fiat theory question
 
@@ -44,7 +44,7 @@ The net benefit is the reason the states alone are better. It must be something 
 
 The 2AC usually mixes several kinds of answers.
 
-- **Perm do both.** The plan and the states act together. The aff then argues the perm avoids the net benefit, or that the net benefit is small. See [Permutations](permutations.md).
+- **Perm do both.** A **perm** (permutation) is the aff's test of whether the counterplan competes. Here, the plan and the states act together. The aff then argues the perm avoids the net benefit, or that the net benefit is small. See [Permutations](permutations.md).
 - **Solvency deficits.** The states miss part of the case. See [Solvency deficits](solvency-deficits.md).
 - **Answer the net benefit.** Non-unique, no link, no impact. If the harm is not real, the states have no edge.
 - **The counterplan links too.** State action can cause a similar harm, such as state budgets cutting other programs.
@@ -75,21 +75,48 @@ These are generic. Each needs evidence and an impact tied to the aff's advantage
 
 ## Example in flow shorthand
 
+Each block is one part of the counterplan, with each speech's line on it, top to bottom. Key: "CP" means counterplan, "fed" means federal government, "Solv" means solvency, "NB" means net benefit, "N/U" means non-unique, and "adv" means advantage. "Reject arg" means reject the argument (set the CP aside), not the team. Names in parentheses are invented cards.
+
 ```
-1NC                     2AC                     2NR                     2AR
-CP: 50 states fund      1. 50-state fiat bad:   Tests if fed is key;    No one decides for
-   program X               no one can make         core of the topic;      all 50; reject the
-                           all 50 act              reject arg at most      CP
-Solv: states can run    2. Deficit: only fed    States have run X       Fed tool is key to
-   X (Analyst 21)          can set one rule        alone (Analyst 21)      half the adv
-                           across state lines
-NB: Fed action takes    3. Perm do both         Perm still takes        Perm leaves state
-   power from states                               state power             programs in place
-                        4. N/U: fed already     Plan is a new step      (no answer)
-                           acts in this area       beyond today
+CP TEXT AND THEORY
+1NC: CP: 50 states fund program
+     X.
+2AC: 1. 50-state fiat bad: no one
+     can make all 50 act.
+2NR: Tests if fed is key; core of
+     the topic; reject arg at
+     most.
+2AR: No one decides for all 50;
+     reject the CP.
+
+SOLVENCY (Solv)
+1NC: States can run X
+     (Analyst 21).
+2AC: 2. Deficit: only fed can set
+     one rule across state lines.
+2NR: States have run X alone
+     (Analyst 21).
+2AR: Fed tool is key to half the
+     adv.
+
+NET BENEFIT (NB)
+1NC: Fed action takes power from
+     states.
+2AC: 3. Perm do both.
+2NR: Perm still takes state
+     power.
+2AR: Perm leaves state programs
+     in place.
+
+NB: UNIQUENESS
+2AC: 4. N/U: fed already acts in
+     this area.
+2NR: Plan is a new step beyond
+     today.
+2AR: (no answer)
 ```
 
-*How to read it:* the 2AC made four answers, and the 2NR answered all four. The 2AR did not answer the 2NR's reply on uniqueness, that the plan is a new step beyond today. So the neg wins that the plan adds new federal power. On theory, both final speeches asked only to reject the counterplan, not the team. So the judge decides theory first. If the counterplan is rejected, the judge compares the plan with the status quo, and the federalism DA still counts against the plan. If the counterplan stands, the judge asks whether the perm still takes state power. If it does, the judge weighs the deficit (the federal tool, which the 2AR says is key to half the advantage) against the net benefit.
+*How to read it:* the 2AC made four answers, and the 2NR answered all four. The 2AR did not answer that the plan is a new step beyond today. So the neg wins that the plan adds new federal power. On theory, both final speeches asked only to reject the counterplan, not the team. So the judge decides theory first. If the counterplan is rejected, the judge compares the plan with the status quo, and the federalism DA still counts against the plan. If the counterplan stands, the judge asks whether the perm still takes state power. If it does, the judge weighs the deficit (the federal tool, which the 2AR says is key to half the advantage) against the net benefit.
 
 ## Common mistakes
 

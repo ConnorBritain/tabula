@@ -17,7 +17,7 @@ updated: 2026-11-20
 
 Every argument in policy debate ends somewhere. A **disadvantage** (DA) ends with a harm the plan causes. An **advantage** ends with a benefit the plan brings. That end point is the **impact**.
 
-The impact answers the question, "Why should the judge care?" Without one, an argument has no weight. "The plan costs money" is a link. "The cost forces cuts that leave families without food" is an impact.
+The impact answers the question, "Why should the judge care?" Without one, an argument has no weight. "The plan costs money" is a **link**: the step where the plan starts the chain. "The cost forces cuts that leave families without food" is an impact.
 
 A **terminal impact** is the final harm in the chain, the one that matters on its own. For example, loss of life, or harm to people's rights. Some debaters stop at an earlier step, like "the economy slows." The other team can then ask, "So what?"
 
@@ -49,39 +49,53 @@ These answers work against any impact, on a DA or an advantage.
 An impact turn can win a round, but it carries risk.
 
 - **You must win that the result is truly good.** A half-won impact turn often helps nobody.
-- **Do not combine it with a link turn on the same DA:** that is a **double turn**, which says the plan prevents something good; see [Links and link turns](links.md).
-- **Some impact turns are off limits for many judges.** Arguing that a large loss of life is good, for example, will lose many judges, and some leagues or judges reject such arguments outright. Read the judge's paradigm.
+- **Do not combine it with a link turn on the same DA.** A **link turn** says the plan prevents the harm. Add "the harm is good," and you have said the plan prevents something good. That is a **double turn**. See [Links and link turns](links.md).
+- **Some impact turns are off limits for many judges.** Arguing that a large loss of life is good, for example, will lose many judges, and some leagues or judges reject such arguments outright. Read the judge's **paradigm**, their written note on how they judge.
 
 ## Impact framing
 
-Some teams argue about how to weigh impacts before the round gets to specific impacts. This is often called **impact framing**. For example, one team may argue that probability should come first, so very unlikely impacts count for little. Another may argue that magnitude should come first, so even a small risk of a very large harm wins.
+Some teams argue about how to weigh impacts before the round gets to specific impacts. This is often called **impact framing**. For example, one team may argue that probability (how likely) should come first, so very unlikely impacts count for little. Another may argue that magnitude (how big) should come first, so even a small risk of a very large harm wins.
 
 These are weighing arguments, and they belong to [Impact calculus](impact-calculus.md). On this page, it is enough to know they exist. A judge should use the framing the teams win, not the judge's own.
 
 ## How to judge impacts
 
-1. **Find the impacts each team is still winning** at the end of the round. Check what was extended in the last speeches.
+1. **Find the impacts each team is still winning** at the end of the round. Check what was **extended** (repeated and carried forward) in the last speeches.
 2. **Ask whether each one has a terminal impact,** or stops short.
 3. **Check for impact turns.** A won impact turn changes which side the impact helps.
 4. **Compare them using the weighing the teams gave you.** See [Impact calculus](impact-calculus.md). If no one weighed, explain in your decision how you compared them.
 
 ## Example in flow shorthand
 
-A generic trade DA. The middle speeches are left out to save space.
+A generic trade DA, read by the neg in the 1NC. The middle speeches are left out to save space. Each part shows the speeches that argue it, top to bottom.
+
+Key: -> = leads to. Impact D = impact defense. Ext = extend (carry forward). ev = evidence. > = matters more than. Case = the aff's plan and its advantages. "Analyst 21" is an invented author.
 
 ```
-1NC                     2AC                      2NR                      2AR
-DA: Trade fight
-I: trade fight ->       1. Impact D: recessions  Ext: long slump -> job   Their ev is about deep
-   recession -> job        end; jobs come back      loss -> health harms     slumps; this one is
-   loss -> health                                                            mild
-   harms (Analyst 21)
-                        2. Case outweighs:       Turns case: sick, poor   Plan's care starts
-                           lives > money            people lose care the     first; no turn
-                                                    plan gives
+DA: TRADE FIGHT
+
+IMPACT
+1NC: Trade fight -> recession
+     -> job loss -> health
+     harms (Analyst 21)
+2AC: 1. Impact D: recessions
+     end; jobs come back
+2NR: Ext: long slump -> job
+     loss -> health harms
+2AR: Their ev is about deep
+     slumps; this one is mild
+
+WEIGHING
+2AC: 2. Case outweighs:
+     lives > money
+2NR: Turns case: sick, poor
+     people lose the care
+     the plan gives
+2AR: Plan's care starts
+     first; no turn
 ```
 
-*How to read it:* the 1NC's impact is a full chain: a trade fight causes a recession, then job loss, then health harms. The health harm is the terminal impact, the final harm to people. The 2AC gives impact defense (recessions end and jobs come back) and says the case outweighs, because lives matter more than money. The 2NR extends the chain: a long slump causes job loss and then health harms. It adds a turns-case argument: sick and poor people lose the care the plan gives. The 2AR says the neg's evidence is about deep slumps, and this one would be mild. It answers turns case by saying the plan's care starts first. The judge decides how bad the recession would be, and whether it would undo the plan's benefit.
+*How to read it:* health harms are the terminal impact, the final harm to people. The 2NR adds **turns case**: the recession would take away the care the plan gives. The judge decides how bad the recession would be, and whether it would undo the plan's benefit.
 
 ## Common mistakes
 

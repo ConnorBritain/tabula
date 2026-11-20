@@ -4,7 +4,7 @@ slug: counterplan-text
 description: "The counterplan text is the exact sentence that says what the negative's counterplan does. Learn its parts, why the words matter, and how judges use it."
 section: Counterplans
 level: intermediate
-reading_time: 6
+reading_time: 7
 related: [counterplans, competition, permutations, solvency-deficits, fiat, common-counterplans]
 updated: 2026-11-20
 ---
@@ -58,7 +58,7 @@ The usual rule is no. The 1NC text is the counterplan for the whole round. If th
 
 Two practices are debated:
 
-- **New planks in the block.** Some negative teams add a plank in the second negative constructive (2NC) to answer a solvency deficit. Some judges allow this as an answer to the 2AC. Others think it is unfair, because the 1AR has little time to answer a new plank.
+- **New planks in the block.** The block is the neg's two speeches in a row (the 2NC and 1NR). Some negative teams add a plank in the second negative constructive (2NC) to answer a solvency deficit. Some judges allow this as an answer to the 2AC. Others think it is unfair, because the 1AR (the aff's next speech) has little time to answer a new plank.
 - **Vague words.** A short text can leave details open, such as how the plan is paid for. Some judges let the neg say the details follow "normal means": the way the actor usually does such things. Others say the neg gets only what the text states.
 
 The aff can make these points as theory arguments, or as solvency arguments ("the text does not do this, so the counterplan does not solve this part").
@@ -78,17 +78,33 @@ The aff can make these points as theory arguments, or as solvency arguments ("th
 
 ## Example in flow shorthand
 
+Each group follows one argument through the round. Key: "Solv" means solvency, "Ev" means evidence, and "fiat" means we imagine the text is passed and carried out.
+
 ```
-1NC                     2AC                     2NR                     2AR
-CP text: 50 states      1. Text says "fund,"    "Fund" = normal         Text has no enforce
-   fund program X          not "enforce"; no       means: states run       word; neg can't add
-                           fiat for enforcement    X with own agencies     it in the 2NR
-Solv: states can fund   2. Solv deficit: no     Enforcement exists      Ev is about funding,
-   X (Analyst 21)          one makes states        now in state law        not enforcement
-                           follow through          (Analyst 21)
+THE TEXT
+1NC: CP text: 50 states fund
+     program X
+2AC: 1. Text says "fund," not
+     "enforce"; no fiat for
+     enforcement
+2NR: "Fund" = normal means:
+     states run X with own
+     agencies
+2AR: Text has no enforce word;
+     neg can't add it in the 2NR
+
+SOLVENCY
+1NC: Solv: states can fund X
+     (Analyst 21)
+2AC: 2. Solv deficit: no one
+     makes states follow through
+2NR: Enforcement exists now in
+     state law (Analyst 21)
+2AR: Ev is about funding, not
+     enforcement
 ```
 
-*How to read it:* the 1NC read a text and one solvency card, which says the states can fund X. The 2AC made two answers. First, the text says "fund," not "enforce," so enforcement is not fiated. Second, nothing makes the states follow through. The 2NR answered both. It said "fund" means normal means, so the states use their own agencies, and it said the same Analyst card shows enforcement exists in state law. The 2AR replied that the text has no enforcement word, and that the card is only about funding. The judge decides two questions. Does "fund" fairly include enforcement? Does the card prove it? If yes, the deficit is small. If no, the deficit stands, and the judge weighs it against the net benefit.
+*How to read it:* the judge decides two questions. Does "fund" fairly include enforcement? Does the Analyst card prove it? If yes, the deficit is small. If no, the deficit stands, and the judge weighs it against the net benefit.
 
 ## Common mistakes
 

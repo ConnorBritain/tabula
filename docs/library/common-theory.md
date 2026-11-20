@@ -4,7 +4,7 @@ slug: common-theory
 description: "The theory debates that come back every season: PICs, consult CPs, multiple-actor, fifty-state and international fiat, dispo, and perm theory, with both sides."
 section: Theory
 level: advanced
-reading_time: 10
+reading_time: 9
 related: [theory, conditionality, reject-the-team, fiat, permutations, counterplans]
 updated: 2026-11-20
 ---
@@ -25,7 +25,7 @@ The voter is often the biggest question. For most of these, many judges ignore t
 
 ## Conditionality and dispositionality
 
-**Conditionality** ("condo") means the neg may drop a counterplan or kritik later in the round. **Dispositionality** ("dispo") is a middle status: the neg may drop the option only under set conditions, often only if the aff makes a permutation. Both are full debates of their own, so see [Conditionality](conditionality.md) and the worked example [Condo with three or more advocacies](example-condo-debate.md).
+**Conditionality** ("condo") means the neg may drop a counterplan or a kritik (a challenge to the aff's ideas) later in the round. **Dispositionality** ("dispo") is a middle status: the neg may drop the option only under set conditions, often only if the aff makes a permutation. Both are full debates of their own, so see [Conditionality](conditionality.md) and the worked example [Condo with three or more advocacies](example-condo-debate.md).
 
 ## PICs bad
 
@@ -39,9 +39,9 @@ For a full worked round, see [The word PIC](example-pic.md).
 
 ## Consult and process counterplans bad
 
-A **process counterplan** does the plan, but by a different process. The best-known kind is the **consult counterplan**: ask another party first, and do the plan only if that party agrees. The aff usually claims that these counterplans do not compete.
+A **process counterplan** does the plan, but by a different process. The best-known kind is the **consult counterplan**: ask another party first, and do the plan only if that party agrees. The aff usually claims that these counterplans do not compete (are not a real choice against the plan).
 
-- **The aff's side:** the counterplan does the whole plan and wins only on a small net benefit tied to the process, so it teaches little about the topic.
+- **The aff's side:** the counterplan does the whole plan and wins only on a small net benefit (a reason the counterplan alone is better) tied to the process, so it teaches little about the topic.
 - **The neg's side:** real decisions do involve process, such as asking allies, and if topic evidence discusses that process, it is fair game.
 - **Remedy:** many judges reject the counterplan, not the team. Some judges look mostly at competition. See [Competition](competition.md).
 
@@ -72,7 +72,7 @@ For a full worked round, see [The states counterplan](example-states-cp.md).
 
 - **The usual interpretation:** "The neg may fiat only the domestic government named in the resolution."
 - **Arguments against it (usually the aff's):** the resolution asks what *our* government should do. A domestic decision-maker cannot choose for another nation. It lets the neg pick any actor in the world, so the aff cannot prepare.
-- **Arguments for it (usually the neg's):** comparing the plan with what other nations could do is real policy analysis. The topic literature may debate who should act. The aff can still argue solvency deficits and perms.
+- **Arguments for it (usually the neg's):** comparing the plan with what other nations could do is real policy analysis. The topic literature may debate who should act. The aff can still argue solvency deficits (ways the counterplan solves less) and perms.
 - **Remedy:** many judges reject the counterplan, not the team. Judges differ. Some accept it by default. Others are more skeptical, so the aff should develop the theory.
 
 ## Severance and intrinsic perms bad
@@ -88,7 +88,7 @@ A **permutation** (perm) is the aff's test of whether a counterplan really compe
 
 **Object fiat.** The aff fiats the thing the plan acts on, not only the actor. For example, the plan fiats that a foreign government or a group of people will respond a certain way. The neg argues this is unfair, because the aff can fiat away solvency problems. The aff answers that it only fiats its own actor's action. Many judges treat this as a fiat question and decide it as argued.
 
-**Floating PIKs bad.** A kritik's **alternative** is the approach it offers instead of the plan. A **floating PIK** is an alternative that, the aff says, could include the plan itself. Then the kritik works like a PIC. The aff argues the neg should say early whether the alternative includes the plan. The neg answers that the alternative is not a policy, and the aff can perm. Many judges want this made clear in CX. See [Kritiks](kritiks.md).
+**Floating PIKs bad.** A kritik's **alternative** is the approach it offers instead of the plan. A **floating PIK** (PIK: plan-inclusive kritik) is an alternative that, the aff says, could include the plan itself. Then the kritik works like a PIC. The aff argues the neg should say early whether the alternative includes the plan. The neg answers that the alternative is not a policy, and the aff can perm. Many judges want this made clear in cross-ex (CX). See [Kritiks](kritiks.md).
 
 ## How to judge these arguments
 
@@ -99,15 +99,30 @@ A **permutation** (perm) is the aff's test of whether a counterplan really compe
 
 ## Example in flow shorthand
 
-The neg ran a PIC that does the plan in every area but one. Only the theory rows are shown.
+The neg ran a PIC that does the plan in every area but one. Only the theory is shown. Each group is one argument, speech by speech. The 2AC is the aff's answer to the neg's first speech. The block is the neg's next two speeches. The 1AR is the aff's next speech. The 2NR and 2AR are each side's last speech. Key: CI = counter-interpretation. Ev = evidence. Ext = extend. Arg = argument. CP = counterplan.
 
 ```
-2AC                 Block               1AR                 2NR                 2AR
-PICs bad: neg       CI: PICs OK if      Their CI lets neg   Ext CI: ev says     CP steals the aff;
-   takes 99% of        neg has ev on       cut any word;       this part is        reject the CP
-   the plan            the part cut        no limit            debated
-Voter: reject       Reject the arg:     (no answer)         Ext: arg, not       Reject the CP, not
-   the team            ignore the CP                           team; 1AR drop      the team
+THE RULE
+2AC:   PICs bad: neg takes 99% of
+       the plan
+Block: CI: PICs OK if neg has ev
+       on the part cut
+1AR:   their CI lets neg cut any
+       word; no limit
+2NR:   Ext CI: ev says this part
+       is debated
+2AR:   CP steals the aff; reject
+       the CP
+
+THE REMEDY
+2AC:   voter: reject the team
+Block: reject the arg: ignore
+       the CP
+1AR:   (no answer)
+2NR:   Ext: arg, not team; 1AR
+       dropped it
+2AR:   reject the CP, not the
+       team
 ```
 
 *How to read it:* the 2AC said PICs are bad and asked the judge to reject the team. The block gave a counter-interpretation: PICs are fine if the neg has evidence about the part it cuts. It also said the remedy is to ignore the counterplan. The 1AR said the counter-interpretation has no limit, but it did not answer the remedy. The 2NR extended its evidence point and pointed out the 1AR's drop of the remedy. The 2AR now asks only to reject the counterplan. So the remedy is settled: the most the aff can win is that the counterplan goes away. The judge decides the interpretation. If the aff wins it, the judge compares the plan with the status quo.

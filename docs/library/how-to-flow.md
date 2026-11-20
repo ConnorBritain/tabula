@@ -4,9 +4,9 @@ slug: how-to-flow
 description: "Flowing is note-taking for debate. Learn how to set up sheets, write in columns, use shorthand, track dropped arguments, and flow as a judge."
 section: The round
 level: beginner
-reading_time: 7
+reading_time: 9
 related: [flow-shorthand, debate-101, speeches-and-times, ballot-and-rfd, disadvantages]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # How to flow
@@ -23,25 +23,28 @@ Debate moves fast. Without a flow, you remember the loudest points, not the best
 
 ## Set up your sheets
 
-Use one **sheet** (a page, or a tab in Tabula) for each big argument. Common sheets:
+Use one **sheet** (a page, or a tab in Tabula) for each big argument. The aff (affirmative) is the team for the plan. The neg (negative) is the team against it. Common sheets:
 
 | Sheet | What goes on it |
 |---|---|
-| **Case** (or one sheet per advantage) | The aff's plan, harms, advantages and solvency, and the neg's answers |
-| **T** | Each topicality argument |
-| **DA** | Each disadvantage, one sheet each |
-| **CP** | Each counterplan |
-| **K** | Each kritik |
-| **FW** | Framework, if it is its own debate |
+| **Case** (or one sheet per advantage) | The aff's plan and its reasons: the problem (harms), the good results (advantages), and how the plan fixes it (solvency). Also the neg's answers. |
+| **T** | Each topicality argument: the plan does not fit the topic |
+| **DA** | Each disadvantage (a harm the plan causes), one sheet each |
+| **CP** | Each counterplan (a different plan from the neg) |
+| **K** | Each kritik (an argument against the ideas behind the plan) |
+| **FW** | Framework (how the judge should decide), if it is its own debate |
 
-On each sheet, make one column per speech. The aff's arguments start in the 1AC column. The neg's off-case arguments (T, DA, CP, K) start in the 1NC column.
+On each sheet, make one column per speech. The aff's arguments start in the 1AC column, the first speech. The neg's own arguments (T, DA, CP, K) start in the 1NC column, the neg's first speech. These are called **off-case** arguments.
 
 ```
-Case sheet:   1AC | 1NC | 2AC | 2NC/1NR | 1AR | 2NR | 2AR
-DA sheet:          1NC | 2AC | 2NC/1NR | 1AR | 2NR | 2AR
+Case sheet columns:
+1AC|1NC|2AC|2NC/1NR|1AR|2NR|2AR
+
+DA sheet columns:
+1NC|2AC|2NC/1NR|1AR|2NR|2AR
 ```
 
-The 2NC and 1NR share a column, because they come back to back and split the arguments.
+The 2NC and 1NR share a column. They come back to back, and the neg splits the arguments between them.
 
 **Tip:** use two colors, one for aff and one for neg. Then you can see at a glance who said the last word on each row.
 
@@ -53,11 +56,11 @@ You cannot write every word. Do not try. For each argument, write:
 2. **The source**, if it is a card: the author and year ("Analyst 21").
 3. **The warrant** (the reason it is true), if you can, in a few words.
 
-The warrant matters most. "DA: econ collapse" tells you the claim. "Plan costs $ -> cuts other programs" tells you why. Rebuttals are won by explaining why.
+The warrant matters most. "DA: econ collapse" (the plan hurts the economy) tells you the claim. "Plan costs $ -> cuts other programs" tells you why. Rebuttals (the last four speeches) are won by explaining why.
 
 ## Shorthand
 
-Use short symbols. Make your own, but keep them the same every round. A few common ones:
+Use short symbols. Make your own, but keep them the same every round. A few common ones are below. Judges: the first six rows are enough to start. The rest are names for parts of arguments. The [glossary](glossary.md) explains each one.
 
 | Symbol | Means |
 |---|---|
@@ -67,7 +70,7 @@ Use short symbols. Make your own, but keep them the same every round. A few comm
 | `w/` / `w/o` | with / without |
 | `b/c` | because |
 | `SQ` | status quo (the world now, without the plan) |
-| `U`, `L`, `IL`, `I` | uniqueness, link, internal link, impact |
+| `U`, `L`, `IL`, `I` | the four parts of a disadvantage: uniqueness, link, internal link, impact |
 | `N/U` | non-unique |
 | `L/T` | link turn |
 | `CI` | counter-interpretation |
@@ -78,7 +81,7 @@ See [Flow shorthand and symbols](flow-shorthand.md) for the full list.
 
 ## Line up the answers
 
-When the 2AC answers the 1NC, write each answer **next to** the argument it answers. Number the answers ("1, 2, 3") if the speaker does. This is the most important habit in flowing. If you line up answers well, a dropped argument jumps out at you as an empty space.
+When the 2AC (the aff's second speech) answers the 1NC, write each answer **next to** the argument it answers. Number the answers ("1, 2, 3") if the speaker does. This is the most important habit in flowing. If you line up answers well, a dropped argument jumps out at you as an empty space.
 
 If a speaker jumps around, leave space and draw an arrow. A messy flow that is lined up beats a neat flow that is not.
 
@@ -87,9 +90,9 @@ If a speaker jumps around, leave space and draw an arrow. A messy flow that is l
 Good debaters tell you where they are. These words are called **signposts**:
 
 - "On the DA..." (which sheet)
-- "Go to the link debate..." (which part)
+- "Go to the link debate..." (which part of the argument)
 - "Their number 3 says..." (which argument)
-- "Off-case: one off is T, two is the DA..." (the order of new sheets)
+- "Off-case: one off is T, two is the DA..." (the order of the neg's new sheets)
 
 At the start of a speech, many debaters give a **roadmap**: the order of sheets. Use it to put your sheets in order before the speech starts.
 
@@ -99,34 +102,74 @@ A judge's flow has one more job: it is the record of the decision.
 
 - **Flow the whole round**, both teams, all speeches. Do not stop when you think you know who is winning.
 - **Mark drops.** A small star or a circle next to an argument nobody answered helps a lot at decision time.
-- **Mark new arguments in late speeches.** If a brand-new argument appears in the 2NR or 2AR, note it. Most judges do not count new arguments in the last rebuttals, unless they answer something new.
+- **Mark new arguments in late speeches.** If a brand-new argument appears in the 2NR or 2AR (the last two speeches), note it. Most judges do not count new arguments in the last rebuttals, unless they answer something new.
 - **Flow cross-ex lightly.** Write down key answers ("CX: plan costs $5B") in the margin. They count only if a team uses them in a speech.
 - **Read your flow before you decide.** Start at the 2NR and 2AR columns. Read each row back to the left. Ask: who won this row, and why?
 
-You can also ask for the speech documents. They show the cards, not the analysis. The flow is still the record of what was argued.
+You can also ask for the speech documents (the files of quoted evidence, called cards). They show the cards, not the analysis. The flow is still the record of what was argued.
 
 ## Example in flow shorthand
 
-One disadvantage, flowed through the 2NR. (The full DA is explained in [Disadvantages](disadvantages.md).) "Block" means the 2NC and 1NR together.
+One disadvantage (DA: a harm the plan causes), flowed through the 2NR. The full DA is explained in [Disadvantages](disadvantages.md).
+
+On paper, each part of the DA is one row, read left to right. So that it fits a phone, the example shows each row top to bottom, one speech per line.
+
+Key:
+
+- **U** (uniqueness): the harm is not happening now.
+- **L** (link): how the plan causes it.
+- **IL** (internal link): the middle step.
+- **I** (impact): the final harm.
+- **Block:** the 2NC and 1NR together.
+- **Turns case:** the DA's harm makes the aff's own problem worse.
+- **$** = money. **>** = outweighs. **yr** = year. **progs** = programs. **\*** = dropped.
 
 ```
-1NC               2AC               Block             1AR               2NR
 DA: Spending
-U: budget tight   1. N/U: a big     That bill is      Ext N/U           No new $ this yr.
-   now            bill already      done. No new $                      Their card is old
-   (Analyst 21)   passed            this yr
-L: plan costs $   2. L/T: plan      Savings take      Ext L/T: plan     Savings come too
-   (Expert 20)    saves $           5 yrs. Cost is    pays for itself   late to matter
-                  (Author 22)       now
-IL: cost forces   3. No IL: no      Law requires      (no answer)  *    IL dropped in 1AR
-   cuts to        cut shown         cuts when $ is
-   school progs                     short
-I: kids lose      4. Case           DA turns case:    Case > DA         DA turns case.
-   services       outweighs         same kids hurt                      1AR never answered
-                                                                        the turn
+
+Row 1: U
+1NC:   budget tight now
+       (Analyst 21)
+2AC:   1. N/U: a big bill
+       already passed
+Block: That bill is done.
+       No new $ this yr
+1AR:   Ext N/U
+2NR:   No new $ this yr.
+       Their card is old
+
+Row 2: L
+1NC:   plan costs $
+       (Expert 20)
+2AC:   2. L/T: plan saves $
+       (Author 22)
+Block: Savings take 5 yrs.
+       Cost is now
+1AR:   Ext L/T: plan pays
+       for itself
+2NR:   Savings come too late
+       to matter
+
+Row 3: IL
+1NC:   cost forces cuts to
+       school progs
+2AC:   3. No IL: no cut shown
+Block: Law requires cuts
+       when $ is short
+1AR:   (no answer) *
+2NR:   IL dropped in 1AR
+
+Row 4: I
+1NC:   kids lose services
+2AC:   4. Case outweighs
+Block: DA turns case: same
+       kids hurt
+1AR:   Case > DA
+2NR:   DA turns case. 1AR
+       never answered the turn
 ```
 
-*How to read it:* each row is one part of the DA. Read across to follow it. The 1AR did not answer the internal link row (marked `*`). The 2NR points that out. A judge reading across sees the gap at once.
+*How to read it:* each row is one part of the DA. Follow a row to follow one argument. The 1AR did not answer the internal link row (marked `*`). The 2NR points that out. A judge reading across the row sees the gap at once.
 
 ## Common mistakes
 

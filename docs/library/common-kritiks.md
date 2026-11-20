@@ -4,7 +4,7 @@ slug: common-kritiks
 description: "A fair guide to common kritik families, such as capitalism, security and settler colonialism: each one's core claim, typical link and alt, and aff answers."
 section: Kritiks
 level: intermediate
-reading_time: 12
+reading_time: 9
 related: [kritiks, kritik-links, kritik-alternative, answering-kritiks, example-cap-k, framework-vs-kritik]
 updated: 2026-11-20
 ---
@@ -30,7 +30,7 @@ Every kritik has the same basic parts. See [Kritiks](kritiks.md).
 - **Alternative (alt):** what the neg offers instead. See [The alternative](kritik-alternative.md).
 - **Framework:** how the judge should weigh the K against the plan. See [Framework](framework.md). Some teams add a [role of the ballot](role-of-the-ballot.md): what the vote should do.
 
-Most aff answers are also shared: framework, a **permutation** (do the plan and the alt together), no link, alt fails, case outweighs, and sometimes an impact turn. See [Answering a kritik](answering-kritiks.md). Aff teams can also build a [kritikal affirmative](kritikal-affirmatives.md) from these families.
+Most aff answers are also shared: framework, a **permutation** (do the plan and the alt together), no link, alt fails, case outweighs, and sometimes an **impact turn** (an argument that the idea the K criticizes is actually good). See [Answering a kritik](answering-kritiks.md). Aff teams can also build a [kritikal affirmative](kritikal-affirmatives.md) from these families.
 
 ## Ableism and disability critiques
 
@@ -146,27 +146,54 @@ You do not need to know the tradition behind a K.
 
 A generic biopolitics K against an aff that tracks health data to send care where it is needed. The block and 1AR are left out.
 
+Key: L = link, I = impact, CX = cross-ex, ev = evidence, "DAs to it" = reasons the perm is worse. (Theorist 17) is an invented evidence author and year.
+
 ```
-1NC                     2AC                     2NR                      2AR
-K: Biopolitics
-L: plan tracks health   1. No link: the data    CX: data is sorted by    Sorting sends care
-   data to sort people     is anonymous            risk group; that is      where it is needed
-   (Theorist 17)                                   the link
-I: sorting decides      2. Case outweighs:      K turns case: groups     Case helps those
-   whose life counts       program saves lives     marked low value get     groups first (1AC ev)
-                                                   less care
-Alt: refuse the aff's   3. Perm: do the plan    Perm still sorts;        Data limits stop the
-   management frame        with data limits        links are DAs to it      sorting; perm solves
+1NC
+  K: Biopolitics
+  L: plan tracks health data
+    to sort people
+    (Theorist 17)
+  I: sorting decides whose
+    life counts
+  Alt: refuse the aff's
+    management frame
+
+2AC
+  1. No link: the data is
+     anonymous
+  2. Case outweighs: program
+     saves lives
+  3. Perm: do the plan with
+     data limits
+
+2NR
+  1. CX: data is sorted by
+     risk group; that is the
+     link
+  2. K turns case: groups
+     marked low value get
+     less care
+  3. Perm still sorts; links
+     are DAs to it
+
+2AR
+  1. Sorting sends care where
+     it is needed
+  2. Case helps those groups
+     first (1AC ev)
+  3. Data limits stop the
+     sorting; perm solves
 ```
 
-*How to read it:* row 1: the 1NC says the plan uses health data to sort people, and the 2AC says the data is anonymous. The 2NR uses a CX answer: the data is sorted by risk group. The 2AR says that sorting sends care where it is needed. Row 2: the 1NC says sorting decides whose life counts, and the 2AC says the case outweighs. The 2NR says the K turns the case, because groups marked low value get less care. The 2AR says the case helps those groups first. Row 3: the 1NC alt refuses the management frame, and the 2AC perms with data limits. The 2NR says the perm still sorts, and the 2AR says data limits stop the sorting. The round turns on the perm.
+*How to read it:* the 2NR uses a cross-ex answer to prove the link, and says the K turns the case. The 2AR answers each point, and says data limits let the perm solve. The round turns on the perm.
 
 ## Common mistakes
 
 - **Neg: reading a family's generic link to every aff.** Fix: apply it to this aff's words, plan or evidence.
 - **Neg: assuming the judge knows the tradition.** Fix: explain the core claim in plain words.
 - **Aff: answering the family, not the K that was read.** Fix: answer the link, impact and alt the neg read.
-- **Aff: an impact turn that denies a harm is real.** Fix: dispute whether the alt or the K's theory helps, not whether people are hurt. Impact turns on the system, as in cap good, are a different thing.
+- **Aff: an impact turn that denies a harm is real.** Fix: dispute whether the alt or the K's theory helps, not whether people are hurt. Impact turns on the system, as in "cap good" (capitalism is good), are a different thing.
 - **Both: caricaturing the other side's view.** Fix: state its best version, then answer it.
 - **Judges: deciding on your view of a family.** Fix: decide on the arguments made, and say which one decided it.
 

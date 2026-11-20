@@ -91,23 +91,52 @@ Each is described below. Three have full example pages.
 
 ## Example in flow shorthand
 
-A generic relations DA. The middle speeches are left out to save space.
+A generic relations DA. The middle speeches are left out to save space. Each part shows the speeches that argue it, top to bottom.
+
+Key: N/U = non-unique. L/T = link turn. IL = internal link. Ext = extend (carry forward). ev = evidence. -> = leads to. Names in parentheses are invented authors.
 
 ```
-1NC                     2AC                     2NR                     2AR
-DA: Relations
-U: ties with ally are   1. N/U: ties already    Ties improved this      Their ev is one
-   strong (Analyst 22)     strained (Author 21)    year (Analyst 22)       meeting
-L: ally opposes plan    2. L/T: ally wants      Ally's leaders oppose   Ext L/T: ally's
-   -> ties decline         this plan               the plan in public      public wants it
-IL: less cooperation    3. No IL: they work     Trust is key to joint   (no answer)
-   on joint program        together on shared      programs
-                           interests anyway
-I: joint program ends   4. Case outweighs       DA is faster than       Case is bigger
-   -> harm                                         case                    and more likely
+DA: RELATIONS
+
+UNIQUENESS
+1NC: Ties with ally are strong
+     (Analyst 22)
+2AC: 1. N/U: ties already
+     strained (Author 21)
+2NR: Ties improved this year
+     (Analyst 22)
+2AR: Their ev is one meeting
+
+LINK
+1NC: Ally opposes plan
+     -> ties decline
+2AC: 2. L/T: ally wants
+     this plan
+2NR: Ally's leaders oppose
+     the plan in public
+2AR: Ext L/T: ally's public
+     wants it
+
+INTERNAL LINK
+1NC: Less cooperation on
+     joint program
+2AC: 3. No IL: they work
+     together on shared
+     interests anyway
+2NR: Trust is key to joint
+     programs
+2AR: (no answer)
+
+IMPACT
+1NC: Joint program ends
+     -> harm
+2AC: 4. Case outweighs
+2NR: DA is faster than case
+2AR: Case is bigger and
+     more likely
 ```
 
-*How to read it:* on uniqueness, the 2AC says ties are already strained. The 2NR reads newer evidence that ties improved this year. The 2AR says that evidence is about one meeting. On the link, the 2AC reads a link turn: the ally wants the plan. The 2NR says the ally's leaders oppose it in public. The 2AR extends the link turn and says the ally's public wants it. On the internal link, the 2AC says the two sides cooperate on shared interests anyway. The 2NR says trust is key to joint programs, and the 2AR does not answer that. On the impact, the 2NR says the DA is faster, and the 2AR says the case is bigger and more likely. The judge must decide whether the ally opposes or supports the plan, and then weigh timing against size.
+*How to read it:* the 2AR drops the internal link, so "trust is key" stands. The judge must decide whether the ally opposes or supports the plan, and then weigh timing against size.
 
 ## Common mistakes
 

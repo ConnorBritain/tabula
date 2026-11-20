@@ -4,7 +4,7 @@ slug: index
 description: "Free, plain-language guides to high school policy debate. Start with the basics, then learn flowing, DAs, counterplans, topicality, kritiks and judging."
 section: Start here
 level: beginner
-reading_time: 3
+reading_time: 4
 related: [debate-101, first-round-judge, how-to-flow, glossary]
 updated: 2026-11-20
 ---
@@ -23,21 +23,21 @@ You do not need debate experience to judge well. You need to listen, take notes,
 2. [Judging your first round](first-round-judge.md): what to do before, during and after.
 3. [How to flow](how-to-flow.md): take notes you can decide from.
 4. [Speaker points](speaker-points.md): how to score each debater.
-5. [The ballot and the RFD](ballot-and-rfd.md): how to write your decision.
-6. [Impact calculus](impact-calculus.md): read the plain summary. It helps you compare arguments.
+5. [The ballot and the RFD](ballot-and-rfd.md): how to write your RFD (reason for decision).
+6. [Impact calculus](impact-calculus.md): how to compare arguments. Read the plain summary.
 
 ### I am a new debater (your first month)
 
-1. [Debate 101](debate-101.md)
-2. [Speeches, order and times](speeches-and-times.md)
-3. [How to flow](how-to-flow.md), then [Flow shorthand](flow-shorthand.md)
-4. [The affirmative case](affirmative-case.md), then [Stock issues](stock-issues.md)
-5. [Disadvantages](disadvantages.md), then [Answering a DA](answering-disadvantages.md)
-6. [Counterplans](counterplans.md), then [Permutations](permutations.md)
-7. [Topicality](topicality.md)
-8. [Cross-examination](cross-examination.md)
-9. [Impact calculus](impact-calculus.md)
-10. [Rebuttal strategy](rebuttal-strategy.md)
+1. [Debate 101](debate-101.md): what happens in a round.
+2. [Speeches, order and times](speeches-and-times.md): who speaks when, and for how long.
+3. [How to flow](how-to-flow.md), then [Flow shorthand](flow-shorthand.md): how to take notes.
+4. [The affirmative case](affirmative-case.md), then [Stock issues](stock-issues.md): the aff's basic jobs.
+5. [Disadvantages](disadvantages.md), then [Answering a DA](answering-disadvantages.md): a DA says the plan causes harm.
+6. [Counterplans](counterplans.md), then [Permutations](permutations.md): the neg's other plan, and the aff's answer.
+7. [Topicality](topicality.md): does the plan fit the topic?
+8. [Cross-examination](cross-examination.md): how to ask and answer questions.
+9. [Impact calculus](impact-calculus.md): how to compare arguments.
+10. [Rebuttal strategy](rebuttal-strategy.md): what to say in the last speeches.
 
 Also useful early: [Evidence and cards](evidence-and-cards.md).
 
@@ -48,6 +48,8 @@ Also useful early: [Evidence and cards](evidence-and-cards.md).
 - **Judging:** [Judge paradigms](judge-paradigms.md), [Writing a paradigm](writing-a-paradigm.md), [Presumption](presumption.md), [Turns case](turns-case.md), [Giving feedback](giving-feedback.md).
 
 ## All pages by section
+
+Every page, grouped by topic. New readers can skip this list and use a path above.
 
 **Start here:** [Debate 101](debate-101.md) · [Judging your first round](first-round-judge.md) · [Glossary](glossary.md)
 

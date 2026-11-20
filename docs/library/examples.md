@@ -11,13 +11,11 @@ updated: 2026-11-20
 
 # Timeless examples
 
-> **Plain version.** The topic in policy debate changes every year. But some arguments come back every year, in a new form. A spending disadvantage, a states counterplan and a politics disadvantage can fit almost any topic. These pages explain each one in a general way, with a short flow. Learn the shape once, and you will spot it in any round.
+> **Plain version.** The topic in policy debate changes every year. But some arguments come back every year, in a new form. For example, a spending disadvantage (the plan costs money, so something else gets cut) can fit almost any topic. So can a states counterplan or a politics disadvantage. These pages explain each one in a general way, with a short flow (debate notes). Learn the shape once, and you will spot it in any round.
 
 ## What these pages are
 
-Each example page takes one argument that shows up year after year. It explains the argument in a generic form, with no real topic, person, school or year. It shows the usual answers, a short flow, and how judges tend to weigh it. Then it links to the concept pages that explain the theory behind it.
-
-Each example page has its own flow example, in flow shorthand, with a note on how to read it.
+Each example page takes one argument that shows up year after year. It uses a generic form, with no real topic, person, school or year. It shows the usual answers, a short flow with a note on how to read it, and how judges tend to weigh it. Then it links to the concept pages that explain the theory behind it.
 
 These pages are for two kinds of reader:
 
@@ -26,6 +24,15 @@ These pages are for two kinds of reader:
 
 An example page is not a file to read in a round. Real versions need real, current evidence about the actual topic.
 
+## Words you will see
+
+- **Aff** (affirmative): the team for the plan. **Neg** (negative): the team against it.
+- **Disadvantage** (DA): the neg says the plan causes something bad.
+- **Counterplan** (CP): the neg offers a different way to solve the problem.
+- **Topicality** (T): the neg says the plan does not fit the topic.
+- **Kritik** (K): an argument that questions the ideas behind the other team's case.
+- **Theory**: an argument about the rules of fair debate.
+
 ## The examples
 
 Pages that are not written yet show as plain text. They will become links when they are ready.
@@ -33,7 +40,7 @@ Pages that are not written yet show as plain text. They will become links when t
 ### Disadvantages
 
 - [The spending / trade-off DA](example-spending-da.md): the plan costs money, so something else gets cut.
-- [The politics DA](example-politics-da.md): the plan costs a leader political capital, so another priority fails.
+- [The politics DA](example-politics-da.md): the plan costs a leader political capital (a leader's influence with lawmakers), so another priority fails.
 - [The economy DA](example-economy-da.md): the plan hurts growth, and growth helps prevent conflict.
 
 ### Counterplans
@@ -49,8 +56,8 @@ Pages that are not written yet show as plain text. They will become links when t
 
 ### Weighing, theory and kritiks
 
-- [Extinction vs structural violence](example-extinction-vs-structural.md): how to weigh a very large, unlikely harm against a certain, daily one.
-- [Condo with three or more advocacies](example-condo-debate.md): a theory debate about how many options the neg may run.
+- [Extinction vs structural violence](example-extinction-vs-structural.md): how to weigh a very large, unlikely harm against a certain, daily one (harm built into how society works).
+- [Condo with three or more advocacies](example-condo-debate.md): a theory debate about how many options (advocacies) the neg may run and later drop. "Condo" is short for conditional.
 - [The capitalism kritik against a policy aff](example-cap-k.md): a common kritik and the usual answers.
 - [Framework vs a kritikal aff](example-fw-vs-k-aff.md): the debate over whether the aff must defend a government plan.
 
@@ -63,9 +70,9 @@ Pages that are not written yet show as plain text. They will become links when t
 ## Common mistakes
 
 - **Debaters: reading a generic version as is.** Fix: find evidence that links to the actual plan. A generic link is easy to answer with "no link."
-- **Debaters: assuming the stock answers always work.** Fix: answer the version the other team actually read. Their evidence may already answer the usual 2AC.
+- **Debaters: assuming the stock (usual) answers always work.** Fix: answer the version the other team actually read. Their evidence may already answer the usual 2AC (the aff's first set of answers).
 - **Judges: deciding before the debate happens.** Fix: even a familiar argument can be won or lost. Judge what each team says in this round.
-- **Both: old evidence on time-sensitive parts.** Fix: uniqueness on politics and spending DAs changes fast. Update it often.
+- **Both: old evidence on time-sensitive parts.** Fix: uniqueness (proof the harm is not happening now) on politics and spending DAs changes fast. Update it often.
 
 ## Related pages
 

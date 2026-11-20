@@ -4,10 +4,10 @@ slug: disadvantages
 description: "A disadvantage (DA) says the plan causes something bad that would not happen otherwise. Learn the four parts, how to answer one, and how judges weigh it."
 section: Disadvantages
 level: beginner
-reading_time: 8
+reading_time: 7
 sheet: DA
 related: [uniqueness, links, internal-links, impacts, answering-disadvantages, impact-calculus]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # Disadvantages (DA)
@@ -18,7 +18,7 @@ updated: 2026-11-19
 
 A DA is a chain. Each link must hold, or the chain breaks.
 
-| Part | Short | The question it answers | Example (generic) |
+| Part | Short name | The question it answers | Example (generic) |
 |---|---|---|---|
 | **Uniqueness** | U | Is the bad thing *not* happening now? | "The budget is balanced right now." |
 | **Link** | L | Does the *plan* start the chain? | "The plan costs a lot of money." |
@@ -35,7 +35,7 @@ Uniqueness and the link work like a scale. If uniqueness is very strong ("the bu
 
 The link connects the plan to the problem. A good link is **specific**: it is about the plan or the kind of action the plan takes, not about the topic in general.
 
-The aff gets to imagine the plan passes. That is called **fiat**. So "it would never pass" is not a DA. Most DA links come from what the plan does once it is in place. A few, like the politics DA, link to the act of passing it, and teams can debate whether that fits fiat. See [Fiat](fiat.md).
+The aff gets to imagine the plan passes. That is called **fiat**. So "it would never pass" is not a DA. Most DA links come from what the plan does once it is in place. A few, like the politics DA (the fight to pass the plan costs a leader support), link to the act of passing it. Teams can debate whether that fits fiat. See [Fiat](fiat.md).
 
 A **link turn** (L/T) is an aff answer that says the plan does the *opposite*: "The plan does not cost money; it saves money." If the link turn is right, the DA becomes a reason to vote aff.
 
@@ -45,13 +45,13 @@ The internal link fills the gap between "the plan does X" and "Y bad thing happe
 
 ### Impact
 
-The impact is the harm at the end. It can be large and unlikely (a war), or smaller and very likely (people lose a service). How big, how likely, and how soon it is all matter when the judge compares it to the aff's advantages. See [Impacts](impacts.md) and [Impact calculus](impact-calculus.md).
+The impact is the harm at the end. It can be large and unlikely (a war), or smaller and very likely (people lose a service). The judge compares it to the aff's **advantages**, the good things the aff says the plan does. How big, how likely, and how soon each one is all matter. See [Impacts](impacts.md) and [Impact calculus](impact-calculus.md).
 
 An **impact turn** is an aff answer that says the "bad" result is actually good. For example: "Cuts to that program would be good, because the program wastes money." Impact turns are risky. They work only if the aff wins that the result is truly good.
 
 ## How to answer a DA
 
-The aff (usually in the 2AC) has many choices. You can answer each part.
+The aff has many choices, usually in the **2AC** (the second aff speech, the first one after the neg reads its DAs). You can answer each part.
 
 **Defense** (makes the DA smaller or stops it):
 
@@ -65,7 +65,7 @@ The aff (usually in the 2AC) has many choices. You can answer each part.
 - **Link turn:** the plan does the opposite, and prevents the bad thing.
 - **Impact turn:** the "bad" thing is actually good.
 
-**Weighing:**
+**Weighing** (comparing the DA to the **case**, the aff's plan and its advantages):
 
 - **Case outweighs:** even if the DA is true, the aff's advantages are bigger, more likely, or come sooner.
 - **Case turns the DA** or **the DA does not turn case**: arguments about which harm makes the other worse. See [Turns case](turns-case.md).
@@ -78,7 +78,7 @@ At the end of the round, the judge asks:
 
 1. **Is there a risk the DA happens?** The neg does not need 100%. A DA with a small risk can still matter if the impact is big.
 2. **How big is that risk compared to the aff's advantage?** Compare the size, the chance, and the timing of each.
-3. **Is there a counterplan?** If the neg also has a counterplan that gets the aff's advantage without the DA, then even a small risk of the DA can be enough. The DA is the **net benefit** to the counterplan. See [Counterplans](counterplans.md).
+3. **Is there a counterplan?** A **counterplan** is a different plan the neg offers instead. If it gets the aff's advantage without the DA, then even a small risk of the DA can be enough. The DA is the **net benefit** to the counterplan: the reason to pick it over the plan. See [Counterplans](counterplans.md).
 
 Some judges think a DA can have "zero risk" if the aff wins strong defense. Others think almost every DA has *some* risk. Teams should argue this, and judges should decide from what is argued.
 
@@ -86,23 +86,48 @@ For the DA shapes that come back every season, see [Common DA shapes](common-dis
 
 ## Example in flow shorthand
 
-A generic **spending DA**. The neg says the plan's cost forces cuts elsewhere.
+A generic **spending DA**: the plan's cost forces cuts elsewhere. The neg reads it in the 1NC. Each part shows the four speeches that argue it, top to bottom.
+
+Key: N/U = non-unique. L/T = link turn. Ext = extend (carry forward). ev = evidence. $ = money. -> = leads to. Names in parentheses are invented authors of **cards** (quoted evidence).
 
 ```
-1NC                     2AC                       2NR                         2AR
-DA: Spending
-U: budget balanced      1. N/U: deficit growing   Ext U: their ev predates    Deficit still
-   now (Analyst 21)        already (Author 22)       new budget deal            growing; ev
-                                                                                 is fine
-L: plan costs $50B      2. L/T: plan saves $       Savings take 5 yrs;        Savings >
-   (Expert 20)             over time                  cuts happen now             cost by yr 3
-IL: new cost ->         3. No IL: Congress         Law requires offsets       (no answer)
-   offset cuts             can borrow
-I: cuts hit school      4. Case outweighs:         DA turns case: same        Case is bigger
-   programs                more people helped         kids lose both             and sooner
+DA: SPENDING
+
+UNIQUENESS
+1NC: Budget balanced now
+     (Analyst 21)
+2AC: 1. N/U: deficit growing
+     already (Author 22)
+2NR: Ext U: their ev predates
+     new budget deal
+2AR: Deficit still growing;
+     ev is fine
+
+LINK
+1NC: Plan costs $50B (Expert 20)
+2AC: 2. L/T: plan saves $
+     over time
+2NR: Savings take 5 yrs;
+     cuts happen now
+2AR: Savings > cost by yr 3
+
+INTERNAL LINK
+1NC: New cost -> offset cuts
+2AC: 3. No IL: Congress
+     can borrow
+2NR: Law requires offsets
+2AR: (no answer)
+
+IMPACT
+1NC: Cuts hit school programs
+2AC: 4. Case outweighs:
+     more people helped
+2NR: DA turns case: same
+     kids lose both
+2AR: Case is bigger and sooner
 ```
 
-*How to read it:* the 2AR did not answer the internal link extension ("law requires offsets"). That helps the neg. But the 2AR claims the plan saves money by year 3 (the link turn). If the link turn is true, the dropped internal link matters little, because there is no cost to force cuts. So the round comes down to timing: do the cuts happen now, before the savings arrive? The judge decides who explained that better.
+*How to read it:* the 2AR dropped "law requires offsets," which helps the neg. But if the link turn (savings by year 3) is true, there is no cost to force cuts, so the dropped step matters little. The round comes down to timing: do the cuts happen now, before the savings arrive? The judge decides who explained that better.
 
 ## Common mistakes
 

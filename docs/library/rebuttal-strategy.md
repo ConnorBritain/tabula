@@ -37,7 +37,7 @@ Most judges do not accept **new arguments** in the 2NR or 2AR. New explanation o
 - **A disadvantage and case arguments.** The DA outweighs the advantage, and the case answers make the advantage smaller.
 - **A counterplan and a disadvantage.** The counterplan solves the case, and the DA is the reason to prefer the counterplan to the plan. That reason is called the **net benefit**. See [Counterplans](counterplans.md).
 - **Topicality alone.** T is a question of whether the plan fits the topic. Many teams go for T by itself, because it asks the judge to vote on a different question than the case. See [Topicality](topicality.md).
-- **A kritik.** The kritik and its framework, with links to the aff. See [Kritiks](kritiks.md).
+- **A kritik.** A kritik (K) questions the ideas behind the aff. The 2NR goes for the kritik and its framework, with links to the aff. See [Kritiks](kritiks.md).
 - **Case and presumption.** The plan does not solve, so there is no reason to change. See [Presumption](presumption.md).
 
 **How to choose:**
@@ -47,7 +47,7 @@ Most judges do not accept **new arguments** in the 2NR or 2AR. New explanation o
 3. **Make sure the pieces fit.** A counterplan with a net benefit that the counterplan also links to is a weak pair.
 4. **Think about the judge.** Go for the argument this judge is most likely to understand and vote on. See [Adapting to your judge](judge-adaptation.md).
 
-**Drop arguments cleanly.** When you stop going for an argument, many teams say so: "We are not going for the counterplan." Some judges want this. It also keeps you from leaving the aff an easy turn to win on. If an argument you drop has aff offense on it, such as a link turn, you still need to answer that offense, or explain why it does not matter.
+**Drop arguments cleanly.** When you stop going for an argument, many teams say so: "We are not going for the counterplan." Some judges want this. It also keeps you from leaving the aff an easy turn to win on. If an argument you drop has aff offense on it (a reason to vote aff), such as a link turn (the plan actually stops the DA's harm), you still need to answer that offense, or explain why it does not matter.
 
 ## The 2AR: answering the 2NR
 
@@ -83,35 +83,51 @@ See [The ballot and the RFD](ballot-and-rfd.md).
 
 ## Advanced: the 2NR and conditional arguments
 
-In many rounds, the neg's counterplans and kritiks are **conditional**: the neg may drop them at any time. See [Conditionality](conditionality.md). This gives the 2NR more choices, but it raises a question. If the 2NR goes for a counterplan and the counterplan loses, can the judge still compare the plan to the status quo?
+In many rounds, the neg's counterplans and kritiks are **conditional**: the neg may drop them at any time. See [Conditionality](conditionality.md). This gives the 2NR more choices, but it raises a question. If the 2NR goes for a counterplan and the counterplan loses, can the judge still compare the plan to the status quo (the world without the plan)?
 
 Some judges will do this if the 2NR asks them to. This is sometimes called **judge kick**. Other judges think the 2NR must choose one world, and they will not go back to the status quo on their own. The aff can argue against it. Judges differ, so a 2NR that wants this should ask for it out loud, and a 2AR that opposes it should say why.
 
 ## Example in flow shorthand
 
-A 2NR and 2AR on one round. The neg ran a counterplan, a disadvantage and topicality in the 1NC. The 2NR went for the counterplan and the DA.
+A 2NR and 2AR on one round. The neg ran a counterplan (CP), a disadvantage (DA) and topicality (T) in the 1NC. The 2NR went for the counterplan and the DA.
+
+Key: a **perm** (permutation) says "do the plan and the counterplan together." "$" means money, "->" means "leads to", and ">" means "matters more than."
 
 ```
-1AR                        2NR                          2AR
-CP: perm do both. CP       CP solves most of the case.  Perm: do both (1AR). No
-   misses half the case    Deficit is tiny                 link, so perm is safe
-DA: no link, plan's cost   Not going for T              No link: plan's cost is
-   is offset; case         Perm links to the DA:           offset (1AR)
-   outweighs                  plan still costs $        Even if a small DA risk:
-T: we meet                 DA: link card extended          CP misses half the case
-                           Small DA risk > tiny CP         (1AR), and that is
-                              deficit -> vote neg          bigger than the DA
+1AR (aff):
+  CP: perm do both. CP misses
+    half the case
+  DA: no link, plan's cost is
+    offset; case outweighs
+  T: we meet
+2NR (neg):
+  CP solves most of the case.
+    Deficit is tiny
+  Not going for T
+  Perm links to the DA: plan
+    still costs $
+  DA: link card extended
+  Small DA risk > tiny CP
+    deficit -> vote neg
+2AR (aff):
+  Perm: do both (1AR). No link,
+    so perm is safe
+  No link: plan's cost is
+    offset (1AR)
+  Even if a small DA risk: CP
+    misses half the case (1AR),
+    and that is bigger than the DA
 ```
 
-*How to read it:* the 1AR made a perm on the counterplan. It also said the counterplan misses half the case. This is a **solvency deficit**: a part of the case the counterplan does not solve. On the DA, the 1AR said there is no link because the plan's cost is offset, and that the case outweighs. On T, it said we meet. The 2NR said the counterplan solves most of the case, and that the deficit is tiny. It said it was not going for T, so T is out of the round. It said the perm still links to the DA because the plan still costs money. It extended its DA link card, but it did not answer the 1AR's claim that the cost is offset. It weighed a small DA risk against a tiny counterplan deficit. The 2AR extended the perm and the no-link answer from the 1AR. It said that with no link, the perm is safe. It added "even if" weighing: even with a small DA risk, the counterplan misses half the case, and that deficit is bigger than the DA. The judge must decide two things: whether the perm avoids the DA, and how big the deficit is. If the perm links and the deficit is small, even a small DA risk favors the counterplan.
+*How to read it:* "CP misses half the case" is a **solvency deficit**: a part of the case the counterplan does not solve. The 2NR drops T, so T is out of the round. It extends its DA link card, but it never answers the 1AR's claim that the cost is offset. The 2AR uses only answers the 1AR made. The judge must decide two things: whether the perm avoids the DA, and how big the deficit is. If the perm links and the deficit is small, even a small DA risk favors the counterplan.
 
 ## Common mistakes
 
 - **2NR: going for everything.** Fix: pick one or two arguments and go deep. Say what you are dropping.
-- **2NR: dropping an argument that has aff offense on it.** Fix: answer a link turn or impact turn before you drop the argument, or explain why it does not matter.
+- **2NR: dropping an argument that has aff offense on it.** Fix: answer a link turn or impact turn (the DA's harm is actually good) before you drop the argument, or explain why it does not matter.
 - **2AR: answering arguments the neg did not go for.** Fix: spend your time on what the 2NR chose.
 - **2AR: new arguments.** Fix: extend what the 1AR said. Most judges ignore brand-new 2AR arguments.
-- **1AR: dropping the answer the 2AR needs.** Fix: extend at least one good answer on every sheet, so the 2AR has a path.
+- **1AR: dropping the answer the 2AR needs.** Fix: extend at least one good answer on every sheet (each argument's own page of the flow), so the 2AR has a path.
 - **Both: no weighing.** Fix: say out loud why your argument matters more, with "even if" statements.
 - **Judges: voting on arguments the 2NR or 2AR dropped.** Fix: decide only what the last speeches went for.
 

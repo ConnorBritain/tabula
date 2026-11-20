@@ -29,7 +29,7 @@ The usual practice is simple:
 - **The clock stops** when the team says "Stop prep," or "We are ready."
 - **A team usually takes prep right before its own speech.** It is rare to take prep before the other team's speech.
 
-Many teams share their speech documents (the files of cards they will read) before each speech. Judges differ on how this counts. Some judges stop prep when the team says it is ready and then let the team send the document. Others stop prep only when the document is sent. Many judges say which rule they use in their paradigm. If you do not know, ask. See [Speech docs and email chains](speech-docs.md).
+Many teams share their speech documents before each speech. A speech document is the file of cards (quoted evidence) they will read. Judges differ on how this counts. Some judges stop prep when the team says it is ready, and then let the team send the document. Others stop prep only when the document is sent. Many judges say which rule they use in their paradigm (a short note on how they judge). If you do not know, ask. See [Speech docs and email chains](speech-docs.md).
 
 **Who keeps time.** In most rounds the debaters time themselves and each other. The judge should also keep a record. Under most rules, if the teams disagree, the judge's record decides.
 
@@ -37,18 +37,18 @@ Many teams share their speech documents (the files of cards they will read) befo
 
 Prep is for planning the next speech. Teams use it to:
 
-- choose which arguments to go for and which to drop;
+- choose which arguments to go for (keep pushing) and which to drop;
 - put their answers in order and find the cards they need;
-- write the opening lines of a rebuttal, often the weighing;
+- write the opening lines of a rebuttal (one of the last four speeches), often the weighing: why their side matters more;
 - talk with a partner about the plan for the speech.
 
-Some leagues and judges let a team ask the other team questions during its prep. This is sometimes called using prep as extra cross-ex. Others do not allow it. See [Cross-examination](cross-examination.md).
+Some leagues and judges let a team ask the other team questions during its prep. This is sometimes called using prep as extra cross-ex (question time). Others do not allow it. See [Cross-examination](cross-examination.md).
 
 ## How teams split their prep
 
 There is no single right split. But a few patterns are common, because of how the speeches fall.
 
-**The affirmative** often uses a little prep before the 2AC, more before the 1AR, and saves the most for the 2AR. The 1AR is short and must answer the whole negative block, so it needs planning. The 2AR is the last speech, and good prep there can win the round.
+**The affirmative** often uses a little prep before the 2AC, more before the 1AR, and saves the most for the 2AR. The 1AR is short and must answer the whole negative block (the 2NC and 1NR, two neg speeches in a row), so it needs planning. The 2AR is the last speech, and good prep there can win the round.
 
 **The negative** often uses little or no prep before the 2NC. The 1NR speaker can prepare during the 2NC and its cross-ex, without using the clock. Most neg teams save the largest share for the 2NR, because the 2NR must choose what to go for.
 
@@ -76,20 +76,21 @@ Many judges see stealing prep as unfair, and some lower speaker points for it. N
 
 ## Example in flow shorthand
 
-A judge's prep record for one round, with 8 minutes per team. The judge writes the time used before each speech and the time left.
+A judge's prep record for one round, with 8 minutes per team. Each row is the prep used right before that speech, then the time left. "-" means it was not that team's speech.
 
 ```
-Speech   Aff used   Aff left   Neg used   Neg left
-1NC      -          8:00       0:30       7:30
-2AC      1:00       7:00       -          7:30
-2NC      -          7:00       0:00       7:30
-1NR      -          7:00       0:00       7:30
-1AR      3:00       4:00       -          7:30
-2NR      -          4:00       5:00       2:30
-2AR      4:00       0:00       -          2:30
+Before   AFF          NEG
+         used  left   used  left
+1NC      -     8:00   0:30  7:30
+2AC      1:00  7:00   -     7:30
+2NC      -     7:00   0:00  7:30
+1NR      -     7:00   0:00  7:30
+1AR      3:00  4:00   -     7:30
+2NR      -     4:00   5:00  2:30
+2AR      4:00  0:00   -     2:30
 ```
 
-*How to read it:* each row is the prep used right before that speech. The neg used 30 seconds before the 1NC and none before the 2NC or 1NR. It spent 5 minutes before the 2NR and ended with 2:30 unused. The aff used 1 minute before the 2AC, 3 minutes before the 1AR, and its last 4 minutes before the 2AR. The aff ended at 0:00, so it had no prep left at the end of the round.
+*How to read it:* the aff saved its last 4 minutes for the 2AR and ended at 0:00; the neg saved 5 for the 2NR and ended with 2:30 unused.
 
 ## Common mistakes
 

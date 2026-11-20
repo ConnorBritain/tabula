@@ -4,7 +4,7 @@ slug: permutations
 description: "A permutation (perm) is the aff's test of whether a counterplan really competes. Learn perm do both, perm do the counterplan, severance, and how judges decide."
 section: Counterplans
 level: intermediate
-reading_time: 8
+reading_time: 7
 related: [counterplans, competition, net-benefits, counterplan-text, common-theory, kritiks]
 updated: 2026-11-20
 ---
@@ -26,7 +26,7 @@ The perm usually wins or loses on the **net benefit**: the reason the counterpla
 | Perm | What it imagines | How it is seen |
 |---|---|---|
 | **Perm do both** | The whole plan and the whole counterplan together | The standard perm. Rarely disputed as a form. |
-| **Perm do the plan and part of the CP** | The whole plan plus some parts of the counterplan | Common against counterplans with several planks. |
+| **Perm do the plan and part of the CP** | The whole plan plus some parts of the counterplan | Common against counterplans with several planks (separate steps). |
 | **Perm do the counterplan** | The counterplan is one way to do the plan | Often disputed. See below. |
 | **Severance perm** | A perm that drops part of the plan | Its fairness is debated. |
 | **Intrinsic perm** | A perm that adds something in neither text | Its fairness is debated. |
@@ -68,7 +68,7 @@ Many judges treat the perm as a test unless the teams argue otherwise. Some judg
 
 ## Perms against kritik alternatives
 
-The aff can also perm a kritik's **alternative**: the different approach a kritik offers instead of the plan. The perm says, "Do the plan and the alternative together." The neg often answers that the plan's way of thinking undercuts the alternative, so the two cannot be combined well.
+The aff can also perm a **kritik** (an argument that the ideas behind the plan are harmful). A kritik has an **alternative**: the different approach it offers instead of the plan. The perm says, "Do the plan and the alternative together." The neg often answers that the plan's way of thinking undercuts the alternative, so the two cannot be combined well.
 
 Teams debate how far perms apply here. Some argue that an alternative that is not a policy cannot be permed the same way. Others argue that the same test of competition applies. See [Kritiks](kritiks.md) and [The alternative](kritik-alternative.md).
 
@@ -94,16 +94,28 @@ Teams debate how far perms apply here. Some argue that an alternative that is no
 
 ## Example in flow shorthand
 
+Each group follows one argument through the round. Key: "CP" means counterplan, "NB" means net benefit, and "fed" means federal.
+
 ```
-1NC                       2AC                       2NR                       2AR
-CP: states fund X         1. Perm do both           Perm links to DA: it      Plan's cost is
-NB: Spending DA                                        keeps the fed cost        small; DA risk
-                                                                                 is tiny
-                          2. Perm do the CP         Severs the fed agent:     (not extended)
-                                                       reject the perm
+THE COUNTERPLAN
+1NC: CP: states fund X
+     NB: Spending DA
+
+PERM 1
+2AC: 1. Perm do both
+2NR: Perm links to DA: it keeps
+     the fed cost
+2AR: Plan's cost is small; DA
+     risk is tiny
+
+PERM 2
+2AC: 2. Perm do the CP
+2NR: Severs the fed agent:
+     reject the perm
+2AR: (not extended)
 ```
 
-*How to read it:* the 2AC made two perms. The 2NR argued that "perm do the CP" severs the plan's federal actor, so the judge should reject that perm. The 2AR did not extend that perm, so it is out of the round. That leaves "perm do both." The 2NR said it keeps the federal cost, so it links to the DA. The 2AR did not deny the link. It argued the cost is small. If the perm links, the counterplan competes. This flow shows no solvency deficit, so even a small risk of the DA can favor the neg. The judge decides how big that risk is.
+*How to read it:* "perm do the CP" is out of the round, so only "perm do both" is left. The 2AR did not deny that it links to the DA. If the perm links, the counterplan competes. This flow shows no solvency deficit, so even a small risk of the DA can favor the neg. The judge decides how big that risk is.
 
 ## Common mistakes
 

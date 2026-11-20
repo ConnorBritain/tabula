@@ -4,7 +4,7 @@ slug: topicality-interpretation
 description: "The interpretation says what a word in the resolution means. The violation shows how the plan falls outside it. Learn how to write, prove and answer both."
 section: Topicality
 level: intermediate
-reading_time: 7
+reading_time: 8
 related: [topicality, topicality-standards, topicality-voters, effects-and-extra-topicality, cross-examination]
 updated: 2026-11-20
 ---
@@ -15,9 +15,9 @@ updated: 2026-11-20
 
 ## Where these two parts fit
 
-A T argument has four parts: interpretation, violation, standards and voters. This page covers the first two. Standards say why one meaning is better for debate. See [Standards](topicality-standards.md). Voters say why T should decide the round. See [Voters](topicality-voters.md). For the whole argument in one place, see [Topicality](topicality.md).
+A T argument has four parts: interpretation, violation, standards and voters. This page covers the first two. The interpretation sets a line. The violation shows the plan is on the wrong side of that line.
 
-The interpretation and the violation do different jobs. The interpretation sets a line. The violation shows the plan is on the wrong side of that line.
+The other two parts come later. [Standards](topicality-standards.md) say why one meaning is better for debate. [Voters](topicality-voters.md) say why T should decide the round. For the whole argument in one place, see [Topicality](topicality.md).
 
 ## The interpretation
 
@@ -94,26 +94,48 @@ Use the definitions the teams read. Do not bring your own meaning of the word in
 
 ## Example in flow shorthand
 
-A generic T argument on the word "increase." Only the first three rows are shown.
+A generic T argument on the word "increase." Only the first three rows are shown. Each group follows one row through the speeches. The **block** is the neg's two speeches in a row: the 2NC and the 1NR.
+
+Key: "$" = money, "B" = billion, "prog" = program, "->" = "leads to", "ev" = evidence, "CX" = cross-ex. "Legal Dict" and "Field Expert 20" are invented sources.
 
 ```
-1NC                      2AC                       Block                      1AR
 T: "increase"
-Interp: increase =       1. We meet: plan adds     Adds to B only by          Plan text has no
-   net rise in total        $2B to prog B             cutting A -> total         cut to A; we meet
-   (Legal Dict)                                       is flat
-Violation: plan moves    2. CI: increase = any     CI ev has no intent to     Field ev is in
-   $ from prog A to B       rise in one program       define; it only uses       topic context;
-   -> no net rise           (Field Expert 20)         the word                   predictable
-                         3. Look only at the       CX: 2A said plan funds     (no answer)
-                            plan text                 B "by cutting A"
+
+-- Row 1: we meet --
+1NC    Interp: increase = net rise
+       in total (Legal Dict)
+2AC    We meet: plan adds $2B to
+       prog B
+Block  Adds to B only by cutting
+       A -> total is flat
+1AR    Plan text has no cut to A;
+       we meet
+
+-- Row 2: counter-interpretation --
+1NC    Violation: plan moves $
+       from prog A to B
+       -> no net rise
+2AC    CI: increase = any rise in
+       one program
+       (Field Expert 20)
+Block  CI ev has no intent to
+       define; it only uses the
+       word
+1AR    Field ev is in topic
+       context; predictable
+
+-- Row 3: plan text only --
+2AC    Look only at the plan text
+Block  CX: 2A said plan funds B
+       "by cutting A"
+1AR    (no answer)
 ```
 
-*How to read it:* the neg's violation is that the plan only moves money, so the total does not rise. The 2AC makes a we meet, a counter-interpretation, and a claim that the judge should look only at the plan text. The block answers all three: the money for program B comes from cutting program A, the CI card does not intend to define, and the second affirmative speaker (the 2A) said in cross-ex that the plan funds B "by cutting A." The 1AR answers the first two rows but not the third. So the 2NR can use the aff's own cross-ex answer as proof of the violation, if the judge agrees that cross-ex answers count.
+*How to read it:* the neg says the plan only moves money, so the total does not rise. The block answers all three 2AC arguments. The 1AR answers the first two rows but not the third. In cross-ex, the second affirmative speaker (the 2A) said the plan funds B "by cutting A." So the 2NR can use that answer as proof of the violation, if the judge agrees that cross-ex answers count.
 
 ## Common mistakes
 
-- **Neg: a definition that only uses the word.** Fix: find a source that is trying to define it, and say so in your tag.
+- **Neg: a definition that only uses the word.** Fix: find a source that is trying to define it, and say so in your tag (the card's one-line summary).
 - **Neg: an interpretation with no clear line.** Fix: state the rule in one sentence, so the judge can test any plan against it.
 - **Neg: a violation that is assumed, not proven.** Fix: point to the plan text, an aff card, or a cross-ex answer.
 - **Aff: a counter-interpretation the plan does not meet.** Fix: check your CI against your own plan text before the round.

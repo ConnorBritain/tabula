@@ -4,9 +4,9 @@ slug: evidence-and-cards
 description: "Debate evidence comes as cards: a tag, a cite and a quote. Learn how cards are built, how to cut them fairly, what clipping is, and how to ask for evidence."
 section: The round
 level: beginner
-reading_time: 7
+reading_time: 6
 related: [debate-101, how-to-flow, speech-docs, round-conduct, cross-examination]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # Evidence and cards
@@ -18,15 +18,27 @@ updated: 2026-11-19
 An invented example:
 
 ```
-Tag:  The plan saves money within three years.
-Cite: Analyst 21 — Pat Analyst, budget researcher, "Cost Review of
-      New Programs," Policy Journal, March 2021. [page or URL]
-Text: ...EARLY COSTS ARE REAL, but our review found that programs of
-      this kind MAY RETURN MORE THAN THEY SPEND BY THE THIRD YEAR,
-      MAINLY THROUGH LOWER EMERGENCY COSTS...
+TAG:
+The plan saves money within
+three years.
+
+CITE:
+Analyst 21 — Pat Analyst,
+budget researcher, "Cost Review
+of New Programs," Policy
+Journal, March 2021.
+[page or URL]
+
+TEXT:
+...EARLY COSTS ARE REAL, but
+our review found that programs
+of this kind MAY RETURN MORE
+THAN THEY SPEND BY THE THIRD
+YEAR, MAINLY THROUGH LOWER
+EMERGENCY COSTS...
 ```
 
-(Capital letters show the part the debater reads out loud. In a real speech document, the read part is underlined and highlighted.)
+(Capital letters show the part the debater reads out loud. In a real speech document, the file of cards a team shares, the read part is underlined and highlighted.)
 
 | Part | What it is | Why it matters |
 |---|---|---|
@@ -34,7 +46,7 @@ Text: ...EARLY COSTS ARE REAL, but our review found that programs of
 | **Cite** | Author, date, qualifications, source, page or link | Lets anyone find and check the source. Shows if the author is an expert. |
 | **Text** | The quote, unchanged | The real evidence. The tag must match it. |
 
-On the flow, debaters usually write the author's last name and the year: "Analyst 21."
+On the flow (the notes everyone takes during the round), debaters usually write the author's last name and the year: "Analyst 21."
 
 ## Underlining and highlighting
 
@@ -74,22 +86,33 @@ Clipping is cheating, because the judge and the other team think more evidence w
 - **In cross-ex,** you can ask, "Which card says that?" or "Can I see that card?"
 - **After the round,** a judge can ask to read specific cards. This is common when a card is central to the decision. The judge should read what was *read in the round* (the highlighted parts), not the parts that were skipped.
 
-Judges: evidence helps, but the debaters' explanation matters most. A great card that no one explains is weaker than a good card that a debater explains well. Many judges say this in their paradigms.
+Judges: evidence helps, but the debaters' explanation matters most. A great card that no one explains is weaker than a good card that a debater explains well. Many judges say this in their paradigms (short notes on how they judge).
 
 ## Example in flow shorthand
 
-A debate about one card: does the evidence say what the tag says?
+A debate about one card: does the evidence say what the tag says? "Adv" means advantage (a good result of the plan). "ev" means evidence, "$" means money, and "->" means "so".
 
 ```
-1AC                     1NC                       2AC                     2NR
-Adv: Savings            1. Analyst ev says        "May" is still a        Their own card reads
-Plan saves $            "may" - not certain       real chance: a study    "early costs are
-(Analyst 21)            2. Ev predates new law    of past programs        real" -> cuts happen
-                                                  3. Law changed          now, before savings
-                                                  nothing on costs
+1AC:
+  Adv: Savings
+  Plan saves $ (Analyst 21)
+1NC:
+  1. Analyst ev says "may"
+    - not certain
+  2. Ev predates new law
+2AC:
+  1. "May" is still a real
+    chance: a study of past
+    programs
+  2. Law changed nothing on
+    costs
+2NR:
+  Their own card reads "early
+    costs are real" -> cuts
+    happen now, before savings
 ```
 
-*How to read it:* the neg attacks the aff's card, not the claim alone. It says the card hedges ("may") and is old. The 2AC defends "may" and says the new law did not change costs. The 2NR then uses a line the aff read out loud from its own card: early costs are real.
+*How to read it:* the neg attacks the card itself, and the 2NR turns a line the aff read out loud against the aff.
 
 ## Common mistakes
 

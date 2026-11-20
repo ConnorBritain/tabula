@@ -17,7 +17,7 @@ updated: 2026-11-20
 
 A judge can only vote on what they understand. The best argument in the round does not help you if the judge did not catch it. Adapting is how you make sure your best arguments reach the judge.
 
-It is also a real skill. Outside debate, you will need to persuade people with different backgrounds: a teacher, a boss, a city council. Debate gives you practice with many kinds of listeners.
+It is also a real skill. Outside debate, you will persuade people with different backgrounds: a teacher, a boss, a city council. Debate gives you practice with many kinds of listeners.
 
 ## Step 1: Read the paradigm
 
@@ -26,8 +26,8 @@ A **paradigm** is a judge's short note on how they decide. Many judges post one 
 - **speed:** how fast they can follow;
 - **defaults:** what they do if no one argues a point, such as how to weigh impacts;
 - **argument views:** how they feel about topicality, counterplans, kritiks and theory;
-- **lines:** behavior they will punish, such as rudeness or stealing prep;
-- **the email chain:** whether they want the speech docs.
+- **lines:** behavior they will punish, such as rudeness or stealing prep (taking planning time you were not given);
+- **the email chain:** whether they want the speech docs (the files of evidence each team reads from).
 
 See [Judge paradigms](judge-paradigms.md) for the common types, and [Writing a paradigm](writing-a-paradigm.md) for what judges are asked to include.
 
@@ -52,7 +52,7 @@ You can change many things without changing your arguments.
 | **Speed** | Normal talking pace | Faster, if they say so, but always clear |
 | **Words** | Plain words; explain each term once | Shorthand terms are fine |
 | **Number of arguments** | Fewer, stronger arguments | More, if you can cover them well |
-| **Explanation** | Tell a simple story: problem, plan, result | Focus on the key clash and the warrants |
+| **Explanation** | Tell a simple story: problem, plan, result | Focus on the key clash and the warrants (the reasons behind each claim) |
 | **Weighing** | Say in plain words why your side matters more | Use impact calculus terms and compare directly |
 | **Evidence** | Explain what each card proves in your own words | Point to key lines in the card |
 
@@ -102,23 +102,31 @@ You can still run the arguments you believe in. Adaptation is about how you pres
 The same 2AC answer to a spending disadvantage, given two ways. The first is for a judge who wants it plain. The second is for an experienced judge who can follow fast speech.
 
 ```
-Plain-judge version                       Experienced-judge version
-"Their argument says the plan costs       1. L/T: plan saves $ by yr 3
-too much money. But our evidence shows       (Author 22)
-the plan saves money by year three
-(Author 22). So it does not take money
-away from schools."
-"Even if it did cost money, our plan      2. Case outweighs: lives now >
-helps people right away, and that            budget risk later
-matters more than a budget risk later."
+Plain-judge version:
+"Their argument says the plan
+costs too much money. But our
+evidence shows the plan saves
+money by year three (Author 22).
+So it does not take money away
+from schools."
+"Even if it did cost money, our
+plan helps people right away, and
+that matters more than a budget
+risk later."
+
+Experienced-judge version:
+1. L/T: plan saves $ by yr 3
+   (Author 22)
+2. Case outweighs: lives now >
+   budget risk later
 ```
 
-*How to read it:* both versions make the same two answers. The first answer is a link turn: the plan saves money by year three, from the Author 22 card. The second answer is weighing: the case helps people now, which matters more than a later budget risk. The plain version uses full sentences and states the argument in plain words, without the label "link turn." The experienced version uses numbers and shorthand. The arguments do not change. Only the way they are said changes.
+*How to read it:* both versions make the same two answers. The first is a link turn (L/T): the plan saves money ($) by year three, from the Author 22 card. The second is weighing: helping people now matters more than (>) a later budget risk. The plain version uses full sentences and skips the label "link turn." The arguments do not change. Only the way they are said changes.
 
 ## Common mistakes
 
 - **Not reading the paradigm.** Fix: read it before every round, even for a judge you have had before. Paradigms change.
-- **Talking down to a lay judge.** Fix: be clear, not condescending. Explain once, briefly, and move on.
+- **Talking down to a lay (non-expert) judge.** Fix: be clear, not condescending. Explain once, briefly, and move on.
 - **Ignoring "clear" or "slow."** Fix: change your pace right away.
 - **Running too many arguments for the judge.** Fix: cut to the strongest few, and explain them well.
 - **Changing your argument's substance to please the judge.** Fix: change how you present it, not what is true.

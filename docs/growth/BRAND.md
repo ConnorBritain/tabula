@@ -49,7 +49,8 @@ Why: A is the right end state. But a hub page with one product is weak. And the 
   - "Forensics" can still appear in coach-facing copy and search keywords, because coaches and leagues use it.
 - **Format names are not brands.** PF, LD, Policy, Extemp and Congress are modes or pages inside a product line, never their own brand or app.
 - **Editions stay as editions, not brands:** judge edition, student edition, coach edition. They live inside each product line.
-- **Byline:** "Made by Connor England" stays on every product. Legal entity on legal pages: Pattern Engine LLC.
+- **Footer line:** "© <year> Tabula Speech" on every product, with the year from the device clock. The About page adds the legal seller: "© <year> Tabula Speech · Pattern Engine LLC". Legal entity on legal pages: Pattern Engine LLC. Connor's own story stays in the About page body. (CHANGED 2026-11-20, owner request: drop the byline and show the parent brand's copyright. Old text: "Byline: 'Made by Connor England' stays on every product.")
+- **Product name by the mark:** the app header shows the full product name ("Tabula Debate"), never a bare "Tabula", so a judge can tell which product is open. At run time the name comes from one place, assets/brand.js. The HTML holds the same words as a no-script fallback next to each `data-brand-*` attribute, so a name change edits both (brand-footer-start.test.mjs checks they agree). (Added 2026-11-20, owner request.)
 
 ### Trademark check (do this before spending on the brand)
 

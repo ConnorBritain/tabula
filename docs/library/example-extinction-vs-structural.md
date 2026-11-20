@@ -4,7 +4,7 @@ slug: example-extinction-vs-structural
 description: "How to weigh a very large harm that may be unlikely against a harm happening now, as each team argues: each side's case, the framing, and how judges decide."
 section: Timeless examples
 level: advanced
-reading_time: 9
+reading_time: 8
 related: [impact-calculus, impacts, turns-case, framework, kritiks, examples]
 updated: 2026-11-20
 ---
@@ -74,28 +74,50 @@ If you are judging, use the weighing the teams argued, not your own preference. 
 
 ## Example in flow shorthand
 
-The aff's advantage reduces unequal access to health care. The neg's DA says the plan's cost causes an economic shock that leads to a large war.
+The aff's advantage reduces unequal access to health care. The neg's DA says the plan's cost causes an economic shock that leads to a large war. The 2AC is the second aff speech; the 2NR and 2AR are the last neg and aff speeches. Key: Mag = magnitude, Prob = probability, FW = framework (here, the rule for weighing), Ext = extend, x = times, -> = leads to.
 
 ```
-2AC                       2NR                       2AR
-Case: unequal care        Mag: shock -> war ->      Prob: 4 "could" steps;
-   access -> preventable     extinction; ends all      risk is near zero
-   deaths now, daily         lives (Analyst 21)
-                          Irreversible: no          Ongoing: deaths add up
-                             recovery after            every year; real now
-                             extinction
-FW: probability first;    Low risk is not zero;     Ext FW: a tiny risk is a
-   tiny risks are            risk x size still         guess; 2NR gave no
-   guesses                   wins                      number for the risk
-Case turns DA: unequal    Unrest card is about      Ext case turns DA
-   care fuels unrest         unrest, not war           (no answer to "not
-   (Scholar 20)                                        war")
-                          Extinction turns case:    Their turn needs the DA:
-                             no one is left to         a near-zero risk
-                             help                      turns nothing
+ROW 1: THE IMPACTS
+2AC: Case: unequal care access
+  -> preventable deaths now,
+  daily
+2NR: Mag: shock -> war ->
+  extinction; ends all lives
+  (Analyst 21)
+2AR: Prob: 4 "could" steps;
+  risk is near zero
+
+ROW 2: MORE WEIGHING
+2NR: Irreversible: no recovery
+  after extinction
+2AR: Ongoing: deaths add up
+  every year; real now
+
+ROW 3: THE FRAMING
+2AC: FW: probability first;
+  tiny risks are guesses
+2NR: Low risk is not zero;
+  risk x size still wins
+2AR: Ext FW: a tiny risk is a
+  guess; 2NR gave no number
+  for the risk
+
+ROW 4: CASE TURNS DA
+2AC: Case turns DA: unequal care
+  fuels unrest (Scholar 20)
+2NR: Unrest card is about
+  unrest, not war
+2AR: Ext case turns DA (no
+  answer to "not war")
+
+ROW 5: DA TURNS CASE
+2NR: Extinction turns case: no
+  one is left to help
+2AR: Their turn needs the DA: a
+  near-zero risk turns nothing
 ```
 
-*How to read it:* the 2AC extends the case impact: unequal access to care causes preventable deaths now. It argues probability should come first, and that the case turns the DA because unequal care fuels unrest. The 2NR weighs magnitude and irreversibility. It answers the framing: a low risk is not zero, so risk times size still wins. It says the unrest card is about unrest, not war. It adds its own turn: extinction leaves no one to help. The 2AR weighs probability and timeframe. It says the DA chain has four "could" steps, and that the 2NR gave no number for the risk. It extends the case turn, but it never answers that the card is about unrest, not war. It answers the neg's turn: that turn needs the DA to happen, and a near-zero risk turns nothing. So each side has a gap. The neg is ahead on the case turn, because the "not war" answer stands. The aff is ahead on the size of the risk, because the neg never put a number on it. The framing decides the round: under probability first the aff is likely ahead, and under risk times size the neg is likely ahead.
+*How to read it:* each side has a gap. The 2AR never answers that the unrest card is about unrest, not war, so the neg is ahead on the case turn. The 2NR never put a number on the risk, so the aff is ahead on the size of the risk. The framing decides the round: under probability first the aff is likely ahead, and under risk times size the neg is likely ahead.
 
 ## Common mistakes
 
