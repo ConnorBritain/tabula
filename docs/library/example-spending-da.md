@@ -4,7 +4,7 @@ slug: example-spending-da
 description: "The spending or trade-off DA says the plan's cost forces cuts to something else. Learn its shape, the usual 2AC answers, a sample flow, and how it is judged."
 section: Timeless examples
 level: intermediate
-reading_time: 7
+reading_time: 6
 related: [examples, disadvantages, uniqueness, internal-links, answering-disadvantages, counterplans]
 updated: 2026-11-20
 ---
@@ -70,24 +70,48 @@ For other DA shapes like this one, see [Common DA shapes](common-disadvantages.m
 
 ## Example in flow shorthand
 
-A generic trade-off version. The middle speeches are left out to save space.
+A generic trade-off version. The middle speeches are left out to save space. Each block is one part of the DA, with each speech's line on it, top to bottom. Key: "N/U" means non-unique, "IL" means internal link, "$" means money, "$20B" means $20 billion, "=" means "is", and "->" means "leads to". Names in parentheses are invented cards.
 
 ```
-1NC                    2AC                     2NR                     2AR
-DA: Spending trade-off
-U: agency budget is    1. N/U: budget grows    Fixed this year;        Plan starts next
-   fixed this year        every year anyway       growth is next year     year, when $ grows
-   (Analyst 21)
-L: plan costs $20B     2. No link: plan is     Normal means = this     Normal means: new
-   from same budget       paid by normal          budget; no new $ in     programs get new $
-                          means, not cuts         plan text
-IL: other programs     3. No IL: agency can    Requests take a year;   (no answer)
-   lose funds             ask for more            cuts come first
-I: food aid cut ->     4. Case outweighs       DA is sure and fast;    Case helps more
-   hunger                                         case is slow            people
+DA: SPENDING TRADE-OFF
+
+UNIQUENESS
+1NC: Agency budget is fixed this
+     year (Analyst 21).
+2AC: 1. N/U: budget grows every
+     year anyway.
+2NR: Fixed this year; growth is
+     next year.
+2AR: Plan starts next year, when
+     $ grows.
+
+LINK
+1NC: Plan costs $20B from same
+     budget.
+2AC: 2. No link: plan is paid by
+     normal means, not cuts.
+2NR: Normal means = this budget;
+     no new $ in plan text.
+2AR: Normal means: new programs
+     get new $.
+
+INTERNAL LINK
+1NC: Other programs lose funds.
+2AC: 3. No IL: agency can ask for
+     more.
+2NR: Requests take a year; cuts
+     come first.
+2AR: (no answer)
+
+IMPACT
+1NC: Food aid cut -> hunger.
+2AC: 4. Case outweighs.
+2NR: DA is sure and fast; case is
+     slow.
+2AR: Case helps more people.
 ```
 
-*How to read it:* on uniqueness, the 2AC says the budget grows every year anyway. The 2NR says the budget is fixed this year, and growth comes next year. The 2AR replies that the plan starts next year, when the money grows. On the link, the 2AC says normal means pays for the plan, not cuts. The 2NR says normal means is this same budget, because the plan text names no new money. The 2AR says normal means gives new programs new money. On the internal link, the 2AC says the agency can ask for more. The 2NR says requests take a year, so cuts come first. The 2AR does not answer that. On the impact, the 2NR says the DA is sure and fast, and the case is slow. The 2AR says the case helps more people. The judge must decide two things. When does the plan start? And what does "normal means" include?
+*How to read it:* the 2AR does not answer "cuts come first" on the internal link. The judge must decide two things. When does the plan start? And what does "normal means" include?
 
 ## Common mistakes
 

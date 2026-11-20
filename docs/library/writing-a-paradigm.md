@@ -28,7 +28,7 @@ Most debaters skim a paradigm in a minute or two, often just before the round. T
 1. **Speed.** How fast can you follow? "Please speak at a normal talking pace" is clear. So is "Fast is fine if you are clear."
 2. **Defaults.** What do you do when the teams do not argue a point? For example: "If no one tells me how to weigh, I compare the size and the chance of each impact." New judges can say "I have no set defaults. Please tell me how to decide."
 3. **Argument views.** How do you feel about the big argument types: topicality, counterplans, kritiks and theory? It is fine to say "I am new to these. Explain them in plain words."
-4. **Lines you will not cross.** Rudeness, unsafe behavior, clipping, new arguments in the last speeches. Say what you will do: lower points, or report it.
+4. **Lines you will not cross.** Rudeness, unsafe behavior, clipping (skipping words of evidence while claiming to read them), new arguments in the last speeches. Say what you will do: lower points, or report it.
 
 ## Other useful parts
 
@@ -40,7 +40,7 @@ Most debaters skim a paradigm in a minute or two, often just before the round. T
 
 ## Be honest
 
-The most useful paradigm is an honest one. If you are new, say so. If you cannot follow fast speech, say so. If you lean one way on a big question, such as kritiks or conditionality, say so, and say whether you can still be persuaded.
+The most useful paradigm is an honest one. If you are new, say so. If you cannot follow fast speech, say so. If you lean one way on a big question, such as kritiks or conditionality (whether the neg may drop its counterplan later), say so, and say whether you can still be persuaded.
 
 Do not try to sound like an expert. Debaters adapt better to a true picture than to a flattering one. A parent judge who writes "I want clear, slow speeches and a simple story" will get exactly that from good teams.
 
@@ -60,53 +60,88 @@ Both are invented. Use them as a starting point, and change them to fit you.
 A new parent judge:
 
 ```
-Background: parent judge, first season.
-Speed: please speak at a normal talking pace. If I cannot follow, I
-will say "clear" or "slow."
-How I decide: from my notes of what you said. I do not vote on my own
-views of the topic. Tell me what the most important issue is and why
-you win it.
-Arguments: I am new to topicality, counterplans and kritiks. If you
-run one, explain it in plain words and tell me why it matters.
-Lines: be respectful. I will lower points for rudeness.
-Email chain: yes, please add me (address on my judge card).
+Background: parent judge, first
+season.
+Speed: please speak at a normal
+talking pace. If I cannot follow,
+I will say "clear" or "slow."
+How I decide: from my notes of
+what you said. I do not vote on
+my own views of the topic. Tell
+me what the most important issue
+is and why you win it.
+Arguments: I am new to
+topicality, counterplans and
+kritiks. If you run one, explain
+it in plain words and tell me
+why it matters.
+Lines: be respectful. I will
+lower points for rudeness.
+Email chain: yes, please add me
+(address on my judge card).
 ```
 
-An experienced judge:
+An experienced judge. It uses terms that debaters know. A new judge does not need them.
 
 ```
-Background: debated four years; have judged for several seasons.
-Speed: fast is fine if you are clear. Slow down on tags, plan texts
-and theory.
-Defaults: I weigh offense against offense. On topicality, I lean
-toward competing interpretations unless you argue otherwise.
-Arguments: open to all styles. Explain your framework and how I should
-weigh it against the other team's.
-Evidence: I read cards only when the teams disagree about what one
-says. Explanation beats a card read with no explanation.
-Lines: for clipping, slurs or unsafe behavior, I stop the round and
-follow the tournament's rules. New arguments in the 2NR or 2AR will
-not count.
-Email chain: yes (address on my judge card).
+Background: debated four years;
+have judged for several seasons.
+Speed: fast is fine if you are
+clear. Slow down on tags, plan
+texts and theory.
+Defaults: I weigh offense against
+offense. On topicality, I lean
+toward competing interpretations
+unless you argue otherwise.
+Arguments: open to all styles.
+Explain your framework and how I
+should weigh it against the other
+team's.
+Evidence: I read cards only when
+the teams disagree about what one
+says. Explanation beats a card
+read with no explanation.
+Lines: for clipping, slurs or
+unsafe behavior, I stop the round
+and follow the tournament's
+rules. New arguments in the 2NR
+or 2AR will not count.
+Email chain: yes (address on my
+judge card).
 ```
 
 ## Example in flow shorthand
 
 How one paradigm line plays out in a round. The judge's paradigm says: "I use the weighing the teams give me. If no one weighs, I compare size and chance."
 
+The neg runs a **DA** (disadvantage): a chain of steps from the plan to a bad result. "Extended" means the team kept the argument going in a later speech. "->" means "leads to".
+
 ```
-2NR                         2AR                         Judge's note
-DA: recession -> big        Case saves lives now        Only the aff weighed:
-   conflict risk               (sure, smaller)             chance first. Neg did
-                            Chance first: DA chain         not answer. Per my
-                               is long; each step          paradigm, use the aff's
-                               only "could"                weighing
-Link card extended                                      DA = big, low chance.
-                                                           Case = smaller, sure.
-                                                           Chance first -> AFF
+2NR:
+  DA: recession -> big
+    conflict risk
+  Link card extended
+  (no weighing)
+2AR:
+  Case saves lives now
+    (sure, smaller)
+  Chance first: DA chain is
+    long; each step only
+    "could"
+Judge's note:
+  Only the aff weighed:
+    chance first. Neg did not
+    answer.
+  Per my paradigm, use the
+    aff's weighing.
+  DA = big, low chance.
+  Case = smaller, sure.
+  Chance first -> AFF
 ```
 
-*How to read it:* the 2NR claimed a big conflict risk and extended its link card, but it did not weigh. The 2AR claimed a sure but smaller benefit. It weighed on chance: chance should count first, because the DA chain is long and each step only "could" happen. The aff weighed on chance; the neg did not weigh or answer that weighing. So the judge followed the paradigm and used the aff's weighing, not the size-and-chance default. The judge saw the DA as big but unlikely, and the case as smaller but sure. With chance first, the judge voted aff. The RFD should say that a neg weighing argument could have changed the result, and that the default would have applied if no one had weighed.
+*How to read it:* only the aff weighed, so the judge used the aff's weighing (chance first), not the size-and-chance default, and voted aff.
+
+The RFD (reason for decision) should say two things. A neg weighing argument could have changed the result. And the default would have applied if no one had weighed.
 
 ## Common mistakes
 

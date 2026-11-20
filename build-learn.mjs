@@ -23,7 +23,7 @@ export const readingPaths = (tracks) => Object.fromEntries(tracks.filter((t) => 
 // ---------- source files ----------
 
 // Pages are Markdown files with front matter. Planning docs, LICENSE.md and *.local.md (private) are never published.
-const NOT_PAGES = new Set(['PLAN.md', 'LICENSE.md', 'TRACKS.md']);
+const NOT_PAGES = new Set(['PLAN.md', 'LICENSE.md', 'TRACKS.md', 'READERS.md']);
 export function isPageFile(name) {
   return name.endsWith('.md') && !name.endsWith('.local.md') && !NOT_PAGES.has(name);
 }

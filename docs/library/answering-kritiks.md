@@ -4,7 +4,7 @@ slug: answering-kritiks
 description: "A step-by-step guide to answering a kritik as the affirmative: cross-ex questions, framework, the perm, link and alt answers, case weighing, the 1AR and 2AR."
 section: Kritiks
 level: intermediate
-reading_time: 9
+reading_time: 8
 related: [kritiks, framework-vs-kritik, kritik-links, kritik-alternative, permutations, rebuttal-strategy]
 updated: 2026-11-20
 ---
@@ -122,22 +122,67 @@ For common aff answers to each kritik family, see [Common kritik families](commo
 
 A generic capitalism kritik against an aff that funds grants to reduce poverty.
 
+Key: FW = framework, squo = status quo (the present system), mkt = market, adv = advantage, CX = cross-ex, Ext = extend (carry forward), "DAs to perm" = reasons the perm is worse. Each speech answers the 2AC's points in the same order.
+
 ```
-2AC                      Neg block                 1AR                       2NR                      2AR
-1. FW: weigh plan vs     Weigh the aff's ideas     Ext FW: neg must have     Ideas first; plan is     Even if ideas count,
-   squo or a policy         first                     a policy option           built on mkt logic       case outweighs
-2. Perm: do plan, then   Links are DAs to perm:    Perm: plan is one         Perm still uses mkt;     Perm: plan + alt is
-   alt in other areas       plan uses mkt rewards     small step; alt does      links outweigh           best of both
-                                                      the rest
-3. No link: plan is      CX: grants go to firms    Grants go to public       Ext CX link              (not extended)
-   public grant                                       bodies too
-4. Alt fails: "reject    Alt = refuse mkt logic    Vague: no actor, no       Alt solves root cause    Alt is still vague;
-   cap" has no actor        in every choice           timeline                  of case harms            no one acts
-5. Case outweighs:       K turns case: aid via     (no answer)               Ext: K turns case,       Case still helps
-   adv saves lives now      mkt reaches few                                     dropped by 1AR           people now
+2AC
+  1. FW: weigh plan vs squo or
+     a policy
+  2. Perm: do plan, then alt
+     in other areas
+  3. No link: plan is a public
+     grant
+  4. Alt fails: "reject cap"
+     has no actor
+  5. Case outweighs: adv saves
+     lives now
+
+Neg block
+  1. Weigh the aff's ideas
+     first
+  2. Links are DAs to perm:
+     plan uses mkt rewards
+  3. CX: grants go to firms
+  4. Alt = refuse mkt logic in
+     every choice
+  5. K turns case: aid via mkt
+     reaches few
+
+1AR
+  1. Ext FW: neg must have a
+     policy option
+  2. Perm: plan is one small
+     step; alt does the rest
+  3. Grants go to public
+     bodies too
+  4. Vague: no actor, no
+     timeline
+  5. (no answer)
+
+2NR
+  1. Ideas first; plan is
+     built on mkt logic
+  2. Perm still uses mkt;
+     links outweigh
+  3. Ext CX link
+  4. Alt solves root cause of
+     case harms
+  5. Ext: K turns case,
+     dropped by 1AR
+
+2AR
+  1. Even if ideas count, case
+     outweighs
+  2. Perm: plan + alt is best
+     of both
+  3. (not extended)
+  4. Alt is still vague; no
+     one acts
+  5. Case still helps people
+     now
 ```
 
-*How to read it:* the 2AR goes for framework, the perm and case weighing, with an "even if" on the first row. It does not extend the no link argument on row 3, so the neg's cross-ex link stands. The key problem is row 5. The block said the K turns the case, and the 1AR did not answer. The 2NR points out the drop. The 2AR repeats that the case helps people now, but it never answers the turn directly, and a new answer in the 2AR would be too late for most judges. So the neg is ahead on whether the case still counts. The round likely turns on rows 2 and 5: does the perm work, and how much of the case survives the turn?
+*How to read it:* the 2AR goes for framework, the perm and case weighing, with an "even if" on point 1. It does not extend the no link argument on point 3, so the neg's cross-ex link stands. The key problem is point 5. The block said the K turns the case, and the 1AR did not answer. The 2NR points out the drop. The 2AR repeats that the case helps people now, but it never answers the turn directly, and a new answer in the 2AR would be too late for most judges. So the neg is ahead on whether the case still counts. The round likely turns on points 2 and 5: does the perm work, and how much of the case survives the turn?
 
 ## Common mistakes
 

@@ -4,7 +4,7 @@ slug: example-economy-da
 description: "The economy DA says the plan slows growth, and a weaker economy leads to conflict or other harm. Learn its shape, the usual answers, a sample flow, and judging."
 section: Timeless examples
 level: intermediate
-reading_time: 8
+reading_time: 7
 related: [examples, disadvantages, internal-links, impacts, answering-disadvantages, common-disadvantages]
 updated: 2026-11-20
 ---
@@ -85,23 +85,49 @@ In the neg block (the 2NC and 1NR), the neg usually:
 
 ## Example in flow shorthand
 
-A generic economy DA. The middle speeches are left out to save space.
+A generic economy DA. The middle speeches are left out to save space. Each block is one part of the DA, with each speech's line on it, top to bottom. Key: "N/U" means non-unique, "L/T" means link turn, "IL" means internal link, "ev" means evidence, "Ext" means extend, and "->" means "leads to". Names in parentheses are invented cards.
 
 ```
-1NC                     2AC                     2NR                     2AR
-DA: Economy
-U: growth steady now    1. N/U: slowdown        Slowdown ev predates    Still weak; new
-   (Analyst 22)            coming (Author 21)      new jobs data           data is one month
-L: plan raises costs    2. L/T: plan creates    Jobs are short-term;    Ext L/T: jobs last
-   -> firms hire less      jobs in building        costs are lasting       past the build
-IL: small shock tips    3. No IL: economy is    Fragile now: low        (no answer)
-   a fragile economy       resilient               reserves
-I: decline -> conflict  4. No impact: hard      Ext 1NC impact          Ext no impact: hard
-                           times don't cause                               times don't cause
-                           war (Expert 20)                                 war
+DA: ECONOMY
+
+UNIQUENESS
+1NC: Growth steady now
+     (Analyst 22).
+2AC: 1. N/U: slowdown coming
+     (Author 21).
+2NR: Slowdown ev predates new
+     jobs data.
+2AR: Still weak; new data is one
+     month.
+
+LINK
+1NC: Plan raises costs -> firms
+     hire less.
+2AC: 2. L/T: plan creates jobs in
+     building.
+2NR: Jobs are short-term; costs
+     are lasting.
+2AR: Ext L/T: jobs last past the
+     build.
+
+INTERNAL LINK
+1NC: Small shock tips a fragile
+     economy.
+2AC: 3. No IL: economy is
+     resilient.
+2NR: Fragile now: low reserves.
+2AR: (no answer)
+
+IMPACT
+1NC: Decline -> conflict.
+2AC: 4. No impact: hard times
+     don't cause war (Expert 20).
+2NR: Ext 1NC impact.
+2AR: Ext no impact: hard times
+     don't cause war.
 ```
 
-*How to read it:* on uniqueness, the 2AC says a slowdown is coming anyway. The 2NR says that evidence is older than new jobs data. The 2AR says the economy is still weak, and the new data is only one month. On the link, the 2AC reads a link turn: the plan creates building jobs. The 2NR says those jobs are short-term, but the costs last. The 2AR extends the link turn and says the jobs last past the building phase. On the internal link, the 2AC says the economy is resilient. The 2NR says it is fragile now, because reserves are low, and the 2AR does not answer that. On the impact, the 2AC reads impact defense. The 2NR only extends the 1NC impact. The 2AR extends the impact defense. The judge must decide the link turn first, and then how much the impact defense lowers the risk of conflict.
+*How to read it:* on the internal link, the 2AR never answers the 2NR's "fragile now: low reserves," so that point stands. On the impact, the 2NR only extends the 1NC impact, and the 2AR extends the impact defense. The judge must decide the link turn first, and then how much the impact defense lowers the risk of conflict.
 
 ## Common mistakes
 

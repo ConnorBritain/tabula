@@ -4,7 +4,7 @@ slug: example-t-substantial
 description: "T \"substantial\" asks if the plan does enough to count, and \"its\" asks if the action belongs to the actor. Learn interps, we meets, counter-interps and judging."
 section: Timeless examples
 level: intermediate
-reading_time: 9
+reading_time: 8
 related: [topicality, topicality-interpretation, topicality-standards, topicality-voters, effects-and-extra-topicality, examples]
 updated: 2026-11-20
 ---
@@ -68,7 +68,7 @@ Teams argue which baseline is fair. The neg often says the whole topic area is t
 
 **Standards.** The neg usually leads with **limits**: if small plans count, there are thousands of possible pilots and narrow changes, and the neg cannot prepare for them. The aff answers that the neg's meaning **overlimits**: only a few large bills meet it, so the topic gets stale. The aff also argues **precision** and **predictability**: no expert source gives one number, so a number is not predictable. See [Standards](topicality-standards.md).
 
-**Reasonability.** Reasonability is common in these debates. It asks only whether the aff's meaning is good enough. The aff argues that a vague word cannot support a fine line, so a plan that is reasonably big should be topical. The neg answers that "good enough" is itself vague, and that competing interpretations give a clearer test. See [Voters](topicality-voters.md).
+**Reasonability.** Reasonability is common in these debates. It asks only whether the aff's meaning is good enough. The aff argues that a vague word cannot support a fine line, so a plan that is reasonably big should be topical. The neg answers that "good enough" is itself vague, and that **competing interpretations** (the judge picks the better of the two meanings) give a clearer test. See [Voters](topicality-voters.md).
 
 ## "Its" and other ownership limits
 
@@ -95,28 +95,55 @@ Ownership debates often overlap with **effects** questions. If the plan only cau
 
 ## Example in flow shorthand
 
-A generic T "substantially" debate. The plan funds a pilot program in five cities. The block and 1AR are left out.
+A generic T "substantially" debate. The plan funds a pilot program in five cities. The block and 1AR are left out. Each block is one part of T, with each speech's line on it, top to bottom. Key: "Interp" means interpretation, "CI" means counter-interpretation, "fed" means federal, "<1%" means less than 1%, "Ext" means extend, and "=" means "is". Names in parentheses are invented cards.
 
 ```
-1NC                     2AC                     2NR                     2AR
-T: "substantially"
-Interp: substantial =   1. We meet: pilot =     15% of one small        Ext we meet: 15% of
-   large in size, not      15% rise in fed         program; <1% of all     the program the plan
-   a test program          support for X           fed support for X       changes is real size
-   (Legal Dict 19)
-Violation: plan is a    2. CI: substantial =    CI has no line: any     Context is the line:
-   pilot in 5 cities       important in its        pilot counts            field calls this a
-                           context (Field                                  major change
-                           Expert 21)
-Standard: limits:       3. Overlimits: only     (no answer)             Ext: overlimits
-   1000s of small          3 big bills meet                                dropped; neg interp
-   pilots                  the neg interp                                  leaves 3 affs
-Voters: fairness,       4. Reasonability:       Competing interps:      Reasonable: neg ran
-   education               core aff; neg has       reasonable = judge      its core DAs
-                           its DAs                 guesses
+T: "SUBSTANTIALLY"
+
+INTERPRETATION
+1NC: Substantial = large in
+     size, not a test program
+     (Legal Dict 19).
+2AC: 1. We meet: pilot = 15% rise
+     in fed support for X.
+2NR: 15% of one small program;
+     <1% of all fed support
+     for X.
+2AR: Ext we meet: 15% of the
+     program the plan changes
+     is real size.
+
+VIOLATION
+1NC: Plan is a pilot in 5
+     cities.
+2AC: 2. CI: substantial =
+     important in its context
+     (Field Expert 21).
+2NR: CI has no line: any pilot
+     counts.
+2AR: Context is the line: field
+     calls this a major change.
+
+STANDARD
+1NC: Limits: 1000s of small
+     pilots.
+2AC: 3. Overlimits: only 3 big
+     bills meet the neg interp.
+2NR: (no answer)
+2AR: Ext: overlimits dropped;
+     neg interp leaves 3 affs.
+
+VOTERS
+1NC: Fairness, education.
+2AC: 4. Reasonability: core aff;
+     neg has its DAs.
+2NR: Competing interps:
+     reasonable = judge guesses.
+2AR: Reasonable: neg ran its core
+     DAs.
 ```
 
-*How to read it:* the 1NC said "substantial" means large, not a test program, and that a five-city pilot violates it. The 2AC made four answers. On the we meet, the 2NR used a different baseline: 15% of one small program is less than 1% of all federal support for X. The 2AR said the program the plan changes is the right measure. On the CI, the 2NR said "important in context" has no line, and the 2AR said the field's use gives one. The block and 1AR are left out, so "(no answer)" means the 2NR made no answer to overlimits. The 2AR extended that drop, so the aff wins that the neg's meaning leaves very few affs. On the test, the 2NR argued competing interpretations and the 2AR argued reasonability. The judge decides the baseline first, then the test, then weighs dropped overlimits against the neg's limits claim.
+*How to read it:* the block and 1AR are left out, so "(no answer)" means the 2NR made no answer to overlimits. The 2AR extended that drop, so the aff wins that the neg's meaning leaves very few affs. The judge decides the baseline first, then the test (competing interpretations or reasonability), then weighs dropped overlimits against the neg's limits claim.
 
 ## How judges tend to decide
 

@@ -4,9 +4,9 @@ slug: ballot-and-rfd
 description: "How a policy debate judge decides a round and writes the reason for decision (RFD). A step-by-step method, an RFD template, and tips for fair, useful feedback."
 section: The round
 level: beginner
-reading_time: 7
+reading_time: 8
 related: [first-round-judge, how-to-flow, impact-calculus, speaker-points, giving-feedback, judge-paradigms]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # The ballot and the RFD
@@ -17,7 +17,7 @@ updated: 2026-11-19
 
 Most ballots, paper or online, have:
 
-- **The teams and sides:** which team was aff and which was neg.
+- **The teams and sides:** which team was aff (affirmative, for the plan) and which was neg (negative, against it).
 - **The decision:** the winning team. There are no ties.
 - **Speaker points** for each debater, and sometimes ranks (1st to 4th). See [Speaker points](speaker-points.md).
 - **The RFD:** a written reason.
@@ -27,9 +27,9 @@ A "low-point win" is when the winning team has lower speaker points than the los
 
 ## How to decide: a five-step method
 
-1. **Start at the end.** Read the 2NR and 2AR on your flow. List the issues each one said were most important. Arguments either team dropped before the last two speeches are usually gone from the debate.
+1. **Start at the end.** Read the 2NR and 2AR, the last two speeches, on your flow (your notes). List the issues each one said were most important. Common issues are a disadvantage (a harm the plan causes), a counterplan (the neg's other plan), topicality (whether the plan fits the topic) and a kritik (an argument against the ideas behind the plan). Arguments either team dropped before the last two speeches are usually gone from the debate.
 2. **Resolve each issue.** For each issue, ask who had the better explanation, the better evidence, and the better answers. Use your flow to check what was answered and what was dropped.
-3. **Find the framework.** Did the teams argue about *how* to decide (for example, weigh the plan's results, or weigh a kritik first)? Decide that first, because it tells you what counts.
+3. **Find the framework** (the rules for deciding). Did the teams argue about *how* to decide? For example, weigh the plan's results, or weigh a kritik first. Decide that first, because it tells you what counts.
 4. **Weigh.** Compare the issues each team won. Use the comparisons the debaters made: size, chance, timing. See [Impact calculus](impact-calculus.md).
 5. **Decide and check.** Pick a winner. Then ask: "Can I explain this using only what the debaters said?" If not, look again.
 
@@ -41,7 +41,7 @@ A clear RFD has four parts. Two to six sentences is enough for most rounds.
 
 1. **The decision:** "I vote affirmative."
 2. **The main issue:** "The round came down to whether the plan's cost causes cuts to school programs."
-3. **Why that team won it:** "The neg never answered the 2AC point that the plan saves money by year 3. So the link to the disadvantage is turned."
+3. **Why that team won it:** "The neg never answered the 2AC point that the plan saves money by year 3. So the link to the disadvantage is turned." (The link is how the plan causes the harm. It is "turned" when it works the other way: here, the plan saves money instead of costing it.)
 4. **What would have changed it:** "If the 2NR had explained why cuts happen before the savings arrive, I might have voted neg."
 
 The last part is the most useful for the losing team. It tells them what to do next time.
@@ -63,16 +63,41 @@ See [Giving feedback](giving-feedback.md).
 
 A judge's decision notes, with the RFD written from them.
 
+Key:
+
+- **FW** (framework): how to decide.
+- **CP** (counterplan): the neg's other plan. Here, the 50 states act instead of the federal government.
+- **perm** (permutation): the aff says, "do both the plan and the CP."
+- **DA** (disadvantage): a harm the plan causes.
+- **Net benefit:** a reason the CP alone is better than doing both.
+- **Link:** how the plan causes the harm. A **link card** is the quoted evidence for it. **No link** says the plan does not cause it.
+- **Warrant:** the reason behind a claim.
+- **fed $** = federal money. **arg** = argument.
+
 ```
-Issue       2NR says                  2AR says                    Who won it
-FW          weigh plan vs CP          (agrees)                    -- no fight
-CP          states CP solves all      perm: do both; CP can't     NEG: perm answered
-            of case                   solve fed $                 ("both = DA links");
-                                                                  fed $ arg new in 2AR
-DA          DA = net benefit          no link                     NEG: link card
-                                                                  extended; no-link
-                                                                  had no warrant
-Decision: NEG. CP solves the case; small DA risk is enough.
+Issue 1: FW
+  2NR: weigh plan vs CP
+  2AR: (agrees)
+  Won: no fight
+
+Issue 2: CP
+  2NR: states CP solves all
+       of case
+  2AR: perm: do both; CP can't
+       solve fed $
+  Won: NEG. Perm answered
+       ("both = DA links");
+       fed $ arg new in 2AR
+
+Issue 3: DA
+  2NR: DA = net benefit
+  2AR: no link
+  Won: NEG. Link card
+       extended; no-link
+       had no warrant
+
+Decision: NEG. CP solves the
+  case; small DA risk is enough.
 ```
 
 *How to read it:* the judge listed each issue from the last speeches and who won it. The perm was answered, and the 2AR's "federal money" point was new, so the judge did not count it. A short RFD: "I vote neg. The states counterplan solves the whole case. The perm was answered, because doing both still links to the DA. The 2AR's federal money point was new in the last speech, so I did not weigh it. A small risk of the DA is enough to prefer the counterplan."

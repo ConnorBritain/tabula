@@ -4,9 +4,9 @@ slug: theory
 description: "A theory argument says the other team's strategy is unfair or bad for debate. Learn the parts, conditionality, and reject the argument vs reject the team."
 section: Theory
 level: intermediate
-reading_time: 8
+reading_time: 7
 related: [conditionality, reject-the-team, fiat, common-theory, topicality, judge-paradigms]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # Theory
@@ -15,13 +15,13 @@ updated: 2026-11-19
 
 ## What a theory argument is
 
-Policy debate has very few written rules. Speech times and prep time are fixed. Almost everything else, such as what a counterplan may do or how many options the neg may run, is decided by argument in the round. Theory is how teams make those arguments.
+Policy debate has very few written rules. Speech times and prep time are fixed. Almost everything else is decided by argument in the round. That includes what a counterplan (the neg's other plan) may do, and how many options the neg may run. Theory is how teams make those arguments.
 
 Topicality is a kind of theory argument: it is about what the aff is allowed to defend. This page covers the other kinds. See [Topicality](topicality.md).
 
 ## The parts
 
-A theory argument has the same shape as topicality.
+A theory argument has the same shape as topicality. In the table below, a **conditional** option is one the neg can drop later (see the next section). **Clash** means the teams directly answer each other.
 
 | Part | What it says | Example (generic) |
 |---|---|---|
@@ -34,7 +34,7 @@ In the 2AC, theory is often very short: a few lines. If a team wants to win on i
 
 ## Conditionality: the main example
 
-**Conditionality** ("condo") means the neg can run an argument, often a counterplan or a kritik, and drop it later without penalty. If the neg drops it, the judge compares the aff's plan with the status quo instead.
+**Conditionality** ("condo") means the neg can run an argument and drop it later without penalty. The argument is often a counterplan or a kritik (an argument that questions the ideas behind the plan). If the neg drops it, the judge compares the aff's plan with the status quo (the world as it is now) instead.
 
 This is the most common theory debate. Both sides have serious arguments.
 
@@ -63,12 +63,12 @@ Most judges default to **reject the argument** for most theory arguments. The re
 
 ## Other common theory arguments
 
-These recur every season. Each will be covered on [Common theory arguments](common-theory.md).
+These come up every season. Each is covered on [Common theory arguments](common-theory.md).
 
 - **Plan-inclusive counterplans (PICs) bad:** the neg should not be allowed to do almost all of the plan.
-- **Multiple-actor or "fifty states" fiat:** can the neg fiat many governments acting together? See [Fiat](fiat.md).
+- **Multiple-actor or "fifty states" fiat:** can the neg fiat (imagine passed) many governments acting together? See [Fiat](fiat.md).
 - **International fiat:** can the neg fiat another country?
-- **Severance and intrinsic perms:** limits on what the aff's permutation can include. See [Permutations](permutations.md).
+- **Severance and intrinsic perms:** limits on what the aff's permutation (perm) can include. A perm tests a counterplan by asking whether the plan and the counterplan could both be done. See [Permutations](permutations.md).
 
 ## How to answer theory
 
@@ -86,25 +86,49 @@ These recur every season. Each will be covered on [Common theory arguments](comm
 
 ## Example in flow shorthand
 
-A conditionality debate. The neg ran two counterplans and a kritik, all conditional.
+A conditionality debate. The neg ran two counterplans and a kritik, all conditional. The **block** is the neg's two speeches in a row (the 2NC and 1NR).
+
+Key: "interp" = interpretation, "CI" = counter-interpretation, "Ext" = extend, "flex" = flexibility, "K" = kritik, "CP" = counterplan, "arg" = argument, "perms" = permutations.
 
 ```
-2AC                Block              1AR                2NR                2AR
 Condo bad
-Interp: neg gets   CI: neg gets 3     Ext interp: 3      Testing the aff    3 options split
-   1 condo option     condo options      options split      from 3 angles      the 2AC 3 ways;
-                                         the 2AC            is key             perms got little
-                                                                               time
-Violation: 3       Neg flex: aff      Contradictions:    2AC answered all   Contradiction
-   condo options      picks plan; we     K says state       three; no real     forced aff to
-                      need options       bad, CP uses       harm               answer both sides
-                                         state
-Voter: reject      Reject the arg,    Reject team:       Reject the arg:    Ignoring the CPs
-   the team           not the team       harm is done       ignore the CPs     can't undo the
-                                                                               split 2AC
+
+-- Interpretation --
+2AC    Interp: neg gets 1 condo
+       option
+Block  CI: neg gets 3 condo
+       options
+1AR    Ext interp: 3 options
+       split the 2AC
+2NR    Testing the aff from 3
+       angles is key
+2AR    3 options split the 2AC 3
+       ways; perms got little
+       time
+
+-- Violation --
+2AC    Violation: 3 condo options
+Block  Neg flex: aff picks plan;
+       we need options
+1AR    Contradictions: K says
+       state bad, CP uses state
+2NR    2AC answered all three; no
+       real harm
+2AR    Contradiction forced aff to
+       answer both sides
+
+-- Voter --
+2AC    Voter: reject the team
+Block  Reject the arg, not the
+       team
+1AR    Reject team: harm is done
+2NR    Reject the arg: ignore the
+       CPs
+2AR    Ignoring the CPs can't undo
+       the split 2AC
 ```
 
-*How to read it:* both teams developed the theory past one line, so the judge should decide it. The key questions are whether three options is too many, and whether the remedy is to ignore the counterplans or vote aff. A good RFD answers both.
+*How to read it:* both teams developed the theory past one line, so the judge should decide it. The key questions are whether three options is too many, and whether the remedy is to ignore the counterplans or vote aff. A good RFD (reason for decision) answers both.
 
 ## Common mistakes
 

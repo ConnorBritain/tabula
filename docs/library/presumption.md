@@ -26,7 +26,7 @@ A simple comparison is a trial. The person accused does not have to prove they a
 Presumption matters only when the round has no clear winner on the issues. That happens most often when:
 
 - **The neg wins that the plan does not solve.** If the plan does nothing, the aff has no advantage. The neg may have no disadvantage left either. Then neither side has a reason to vote for it, and presumption decides.
-- **Every argument cancels out.** Each team wins defense against the other, and no one has **offense** left. Offense is an argument that gives the judge a reason to vote for your side, not just a reason the other side is wrong.
+- **Every argument cancels out.** Each team wins **defense** against the other: reasons the other side's argument is wrong or small. But no one has **offense** left. Offense is an argument that gives the judge a reason to vote for your side, not just a reason the other side is wrong.
 - **No stock issue is clearly won by either side** before a judge who treats stock issues as must-wins. If the aff clearly loses one, that is a plain neg win, not presumption. See [Stock issues](stock-issues.md).
 
 In most rounds, presumption never decides anything. One team usually has at least some reason to vote for it. A small risk of an advantage, or a small risk of a disadvantage, is often enough to beat presumption.
@@ -51,7 +51,7 @@ Some judges say in their paradigm that they "flip presumption" in certain cases.
 
 ### Presumption in other kinds of rounds
 
-Presumption also comes up when the aff does not defend a usual plan, such as some kritikal affirmatives. A neg team may argue that the aff does not do anything a ballot can support, so the judge should vote neg on presumption. The aff answers by explaining what its method does and why that is a reason to vote for it. This debate is advanced, and judges differ a lot on it. See [Kritikal affirmatives](kritikal-affirmatives.md).
+Presumption also comes up when the aff does not defend a usual plan, such as some kritikal affirmatives (aff cases that question ideas instead of defending a government plan). A neg team may argue that the aff does not do anything a ballot can support, so the judge should vote neg on presumption. The aff answers by explaining what its method does and why that is a reason to vote for it. This debate is advanced, and judges differ a lot on it. See [Kritikal affirmatives](kritikal-affirmatives.md).
 
 ## How to use and answer presumption
 
@@ -72,26 +72,41 @@ Presumption also comes up when the aff does not defend a usual plan, such as som
 
 1. **First, check for offense.** Does either team have a reason to vote for it that survived the round? If yes, weigh it. Presumption does not come into play. See [Impact calculus](impact-calculus.md).
 2. **If no one has offense, look for presumption arguments.** Did the teams argue who gets presumption? If so, decide that argument from the flow.
-3. **If no one argued it, use your default,** and say so in your RFD. Most judges default to the neg. Some shift it when the neg goes for a counterplan.
+3. **If no one argued it, use your default,** and say so in your RFD (reason for decision). Most judges default to the neg. Some shift it when the neg goes for a counterplan.
 4. **Explain it clearly.** "Neither team had offense left. The plan does not solve, so there was no reason to change. I vote neg on presumption."
 
 ## Example in flow shorthand
 
 A case debate where the neg wins that the plan does not solve.
 
+Key: Adv = advantage, SQ = status quo, Ext = extend (carry a point forward), "->" = "leads to", ">" = "beats."
+
 ```
-1AC                  1NC                    2AC                   2NR                        2AR
-Adv: plan funds      1. No solvency: the    Funds go to clinics   Ext #1: the program is     Some funds reach
-   new clinics ->       program is too         (Expert 22)           too small; Expert 22       clinics -> some
-   better care          small (Analyst 21)                           does not say how much      risk of better
-                     2. SQ already funds    SQ funds are capped   Ext #2: no added           care. Any risk >
-                        clinics                                      clinics -> no adv          presumption
-                                                                  No DA in 2NR. No solvency
-                                                                     -> vote neg on
-                                                                     presumption
+1AC (aff):
+  Adv: plan funds new clinics ->
+    better care
+1NC (neg):
+  1. No solvency: the program is
+    too small (Analyst 21)
+  2. SQ already funds clinics
+2AC (aff):
+  Funds go to clinics (Expert 22)
+  SQ funds are capped
+2NR (neg):
+  Ext #1: the program is too
+    small; Expert 22 does not say
+    how much
+  Ext #2: no added clinics ->
+    no adv
+  No DA in 2NR. No solvency ->
+    vote neg on presumption
+2AR (aff):
+  Some funds reach clinics ->
+    some risk of better care.
+    Any risk > presumption
 ```
 
-*How to read it:* the 1NC made two arguments: the program is too small to help, and the status quo already funds clinics. The 2AC said funds go to clinics and status quo funds are capped. The 2NR extended both. It said the program is too small and Expert 22 does not say how much reaches clinics. It said the plan adds no clinics, so there is no advantage. With no disadvantage in the 2NR, it asked the judge to vote neg on presumption. The 2AR said some funds still reach clinics, so there is some risk of better care, and any risk beats presumption. The judge must decide: did the aff keep any real chance of an advantage? If yes, the aff wins. If not, the neg wins on presumption.
+*How to read it:* the 2NR has no disadvantage left, so it asks the judge to vote neg on presumption. The 2AR says some funds still reach clinics, so there is some risk of better care, and any risk beats presumption. The judge must decide: did the aff keep any real chance of an advantage? If yes, the aff wins. If not, the neg wins on presumption.
 
 ## Common mistakes
 

@@ -8,11 +8,15 @@ version: 1
 You flow this on the DA sheet.
 
 ```
-1NC                     2AC
+1NC              2AC
 DA: Spending
-U: budget tight now     1. N/U: big bill already passed
-L: plan costs $50B      (no answer)
-I: school programs cut  2. Case outweighs
+U: budget        1. N/U: big
+   tight now        bill already
+                    passed
+L: plan costs    (no answer)
+   $50B
+I: school        2. Case
+   programs cut     outweighs
 ```
 
 In words: the 1NC read uniqueness, a link and an impact. The 2AC answered the uniqueness line and the impact line. The 2AC said nothing about the link: that the plan costs fifty billion dollars.

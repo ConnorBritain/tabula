@@ -46,10 +46,13 @@ What should you do?
 You flow this at the end of a round.
 
 ```
-2NR                          2AR
-T: plan is not "substantial" We meet: plan changes 12%,
-($ change is only 2%)        above their 10% line
-                             (2NR never answered 12%)
+2NR
+  T: plan is not "substantial"
+  ($ change is only 2%)
+2AR
+  We meet: plan changes 12%,
+  above their 10% line
+  (2NR never answered 12%)
 ```
 
 In words: the neg said the plan is not topical, because it changes funding by only 2 percent. The aff said the plan changes funding by 12 percent, which is above the neg's own 10 percent line. The 2NR never answered the 12 percent point.

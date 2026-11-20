@@ -85,24 +85,51 @@ These names sound alike but mean different things.
 
 ## Example in flow shorthand
 
-A generic rural clinic case. The neg reads defense and a solvency turn.
+A generic rural clinic case. The neg reads defense and a solvency turn. Each neg argument is shown with the speeches that argue it.
+
+Key: Solv = solvency, D = defense, Ext = extend, K = thousand, yrs = years, "->" = leads to. The cards are invented.
 
 ```
-1AC                       1NC                       2AC                       2NR                       2AR
-Plan: new funds for
-   rural clinics and
-   staff training
-Solv: clinics reach       1. Solv D: no staff       Plan funds training       Training takes years      Staff in 2 yrs
-   the sick (Expert 22)      for clinics               (Author 23)                                         (Author 23)
-                          2. Turn: plan funds       No link: plan adds new    Ext turn: new money       Plan text says
-                             come out of city          money, no cuts            comes from city           "new funds"
-                             clinic budgets                                      budget                    - no cuts
-                             -> net loss
-I: early care saves       3. Impact D: most         Card is about serious     (dropped)                 Conceded: impact
-   30K/yr                    recover anyway            illness                                             is real
+1AC  Plan: new funds for
+     rural clinics and
+     staff training
+     Solv: clinics reach
+     the sick (Expert 22)
+     I: early care saves
+     30K/yr
+
+1. DEFENSE (staff)
+1NC  Solv D: no staff
+     for clinics
+2AC  Plan funds training
+     (Author 23)
+2NR  Training takes years
+2AR  Staff in 2 yrs
+     (Author 23)
+
+2. TURN
+1NC  Plan funds come out
+     of city clinic
+     budgets -> net loss
+2AC  No link: plan adds
+     new money, no cuts
+2NR  Ext turn: new money
+     comes from city
+     budget
+2AR  Plan text says "new
+     funds" - no cuts
+
+3. DEFENSE (impact)
+1NC  Impact D: most
+     recover anyway
+2AC  Card is about
+     serious illness
+2NR  (dropped)
+2AR  Conceded: impact is
+     real
 ```
 
-*How to read it:* the 1AC plan text gives new funds for rural clinics and staff training. The 1NC made two defense arguments and one solvency turn: the plan's funds come out of city clinic budgets, so more people lose care in total. The aff answered all three in the 2AC, and answered the turn with a no link. The 2NR extends the staff defense and the turn, but drops the 2AC answer on impact defense, so the 2AR calls it conceded. The key clash is the turn: does the plan's money come from city clinic budgets? The 2AR reads the plan text, which says "new funds," to show there are no cuts. If the judge agrees, the turn is gone, and the aff keeps most of its advantage.
+*How to read it:* the key clash is the turn. Does the plan's money come from city clinic budgets? The 2AR reads the plan text ("new funds") to show there are no cuts. If the judge agrees, the turn is gone, and the aff keeps most of its advantage.
 
 ## Common mistakes
 

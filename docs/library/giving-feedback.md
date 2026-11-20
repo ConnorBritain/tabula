@@ -4,7 +4,7 @@ slug: giving-feedback
 description: "How to give debaters useful feedback after a round: when to give an oral critique, whether to disclose the decision, and how to write kind, specific comments."
 section: The round
 level: beginner
-reading_time: 7
+reading_time: 6
 related: [ballot-and-rfd, first-round-judge, speaker-points, judge-paradigms, round-conduct]
 updated: 2026-11-20
 ---
@@ -89,20 +89,31 @@ Written comments are read later, without your tone of voice. So write with extra
 
 ## Example in flow shorthand
 
-A judge's notes for comments, written next to each speaker's speeches.
+A judge's notes for comments, one block per debater. "1A" means the first aff speaker, "2N" the second neg speaker, and so on. "T" is topicality, "DA" is a disadvantage, and "CX" is cross-ex.
 
 ```
-Speaker   Speeches    Keep                       Change
-1A        1AC, 1AR    Clear 1AC; good pace       1AR: 3 min on T, 30 s on DA.
-                                                 Split time by what matters
-2A        2AC, 2AR    Numbered 2AC answers       2AR: compare impacts out loud
-1N        1NC, 1NR    Specific DA link card      1NR: explain the card, do not
-                                                 only re-read it
-2N        2NC, 2NR    Strong CX on the plan      2NR: answer the yr-3 savings
-                                                 point; it was dropped
+1A (1AC, 1AR)
+  Keep: clear 1AC; good pace
+  Change: 1AR: 3 min on T,
+    30 s on DA. Split time by
+    what matters
+2A (2AC, 2AR)
+  Keep: numbered 2AC answers
+  Change: 2AR: compare
+    impacts out loud
+1N (1NC, 1NR)
+  Keep: specific DA link card
+  Change: 1NR: explain the
+    card, do not only re-read
+    it
+2N (2NC, 2NR)
+  Keep: strong CX on the plan
+  Change: 2NR: answer the
+    yr-3 savings point; it was
+    dropped
 ```
 
-*How to read it:* each row is one debater, named by speaking position. The "Keep" column holds one thing that worked. The "Change" column holds one thing to fix, tied to a named speech. For example, the 1A spent 3 minutes on topicality and 30 seconds on the disadvantage in the 1AR. The judge turns each row into one or two sentences of feedback, spoken or written.
+*How to read it:* each debater gets one thing to keep and one thing to change, tied to a named speech; the judge turns each into a sentence or two.
 
 ## Common mistakes
 

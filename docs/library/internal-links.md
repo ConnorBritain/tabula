@@ -4,7 +4,7 @@ slug: internal-links
 description: "An internal link is a step between a link and an impact, in a DA or an advantage. Learn how chains work, how to attack a weak step, and how judges weigh them."
 section: Disadvantages
 level: intermediate
-reading_time: 7
+reading_time: 6
 related: [disadvantages, advantages, links, impacts, turns-case, impact-calculus]
 updated: 2026-11-20
 ---
@@ -75,19 +75,35 @@ A **turns case** argument says one team's impact makes the other team's impact w
 
 ## Example in flow shorthand
 
-A generic advantage about clean water, on the case sheet.
+A generic advantage about clean water, on the case sheet (the flow page for the aff's case). Each part shows the speeches that argue it, top to bottom.
+
+Key: -> = leads to. Adv = advantage. Alt cause = alternate cause. Ext = extend (carry forward). Names in parentheses are invented authors.
 
 ```
-1AC                   1NC                   2AC                   2NR                   2AR
-Adv: Health
-IL: lead pipes ->     1. Alt cause: old     Pipes are top source  Ext alt cause: plan   Plan cuts the pipe
-   lead in water         paint is a bigger     in city homes         can't fix paint       share; any cut helps
-   (Analyst 21)          source                (Expert 22)
-I: lead harms kids'   2. No impact: levels  Falling, not safe     (no new answer)
-   learning              already falling       (Expert 22)
+ADV: HEALTH
+
+INTERNAL LINK
+1AC: Lead pipes -> lead in
+     water (Analyst 21)
+1NC: 1. Alt cause: old paint
+     is a bigger source
+2AC: Pipes are top source in
+     city homes (Expert 22)
+2NR: Ext alt cause: plan
+     can't fix paint
+2AR: Plan cuts the pipe share;
+     any cut helps
+
+IMPACT
+1AC: Lead harms kids' learning
+1NC: 2. No impact: levels
+     already falling
+2AC: Falling, not safe
+     (Expert 22)
+2NR: (no new answer)
 ```
 
-*How to read it:* the 1AC's internal link says lead pipes put lead in tap water. The 1NC attacks it with an alternate cause: old paint is a bigger source. The 2AC says pipes are the top source in city homes. The 2NR extends the alternate cause: the plan cannot fix paint. The 2AR says the plan cuts the pipe share of lead, and any cut helps. On the impact row, the 1NC says lead levels are already falling. The 2AC answers that falling is not the same as safe, and the 2NR gives no new answer. So the impact stands. The judge decides how much of the harm the plan's pipes cause.
+*How to read it:* the 2NR gives no new answer on the impact, so it stands. The fight is the alternate cause. The judge decides how much of the harm the plan's pipes cause.
 
 ## Common mistakes
 

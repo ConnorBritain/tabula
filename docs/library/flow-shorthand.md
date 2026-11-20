@@ -4,9 +4,9 @@ slug: flow-shorthand
 description: "A printable list of common flow shorthand for policy debate: general symbols, plus DA, CP, topicality, kritik and theory terms, with tips to build your own."
 section: The round
 level: beginner
-reading_time: 5
+reading_time: 6
 related: [how-to-flow, glossary, disadvantages, counterplans, topicality, kritiks]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # Flow shorthand and symbols
@@ -16,9 +16,10 @@ updated: 2026-11-19
 ## How to use this list
 
 - **Learn the general symbols first.** They show up in every round.
-- **Then learn the symbols for the arguments you see most.** A novice sees DAs and case answers first.
-- **Make your own** for words that come up a lot on this year's topic. Write them on a card and keep it with your flow.
+- **Then learn the symbols for the arguments you see most.** A novice sees DAs (disadvantages) and case answers first. The theory and kritik groups can wait.
+- **Make your own** for words that come up a lot on this year's topic (the resolution). Write them on a card and keep it with your flow.
 - **Print this page.** Keep it in your flow folder until the symbols feel natural.
+- **Look up what a term means** in the [glossary](glossary.md). This page gives only the short form.
 
 ## General
 
@@ -144,18 +145,38 @@ updated: 2026-11-19
 
 ## Example in flow shorthand
 
-A short DA debate, written only in shorthand.
+A short DA (disadvantage) debate, written only in shorthand. On paper, each part of the DA is one row across four columns. So that it fits a phone, each row is shown here top to bottom, one speech per line.
 
 ```
-1NC                  2AC                  1AR                  2NR
 DA: Spending
-U: $ tight now       1. N/U: big bill     ext N/U              U: bill done, X new $
-L: plan -> ↑ $ 50B   2. L/T: plan saves $ ext L/T              L/T: savings 5 yrs; cuts now
-IL: ↑ $ -> cuts      3. X IL              (no answer)          Ext IL *dropped in 1AR
-I: kids lose svcs    4. Case O/W          Case O/W             DA TC: same kids
+
+Row 1
+1NC: U: $ tight now
+2AC: 1. N/U: big bill
+1AR: ext N/U
+2NR: U: bill done, X new $
+
+Row 2
+1NC: L: plan -> ↑ $ 50B
+2AC: 2. L/T: plan saves $
+1AR: ext L/T
+2NR: L/T: savings 5 yrs;
+     cuts now
+
+Row 3
+1NC: IL: ↑ $ -> cuts
+2AC: 3. X IL
+1AR: (no answer)
+2NR: Ext IL *dropped in 1AR
+
+Row 4
+1NC: I: kids lose svcs
+2AC: 4. Case O/W
+1AR: Case O/W
+2NR: DA TC: same kids
 ```
 
-*How to read it:* the neg says money is tight now (U), the plan raises costs by $50B (L), new costs force cuts (IL), and children lose services (I). The 2AC answers each part. The 1AR extends three answers but says nothing on the internal link. In the 2NR, `U: bill done, X new $` means the big bill is already passed, so there is no new money this year and uniqueness still holds. `*dropped in 1AR` marks the internal link the 1AR did not answer, and `DA TC` says the DA turns the case.
+*How to read it:* the neg says money is tight now (U), the plan raises costs by $50B (L), new costs force cuts (IL), and children lose services (I; `svcs` = services). The 2AC answers each part. The 1AR extends three answers but says nothing on the internal link. In the 2NR, `U: bill done, X new $` means the big bill is already passed, so there is no new money this year and uniqueness still holds. `*dropped in 1AR` marks the internal link the 1AR did not answer, and `DA TC` says the DA turns the case.
 
 ## Common mistakes
 

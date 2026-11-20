@@ -4,9 +4,9 @@ slug: stock-issues
 description: "Stock issues are the five things an affirmative must prove: harms, inherency, solvency, significance and topicality. Learn each one and how judges use them."
 section: The affirmative case and stock issues
 level: beginner
-reading_time: 7
+reading_time: 6
 related: [harms, inherency, solvency, significance, topicality, judge-paradigms]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # Stock issues
@@ -14,6 +14,8 @@ updated: 2026-11-19
 > **Plain version.** The stock issues are a checklist for the affirmative. To win, the affirmative must show five things. There is a real problem (harms). The problem will not fix itself (inherency). The plan fixes it (solvency). The problem is big enough to matter (significance). And the plan fits the topic (topicality). Some judges decide the whole round on this checklist: if the negative wins any one item, the negative wins.
 
 ## The five stock issues
+
+Two words first. The **status quo** is the world now, without the plan. The **resolution** is the topic statement that every team debates.
 
 | Stock issue | The question | Neg attack, in plain words |
 |---|---|---|
@@ -27,7 +29,7 @@ A common memory aid: the aff must prove a **significant harm**, that is **inhere
 
 ### Harms
 
-Harms are the bad things happening now. The aff shows who is hurt, how, and how many. Harms are often stated as the **impact** of an advantage. See [Harms](harms.md).
+Harms are the bad things happening now. The aff shows who is hurt, how, and how many. Harms are often stated as the **impact** (why it matters) of an **advantage** (a reason the plan is good). See [Harms](harms.md).
 
 ### Inherency
 
@@ -50,21 +52,21 @@ Significance says the harm, or the plan's effect on it, is large enough to matte
 
 ### Topicality
 
-Topicality says the plan fits inside the resolution. It is the only stock issue usually argued as its own off-case position, on its own sheet. See [Topicality](topicality.md).
+Topicality says the plan fits inside the resolution. It is the only stock issue usually argued on its own **sheet** (its own page of notes), apart from the case. Debaters call that an **off-case** position. See [Topicality](topicality.md).
 
 ## Why stock issues matter
 
-**For judges.** Some judges, often called **stock issues judges**, use this checklist as their decision rule. The aff must win all five. If the neg clearly wins one, the neg wins the round, even with no disadvantage. This view is common among traditional and lay judges, and on circuits with many parent and community judges.
+**For judges.** Some judges, often called **stock issues judges**, use this checklist as their decision rule. The aff must win all five. If the neg clearly wins one, the neg wins the round. That is true even if the neg has no **disadvantage** (an argument that the plan causes something bad). This view is common among traditional and **lay** judges (judges with no debate background). It is also common on circuits (groups of tournaments) with many parent and community judges.
 
-**For debaters.** Even judges who do not use the checklist strictly still expect the aff to prove each item. A neg that wins "the status quo solves" or "the plan does not work" has made the aff's advantage tiny, and that makes every other neg argument stronger. So stock issues are useful in every round.
+**For debaters.** Even judges who do not use the checklist strictly still expect the aff to prove each item. Say the neg wins "the status quo solves" or "the plan does not work." Then the aff's advantage is tiny, and every other neg argument gets stronger. So stock issues are useful in every round.
 
-**Adapt.** If a judge's paradigm says "stock issues," make your arguments in those words. Say "they lose inherency, so you vote neg," not only "their advantage is non-unique."
+**Adapt.** A judge's **paradigm** is a short statement of how they judge. If it says "stock issues," make your arguments in those words. Say "they lose inherency, so you vote neg." Do not only say "their advantage is non-unique" (the policy-style words for "the good result happens anyway").
 
 ## How to answer stock issue attacks (for the aff)
 
 - **Harms:** read more or better evidence about the harm, and explain who is hurt and how.
 - **Inherency:** show why the status quo is not solving. Point to the barrier.
-- **Solvency:** explain how the plan works, step by step. Read solvency cards that match the plan text.
+- **Solvency:** explain how the plan works, step by step. Read solvency **cards** (quoted evidence, with author and year) that match the plan text.
 - **Significance:** put a number or a clear quality on the harm, and say why even partial solvency matters.
 - **Topicality:** see [Topicality](topicality.md) for the full answer.
 
@@ -77,20 +79,46 @@ Topicality says the plan fits inside the resolution. It is the only stock issue 
 
 ## Example in flow shorthand
 
-A neg strategy built only on stock issues, in front of a traditional judge.
+A neg strategy built only on stock issues, in front of a traditional judge. Each stock issue is shown with the five speeches that argue it.
+
+Key: Inh = inherency, Solv = solvency, Sig = significance, SQ = status quo, Ext = extend (carry forward), Ev = evidence, K = thousand. "(Ev 21)" is an invented card.
 
 ```
-1AC                       1NC                       2AC                       2NR                       2AR
-Inh: no law requires      1. SQ solves: new state   State rule covers 3       Ext: 3 states have most   3 states = 20% of
-   safety checks             rule passed (Ev 21)       states only                of the problem            problem; 80% left
-Solv: checks cut          2. No solvency: no        Plan funds inspectors     Funding not in plan       Plan text: "fund and
-   accidents 40%             inspectors to do it       (plan text)                text                      require checks"
-                                                                                                         - read it again
-Sig: 10K accidents/yr     3. Sig: most accidents    Ev says 10K serious       (dropped)                 Sig conceded
-                             are minor
+INHERENCY
+1AC  No law requires
+     safety checks
+1NC  SQ solves: new state
+     rule passed (Ev 21)
+2AC  State rule covers 3
+     states only
+2NR  Ext: 3 states have
+     most of the problem
+2AR  3 states = 20% of
+     problem; 80% left
+
+SOLVENCY
+1AC  Checks cut accidents
+     40%
+1NC  No solvency: no
+     inspectors to do it
+2AC  Plan funds inspectors
+     (plan text)
+2NR  Funding not in plan
+     text
+2AR  Plan text: "fund and
+     require checks" -
+     read it again
+
+SIGNIFICANCE
+1AC  10K accidents/yr
+1NC  Most accidents are
+     minor
+2AC  Ev says 10K serious
+2NR  (dropped)
+2AR  Sig conceded
 ```
 
-*How to read it:* the neg went for inherency and solvency. The 2AR answered both, and points out the neg dropped significance. On solvency, the plan text decides it: the 2AR says the plan does fund inspectors. A stock issues judge would check each item. If the aff wins all of them, the aff wins.
+*How to read it:* the neg went for inherency and solvency, and dropped significance. On solvency, the plan text decides it. A stock issues judge checks each item; if the aff wins all of them, the aff wins.
 
 ## Common mistakes
 

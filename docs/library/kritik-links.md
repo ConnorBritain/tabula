@@ -4,7 +4,7 @@ slug: kritik-links
 description: "The link shows what the affirmative does, says or assumes that a kritik criticizes. Learn the four kinds of link, link specificity, and how to answer a link."
 section: Kritiks
 level: intermediate
-reading_time: 8
+reading_time: 9
 related: [kritiks, kritik-alternative, answering-kritiks, framework-vs-kritik, permutations, links]
 updated: 2026-11-20
 ---
@@ -65,7 +65,7 @@ Some judges accept omission links when the neg ties them to the aff's own claims
 - **It is specific.** It points to this aff. Quoting the 1AC, or a cross-ex answer, is stronger than "all policies do this."
 - **It is explained.** It says how the aff's move leads to the K's impact, not only that the aff made the move.
 - **It is sized.** It says how much of the aff relies on the idea. A whole advantage built on the idea is a bigger link than one phrase.
-- **It comes in time.** The neg often reads general link cards in the 1NC, then applies them to the 1AC in the block. Many judges let the 2NC add links, since it is a constructive speech. New links in the 2NR usually come too late.
+- **It comes in time.** The neg often reads general link cards in the 1NC, then applies them to the 1AC in the block (the 2NC and 1NR, two neg speeches in a row). Many judges let the 2NC add links, since it is a constructive speech. New links in the 2NR usually come too late.
 
 Some negs also link to what the aff says later in the round, such as a 2AC answer. Many judges accept this when the aff really said it, but teams can debate it.
 
@@ -95,20 +95,47 @@ For typical links in each common kritik family, see [Common kritik families](com
 
 A generic **capitalism kritik**, which criticizes market thinking, against an aff that uses grants to reduce poverty.
 
+Key: L1 = link 1, adv = advantage, mkt = market, $ = money, CX = cross-ex, Ext = extend (carry an argument forward), "DAs to perm" = reasons the perm is worse. Names in parentheses are invented evidence authors and years.
+
 ```
-1NC                      2AC                        Block                       1AR
-K: Capitalism
-L1 plan: uses market     1. No link: plan is a      Plan pays firms to act;     Grants go to
-   rewards to fix harm      public grant, not a        CX: grants go to            public bodies
-   (Theorist 18)            market                     private firms               too, not only
-                                                                                   firms
-L2 adv: growth solves    2. Link turn: plan         Turn assumes growth is      Ext link turn:
-   poverty (Scholar 20)     shifts $ to the poor       good; that is the link      $ goes to poor
-L3 generic: all state    3. Generic: links to       (not extended)              (no answer)
-   action props up mkt      any aff
-                         4. Perm: do plan and       Links are DAs to perm:      Perm shields the
-                            alt in other areas         perm still uses mkt         link: plan is a
-                                                       rewards                     small part
+1NC
+  K: Capitalism
+  L1 plan: uses market
+    rewards to fix harm
+    (Theorist 18)
+  L2 adv: growth solves
+    poverty (Scholar 20)
+  L3 generic: all state action
+    props up mkt
+
+2AC
+  1. No link: plan is a public
+     grant, not a market
+  2. Link turn: plan shifts $
+     to the poor
+  3. Generic: links to any aff
+  4. Perm: do plan and alt in
+     other areas
+
+Block
+  1. Plan pays firms to act;
+     CX: grants go to private
+     firms
+  2. Turn assumes growth is
+     good; that is the link
+  3. (not extended)
+  4. Links are DAs to perm:
+     perm still uses mkt
+     rewards
+
+1AR
+  1. Grants go to public
+     bodies too, not only firms
+  2. Ext link turn: $ goes to
+     the poor
+  3. (no answer)
+  4. Perm shields the link:
+     plan is a small part
 ```
 
 *How to read it:* on the first link, the aff says the plan is a public grant. The block uses a cross-ex answer that the grants go to private firms. The 1AR says they go to public bodies too. On the second link, the block says the aff's link turn assumes growth is good, which is the link itself. The 1AR extends the turn. The block does not extend the third, generic link, so the neg has let it go. On the perm, the block argues the links are reasons the perm fails, and the 1AR says the perm avoids the link. The neg's best path in the 2NR is the specific first link, backed by the cross-ex answer.

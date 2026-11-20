@@ -4,7 +4,7 @@ slug: topicality-voters
 description: "Voters say why topicality decides the round. Learn fairness, education and jurisdiction, and how competing interpretations and reasonability change the test."
 section: Topicality
 level: intermediate
-reading_time: 8
+reading_time: 9
 related: [topicality, topicality-interpretation, topicality-standards, reject-the-team, judge-paradigms, theory]
 updated: 2026-11-20
 ---
@@ -33,7 +33,7 @@ Standards lead into voters. "Limits" is a standard. "Limits, so the neg can prep
 
 ## Why T is a reason to vote neg
 
-Most theory arguments can end in one of two ways: the judge rejects the unfair argument, or the judge rejects the whole team. See [Reasons to reject](reject-the-team.md). T is different. The plan is the aff's whole advocacy. There is no smaller part to set aside. So when the neg wins T, the usual result is a neg ballot. That is what teams mean when they say "T is a voting issue."
+Most theory arguments (arguments about the rules of debate) can end in one of two ways: the judge rejects the unfair argument, or the judge rejects the whole team. See [Reasons to reject](reject-the-team.md). T is different. The plan is the aff's whole advocacy: everything it defends. There is no smaller part to set aside. So when the neg wins T, the usual result is a neg ballot. That is what teams mean when they say "T is a voting issue."
 
 ### What about an RVI?
 
@@ -43,7 +43,7 @@ An **RVI** (reverse voting issue) is a claim that a team should win because the 
 
 Under **competing interpretations**, the judge treats the two meanings like two policies. The judge asks: which interpretation is better for debate? If the neg's interpretation is better, even by a little, and the plan does not meet it, the neg wins T.
 
-This test works on **offense and defense**. Offense is a reason to prefer your interpretation. Defense only makes the other side's reasons smaller. Under competing interpretations, the aff usually needs its own offense: a counter-interpretation with standards behind it. Only saying "your limits claim is too big" may not be enough.
+This test works on **offense and defense**. Offense is a reason to prefer your interpretation. Defense only makes the other side's reasons smaller. Under competing interpretations, the aff usually needs its own offense: a counter-interpretation (its own meaning of the word) with standards behind it. Only saying "your limits claim is too big" may not be enough.
 
 Teams that favor competing interpretations often say:
 
@@ -76,7 +76,7 @@ Aff teams often say the neg must show in-round abuse. Neg teams often say T is a
 
 ## T and judge styles
 
-Different judges come to T with different habits. A **stock issues** judge treats topicality as a basic requirement the aff must meet. Some **policymaker** judges default to competing interpretations. A **lay judge**, with little debate background, wants a plain story: what the word means, why the plan does not fit, and why that matters. Many judges state a default in their paradigm, for example "I default to competing interpretations." See [Judge paradigms](judge-paradigms.md).
+Different judges come to T with different habits. A **stock issues** judge (one who checks the aff's basic jobs) treats topicality as a basic requirement the aff must meet. Some **policymaker** judges (who weigh costs and benefits, like a lawmaker) default to competing interpretations. A **lay judge**, with little debate background, wants a plain story: what the word means, why the plan does not fit, and why that matters. Many judges state a default in their paradigm, for example "I default to competing interpretations." See [Judge paradigms](judge-paradigms.md).
 
 ## How to answer it
 
@@ -110,20 +110,45 @@ Different judges come to T with different habits. A **stock issues** judge treat
 
 ## Example in flow shorthand
 
-The end of a T debate. The neg read a limits standard; the aff answered with reasonability. Only the test, abuse and RVI rows are shown.
+The end of a T debate. The neg read a limits standard; the aff answered with reasonability. Only the test, abuse and RVI rows are shown. The **block** is the neg's two speeches in a row (the 2NC and 1NR).
+
+Key: "CI" = counter-interpretation, "interps" = interpretations, "Ext" = extend, "DA" = disadvantage, "CP" = counterplan.
 
 ```
-2AC                     Block                     1AR                       2NR                      2AR
-Reasonability: CI is    Competing interps:        Good is good enough;      Arbitrary: they never    We are a core aff;
-   good enough             reasonable = judge        T every round crowds      said what "enough"       neg named no lost
-                           guesses                   out topic debate          means                    DA or CP
-No in-round abuse:      Precedent: CI lets        Precedent is a guess;     Ext precedent: 100s      Neg still ran 3
-   neg ran 3 DAs           100s of affs in           3 DAs prove ground        of affs                  DAs; ground fine
-RVI: aff wins if it     No RVIs: being            (no answer)               1AR dropped it: no RVI   (none)
-   beats T                 topical is the job
+-- The test --
+2AC    Reasonability: CI is good
+       enough
+Block  Competing interps:
+       reasonable = judge guesses
+1AR    Good is good enough; T every
+       round crowds out topic
+       debate
+2NR    Arbitrary: they never said
+       what "enough" means
+2AR    We are a core aff; neg named
+       no lost DA or CP
+
+-- Abuse --
+2AC    No in-round abuse: neg ran
+       3 DAs
+Block  Precedent: CI lets 100s of
+       affs in
+1AR    Precedent is a guess; 3 DAs
+       prove ground
+2NR    Ext precedent: 100s of affs
+2AR    Neg still ran 3 DAs; ground
+       fine
+
+-- RVI --
+2AC    RVI: aff wins if it beats T
+Block  No RVIs: being topical is
+       the job
+1AR    (no answer)
+2NR    1AR dropped it: no RVI
+2AR    (none)
 ```
 
-*How to read it:* the first row is the test. The 2NR says the aff never defined "good enough." The 2AR answers that the aff is a core aff and the neg named no lost DA or counterplan. The second row is in-round abuse against precedent. If the judge uses competing interpretations, the neg's precedent claim matters most. If the judge uses reasonability, the aff's point that the neg still ran three DAs is strong. The third row is the RVI. The 1AR did not answer the block or extend the RVI, the 2NR points that out, and the 2AR does not bring it back. So the RVI is gone.
+*How to read it:* on the test, the 2NR says the aff never defined "good enough," and the 2AR answers that it is a core aff and the neg named no lost DA or CP. On abuse, the neg's precedent claim matters most under competing interpretations. Under reasonability, the aff's point that the neg still ran three DAs is strong. The RVI is gone: the 1AR did not answer the block or extend it, and the 2AR does not bring it back.
 
 ## Common mistakes
 

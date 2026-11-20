@@ -59,6 +59,20 @@ test('links to unwritten pages become plain text, and their Related pages items 
   assert.deepEqual([...ctx.missing], ['later']);
 });
 
+// WHY: READERS.md is the writers' map of who reads each page; publishing it would put an internal planning doc on the public site.
+test('the reader map is a planning doc, not a page', () => {
+  assert.equal(isPageFile('READERS.md'), false);
+});
+
+// WHY: writers size each page's words to the reader READERS.md names for it; a page missing from the map gets written for no one in particular.
+test('every library page is named in the reader map', () => {
+  const map = readFileSync(join(SRC, 'READERS.md'), 'utf8');
+  for (const f of readdirSync(SRC).filter(isPageFile)) {
+    const slug = f.slice(0, -3);
+    assert.ok(map.includes('`' + slug + '`'), `${slug} is not in docs/library/READERS.md`);
+  }
+});
+
 // WHY: the reviewer names in *.local.md are private until each person agrees. Publishing them, or the plan, breaks that promise.
 test('private and planning files are never published', () => {
   assert.equal(isPageFile('REVIEWERS.local.md'), false);

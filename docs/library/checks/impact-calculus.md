@@ -1,6 +1,6 @@
 ---
 page: impact-calculus
-version: 1
+version: 2
 ---
 
 ## How big?
@@ -38,7 +38,7 @@ Which question is the aff using to compare?
 - [ ] How big each harm is
 - [ ] How likely each harm is
 - [x] How soon each harm happens
-- [ ] Whether the plan is topical
+- [ ] Whether the plan fits the topic
 
 **Why:** The aff compares when each harm happens: now against decades away. Debaters call this timeframe.
 

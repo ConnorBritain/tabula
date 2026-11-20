@@ -4,7 +4,7 @@ slug: solvency-deficits
 description: "A solvency deficit is the part of the aff's case a counterplan cannot solve. Learn the kinds, how to impact one, how the neg answers, and how judges weigh it."
 section: Counterplans
 level: intermediate
-reading_time: 7
+reading_time: 6
 related: [counterplans, net-benefits, counterplan-text, solvency, competition, impact-calculus]
 updated: 2026-11-20
 ---
@@ -15,11 +15,11 @@ updated: 2026-11-20
 
 ## Why deficits matter
 
+**Solvency** is how well a policy fixes the problem. The aff must prove its own solvency too. See [Solvency](solvency.md).
+
 A counterplan works by taking away the aff's reasons to choose the plan. If it solves the whole case, the aff has no advantage left to weigh. Then even a small net benefit can win the round for the neg.
 
 A solvency deficit puts some of the case back on the aff's side. It is a piece of the aff's advantage that only the plan gets. The bigger that piece, the bigger the net benefit has to be. See [Net benefits](net-benefits.md).
-
-**Solvency** is how well a policy fixes the problem. The aff must prove its own solvency too. See [Solvency](solvency.md).
 
 ## Common kinds of deficit
 
@@ -69,20 +69,41 @@ If the aff wins a big deficit and the net benefit is small, vote aff. If the cou
 
 ## Example in flow shorthand
 
+Each group follows one argument through the round. Key: "Solv" means solvency, "Ev" means evidence, "NB" means net benefit, "Ext" means extend, "fed" means federal, "adv" means advantage, and ">" means "outweighs".
+
 ```
-1NC                       2AC                       2NR                       2AR
-CP: states fund X         1. Deficit: some          All states fund X         Ev is about funding,
-Solv: states can fund X      states run it             under the CP              not how well each
-   (Analyst 21)              poorly; gaps hurt         (Analyst 21)              state runs it
-                             the needy (Author 22)
-                          2. Deficit: other         (no answer)               Dropped: CP loses
-                             nations copy fed                                    the global part of
-                             action (Author 23)                                  the adv
-NB: Spending DA           3. No link: plan's        Ext: fed cost forces      Global deficit >
-                             cost is small             cuts now                  tiny DA risk
+THE COUNTERPLAN
+1NC: CP: states fund X
+     Solv: states can fund X
+     (Analyst 21)
+
+DEFICIT 1: QUALITY
+2AC: 1. Deficit: some states
+     run it poorly; gaps hurt
+     the needy (Author 22)
+2NR: All states fund X under
+     the CP (Analyst 21)
+2AR: Ev is about funding, not
+     how well each state runs it
+
+DEFICIT 2: GLOBAL
+2AC: 2. Deficit: other nations
+     copy fed action (Author 23)
+2NR: (no answer)
+2AR: Dropped: CP loses the
+     global part of the adv
+
+THE NET BENEFIT
+1NC: NB: Spending DA
+2AC: 3. No link: plan's cost
+     is small
+2NR: Ext: fed cost forces cuts
+     now
+2AR: Global deficit > tiny DA
+     risk
 ```
 
-*How to read it:* the 1NC solvency card says the states can fund X. The 2AC made two deficits and one answer to the net benefit. The 2NR answered the first deficit with the Analyst card: all states fund X under the counterplan. The 2AR replied that the card is about funding, not quality. The 2NR did not answer the second deficit, so the aff can treat it as true: the counterplan loses the global part of the advantage. The 2AR weighed that dropped deficit against the spending DA. The judge must decide how big the global part of the advantage is, and whether it outweighs the risk of the DA.
+*How to read it:* the 2NR did not answer the second deficit, so the aff can treat it as true. The judge must decide how big the global part of the advantage is, and whether it outweighs the risk of the DA.
 
 ## Common mistakes
 

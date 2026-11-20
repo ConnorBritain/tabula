@@ -83,22 +83,45 @@ Both views are common among judges. The answer often matters for alternatives th
 
 ## Example in flow shorthand
 
-A neg kritik with a ROB, against a policy aff. Only the ROB and ROJ rows are shown.
+A neg kritik with a ROB, against a policy aff. Only the ROB and ROJ points are shown.
+
+Key: ROJ = role of the judge, CP = counterplan, DA = disadvantage, w/o = without.
 
 ```
-1NC                       2AC                        2NR                         2AR
-ROB: vote for the team    1. Counter-ROB: best       Their ROB hides the         Ours: neg can win
-   that best questions       policy option              ideas the policy rests      with a CP or DA;
-   threat thinking                                      on                          both sides can win
-                          2. Self-serving: only      Aff can win ours: defend    They never showed
-                             neg can win it             the plan w/o threat         how; our 1AC uses
-                                                        framing                     threat cards
-ROJ: judge is an          3. ROJ: judge is a         Educator: what we learn     (no answer)
-   educator                  policymaker                here is what leaves the
-                                                        room
+1NC
+  ROB: vote for the team that
+    best questions threat
+    thinking
+  ROJ: judge is an educator
+
+2AC
+  1. Counter-ROB: best policy
+     option
+  2. Self-serving: only neg
+     can win it
+  3. ROJ: judge is a
+     policymaker
+
+2NR
+  1. Their ROB hides the ideas
+     the policy rests on
+  2. Aff can win ours: defend
+     the plan w/o threat
+     framing
+  3. Educator: what we learn
+     here is what leaves the
+     room
+
+2AR
+  1. Ours: neg can win with a
+     CP or DA; both sides can
+     win
+  2. They never showed how;
+     our 1AC uses threat cards
+  3. (no answer)
 ```
 
-*How to read it:* the first row is the main ROB clash. The 2AR argues that its ROB lets both sides win, since the neg could win with a counterplan or a disadvantage. On the second row, the 2NR says the aff could win under the neg's ROB by defending the plan without threat framing. The 2AR replies that the neg never showed how, because the 1AC relies on threat cards. On the third row, the 2AR does not answer the 2NR's claim that the judge is an educator. That helps the neg, but the judge must still decide how much the dropped point matters next to the ROB clash in the first two rows.
+*How to read it:* point 1 is the main ROB clash. The 2AR argues that its ROB lets both sides win, since the neg could win with a counterplan or a disadvantage. On point 2, the 2NR says the aff could win under the neg's ROB by defending the plan without threat framing. The 2AR replies that the neg never showed how, because the 1AC relies on threat cards. On point 3, the 2AR does not answer the 2NR's claim that the judge is an educator. That helps the neg, but the judge must still decide how much the dropped point matters next to the ROB clash in points 1 and 2.
 
 ## Common mistakes
 

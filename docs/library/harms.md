@@ -4,7 +4,7 @@ slug: harms
 description: "Harms are the problem the affirmative wants to fix. Learn quantitative and qualitative harms, how harms link to impacts, how to attack them, and how to judge."
 section: The affirmative case and stock issues
 level: beginner
-reading_time: 6
+reading_time: 7
 related: [stock-issues, affirmative-case, significance, inherency, solvency, impacts]
 updated: 2026-11-20
 ---
@@ -15,7 +15,7 @@ updated: 2026-11-20
 
 ## What harms are
 
-Every affirmative case starts with a problem. The **harm** is that problem: something bad in the **status quo** (the world now, without the plan). The aff proves it with evidence, usually in the first part of each advantage.
+Every affirmative case starts with a problem. The **harm** is that problem: something bad in the **status quo** (the world now, without the plan). The aff proves it with evidence, usually in the first part of each **advantage** (a reason the plan is good).
 
 A good harm answers three questions:
 
@@ -25,13 +25,15 @@ A good harm answers three questions:
 | **How are they hurt?** | "They cannot reach a clinic, so illness goes untreated." |
 | **How badly, and how many?** | "One million people each year (Analyst 21)." |
 
+"(Analyst 21)" names a **card**: a short quote from a source, with the author and year. The cards on this page are invented.
+
 Harms are one of the five **stock issues**: harms, inherency, solvency, significance and topicality. See [Stock issues](stock-issues.md) for the full checklist.
 
 ## Kinds of harms
 
 ### Quantitative harms
 
-A **quantitative** harm is one you can count. It uses numbers: people hurt, money lost, deaths per year. Numbers make a harm easy to compare. "One million people" is easy to weigh against a disadvantage that hurts ten thousand.
+A **quantitative** harm is one you can count. It uses numbers: people hurt, money lost, deaths per year. Numbers make a harm easy to compare. "One million people" is easy to weigh against a **disadvantage** (DA, a neg argument that the plan causes something bad) that hurts ten thousand.
 
 ### Qualitative harms
 
@@ -46,7 +48,7 @@ Many cases use both. "One million people lack care (quantitative), and lack of c
 - The **harm** is the problem now: "People cannot reach clinics."
 - The **impact** is why that problem matters in the end: "Untreated illness leads to deaths."
 
-On a stock issues flow, the harm and impact often sit together under "H." In a policy-style advantage, the impact is the last step of a chain. See [Advantages](advantages.md) for how that chain is built.
+In your notes (the **flow**), a stock issues debate often puts the harm and impact together under "H." In a policy-style advantage, the impact is the last step of a chain. See [Advantages](advantages.md) for how that chain is built.
 
 ## Harms and the other stock issues
 
@@ -60,14 +62,16 @@ So a harm is only as useful as the plan's effect on it. The aff should always ti
 
 ## How to answer harms (for the neg)
 
-Most neg arguments against harms are **case defense**: on-case arguments that make the aff's advantage smaller. The common ones:
+Two words help here. **Defense** is a reason the other side's argument is weaker. **Offense** is a reason to vote for your side.
+
+Most neg arguments against harms are **case defense**: arguments on the aff's case that make its advantage smaller. The common ones:
 
 - **Harms are exaggerated:** the numbers are too high, old, or from a weak source. "Their card is from ten years ago; the number has dropped."
 - **Harms are not caused as claimed:** the bad outcome comes from something else, not the problem the aff names.
 - **Impact defense:** even if the harm is real, the final result will not happen. "Most people recover without care."
 - **Harms are not bad:** this one is offense, not defense. Rarely, the neg argues the "harm" is actually good. This is an **impact turn**. It is risky, and it can sound harsh to a judge if the harm is human suffering. See [Case turns and case defense](case-turns.md).
 
-Neg teams often pair harm defense with a disadvantage. A smaller harm is easier for a DA to outweigh.
+Neg teams often pair harm defense with a DA. A smaller harm is easier for a DA to outweigh.
 
 ## How to defend harms (for the aff)
 
@@ -75,7 +79,7 @@ Neg teams often pair harm defense with a disadvantage. A smaller harm is easier 
 - **Explain the harm in human terms.** Say who is hurt and how, not only how many.
 - **Answer each attack directly.** If the neg says the number is old, read a newer card or explain why the trend has not changed.
 - **Use both kinds of harm.** If the neg wins that the number is smaller, a qualitative harm can still carry weight.
-- **Extend the harm into the last speech.** An advantage with no harm in the 2AR is hard to vote for.
+- **Extend the harm into the last speech.** To **extend** is to carry an argument forward into later speeches. An advantage with no harm in the 2AR (the aff's last speech) is hard to vote for.
 
 ## How to judge harms
 
@@ -84,25 +88,50 @@ Neg teams often pair harm defense with a disadvantage. A smaller harm is easier 
 3. **Separate harms from impacts.** The neg may win that the impact is unlikely while the harm itself is real. That still leaves some harm for the aff.
 4. **Follow the paradigm the teams argue.** A **stock issues judge** asks whether the aff proved a harm at all. A **policymaker judge** (who weighs costs against benefits) asks how big the harm is compared to the neg's arguments. See [Judge paradigms](judge-paradigms.md).
 
-Harms rarely go to zero. A neg usually wins a harms debate by making the harm small enough that a disadvantage outweighs it, not by proving there is no problem at all.
+Harms rarely go to zero. A neg usually wins a harms debate by making the harm small enough that a DA outweighs it. It rarely wins by proving there is no problem at all.
 
 ## Example in flow shorthand
 
-A harms debate on a generic rural clinic case.
+A harms debate on a generic rural clinic case. Each harm claim is shown with the speeches that argue it.
+
+Key: H = harm, I = impact, Qual = qualitative harm, Exag = exaggerated, D = defense, Ext = extend, M = million, K = thousand, w/o = without, "->" = leads to.
 
 ```
-1AC                       1NC                       2AC                       2NR                       2AR
-H: 1M lack care/yr        1. Exag: number from      New card: 1.1M now        Ext exag: their new       New card counts
-   (Analyst 21)              old survey                (Author 23)               card counts minor         people with no
-                                                                                 visits                    care, not minor
-                                                                                                           visits
-I: untreated illness      2. Impact D: most         Serious illness is        Most still recover        Even 10% = 100K
-   -> deaths                 recover w/o care          the focus (Expert 22)                               serious cases
-Qual: care is a basic     (no answer)               Ext: dropped              (no answer)               Qual harm conceded
-   need
+THE NUMBER
+1AC  H: 1M lack care/yr
+     (Analyst 21)
+1NC  Exag: number from old
+     survey
+2AC  New card: 1.1M now
+     (Author 23)
+2NR  Ext exag: their new
+     card counts minor
+     visits
+2AR  New card counts
+     people with no care,
+     not minor visits
+
+THE IMPACT
+1AC  I: untreated illness
+     -> deaths
+1NC  Impact D: most
+     recover w/o care
+2AC  Serious illness is
+     the focus (Expert 22)
+2NR  Most still recover
+2AR  Even 10% = 100K
+     serious cases
+
+THE QUALITY
+1AC  Qual: care is a
+     basic need
+1NC  (no answer)
+2AC  Ext: dropped
+2NR  (no answer)
+2AR  Qual harm conceded
 ```
 
-*How to read it:* the neg made two attacks on harms in the 1NC and did not answer the qualitative harm. The aff answered both attacks in the 2AC, with new cards on each, and pointed out the drop. In the 2NR, the neg extends both attacks but still does not answer the qualitative harm. On the number, the 2NR says the new card counts minor visits. The 2AR answers that the card counts people with no care at all, not minor visits. The 2AR says the qualitative harm is conceded, and that even 10% of the harm is 100,000 serious cases. A judge would likely give the aff a real harm, maybe smaller than the 1AC claimed, and then weigh it against the neg's other arguments.
+*How to read it:* the neg never answered the qualitative harm, and the aff won the fight over the number. A judge would likely give the aff a real harm, maybe smaller than the 1AC claimed, and then weigh it against the neg's other arguments.
 
 ## Common mistakes
 

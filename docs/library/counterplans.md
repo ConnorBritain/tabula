@@ -4,10 +4,10 @@ slug: counterplans
 description: "A counterplan (CP) is the negative's own plan, offered as a better option than the aff. Learn the text, competition, net benefits, perms and how to judge one."
 section: Counterplans
 level: beginner
-reading_time: 8
+reading_time: 6
 sheet: CP
 related: [counterplan-text, competition, net-benefits, permutations, solvency-deficits, conditionality]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # Counterplans (CP)
@@ -15,6 +15,8 @@ updated: 2026-11-19
 > **Plain version.** A counterplan, or CP, is the negative's own plan. The negative says: "There is a better way than your plan." To be a reason to vote negative, the counterplan must be better than the plan, and it must be a real choice: the judge should not be able to just do both. Most counterplans fix the same problem as the plan but avoid a harm the plan causes. That harm is called the net benefit.
 
 ## The parts
+
+The aff (affirmative) defends the plan. The neg (negative) reads the counterplan. A counterplan has four parts.
 
 | Part | The question it answers |
 |---|---|
@@ -31,7 +33,7 @@ Like the plan, the counterplan uses **fiat**: for the debate, we imagine it is p
 
 ### Solvency
 
-The counterplan should solve the aff's harms, or most of them. The neg often reads a card that says the counterplan's actor or action can do what the plan does.
+**Solvency** means how well a policy fixes the problem. The counterplan should solve the aff's harms (the problems the plan fixes), or most of them. The neg often reads a **card** (a short quote from evidence) that says the counterplan's actor or action can do what the plan does.
 
 If the counterplan solves *less* than the plan, the gap is called a **solvency deficit**. The aff will point it out. A small deficit can still be fine for the neg, if the net benefit is bigger. See [Solvency deficits](solvency-deficits.md).
 
@@ -44,22 +46,22 @@ A counterplan must **compete**: the judge must have a reason to choose it over t
 
 ### Net benefit
 
-The **net benefit** is the reason the counterplan alone beats the plan, or the plan plus the counterplan. Most often it is a disadvantage that the plan causes and the counterplan avoids. For example: "The plan costs federal money and forces cuts. The states counterplan does not." Sometimes the net benefit is built into the counterplan itself. See [Net benefits](net-benefits.md).
+The **net benefit** is the reason the counterplan alone beats the plan, or the plan plus the counterplan. Most often it is a **disadvantage** (DA): a bad result that the plan causes and the counterplan avoids. For example: "The plan costs federal money and forces cuts. The states counterplan does not." Sometimes the net benefit is built into the counterplan itself. See [Net benefits](net-benefits.md).
 
 ## How to answer a counterplan (for the aff)
 
-The 2AC usually makes several kinds of answers.
+The 2AC (the aff's speech right after the neg reads the counterplan) usually makes several kinds of answers.
 
 - **Permutation ("perm"):** a test of competition. The aff says, "Do both: the plan and the parts of the counterplan that are not the plan." If doing both is possible and avoids the net benefit, the counterplan does not compete. It is not a reason to reject the plan. See [Permutations](permutations.md).
 - **Solvency deficit:** the counterplan cannot solve all of the aff's harms. Explain what it misses and why that part matters.
 - **Answer the net benefit:** if the DA is not true, the counterplan has no advantage over the plan. Use the DA answers from [Disadvantages](disadvantages.md).
 - **Counterplan disadvantages:** the counterplan causes its own harm.
-- **Theory:** some counterplans are argued to be unfair. A common one is whether the neg may drop the counterplan later in the round. That is called **conditionality**. See [Conditionality](conditionality.md) and [Theory](theory.md).
+- **Theory:** an argument about the fair rules of debate. Some counterplans are argued to be unfair. A common question is whether the neg may drop the counterplan later in the round. That is called **conditionality**. See [Conditionality](conditionality.md) and [Theory](theory.md).
 
 ## How to judge a counterplan
 
 1. **Does it compete?** If the aff's perm is legitimate and avoids the net benefit, the counterplan is not a reason to vote neg.
-2. **Does it solve?** How much of the aff's advantage does the counterplan get?
+2. **Does it solve?** How much of the aff's **advantage** (the good the plan does) does the counterplan get?
 3. **Compare.** Weigh the solvency deficit (what the counterplan misses) against the net benefit (what the plan causes and the counterplan avoids). If the net benefit is bigger, vote neg. If the deficit is bigger, vote aff.
 4. **Check the theory.** If the aff argued the counterplan is unfair, decide that first, as argued.
 
@@ -67,30 +69,55 @@ The 2AC usually makes several kinds of answers.
 
 ## Common counterplan shapes
 
-These come back every season. Each will get its own page.
+These come back every season.
 
 - **Agent counterplans:** a different actor does the plan. The classic example is the states counterplan: the fifty states act instead of the federal government. See [The states counterplan](example-states-cp.md).
 - **Advantage counterplans:** a different action that solves the aff's advantages.
 - **Plan-inclusive counterplans (PICs):** do most of the plan, but leave out one part. See [Plan-inclusive counterplans](example-pic.md).
 - **Process counterplans:** do the plan, but by a different process (for example, after consulting another body). These are often debated on theory.
 
-For the shapes negs use most often (states, agent, advantage, process, consult, PIC), see [Common counterplan shapes](common-counterplans.md).
+For these and the consult counterplan, see [Common counterplan shapes](common-counterplans.md).
 
 ## Example in flow shorthand
 
-A generic states counterplan, with a spending DA as the net benefit.
+A generic states counterplan, with a spending DA as the net benefit. Each group follows one argument through the round. Key: "->" means "leads to", "$" means money, "fed" means federal, "Solv" means solvency, "NB" means net benefit, "Ext" means extend (repeat it in a later speech), and "Condo" means conditionality.
 
 ```
-1NC                     2AC                     2NR                     2AR
-CP: 50 states fund      1. Perm: do both        Perm links to DA:       Perm solves best; DA
-   program X                                       still uses fed $        link is tiny either
-                                                                           way
-Solv: states can run    2. Solv deficit:        States have run X       Only some states act;
-   X (Analyst 21)          states lack $;          before (Expert 20)      deficit is big
-                           some opt out
-NB: Spending DA -       3. No link: plan's      Ext DA: fed cost        DA is a tiny risk;
-   fed cost -> cuts        cost is small           forces cuts now         deficit > DA
-                        4. Condo bad            (no answer)             (not extended)
+THE COUNTERPLAN
+1NC: CP: 50 states fund
+     program X
+
+THE PERM
+2AC: 1. Perm: do both
+2NR: Perm links to DA: still
+     uses fed $
+2AR: Perm solves best; DA link
+     is tiny either way
+
+SOLVENCY
+1NC: Solv: states can run X
+     (Analyst 21)
+2AC: 2. Solv deficit: states
+     lack $; some opt out
+2NR: States have run X before
+     (Expert 20)
+2AR: Only some states act;
+     deficit is big
+
+THE NET BENEFIT
+1NC: NB: Spending DA. Fed cost
+     -> cuts
+2AC: 3. No link: plan's cost
+     is small
+2NR: Ext DA: fed cost forces
+     cuts now
+2AR: DA is a tiny risk;
+     deficit > DA
+
+THEORY
+2AC: 4. Condo bad
+2NR: (no answer)
+2AR: (not extended)
 ```
 
 *How to read it:* the round turns on two questions. Does the perm still trigger the DA? And which is bigger, the solvency deficit or the risk of the DA? The 2NR did not answer conditionality, but the 2AR did not extend it either, so the judge should not vote on it. The judge compares the deficit with the risk of the DA, then decides.

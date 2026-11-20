@@ -7,7 +7,7 @@ import { loadSlots, buildPrompt, templateBlock } from './docs/library/visuals/bu
 import { checkFiles, webpSize } from './docs/library/visuals/check-session.mjs';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { buildSite } from './build-learn.mjs';
+import { buildSite, isPageFile } from './build-learn.mjs';
 import { placeFigures, shareImage } from './learn-visuals.mjs';
 import { FORMATS } from './docs/library/visuals/slots.mjs';
 
@@ -16,7 +16,7 @@ const V = join(LIB, 'visuals');
 const slots = loadSlots();
 const status = JSON.parse(readFileSync(join(V, 'status.json'), 'utf8')).slots;
 const exempt = JSON.parse(readFileSync(join(V, 'exempt.json'), 'utf8')).pages;
-const pages = readdirSync(LIB).filter((f) => f.endsWith('.md') && !f.endsWith('.local.md') && !['PLAN.md', 'LICENSE.md', 'TRACKS.md'].includes(f)).map((f) => f.slice(0, -3));
+const pages = readdirSync(LIB).filter(isPageFile).map((f) => f.slice(0, -3));
 const md = (p) => readFileSync(join(LIB, `${p}.md`), 'utf8');
 
 // Why: a picture is placed after a named heading. If the heading is missing or appears twice, the picture lands in the wrong place or silently disappears.

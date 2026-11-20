@@ -4,7 +4,7 @@ slug: example-cap-k
 description: "The capitalism kritik says the plan relies on market logic that causes harm. Learn its link, impact and alt, the usual aff answers, and how judges weigh it."
 section: Timeless examples
 level: intermediate
-reading_time: 9
+reading_time: 8
 related: [examples, kritiks, common-kritiks, kritik-links, kritik-alternative, answering-kritiks]
 updated: 2026-11-20
 ---
@@ -15,7 +15,7 @@ updated: 2026-11-20
 
 ## The setup
 
-A **kritik** (K) questions the ideas behind the aff, not only the plan's results. See [Kritiks](kritiks.md). The capitalism kritik questions the market thinking behind a plan. It can apply to many plans, so teams run it often.
+A **kritik** (K) questions the ideas behind the aff, not only the plan's results. See [Kritiks](kritiks.md). The capitalism kritik questions the market thinking behind a plan.
 
 In this example, the aff's plan is a new program that gives tax credits to firms that make clean energy. The aff says the plan cuts pollution and creates jobs.
 
@@ -57,7 +57,7 @@ The aff usually answers in the 2AC, the second affirmative constructive. A full 
 - **No link.** The plan is a public policy, not a market. Or the link is too general to be a reason to reject this aff.
 - **Alt fails.** The alt has no clear path to replace markets, or no actor who would do it. Ask in cross-ex what the alt does.
 - **Case outweighs.** The plan cuts pollution now. That benefit is real and near, while the K's harms are slow or uncertain.
-- **Impact turn: capitalism is good.** Some affs argue that market economies have reduced poverty and driven new technology, and that efforts to replace them carry serious risks. This defends an economic system. It does not defend the harms the K names. It is a real position in economics and politics, and it is also a common neg target.
+- **Impact turn: capitalism is good.** An impact turn argues that what the neg calls bad is good. Some affs argue that market economies have reduced poverty and driven new technology, and that efforts to replace them carry serious risks. This defends an economic system. It does not defend the harms the K names. It is a real position in economics and politics, and it is also a common neg target.
 
 Two warnings. First, **an impact turn and a perm do not mix well.** If the aff says capitalism is good, it is hard to also say it will do an alt that rejects capitalism. The neg will point this out. See [Answering a kritik](answering-kritiks.md). Second, **framework alone is rarely enough.** If the aff loses framework and has nothing else, it loses the round.
 
@@ -70,28 +70,63 @@ Two warnings. First, **an impact turn and a perm do not mix well.** If the aff s
 
 ## Example in flow shorthand
 
-A generic cap K against the clean energy tax credit plan. The middle speeches are left out.
+A generic cap K against the clean energy tax credit plan. The middle speeches are left out. Each block is one part of the K, with each speech's line on it, top to bottom. Key: "squo" means status quo (the present system), "->" means "leads to", "=" means "is", and "Ext" means extend. Names in parentheses are invented cards.
 
 ```
-1NC                      2AC                    2NR                       2AR
-FW: weigh the aff's      1. FW: weigh plan vs   Ideas first; plan is      Weigh plan; even if
-   market logic first       squo or a policy       built on profit           ideas count, cap good
-L: credits use profit    2. No link: credits    Credits pay firms for     (not extended)
-   to fix harm              are public policy      profit; that is the
-   (Theorist 16)                                   link
-I: profit drive ->       3. Cap good: growth    Growth gains go to        Ext cap good: growth
-   inequality, eco harm     cuts poverty           a few; harms outweigh     cut poverty (Econ 19)
-   (Scholar 21)             (Econ 19)
-Alt: reject market       4. Perm: plan + alt    Perm contradicts          (not extended)
-   logic; build groups                             "cap good"
-   outside the market
-                         5. Alt fails: no path  Alt = groups already      No card that groups
-                            to replace markets     forming; it grows         can replace markets
-                         6. Case outweighs      K turns case: credits     Credits cut emissions
-                                                   go to big firms           now; turn is slow
+FRAMEWORK (FW)
+1NC: Weigh the aff's market logic
+     first.
+2AC: 1. Weigh plan vs squo or a
+     policy.
+2NR: Ideas first; plan is built
+     on profit.
+2AR: Weigh plan. Even if ideas
+     count, cap good.
+
+LINK
+1NC: Credits use profit to fix
+     harm (Theorist 16).
+2AC: 2. No link: credits are
+     public policy.
+2NR: Credits pay firms for
+     profit; that is the link.
+2AR: (not extended)
+
+IMPACT
+1NC: Profit drive -> inequality,
+     harm to environment
+     (Scholar 21).
+2AC: 3. Cap good: growth cuts
+     poverty (Econ 19).
+2NR: Growth gains go to a few;
+     harms outweigh.
+2AR: Ext cap good: growth cut
+     poverty (Econ 19).
+
+ALTERNATIVE (ALT)
+1NC: Reject market logic; build
+     groups outside the market.
+2AC: 4. Perm: plan + alt.
+2NR: Perm contradicts "cap good."
+2AR: (not extended)
+
+ALT FAILS
+2AC: 5. Alt fails: no path to
+     replace markets.
+2NR: Alt = groups already
+     forming; it grows.
+2AR: No card that groups can
+     replace markets.
+
+CASE OUTWEIGHS
+2AC: 6. Case outweighs.
+2NR: K turns case: credits go to
+     big firms.
+2AR: Credits cut emissions now;
+     turn is slow.
 ```
 
-*How to read it:* the 2AC makes six answers, including both "cap good" and a perm. The 2NR answers each one, and says the perm contradicts "cap good." In the 2AR, the aff drops the perm, so that contradiction no longer matters. The 2AR extends four answers: framework, cap good, alt fails and case weighing. It does not extend the no link argument, so the neg's link stands. On the first row, the 2AR says to weigh the plan, and adds an "even if": even if ideas count, capitalism is good. On the third row, the two sides clash over whether growth helps the poor. On the fifth row, the 2AR says the neg has no card that the groups can replace markets. On the last row, the 2AR says the credits cut emissions now and the turn is slow. The round likely turns on two questions: who wins the cap good debate, and how much of the case survives the K turns case argument?
+*How to read it:* the 2AC makes six answers, including both "cap good" and a perm, and the 2NR says those two contradict. The 2AR drops the perm, so the contradiction no longer matters. The 2AR also drops "no link," so the neg's link stands. It extends four answers: framework (with an "even if"), cap good, alt fails and case weighing. The round likely turns on two questions: who wins the cap good debate, and how much of the case survives the K turns case argument?
 
 ## How judges tend to weigh it
 

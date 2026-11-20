@@ -32,7 +32,7 @@ K affs are not all the same. They sit on a range, from close to a usual plan to 
 
 An **advocacy statement** is a short sentence that says what the aff stands for, a bit like a plan text. A **method** is the aff's way of approaching a problem. **Performance** means the way the aff presents its argument is part of the argument.
 
-The first kind is usually topical. The neg can answer it with the same tools it uses against any aff, plus the K tools below. The other kinds raise a bigger question: must the aff defend the resolution in the usual way? That question is the framework debate. See [Framework against a kritikal affirmative](framework-vs-k-aff.md).
+The first kind is usually topical: it fits the topic. The neg can answer it with the same tools it uses against any aff, plus the K tools below. The other kinds raise a bigger question: must the aff defend the resolution in the usual way? That question is the framework debate. See [Framework against a kritikal affirmative](framework-vs-k-aff.md).
 
 ## Why teams run K affs
 
@@ -60,7 +60,7 @@ These points are the core of the framework argument. Both sides of that debate a
 
 ## How the neg engages a K aff
 
-The neg has several options, and many teams combine them. The main one is **framework** (often called T-USFG): the aff should have defended government action that fits the resolution. The full debate is on [Framework against a kritikal affirmative](framework-vs-k-aff.md).
+The neg has several options, and many teams combine them. The main one is **framework** (often called T-USFG: a topicality argument that the aff must defend action by the United States federal government): the aff should have defended government action that fits the resolution. The full debate is on [Framework against a kritikal affirmative](framework-vs-k-aff.md).
 
 The neg can also argue **presumption**: the aff does nothing a ballot can support, so the judge should vote neg. Presumption is the rule that the judge stays with the present system when no team proves a change is better. See [Presumption](presumption.md). Other options are case arguments, a kritik of the aff (often called a **K v K** or **methods debate**), and a PIK (a plan-inclusive kritik) that keeps most of the aff but rejects one part. In a methods debate, teams also argue whether the aff may use a **permutation** to combine its approach with the neg's. See [Permutations](permutations.md).
 
@@ -69,8 +69,8 @@ The neg can also argue **presumption**: the aff does nothing a ballot can suppor
 - **Say what the aff does.** In one or two sentences, explain the advocacy and what happens if the judge votes aff.
 - **Say what the ballot means.** Many K affs offer a **role of the ballot** (ROB), a claim about what the judge's vote rewards. See [Role of the ballot](role-of-the-ballot.md).
 - **Answer presumption.** Explain why the aff's method makes a difference, in the round or beyond it.
-- **Prepare for framework.** Have a counter-interpretation, impact turns, or both. The full list is on the framework page.
-- **Defend the case.** Answer impact defense and solvency arguments, as any aff must.
+- **Prepare for framework.** Have a counter-interpretation (the aff's own rule for what an aff may or must do, offered against the neg's rule), impact turns, or both. The full list is on the framework page.
+- **Defend the case.** Answer impact defense (claims the harm is smaller) and solvency arguments, as any aff must.
 
 ## How judges differ
 
@@ -86,21 +86,53 @@ Most experienced judges state their view in their paradigm. Read it before the r
 
 ## Example in flow shorthand
 
-A generic K aff with no plan. The neg reads presumption, framework and impact defense. The framework debate is on its own sheet, so only its first row is shown here.
+A generic K aff with no plan. The neg reads presumption, framework and impact defense. The framework debate is on its own sheet, so only its first point is shown here.
+
+Key: adv = advantage, FW = framework, CI = counter-interpretation, Impact D = impact defense, gov't = government. (Scholar 20) is an invented evidence author and year.
 
 ```
-1AC                      1NC                     2AC                     2NR                     2AR
-Adv: topic debates       Presumption: the        Method changes how      A ballot cannot change  Ballot endorses a
-   treat a group as         method does nothing     we study the topic;     how anyone studies      better way to study;
-   numbers (Scholar 20)     a ballot can back       that happens here       outside this room       neg read no card
-Advocacy: study the      FW: aff must defend     CI: aff must be about   (on the FW sheet)       (on the FW sheet)
-   topic through that       gov't action            the topic; we are
-   group's experience
-                         Impact D: the harm      (no answer)             Dropped: the harm       (none)
-                            is overstated                                   is small
+1AC
+  Adv: topic debates treat a
+    group as numbers
+    (Scholar 20)
+  Advocacy: study the topic
+    through that group's
+    experience
+
+1NC
+  1. Presumption: the method
+     does nothing a ballot
+     can back
+  2. FW: aff must defend
+     gov't action
+  3. Impact D: the harm is
+     overstated
+
+2AC
+  1. Method changes how we
+     study the topic; that
+     happens here
+  2. CI: aff must be about
+     the topic; we are
+  3. (no answer)
+
+2NR
+  1. A ballot cannot change
+     how anyone studies
+     outside this room
+  2. (on the FW sheet)
+  3. Dropped: the harm is
+     small
+
+2AR
+  1. Ballot endorses a better
+     way to study; neg read
+     no card
+  2. (on the FW sheet)
+  3. (none)
 ```
 
-*How to read it:* the 1AC has an advantage and an advocacy, but no government plan. On the first row, the 1NC says the aff's method does nothing a ballot can back. The 2AC says the method changes how we study the topic, and that this happens in the round. The 2NR says a ballot cannot change how anyone studies outside the room. The 2AR says the ballot endorses a better way to study, and that the neg read no card. On the second row, the 1NC reads framework and the 2AC gives a counter-interpretation; the rest of that debate is on the framework sheet. On the third row, the 2AC does not answer the impact defense, the 2NR extends it as dropped, and the 2AR does not answer it. So the neg wins that the harm is smaller than the 1AC claimed. The round may still turn on framework and on the presumption clash in the first row.
+*How to read it:* the 1AC has an advantage and an advocacy, but no government plan. On point 1, the 1NC says the aff's method does nothing a ballot can back. The 2AC says the method changes how we study the topic, and that this happens in the round. The 2NR says a ballot cannot change how anyone studies outside the room. The 2AR says the ballot endorses a better way to study, and that the neg read no card. On point 2, the 1NC reads framework and the 2AC gives a counter-interpretation; the rest of that debate is on the framework sheet. On point 3, the 2AC does not answer the impact defense, the 2NR extends it as dropped, and the 2AR does not answer it. So the neg wins that the harm is smaller than the 1AC claimed. The round may still turn on framework and on the presumption clash in point 1.
 
 ## Common mistakes
 

@@ -19,10 +19,10 @@ A **remedy** is what the judge does after a team wins a theory argument. The **v
 
 | Remedy | What the judge does | Example (generic) |
 |---|---|---|
-| **Reject the argument** | Ignores the unfair argument. Decides the rest of the round normally. | The judge sets aside an unfair counterplan, then weighs the DA against the case. |
+| **Reject the argument** | Ignores the unfair argument. Decides the rest of the round normally. | The judge sets aside an unfair counterplan, then weighs the disadvantage (DA) against the case. |
 | **Reject the team** | Votes against the team that made the unfair argument. | The judge votes aff because the neg's strategy was unfair. |
 
-Teams sometimes ask for narrower remedies. For example, "reject the perm" means the judge ignores one permutation but keeps the aff's other answers. A team may also ask the judge to let the other side make new answers to make up for lost time. These are less common, and judges decide them as argued.
+Teams sometimes ask for narrower remedies. For example, "reject the perm" means the judge ignores one permutation (perm: the aff's test of whether a counterplan really competes) but keeps the aff's other answers. A team may also ask the judge to let the other side make new answers to make up for lost time. These are less common, and judges decide them as argued.
 
 ## Why reject the argument
 
@@ -37,7 +37,7 @@ These are common reasons to reject only the argument.
 
 These are common reasons to reject the team.
 
-- **The harm already happened.** Some harms cannot be undone. If a strategy split the 2AC's time, ignoring the argument later does not give the time back.
+- **The harm already happened.** Some harms cannot be undone. If a strategy split the time of the 2AC (the aff's answer to the neg's first speech), ignoring the argument later does not give the time back.
 - **Deterrence.** If the worst result is losing one argument, a team has little reason not to try an unfair one. It is a free option.
 - **Norms.** A ballot can signal what practices are acceptable. Some teams argue the judge should use it that way.
 
@@ -47,9 +47,9 @@ Many teams argue that the right remedy depends on the harm. If ignoring the argu
 
 Judges' defaults are habits, not rules. Read the paradigm. If the teams argue the remedy, the judge should decide it from the arguments.
 
-- **Most theory arguments.** Many judges default to rejecting the argument. Examples include arguments against a certain kind of counterplan or a certain kind of fiat.
+- **Most theory arguments.** Many judges default to rejecting the argument. Examples include arguments against a certain kind of counterplan or a certain kind of fiat (what a team may imagine is passed).
 - **Conditionality.** Many judges treat condo as one of the few theory arguments that can be a reason to reject the team, because the time split cannot be undone. Others treat it like any other theory argument. See [Conditionality](conditionality.md).
-- **Perm theory.** If a perm is found unfair, such as a severance perm, many judges reject the perm and nothing more. See [Permutations](permutations.md).
+- **Perm theory.** If a perm is found unfair, such as a severance perm (one that drops part of the plan), many judges reject the perm and nothing more. See [Permutations](permutations.md).
 - **Topicality.** Topicality (T) works differently. If the plan is not topical, rejecting the "argument" means rejecting the plan. With no plan left, the aff has little to win on. That is why T is usually a reason to vote neg. See [Voters](topicality-voters.md).
 
 ## Reverse voting issues (RVIs)
@@ -67,7 +67,7 @@ Many judges do not vote on RVIs, especially on topicality. Some judges are open 
 
 - **Name the harm.** Say what happened in this round that cannot be fixed by ignoring the argument.
 - **Explain the remedy.** Say why rejecting only the argument would leave the harm in place.
-- **Extend it.** The remedy must be in your last rebuttal, with a reason, not just a word.
+- **Extend it.** The remedy must be in your last rebuttal (the 2NR for the neg, the 2AR for the aff), with a reason, not just a word.
 
 **If you want only the argument rejected:**
 
@@ -83,14 +83,31 @@ Many judges do not vote on RVIs, especially on topicality. Some judges are open 
 
 ## Example in flow shorthand
 
+Each group is one argument, speech by speech. The block is the neg's two speeches in a row. The 1AR is the aff's next speech. Key: Intl fiat = imagining another country acts. CP = counterplan. Kick = drop. Arg = argument.
+
 ```
-2AC                 Block               1AR                 2NR                 2AR
-Intl fiat bad:      Real choice:        Neg can fiat any    Kick the CP; go     Norm: running it
-   neg can't fiat      nations do act      nation; aff         for the DA          should cost them
-   other nations                           can't answer it     alone               the round
-Voter: reject       Reject the arg:     Reject the team:    CP is gone;         Reject the team:
-   the team            ignoring the CP     sets a norm         nothing left        they ran an
-                       fixes it                                to reject           unfair CP
+THEORY: INTL FIAT BAD
+2AC:   neg can't fiat other
+       nations
+Block: real choice: nations do
+       act
+1AR:   neg can fiat any nation;
+       aff can't answer it
+2NR:   kick the CP; go for the
+       DA alone
+2AR:   norm: running it should
+       cost them the round
+
+THE REMEDY
+2AC:   voter: reject the team
+Block: reject the arg: ignoring
+       the CP fixes it
+1AR:   reject the team: sets a
+       norm
+2NR:   CP is gone; nothing left
+       to reject
+2AR:   reject the team: they ran
+       an unfair CP
 ```
 
 *How to read it:* the neg ran a counterplan in which another country acts. The 2AC argued that this kind of fiat is unfair, and asked the judge to reject the team. The block said nations really do act, and that ignoring the counterplan is enough. In the 2NR, the neg kicked the counterplan and went for the DA alone. So the theory question is now only about the remedy. If the judge rejects the argument, the counterplan is already gone, and nothing changes: the judge weighs the DA against the case. If the judge rejects the team, the aff wins. The 2AR extended the 1AR's norm argument. The judge decides whether that reason is enough to vote on.

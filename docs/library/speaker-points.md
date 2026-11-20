@@ -4,14 +4,14 @@ slug: speaker-points
 description: "Speaker points rate each debater, often on a scale near 25 to 30. Learn what judges reward, a rough guide to the numbers, and how to give points fairly."
 section: The round
 level: beginner
-reading_time: 5
+reading_time: 7
 related: [debate-101, ballot-and-rfd, first-round-judge, cross-examination, giving-feedback]
-updated: 2026-11-19
+updated: 2026-11-20
 ---
 
 # Speaker points
 
-> **Plain version.** Speaker points are a score the judge gives each debater, apart from who wins. Most leagues use a scale near 25 to 30, with tenths allowed, such as 28.4. Higher is better. Points reward clear speaking, smart choices, good cross-ex and respect for others. Points help break ties in the standings and decide speaker awards, so being fair and consistent matters.
+> **Plain version.** Speaker points are a score the judge gives each debater, apart from who wins. Most leagues use a scale near 25 to 30, with tenths allowed, such as 28.4. Higher is better. Points reward clear speaking, smart choices, good cross-ex (question time) and respect for others. Points help break ties in the standings (the team rankings) and decide speaker awards, so being fair and consistent matters.
 
 ## How the scale works
 
@@ -26,19 +26,19 @@ Every league sets its own scale. Always check the ballot or the tournament's ins
 | 28.5 – 28.9 | Very good. Strong choices, few errors. |
 | 28.0 – 28.4 | Good. Solid and clear, with some missed chances. |
 | 27.5 – 27.9 | Average for the level. Did the job, with real gaps. |
-| 27.0 – 27.4 | Below average. Hard to follow, or dropped key arguments. |
+| 27.0 – 27.4 | Below average. Hard to follow, or dropped (did not answer) key arguments. |
 | 26.0 – 26.9 | Weak round. Major problems with clarity or strategy. |
 | Below 26 | Usually kept for serious problems, such as rude or offensive conduct. Many leagues ask the judge to explain. |
 
 **Judge the level.** A strong novice and a strong varsity debater can both earn a 29 in their own division. Compare each debater to others at the same level.
 
-**Point ranges drift.** In many circuits, the average has moved up over time. Ask the tournament or a coach what a typical point is if you are not sure.
+**Point ranges drift.** In many circuits (regional groups of tournaments), the average has moved up over time. Ask the tournament or a coach what a typical point is if you are not sure.
 
 ## What earns points
 
-- **Clarity.** Can the judge understand the words and follow the order? Speed is fine only if it stays clear.
-- **Organization.** Roadmaps, signposts, and answers that match the flow.
-- **Strategy.** Good choices: answering every argument, going for the right things in rebuttals, not wasting time.
+- **Clarity.** Can the judge understand the words and follow the order? That includes the **tags**: the one-line claim a debater says before each quote of evidence (a card). Speed is fine only if it stays clear.
+- **Organization.** A roadmap (the order of the speech, said at the start), signposts (words that say where the speaker is, such as "On the DA..."), and answers that match the flow (your notes).
+- **Strategy.** Good choices: answering every argument, going for the right arguments in the rebuttals (the last four speeches), not wasting time.
 - **Explanation.** Saying *why*, in the debater's own words, not just reading cards.
 - **Cross-ex.** Sharp questions and honest, clear answers.
 - **Respect.** Courtesy to opponents, partner and judge.
@@ -61,12 +61,28 @@ Every league sets its own scale. Always check the ballot or the tournament's ins
 
 A judge's margin notes for points, written during the round.
 
+Key: "1A" is the first aff (affirmative) speaker, and "2N" is the second neg (negative) speaker. "ext" = extended. "IL on DA" = a middle step of a disadvantage (an argument that the plan causes harm). "off" = the neg's off-case arguments. "CX" = cross-ex. "T" = topicality (does the plan fit the topic?).
+
 ```
-Speaker      Notes (margin of flow)                           Pts
-1A (1AC/1AR) clear, ext case well in 1AR; dropped IL on DA    28.3
-2A (2AC/2AR) answered all off; strong 2AR weighing; 2AC slow  28.8
-1N (1NC/1NR) fast, unclear tags; good T in 1NR                27.9
-2N (2NC/2NR) great CX; 2NR well explained; 2NC ran long on T  28.7
+1A (gave the 1AC and 1AR)
+  clear, ext case well in 1AR;
+  dropped IL on DA
+  Pts: 28.3
+
+2A (gave the 2AC and 2AR)
+  answered all off; strong 2AR
+  weighing; 2AC slow
+  Pts: 28.8
+
+1N (gave the 1NC and 1NR)
+  fast, unclear tags; good T
+  in 1NR
+  Pts: 27.9
+
+2N (gave the 2NC and 2NR)
+  great CX; 2NR well explained;
+  2NC ran long on T
+  Pts: 28.7
 ```
 
 *How to read it:* the judge notes one strength and one weakness for each debater, then gives points. The 2A and 2N are close. The 1N lost points for unclear tags, even though their topicality work was good.

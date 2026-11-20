@@ -63,8 +63,8 @@ This part is for experienced debaters and judges. Theory pages go deeper. See [T
 
 Some judges want a counterplan to compete in function. Some accept text alone. Some want both. Teams argue which standard should apply, because it changes which perms are allowed and which counterplans compete. For example, a counterplan that does the whole plan but changes one word may compete in text and not clearly in function.
 
-- **Artificial competition.** Some counterplans compete only through a part that seems added just to compete. A plank that says "and the plan should not happen" is one example. Many judges look at this kind of competition with doubt, and teams often debate it as theory.
-- **Competition through certainty or timing.** Some process counterplans compete because the plan acts at once and for sure, while the counterplan acts later or only if someone agrees. Teams argue whether those differences are a fair basis for competition. Some judges accept it; others do not.
+- **Artificial competition.** Some counterplans compete only through a part that seems added just to compete. A plank (one step in the counterplan text) that says "and the plan should not happen" is one example. Many judges look at this kind of competition with doubt, and teams often debate it as theory.
+- **Competition through certainty or timing.** Some process counterplans (which do the plan by a different process) compete because the plan acts at once and for sure, while the counterplan acts later or only if someone agrees. Teams argue whether those differences are a fair basis for competition. Some judges accept it; others do not.
 
 ## How to answer a competition claim
 
@@ -90,16 +90,31 @@ Some judges want a counterplan to compete in function. Some accept text alone. S
 
 ## Example in flow shorthand
 
+Each group follows one argument through the round. Key: "Comp" means competition, "ME" means mutual exclusivity, "NB" means net benefit, "fed" means federal, "$" means money, and "->" means "leads to".
+
 ```
-1NC                       2AC                       2NR                       2AR
-Comp 1: ME - only one     1. Not ME: fed and        Concede not ME; go        ME is gone; the perm
-   gov can run X             states fund many          for net benefit           is the only test
-                             programs together
-Comp 2: NB - fed $ ->     2. Perm do both: no       Perm still spends fed     Plan's cost is small;
-   Spending DA               extra cuts                $ -> cuts happen          DA risk is tiny
+COMPETITION 1: MUTUAL EXCLUSIVITY
+1NC: Comp 1: ME. Only one gov
+     can run X
+2AC: 1. Not ME: fed and states
+     fund many programs together
+2NR: Concede not ME; go for net
+     benefit
+2AR: ME is gone; the perm is
+     the only test
+
+COMPETITION 2: NET BENEFIT
+1NC: Comp 2: NB. Fed $ ->
+     Spending DA
+2AC: 2. Perm do both: no extra
+     cuts
+2NR: Perm still spends fed $
+     -> cuts happen
+2AR: Plan's cost is small; DA
+     risk is tiny
 ```
 
-*How to read it:* the 1NC gave two reasons the counterplan competes. The 2AC answered both: the two governments can fund programs together, and the perm avoids extra cuts. In the 2NR, the neg gave up mutual exclusivity and went for the net benefit. It argued the perm still spends federal money, so the cuts still happen. The 2AR agreed the perm is now the only test, and said the plan's cost is small. The judge asks: does the perm still cause the spending DA? If yes, the counterplan competes, and the judge weighs the DA against any solvency deficit. If no, the counterplan drops out.
+*How to read it:* the neg gave up mutual exclusivity, so the perm is the only test. The judge asks: does the perm still cause the spending DA? If yes, the counterplan competes, and the judge weighs the DA against any solvency deficit. If no, the counterplan drops out.
 
 ## Common mistakes
 

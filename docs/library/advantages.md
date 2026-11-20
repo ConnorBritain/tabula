@@ -84,25 +84,56 @@ Most neg teams do not try to beat every step. They pick the weakest one or two, 
 
 ## Example in flow shorthand
 
-A generic public health advantage, read as a chain.
+A generic public health advantage, read as a chain. Each step is shown with the speeches that argue it.
+
+Key: U = uniqueness, L = link, IL = internal link, I = impact, N/U = non-unique, D = defense, Ext = extend, Ev = evidence, K = thousand, "->" = leads to. The cards are invented.
 
 ```
-1AC                       1NC                       2AC                       2NR                       2AR
-Plan: fund rural
-   clinics that give
-   free care
-Adv 1: Rural health
-U: clinics closing,       1. N/U: new program       Program funds 5 sites;    Ext N/U: program          Program = 5 sites;
-   no funding (Ev 21)        funds clinics             need is 500               grows                     no card it grows
-L: plan funds clinics
-   (Expert 22)
-IL: near clinic ->        2. No IL: cost, not       Plan clinics are free     (dropped)                 Conceded: plan
-   early treatment           distance, stops care                                                          solves cost too
-I: early treatment        3. Impact D: most         Card is about serious     Ext: most recover         Even 10% = 3K
-   saves 30K/yr              recover anyway            illness (Author 22)                                  lives a year
+1AC  Plan: fund rural
+     clinics that give
+     free care
+     Adv 1: Rural health
+
+UNIQUENESS
+1AC  U: clinics closing,
+     no funding (Ev 21)
+1NC  N/U: new program
+     funds clinics
+2AC  Program funds 5
+     sites; need is 500
+2NR  Ext N/U: program
+     grows
+2AR  Program = 5 sites;
+     no card it grows
+
+LINK (not attacked)
+1AC  L: plan funds
+     clinics (Expert 22)
+
+INTERNAL LINK
+1AC  IL: near clinic ->
+     early treatment
+1NC  No IL: cost, not
+     distance, stops care
+2AC  Plan clinics are free
+2NR  (dropped)
+2AR  Conceded: plan
+     solves cost too
+
+IMPACT
+1AC  I: early treatment
+     saves 30K/yr
+1NC  Impact D: most
+     recover anyway
+2AC  Card is about
+     serious illness
+     (Author 22)
+2NR  Ext: most recover
+2AR  Even 10% = 3K lives
+     a year
 ```
 
-*How to read it:* the 1AC plan text funds rural clinics that give free care. The neg attacks uniqueness, the internal link and the impact. It does not attack the link. The 2NR extends the uniqueness and impact attacks, but drops the 2AC answer on the internal link, so the 2AR calls it conceded. That 2AC answer points to the plan text: the plan's clinics are free, so cost does not stop care. On uniqueness, the 2AR says the program has only 5 sites and there is no card that it grows. On the impact, the 2AR argues that even 10% of the impact is 3,000 lives a year. A judge would likely give the aff a real but smaller advantage, then weigh it against the neg's other arguments.
+*How to read it:* the 2AC answer on the internal link points to the plan text, and the 2NR dropped it. On uniqueness, the 2AR says the program has only 5 sites, and the neg has no card that it grows. A judge would likely give the aff a real but smaller advantage, then weigh it against the neg's other arguments.
 
 ## Common mistakes
 

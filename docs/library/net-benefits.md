@@ -4,7 +4,7 @@ slug: net-benefits
 description: "A net benefit is the reason a counterplan alone beats the plan, or the plan plus the counterplan. Learn the kinds, how to answer one, and how judges weigh it."
 section: Counterplans
 level: intermediate
-reading_time: 7
+reading_time: 6
 related: [counterplans, competition, permutations, solvency-deficits, disadvantages, impact-calculus]
 updated: 2026-11-20
 ---
@@ -77,22 +77,33 @@ Judges differ on small risks. Some judges think almost any risk of a net benefit
 
 ## Example in flow shorthand
 
+Each group follows one argument through the round. Key: "NB" means net benefit, "fed" means federal, and "->" means "leads to".
+
 ```
-1NC                       2AC                       2NR                       2AR
-NB 1: Spending DA -       1. Perm do both           Perm links: it still      Plan's cost is
-   plan's fed cost ->                                  has the fed cost          small; DA risk
-   cuts                                                                          is tiny
-NB 2: CP also trains      2. Perm gets NB 2:        (not extended)            (not extended)
-   state staff               perm includes the
-   (internal)                CP training
+NB 1: SPENDING DA (EXTERNAL)
+1NC: NB 1: Spending DA. Plan's
+     fed cost -> cuts
+2AC: 1. Perm do both
+2NR: Perm links: it still has
+     the fed cost
+2AR: Plan's cost is small; DA
+     risk is tiny
+
+NB 2: TRAINING (INTERNAL)
+1NC: NB 2: CP also trains
+     state staff
+2AC: 2. Perm gets NB 2: perm
+     includes the CP training
+2NR: (not extended)
+2AR: (not extended)
 ```
 
-*How to read it:* the 1NC gave two net benefits. The second one was internal: the counterplan trains state staff. The 2AC said the perm gets that benefit too, because the perm includes the counterplan. The 2NR did not extend the second net benefit, so it is out of the round. The 2NR went for the spending DA and said the perm still has the federal cost. The 2AR did not deny that the perm has the cost. It argued the cost is small, so the DA risk is tiny. This flow shows no solvency deficit. So the judge asks how big the DA risk is, and whether any risk is enough when the counterplan solves the whole case.
+*How to read it:* the 2NR dropped the internal net benefit, so it is out of the round. The 2AR did not deny that the perm has the federal cost. It argued the cost is small. This flow shows no solvency deficit. So the judge asks how big the DA risk is, and whether any risk is enough when the counterplan solves the whole case.
 
 ## Common mistakes
 
 - **Neg: a net benefit the perm also gets.** Fix: lead with an external net benefit, or explain why only the counterplan alone gets the benefit.
-- **Neg: extending the counterplan but not the full DA.** Fix: extend uniqueness, link, internal link and impact in the block and the 2NR.
+- **Neg: extending the counterplan but not the full DA.** Fix: extend uniqueness, link, internal link and impact in the block (the 2NC and 1NR) and the 2NR.
 - **Neg: a counterplan that links to its own net benefit.** Fix: check that your counterplan text avoids the DA's link.
 - **Aff: answering the counterplan but ignoring the net benefit.** Fix: answer the DA too. If it falls, the counterplan has no edge.
 - **Aff: claiming a deficit without weighing it.** Fix: compare the deficit with the risk of the net benefit, out loud.

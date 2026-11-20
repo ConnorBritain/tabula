@@ -4,7 +4,7 @@ slug: example-condo-debate
 description: "A worked conditionality debate against three conditional options: the 2AC block, neg answers, 2NR and 2AR choices, and how judges with different views decide."
 section: Timeless examples
 level: advanced
-reading_time: 9
+reading_time: 8
 related: [conditionality, theory, reject-the-team, rebuttal-strategy, judge-paradigms, examples]
 updated: 2026-11-20
 ---
@@ -17,7 +17,7 @@ updated: 2026-11-20
 
 An **advocacy** is a position a team defends as its own, such as a plan, a counterplan or a kritik's alternative. **Conditional** means the neg may drop it later without penalty. See [Conditionality](conditionality.md).
 
-A typical shape for this debate:
+A typical shape for this debate. The 1NC is the first neg speech, the 2AC the second aff speech, the block the two neg speeches in a row, and the 1AR the first aff rebuttal.
 
 - **1NC:** two counterplans and a kritik, all conditional. It also reads a disadvantage (DA) or two, and case arguments.
 - **CX of the 1NC:** the aff asks, "What is the status of each counterplan and the kritik?" The neg says, "All conditional."
@@ -36,7 +36,7 @@ The 2AC must answer every option, so condo is often short here: 10 to 30 seconds
 
 - "The neg gets no conditional options."
 - "The neg gets one conditional counterplan."
-- "The neg may run options dispositionally": it may drop one only if the aff perms.
+- "The neg may run options dispositionally": it may drop one only if the aff makes a perm (permutation: a test that does both the plan and the counterplan).
 
 The choice matters. A strict rule ("no condo") is easy to violate but harder to defend. A loose rule ("one option") is easier to defend, and three options still violate it.
 
@@ -85,7 +85,7 @@ If the 1AR does not extend condo, most judges will not let the 2AR go for it.
 
 If the 1AR extended condo, the 2NR must answer it. A short answer can lose a round if the 2AR goes all in. Common 2NR moves:
 
-- **Collapse.** The 2NR kicks the extra options and goes for one. It then argues the harm was small.
+- **Collapse.** The 2NR kicks (drops) the extra options and goes for one. It then argues the harm was small.
 - **Answer the 1AR line by line.** It extends the counter-interpretation and the standards.
 - **Point to the 2AC.** "The 2AC answered all three. Name an answer you could not make."
 - **Hold the remedy.** Even if the aff wins, the judge should only reject the argument.
@@ -102,25 +102,51 @@ Each choice depends on the judge, on the 2NR's answers, and on how the substance
 
 ## Example in flow shorthand
 
-The 1NC ran two counterplans and a kritik, all conditional. Only the condo rows are shown.
+The 1NC ran two counterplans and a kritik, all conditional. Only the condo arguments are shown, one row at a time. Key: CI = counter-interpretation, CP = counterplan, K = kritik, Ext = extend, kick = drop.
 
 ```
-2AC                  Block                1AR                  2NR                  2AR
-Interp: 1 condo      CI: condo OK if      Ext interp: 3        Kicked K and CP 2;   3 options split
-   option; they ran     options don't        options split        only 1 CP left       the 2AC 3 ways;
-   3 (2 CPs, K)         contradict           the 2AC 3 ways                            perms got seconds
-Contradiction: K     K and CPs test       K says state bad;    (no answer)          Contradiction
-   says state bad;      different parts      CPs use state                             dropped: neg argued
-   CPs use state        of the aff                                                     both sides
-                     Neg flex: aff        Aff picks plan,      Ext: aff side        Side bias can't
-                        side bias            but 3 is too         bias; 2AC still      justify 3 worlds
-                                             many                 answered all
-Voter: reject        Reject arg: kick     Harm is done;        Reject arg at most   Reject team: time
-   the team             fixes it             reject team                               can't be given
-                                                                                       back
+ROW 1: THE INTERPRETATION
+2AC: Interp: 1 condo option;
+  they ran 3 (2 CPs, K)
+Block: CI: condo OK if options
+  don't contradict
+1AR: Ext interp: 3 options split
+  the 2AC 3 ways
+2NR: Kicked K and CP 2; only
+  1 CP left
+2AR: 3 options split the 2AC
+  3 ways; perms got seconds
+
+ROW 2: CONTRADICTION
+2AC: Contradiction: K says
+  state bad; CPs use state
+Block: K and CPs test different
+  parts of the aff
+1AR: K says state bad; CPs use
+  state
+2NR: (no answer)
+2AR: Contradiction dropped: neg
+  argued both sides
+
+ROW 3: NEG FLEX
+Block: Neg flex: aff side bias
+1AR: Aff picks plan, but 3 is
+  too many
+2NR: Ext: aff side bias; 2AC
+  still answered all
+2AR: Side bias can't justify
+  3 worlds
+
+ROW 4: THE VOTER
+2AC: Voter: reject the team
+Block: Reject arg: kick fixes it
+1AR: Harm is done; reject team
+2NR: Reject arg at most
+2AR: Reject team: time can't be
+  given back
 ```
 
-*How to read it:* the 2AC argued the neg gets one conditional option, but the neg ran three. The block said condo is fine if the options do not contradict, that the remedy is to reject the argument, that the kritik and counterplans test different parts of the aff, and that aff side bias justifies options. The 1AR extended the interpretation, the contradiction and the voter, and answered side bias. In the 2NR, the neg kicked the kritik and one counterplan, and argued the 2AC still answered everything. The 2NR held the remedy: reject the argument at most. It did not answer the contradiction row. The 2AR extended that drop: the neg argued both sides, because the kritik said state action is bad while the counterplans used the state. The 2AR also said the time split left the perms only seconds, and asked the judge to reject the team. The 2NR's counter-interpretation depends on the options not contradicting, so the dropped contradiction hurts it. The judge must still decide the remedy: reject the argument, or reject the team.
+*How to read it:* the 2NR kicked the kritik and one counterplan and held the remedy, but it never answered the contradiction row. The 2AR extended that drop and asked the judge to reject the team. The 2NR's counter-interpretation depends on the options not contradicting, so the dropped contradiction hurts it. The judge must still decide the remedy: reject the argument, or reject the team.
 
 ## How judges with different views tend to decide
 

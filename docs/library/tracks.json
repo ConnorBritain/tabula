@@ -6,11 +6,11 @@
       "name": "New parent judge",
       "pathName": "New judge path",
       "title": "New Parent Judge Track: Judge Your First Debate Round",
-      "description": "A free, self-paced track for new policy debate judges. Six short pages, each with a quick check. About 45 minutes. Progress stays in your browser.",
+      "description": "A free, self-paced track for new policy debate judges. Six short pages, each with a quick check. About 50 minutes. Progress stays in your browser.",
       "promise": "You can judge a fair round today.",
       "audience": "judge",
       "badge": true,
-      "minutes": 45,
+      "minutes": 50,
       "steps": ["debate-101", "first-round-judge", "how-to-flow", "speaker-points", "ballot-and-rfd", "impact-calculus"]
     },
     {

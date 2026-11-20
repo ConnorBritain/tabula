@@ -4,7 +4,7 @@ slug: kritik-alternative
 description: "The alternative is what a kritik offers instead of the affirmative. Learn the kinds of alts, alt solvency, floating PIKs, and going for a K without the alt."
 section: Kritiks
 level: intermediate
-reading_time: 8
+reading_time: 9
 related: [kritiks, kritik-links, answering-kritiks, permutations, counterplans, fiat]
 updated: 2026-11-20
 ---
@@ -17,9 +17,9 @@ updated: 2026-11-20
 
 A kritik, or K, says the aff relies on a harmful way of thinking. See [Kritiks](kritiks.md). The **link** shows the aff thinks that way. The **impact** shows why that is harmful. The **alternative** gives the judge a third choice, besides the aff and the present system.
 
-In that sense, the alt works a bit like a counterplan. It is something the judge can prefer to the aff. And like a counterplan, it must **compete**: there must be a reason the judge cannot simply have both. See [Counterplans](counterplans.md).
+In that sense, the alt works a bit like a counterplan: it is something the judge can prefer to the aff. It must also **compete**: there must be a reason the judge cannot simply have both. See [Counterplans](counterplans.md).
 
-Like a counterplan, a K is often **conditional**: the neg may drop it later in the round. Whether that is fair is a theory debate. See [Conditionality](conditionality.md).
+A K is often **conditional** too: the neg may drop it later in the round. Whether that is fair is a theory debate. See [Conditionality](conditionality.md).
 
 ## Kinds of alternatives
 
@@ -98,19 +98,48 @@ For typical alternatives in each common kritik family, see [Common kritik famili
 
 A generic security kritik. The neg's alt rejects the aff's description of a rival country as a threat.
 
+Key: the block is the 2NC and 1NR, two neg speeches in a row. CX = cross-ex, DA = disadvantage, "->" = "leads to", w/o = without. (Theorist 19) is an invented evidence author and year.
+
 ```
-1NC                    2AC                      Block                     1AR                     2NR
-Alt: reject the        1. Alt fails: no         Alt = judge rejects       Ballot can't stop       Kick the alt. Links
-   threat frame           actor, no action         the frame; ballot         a war; alt solves       are a DA: threat
-   (Theorist 19)                                   models better             nothing                 talk -> conflict
-                                                   thinking
-                       2. Floating PIK: alt     Alt does not include      Hold them to it: no     (none)
-                          could include plan       the plan; CX said so      PIK in the 2NR
-                       3. Perm: do plan and     Perm links: plan needs    Perm solves: plan       Perm is moot: no
-                          reject frame             threat to be urgent       works w/o the frame     alt left to perm
+1NC
+  Alt: reject the threat frame
+    (Theorist 19)
+
+2AC
+  1. Alt fails: no actor, no
+     action
+  2. Floating PIK: alt could
+     include plan
+  3. Perm: do plan and reject
+     frame
+
+Block
+  1. Alt = judge rejects the
+     frame; ballot models
+     better thinking
+  2. Alt does not include the
+     plan; CX said so
+  3. Perm links: plan needs
+     threat to be urgent
+
+1AR
+  1. Ballot can't stop a war;
+     alt solves nothing
+  2. Hold them to it: no PIK
+     in the 2NR
+  3. Perm solves: plan works
+     w/o the frame
+
+2NR
+  1. Kick the alt. Links are
+     a DA: threat talk ->
+     conflict
+  2. (none)
+  3. Perm is moot: no alt
+     left to perm
 ```
 
-*How to read it:* the block explains the alt as the judge rejecting the frame, and says the ballot models better thinking. The 1AR answers that a ballot cannot stop a war. On the second row, the block says the alt does not include the plan, citing cross-ex, and the 1AR holds the neg to that. The 2NR makes no PIK. In the 2NR, the neg kicks the alt and goes for the links as a disadvantage. That makes the perm moot, because there is no alt left to combine with the plan. The judge now compares the aff's case to the present system, plus the risk from the threat-talk link.
+*How to read it:* the block explains the alt as the judge rejecting the frame, and says the ballot models better thinking. The 1AR answers that a ballot cannot stop a war. On point 2, the block says the alt does not include the plan, citing cross-ex, and the 1AR holds the neg to that. The 2NR makes no PIK. In the 2NR, the neg kicks the alt and goes for the links as a disadvantage. That makes the perm moot, because there is no alt left to combine with the plan. The judge now compares the aff's case to the present system, plus the risk from the threat-talk link.
 
 ## Common mistakes
 

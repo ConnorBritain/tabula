@@ -78,24 +78,44 @@ For a word PIC, you may also need to decide whether words count as much as actio
 
 ## Example in flow shorthand
 
-A plan-minus PIC. The plan funds program X everywhere. The PIC leaves out area Y.
+A plan-minus PIC. The plan funds program X everywhere. The PIC leaves out area Y. The 1NC comes first, then each 2AC answer with the 2NR and 2AR replies. Key: CP = counterplan, Solv = solvency, NB = net benefit, adv = advantage, arg = argument, -> = leads to.
 
 ```
-1NC                     2AC                     2NR                     2AR
-PIC: do plan, but not   1. PICs bad: steal      Tests every part of     PICs make aff defend
-   in area Y               aff ground; reject      plan; reject the        any tiny piece;
-                           the team                arg at most             reject the team
-Solv: CP solves the     2. Deficit: area Y has  Y has own program;      Y program is small;
-   rest of the case        the worst harm          plan adds little        half the adv is in Y
-NB: plan in area Y      3. Perm do both         Perm = whole plan, so   (no answer)
-   replaces Y's local                              still in Y -> links
-   program (Analyst 21)
-                        4. No link: plan adds   Plan's rules override   Override is rare;
-                           to Y's program          Y's own rules           link is tiny
-                                                   (Analyst 21)
+1NC
+PIC: do plan, but not in area Y
+Solv: CP solves the rest of the
+  case
+NB: plan in area Y replaces Y's
+  local program (Analyst 21)
+
+2AC 1: PICs bad: steal aff
+  ground; reject the team
+2NR: Tests every part of plan;
+  reject the arg at most
+2AR: PICs make aff defend any
+  tiny piece; reject the team
+
+2AC 2: Deficit: area Y has the
+  worst harm
+2NR: Y has own program; plan
+  adds little
+2AR: Y program is small; half
+  the adv is in Y
+
+2AC 3: Perm do both
+2NR: Perm = whole plan, so
+  still in Y -> links
+2AR: (no answer)
+
+2AC 4: No link: plan adds to
+  Y's program
+2NR: Plan's rules override Y's
+  own rules (Analyst 21)
+2AR: Override is rare; link is
+  tiny
 ```
 
-*How to read it:* the 2AC made four answers, and the 2NR answered all four. The 2AR did not answer the 2NR's reply on the perm, so the perm is gone and the counterplan competes if the net benefit is real. On theory, the 2AR asked the judge to reject the team, and the 2NR said reject the argument at most. The judge decides theory first. If the aff wins reject the team, the aff wins. If the judge only rejects the counterplan, the plan is compared with the status quo, and the net benefit still counts as a DA. If the counterplan stands, the judge weighs two things. The deficit: is area Y half the advantage, or does Y's own program cover it? The net benefit: does the plan override Y's program, or is that rare?
+*How to read it:* the 2NR answered all four 2AC answers. The 2AR did not answer the 2NR's reply on the perm, so the perm is gone, and the counterplan competes if the net benefit is real. The judge decides theory first. If the aff wins "reject the team," the aff wins. If the judge only rejects the counterplan, the plan is compared with the status quo, and the net benefit still counts as a DA. If the counterplan stands, the judge weighs two things. The deficit: is area Y half the advantage, or does Y's own program cover it? The net benefit: does the plan override Y's program, or is that rare?
 
 ## Common mistakes
 
