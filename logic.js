@@ -76,7 +76,7 @@
 
   const PARADIGM_LABELS = {
     lay: 'Lay / stock issues', policymaker: 'Policymaker', tabula: 'Tabula rasa', tech: 'Tech over truth',
-    critical: 'Critical (K-friendly)', games: 'Games / skills', custom: 'My Tabroom paradigm',
+    critical: 'Critical (K-friendly)', games: 'Games / skills', custom: 'My own paradigm',
   };
 
   // The paradigm text to judge by. "custom" uses the judge's own pasted Tabroom paradigm.
@@ -1311,6 +1311,144 @@
     return Boolean(o && run && o.id === run.id && o.endAt === run.endAt && o.beeped);
   }
 
+  // ---------- Slice 2: copy and dialogs (docs/design/SPEC.md §3.2) ----------
+  // The one "no AI" line (spec 2.2). Every place that needs AI says exactly this.
+  const NO_AI = 'No AI is connected. Connect one in Settings.';
+
+  // The paid plan (spec 2.8) is not built yet, so no one has it. When it ships, this reads the plan state.
+  function hasHostedPlan() { return false; }
+  // The first-time welcome shows only to free users who have not finished it (spec 2.1, Q11).
+  function shouldShowWelcome(o) {
+    const s = o || {};
+    return !s.hostedPlan && !s.setupDone;
+  }
+
+  // One classifier for every failed AI or transcription call (spec 2.3). The rules run in this order.
+  // e: { status, name, message, online, stop: 'refusal' | 'max_tokens', helper: true when the call went to the local helper }.
+  const QUOTA_RE = /quota|credit|billing|balance|insufficient/i;
+  function classifyAIError(e) {
+    const x = e || {};
+    const status = Number(x.status) || 0;
+    if (x.online === false) return 'offline';
+    if (x.name === 'TimeoutError') return 'timeout';
+    // A fetch that never got a reply throws a TypeError. To the local helper that means the helper is down (rule 8).
+    // So helper calls (helper: true, only the /api/ai call in app.js callAI) skip rule 3. Without this, spec order
+    // would make every helper failure "noReply" and rule 8 could never fire. Helper 4xx and 5xx replies still use
+    // rules 4 to 6 (for example a 5xx from the helper is "busy"); that is a known trade-off.
+    if (x.name === 'TypeError' && !x.helper) return 'noReply';
+    if (status === 401 || status === 403) return 'keyRejected';
+    if (status === 429 && QUOTA_RE.test(String(x.message || ''))) return 'noCredit';
+    if (status === 429 || status === 408 || (status >= 500 && status < 600)) return 'busy';
+    if (status === 404) return 'modelGone';
+    if (x.stop === 'refusal') return 'refused';
+    if (x.stop === 'max_tokens') return 'cutOff';
+    if (x.helper && (x.name === 'TypeError' || status === 0)) return 'helperDown';
+    return 'other';
+  }
+  // The text for each kind. {provider} is the provider of the judge's own key; it is the only name copy may hold.
+  const AI_ERROR_TEXT = {
+    offline: 'You are offline. AI and transcription will start again when the internet is back. Your flow is saved on this device.',
+    noReply: 'No reply from {provider}. Check your internet. If the internet works, test the key in Settings.',
+    timeout: 'The AI took too long to answer. Try again.',
+    keyRejected: 'The {provider} key was rejected. Paste it again in Settings, or make a new key.',
+    noCredit: "The {provider} key works, but its account has no credit. Add credit on the provider's site.",
+    busy: 'The AI service is busy. Wait a moment and try again.',
+    modelGone: 'That AI model is no longer offered. Tabula will pick another. Try again.',
+    refused: 'The AI would not answer this request. Decide by hand, or change the input and try again.',
+    cutOff: "The AI's reply was cut off. Try again.",
+    helperDown: 'The helper on this computer is not running. In the Tabula folder, run node bridge.mjs, then try again.',
+    other: 'The AI call failed{status}. Try again. If it keeps failing, test the key in Settings.',
+  };
+  function aiErrorText(kind, opts) {
+    const o = opts || {};
+    const t = AI_ERROR_TEXT[kind] || AI_ERROR_TEXT.other;
+    const status = Number(o.status) ? ' (error ' + Number(o.status) + ')' : '';
+    return t.replace('{provider}', o.provider || 'the AI provider').replace('{status}', status);
+  }
+  // Each feature puts its name in front of the error text.
+  const AI_ERROR_PREFIX = { flow: 'AI flow:', eval: 'Live Eval:', analysis: 'Analysis:', ballot: 'Ballot draft:', transcript: 'Transcript:', decision: 'Decision draft:' };
+
+  // Shared Undo helpers (spec 2.4). removeAt never changes the list it gets.
+  // Returns { list, undo: { index, item } }; restoreAt(list, undo.index, undo.item) puts the item back in its place.
+  function removeAt(list, i) {
+    const l = Array.isArray(list) ? list.slice() : [];
+    if (!(i >= 0 && i < l.length)) return { list: l, undo: null };
+    const [item] = l.splice(i, 1);
+    return { list: l, undo: { index: i, item } };
+  }
+  function restoreAt(list, i, item) {
+    const l = Array.isArray(list) ? list.slice() : [];
+    l.splice(Math.max(0, Math.min(Number(i) || 0, l.length)), 0, item);
+    return l;
+  }
+
+  // The text box in ask() (spec 4.2): is the typed text good enough for the primary button?
+  // opts: { required (default true), maxLength, emptyError }. Returns { ok, text, error }.
+  function askInputState(raw, opts) {
+    const o = opts || {};
+    let text = String(raw == null ? '' : raw).trim();
+    if (o.maxLength > 0) text = text.slice(0, o.maxLength);
+    if (o.required !== false && !text) return { ok: false, text, error: o.emptyError || 'Type something first.' };
+    return { ok: true, text, error: '' };
+  }
+
+  // Keys are not remembered by default (spec 2.6, D1). A saved choice wins. With no saved choice, a judge who
+  // already has stored keys keeps them (they came from the old default), so no current user loses a key.
+  function resolveRememberKeys(saved, hasStoredKeys) {
+    if (typeof saved === 'boolean') return saved;
+    return Boolean(hasStoredKeys);
+  }
+  // Restoring a backup that holds keys (spec 2.6, Q-3). entries: the backup's storage { name: raw string }.
+  // Returns { local, session }. With Remember off, the keys go to this tab only (session), never to localStorage.
+  // The restored settings take this browser's Remember choice, so the next load keeps the keys where they are.
+  function splitRestoreKeys(entries, remember, settingsEntry) {
+    const local = Object.assign({}, entries || {});
+    const session = {};
+    const names = [KEYS_ENTRY, ...OLD_KEY_ENTRIES].filter((k) => k in local);
+    if (!names.length) return { local, session };
+    if (settingsEntry && local[settingsEntry]) {
+      try { const s = JSON.parse(local[settingsEntry]) || {}; s.rememberKeys = Boolean(remember); local[settingsEntry] = JSON.stringify(s); } catch {}
+    }
+    if (!remember) for (const k of names) { session[k] = local[k]; delete local[k]; }
+    return { local, session };
+  }
+  // The keys line in the restore dialog.
+  function restoreKeysLine(included, remember) {
+    if (!included) return 'API keys: not included. Your current keys stay.';
+    return remember ? 'API keys: included.' : 'API keys: included. Kept for this visit only, because Remember is off.';
+  }
+
+  // Restore, step 2 (spec 2.6, Q-3): the key entries this tab holds after a restore. All old tab key entries are
+  // removed first, then these are written. A backup with keys replaces the tab's keys, so a provider that is not in
+  // the backup is not left connected. A backup without keys keeps the tab's own keys ("Your current keys stay").
+  function restoreTabKeys(oldTab, session, backupHasKeys) {
+    return backupHasKeys ? Object.assign({}, session || {}) : Object.assign({}, oldTab || {}, session || {});
+  }
+
+  // Undo for a deleted sheet (spec 2.4). undo = { roundId, index, item } from the delete. The sheet comes back only
+  // into the round it was deleted from; returns { flows, flowIdx }, or null when the round changed in the meantime.
+  function undoSheetDelete(round, undo) {
+    if (!round || !undo || !undo.item || !undo.roundId || round.id !== undo.roundId) return null;
+    const flows = restoreAt(round.flows, undo.index, undo.item);
+    return { flows, flowIdx: flows.indexOf(undo.item) };
+  }
+
+  // No paid AI call runs by itself (spec 2.7, D2). Only an explicit true turns these on.
+  function autoEvalDefault(saved) { return saved === true; }
+  function liveFlowDefault(saved) { return saved === true; }
+  // Q-2: the old defaults turned both on without a choice, so they are turned off once for everyone.
+  // Returns the settings fields to change, or null when this already ran.
+  function d2Reset(settings) {
+    const s = settings || {};
+    if (s.d2Reset) return null;
+    return { autoEval: false, liveFlow: false, d2Reset: true };
+  }
+  // The one-time note about Live Eval and Live AI flow: the first time AI is ready, never while a clock runs.
+  function needsD2Note(o) {
+    const s = o || {};
+    return Boolean(s.aiReady) && !s.shown && !s.clockRunning;
+  }
+
   // ---------- Slice 0: shared UI rules (spec 4.2, 4.3, S0.4). ui.js does the DOM; these decide. ----------
   // The Esc stack: the index of the open layer with the highest rank, or -1. layers: [{ rank, open }].
   // On a tie the layer added first wins. Esc closes only that one layer.
@@ -1366,6 +1504,9 @@
     speechColumn, FLOW_LEVELS, partText, aiFlowCell, flowCellText, editIsBehind, mergeMap, applyLiveFlow, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM, buildLiveFlowPrompt,
     // Slice 1: round safety
     OVER_LIMIT, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer, shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere,
+    // Slice 2: copy and dialogs
+    NO_AI, hasHostedPlan, shouldShowWelcome, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt, restoreAt, askInputState,
+    resolveRememberKeys, splitRestoreKeys, restoreKeysLine, restoreTabKeys, undoSheetDelete, autoEvalDefault, liveFlowDefault, d2Reset, needsD2Note,
     // Slice 0: shared UI rules
     escTop, toastPlan, TOAST_MAX, askFirstFocus, trapNext,
   };

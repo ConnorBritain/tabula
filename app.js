@@ -36,8 +36,8 @@ function storageFailed(err) {
 const { toast, dismissToast, announce, ask, askIsOpen, escLayer } = window.TabulaUI;
 
 // ---------- shortcuts (keys.js registry; spec 4.1, 1.3, 1.5) ----------
-// A dialog, the tour, the welcome screen or the node editor turns shortcuts off.
-function modalOpen() { return askIsOpen() || !$('#welcome').hidden || !$('#node-editor').hidden || Boolean(tourState); }
+// A dialog (the welcome is one), the tour or the node editor turns shortcuts off.
+function modalOpen() { return askIsOpen() || !$('#node-editor').hidden || Boolean(tourState); }
 document.addEventListener('keydown', (e) => {
   const ae = document.activeElement;
   const act = K.keyAction(
@@ -91,7 +91,8 @@ const safeName = (s) => (s || 'round').replace(/[^\w-]+/g, '_');
 
 // ---------- tabs ----------
 // Four places plus Settings. Each place shows one or more of the old sections.
-const PLACES = [['flow', 'Flow'], ['setup', 'Round'], ['decide', 'Decide'], ['log', 'Library']];
+// The internal id 'log' stays (old backups and the tour use it); the nav says Ballots (spec 2.5, Q12).
+const PLACES = [['flow', 'Flow'], ['setup', 'Round'], ['decide', 'Decide'], ['log', 'Ballots']];
 const PLACE_OF = { setup: 'setup', timer: 'flow', flow: 'flow', eval: 'decide', analysis: 'decide', ballot: 'decide', draft: 'decide', log: 'log', ai: 'ai' };
 function showTab(id) {
   if (id === 'decide') id = R.lastDecide || 'eval';
@@ -112,7 +113,6 @@ function showTab(id) {
   if (id === 'eval') renderEval();
   if (id === 'analysis') renderAnalysis();
 }
-$('#nav').setAttribute('aria-label', 'Sections');
 $('#nav').innerHTML = PLACES.map(([id, t]) => `<button data-tab="${id}">${t}</button>`).join('');
 document.querySelector('.brand').addEventListener('click', (e) => { e.preventDefault(); showTab('flow'); });
 $('#nav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
@@ -197,10 +197,17 @@ $('#prep-min').value = Math.round(R.prepSeconds / 60);
 $('#prep-min').addEventListener('change', (e) => {
   const m = Math.max(0, Math.min(20, Number(e.target.value) || 0));
   const used = R.prepRun || R.prepLeft.aff < R.prepSeconds || R.prepLeft.neg < R.prepSeconds;
-  if (used && !confirm('Prep is already in use. Reset both teams to ' + m + ' minutes?')) { e.target.value = Math.round(R.prepSeconds / 60); return; }
-  stopPrep(); R.prepSeconds = m * 60; R.prepLeft = { aff: m * 60, neg: m * 60 }; saveClocks(); renderPrep();
-  S.prepMin = m; saveSettings(); renderPrepPresets();
+  stopPrep();
+  const before = { prepSeconds: R.prepSeconds, prepLeft: { ...R.prepLeft }, prepMin: S.prepMin };
+  setPrep(m * 60, { aff: m * 60, neg: m * 60 }, m);
+  // Prep already in use: the change is made, and Undo gives each team its time back (spec 2.4 #1).
+  if (used) undoToast('Prep set to ' + m + ' min for each team.', 'prep time change', () => setPrep(before.prepSeconds, before.prepLeft, before.prepMin), 'Prep time restored.');
 });
+function setPrep(seconds, left, min) {
+  stopPrep(); R.prepSeconds = seconds; R.prepLeft = left; saveClocks(); renderPrep();
+  $('#prep-min').value = Math.round(seconds / 60);
+  S.prepMin = min; saveSettings(); renderPrepPresets();
+}
 function renderPrepPresets() { document.querySelectorAll('[data-prep-min]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.prepMin) * 60 === R.prepSeconds))); }
 document.addEventListener('click', (e) => {
   const b = e.target.closest && e.target.closest('[data-prep-min]'); if (!b) return;
@@ -224,7 +231,12 @@ $('#round-open').addEventListener('change', async (e) => {
   // A round with docs but no names yet still counts as work worth keeping.
   const oldDocs = await docStore.list(R.id).catch(() => []);
   if (!L.isRoundEmpty(R) || oldDocs.length) {
-    if (!confirm('Open "' + file.name + '"?\n\nIt replaces the round on screen. The current round downloads as a .tab file first, so nothing is lost.')) return;
+    const ok = await ask({
+      title: 'Open ' + file.name + '?',
+      body: 'It replaces the round on screen. Tabula downloads the current round first, so you keep a copy.',
+      buttons: [{ label: 'Cancel', value: false, kind: 'plain' }, { label: 'Open round', value: true, kind: 'primary' }], cancelValue: false,
+    });
+    if (!ok) return;
     try { await saveRoundFile(true); }
     catch { toast('The current round could not be saved first, so nothing was changed.'); return; }
   }
@@ -243,8 +255,13 @@ $('#round-open').addEventListener('change', async (e) => {
   save();
   docStore.clearRound(oldId).finally(() => location.reload());
 });
-$('#new-round').addEventListener('click', () => {
-  if (!confirm('Clear this round? Saved ballots in the Log stay.')) return;
+$('#new-round').addEventListener('click', async () => {
+  const ok = await ask({
+    title: 'Start a new round?',
+    body: 'This clears the flow, clocks, docs and any audio not yet transcribed. Saved ballots stay in Ballots.',
+    buttons: [{ label: 'Cancel', value: false, kind: 'plain' }, { label: 'Clear and start new', value: true, kind: 'danger' }], cancelValue: false,
+  });
+  if (!ok) return;
   resetting = true; stopAll();
   CQ.clear(); clipStore.clear().catch(() => {}); // the old round's waiting audio is deleted now
   const oldId = R.id;
@@ -346,6 +363,7 @@ function pauseSpeech() {
   recStoppedByReload = false;
   stopRec(); renderClock(); renderSpeeches(); renderTranscript(); renderRecStrip();
   if (wasBrowserRec) scheduleFlow(s.id, true);
+  maybeD2Note();
 }
 function toggleClock() { if (R.run) pauseSpeech(); else startSpeech(); }
 $('#speech-list').addEventListener('click', (e) => { const b = e.target.closest('.sp'); if (b) selectSpeech(Number(b.dataset.i)); });
@@ -454,14 +472,23 @@ addEventListener('storage', (e) => {
   // This tab's mic belonged to a clock that no longer runs here.
   if (recWanted && (!R.run || R.run.id !== recSpeechId)) stopRec();
   renderClock(); renderPrep(); renderSpeeches(); renderRecStrip();
-  if (!otherTabWarned) { otherTabWarned = true; toast('Tabula is open in another tab. Use one tab per round. The newest change wins.', { key: 'other-tab' }); }
+  if (!otherTabWarned) {
+    otherTabWarned = true;
+    const noKey = !S.rememberKeys && !Object.keys(keys).length ? ' This tab has no AI key. Paste it here too, or turn on Remember this key in Settings.' : '';
+    toast('Tabula is open in another tab. Use one tab per round. The newest change wins.' + noKey, { key: 'other-tab' });
+  }
 });
 
 // ---------- settings (kept across rounds) ----------
 const SETTINGS = 'policyJudge.settings.v1', OAKEY = 'policyJudge.openaiKey';
-const S = Object.assign({ engine: 'openai', chunkSec: 8, liveFlow: true }, store.get(SETTINGS, {}));
+const S = Object.assign({ engine: 'openai', chunkSec: 8 }, store.get(SETTINGS, {}));
 delete S.model; // an old, unused transcription default
 const saveSettings = () => (restoring ? false : store.set(SETTINGS, S));
+// No paid AI call runs by itself (spec 2.7, D2): only an explicit true turns on Live Eval or Live AI flow.
+// Q-2: the old defaults turned both on without a choice, so they are turned off once for everyone (a one-time note says so).
+(() => { const reset = L.d2Reset(S); if (reset) { Object.assign(S, reset); saveSettings(); } })();
+S.liveFlow = L.liveFlowDefault(S.liveFlow);
+S.autoEval = L.autoEvalDefault(S.autoEval);
 
 // ---------- transcription ----------
 // Two engines:
@@ -599,10 +626,10 @@ function setRecNote(extra) {
     lines.push('Audio stays on this device only until its text is back.');
   } else if (SR) {
     lines.push('<b>Transcription: free browser kind.</b>');
-    lines.push('Chrome sends the audio to Google. It misses words in fast speech.');
-    lines.push('For better text, connect OpenAI, Gemini or Grok in Settings.');
+    lines.push("The browser sends the audio to its own speech service. It misses words in fast speech.");
+    lines.push('For better text, connect a key that can transcribe in Settings.');
   } else {
-    lines.push('<b>No transcription in this browser.</b> Connect OpenAI, Gemini or Grok in Settings.');
+    lines.push('<b>No transcription in this browser.</b> Connect a key that can transcribe in Settings.');
   }
   lines.push('Live AI flow: ' + (S.liveFlow ? 'on' : 'off') + '.');
   if (extra) lines.push('<span class="tip-problem">' + escapeHtml(extra) + '</span>');
@@ -619,7 +646,7 @@ function startRec() {
   // The chosen engine has no key (for example after a refresh)? Use the free browser engine instead of failing silently.
   if (activeEngine !== 'browser' && !keys[activeEngine]) {
     if (SR) { toast('No ' + P.PROVIDERS[activeEngine].short + ' key, so using the free browser transcription.'); activeEngine = 'browser'; }
-    else { recWanted = false; recProblem = 'no key for ' + P.PROVIDERS[activeEngine].name + '. Connect it in "AI + Keys".'; renderRecBadge(); setRecStatus(); return; }
+    else { recWanted = false; recProblem = 'the ' + P.PROVIDERS[activeEngine].short + ' key is not connected in this tab. Connect it in Settings.'; renderRecBadge(); setRecStatus(); return; }
   }
   if (activeEngine !== 'browser') startOpenAIRec(); else startBrowserRec();
   if (activeEngine === 'browser' && !navigator.onLine) toast(OFFLINE_SR, { kind: 'error', key: 'offline-sr' });
@@ -851,16 +878,27 @@ const CQ = window.ClipQueue.createClipQueue({
   },
   drop(rec, err) {
     trError = true;
-    setRecNote('Problem: ' + err.message);
-    recProblem = P.PROVIDERS[rec.engine] ? P.PROVIDERS[rec.engine].short + ' error: ' + err.message : err.message;
+    setRecNote(L.AI_ERROR_PREFIX.transcript + ' ' + err.message);
+    recProblem = err.message;
     setRecStatus();
     scheduleFlow(rec.speechId, rec.isFinal);
   },
   onChange() { renderRecBadge(); setRecStatus(); },
 });
-addEventListener('online', () => CQ.retryNow());
-document.getElementById('discard-audio').addEventListener('click', () => {
-  if (!confirm('Throw away the audio waiting to be transcribed? Its words will not reach the transcript.')) return;
+addEventListener('online', () => {
+  CQ.retryNow();
+  // Automatic AI calls resume only for features the judge turned on (spec 2.3, D2).
+  if (S.liveFlow) pumpFlow(); else flowPending.clear();
+  if (evalWaitsOnline) { evalWaitsOnline = false; if (S.autoEval) scheduleEval(); }
+  if (fillWaitsOnline) { fillWaitsOnline = false; if (S.autoBallot) runBallotFill(false, true); }
+});
+document.getElementById('discard-audio').addEventListener('click', async () => {
+  const ok = await ask({
+    title: 'Delete the waiting audio?',
+    body: clipMinutes(CQ.state()) + ' of audio is not transcribed yet. If you delete it, those words never reach the transcript.',
+    buttons: [{ label: 'Keep it', value: false, kind: 'plain' }, { label: 'Delete audio', value: true, kind: 'danger' }], cancelValue: false,
+  });
+  if (!ok) return;
   CQ.clear(); clipStore.clear().catch(() => {}); recProblem = ''; setRecStatus(); renderRecBadge();
 });
 function queueClip(blob, speechId, isFinal, overlap, seconds) {
@@ -878,10 +916,10 @@ async function transcribeClip(blob, prevText, timeoutMs = 30000, engine = active
   const eng = engine;
   const fail = (msg, retryable) => Object.assign(new Error(msg), { retryable });
   // No key, or a rejected key: pause and keep the audio (err.hold) until the judge fixes it.
-  if (!keys[eng] && eng !== 'browser') throw Object.assign(fail('no ' + ((P.PROVIDERS[eng] || {}).short || eng) + ' key on this device. Connect it in Settings', false), { hold: true });
+  if (!keys[eng] && eng !== 'browser') throw Object.assign(fail('The ' + ((P.PROVIDERS[eng] || {}).short || eng) + ' key is not connected in this tab. Connect it in Settings.', false), { hold: true });
   const key = keys[eng];
   const ext = /wav/.test(blob.type) ? 'wav' : /mp4/.test(blob.type) ? 'mp4' : /ogg/.test(blob.type) ? 'ogg' : 'webm';
-  if (eng !== 'openai' && eng !== 'xai' && eng !== 'google') throw fail('this engine cannot transcribe', false);
+  if (eng !== 'openai' && eng !== 'xai' && eng !== 'google') throw fail('This AI provider cannot transcribe. Choose another in Settings.', false);
   const audio = eng === 'google' ? await blobToBase64(blob) : null;
   let res;
   try {
@@ -891,15 +929,13 @@ async function transcribeClip(blob, prevText, timeoutMs = 30000, engine = active
       return fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
     });
   } catch (err) {
-    if (err && err.name === 'TimeoutError') throw fail('no reply in ' + Math.round(timeoutMs / 1000) + ' s; the clip is kept and tried again', true);
-    if (err && !(err instanceof TypeError)) throw err; // a real error with its own message (fetch network failures are TypeErrors)
-    // No connection (or an error reply with no browser CORS header). The clip is kept and tried again.
-    throw fail('no reply. Check the internet connection (and the ' + P.PROVIDERS[eng].short + ' key)', true);
+    // A timeout or no connection (fetch network failures are TypeErrors): the clip is kept and tried again.
+    throw asAIError(err, eng);
   }
   const j = await res.json().catch(() => ({}));
-  // Rejected key: pause and keep the audio. Busy or broken for a moment (408, 429, 5xx): try again.
+  // Rejected key: pause and keep the audio (hold). Busy or broken for a moment (408, 429, 5xx): try again.
   // Anything else (400, 413...: bad audio): this clip will not work.
-  if (!res.ok) throw Object.assign(fail(friendlyError(res.status, j), res.status === 408 || res.status === 429 || res.status >= 500), { status: res.status, hold: res.status === 401 || res.status === 403 });
+  if (!res.ok) throw httpAIError(res.status, j, eng);
   if (eng === 'google') return P.parseAIResponse('google', j).trim();
   return (j.text || '').trim();
 }
@@ -946,6 +982,7 @@ function scheduleFlow(speechId, force) {
 }
 function pumpFlow() {
   if (flowBusy || !flowPending.size || resetting) return;
+  if (navigator.onLine === false) return; // offline: passes wait; the 'online' event resumes them (spec 2.3)
   for (const id of [...flowPending.keys()]) if (!hasFlowSource(id)) flowPending.delete(id);
   if (!flowPending.size) return;
   const forced = [...flowPending].find(([, f]) => f);
@@ -970,10 +1007,11 @@ async function runFlow(speechId, forced) {
     if (R.tab === 'flow' && R.flowView === 'ai') redrawAIFlowSafely();
   } catch (err) {
     // Shown with the AI flow (its status line and a toast), not in the transcription note.
-    if (err.status === 413 || /too long|too large|exceed/i.test(err.message || '')) {
+    if (err.kind === 'offline') { flowPending.set(speechId, Boolean(flowPending.get(speechId) || forced)); return; } // tried again when online
+    if (err.status === 413 || /too long|too large|exceed/i.test(err.raw || '')) {
       S.liveFlow = false; saveSettings(); $('#live-flow').checked = false; flowPending.clear();
-      toast('Live AI flow turned off: the docs + transcript are too big. Remove a doc, then turn it back on.');
-    } else if (err.message !== lastFlowErr) toast('AI flow failed: ' + err.message);
+      toast('Live AI flow turned off: the docs and transcript are too big. Remove a doc, then turn it back on.');
+    } else if (err.message !== lastFlowErr) toast(L.AI_ERROR_PREFIX.flow + ' ' + err.message);
     lastFlowErr = err.message || String(err) || 'unknown error';
     console.warn('AI flow failed:', err);
   } finally {
@@ -1049,7 +1087,10 @@ function renderFlow() {
   if (R.flowView === 'ai') return renderAIFlow();
   const f = R.flows[R.flowIdx] || R.flows[0];
   $('#flow-tabs').innerHTML = viewToggle() + R.flows.map((x, i) => sheetTab(x.name, `data-i="${i}"`, i === R.flowIdx)).join('')
-    + '<button data-act="add">+ Sheet</button><button data-act="rename">Rename</button><button data-act="del">Delete</button>' + sheetLearnLink(f && f.name);
+    + '<button data-act="add">+ Sheet</button><button data-act="rename">Rename</button>'
+    // With one sheet left, Delete stays focusable but says why it does nothing (spec 2.4 #7).
+    + (R.flows.length < 2 ? `<button data-act="del" aria-disabled="true" aria-describedby="one-sheet-why" data-tip="${ONE_SHEET}">Delete</button><span class="sr-only" id="one-sheet-why">${ONE_SHEET}</span>` : '<button data-act="del">Delete</button>')
+    + sheetLearnLink(f && f.name);
   $('#flow').innerHTML = L.FLOW_COLUMNS.map((c, i) => `<div class="col ${c.side}"><h3>${c.label}</h3><textarea data-col="${i}" spellcheck="false">${escapeHtml((f.cells || {})[i] || '')}</textarea></div>`).join('');
 }
 // A link from the open sheet to its Debate Library page (for example DA -> learn/disadvantages/). A real link, not a
@@ -1068,10 +1109,11 @@ function agoText(t) {
   return sec < 90 ? sec + ' s ago' : Math.round(sec / 60) + ' min ago';
 }
 function flowStatusHtml() {
-  if (flowBusy) return '<span style="color:var(--ok)">AI is flowing… (10–30 s)</span>';
-  if (lastFlowErr) return '<span style="color:var(--danger)">Last AI flow failed: ' + escapeHtml(lastFlowErr) + ' Check the AI key in Settings.</span>';
-  if (!aiReady()) return '<span style="color:var(--danger)">No AI is set up. Open "AI + Keys" to connect one.</span>';
-  if (!S.liveFlow) return '<span style="color:var(--danger)">Live AI flow is off. Tick it in "AI + Keys".</span>';
+  if (flowBusy) return busyHtml('AI is flowing… (10–30 s)');
+  if (!aiReady()) return noAiHtml();
+  if (navigator.onLine === false) return '<span class="ai-quiet">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + L.aiErrorText('offline')) + '</span>';
+  if (lastFlowErr) return '<span style="color:var(--danger)">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + lastFlowErr) + '</span>';
+  if (!S.liveFlow) return '<span class="ai-quiet">Live AI flow is off. Each update is a paid AI call. <button class="linkish" type="button" data-tab-go="ai">Turn it on in Settings</button></span>';
   return '';
 }
 // Keep the status line and "updated" time fresh without redrawing the flow.
@@ -1083,10 +1125,10 @@ setInterval(() => {
   const ag = document.getElementById('ai-flow-ago'); if (ag) ag.textContent = 'Updated ' + agoText(R.aiFlowAt) + '.';
 }, 1000);
 function mapDocsNow() {
-  if (!aiReady()) return toast('No AI is set up. Open "AI + Keys" to connect one.');
+  if (!aiReady()) return toast(L.NO_AI);
   if (!S.liveFlow) { S.liveFlow = true; saveSettings(); $('#live-flow').checked = true; toast('Turned Live AI flow on.'); }
   const speeches = [...new Set(DOCS.map((d) => L.docSpeech(d)).filter((sp) => sp && L.speechColumn(sp) != null))];
-  if (!speeches.length) return toast(DOCS.length ? 'Your docs are all set to "Context only". Pick a speech for each doc on the Setup tab.' : 'No docs yet. Add them in Round or in the Flow workspace.');
+  if (!speeches.length) return toast(DOCS.length ? 'Your docs are all set to "Context only". Pick a speech for each doc in Round.' : 'No docs yet. Add them in Round or in the Flow workspace.');
   lastFlowErr = '';
   // Skip a speech Claude is already working on, so one click never sends it twice.
   const started = speeches.filter((sp) => sp !== flowRunningId && scheduleFlow(sp, true));
@@ -1114,7 +1156,7 @@ function renderAIFlow() {
         + (behind ? `<div class="aibar">AI has a newer version. <button data-ai-use="${i}">Use AI</button><button data-ai-keep="${i}">Keep mine</button></div>` : ed ? `<div class="aibar quiet"><button data-ai-use="${i}">Undo my edit</button></div>` : '')
         + `<textarea data-aicol="${i}" spellcheck="false" aria-label="${c.label} column, ${escapeHtml(sh.name)}">${escapeHtml(L.flowCellText(sh, i, level))}</textarea></div>`;
     }).join('')
-    : '<p class="muted" style="grid-column:1/-1">No AI flow yet. Click "Map docs to flow now" to flow your docs, or tick "Transcribe" in the round bar and start a speech. Needs AI connected and Live AI flow on (in "AI + Keys").</p>';
+    : '<p class="muted" style="grid-column:1/-1">No AI flow yet. Click "Map docs to flow now" to flow your docs, or tick "Transcribe" in the round bar and start a speech. Needs AI connected and Live AI flow on (in Settings).</p>';
 }
 $('#flow-tabs').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
@@ -1123,11 +1165,41 @@ $('#flow-tabs').addEventListener('click', (e) => {
   if (b.dataset.level) { R.flowLevel = b.dataset.level; save(); return renderFlow(); }
   if (b.dataset.act === 'map-docs') return mapDocsNow();
   if (b.dataset.i != null) R.flowIdx = Number(b.dataset.i);
-  else if (b.dataset.act === 'add') { const n = prompt('Sheet name (e.g. Econ DA, Cap K, Spending T)'); if (!n) return; R.flows.push({ name: n, cells: {} }); R.flowIdx = R.flows.length - 1; }
-  else if (b.dataset.act === 'rename') { const n = prompt('New name', R.flows[R.flowIdx].name); if (!n) return; R.flows[R.flowIdx].name = n; }
-  else if (b.dataset.act === 'del') { if (R.flows.length < 2 || !confirm('Delete sheet "' + R.flows[R.flowIdx].name + '"?')) return; R.flows.splice(R.flowIdx, 1); R.flowIdx = 0; }
+  else if (b.dataset.act === 'add') return addSheet();
+  else if (b.dataset.act === 'rename') return renameSheet();
+  else if (b.dataset.act === 'del') return deleteSheet();
   save(); renderFlow();
 });
+// Sheet names come from the in-app dialog (spec 2.4 #5, #6); a deleted sheet has an Undo (#7).
+// renderFlow() redraws the tab row, so focus goes back to a tab (the new or current sheet, or the clicked action).
+function focusFlowTab(sel) { const el = $('#flow-tabs ' + sel) || $('#flow-tabs button.on[data-i]'); if (el) el.focus(); }
+const SHEET_INPUT = { label: 'Sheet name', placeholder: 'For example: DA, Cap K, T', maxLength: 40, emptyError: 'Type a name.' };
+async function addSheet() {
+  const n = await ask({ title: 'New sheet', input: SHEET_INPUT, buttons: [{ label: 'Cancel', value: null, kind: 'plain' }, { label: 'Add sheet', kind: 'primary' }] });
+  if (!n) return;
+  R.flows.push({ name: n, cells: {} }); R.flowIdx = R.flows.length - 1; save(); renderFlow(); focusFlowTab('button.on[data-i]');
+}
+async function renameSheet() {
+  const f = R.flows[R.flowIdx]; if (!f) return;
+  const n = await ask({ title: 'Rename sheet', input: Object.assign({}, SHEET_INPUT, { value: f.name }), buttons: [{ label: 'Cancel', value: null, kind: 'plain' }, { label: 'Save', kind: 'primary' }] });
+  if (!n || !R.flows.includes(f)) return;
+  f.name = n; save(); renderFlow(); focusFlowTab('[data-act="rename"]');
+}
+const ONE_SHEET = 'A round needs at least one sheet.';
+function deleteSheet() {
+  if (R.flows.length < 2) return toast(ONE_SHEET);
+  const { list, undo } = L.removeAt(R.flows, R.flowIdx);
+  if (!undo) return;
+  const wasIdx = R.flowIdx;
+  R.flows = list; R.flowIdx = Math.min(wasIdx, list.length - 1); save(); renderFlow(); focusFlowTab('[data-act="del"]');
+  const token = Object.assign({ roundId: R.id }, undo);
+  undoToast('Sheet "' + undo.item.name + '" deleted.', 'delete sheet ' + undo.item.name, () => {
+    // A new round may have started since the delete; the sheet never goes into a different round.
+    const back = L.undoSheetDelete(R, token);
+    if (!back) { toast('A new round started, so the sheet cannot come back.'); return false; }
+    R.flows = back.flows; R.flowIdx = back.flowIdx; save(); if (R.tab === 'flow') renderFlow();
+  }, 'Sheet "' + undo.item.name + '" restored.');
+}
 $('#flow').addEventListener('input', (e) => {
   const aicol = e.target.dataset.aicol;
   if (aicol != null) {
@@ -1490,7 +1562,7 @@ $('#doc-list').addEventListener('change', (e) => {
   docStore.put(d).catch(() => {});
   renderDocs();
   reflowForDocs(old); reflowForDocs(d.speech);
-  if (d.speech && !S.liveFlow) toast('Turn on "Live AI flow" in AI + Keys to map docs onto the flow.');
+  if (d.speech && !S.liveFlow) toast('Turn on "Live AI flow" in Settings to map docs onto the flow.');
 });
 $('#doc-list').addEventListener('click', async (e) => {
   const id = e.target.dataset.docDel; if (!id) return;
@@ -1535,13 +1607,21 @@ document.addEventListener('click', (e) => {
 });
 
 // ---------- AI connections ----------
-// Keys are kept per provider. With "Remember" on (the default) they are saved in this browser.
+// Keys are kept per provider. With "Remember" on they are saved in this browser (localStorage). With it off, the
+// default for new installs (spec 2.6, D1), they live in this tab only (sessionStorage, Q-3): a refresh keeps them,
+// and closing the tab forgets them.
 const P = window.Providers;
 const KEYS = 'policyJudge.keys.v1';
-S.rememberKeys ??= true;
-const keys = Object.assign({}, store.get(KEYS, {}));
+const tabStore = {
+  get(k, d) { try { const raw = sessionStorage.getItem(k); return raw ? JSON.parse(raw) : d; } catch { return d; } },
+  set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
+  del(k) { try { sessionStorage.removeItem(k); } catch {} },
+};
+// A saved choice wins. With none, a judge who already has keys on disk keeps them, so no current user loses a key.
+S.rememberKeys = L.resolveRememberKeys(S.rememberKeys, Object.keys(store.get(KEYS, {}) || {}).length > 0 || Boolean(store.get(KEY, '')) || Boolean(store.get(OAKEY, '')));
+const keys = Object.assign({}, tabStore.get(KEYS, {}), store.get(KEYS, {}));
 // Move keys saved by older versions of the app.
-(() => { const a = store.get(KEY, ''), o = store.get(OAKEY, ''); if (a && !keys.anthropic) keys.anthropic = a; if (o && !keys.openai) keys.openai = o; })();
+(() => { const a = store.get(KEY, '') || tabStore.get(KEY, ''), o = store.get(OAKEY, '') || tabStore.get(OAKEY, ''); if (a && !keys.anthropic) keys.anthropic = a; if (o && !keys.openai) keys.openai = o; })();
 S.models = P.cleanSavedModels(S.models); // older versions saved premium or retired models
 S.modelChoice ??= {}; // models the judge picked in Settings (these win over automatic picks)
 S.modelLists ??= {}; // each provider's chat models, for the picker
@@ -1550,7 +1630,12 @@ S.helper = {};
 if (!S.aiEngine) S.aiEngine = ['anthropic', 'google', 'openai', 'openrouter', 'xai'].find((p) => keys[p]) || '';
 if (!S.trEngine) S.trEngine = S.engine === 'openai' && keys.openai ? 'openai' : 'browser';
 // Old single-key entries are removed only once the keys are safely saved in the new place.
-function saveKeys() { if (restoring) return; if (S.rememberKeys) { if (store.set(KEYS, keys)) { store.del(KEY); store.del(OAKEY); } } else store.del(KEYS); }
+function saveKeys() {
+  if (restoring) return;
+  const dropTab = () => { tabStore.del(KEY); tabStore.del(OAKEY); };
+  if (S.rememberKeys) { if (store.set(KEYS, keys)) { store.del(KEY); store.del(OAKEY); tabStore.del(KEYS); dropTab(); } }
+  else { tabStore.set(KEYS, keys); dropTab(); store.del(KEYS); store.del(KEY); store.del(OAKEY); }
+}
 saveKeys();
 const aiReady = () => {
   const e = S.aiEngine;
@@ -1558,7 +1643,17 @@ const aiReady = () => {
   if (P.SUBSCRIPTIONS[e]) return Boolean(S.helper[e]);
   return Boolean(keys[e]);
 };
-const NO_AI = 'No AI is set up. Open "AI + Keys" to connect one.';
+// The "No AI" line (L.NO_AI) is muted, with a button to Settings (spec 2.2).
+const noAiHtml = (extra) => '<span class="ai-quiet">' + escapeHtml(L.NO_AI) + ' <button class="linkish" type="button" data-tab-go="ai">Open Settings</button>' + (extra ? ' ' + escapeHtml(extra) : '') + '</span>';
+// An AI error line: orange, except "offline", which is muted (it is not the judge's fault, spec 2.3).
+const errColor = (msg) => (msg === L.aiErrorText('offline') ? 'var(--muted)' : 'var(--danger)');
+// A loading line: muted, with a small spinner, never green (spec 2.3).
+const busyHtml = (text) => '<span class="ai-quiet"><span class="spin" aria-hidden="true"></span>' + escapeHtml(text) + '</span>';
+// An Undo toast (spec 2.4, 4.3). The change is already made; Undo puts it back. The button is named "Undo: {what}".
+// undo() returns false when it could not put the change back (it shows its own toast then).
+function undoToast(msg, what, undo, doneMsg) {
+  toast(msg, { action: { label: 'Undo', name: 'Undo: ' + what, run: () => { if (undo() !== false) toast(doneMsg || 'Restored.'); } } });
+}
 
 let claudeClient = null, claudeClientKey = '';
 async function getClaude() {
@@ -1579,15 +1674,15 @@ async function modelFor(provider, purpose) {
   const req = P.modelsRequest(provider, keys[provider]);
   let res;
   try { res = await fetch(req.url, { ...req.init, signal: AbortSignal.timeout(15000) }); }
-  catch (err) { throw Object.assign(new Error(err && err.name === 'TimeoutError' ? 'the model list took over 15 s. Check the connection' : 'could not reach ' + P.PROVIDERS[provider].name + '. Check the connection'), { retryable: true }); }
-  // A busy or broken provider may work again soon; a rejected key will not.
-  if (!res.ok) throw Object.assign(new Error(friendlyError(res.status, await res.json().catch(() => ({})))), { retryable: res.status === 408 || res.status === 429 || res.status >= 500, hold: res.status === 401 || res.status === 403 });
+  catch (err) { throw asAIError(err, provider); }
+  // A busy or broken provider may work again soon (retryable); a rejected key will not (hold).
+  if (!res.ok) throw httpAIError(res.status, await res.json().catch(() => ({})), provider);
   const ids = P.modelIds(provider, await res.json());
   S.modelLists[provider] = P.chatModels(provider, ids);
   const id = P.pickModel(provider, ids, purpose);
   if (!id) throw Object.assign(new Error(P.chatModels(provider, ids).some(P.isPremium)
-    ? 'this key only has premium models, which cost much more. Choose one under Settings → ' + P.PROVIDERS[provider].name + ' if you want it'
-    : 'no suitable ' + purpose + ' model found for ' + P.PROVIDERS[provider].name), { retryable: false });
+    ? 'This key only has premium models, which cost much more. To use one anyway, choose it in Settings under ' + P.PROVIDERS[provider].name + '.'
+    : 'This ' + P.PROVIDERS[provider].name + ' key has no model that can do this. Test the key in Settings.'), { retryable: false, kind: 'noModel' });
   (S.models[provider] ??= {})[purpose] = id; saveSettings();
   return id;
 }
@@ -1600,14 +1695,32 @@ function forgetModel(provider, purpose) {
 // Runs one model call with a fresh pick if the saved model was retired (404).
 const withModel = (provider, purpose, run) => P.retryOnce404(async () => run(await modelFor(provider, purpose)), () => forgetModel(provider, purpose));
 
-function friendlyError(status, body) {
+// One error for every failed AI or transcription call (spec 2.3): the kind comes from L.classifyAIError and the
+// words from L.aiErrorText. The provider's own words go to the console only. info: { status, name, message, stop, helper }.
+const providerName = (eng) => (P.PROVIDERS[eng] ? P.PROVIDERS[eng].short : P.SUBSCRIPTIONS[eng] ? P.SUBSCRIPTIONS[eng].plan : '');
+function aiError(info, eng) {
+  const i = info || {};
+  const kind = L.classifyAIError(Object.assign({ online: navigator.onLine }, i));
+  if (i.message) console.warn('AI call failed (' + kind + '):', i.message);
+  return Object.assign(new Error(L.aiErrorText(kind, { provider: providerName(eng), status: i.status })), {
+    kind, status: i.status, raw: i.message || '',
+    retryable: ['offline', 'noReply', 'timeout', 'busy'].includes(kind),
+    hold: kind === 'keyRejected', // a rejected key will not work until the judge fixes it
+  });
+}
+// An error reply from a provider. Some providers say "invalid key" with a 400; that is a rejected key too.
+function httpAIError(status, body, eng) {
   const raw = body && body.error;
-  const msg = typeof raw === 'string' ? raw : (raw && raw.message) || '';
-  if (status === 401 || status === 403 || /invalid.*key|api key not valid|incorrect api key/i.test(msg)) return 'this key was rejected. Copy it again, or create a new one.';
-  if (status === 429 && /quota|credit|billing|balance/i.test(msg)) return 'the key works but has no credit. Add credit under Billing on the provider\'s site.';
-  if (status === 429) return 'too many requests right now. Wait a moment and try again.';
-  if (status === 404) return 'the model was not found. Pick another one under Settings, or click Test to refresh the list.';
-  return status + ' ' + String(msg || JSON.stringify(body || {})).slice(0, 200);
+  const message = typeof raw === 'string' ? raw : (raw && raw.message) || JSON.stringify(body || {}).slice(0, 300);
+  const bad = /invalid.*key|api key not valid|incorrect api key/i.test(message);
+  return aiError({ status: bad ? 401 : status, message }, eng);
+}
+// A thrown error from fetch or the SDK, as the classifier's input. Errors that already have a kind pass through.
+function asAIError(err, eng, extra) {
+  if (err && err.kind) return err;
+  const name = err && err.name || '';
+  const n = /Timeout/.test(name) ? 'TimeoutError' : /APIConnection/.test(name) ? 'TypeError' : name;
+  return aiError(Object.assign({ status: err && err.status, name: n, message: err && err.message }, extra), eng);
 }
 
 // Text docs with students' names swapped for positions. PDFs go as they are (their text cannot be edited here).
@@ -1618,10 +1731,12 @@ const anonDocs = (docs) => docs.map((d) => ({ ...d, name: L.anonymize(d.name, R)
 // docs = only the docs this call needs. The live flow sends one speech's docs; Live Eval, analysis, ballot and
 // decision judge the whole round, so they keep the default (all of them).
 async function callAI({ system, prompt, note, schema, effort = 'medium', reading, kind = 'routine', docs = DOCS }) {
+  const eng = S.aiEngine;
+  if (!aiReady()) throw Object.assign(new Error(L.NO_AI), { kind: 'noAI' });
+  // Offline: show the offline text and make no call (spec 2.3).
+  if (navigator.onLine === false) throw aiError({ online: false }, eng);
   const maxTokens = P.outputCap(kind);
   const purpose = kind === 'ballot' || kind === 'decision' ? 'deep' : 'ai';
-  const eng = S.aiEngine;
-  if (!aiReady()) throw new Error(NO_AI);
   // Reading level: the same analysis, worded for an expert judge or in plain words.
   if (reading) system = system + '\n\n' + L.readingGuide(reading);
   // Students' names are swapped for positions (1A, 2N...) in everything typed or transcribed, and in text docs,
@@ -1629,40 +1744,44 @@ async function callAI({ system, prompt, note, schema, effort = 'medium', reading
   system = L.anonymize(system, R); prompt = L.anonymize(prompt, R);
   docs = anonDocs(docs);
   let text;
-  if (eng === 'anthropic') {
-    const client = await getClaude();
-    const msg = await withModel('anthropic', purpose, (model) => {
-      const params = P.claudeParams(model, {
-        max_tokens: maxTokens, thinking: { type: 'adaptive' }, output_config: { effort },
-        system, messages: [{ role: 'user', content: L.buildUserContent(docs, prompt, note) }],
+  // Every failure becomes one classified error (spec 2.3); errors that already have a kind pass through.
+  try {
+    if (eng === 'anthropic') {
+      const client = await getClaude();
+      const msg = await withModel('anthropic', purpose, (model) => {
+        const params = P.claudeParams(model, {
+          max_tokens: maxTokens, thinking: { type: 'adaptive' }, output_config: { effort },
+          system, messages: [{ role: 'user', content: L.buildUserContent(docs, prompt, note) }],
+        });
+        if (schema) params.output_config.format = { type: 'json_schema', schema };
+        return client.beta.messages.create(params);
       });
-      if (schema) params.output_config.format = { type: 'json_schema', schema };
-      return client.beta.messages.create(params);
-    });
-    if (msg.stop_reason === 'refusal') throw new Error('Claude declined this request');
-    if (msg.stop_reason === 'max_tokens') throw new Error('the reply was cut off. Try again');
-    text = msg.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
-  } else if (P.SUBSCRIPTIONS[eng]) {
-    // The subscription helper has no per-token bill, so it gets no output cap.
-    const docText = P.docsAsText(docs, L.docTitle);
-    const res = await fetch('/api/ai', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ engine: eng, system, prompt: (docText ? docText + '\n\n' + (note || L.DOC_NOTE) + '\n\n' : '') + prompt, schema, model: eng === 'codex-cli' ? (S.codexModel || '') : undefined }),
-      signal: AbortSignal.timeout(300000),
-    });
-    const j = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(j.error || ('the helper said ' + res.status));
-    text = j.text || '';
-  } else {
-    const res = await withModel(eng, purpose, (model) => {
-      const req = P.buildAIRequest(eng, { key: keys[eng], model, system, prompt, docs, schema, title: L.docTitle, note: note || L.DOC_NOTE, maxTokens });
-      return fetch(req.url, { ...req.init, signal: AbortSignal.timeout(240000) });
-    });
-    const j = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(friendlyError(res.status, j));
-    text = P.parseAIResponse(eng, j);
-  }
-  return L.deanonymize(schema ? P.extractJson(text) : text, R);
+      if (msg.stop_reason === 'refusal' || msg.stop_reason === 'max_tokens') throw aiError({ stop: msg.stop_reason }, eng);
+      text = msg.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
+    } else if (P.SUBSCRIPTIONS[eng]) {
+      // The subscription helper has no per-token bill, so it gets no output cap.
+      const docText = P.docsAsText(docs, L.docTitle);
+      const res = await fetch('/api/ai', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ engine: eng, system, prompt: (docText ? docText + '\n\n' + (note || L.DOC_NOTE) + '\n\n' : '') + prompt, schema, model: eng === 'codex-cli' ? (S.codexModel || '') : undefined }),
+        signal: AbortSignal.timeout(300000),
+      });
+      const j = await res.json().catch(() => ({}));
+      // A helper 4xx or 5xx goes through the normal rules (401/403 = "rejected", 5xx = "busy"), named by the plan.
+      // That can blame the plan when the helper itself failed; accepted for now (see L.classifyAIError).
+      if (!res.ok) throw aiError({ status: res.status, message: j.error || 'the helper said ' + res.status, helper: true }, eng);
+      text = j.text || '';
+    } else {
+      const res = await withModel(eng, purpose, (model) => {
+        const req = P.buildAIRequest(eng, { key: keys[eng], model, system, prompt, docs, schema, title: L.docTitle, note: note || L.DOC_NOTE, maxTokens });
+        return fetch(req.url, { ...req.init, signal: AbortSignal.timeout(240000) });
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw httpAIError(res.status, j, eng);
+      text = P.parseAIResponse(eng, j);
+    }
+    return L.deanonymize(schema ? P.extractJson(text) : text, R);
+  } catch (err) { throw asAIError(err, eng, P.SUBSCRIPTIONS[eng] ? { helper: true } : {}); }
 }
 
 // ---------- connections UI ----------
@@ -1699,7 +1818,7 @@ function renderConnections() {
     return `<div class="prov">
       <div class="prov-head">
         <strong>${e(p.name)}</strong>
-        <span class="pill ${on ? 'ok-pill' : ''}">${on ? 'Connected' : 'Not set up'}</span>
+        <span class="pill ${on ? 'ok-pill' : ''}">${on ? (S.rememberKeys ? 'Connected' : 'Ready (this visit only)') : 'Not set up'}</span>
         ${capText(p)}
         <span style="flex:1"></span>
         ${on ? `<button class="b" data-prov-test="${id}">Test</button><button class="b" data-prov-del="${id}">Remove</button>` : ''}
@@ -1721,13 +1840,14 @@ function renderConnections() {
   $('#remember-keys').checked = S.rememberKeys;
   renderSubscriptions();
   saveSettings();
+  setTimeout(maybeD2Note, 0);
 }
 async function connectKey(raw) {
   const key = String(raw || '').trim();
   const msg = $('#key-msg');
   const id = P.detectProvider(key);
   if (!key) { msg.style.color = 'var(--danger)'; msg.textContent = 'Paste a key first.'; return; }
-  if (!id) { msg.style.color = 'var(--danger)'; msg.textContent = 'This does not look like a key from Google (AIza…), OpenAI (sk-…), Anthropic (sk-ant-…), xAI (xai-…) or OpenRouter (sk-or-…). Check that you copied all of it.'; return; }
+  if (!id) { msg.style.color = 'var(--danger)'; msg.textContent = 'This does not look like a key from ' + Object.values(P.PROVIDERS).map((x) => x.short + ' (' + x.prefix + '…)').join(', ').replace(/, ([^,]*)$/, ' or $1') + '. Check that you copied all of it.'; return; }
   const p = P.PROVIDERS[id];
   msg.style.color = 'var(--muted)'; msg.textContent = 'Looks like ' + aOrAn(p.name) + ' key. Checking it…';
   $('#key-connect').disabled = true;
@@ -1735,9 +1855,9 @@ async function connectKey(raw) {
     const req = P.modelsRequest(id, key);
     let res;
     try { res = await fetch(req.url, { ...req.init, signal: AbortSignal.timeout(15000) }); }
-    catch { throw new Error('no reply. A rejected key can look like this too: copy it again, and check your internet.'); }
+    catch (err) { throw asAIError(err, id); }
     const j = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(friendlyError(res.status, j));
+    if (!res.ok) throw httpAIError(res.status, j, id);
     const ids = P.modelIds(id, j);
     S.models[id] = { ai: P.pickModel(id, ids, 'ai') || undefined, deep: P.pickModel(id, ids, 'deep') || undefined };
     S.modelLists[id] = P.chatModels(id, ids);
@@ -1754,7 +1874,7 @@ async function connectKey(raw) {
     CQ.retryNow(); // clips paused for a missing or rejected key can go now
   } catch (err) {
     msg.style.color = 'var(--danger)';
-    msg.textContent = 'Could not connect ' + p.name + ': ' + (err.message || err);
+    msg.textContent = 'Could not connect ' + p.name + '. ' + (err.message || err);
   } finally { $('#key-connect').disabled = false; }
 }
 $('#key-connect').addEventListener('click', () => connectKey($('#key-paste').value));
@@ -1766,12 +1886,25 @@ $('#key-paste').addEventListener('input', (e) => {
 });
 $('#prov-list').addEventListener('click', (e) => {
   const del = e.target.dataset.provDel, tst = e.target.dataset.provTest;
-  if (del) { if (!confirm('Remove the ' + P.PROVIDERS[del].name + ' key from this computer?')) return; delete keys[del]; delete S.models[del]; delete S.modelChoice[del]; delete S.modelLists[del]; saveKeys(); renderConnections(); setRecNote(''); }
+  if (del) removeKey(del);
   if (tst) connectKey(keys[tst]);
 });
+async function removeKey(id) {
+  const name = P.PROVIDERS[id].short;
+  const ok = await ask({
+    title: 'Remove the ' + name + ' key?',
+    body: 'Tabula forgets this key on this computer. To use ' + name + ' again, paste the key again.',
+    buttons: [{ label: 'Cancel', value: false, kind: 'plain' }, { label: 'Remove key', value: true, kind: 'danger' }], cancelValue: false,
+  });
+  if (!ok) return;
+  delete keys[id]; delete S.models[id]; delete S.modelChoice[id]; delete S.modelLists[id]; saveKeys(); renderConnections(); setRecNote('');
+}
 $('#ai-engine').addEventListener('change', (e) => { S.aiEngine = e.target.value; subShown = ''; saveSettings(); renderSubscriptions(); });
 $('#tr-engine').addEventListener('change', (e) => { S.trEngine = e.target.value; saveSettings(); setRecNote(''); });
-$('#remember-keys').addEventListener('change', (e) => { S.rememberKeys = e.target.checked; saveKeys(); saveSettings(); });
+$('#remember-keys').addEventListener('change', (e) => {
+  S.rememberKeys = e.target.checked; saveKeys(); saveSettings(); renderConnections();
+  if (Object.keys(keys).length) toast(S.rememberKeys ? 'Key saved on this computer.' : 'Keys removed from this computer. They work until you close this tab.');
+});
 
 // Subscriptions: the local helper (bridge.mjs) runs the Claude Code or Codex app already signed in on this Mac.
 // The helper runs from the folder Tabula was downloaded to, so the command is relative to that folder.
@@ -1801,14 +1934,15 @@ function renderSubscriptions() {
   if (!LOCAL_ORIGIN) { body.innerHTML = '<p style="margin:0">Subscriptions work only in the downloadable version of Tabula, through a small helper on your computer. On this website, connect an API key above.</p>'; return; }
   const id = subShown || (P.SUBSCRIPTIONS[S.aiEngine] ? S.aiEngine : '');
   if (!id) { body.innerHTML = ''; return; }
-  const s = P.SUBSCRIPTIONS[id], app = id === 'claude-cli' ? 'Claude Code' : 'Codex', cmd = id === 'claude-cli' ? 'claude' : 'codex';
+  // The app and plan names come from providers.js; they show only in this Settings section (copy rules, spec 4.5).
+  const s = P.SUBSCRIPTIONS[id], app = escapeHtml(s.via), plan = escapeHtml(s.plan);
   if (h[id]) {
-    body.innerHTML = `<p style="margin:0">${S.aiEngine === id ? '<b>In use:</b> ' : ''}your ${escapeHtml(s.name.replace(' subscription', ''))} plan, through the ${app} app on this computer. Each answer takes 10–30 s. PDFs are not read on this path; save docs as .docx or text. Transcription stays separate.</p>`
-      + (id === 'codex-cli' ? `<div style="margin-top:var(--s2)"><label for="codex-model">Model (optional; leave empty to use your Codex setting)</label><input id="codex-model" value="${escapeHtml(S.codexModel || '')}" placeholder="a model your ChatGPT plan includes"></div>` : '');
+    body.innerHTML = `<p style="margin:0">${S.aiEngine === id ? '<b>In use:</b> ' : ''}your ${plan} plan, through the ${app} app on this computer. Each answer takes 10–30 s. PDFs are not read on this path; save docs as .docx or text. Transcription stays separate.</p>`
+      + (id === 'codex-cli' ? `<div style="margin-top:var(--s2)"><label for="codex-model">Model (optional; leave empty to use your ${app} setting)</label><input id="codex-model" value="${escapeHtml(S.codexModel || '')}" placeholder="a model your ${plan} plan includes"></div>` : '');
     return;
   }
   body.innerHTML = `<ol style="margin:0;padding-left:20px">
-      <li>Install the ${app} app and sign in once in Terminal: <code>${cmd}</code></li>
+      <li>Install the ${app} app and sign in once in Terminal: <code>${escapeHtml(s.cmd)}</code></li>
       <li>Start Tabula with its helper: <code>${escapeHtml(HELPER_CMD)}</code> (in the Tabula folder) <button class="b small" id="copy-helper">Copy</button></li>
       <li>Open <code>http://localhost:8765</code> again, then <button class="b small" id="recheck-helper">Check again</button></li></ol>`;
 }
@@ -1816,7 +1950,7 @@ document.addEventListener('click', (e) => {
   const b = e.target.closest && e.target.closest('.sub-btn'); if (!b) return;
   const id = b.dataset.sub;
   subShown = id;
-  if ((S.helper || {})[id]) { S.aiEngine = id; saveSettings(); renderConnections(); toast('AI tools now use your ' + P.SUBSCRIPTIONS[id].name.replace(' subscription', '') + ' plan.'); }
+  if ((S.helper || {})[id]) { S.aiEngine = id; saveSettings(); renderConnections(); toast('AI tools now use your ' + P.SUBSCRIPTIONS[id].plan + ' plan.'); }
   else renderSubscriptions();
 });
 document.addEventListener('change', (e) => { if (e.target.id === 'codex-model') { S.codexModel = e.target.value.trim(); saveSettings(); } });
@@ -1906,7 +2040,7 @@ let tourState = null; // { name, i, returnFocus, place, hideLeft, hideRight }
 function tourStart(name) {
   if (name === 'page') name = TOURS.PLACE_TOUR[PLACE_OF[R.tab] || 'setup'] || 'main';
   const tour = TOURS.TOURS[name]; if (!tour) return;
-  if (!$('#welcome').hidden || !$('#node-editor').hidden) return; // never on top of another dialog
+  if (askIsOpen() || !$('#node-editor').hidden) return; // never on top of another dialog
   closeHelpMenu(); $('#tour-offer').hidden = true;
   // Remember where the judge was and how the panes were, so the tour leaves everything as it found it.
   tourState = { name, i: 0, returnFocus: document.activeElement, place: R.tab, hideLeft: Boolean(S.hideLeft), hideRight: Boolean(S.hideRight) };
@@ -1998,31 +2132,56 @@ escLayer('help-menu', 60, () => !$('#help-menu').hidden, () => { closeHelpMenu()
 // The gentle offer after the welcome screen (never on top of a dialog).
 function offerTour() { if (!S.tourDone && !S.tourOffered) { S.tourOffered = true; saveSettings(); $('#tour-offer').hidden = false; } }
 $('#tour-offer-go').addEventListener('click', () => tourStart('main'));
-$('#tour-offer-no').addEventListener('click', () => { $('#tour-offer').hidden = true; toast('You can take the tour any time from the ? button.'); });
+$('#tour-offer-no').addEventListener('click', () => { $('#tour-offer').hidden = true; toast('You can take the tour any time from the ? menu.'); });
 
-// ---------- welcome screen ----------
-function showWelcome(on) {
-  $('#welcome').hidden = !on;
-  $('#skip-box').hidden = true; $('#welcome-choices').hidden = false;
-  if (on) setTimeout(() => $('#welcome .choice').focus(), 0);
+// ---------- welcome (spec 2.1, Q11): free users only, built on the shared dialog ask() ----------
+// Paid-plan users (2.8, not built yet) never see it: hosted AI just works.
+const hostedPlan = L.hasHostedPlan();
+if (hostedPlan && !S.setupDone) { S.setupDone = true; saveSettings(); }
+$('#show-welcome').hidden = hostedPlan;
+async function openWelcome() {
+  const choices = [{ label: 'Connect an AI key', desc: 'Paste a key from any AI provider. Step-by-step help is included.', value: 'key' }];
+  if (LOCAL_ORIGIN) choices.push({ label: 'Use an AI app you pay for', desc: 'Uses an AI app you already pay for on this computer. Needs one Terminal command.', value: 'sub' });
+  choices.push({ label: 'Start without AI', desc: 'You can connect AI later in Settings.', value: 'skip' });
+  // × or Esc means "Start without AI" without the skip page. A click on the dim layer does nothing.
+  const v = await ask({ title: 'Welcome to Tabula', body: 'The clock, flow and ballot work without AI. AI can add a transcript, an AI flow and feedback.', buttons: choices, variant: 'choices', backdrop: false, cancelValue: 'none' });
+  if (v === 'skip') {
+    const go = await ask({
+      title: 'Start without AI',
+      body: ['You get the clock, prep timers, flow sheets and the ballot.', 'To add AI later, open Settings (the gear button).'],
+      buttons: [{ label: 'Back', value: 'back', kind: 'plain' }, { label: 'Start flowing', value: 'go', kind: 'primary' }], cancelValue: 'back',
+    });
+    return go === 'go' ? startWithoutAI() : openWelcome();
+  }
+  if (v !== 'key' && v !== 'sub') return startWithoutAI();
+  S.setupDone = true; saveSettings(); showTab('ai'); setTimeout(offerTour, 400);
+  if (v === 'key') setTimeout(() => $('#key-paste').focus(), 0);
+  else setTimeout(() => { $('#sub-box').scrollIntoView({ block: 'center' }); const btn = $('#sub-box .sub-btn:not([disabled])'); if (btn) btn.focus(); }, 0);
 }
-$('#welcome-choices').addEventListener('click', (e) => {
-  const c = e.target.closest('[data-choice]'); if (!c) return;
-  if (c.dataset.choice === 'skip') { $('#welcome-choices').hidden = true; $('#skip-box').hidden = false; $('#skip-ack').focus(); return; }
-  S.setupDone = true; saveSettings(); showWelcome(false); showTab('ai'); setTimeout(offerTour, 400);
-  if (c.dataset.choice === 'key') setTimeout(() => $('#key-paste').focus(), 0);
-  else { $('#sub-box').open = true; setTimeout(() => $('#sub-box').scrollIntoView({ block: 'center' }), 0); }
-});
-$('#skip-ack').addEventListener('change', (e) => { $('#skip-go').disabled = !e.target.checked; });
-$('#skip-go').addEventListener('click', () => { S.setupDone = true; S.aiSkipped = true; saveSettings(); showWelcome(false); showTab('setup'); setTimeout(offerTour, 400); });
-$('#skip-back').addEventListener('click', () => showWelcome(true));
-$('#show-welcome').addEventListener('click', () => showWelcome(true));
-// Esc closes the welcome only after setup; before that it stays (and Esc must not close anything behind it).
-escLayer('welcome', 80, () => !$('#welcome').hidden, () => { if (S.setupDone) showWelcome(false); });
+function startWithoutAI() {
+  S.setupDone = true; S.aiSkipped = true; saveSettings();
+  showTab('flow'); setTimeout(offerTour, 400);
+}
+$('#show-welcome').addEventListener('click', () => openWelcome());
 
 $('#chunk-sec').value = S.chunkSec; $('#live-flow').checked = S.liveFlow;
 $('#chunk-sec').addEventListener('change', (e) => { S.chunkSec = Math.max(4, Math.min(30, Number(e.target.value) || 8)); e.target.value = S.chunkSec; saveSettings(); setRecNote(''); });
 $('#live-flow').addEventListener('change', (e) => { S.liveFlow = e.target.checked; saveSettings(); setRecNote(''); });
+// The one-time note (spec 2.7, Q-2, Q-4): the first time AI is ready, say that the paid live updates are off and
+// where to turn them on. It waits while a clock runs, so it never covers the round.
+let booted = false;
+async function maybeD2Note() {
+  if (!booted || !L.needsD2Note({ aiReady: aiReady(), shown: S.d2NoteShown, clockRunning: Boolean(R.run) })) return;
+  S.d2NoteShown = true; saveSettings();
+  const v = await ask({
+    title: 'Live updates are off',
+    body: ['Live Eval and Live AI flow can update during the round. They are off, because each update is a paid AI call.', 'Turn Live Eval on in Decide → Live Eval. Turn Live AI flow on in Settings.'],
+    buttons: [{ label: 'Keep them off', value: 'off', kind: 'plain' }, { label: 'Turn on Live AI flow', value: 'flow', kind: 'plain' }, { label: 'Turn on Live Eval', value: 'eval', kind: 'plain' }],
+    cancelValue: 'off', focus: 'off',
+  });
+  if (v === 'eval') { S.autoEval = true; $('#auto-eval').checked = true; saveSettings(); toast('Live Eval now updates after each speech. Each update is one AI call.'); }
+  if (v === 'flow') { S.liveFlow = true; $('#live-flow').checked = true; saveSettings(); setRecNote(''); toast('Live AI flow is on. It makes one AI call about every 30 s during a speech.'); }
+}
 setRecNote('');
 $('#ai-out').textContent = LV().output || 'No draft yet.';
 $('#ai-copy-prompt').addEventListener('click', () => {
@@ -2033,7 +2192,8 @@ $('#ai-copy-prompt').addEventListener('click', () => {
 });
 
 $('#ai-go').addEventListener('click', async () => {
-  if (!aiReady()) return toast(NO_AI + ' Or use "Copy prompt instead".');
+  if (!aiReady()) return toast(L.NO_AI + ' Or use "Copy prompt instead".');
+  if (navigator.onLine === false) { $('#ai-status').textContent = L.AI_ERROR_PREFIX.decision + ' ' + L.aiErrorText('offline'); return; }
   const btn = $('#ai-go'), status = $('#ai-status'), out = $('#ai-out');
   btn.disabled = true; status.textContent = 'Starting…'; out.textContent = '';
   const level = lvl(), box = LV(level); // a draft belongs to the reading level it was asked for
@@ -2061,7 +2221,7 @@ $('#ai-go').addEventListener('click', async () => {
       return stream.finalMessage();
     });
     if (msg.stop_reason === 'refusal') {
-      status.textContent = 'Claude declined this request. Decide by hand, or edit the input and try again.';
+      status.textContent = L.AI_ERROR_PREFIX.decision + ' ' + L.aiErrorText('refused');
     } else {
       const text = L.deanonymize(msg.content.filter((b) => b.type === 'text').map((b) => b.text).join(''), R);
       out.textContent = text;
@@ -2069,7 +2229,7 @@ $('#ai-go').addEventListener('click', async () => {
       status.textContent = msg.stop_reason === 'max_tokens' ? 'Done, but the reply was cut off at the length limit. Use it as a start, or click again.' : 'Done. Read it, then decide.';
     }
   } catch (err) {
-    status.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
+    status.textContent = L.AI_ERROR_PREFIX.decision + ' ' + asAIError(err, S.aiEngine).message;
   } finally { btn.disabled = false; }
 });
 $('#ai-use').addEventListener('click', () => {
@@ -2088,9 +2248,11 @@ $('#ai-use').addEventListener('click', () => {
 // ---------- live eval ----------
 let evalBusy = false, evalAgain = false, evalErr = '', evalSoonTimer = null;
 // Auto updates wait 20 s after the last flow pass, so mapping several docs at once costs one eval, not one each.
+// Offline, the automatic update waits and runs when the internet is back, but only if Live Eval is still on (D2).
+let evalWaitsOnline = false;
 function scheduleEvalSoon() {
   clearTimeout(evalSoonTimer);
-  evalSoonTimer = setTimeout(scheduleEval, 20000);
+  evalSoonTimer = setTimeout(() => { if (!S.autoEval) return; if (navigator.onLine === false) { evalWaitsOnline = true; return; } scheduleEval(); }, 20000);
 }
 function scheduleEval() {
   if (!aiReady() || resetting) return;
@@ -2109,7 +2271,7 @@ async function runEval() {
   } catch (err) {
     evalErr = (err && err.message) || String(err) || 'unknown error';
     console.warn('Live eval failed:', err);
-    if (R.tab !== 'eval') toast('Live Eval failed: ' + evalErr);
+    if (R.tab !== 'eval') toast(L.AI_ERROR_PREFIX.eval + ' ' + evalErr);
   } finally {
     evalBusy = false; renderEvalStatus(); renderInsights();
     if (evalAgain && !resetting) { evalAgain = false; runEval(); }
@@ -2118,9 +2280,10 @@ async function runEval() {
 function renderEvalStatus() {
   const el = $('#eval-status'); if (!el) return;
   $('#eval-go').disabled = evalBusy;
-  if (evalBusy) { el.style.color = 'var(--ok)'; el.textContent = 'Updating… (20–60 s)'; }
-  else if (evalErr) { el.style.color = 'var(--danger)'; el.textContent = 'Last update failed: ' + evalErr; }
-  else if (!aiReady()) { el.style.color = 'var(--danger)'; el.textContent = 'No AI is set up. Open "AI + Keys" to connect one.'; }
+  el.style.color = '';
+  if (evalBusy) el.innerHTML = busyHtml('Updating… (20–60 s)');
+  else if (!aiReady()) el.innerHTML = noAiHtml();
+  else if (evalErr) { el.style.color = errColor(evalErr); el.textContent = L.AI_ERROR_PREFIX.eval + ' ' + evalErr; }
   else el.textContent = '';
   const ev = LV().liveEval;
   const now = L.speechesSoFar(R);
@@ -2186,20 +2349,26 @@ function renderEval() {
       <div class="grid" style="margin-top:var(--s3)">${fb}</div></div>`;
 }
 $('#eval-go').addEventListener('click', () => {
-  if (!aiReady()) return toast('No AI is set up. Open "AI + Keys" to connect one.');
+  if (!aiReady()) return toast(L.NO_AI);
   scheduleEval();
 });
-$('#auto-eval').checked = S.autoEval !== false;
-S.autoEval = $('#auto-eval').checked;
+$('#auto-eval').checked = S.autoEval; // off unless the judge turned it on (spec 2.7, D2)
 $('#auto-eval').addEventListener('change', (e) => { S.autoEval = e.target.checked; saveSettings(); });
-document.addEventListener('click', (e) => {
+document.addEventListener('click', async (e) => {
   if (e.target.id !== 'eval-to-ballot') return;
   const fb = (LV().liveEval && LV().liveEval.data && LV().liveEval.data.feedback) || [];
-  if (((R.ballot.affFb || '').trim() || (R.ballot.negFb || '').trim()) && !confirm('Replace the comments already in the Aff/Neg boxes on the Ballot tab?')) return;
+  // Interim dialog (spec 2.4 #9); Slice 4 removes it.
+  if ((R.ballot.affFb || '').trim() || (R.ballot.negFb || '').trim()) {
+    const ok = await ask({
+      title: 'Replace your Aff and Neg comments?', body: 'The comment boxes on the Ballot already have text.',
+      buttons: [{ label: 'Keep mine', value: false, kind: 'plain' }, { label: 'Replace', value: true, kind: 'primary' }], cancelValue: false,
+    });
+    if (!ok) return;
+  }
   const join = (side) => fb.filter((f) => String(f.speaker || '').endsWith(side) && !/^not yet/i.test(f.points || ''))
     .map((f) => f.speaker + ': ' + f.so_far + ' Strength: ' + f.strength + ' Fix: ' + f.fix).join('\n');
   R.ballot.affFb = join('A'); R.ballot.negFb = join('N'); save(); bindAll();
-  toast('Copied into the Aff and Neg comment boxes on the Ballot tab.');
+  toast('Copied into the Aff and Neg comment boxes in Decide → Ballot.');
 });
 
 // ---------- analysis: paradigm lens, impact calculus, round map ----------
@@ -2214,7 +2383,7 @@ async function askClaude(task, schema, opts) {
   return callAI({ system: L.ANALYSIS_SYSTEM, prompt: L.buildAnalysisPrompt(R, DOCS, task, opts), schema, effort: 'medium', reading: schema === L.MAP_SCHEMA ? null : lvl() });
 }
 async function runTool(name, task, schema, opts, store) {
-  if (!aiReady()) return toast('No AI is set up. Open "AI + Keys" to connect one.');
+  if (!aiReady()) return toast(L.NO_AI);
   if (busy[name]) return toast('Still working on the last one. Try again when it finishes.');
   busy[name] = true; errs[name] = ''; renderAnalysis();
   try {
@@ -2238,9 +2407,9 @@ function cacheNote(entry) {
     + (newer.length ? ' <span class="pill" style="color:var(--warn)">Out of date: ' + escapeHtml(newer.join(', ')) + ' since. Click Refresh.</span>' : '');
 }
 function statusLine(el, name, entry, idle) {
-  if (busy[name]) { el.style.color = 'var(--ok)'; el.innerHTML = 'Working… (20–60 s)'; }
-  else if (errs[name]) { el.style.color = 'var(--danger)'; el.textContent = 'Failed: ' + errs[name]; }
-  else if (!aiReady()) { el.style.color = 'var(--danger)'; el.textContent = 'No AI is set up. Open "AI + Keys" to connect one.'; }
+  if (busy[name]) { el.style.color = ''; el.innerHTML = busyHtml('Working… (20–60 s)'); }
+  else if (!aiReady()) { el.style.color = ''; el.innerHTML = noAiHtml(); }
+  else if (errs[name]) { el.style.color = errColor(errs[name]); el.textContent = L.AI_ERROR_PREFIX.analysis + ' ' + errs[name]; }
   else { el.style.color = ''; el.innerHTML = entry ? cacheNote(entry) : '<span class="muted">' + idle + '</span>'; }
 }
 function currentLensKey() { return L.lensKey($('#lens-pick').value, S.customParadigm) + (lvl() === 'expert' ? '' : '|' + lvl()); }
@@ -2264,7 +2433,7 @@ function renderAnalysis() {
   $('#lens-go').textContent = lens ? 'Refresh' : 'Weigh';
   $('#lens-go').disabled = busy.lens;
   statusLine($('#lens-status'), 'lens', lens, 'Not weighed under this paradigm yet. Click Weigh.');
-  if ($('#lens-pick').value === 'custom' && !(S.customParadigm || '').trim()) $('#lens-status').innerHTML = '<span style="color:var(--warn)">Paste your Tabroom paradigm below first.</span>';
+  if ($('#lens-pick').value === 'custom' && !(S.customParadigm || '').trim()) $('#lens-status').innerHTML = '<span style="color:var(--warn)">Paste your paradigm below first.</span>';
   const d = lens && lens.data;
   $('#lens-out').innerHTML = d ? `
     <div class="lean ${sideClass(d.winner)}">${e(sideLabel(d.winner))}${d.winner === 'aff' && R.aff.team ? ' (' + e(R.aff.team) + ')' : d.winner === 'neg' && R.neg.team ? ' (' + e(R.neg.team) + ')' : ''} <span class="pill">${e(d.confidence)} confidence</span></div>
@@ -2335,7 +2504,7 @@ $('#lens-custom').addEventListener('change', (ev) => {
 });
 $('#lens-go').addEventListener('click', () => {
   const key = $('#lens-pick').value;
-  if (key === 'custom' && !(S.customParadigm || '').trim()) { $('#lens-custom-box').open = true; return toast('Paste your Tabroom paradigm first.'); }
+  if (key === 'custom' && !(S.customParadigm || '').trim()) { $('#lens-custom-box').open = true; return toast('Paste your paradigm first.'); }
   const k = currentLensKey();
   runTool('lens', L.LENS_TASK, L.LENS_SCHEMA, { paradigm: L.paradigmText(key, S.customParadigm) }, (v) => { R.analysis.lens[k] = v; });
 });
@@ -2427,14 +2596,19 @@ $('#ne-save').addEventListener('click', () => {
   if (to) data.edges.push({ from: node.id, to, kind: $('#ne-kind').value, user: true });
   save(); closeNodeEditor(); renderAnalysis();
 });
+// Delete closes the editor first, then offers Undo (spec 2.4 #10).
 $('#ne-delete').addEventListener('click', () => {
   const data = mapDataEnsure();
   const node = data.nodes.find((n) => String(n.id) === String(neState.id));
-  if (!node || !confirm('Delete "' + node.label + '"?')) return;
+  if (!node) return;
+  const before = JSON.parse(JSON.stringify({ nodes: data.nodes, edges: data.edges, removedNodes: data.removedNodes || [] }));
   if (!node.user) (data.removedNodes ??= []).push({ id: String(node.id), key: node.speech + '|' + String(node.aiLabel || node.label).trim().toLowerCase() });
   data.nodes = data.nodes.filter((n) => n !== node);
   data.edges = data.edges.filter((x) => String(x.from) !== String(node.id) && String(x.to) !== String(node.id));
   save(); closeNodeEditor(); renderAnalysis();
+  undoToast('Removed "' + node.label + '" from the map.', 'remove ' + node.label, () => {
+    Object.assign(mapDataEnsure(), before); save(); renderAnalysis();
+  });
 });
 $('#ne-cancel').addEventListener('click', closeNodeEditor);
 $('#node-editor').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'ne-label') $('#ne-save').click(); });
@@ -2458,9 +2632,17 @@ $('#map-out').addEventListener('click', (e) => {
 
 // ---------- AI ballot filler ----------
 let fillBusy = false, fillErr = '', fillSoonTimer = null;
-function scheduleBallotSoon() { clearTimeout(fillSoonTimer); fillSoonTimer = setTimeout(() => { if (S.autoBallot && aiReady() && !resetting) runBallotFill(false, true); }, 25000); }
+let fillWaitsOnline = false;
+function scheduleBallotSoon() {
+  clearTimeout(fillSoonTimer);
+  fillSoonTimer = setTimeout(() => {
+    if (!S.autoBallot || !aiReady() || resetting) return;
+    if (navigator.onLine === false) { fillWaitsOnline = true; return; } // runs when online, if still on (spec 2.3, D2)
+    runBallotFill(false, true);
+  }, 25000);
+}
 async function runBallotFill(override, auto) {
-  if (!aiReady()) return toast(NO_AI);
+  if (!aiReady()) return toast(L.NO_AI);
   if (fillBusy) return toast('Still filling the ballot. Wait a moment.');
   const level = lvl();
   fillBusy = true; fillErr = ''; renderFiller();
@@ -2482,9 +2664,9 @@ function renderFiller() {
   const st = $('#fill-status'); if (!st) return;
   $('#fill-go').disabled = fillBusy; $('#fill-redo').disabled = fillBusy;
   const d = LV().ballotDraft;
-  if (fillBusy) { st.style.color = 'var(--ok)'; st.textContent = 'Filling… (20–60 s)'; }
-  else if (fillErr) { st.style.color = 'var(--danger)'; st.textContent = 'Failed: ' + fillErr; }
-  else if (!aiReady()) { st.style.color = 'var(--muted)'; st.textContent = 'Connect AI in "AI + Keys" to use this. The ballot below works by hand either way.'; }
+  if (fillBusy) { st.style.color = ''; st.innerHTML = busyHtml('Filling… (20–60 s)'); }
+  else if (!aiReady()) { st.style.color = ''; st.innerHTML = noAiHtml('The ballot below works by hand either way.'); }
+  else if (fillErr) { st.style.color = errColor(fillErr); st.textContent = L.AI_ERROR_PREFIX.ballot + ' ' + fillErr; }
   else { st.style.color = 'var(--muted)'; st.textContent = d ? 'Last filled ' + agoText(d.at) + ', through ' + ((d.through || []).slice(-1)[0] || 'no speeches') + '.' : ''; }
   $('#fill-why').textContent = d && d.data ? 'AI confidence: ' + d.data.confidence + '\n' + (d.data.points_reasoning || '') : '';
   const locked = Object.keys(R.ballot.touched || {}).filter((k) => R.ballot.touched[k]).length;
@@ -2495,16 +2677,29 @@ function renderFiller() {
 }
 $('#fill-go').addEventListener('click', () => runBallotFill(false));
 // "Redo with my input": the judge's note may need to change fields they typed (e.g. "I'm voting neg"). Ask first.
-$('#fill-redo').addEventListener('click', () => {
+$('#fill-redo').addEventListener('click', async () => {
   if (!(R.ballotInput || '').trim()) { $('#ballot-input').focus(); return toast('Type your note for the AI first.'); }
   const locked = Object.values(R.ballot.touched || {}).some(Boolean);
-  const override = locked && confirm('Your note may need to change fields you typed yourself. Let the AI change them this time? (You can undo it.)');
+  let override = false;
+  if (locked) {
+    // Interim dialog (spec 2.4 #11); Slice 4 removes it. Cancel makes no AI call.
+    const v = await ask({
+      title: 'Change fields you typed?',
+      body: 'Your note may need to change fields you typed yourself, for example the winner.',
+      buttons: [{ label: 'Cancel', value: 'cancel', kind: 'plain' }, { label: 'Keep my fields', value: 'keep', kind: 'plain' }, { label: 'Let the AI change them', value: 'change', kind: 'primary' }],
+      cancelValue: 'cancel',
+    });
+    if (v === 'cancel') return;
+    override = v === 'change';
+  }
   runBallotFill(override);
 });
 $('#fill-undo').addEventListener('click', () => { if (!R.ballotUndo) return; R.ballot = R.ballotUndo; R.ballotUndo = null; save(); renderBallot(); toast('Ballot put back as it was before the last fill.'); });
 $('#fill-unlock').addEventListener('click', () => {
-  if (!confirm('Let the AI change the fields you typed the next time it fills the ballot?')) return;
+  // Interim Undo toast (spec 2.4 #12); Slice 4 replaces it with a tag on each field.
+  const before = Object.assign({}, R.ballot.touched || {});
   R.ballot.touched = {}; save(); renderBallot();
+  undoToast('The AI may now change fields you typed.', 'let the AI change your fields', () => { R.ballot.touched = before; save(); renderBallot(); }, 'Your fields are yours again.');
 });
 $('#auto-ballot').addEventListener('change', (e) => { S.autoBallot = e.target.checked; saveSettings(); });
 
@@ -2520,7 +2715,9 @@ async function readAllDocs() {
 const stamp = () => { const d = new Date(), p = (n) => String(n).padStart(2, '0'); return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()); }; // local time
 async function downloadBackup(includeKeys, label) {
   save(); saveSettings();
-  const backup = L.buildBackup(readAllStorage(), await readAllDocs(), { includeKeys });
+  const all = readAllStorage();
+  if (includeKeys && !S.rememberKeys && Object.keys(keys).length) all[KEYS] = JSON.stringify(keys); // keys kept for this tab only
+  const backup = L.buildBackup(all, await readAllDocs(), { includeKeys });
   download('tabula-' + (label || 'backup') + '-' + stamp() + '.json', JSON.stringify(backup), 'application/json');
   S.lastBackupAt = Date.now(); saveSettings(); renderBackup();
 }
@@ -2533,13 +2730,21 @@ $('#restore-file').addEventListener('change', async (e) => {
   const file = e.target.files[0]; e.target.value = '';
   if (!file) return;
   const st = $('#backup-status');
-  if (file.size > 60 * 1024 * 1024 && !confirm('This backup is large (' + Math.round(file.size / 1048576) + ' MB). Restoring it may be slow. Continue?')) return;
   let b;
   try { b = L.parseBackup(await file.text()); }
   catch (err) { st.style.color = 'var(--danger)'; st.textContent = 'Could not restore: ' + String(err.message || err); return; }
   const sum = L.backupSummary(b);
   const when = b.exportedAt ? new Date(b.exportedAt).toLocaleString() : 'an unknown time';
-  if (!confirm('Restore this backup from ' + when + '?\n\nRound: ' + sum.round + '\nSaved ballots: ' + sum.ballots + '\nDocuments: ' + sum.docs + '\nAPI keys: ' + (sum.keys ? 'included' : 'not included (your current keys stay)') + '\n\nThis replaces what is in this browser now. A copy of your current data downloads first. Check your Downloads folder for it.')) return;
+  const hasKeys = b.includesKeys && [KEYS, KEY, OAKEY].some((k) => b.storage[k] != null);
+  // One dialog (spec 2.4 #13, #14), with the large-file note in it.
+  const ok = await ask({
+    title: 'Restore the backup from ' + when + '?',
+    body: 'This replaces everything in this browser. Tabula downloads a copy of your current data first.',
+    list: ['Round: ' + sum.round, 'Saved ballots: ' + sum.ballots, 'Documents: ' + sum.docs, L.restoreKeysLine(hasKeys, S.rememberKeys)],
+    foot: file.size > 60 * 1024 * 1024 ? 'This file is large (' + Math.round(file.size / 1048576) + ' MB), so it may take a while.' : '',
+    buttons: [{ label: 'Cancel', value: false, kind: 'plain' }, { label: 'Restore', value: true, kind: 'danger' }], cancelValue: false,
+  });
+  if (!ok) return;
   // 1. Safety copy of the current data (with keys) before anything changes.
   await downloadBackup(true, 'before-restore');
   resetting = true; stopAll(); restoring = true;
@@ -2547,6 +2752,14 @@ $('#restore-file').addEventListener('change', async (e) => {
   // 2. Snapshot everything, so any failure below puts the old data back exactly.
   const oldStorage = readAllStorage();
   const oldDocs = await readAllDocs();
+  // This tab's own key entries (Remember off keeps keys in sessionStorage, Q-3), so a failure can put them back too.
+  const TAB_KEY_NAMES = [KEYS, KEY, OAKEY];
+  const oldTab = {};
+  for (const k of TAB_KEY_NAMES) { try { const v = sessionStorage.getItem(k); if (v != null) oldTab[k] = v; } catch {} }
+  const writeTabKeys = (entries) => {
+    for (const k of TAB_KEY_NAMES) { try { sessionStorage.removeItem(k); } catch {} }
+    for (const [k, v] of Object.entries(entries)) sessionStorage.setItem(k, v); // a failure here runs the rollback below
+  };
   const writeStorage = (entries) => {
     for (const k of Object.keys(readAllStorage())) localStorage.removeItem(k);
     for (const [k, v] of Object.entries(entries)) localStorage.setItem(k, v);
@@ -2557,11 +2770,15 @@ $('#restore-file').addEventListener('change', async (e) => {
     await writeDocs(b.docs);
     // Then the saved data. Keys stay as they are unless the backup carries its own.
     const entries = Object.assign({}, b.storage);
-    if (!b.includesKeys) for (const k of [KEYS, KEY, OAKEY]) if (oldStorage[k] != null) entries[k] = oldStorage[k];
-    writeStorage(entries);
+    if (!hasKeys) for (const k of [KEYS, KEY, OAKEY]) if (oldStorage[k] != null) entries[k] = oldStorage[k];
+    // With Remember off, the backup's keys go to this tab only, never to localStorage (spec 2.6, Q-3).
+    const split = L.splitRestoreKeys(entries, S.rememberKeys, SETTINGS);
+    writeStorage(split.local);
+    writeTabKeys(L.restoreTabKeys(oldTab, split.session, hasKeys));
   } catch (err) {
-    // Put the old data back.
+    // Put the old data back, this tab's keys included.
     try { writeStorage(oldStorage); } catch {}
+    try { writeTabKeys(oldTab); } catch {}
     try { await writeDocs(oldDocs); } catch {}
     resetting = false; restoring = false;
     st.style.color = 'var(--danger)';
@@ -2617,35 +2834,52 @@ document.addEventListener('click', (e) => {
 });
 $('#b-tsv').addEventListener('click', () => copy(L.toTSV([L.ballotRow(R, new Date().toLocaleString())])));
 $('#b-csv').addEventListener('click', () => download(safeName(R.roundName) + '_ballot.csv', L.toCSV([L.BALLOT_HEADER, L.ballotRow(R, new Date().toLocaleString())])));
-$('#b-save').addEventListener('click', () => {
+$('#b-save').addEventListener('click', async () => {
   const issues = L.checkBallot(R.ballot);
-  if (issues.length && !confirm('The ballot has ' + issues.length + ' issue(s). Save anyway?')) return;
+  if (issues.length) {
+    // "Fix it" gets first focus and goes to the first field with a problem; there is no danger button (spec 2.4 #15).
+    const v = await ask({
+      title: issues.length === 1 ? 'Save with 1 problem?' : 'Save with ' + issues.length + ' problems?',
+      list: issues,
+      buttons: [{ label: 'Save anyway', value: 'save', kind: 'plain' }, { label: 'Fix it', value: 'fix', kind: 'primary' }], cancelValue: 'fix',
+    });
+    if (v !== 'save') return focusBallotProblem();
+  }
   const log = store.get(LOG, []);
   const row = L.ballotRow(R, new Date().toLocaleString());
   const last = log[log.length - 1];
   if (last && JSON.stringify(last.slice(1)) === JSON.stringify(row.slice(1))) return toast('Already saved');
   log.push(row);
   if (store.set(LOG, log)) {
-    toast('Saved to log');
-    // Offer a backup when there is none from the last 2 hours.
-    if (!S.lastBackupAt || Date.now() - S.lastBackupAt > 2 * 3600 * 1000) {
-      setTimeout(() => { if (confirm('Ballot saved. Download a backup of everything now? (Recommended: your data lives only in this browser.)')) downloadBackup(false); }, 50);
-    }
+    // Offer a backup when there is none from the last 2 hours (spec 2.4 #16).
+    if (!S.lastBackupAt || Date.now() - S.lastBackupAt > 2 * 3600 * 1000) toast('Saved to Ballots. Your data lives only in this browser.', { action: { label: 'Download backup', run: () => downloadBackup(false) } });
+    else toast('Saved to Ballots.');
   }
 });
+// The first ballot field with a problem: the winner, then points, then ranks, then the RFD.
+function focusBallotProblem() {
+  const b = R.ballot, p = b.pts || {}, r = b.ranks || {};
+  const el = !b.winner ? document.querySelector('input[name="winner"]')
+    : document.querySelector(L.SPEAKERS.map((s) => (p[s] === undefined || p[s] === '' ? `[data-bind="ballot.pts.${s}"]` : '')).filter(Boolean)[0] || 'x-none')
+    || document.querySelector(L.SPEAKERS.map((s) => (!r[s] ? `[data-bind="ballot.ranks.${s}"]` : '')).filter(Boolean)[0] || 'x-none')
+    || document.querySelector('[data-bind="ballot.rfd"]');
+  if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); }
+}
 
 // ---------- log ----------
 function renderLog() {
   const log = store.get(LOG, []);
-  if (!log.length) { $('#log-table').innerHTML = '<tr><td class="muted">No saved ballots yet.</td></tr>'; return; }
+  if (!log.length) { $('#log-table').innerHTML = '<tr><td class="muted">No saved ballots yet. Save one from Decide → Ballot.</td></tr>'; return; }
   const cols = L.LOG_COLUMNS;
   $('#log-table').innerHTML = '<tr>' + cols.map((i) => `<th>${L.BALLOT_HEADER[i]}</th>`).join('') + '<th></th></tr>'
-    + log.map((r, n) => '<tr>' + cols.map((i) => `<td>${escapeHtml(r[i] ?? '')}</td>`).join('') + `<td><button class="b" data-del="${n}">Delete</button></td></tr>`).join('');
+    + log.map((r, n) => '<tr>' + cols.map((i) => `<td>${escapeHtml(r[i] ?? '')}</td>`).join('') + `<td><button class="iconbtn" data-del="${n}" aria-label="Delete saved ballot from ${escapeHtml(r[0] || 'an unknown date')}">×</button></td></tr>`).join('');
 }
 $('#log-table').addEventListener('click', (e) => {
-  const n = e.target.dataset.del; if (n == null) return;
-  if (!confirm('Delete this saved ballot?')) return;
-  const log = store.get(LOG, []); log.splice(Number(n), 1); store.set(LOG, log); renderLog();
+  const btn = e.target.closest('[data-del]'); if (!btn) return;
+  const { list, undo } = L.removeAt(store.get(LOG, []), Number(btn.dataset.del));
+  if (!undo) return;
+  store.set(LOG, list); renderLog();
+  undoToast('Saved ballot deleted.', 'delete saved ballot', () => { store.set(LOG, L.restoreAt(store.get(LOG, []), undo.index, undo.item)); renderLog(); }, 'Saved ballot restored.');
 });
 $('#log-tsv').addEventListener('click', () => copy(L.toTSV([L.BALLOT_HEADER, ...store.get(LOG, [])])));
 $('#log-csv').addEventListener('click', () => download('policy_ballots.csv', L.toCSV([L.BALLOT_HEADER, ...store.get(LOG, [])])));
@@ -2657,6 +2891,8 @@ $('#t-start').title = K.startTip(IS_MAC, S.singleKeys !== false);
 renderConnections(); checkHelper(); renderReadLevel(); applyPanes(); renderAudio(); listMics();
 showTab(R.tab || 'flow'); renderPrepPresets(); showDrawer(Boolean(S.trDrawer)); resumeClips();
 renderSdList(); if (sdState().code) { sdFetchList(true); sdWatch(); } // resume watching this round's SpeechDrop room
-if (!S.setupDone) showWelcome(true);
+booted = true;
+if (L.shouldShowWelcome({ setupDone: S.setupDone, hostedPlan })) openWelcome();
+else maybeD2Note();
 
 $('#print-btn').addEventListener('click', () => window.print());

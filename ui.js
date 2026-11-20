@@ -8,7 +8,7 @@
   const $ = (s) => document.querySelector(s);
 
   // ---------- toasts (spec 4.3) ----------
-  // toast(msg, { kind: 'info' | 'error', action: { label, run }, key }). Info toasts time out (L.toastMs);
+  // toast(msg, { kind: 'info' | 'error', action: { label, name (the button's accessible name, e.g. "Undo: delete sheet"), run }, key }). Info toasts time out (L.toastMs);
   // errors stay until closed. The same key or text restarts the timer instead of adding a copy. At most 3.
   // Screen readers hear info politely and errors at once, through two permanent live regions.
   const toastList = [];
@@ -33,6 +33,7 @@
     const m = document.createElement('span'); m.className = 'toast-msg'; m.textContent = text; el.append(m);
     if (t.action) {
       const a = document.createElement('button'); a.type = 'button'; a.className = 'toast-act'; a.textContent = t.action.label;
+      if (t.action.name) a.setAttribute('aria-label', t.action.name);
       a.addEventListener('click', () => { toastClose(t); t.action.run(); });
       el.append(a);
     }
@@ -74,9 +75,13 @@
   // A short message for screen readers only (for example the view-only and recording messages).
   function announce(text) { const r = document.getElementById('sr-status'); if (!r) return; r.textContent = ''; setTimeout(() => { r.textContent = text; }, 60); }
 
-  // ---------- the in-app dialog: ask(opts) -> Promise<value | null> (spec 4.2, S0.3) ----------
-  // opts: { title, body (a string or a list of paragraphs), foot, buttons: [{ label, value, kind: 'primary'|'danger'|'plain' }],
-  //         cancelValue, focus (the value of the button that gets focus first) }.
+  // ---------- the in-app dialog: ask(opts) -> Promise<value | null> (spec 4.2, S0.3, extended in Slice 2) ----------
+  // opts: { title, body (a string or a list of paragraphs), list (lines shown as a list), foot,
+  //         input: { label, value, placeholder, maxLength, required, emptyError },
+  //         buttons: [{ label, value, kind: 'primary'|'danger'|'plain', desc }], cancelValue,
+  //         focus (the value of the button that gets focus first), backdrop (false: a click on the dim layer does nothing),
+  //         variant ('choices': buttons with a desc show as large choice cards, as on the welcome) }.
+  // With an input, the primary button resolves with the typed text (trimmed); other buttons resolve with their value.
   // Esc, × and a click on the dim layer give cancelValue. Focus is trapped and returns to the opener. One at a time.
   let askState = null, askChain = Promise.resolve();
   function ask(opts) { const p = askChain.then(() => askOpen(opts || {})); askChain = p.catch(() => {}); return p; }
@@ -86,36 +91,89 @@
       const opener = document.activeElement;
       const buttons = o.buttons && o.buttons.length ? o.buttons.slice(0, 3) : [{ label: 'OK', value: true, kind: 'primary' }];
       const cancelValue = 'cancelValue' in o ? o.cancelValue : null;
+      const choices = o.variant === 'choices';
+      card.classList.toggle('ask-choices', choices);
       $('#ask-title').textContent = o.title || '';
       const body = $('#ask-body'); body.textContent = '';
       for (const para of [].concat(o.body || [])) { const p = document.createElement('p'); p.textContent = para; body.append(p); }
+      if (o.list && o.list.length) {
+        const ul = document.createElement('ul'); ul.className = 'ask-list';
+        for (const line of o.list) { const li = document.createElement('li'); li.textContent = line; ul.append(li); }
+        body.append(ul);
+      }
+      // The text box: label, field and an inline error line under it.
+      const field = $('#ask-field'), input = $('#ask-input'), err = $('#ask-err');
+      const inp = o.input || null;
+      field.hidden = !inp;
+      card.classList.toggle('has-input', Boolean(inp));
+      if (inp) {
+        $('#ask-label').textContent = inp.label || '';
+        input.value = inp.value || ''; input.placeholder = inp.placeholder || '';
+        if (inp.maxLength > 0) input.maxLength = inp.maxLength; else input.removeAttribute('maxlength');
+        err.textContent = ''; input.removeAttribute('aria-invalid');
+      }
       $('#ask-foot').textContent = o.foot || '';
       card.setAttribute('role', buttons.some((b) => b.kind === 'danger') ? 'alertdialog' : 'dialog');
       const row = $('#ask-btns'); row.textContent = '';
+      row.classList.toggle('choices', choices);
       const els = buttons.map((b) => {
         const el = document.createElement('button'); el.type = 'button';
-        el.className = 'b' + (b.kind === 'primary' ? ' primary' : b.kind === 'danger' ? ' danger' : '');
-        el.textContent = b.label; el.addEventListener('click', () => done(b.value)); row.append(el);
+        if (choices) {
+          el.className = 'choice';
+          const strong = document.createElement('strong'); strong.textContent = b.label; el.append(strong);
+          if (b.desc) { const d = document.createElement('span'); d.textContent = b.desc; el.append(d); }
+        } else {
+          el.className = 'b' + (b.kind === 'primary' ? ' primary' : b.kind === 'danger' ? ' danger' : '');
+          el.textContent = b.label;
+        }
+        el.addEventListener('click', () => pick(b));
+        row.append(el);
         return el;
       });
+      const primaryIdx = buttons.findIndex((b) => b.kind === 'primary');
+      // The primary button waits for the text: aria-disabled (still focusable, so its reason can be read).
+      const check = () => {
+        if (!inp || primaryIdx < 0) return null;
+        const st = L.askInputState(input.value, inp);
+        els[primaryIdx].setAttribute('aria-disabled', String(!st.ok));
+        return st;
+      };
+      const showErr = (msg) => { err.textContent = msg; if (msg) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid'); };
+      function pick(b) {
+        if (inp && b.kind === 'primary') {
+          const st = check();
+          if (!st.ok) { showErr(st.error); input.focus(); return; }
+          return done(st.text);
+        }
+        done(b.value);
+      }
+      const onInput = () => { const st = check(); if (st && st.ok) showErr(''); };
+      const onEnter = (e) => {
+        if (e.key !== 'Enter' || e.isComposing || primaryIdx < 0) return;
+        e.preventDefault(); pick(buttons[primaryIdx]);
+      };
       // The page behind is not reachable while the dialog is open.
       const behind = [...document.querySelectorAll('header, main, .roundbar, #tr-drawer')];
       const wasInert = behind.map((el) => el.inert);
       behind.forEach((el) => { el.inert = true; });
       const trap = (e) => {
         if (e.key !== 'Tab') return;
-        const f = [...card.querySelectorAll('button')];
+        const f = [...card.querySelectorAll('button, input')].filter((el) => !el.closest('[hidden]'));
         e.preventDefault(); f[L.trapNext(f.indexOf(document.activeElement), f.length, e.shiftKey)].focus();
       };
-      const onBackdrop = (e) => { if (e.target === wrap) done(cancelValue); };
+      const onBackdrop = (e) => { if (e.target === wrap && o.backdrop !== false) done(cancelValue); };
       const onX = () => done(cancelValue);
       card.addEventListener('keydown', trap); wrap.addEventListener('click', onBackdrop); x.addEventListener('click', onX);
+      if (inp) { input.addEventListener('input', onInput); input.addEventListener('keydown', onEnter); }
+      check();
       wrap.hidden = false;
       askState = { close: () => done(cancelValue) };
-      els[L.askFirstFocus(buttons, { focus: o.focus, hasFocus: 'focus' in o, cancelValue })].focus();
+      if (inp) { input.focus(); input.select(); }
+      else els[L.askFirstFocus(buttons, { focus: o.focus, hasFocus: 'focus' in o, cancelValue })].focus();
       function done(v) {
         if (!askState) return;
         card.removeEventListener('keydown', trap); wrap.removeEventListener('click', onBackdrop); x.removeEventListener('click', onX);
+        input.removeEventListener('input', onInput); input.removeEventListener('keydown', onEnter);
         wrap.hidden = true; askState = null;
         behind.forEach((el, i) => { el.inert = wasInert[i]; });
         if (opener && opener.focus && document.contains(opener)) opener.focus();

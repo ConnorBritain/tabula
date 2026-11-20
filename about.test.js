@@ -50,12 +50,17 @@ test('About page has no dead "#" links', () => {
   assert.doesNotMatch(about, /href="#"/);
 });
 
-// Why: the app saves keys as plain text by default; if the privacy text and the app drift apart, the page misleads judges about their keys.
+// Why: if the privacy text and the app drift apart, the page misleads judges about where their keys are kept.
+// CHANGED 2026-11-20 because the owner approved D1 in docs/design/SPEC.md §2.6 ("keys are not remembered by default";
+// Q-3: a key that is not remembered lives in this tab only). Old checks:
+//   assert.match(about, /Remember keys/);
+//   assert.match(read('app.js'), /S\.rememberKeys \?\?= true;/); // app code lives in app.js
 test('About privacy text matches how the app stores keys', () => {
   assert.match(about, /plain text/);
-  assert.match(about, /Remember keys/);
+  assert.match(about, /Remember this key/);
+  assert.match(about, /until you close the tab/);
   assert.match(index, /id="remember-keys"/);
-  assert.match(read('app.js'), /S\.rememberKeys \?\?= true;/); // app code lives in app.js
+  assert.match(read('app.js'), /S\.rememberKeys = L\.resolveRememberKeys\(/); // app code lives in app.js
 });
 
 // Why: the subscription route only works on a Mac with the local helper; promising it without that condition sends Windows judges into a dead end.

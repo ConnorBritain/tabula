@@ -154,7 +154,6 @@
   .choice:hover { border-color: var(--ink); background: var(--sunk); }
   .choice strong { font-size: var(--fs-md); }
   .choice span { color: var(--muted); font-size: var(--fs-sm); }
-  .choice:first-child { border-color: var(--ink); }
   .prov { border: 1px solid var(--line); border-radius: var(--r2); padding: var(--s2) var(--s3); margin-bottom: var(--s2); }
   .prov-head { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
   .prov-head strong { min-width: 140px; }
@@ -298,6 +297,7 @@
     .tour-offer { bottom: 148px; right: var(--s3); left: var(--s3); width: auto; }
   }
   .field-help { margin: 4px 0 0; font-size: var(--fs-xs); }
+  .remember-row { margin: var(--s2) 0 0; color: var(--ink); font-size: var(--fs-sm); }
   .sub-pick { margin-top: var(--s4); padding-top: var(--s3); border-top: 1px solid var(--line); }
   .sub-pick h3 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; margin: 0 0 4px; }
   .sub-pick > p { margin: 0 0 var(--s2); }
@@ -370,6 +370,23 @@
   .ask-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2); margin-top: var(--s4); }
   .ask-x { position: absolute; top: var(--s3); right: var(--s3); }
   button.b.danger { color: var(--danger); border-color: var(--danger); }
+  /* Slice 2: the dialog's text box, list and choice cards (the welcome), and the primary button while it waits. */
+  .ask-card.ask-choices { width: min(440px, calc(100% - 32px)); }
+  .ask-btns.choices { display: grid; justify-content: stretch; }
+  .ask-list { margin: 0 0 var(--s2); padding-left: 20px; color: var(--ink-2); }
+  .ask-field { margin-top: var(--s2); }
+  .ask-field[hidden] { display: none; }
+  .ask-err { margin: var(--s1) 0 0; min-height: 1.35em; color: var(--danger); font-size: var(--fs-sm); font-weight: 600; }
+  button.b[aria-disabled="true"], .flowtabs button[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
+  button.b.primary[aria-disabled="true"]:hover { opacity: .55; }
+  button.b:not(.primary)[aria-disabled="true"]:hover { background: var(--panel); border-color: var(--line-2); }
+  .flowtabs button[aria-disabled="true"]:hover { background: var(--panel); }
+  @media (max-width: 1180px) and (pointer: coarse) { .overlay.ask:has(.has-input) { padding-top: 10vh; } }
+  /* Loading lines are muted with a small spinner, never green (spec 2.3). */
+  .spin { display: inline-block; width: .9em; height: .9em; margin-right: var(--s1); vertical-align: -.1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation: none; border-right-color: currentColor; opacity: .6; } }
+  .ai-quiet { color: var(--muted); font-weight: 400; }
   /* The "Recording" strip: a full-width row inside the sticky header while the mic is on (spec 1.6, Q19).
      Steady and calm: no red, no orange, no blinking. */
   .rec-strip { flex: 1 0 100%; order: 99; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); margin: 0 calc(-1 * var(--s4)) calc(-1 * var(--s2)); padding: var(--s1) var(--s4); background: var(--sunk); color: var(--ink); border-top: 1px solid var(--line-2); font-size: var(--fs-sm); font-weight: 600; }
@@ -408,7 +425,7 @@
     <picture><source srcset="assets/tabula-mark-white.png" media="(prefers-color-scheme: dark)"><img src="assets/tabula-mark-black.png" alt="" width="30" height="24"></picture>
     <span class="wordmark">Tabula</span>
   </a>
-  <nav id="nav" aria-label="Places"></nav>
+  <nav id="nav" aria-label="Main"></nav>
   <span class="spacer"></span>
   <div class="seg" role="group" aria-label="Reading level" title="How the AI writes: expert debate language, or plain words for students and parents"><button data-read="expert">Expert</button><button data-read="plain">Plain</button></div>
   <div class="help-wrap">
@@ -460,11 +477,11 @@
   <div class="card" id="reading-card">
     <h2>Reading level</h2>
     <div class="row"><div class="seg" role="group" aria-label="Reading level"><button data-read="expert">Expert (college debate)</button><button data-read="plain">Plain (Feynman style)</button></div>
-    <span class="muted">How the AI writes the Live Eval, analysis, decision and feedback. Plain is easier for students and parents, and good for Tabroom comments. Each level keeps its own saved answers, so you can switch back and forth. The verdict does not change, only the wording. The same switch is in the top bar.</span></div>
+    <span class="muted">How the AI writes the Live Eval, analysis, decision and feedback. Plain is easier for students and parents, and good for ballot comments. Each level keeps its own saved answers, so you can switch back and forth. The verdict does not change, only the wording. The same switch is in the top bar.</span></div>
   </div>
   <div class="card" id="docs-card">
     <h2>Round documents</h2>
-    <p class="muted">Add speech docs or case files (PDF, Word .docx, or text). Claude reads them for the live flow and the decision. Pick the speech each doc belongs to: Claude maps it onto that speech's flow column right away, and fills gaps in the transcript from it (marked [doc]). Docs stay in this browser until you start a new round.</p>
+    <p class="muted">Add speech docs or case files (PDF, Word .docx, or text). The AI reads them for the live flow and the decision. Pick the speech each doc belongs to: the AI maps it onto that speech's flow column right away, and fills gaps in the transcript from it (marked [doc]). Docs stay in this browser until you start a new round.</p>
     <div class="row">
       <select id="doc-side" style="width:auto"><option value="aff">Aff doc</option><option value="neg">Neg doc</option><option value="other">Other</option></select>
       <input type="file" id="doc-file" multiple accept=".pdf,.docx,.txt,.md,application/pdf" style="width:auto">
@@ -561,8 +578,8 @@
     </div>
     <p class="muted" style="margin:var(--s2) 0 0">Weigh the round as a judge with this paradigm would. Each paradigm keeps its own saved answer, so switching is free. It only reruns when you click the button.</p>
     <details id="lens-custom-box" style="margin-top:var(--s3)">
-      <summary class="muted" style="cursor:pointer">My Tabroom paradigm (paste the full text)</summary>
-      <textarea id="lens-custom" rows="6" style="margin-top:var(--s2)" placeholder="Paste your judging paradigm from Tabroom here."></textarea>
+      <summary class="muted" style="cursor:pointer">My own paradigm (paste the full text)</summary>
+      <textarea id="lens-custom" rows="6" style="margin-top:var(--s2)" placeholder="Paste your judging paradigm here."></textarea>
     </details>
     <p id="lens-status" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
     <div id="lens-out" style="margin-top:var(--s3)"></div>
@@ -593,13 +610,15 @@
   <div class="card" id="conn-card">
     <div class="row" style="justify-content:space-between">
       <h2 style="margin:0">Connect AI</h2>
-      <button class="b" id="show-welcome">Show the welcome screen</button>
+      <button class="b" id="show-welcome">Show the first-time setup again</button>
     </div>
     <p class="muted" style="margin:var(--s2) 0 var(--s3)">Paste a key from any provider below. The app works out which one it is and checks that it works.</p>
     <div class="row" style="flex-wrap:nowrap">
       <input type="password" id="key-paste" placeholder="Paste an API key here (starts with AIza…, sk-…, sk-ant-…, xai-… or sk-or-…)" autocomplete="off" aria-label="API key">
       <button class="b primary" id="key-connect">Connect</button>
     </div>
+    <label class="row remember-row"><input type="checkbox" id="remember-keys" aria-describedby="remember-help"> Remember this key on this computer</label>
+    <p class="muted field-help" id="remember-help">Leave this off on a shared computer. When it is on, the key is saved in this browser as plain text.</p>
     <p id="key-msg" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
     <div id="prov-list" style="margin-top:var(--s3)"></div>
     <div class="grid" style="margin-top:var(--s3)">
@@ -615,7 +634,6 @@
       </div>
       <div id="sub-body" class="muted"></div>
     </div>
-    <label class="row" style="margin-top:var(--s3);color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="remember-keys"> Remember keys on this computer (saved in this browser only, as plain text)</label>
   </div>
   <div class="card" id="audio-card">
     <h2>Audio</h2>
@@ -626,7 +644,7 @@
       </div>
       <div><label for="mic-pick">Microphone</label>
         <div class="row" style="flex-wrap:nowrap"><select id="mic-pick"></select><button class="b" id="mic-refresh">Refresh</button></div>
-        <p class="muted" style="margin:var(--s2) 0 0">Used by Gemini, OpenAI and Grok transcription. Free browser transcription always uses Chrome's default mic and its own sound settings, so the mic choice and the room/Zoom setting do not apply to it, and it shows no level meter.</p>
+        <p class="muted" style="margin:var(--s2) 0 0">Used when a key you connected does the transcription. Free browser transcription always uses Chrome's default mic and its own sound settings, so the mic choice and the room/Zoom setting do not apply to it, and it shows no level meter.</p>
       </div>
     </div>
     <div class="row" style="margin-top:var(--s3)">
@@ -657,11 +675,11 @@
           <option value="tech">Tech over truth (flow)</option>
           <option value="critical">Critical (K-friendly)</option>
           <option value="games">Games / skills</option>
-          <option value="custom">My Tabroom paradigm (paste it on the Analysis tab)</option>
+          <option value="custom">My own paradigm (paste it in Decide → Analysis)</option>
         </select>
       </div>
       <div><label for="chunk-sec">Clip length for transcription</label><input type="number" id="chunk-sec" min="4" max="30" step="1" aria-describedby="chunk-sec-help"><p class="muted field-help" id="chunk-sec-help">Seconds, 4–30</p></div>
-      <div><label>&nbsp;</label><label class="row" style="color:var(--ink);font-size:var(--fs)"><input type="checkbox" id="live-flow"> Live AI flow during speeches</label></div>
+      <div><label>&nbsp;</label><label class="row" style="color:var(--ink);font-size:var(--fs)"><input type="checkbox" id="live-flow"> Live AI flow during speeches <span class="muted">(one AI call about every 30 s)</span></label></div>
     </div>
   </div>
 </section>
@@ -719,11 +737,11 @@
       <div><label class="row" style="justify-content:space-between"><span class="aff">Aff team comments <span id="fb-aff-code"></span></span> <button class="b noprint" data-copy="ballot.affFb">Copy</button></label><textarea data-bind="ballot.affFb" rows="6"></textarea></div>
       <div><label class="row" style="justify-content:space-between"><span class="neg">Neg team comments <span id="fb-neg-code"></span></span> <button class="b noprint" data-copy="ballot.negFb">Copy</button></label><textarea data-bind="ballot.negFb" rows="6"></textarea></div>
     </div>
-    <p class="muted noprint">For Tabroom: paste the RFD into "Reason for Decision", then each team's comments into that team's tab.</p>
+    <p class="muted noprint">For the tournament ballot: paste the RFD into "Reason for Decision", then each team's comments into that team's box.</p>
     <div id="ballot-check"></div>
     <div class="row noprint" style="margin-top:var(--s3)">
-      <button class="b primary" id="b-save">Save to log</button>
-      <button class="b" id="b-tsv">Copy row for Google Sheets</button>
+      <button class="b primary" id="b-save">Save to Ballots</button>
+      <button class="b" id="b-tsv">Copy row for a spreadsheet</button>
       <button class="b" id="b-csv">Download CSV</button>
       <button class="b" id="print-btn">Print</button>
     </div>
@@ -734,9 +752,9 @@
   <div class="card">
     <h2>Saved ballots</h2>
     <div class="row" style="margin-bottom:var(--s3)">
-      <button class="b primary" id="log-tsv">Copy all for Google Sheets</button>
+      <button class="b primary" id="log-tsv">Copy all for a spreadsheet</button>
       <button class="b" id="log-csv">Download all as CSV</button>
-      <span class="muted">In Sheets: click cell A1, then paste.</span>
+      <span class="muted">In the spreadsheet: click cell A1, then paste.</span>
     </div>
     <div class="scroll"><table id="log-table"></table></div>
   </div>
@@ -815,28 +833,6 @@
   <p class="muted">A one-minute tour shows where everything is.</p>
   <div class="row"><button class="b primary" id="tour-offer-go">Take the tour</button><button class="b" id="tour-offer-no">Not now</button></div>
 </div>
-<div id="welcome" class="overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-title" hidden>
-  <div class="overlay-card">
-    <h1 id="welcome-title" class="display" style="font-size:26px;margin:0 0 var(--s1)">Welcome to Tabula</h1>
-    <p class="muted" style="margin:0 0 var(--s4)">Timers, flow sheets and the ballot always work. AI adds live transcripts, an auto-flow, a Live Eval and analysis. How do you want to start?</p>
-    <div class="choices" id="welcome-choices">
-      <button class="choice" data-choice="key"><strong>Connect an AI key</strong><span>Recommended. Use a key from Google Gemini, OpenAI, Anthropic Claude, xAI Grok or OpenRouter. Step-by-step help included.</span></button>
-      <button class="choice" data-choice="sub"><strong>Use my Claude or ChatGPT subscription</strong><span>Uses the Claude Code or Codex app already signed in on this Mac. Needs one Terminal command. Transcription stays the free browser kind.</span></button>
-      <button class="choice" data-choice="skip"><strong>Skip — just flow</strong><span>No AI. Everything you type stays yours.</span></button>
-    </div>
-    <div id="skip-box" hidden style="margin-top:var(--s4)">
-      <p style="margin:0 0 var(--s2);font-weight:600">Without AI you get:</p>
-      <ul style="margin:0 0 var(--s3);padding-left:20px" class="muted">
-        <li>Speech and prep timers, flow sheets, the round map (drawn by hand), the ballot and the Tabroom copy boxes.</li>
-        <li>Free browser transcription in Chrome (weaker on fast speech).</li>
-      </ul>
-      <p style="margin:0 0 var(--s2);font-weight:600">You will not get:</p>
-      <ul style="margin:0 0 var(--s3);padding-left:20px" class="muted"><li>The AI flow, Live Eval, Impact Calculus, Paradigm Lens, auto-drawn map or decision draft.</li></ul>
-      <label class="row" style="color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="skip-ack"> I understand. I can connect AI later in "AI + Keys".</label>
-      <div class="row" style="margin-top:var(--s3)"><button class="b primary" id="skip-go" disabled>Start flowing</button><button class="b" id="skip-back">Back</button></div>
-    </div>
-  </div>
-</div>
 <div class="toasts noprint" id="toasts"></div>
 <div class="sr-only" id="toasts-polite" role="status" aria-live="polite"></div>
 <div class="sr-only" id="toasts-alert" role="alert" aria-live="assertive"></div>
@@ -846,6 +842,11 @@
     <h2 id="ask-title"></h2>
     <button class="iconbtn ask-x" id="ask-x" type="button" aria-label="Close">×</button>
     <div class="ask-body" id="ask-body"></div>
+    <div class="ask-field" id="ask-field" hidden>
+      <label for="ask-input" id="ask-label"></label>
+      <input id="ask-input" type="text" autocomplete="off" aria-describedby="ask-err">
+      <p class="ask-err" id="ask-err" aria-live="polite"></p>
+    </div>
     <p class="muted ask-foot" id="ask-foot"></p>
     <div class="ask-btns" id="ask-btns"></div>
   </div>

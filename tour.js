@@ -11,11 +11,11 @@
       steps: [
         { place: 'setup', target: '#round-card', title: 'Set up the round', body: 'Type the round, the teams and the debaters. It takes half a minute, and it fills the ballot later.' },
         { place: 'setup', target: '#docs-card', title: 'Add speech docs', body: 'Add the aff case or any speech doc (PDF, Word or text). The AI reads them and puts them on the flow. When a speech has no transcript, its doc counts as the speech.' },
-        { place: 'flow', target: '.rb-ctl', title: 'Run the clock', body: 'Start and pause the speech clock here, or press Space from anywhere. Prep clocks for each team sit on the right of this bar.' },
+        { place: 'flow', target: '.rb-ctl', title: 'Run the clock', body: 'Start and pause the speech clock here. On Flow, Space works when nothing is selected, and ⌘ Enter or Ctrl+Enter works even while you type. Prep clocks sit on the right.' },
         { place: 'flow', target: '.rb-rec', title: 'Record the speech', body: 'Tick Transcribe. Recording runs only while the speech clock runs. A short bar shows the mic level, and a note warns you if no words come through.' },
         { place: 'flow', target: '#tab-flow', title: 'Flow the round', body: '"My flow" is yours to type. "AI flow" fills itself from the transcript and docs. You can edit any AI cell, and your edits stick.' },
         { place: 'eval', target: '#subnav', title: 'Decide', body: 'After the round: the Live Eval, deeper analysis, the ballot and a decision draft. Each one works with or without AI.' },
-        { place: 'ballot', target: '#filler-card', title: 'Fill the ballot', body: 'The AI can draft points, ranks, the RFD and comments. Anything you type is yours, and the AI will not change it. Copy buttons put each box into Tabroom.' },
+        { place: 'ballot', target: '#filler-card', title: 'Fill the ballot', body: 'The AI can draft points, ranks, the RFD and comments. Anything you type is yours, and the AI will not change it. Copy buttons put each box into the tournament ballot.' },
         { place: null, target: '#help-btn', title: 'Help is always here', body: 'Click ? to replay this tour, or to get a short tour of the page you are on. Connect AI any time with the gear; without AI, the timers, flow and ballot still work.' },
       ],
     },
@@ -32,7 +32,7 @@
       title: 'Decide',
       steps: [
         { place: 'eval', target: '#tab-eval', title: 'Live Eval', body: 'A read of the round so far: the leaning, key issues, what each side needs, and feedback for each debater.' },
-        { place: 'analysis', target: '#tab-analysis', title: 'Analysis', body: 'Weigh the round under any paradigm (including your own Tabroom paradigm), compare the impacts, and see the round as a map you can edit.' },
+        { place: 'analysis', target: '#tab-analysis', title: 'Analysis', body: 'Weigh the round under any paradigm (including your own), compare the impacts, and see the round as a map you can edit.' },
         { place: 'ballot', target: '#filler-card', title: 'Ballot filler', body: 'Drafts the whole ballot. Tell it what you think in the box, and it redoes the draft with your view. Fields you typed stay yours.' },
         { place: 'draft', target: '#tab-draft', title: 'Decision draft', body: 'A full written decision you can read, then send to the ballot as the RFD.' },
       ],
@@ -40,22 +40,22 @@
     settings: {
       title: 'Settings',
       steps: [
-        { place: 'ai', target: '#conn-card', title: 'Connect AI', body: 'Paste a key from Google, OpenAI, Anthropic, xAI or OpenRouter. Tabula works out which one it is and checks it. Step-by-step help is under each provider.' },
+        { place: 'ai', target: '#conn-card', title: 'Connect AI', body: 'Paste a key from any AI provider. Tabula works out which one it is and checks it. Step-by-step help is under each provider.' },
         { place: 'ai', target: '#audio-card', title: 'Audio', body: 'Choose "In the room" or "Zoom", pick the microphone, and run the 5-second mic test before the round.' },
       ],
     },
     setup: {
       title: 'Round',
       steps: [
-        { place: 'setup', target: '#round-card', title: 'Round details', body: 'The tournament, round, judge and resolution. They show on the ballot and the saved log.' },
+        { place: 'setup', target: '#round-card', title: 'Round details', body: 'The tournament, round, judge and resolution. They show on the ballot and in Ballots.' },
         { place: 'setup', target: '#docs-card', title: 'Round documents', body: 'Add speech docs and pick which speech each one belongs to. The AI maps them onto that speech on the flow.' },
-        { place: 'setup', target: '#reading-card', title: 'Reading level', body: 'Expert writes like a college judge. Plain writes for students and parents, which is good for Tabroom comments.' },
+        { place: 'setup', target: '#reading-card', title: 'Reading level', body: 'Expert writes like a college judge. Plain writes for students and parents, which is good for ballot comments.' },
       ],
     },
     log: {
-      title: 'Library',
+      title: 'Ballots',
       steps: [
-        { place: 'log', target: '#tab-log .card', title: 'Saved ballots', body: 'Every ballot you save is here. Copy them all into Google Sheets, or download a CSV.' },
+        { place: 'log', target: '#tab-log .card', title: 'Saved ballots', body: 'Every ballot you save is here. Copy them all into a spreadsheet, or download a CSV.' },
         { place: 'log', target: '#backup-card', title: 'Back up your work', body: 'Everything lives in this browser only. Download a backup now and then, and restore it on any computer.' },
       ],
     },

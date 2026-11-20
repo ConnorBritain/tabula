@@ -38,9 +38,11 @@
   };
 
   // Subscriptions run through the official app already logged in on this computer, via the local helper.
+  // plan = the plan's short name, via = the app, cmd = the Terminal command that signs in to that app.
+  // These names show only in Settings → "Use your AI subscription" (copy rules, spec 4.5).
   const SUBSCRIPTIONS = {
-    'claude-cli': { name: 'Claude subscription', via: 'Claude Code', ai: true, transcribe: false },
-    'codex-cli': { name: 'ChatGPT subscription', via: 'Codex', ai: true, transcribe: false },
+    'claude-cli': { name: 'Claude subscription', plan: 'Claude', via: 'Claude Code', cmd: 'claude', ai: true, transcribe: false },
+    'codex-cli': { name: 'ChatGPT subscription', plan: 'ChatGPT', via: 'Codex', cmd: 'codex', ai: true, transcribe: false },
   };
 
   // Guess the provider from the first letters of a pasted key. Order matters: sk-ant- before sk-.
