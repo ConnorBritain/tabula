@@ -2,7 +2,7 @@
 
 Three public sites, one design system. This file builds on [`docs/architecture/MARKETING-SITE.md`](../architecture/MARKETING-SITE.md) (site map, deploy, DNS) and [`docs/growth/BRAND.md`](../growth/BRAND.md) (names, marks, colors). Research is in [RESEARCH.md](RESEARCH.md).
 
-This file is public. It has no prices. Nothing is deployed. No DNS changes without the owner's yes.
+This file is public. Approved prices live in `layout.mjs` (`LINKS.priceMonth`, `LINKS.priceYear`) and show only on /plans/. The three sites are live (Workers static assets, configs in `deploy/`).
 
 ## 1. Where the code lives
 
@@ -32,11 +32,11 @@ This file is public. It has no prices. Nothing is deployed. No DNS changes witho
 | URL | Page | Status in draft 1 |
 |---|---|---|
 | `/` | The Tabula family: what we make, products, one account, trust, open source | Built |
-| `/plans/` | Free, Pass, Program. Pro later. No prices yet ("price at launch") | Built |
+| `/plans/` | Free; Pass $5 a month or $50 a year (owner-approved); Round packs coming soon; Programs and the two-app plan as rows; trial line; comparison table; FAQ | Built |
 | `/trust/` | Privacy and student data: what we keep, what we never keep, AI controls for admins | Built |
 | `/about/` | Who makes it, the company, the rules we keep | Built |
 | `/signin/` | Sign-in entry. Accounts are not open yet, so it says so and links to the free app | Built (placeholder) |
-| `/privacy/`, `/terms/` | One legal home for every product | Built as "draft summary" placeholders. Real text needs a lawyer pass |
+| `/terms/`, `/privacy/`, `/refunds/` | Full legal text (Kansas LLC), TOC and plain summaries per section. Facts to confirm: [LEGAL-FACTS.md](LEGAL-FACTS.md) | Built, live |
 | `/404.html` | Not found | Built |
 | `/account/`, `/badges/check/…`, `/v/:id` | With accounts and badges (Worker routes) | Later |
 
@@ -114,7 +114,7 @@ Rules: plain words, short sentences, benefit-led headlines. No model or company 
 2. Every internal and cross-site link resolves.
 3. Every page has a title, a description and one `h1`.
 4. Scripts only from `/shared/`; no inline styles.
-5. No prices in any common form.
+5. Prices appear only on the plans page, and only the owner-approved amounts.
 6. No middle-dot fragment chains in page copy; no Library page count.
 7. Aff, Neg, family-call and format colours stay out of brand UI and brand tokens.
 8. Aff and Neg colours appear only in `pictures.css`, and never on links, buttons or menus there.
