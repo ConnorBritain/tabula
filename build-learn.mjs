@@ -1,6 +1,7 @@
 // Debate Library builder (docs/library/PLAN.md §9).
 // Turns docs/library/*.md into static pages in learn/: learn/index.html and learn/<slug>/index.html.
-// The app and tabuladebate.com both serve learn/ as it is, so every link here is relative.
+// The app and tabuladebate.com both serve learn/ as it is, so links between Library pages are relative. The top bar
+// and footer link out to the sites (absolute), and library.js points the app link back to the app when opened there.
 // No dependencies, no inline scripts (the site's CSP blocks them). Run: node build-learn.mjs
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -15,6 +16,13 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 export const SRC = join(ROOT, 'docs', 'library');
 export const OUT = join(ROOT, 'learn');
 const SITE = 'https://tabuladebate.com';
+// The Library is one site section of tabuladebate.com, and it is also opened from inside the app (PLAN.md §8.1).
+// Its top bar and footer copy the site's own (repo tabula-sites, layout.mjs: SITES.debate nav, Sign in, "Open the
+// app", LINKS.app). Keep the two in step: a nav change on the site must change SITE_NAV here too (PLAN.md §4).
+const APP = 'https://debate.tabulaspeech.com/';
+const FAMILY = 'https://tabulaspeech.com';
+const SITE_NAV = [['Library', null], ['Coaches', `${SITE}/coaches/`], ['School IT', `${SITE}/school-it/`]];
+const MENU_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
 
 // Reading paths come from docs/library/tracks.json (TRACKS.md §2.9): every track with a pathName is a path.
 // This feeds the "Next on your path" box; a test checks that docs/library/index.md lists the steps in the same order.
@@ -212,6 +220,12 @@ export function nextSteps(slug, pages, paths = readingPaths(loadTracks(SRC))) {
   return res;
 }
 
+// "On this page": the page's ## headings, for pages long enough to need it (3 or more).
+export function pageToc(html) {
+  const items = [...html.matchAll(/<h2 id="([^"]+)">([\s\S]*?)<\/h2>/g)].map((m) => ({ id: m[1], text: stripTags(m[2]) }));
+  return items.length >= 3 ? items : [];
+}
+
 const stripTags = (s) => s.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
 
 const pageUrl = (id) => `${SITE}/learn/${id === 'index' ? '' : id + '/'}`;
@@ -229,6 +243,47 @@ export function jsonLd(slug, page) {
   ];
 }
 
+// The site's top bar. Brand and nav go to tabuladebate.com; "Open the app" goes to the app's web address, and
+// library.js turns it into "Back to the app" (the site root) when the Library is opened from inside the app.
+function siteHeader(slug, up, lib) {
+  const nav = SITE_NAV.map(([label, href]) => `<a href="${href || lib}"${href ? '' : ` class="here"${slug === 'index' ? ' aria-current="page"' : ''}`}>${label}</a>`).join('');
+  const appLink = (cls) => `<a class="${cls}" href="${APP}" data-app="${up}" data-back-label="Back to the app">Open the app</a>`;
+  return `<header class="site"><div class="wrap site-in">
+  <a class="brand" href="${SITE}/" aria-label="Tabula Debate home"><img class="on-light" src="${up}assets/tabula-mark-black.png" alt="" width="36" height="29"><img class="on-dark" src="${up}assets/tabula-mark-white.png" alt="" width="36" height="29"><span><span class="wordmark">Tabula</span> <span class="product">Debate</span></span></a>
+  <nav class="site-nav" aria-label="Main">${nav}</nav>
+  <div class="site-end">
+    <a class="signin" href="${FAMILY}/signin/">Sign in</a>
+    ${appLink('btn primary')}
+    <details class="menu"><summary aria-label="Menu">${MENU_ICON}</summary><div class="menu-panel">${nav}<a href="${FAMILY}/signin/">Sign in</a></div></details>
+  </div>
+</div></header>`;
+}
+
+function siteFooter(lib) {
+  return `<footer class="site-foot"><div class="wrap">
+  <nav class="foot-nav" aria-label="Tabula sites"><a href="${SITE}/">Tabula Debate</a><a href="${lib}">Library</a><a href="${SITE}/coaches/">Coaches</a><a href="${SITE}/school-it/">School IT</a><a href="${FAMILY}/plans/">Plans</a><a href="${FAMILY}/trust/">Your data</a><a href="${FAMILY}/about/">About</a></nav>
+  <p>All evidence cards and authors in examples are invented for teaching.</p>
+  <p>From the <a href="${lib}">Tabula Debate Library</a>. Text licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>. © 2026 Pattern Engine LLC.</p>
+  <p>Found a mistake? <a href="https://github.com/ConnorBritain/tabula/issues" rel="noopener">Open an issue</a>.</p>
+</div></footer>`;
+}
+
+// The meta line goes under the H1. The phone "On this page" list goes under the summary, and under its banner
+// picture when there is one (the banner stays right after the summary: STYLE.md §6), so the summary comes first.
+export function placeLead(html, metaLine, tocMobile) {
+  const withMeta = metaLine ? html.replace('</h1>', `</h1>\n${metaLine}`) : html;
+  if (!tocMobile) return withMeta;
+  const lead = /<blockquote class="plain">[\s\S]*?<\/blockquote>(\n<figure class="lib-figure lib-figure--hero"[\s\S]*?<\/figure>)?/;
+  if (lead.test(withMeta)) return withMeta.replace(lead, (m) => `${m}\n${tocMobile}`);
+  return withMeta.replace('</h1>', `</h1>\n${tocMobile}`);
+}
+
+// "7 min read · Beginner". The section name is in the breadcrumb, so it is not repeated here.
+export function metaText(meta) {
+  const level = meta.level ? meta.level[0].toUpperCase() + meta.level.slice(1) : '';
+  return [meta.reading_time ? `${meta.reading_time} min read` : '', level].filter(Boolean).map(esc).join(' · ');
+}
+
 function shell(slug, page, pages, paths) {
   const { meta } = page;
   const up = '../'.repeat(segments(slug).length + 1); // from the page to the site root
@@ -238,7 +293,12 @@ function shell(slug, page, pages, paths) {
   const ld = jsonLd(slug, page);
   const next = nextSteps(slug, pages, paths);
   const nextBox = next.length ? `<nav class="paths" aria-label="Reading paths"><h2>Next on your path</h2><ul>${next.map((n) => `<li>${esc(n.path)}: <a href="${relHref(slug, n.slug)}">${esc(n.title)}</a></li>`).join('')}</ul></nav>` : '';
-  const meta2 = [meta.section, meta.reading_time ? `${meta.reading_time} min read` : '', meta.level].filter(Boolean).map(esc).join(' · ');
+  // Article pages get "On this page"; the home page and the track pages are lists already.
+  const article = slug !== 'index' && !slug.startsWith('tracks');
+  const toc = article ? pageToc(page.html) : [];
+  const tocLinks = toc.map((t) => `<li><a href="#${t.id}">${esc(t.text)}</a></li>`).join('');
+  const meta2 = slug === 'index' ? '' : metaText(meta);
+  const body = placeLead(page.html, meta2 ? `<p class="meta">${meta2}</p>` : '', toc.length ? `<details class="toc-m"><summary>On this page</summary><ul>${tocLinks}</ul></details>` : '');
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -260,24 +320,20 @@ function shell(slug, page, pages, paths) {
 </head>
 <body>
 <a class="skip" href="#main">Skip to the page</a>
-<div class="wrap">
-<header class="top">
-  <a class="brand" href="${lib}"><img class="on-light" src="${up}assets/tabula-mark-black.png" alt="" width="36" height="29"><img class="on-dark" src="${up}assets/tabula-mark-white.png" alt="" width="36" height="29"><span><span class="wordmark">Tabula</span> <span class="libname">Debate Library</span></span></a>
-  <a class="btn" href="${up}">Open Tabula</a>
-</header>
-${slug === 'index' ? '' : `<nav class="crumbs" aria-label="Breadcrumb"><a href="${lib}">Debate Library</a> › ${slug.startsWith('tracks/') ? `<a href="${relHref(slug, 'tracks')}">Guided tracks</a> › ` : ''}<span>${esc(meta.section || '')}</span></nav>`}
+${siteHeader(slug, up, lib)}
+<div class="wrap page${toc.length ? ' has-toc' : ''}">
+<div class="page-main"${meta.reading_time ? ` data-minutes="${Number(meta.reading_time)}"` : ''}>
+${slug === 'index' ? '' : `<nav class="crumbs" aria-label="Breadcrumb"><a href="${lib}">Library</a> › ${slug.startsWith('tracks/') ? `<a href="${relHref(slug, 'tracks')}">Guided tracks</a> › ` : ''}<span>${esc(meta.section || '')}</span></nav>`}
 <main id="main">
-${meta2 && slug !== 'index' ? `<p class="meta">${meta2}</p>` : ''}
-${page.html}
+${body}
 </main>
 ${nextBox}
-<aside class="cta"><p><strong>Flow your next round in Tabula, free.</strong> A timer, a flow and a ballot helper for policy debate judges. It runs in your browser and keeps your notes on your computer.</p><a class="btn primary" href="${up}">Open Tabula</a></aside>
-<footer>
-  <p>All evidence cards and authors in examples are invented for teaching.</p>
-  <p>From the <a href="${lib}">Tabula Debate Library</a>. Text licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>. © 2026 Pattern Engine LLC.</p>
-  <p>Found a mistake? <a href="https://github.com/ConnorBritain/tabula/issues" rel="noopener">Open an issue</a>. · <a href="${up}about.html">About Tabula</a></p>
-</footer>
+<aside class="cta"><p><strong>Flow your next round in Tabula, free.</strong> A timer, a flow and a ballot helper for policy debate judges. It runs in your browser and keeps your notes on your computer.</p><a class="btn" href="${APP}" data-app="${up}" data-back-label="Back to the app">Open the app</a></aside>
 </div>
+${toc.length ? `<nav class="toc" aria-label="On this page"><p class="toc-title">On this page</p><ul>${tocLinks}</ul></nav>` : ''}
+</div>
+${siteFooter(lib)}
+<script src="${asset('library.js')}"></script>
 </body>
 </html>
 `;
@@ -321,6 +377,7 @@ export function buildSite(dir = SRC) {
   const paths = readingPaths(tracks);
   for (const [id, p] of all) files.set(outPath(id), shell(id, p, raw, paths));
   files.set('learn.css', readFileSync(join(SRC, 'learn.css'), 'utf8'));
+  files.set('library.js', readFileSync(join(SRC, 'library.js'), 'utf8'));
   if ([...all.values()].some((p) => p.script)) files.set('check.js', readFileSync(join(ROOT, 'check.js'), 'utf8'));
   for (const list of approved.values()) for (const s of list) files.set(s.out, readFileSync(s.src)); // binary: a Buffer
   const listed = [...all].filter(([, p]) => !p.noindex); // draft pages stay out of search (the shell adds noindex)

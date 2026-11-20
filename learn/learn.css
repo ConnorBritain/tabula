@@ -3,18 +3,79 @@
    library page links before this file. assets/theme-boot.js sets the light or dark theme before the page paints. */
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--canvas); color: var(--text); font: 17px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--canvas); color: var(--text); font: 17px/1.72 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
 :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 a { color: var(--aff); text-underline-offset: 2px; }
 .skip { position: absolute; left: -9999px; }
 .skip:focus { left: 16px; top: 8px; background: var(--panel); padding: 8px 12px; border-radius: 8px; z-index: var(--z-pop); }
-.wrap { max-width: 780px; margin: 0 auto; padding: 0 16px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
 
-.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0; }
-.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; }
+/* Top bar: the same header as tabuladebate.com (brand, site nav, Sign in, Open the app). One rule under it. */
+.site { border-bottom: 1px solid var(--border); background: var(--canvas); }
+.site-in { display: flex; align-items: center; gap: var(--s6); min-height: 64px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; white-space: nowrap; }
 .brand img { height: 30px; width: auto; display: block; }
 .wordmark { font-family: var(--font-display); font-weight: 800; font-style: italic; font-size: 22px; letter-spacing: -0.02em; }
-.libname { color: var(--text-3); font-weight: 600; font-size: 15px; }
+.product { font-family: var(--font-display); font-weight: var(--fw-4); font-size: 18px; }
+.site-nav { display: flex; gap: var(--s5); font-size: 15px; font-weight: var(--fw-3); }
+.site-nav a, .signin, .menu-panel a { color: var(--text-2); text-decoration: none; }
+.site-nav a:hover, .signin:hover { color: var(--text); }
+.site-nav a.here { color: var(--text); }
+.site-end { display: flex; align-items: center; gap: var(--s4); margin-left: auto; }
+.signin { font-size: 15px; font-weight: var(--fw-3); }
+.menu { display: none; position: relative; }
+.menu summary { list-style: none; cursor: pointer; display: grid; place-items: center; width: var(--h-lg); height: var(--h-lg); border-radius: var(--r-lg); color: var(--text); }
+.menu summary::-webkit-details-marker { display: none; }
+.menu-panel { position: absolute; right: 0; top: 46px; z-index: var(--z-pop); min-width: 200px; padding: var(--s2); background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-xl); display: grid; }
+.menu-panel a { padding: 10px var(--s3); border-radius: var(--r-lg); font-weight: var(--fw-3); }
+.menu-panel a:hover { background: var(--sunk); }
+
+/* Page: one reading column (about 68 characters a line), and "On this page" beside it on wide screens. */
+.page { padding-top: var(--s6); }
+.page-main { max-width: 680px; min-width: 0; margin: 0 auto; }
+.toc { display: none; }
+.toc-m { margin: 0 0 28px; font-size: 15px; }
+.toc-m summary { cursor: pointer; font-weight: var(--fw-3); color: var(--text-2); }
+.toc-m ul, .toc ul { list-style: none; padding: 0; margin: 10px 0 0; }
+.toc-m li + li, .toc li + li { margin-top: 2px; }
+.toc-m a, .toc a { display: block; padding: 4px 0; color: var(--text-2); text-decoration: none; }
+.toc a:hover, .toc-m a:hover { color: var(--text); }
+@media (min-width: 1100px) {
+  .page.has-toc { display: grid; grid-template-columns: minmax(0, 680px) 220px; gap: 72px; justify-content: center; }
+  .page.has-toc .page-main { margin: 0; }
+  .toc { display: block; position: sticky; top: 24px; align-self: start; font-size: 14px; }
+  .toc-title { margin: 0 0 6px; font-size: 13px; font-weight: var(--fw-3); color: var(--text-3); }
+  .toc-m { display: none; }
+}
+
+/* Reading helper (library.js): progress and minutes left in the side list, and on narrower screens a floating
+   button that opens the section list (as reading apps do it). With the script, it replaces the fold-out list. */
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+.has-reader .toc-m { display: none; }
+.has-reader .site-foot { padding-bottom: 104px; } /* room so the floating button never covers the last lines */
+.toc a[aria-current], .rd-list a[aria-current] { color: var(--text); font-weight: var(--fw-3); }
+.toc a.rd-done, .rd-list a.rd-done { color: var(--text-3); }
+.rd-bar { height: 4px; border-radius: var(--r-pill); background: var(--border); overflow: hidden; margin: var(--s2) 0 6px; }
+.rd-fill { height: 100%; width: 0; background: var(--text-2); border-radius: var(--r-pill); }
+.rd-left { margin: 0 0 var(--s3); font-size: 13px; color: var(--text-3); }
+.rd-pill { position: fixed; right: var(--s4); bottom: var(--s4); z-index: var(--z-pop); display: flex; align-items: center; gap: 10px; max-width: min(340px, calc(100vw - 32px)); min-height: 48px; padding: 6px 16px 6px 6px; border-radius: var(--r-pill); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font: inherit; cursor: pointer; box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity .15s, transform .15s, visibility .15s; }
+.rd-pill.rd-show, .rd-pill[aria-expanded="true"] { opacity: 1; visibility: visible; transform: none; }
+.rd-pct { display: grid; place-items: center; min-width: 36px; height: 36px; border-radius: var(--r-pill); background: var(--sunk); font-size: 12px; font-weight: var(--fw-4); font-variant-numeric: tabular-nums; }
+.rd-label { display: grid; text-align: left; min-width: 0; line-height: 1.3; }
+.rd-sec { font-size: 14px; font-weight: var(--fw-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rd-time { font-size: 12px; color: var(--text-3); }
+.rd-panel { position: fixed; right: var(--s4); bottom: 76px; z-index: var(--z-pop); width: min(360px, calc(100vw - 32px)); max-height: min(70vh, 520px); overflow: auto; padding: var(--s4); border-radius: var(--r-xl); border: 1px solid var(--border); background: var(--panel); box-shadow: 0 12px 40px rgb(0 0 0 / 0.22); }
+.rd-panel[hidden] { display: none; }
+.rd-head { display: flex; align-items: center; justify-content: space-between; }
+.rd-title { margin: 0; font-weight: var(--fw-4); }
+.rd-close { font: inherit; font-size: 14px; color: var(--text-2); background: none; border: 0; padding: 6px; cursor: pointer; }
+.rd-list { list-style: none; padding: 0; margin: 0; }
+.rd-list a { display: block; padding: 10px var(--s2); border-radius: var(--r-lg); color: var(--text-2); text-decoration: none; }
+.rd-list a:hover { background: var(--sunk); }
+@media (max-width: 520px) {
+  .rd-panel { right: 0; left: 0; bottom: 0; width: auto; max-height: 75vh; border-radius: var(--r-xl) var(--r-xl) 0 0; padding-bottom: calc(var(--s4) + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 1100px) { .rd-pill, .rd-panel { display: none; } .has-reader .site-foot { padding-bottom: 48px; } }
 /* Buttons: secondary (.btn) and primary (.btn.primary), with the app's hover and pressed states (spec V5). */
 .btn { display: inline-flex; align-items: center; min-height: var(--h-lg); padding: 0 var(--s4); border-radius: var(--r-lg); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font-weight: var(--fw-3); text-decoration: none; white-space: nowrap; }
 .btn:hover { background: var(--sunk); border-color: var(--text-2); }
@@ -23,26 +84,27 @@ a { color: var(--aff); text-underline-offset: 2px; }
 .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 .btn.primary:active { background: var(--accent-press); border-color: var(--accent-press); }
 
-.crumbs { font-size: 14px; color: var(--text-3); margin: 4px 0 0; }
+.crumbs { font-size: 14px; color: var(--text-3); margin: 0 0 8px; }
 .crumbs a { color: var(--text-3); }
-.meta { font-size: 14px; color: var(--text-3); margin: 8px 0 0; }
+.meta { font-size: 14px; color: var(--text-3); margin: -6px 0 24px; }
 
 h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; line-height: 1.2; }
-h1 { font-size: clamp(30px, 5.5vw, 44px); font-weight: 800; letter-spacing: -0.03em; margin: 8px 0 20px; }
-h2 { font-size: 24px; font-weight: 800; margin: 40px 0 12px; padding-top: 24px; border-top: 1px solid var(--border); }
-h3 { font-size: 19px; font-weight: 700; margin: 28px 0 8px; }
+h1 { font-size: clamp(30px, 5.5vw, 44px); font-weight: 800; letter-spacing: -0.02em; margin: 0 0 16px; }
+/* Sections are set apart by space, not rules (no double lines). */
+h2 { font-size: 24px; font-weight: 800; margin: 56px 0 14px; scroll-margin-top: 24px; }
+h3 { font-size: 19px; font-weight: 700; margin: 36px 0 10px; }
 h4 { font-size: 17px; margin: 20px 0 6px; }
-p { margin: 0 0 14px; }
-ul, ol { margin: 0 0 14px; padding-left: 24px; }
-li + li { margin-top: 6px; }
+p { margin: 0 0 20px; }
+ul, ol { margin: 0 0 20px; padding-left: 24px; }
+li + li { margin-top: 8px; }
 code { font-family: var(--font-mono); font-size: 0.88em; background: var(--sunk); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
 
 /* Quotes: a plain bordered panel. No coloured side stripe (a common "AI look"; see the AI-slop check in PLAN.md §1). */
 blockquote { margin: 0 0 20px; padding: 16px 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
 blockquote p:last-child { margin: 0; }
 /* The page summary ("Plain version" in the Markdown): a lead paragraph under the title, as docs sites do it.
-   Larger text and a rule below set it apart. No box, no tint, no label. */
-blockquote.plain { margin: 0 0 28px; padding: 0 0 24px; background: none; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; font-size: 20px; line-height: 1.5; color: var(--text-2); }
+   Larger text and space below set it apart. No box, no tint, no label, no rule. */
+blockquote.plain { margin: 0 0 36px; padding: 0; background: none; border: 0; border-radius: 0; font-size: 20px; line-height: 1.55; color: var(--text-2); }
 
 .table { overflow-x: auto; margin: 0 0 18px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
 table { border-collapse: collapse; width: 100%; font-size: 15px; }
@@ -53,18 +115,30 @@ tr:last-child td { border-bottom: 0; }
 pre.flow { overflow-x: auto; margin: 0 0 10px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; font: 13px/1.5 var(--font-mono); }
 pre.flow code { background: none; border: 0; padding: 0; font-size: inherit; }
 
-.paths, .cta { margin: 36px 0 0; padding: 18px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
-.paths h2 { margin: 0 0 8px; padding: 0; border: 0; font-size: 18px; }
-.paths ul { margin: 0; }
-.cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
-.cta p { margin: 0; flex: 1 1 320px; }
+/* End of page: one card ("Next on your path"), then a plain call to action. No stack of boxes. */
+.paths { margin: 56px 0 0; padding: 18px 20px; border-radius: var(--r-xl); background: var(--panel); border: 1px solid var(--border); }
+.paths h2 { margin: 0 0 6px; font-size: 13px; font-weight: var(--fw-3); font-family: inherit; color: var(--text-3); letter-spacing: 0; }
+.paths ul { margin: 0; list-style: none; padding: 0; color: var(--text-2); }
+.paths a { font-weight: var(--fw-4); }
+.cta { margin: 40px 0 0; display: flex; flex-wrap: wrap; gap: var(--s3) 20px; align-items: center; justify-content: space-between; }
+.cta p { margin: 0; flex: 1 1 320px; color: var(--text-2); }
 
-footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 20px 0 40px; color: var(--text-3); font-size: 14px; }
-footer a { color: var(--text-3); }
-footer p { margin: 0 0 6px; }
+.site-foot { margin-top: 72px; border-top: 1px solid var(--border); padding: 28px 0 48px; color: var(--text-3); font-size: 14px; }
+.site-foot a { color: var(--text-3); }
+.site-foot p { margin: 0 0 6px; }
+.foot-nav { display: flex; flex-wrap: wrap; gap: var(--s2) 20px; margin: 0 0 18px; font-weight: var(--fw-3); }
+.foot-nav a { color: var(--text-2); text-decoration: none; }
 
+@media (max-width: 760px) {
+  .site-nav, .signin { display: none; }
+  .menu { display: block; }
+  .site-end { gap: var(--s2); }
+}
 @media (max-width: 520px) {
-  .libname { display: none; }
+  .product { font-size: 16px; }
+  .wordmark { font-size: 20px; }
+  .site-in { gap: var(--s3); }
+  .site-end .btn { min-height: 36px; padding: 0 12px; font-size: 14px; }
   body { font-size: 16px; }
 }
 
