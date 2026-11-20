@@ -273,19 +273,19 @@ Size target: `check.js` under 300 lines, no libraries. `learn.css` gets the chec
 
 `check.js` is **code**, so it is licensed AGPL-3.0 like the app, not CC BY-SA. Keep its source out of `docs/library/` (for example in the repo root, copied into `learn/` by the build).
 
-**Safety.** The library shares the `tabuladebate.com` origin with the app, and the app keeps judges' API keys in the browser on that origin. So `check.js` reads and writes only its own key (`tabula.learn.v1`), never builds HTML from stored text, and gets the same review as app code.
+**Safety.** The hosted app now lives on its own origin (`debate.tabulaspeech.com`, `docs/architecture/ARCHITECTURE.md` §3), so the hosted library no longer shares storage with judges' API keys. It is also a different registered domain from the apps, so it gets no sign-in cookie, and it must never hold keys (`docs/architecture/ARCHITECTURE.md` §3.6). The local helper still serves the app and `learn/` from one `localhost` origin, so the old rule stays: `check.js` reads and writes only its own key (`tabula.learn.v1`), never builds HTML from stored text, and gets the same review as app code.
 
 **New track pages.** The build also makes `learn/tracks/index.html` (all tracks) and `learn/tracks/<id>/index.html` (one track: its promise, steps and links). Without JavaScript, a track page is an ordered list of links. With JavaScript, `check.js` adds a tick next to each finished step and a "Resume" link to the first unfinished one. The library home gets a short "Guided tracks" section that links to `learn/tracks/`.
 
 **Tests** (built in Phase 1; parser and track tests are in `learn-tracks.test.mjs`, page tests in `build-learn.test.mjs`):
 
 - the parser rules in §3.2, the `page:` link to a real page, and the live rule (a track is live only when every check is `reviewed`);
-- built pages hold no inline script. The existing test was edited (the diff is visible): it allows only the JSON-LD data tag and `<script src="…check.js" defer>` (at any depth), and it fails on an `on*=` handler. **Phase 2:** allow `final-check.js` the same way;
+- built pages hold no inline script. The existing test was edited (the diff is visible): it allows only the JSON-LD data tag and `<script src="…check.js" defer>` (at any depth), and it fails on an `on*=` handler. **Phase 2:** `final-check.js` is served by the `tabulaspeech.com` site, not `learn/`, so this test does not cover it. That site's build (`build-home.mjs`, `docs/architecture/MARKETING-SITE.md` §6.1) needs the same no-inline-script test;
 - built pages still pass the freshness test (`learn/` matches the Markdown).
 
 **Still open:** the guard test in §5.3 (a subfolder file or a `*.local.md` file in the source folder never reaches `learn/`). The existing "private and planning files are never published" test covers top-level `*.local.md` files only.
 
-`node check-publish.mjs` already scans every page in `learn/` for `todo` and `href="#"`, so the track pages get those checks. Its remote-script scan now also covers `learn/check.js` (built). **Phase 2:** add `learn/final-check.js`.
+`node check-publish.mjs` already scans every page in `learn/` for `todo` and `href="#"`, so the track pages get those checks. Its remote-script scan now also covers `learn/check.js` (built). **Phase 2:** extend `check-publish.mjs` to scan the `tabulaspeech.com` site's build output too (including `final-check.js`), with the same remote-script and placeholder checks. Until then nothing guards that script.
 
 The existing tests read every built page. Track pages must pass them too: a 140 to 160 character description, one H1, a canonical URL, the call to action, and working relative links and anchors. Live track pages go in `learn/sitemap.xml` (they are public content). A draft track (a check not yet reviewed) and the track list while no track is live get `noindex` and stay out of the sitemap.
 
@@ -316,7 +316,7 @@ The existing tests read every built page. Track pages must pass them too: a 140 
 
 **Things to know**
 
-- `localStorage` belongs to one origin (one site address). Progress on `tabuladebate.com` is the same in the hosted app and the hosted library, because both are on that site. Progress through the local helper (`bridge.mjs`, `localhost`) is separate. Export and import fix this.
+- `localStorage` belongs to one origin (one site address). Library progress lives on `tabuladebate.com`. The hosted app is on `debate.tabulaspeech.com` and does not read it. Progress through the local helper (`bridge.mjs`, `localhost`) is separate. Export and import fix this.
 - On a **shared school computer**, the next user sees the progress. The track page shows a short note and the "Clear my progress" button.
 - A browser in private mode, or one that blocks storage, loses progress when it closes. `check.js` must work when storage throws (wrap every read and write in `try/catch`; the check still marks answers, it only cannot save).
 
@@ -342,7 +342,7 @@ The existing tests read every built page. Track pages must pass them too: a 140 
 Decided (§9, item 3): the badge needs a **server-graded final check** from day one. The per-step checks stay open in the page, for learning. Only the final check counts for the badge.
 
 1. The judge does the track, with the per-step checks, as in Phase 1. No account is needed for this part.
-2. At the end, the track page offers "Take the final check for a badge". Only now must the judge sign in (§8).
+2. At the end, the track page offers "Take the final check for a badge". It is a plain link to `tabulaspeech.com/badges/check/<track>?v=<version>`, where accounts live. Only now must the judge sign in (§8). The library never calls the server: a sign-in cookie cannot cross from `tabulaspeech.com` to `tabuladebate.com` (`docs/architecture/ARCHITECTURE.md` §3.5).
 3. The server picks about 12 questions from a **hidden pool** for that track (a pool of about 40 for a 12-question try, so two tries rarely match). It sends the questions and choices with **no answer keys**.
 4. The judge answers and submits. The server grades the answers. **Pass mark: 80% (10 of 12).**
 5. **Pass:** the server saves the badge (§5.5). The page shows the verify link and the certificate.
@@ -360,20 +360,29 @@ Decided (§9, item 3): the badge needs a **server-graded final check** from day 
 
 **Guard (still open).** Add a test to `build-learn.test.mjs` that puts a subfolder file and a `*.local.md` file in the source folder and checks that neither reaches `learn/`. Today only code habits protect this (`loadPages()` reads one folder, `isPageFile()` skips `*.local.md`). Each question is tagged with its section (a page slug), so the server can name weak sections. Writers add new questions and retire old ones each season, because answers can leak over time. The pool gets the same coach review as the pages.
 
-**Code size.** Phase 2 browser code (the final check and the cool-down timer) goes in its own file, for example `learn/final-check.js`, so `check.js` stays small.
+**Code size.** Phase 2 browser code (the final check and the cool-down timer) goes in its own file, for example `final-check.js`, served by the `tabulaspeech.com` site build, not in `learn/`. `check.js` stays small.
+
+#### Old versions and retired tracks (proposal, needs the owner's yes)
+
+If the `v=` in the link is older than the live track version, the check page says the track changed and links to the new version in the library. A retired track shows "This track is no longer offered" and a link to its replacement. After a pass, the page links **Back to the Library**. The library itself never shows "badge earned"; its copy says the badge lives on the account.
 
 **What it means.** The badge now says the judge *passed a final check*, not only that they say they finished. It is still a completion badge, not a certification (§7).
 
 ### 5.4 How a badge is shown and verified
 
-- **Verify link.** Each badge gets a link like `tabuladebate.com/v/7Q2M-K9XD-...`, with a long random ID (at least 128 bits, so nobody can guess another link). The page shows:
+- **Verify link.** Each badge gets a link like `tabulaspeech.com/v/7Q2M-K9XD-...` (moved from `tabuladebate.com/v/` on 2026-11-20: one place for badges from every Tabula product), with a long random ID (at least 128 bits, so nobody can guess another link). The page shows:
   - the name the judge chose to show (optional; the judge types it; it can be just initials);
   - the track name and version;
   - the date;
   - the line from §7, after "Completed this course and passed its final check.": "A free, self-paced course from Tabula. Not a certification or endorsement by any league or tournament."
 - **The judge controls it.** The judge can turn the link off (revoke it) or delete the badge. A revoked link says "This link is no longer active" and nothing else.
-- **No search engines.** Verify pages send an `X-Robots-Tag: noindex` header (`_headers` today has one rule for all paths, so add one for `/v/*`), and they are left out of `learn/sitemap.xml`. Verify pages are made by server code (Pages Functions or a Worker), and Cloudflare applies `_headers` only to static files, not to those responses. So the server code sets the CSP, `X-Content-Type-Options` and `X-Robots-Tag` itself, and a server test checks that response. There is no list or search of badge holders.
-- **No scripts on verify pages.** They are plain server-made HTML. The display name is escaped, because the page is on the same origin as the judge's API keys.
+- **No search engines.** Verify pages send an `X-Robots-Tag: noindex` header and are left out of every sitemap. Verify pages are made by server code (Pages Functions or a Worker), and Cloudflare applies `_headers` only to static files, not to those responses. So the server code sets the CSP, `X-Content-Type-Options` and `X-Robots-Tag` itself, and a server test checks that response. There is no list or search of badge holders.
+- **No scripts on verify pages.** They are plain server-made HTML. Full header set, checked by a server test:
+  - `Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`
+  - `X-Content-Type-Options: nosniff`, `X-Robots-Tag: noindex`
+  - `Referrer-Policy: no-referrer` and `Cache-Control: private, no-store`, because the verify ID in the URL works like a password to the page.
+  - The page ignores the session cookie: it shows the same thing to everyone.
+  - The display name is HTML-escaped, because `tabulaspeech.com` shares the sign-in cookie with the apps.
 - **QR code.** The server makes it as an SVG, or a small generator goes in `vendor/`. No third-party script (the CSP blocks it anyway).
 - **Where a judge can put it:** in their judge paradigm text (for example on Tabroom), in an email to a tournament, or as a QR code on the printed certificate.
 - **Printed certificate.** The same as Phase 1, plus the verify link and its QR code.
@@ -394,7 +403,7 @@ A signed link (a link that carries its own digital signature, so it can be check
 
 Delete on request. Delete the account and all badges on "Delete my account". **Inactive accounts** (§9, item 19): delete the account, its badges and verify links 24 months after the last sign-in, with reminders 30 days before, 7 days before and on the day, each with an export link. Short security logs (for abuse and rate limits) expire on a fixed schedule.
 
-**Size:** after the round-pack accounts exist: about 2 to 3 weeks of code (final-check endpoints and grading, retry wait and timer, badge table, verify page, revoke and delete, certificate with QR, tests). Plus writing and reviewing the hidden pool for the parent judge track (about 40 questions, about 1 to 2 weeks). Plus updates to the privacy policy and ToS.
+**Size:** after the round-pack accounts exist: about 2 to 3 weeks of code (final-check endpoints and grading, retry wait and timer, badge table, verify page, revoke and delete, certificate with QR, tests). Plus writing and reviewing the hidden pool for the parent judge track (about 40 questions, about 1 to 2 weeks). Plus updates to the privacy policy and ToS: the single policy and terms on `tabulaspeech.com` cover the final check and verify pages (`docs/architecture/MARKETING-SITE.md` §2a). The move to `tabulaspeech.com` adds about 2 to 3 days (the static check page on that site, the Back to Library link, the old-version and retired-track pages). It needs accounts on `tabulaspeech.com` first (`docs/architecture/ARCHITECTURE.md` §11, steps 4 and 7).
 
 ## 6. Phase 3: student badges (only with strong privacy rules)
 
@@ -419,7 +428,7 @@ Students are minors, so this phase follows the coach and student rules in `STUDE
 - **No judge badges for students** (§9, item 10). Student accounts can earn debater-track badges only.
 - **No gamification.** No streaks, points, leaderboards, levels, or "badges for logging in" (`STUDENT-EDITION.md` §10c). A badge is only "finished this track".
 - **No automatic messages** (retention reminders excepted) about progress to the student, the coach, or parents.
-- **Same final check.** A student badge (for example the novice track) needs the same server-graded final check as a judge badge (§5.3), with its own hidden pool.
+- **Same final check, on the student host.** A student badge (for example the novice track) needs the same server-graded final check as a judge badge (§5.3), with its own hidden pool. It runs on `student.tabulaspeech.com/badges/check/<track>`, with the student's own host-only cookie (`docs/architecture/ARCHITECTURE.md` §3.2), so a student device never gets the judge and coach session. The library's final-check link depends on the track's audience: `debater` tracks link to the student host, `judge` tracks to `tabulaspeech.com`. `tracks.json` gets a per-audience target. The `tabulaspeech.com` check page refuses student accounts.
 - **Students own their record.** Badges are in the student export (`STUDENT-EDITION.md` §10e). The student can delete their own badge at any time. On the school path, the school can also delete the whole space. The export is the student's copy. It does not give the student control of the school's data.
 - **Retention.** School-space data is deleted 120 days after the season ends, with the reminders in `STUDENT-EDITION.md` §10i. A parent-path account is deleted 12 months after its last sign-in. Reminders go 30 days before, 7 days before and on the day, each with an export link, to the account email and the consenting parent's email. The student's export stays theirs.
 
@@ -486,13 +495,13 @@ If a league later endorses a track, its name appears only with its written appro
 ### 8.1 What badges need (Phase 2)
 
 - **Sign-in.** Decided (§9, item 4): an emailed sign-in link (no password) plus "Sign in with Google" and "Sign in with Microsoft". Many judges and coaches have a school Google or Microsoft account. No passwords to store or leak.
-- **Where it runs.** The same stack as the planned round-pack backend (a Cloudflare Worker and its database, `PLAN.md` §6). A hosted identity service is also fine. Choose the one that the round packs use.
-- **Fit with the CSP** (`_headers`):
-  - Serve the account and badge endpoints from the same origin (for example Cloudflare Pages Functions under `tabuladebate.com/api/`). Otherwise `connect-src` must change.
+- **Where it runs.** Decided 2026-11-20: all Cloudflare. A Worker and D1, with our own email link and code and a small OAuth library (`docs/architecture/STACK.md` §3). Sign-in, the final check and verify pages are on `tabulaspeech.com`.
+- **Fit with the `tabulaspeech.com` CSP** (that site's own `_headers`; the library's CSP is unchanged):
+  - Serve the account and badge endpoints from the same origin as the page that calls them: `tabulaspeech.com/api/v1/` for the final check page. Then `connect-src 'self'` is enough. The library on `tabuladebate.com` makes no API calls.
   - Use the **redirect** sign-in flow for Google and Microsoft. Their pop-up button libraries load a third-party script, which `script-src 'self'` blocks. That is good: keep it so.
-  - `form-action 'none'` blocks plain HTML forms. Sign-in pages either use `fetch` from a self-hosted script, or get their own CSP rule.
+  - `form-action 'none'` blocks plain HTML forms. Sign-in pages use `fetch` from a self-hosted script. The only CSP exception is Turnstile on `/signin` (`docs/architecture/ARCHITECTURE.md` §3.2). `final-check.js` is same-origin with no inline script, and the final-check page has no third-party content.
 - **Stored:** see the table in §5.5. Nothing more.
-- **Session.** The sign-in session lives in an `HttpOnly`, `Secure`, `SameSite=Lax` cookie, never in `localStorage`, because the app keeps judges' API keys in `localStorage` on this origin. The redirect sign-in flow works with `form-action 'none'` and `connect-src 'self'`, because it is plain navigation.
+- **Session.** The sign-in session lives in an `HttpOnly`, `Secure`, `SameSite=Lax` cookie for `tabulaspeech.com`, never in `localStorage`, because the apps keep judges' API keys in `localStorage`. Session rules (one sign-in across apps, CSRF checks, sign-out) are in `docs/architecture/ARCHITECTURE.md` §3.2. The redirect sign-in flow works with `form-action 'none'` and `connect-src 'self'`, because it is plain navigation.
 - **An 18+ confirmation** at sign-up for Phase 2. Phase 3 adds a birth-year step for students (§8.3).
 - **A "Delete my account" button** that deletes badges too.
 - **The library stays readable signed out.** Sign-in appears only when a judge chooses to take the final check.
@@ -535,6 +544,7 @@ School Google and Microsoft accounts for students under 18 often need the school
 18. **Badges split by where they were earned** when a student moves between the parent path and a school space (§6.4).
 19. **Inactive judge accounts are deleted 24 months after the last sign-in**, with reminders and an export link (§5.5).
 20. **When school consent ends** (space deleted, or the student leaves), the student has 30 days to add parent consent. If not, the account is deleted (§6.4).
+21. **Badge pages move to `tabulaspeech.com` (2026-11-20).** The final check and verify pages live where accounts live (`tabulaspeech.com/badges/check/<track>`, `tabulaspeech.com/v/<id>`). The library on `tabuladebate.com` links to them and never calls the server (§5.3, §5.4, §8.1; `docs/architecture/ARCHITECTURE.md` §3.5).
 
 ## 10. Rough size, by phase
 

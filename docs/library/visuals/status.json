@@ -1,0 +1,317 @@
+{
+  "about": "Image session ledger. One entry per slot id: status is todo, draft (the session made it), approved (the owner approved it), or skipped (the session could not make it; note says why). The session edits only this file and docs/library/images/. Only the owner sets approved.",
+  "slots": {
+    "affirmative-case-plan-and-reasons": {
+      "status": "todo",
+      "note": ""
+    },
+    "stock-issues-five-pillars": {
+      "status": "todo",
+      "note": ""
+    },
+    "harms-waiting-line": {
+      "status": "todo",
+      "note": ""
+    },
+    "inherency-crack-grows": {
+      "status": "todo",
+      "note": ""
+    },
+    "solvency-patch": {
+      "status": "todo",
+      "note": ""
+    },
+    "significance-count-or-weight": {
+      "status": "todo",
+      "note": ""
+    },
+    "advantages-pulley": {
+      "status": "todo",
+      "note": ""
+    },
+    "case-turns-defense-vs-turn": {
+      "status": "todo",
+      "note": ""
+    },
+    "counterplans-two-roads": {
+      "status": "todo",
+      "note": ""
+    },
+    "counterplan-text-one-change": {
+      "status": "todo",
+      "note": ""
+    },
+    "competition-one-tray": {
+      "status": "todo",
+      "note": ""
+    },
+    "competition-two-tests": {
+      "status": "todo",
+      "note": ""
+    },
+    "net-benefits-extra-block": {
+      "status": "todo",
+      "note": ""
+    },
+    "permutations-merge": {
+      "status": "todo",
+      "note": ""
+    },
+    "permutations-three-worlds": {
+      "status": "todo",
+      "note": ""
+    },
+    "solvency-deficits-missing-piece": {
+      "status": "todo",
+      "note": ""
+    },
+    "common-counterplans-fan": {
+      "status": "todo",
+      "note": ""
+    },
+    "disadvantages-chain": {
+      "status": "todo",
+      "note": ""
+    },
+    "disadvantages-four-parts": {
+      "status": "todo",
+      "note": ""
+    },
+    "uniqueness-brink": {
+      "status": "todo",
+      "note": ""
+    },
+    "links-first-push": {
+      "status": "todo",
+      "note": ""
+    },
+    "internal-links-stepping-stones": {
+      "status": "todo",
+      "note": ""
+    },
+    "impacts-weight": {
+      "status": "todo",
+      "note": ""
+    },
+    "answering-disadvantages-answers": {
+      "status": "todo",
+      "note": ""
+    },
+    "common-disadvantages-keys": {
+      "status": "todo",
+      "note": ""
+    },
+    "framework-two-rulebooks": {
+      "status": "todo",
+      "note": ""
+    },
+    "framework-vs-kritik-plan-and-ideas": {
+      "status": "todo",
+      "note": ""
+    },
+    "framework-vs-k-aff-two-models": {
+      "status": "todo",
+      "note": ""
+    },
+    "kritiks-lens-on-foundation": {
+      "status": "todo",
+      "note": ""
+    },
+    "kritiks-parts": {
+      "status": "todo",
+      "note": ""
+    },
+    "kritik-links-thread": {
+      "status": "todo",
+      "note": ""
+    },
+    "kritik-alternative-two-glasses": {
+      "status": "todo",
+      "note": ""
+    },
+    "role-of-the-ballot-compass": {
+      "status": "todo",
+      "note": ""
+    },
+    "answering-kritiks-answer-each-part": {
+      "status": "todo",
+      "note": ""
+    },
+    "kritikal-affirmatives-range": {
+      "status": "todo",
+      "note": ""
+    },
+    "common-kritiks-many-lenses": {
+      "status": "todo",
+      "note": ""
+    },
+    "index-steps": {
+      "status": "todo",
+      "note": ""
+    },
+    "debate-101-two-teams": {
+      "status": "todo",
+      "note": ""
+    },
+    "first-round-judge-kit": {
+      "status": "todo",
+      "note": ""
+    },
+    "speeches-and-times-order": {
+      "status": "todo",
+      "note": ""
+    },
+    "cross-examination-exchange": {
+      "status": "todo",
+      "note": ""
+    },
+    "prep-time-hourglasses": {
+      "status": "todo",
+      "note": ""
+    },
+    "how-to-flow-sheet": {
+      "status": "todo",
+      "note": ""
+    },
+    "flow-shorthand-condense": {
+      "status": "todo",
+      "note": ""
+    },
+    "evidence-and-cards-parts": {
+      "status": "todo",
+      "note": ""
+    },
+    "speaker-points-track": {
+      "status": "todo",
+      "note": ""
+    },
+    "ballot-and-rfd-card": {
+      "status": "todo",
+      "note": ""
+    },
+    "giving-feedback-note": {
+      "status": "todo",
+      "note": ""
+    },
+    "speech-docs-sharing": {
+      "status": "todo",
+      "note": ""
+    },
+    "round-conduct-open-door": {
+      "status": "todo",
+      "note": ""
+    },
+    "theory-unfinished-board": {
+      "status": "todo",
+      "note": ""
+    },
+    "theory-parts": {
+      "status": "todo",
+      "note": ""
+    },
+    "conditionality-options": {
+      "status": "todo",
+      "note": ""
+    },
+    "reject-the-team-two-remedies": {
+      "status": "todo",
+      "note": ""
+    },
+    "common-theory-gated-paths": {
+      "status": "todo",
+      "note": ""
+    },
+    "fiat-stamp": {
+      "status": "todo",
+      "note": ""
+    },
+    "example-spending-da-full-shelf": {
+      "status": "todo",
+      "note": ""
+    },
+    "example-states-cp-many-lanes": {
+      "status": "todo",
+      "note": ""
+    },
+    "example-pic-missing-piece": {
+      "status": "todo",
+      "note": ""
+    },
+    "example-t-substantial-baseline": {
+      "status": "todo",
+      "note": ""
+    },
+    "example-squo-solves-bridge": {
+      "status": "todo",
+      "note": ""
+    },
+    "example-extinction-vs-structural-balance": {
+      "status": "todo",
+      "note": ""
+    },
+    "example-condo-debate-speech-choices": {
+      "status": "todo",
+      "note": ""
+    },
+    "topicality-fenced-field": {
+      "status": "todo",
+      "note": ""
+    },
+    "topicality-four-parts": {
+      "status": "todo",
+      "note": ""
+    },
+    "topicality-interpretation-gauge": {
+      "status": "todo",
+      "note": ""
+    },
+    "topicality-standards-bridge": {
+      "status": "todo",
+      "note": ""
+    },
+    "topicality-voters-two-tapes": {
+      "status": "todo",
+      "note": ""
+    },
+    "effects-and-extra-topicality-effects": {
+      "status": "todo",
+      "note": ""
+    },
+    "effects-and-extra-topicality-extra": {
+      "status": "todo",
+      "note": ""
+    },
+    "impact-calculus-measures": {
+      "status": "todo",
+      "note": ""
+    },
+    "impact-calculus-big-vs-likely": {
+      "status": "todo",
+      "note": ""
+    },
+    "turns-case-ball-and-tower": {
+      "status": "todo",
+      "note": ""
+    },
+    "presumption-empty-scale": {
+      "status": "todo",
+      "note": ""
+    },
+    "judge-paradigms-three-judges": {
+      "status": "todo",
+      "note": ""
+    },
+    "writing-a-paradigm-short-card": {
+      "status": "todo",
+      "note": ""
+    },
+    "judge-adaptation-dial": {
+      "status": "todo",
+      "note": ""
+    },
+    "rebuttal-strategy-funnel": {
+      "status": "todo",
+      "note": ""
+    }
+  }
+}

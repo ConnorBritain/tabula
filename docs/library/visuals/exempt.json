@@ -1,0 +1,12 @@
+{
+  "about": "Library pages that deliberately have no picture slot, with the reason. The coverage test checks that every page has a slot or is listed here.",
+  "pages": {
+    "glossary": "An A-to-Z reference list; a picture would only decorate.",
+    "examples": "A hub of links to the example pages; a picture would only decorate.",
+    "example-politics-da": "Its core idea (limited capital forces a trade-off) is the same picture as the spending DA.",
+    "example-economy-da": "A long-chain picture would repeat the chain pictures on the DA and internal-links pages.",
+    "example-consult-cp": "Competition through certainty and timing is too abstract for one wordless picture.",
+    "example-cap-k": "Kritik pictures must not show the kritik's subject; the generic lens is already on the kritiks pages.",
+    "example-fw-vs-k-aff": "A generic picture would repeat the framework-vs-k-aff page."
+  }
+}
