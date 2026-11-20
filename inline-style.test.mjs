@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const MAX = { 'index.html': 8, 'app.js': 32 };
+const MAX = { 'index.html': 6, 'app.js': 10 };
 const count = (f) => (readFileSync(new URL(f, import.meta.url), 'utf8').match(/style="/g) || []).length;
 
 // Why: each new inline style is a hard-coded look that ignores the tokens and the dark theme; the count may only go down.

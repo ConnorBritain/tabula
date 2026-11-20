@@ -33,18 +33,19 @@ function storageFailed(err) {
 }
 
 // The shared toast, dialog, Esc stack and announcer live in ui.js (spec Slice 0).
-const { toast, dismissToast, announce, ask, askIsOpen, escLayer } = window.TabulaUI;
+const { toast, dismissToast, announce, ask, askIsOpen, escLayer, modalDialog } = window.TabulaUI;
 
 // ---------- shortcuts (keys.js registry; spec 4.1, 1.3, 1.5) ----------
 // A dialog (the welcome is one), the tour or the node editor turns shortcuts off.
-function modalOpen() { return askIsOpen() || !$('#node-editor').hidden || Boolean(tourState); }
+function modalOpen() { return askIsOpen() || !$('#node-editor').hidden || Boolean(tourState) || !$('#print-dialog').hidden || !$('#copy-sheet').hidden; }
 document.addEventListener('keydown', (e) => {
   const ae = document.activeElement;
   const act = K.keyAction(
     { code: e.code, key: e.key, meta: e.metaKey, ctrl: e.ctrlKey, alt: e.altKey, shift: e.shiftKey, altGraph: Boolean(e.getModifierState && e.getModifierState('AltGraph')), repeat: e.repeat, composing: e.isComposing || e.keyCode === 229 },
-    { place: PLACE_OF[R.tab] || 'setup', focus: K.focusKind(ae && { tagName: ae.tagName, type: ae.type, isContentEditable: ae.isContentEditable }), modal: modalOpen(), singleKeysOn: S.singleKeys !== false });
+    { place: PLACE_OF[R.tab] || 'setup', tab: R.tab, focus: K.focusKind(ae && { tagName: ae.tagName, type: ae.type, isContentEditable: ae.isContentEditable }), modal: modalOpen(), singleKeysOn: S.singleKeys !== false });
   if (act === 'clock') { e.preventDefault(); toggleClock(); }
   else if (act === 'speeches') { e.preventDefault(); toggleSpeechesPane(ae); }
+  else if (act === 'print') { e.preventDefault(); openPrintDialog(); } // ⌘P on the Ballot: Tabula's print dialog (spec 4.10)
 });
 
 // Prep per team for a new round: the judge's last choice, else the NSDA 8 minutes.
@@ -52,8 +53,10 @@ function prepDefault() {
   const m = Number((store.get('policyJudge.settings.v1', {}) || {}).prepMin);
   return Number.isFinite(m) && m >= 0 && m <= 20 ? m * 60 : L.DEFAULT_PREP_SECONDS;
 }
-function freshRound() {
+// prev: the round being replaced. Its points range carries over to the new round (spec 4.7); the first round ever uses 25–30.
+function freshRound(prev) {
   return {
+    ptsRange: prev && prev.ptsRange ? L.ptsRange(prev.ptsRange) : { ...L.DEFAULT_PTS_RANGE },
     tournament: '', roundName: '', judge: '', topic: '',
     aff: { team: '', d1: '', d2: '' }, neg: { team: '', d1: '', d2: '' },
     prepSeconds: prepDefault(),
@@ -61,7 +64,7 @@ function freshRound() {
     flows: L.DEFAULT_FLOWS.map((name) => ({ name, cells: {} })),
     transcripts: {}, timeLeft: {}, aiFlows: [], aiFlowAt: 0, flowView: 'mine',
     ai: { paradigm: 'policymaker', notes: '', evidence: '', output: '' },
-    ballot: { winner: '', pts: {}, ranks: {}, rfd: '' },
+    ballot: { winner: '', pts: {}, ranks: {}, rfd: '', touched: {}, aiFilled: {} },
     id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), cur: 0, flowIdx: 0, tab: 'flow',
     // The clocks (spec 1.1). run = the running speech { id, endAt, beeped, rec }; prepRun = { side, endAt }.
     // savedAt stamps the clock fields as one unit, so a second tab can tell which clock is newer.
@@ -69,19 +72,34 @@ function freshRound() {
   };
 }
 let R = Object.assign(freshRound(), store.get(STORE, {}));
+R.ptsRange = L.ptsRange(R.ptsRange); // a round saved before Slice 4 has none: 25–30
 R.id ??= String(Date.now());
 // Save at once so the round id is fixed before any doc is tied to it.
-store.set(STORE, R);
+const bootSaved = store.set(STORE, R);
 // While a backup is being restored, nothing may write the old in-memory data back.
 let restoring = false;
-const save = () => (restoring ? false : store.set(STORE, R));
+// The ballot bar shows if the last save worked (spec 4.1): the time, or why it did not.
+let lastSave = bootSaved ? { at: Date.now(), err: '' } : { at: 0, err: storageWarned || 'blocked' };
+const save = () => {
+  if (restoring) return false;
+  const ok = store.set(STORE, R);
+  lastSave = ok ? { at: Date.now(), err: '' } : { at: lastSave.at, err: storageWarned || 'blocked' };
+  if (R.tab === 'ballot') renderSaveStatus();
+  return ok;
+};
 
 const getPath = (o, p) => p.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
 function setPath(o, p, v) { const ks = p.split('.'); const last = ks.pop(); ks.reduce((a, k) => (a[k] ??= {}), o)[last] = v; }
+// Copies text. Returns true or false; the caller gives the feedback (spec 4.11).
 async function copy(text) {
-  try { await navigator.clipboard.writeText(text); toast('Copied'); }
-  catch { const ta = document.createElement('textarea'); ta.value = text; document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Copied'); }
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch {
+    try { const ta = document.createElement('textarea'); ta.value = text; document.body.append(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return Boolean(ok); }
+    catch { return false; }
+  }
 }
+// The plain callers: a toast either way.
+async function copyToast(text) { toast((await copy(text)) ? 'Copied' : 'Copy did not work in this browser. Select the text and press Ctrl+C (⌘C on Mac).'); }
 function download(name, text, type) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], { type: type || 'text/csv' }));
@@ -93,10 +111,12 @@ const safeName = (s) => (s || 'round').replace(/[^\w-]+/g, '_');
 // Four places plus Settings. Each place shows one or more of the old sections.
 // The internal id 'log' stays (old backups and the tour use it); the nav says Ballots (spec 2.5, Q12).
 const PLACES = [['flow', 'Flow'], ['setup', 'Round'], ['decide', 'Decide'], ['log', 'Ballots']];
-const PLACE_OF = { setup: 'setup', timer: 'flow', flow: 'flow', eval: 'decide', analysis: 'decide', ballot: 'decide', draft: 'decide', log: 'log', ai: 'ai' };
+// Decide has three tabs (spec 4.0): Live Eval, Analysis, Ballot. An old saved 'draft' tab opens the Ballot (L.decideTab).
+const PLACE_OF = { setup: 'setup', timer: 'flow', flow: 'flow', eval: 'decide', analysis: 'decide', ballot: 'decide', log: 'log', ai: 'ai' };
 function showTab(id) {
   if (id === 'decide') id = R.lastDecide || 'eval';
   if (id === 'timer') id = 'flow';
+  id = L.decideTab(id);
   if (!PLACE_OF[id]) id = 'setup';
   const place = PLACE_OF[id];
   R.tab = id; if (place === 'decide') R.lastDecide = id; save();
@@ -104,7 +124,8 @@ function showTab(id) {
   document.querySelectorAll('section.tab').forEach((s) => s.classList.toggle('on', shown.includes(s.id)));
   $('#workspace').classList.toggle('on', place === 'flow');
   $('#subnav').hidden = place !== 'decide';
-  document.querySelectorAll('#subnav button').forEach((b) => b.classList.toggle('on', b.dataset.tab === id));
+  document.querySelectorAll('#subnav button').forEach((b) => { const on = b.dataset.tab === id; b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  if (id !== 'ballot') closeDraftPanel(false);
   document.querySelectorAll('#nav button').forEach((b) => { const on = b.dataset.tab === place; b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   if (place === 'ai') $('#settings-btn').setAttribute('aria-current', 'page'); else $('#settings-btn').removeAttribute('aria-current');
   if (id === 'ballot') renderBallot();
@@ -194,11 +215,15 @@ document.addEventListener('input', (e) => {
   if (p.startsWith('ballot') || p.startsWith('aff') || p.startsWith('neg')) renderBallotCheck();
 });
 document.addEventListener('change', (e) => { if (e.target.dataset && e.target.dataset.bind) { setPath(R, e.target.dataset.bind, e.target.value); markTouched(e.target.dataset.bind); save(); } });
-// A ballot field the judge types into is theirs: the AI ballot filler will not overwrite it.
+// A ballot field the judge types into is theirs: the AI will not change it (spec 4.2). path: 'ballot.rfd' or a field.
 function markTouched(path) {
-  if (!path.startsWith('ballot.')) return;
-  const f = path.slice(7);
-  if (L.BALLOT_FIELDS.includes(f)) (R.ballot.touched ??= {})[f] = true;
+  const f = path.startsWith('ballot.') ? path.slice(7) : path;
+  if (!L.BALLOT_FIELDS.includes(f)) return;
+  const was = L.fieldState(R.ballot, f);
+  R.ballot = L.markFields(R.ballot, [f], 'yours');
+  R.ballotUndo = null; // "Undo the last insert" lasts until the next edit (spec 4.5)
+  if (R.ballotReview) R.ballotReview = L.staleReviewCards(R.ballotReview, R.ballot);
+  if (was !== 'yours' || R.ballotReview) renderBallotTags();
 }
 
 $('#prep-min').value = Math.round(R.prepSeconds / 60);
@@ -221,6 +246,30 @@ document.addEventListener('click', (e) => {
   const b = e.target.closest && e.target.closest('[data-prep-min]'); if (!b) return;
   $('#prep-min').value = b.dataset.prepMin; $('#prep-min').dispatchEvent(new Event('change'));
 });
+// ---------- speaker points range (spec 4.7, Q10): this round only, in Round setup ----------
+function renderRange() {
+  const r = L.ptsRange(R.ptsRange);
+  if (document.activeElement !== $('#pts-min')) $('#pts-min').value = r.min;
+  if (document.activeElement !== $('#pts-max')) $('#pts-max').value = r.max;
+}
+function rangeInput() {
+  const lo = $('#pts-min').value, hi = $('#pts-max').value;
+  const err = L.rangeError(lo, hi);
+  $('#range-err').textContent = err;
+  // A box that is not a whole number from 0 to 100 is marked; "lowest must be less" marks both.
+  const badNum = (v) => L.rangeError(v, 100) !== '' && L.rangeError(0, v) !== '';
+  const order = err && !badNum(lo) && !badNum(hi);
+  for (const [el, v] of [[$('#pts-min'), lo], [$('#pts-max'), hi]]) {
+    if (err && (order || badNum(v))) el.setAttribute('aria-invalid', 'true'); else el.removeAttribute('aria-invalid');
+  }
+  if (err) return;
+  R.ptsRange = { min: Number(lo), max: Number(hi) }; save();
+}
+$('#pts-min').addEventListener('input', rangeInput);
+$('#pts-max').addEventListener('input', rangeInput);
+// Leaving a box with a bad value puts the saved range back, so the boxes never disagree with the ballot.
+for (const id of ['#pts-min', '#pts-max']) $(id).addEventListener('change', () => { if ($('#range-err').textContent) return; renderRange(); });
+
 // ---------- round files (.tab) ----------
 async function saveRoundFile(strict) {
   save();
@@ -273,7 +322,7 @@ $('#new-round').addEventListener('click', async () => {
   resetting = true; stopAll();
   CQ.clear(); clipStore.clear().catch(() => {}); // the old round's waiting audio is deleted now
   const oldId = R.id;
-  R = freshRound(); save();
+  R = freshRound(R); save();
   docStore.clearRound(oldId).finally(() => location.reload());
 });
 
@@ -902,7 +951,7 @@ addEventListener('online', () => {
   // Automatic AI calls resume only for features the judge turned on (spec 2.3, D2).
   if (S.liveFlow) pumpFlow(); else flowPending.clear();
   if (evalWaitsOnline) { evalWaitsOnline = false; if (S.autoEval) scheduleEval(); }
-  if (fillWaitsOnline) { fillWaitsOnline = false; if (S.autoBallot) runBallotFill(false, true); }
+  if (fillWaitsOnline) { fillWaitsOnline = false; if (S.autoBallot) runAutoRefill(); }
 });
 document.getElementById('discard-audio').addEventListener('click', async () => {
   const ok = await ask({
@@ -1083,8 +1132,9 @@ function renderFlow() {
     // With one sheet left, Delete stays focusable but says why it does nothing (spec 2.4 #7).
     + (R.flows.length < 2 ? `<button data-act="del" aria-disabled="true" aria-describedby="one-sheet-why" data-tip="${ONE_SHEET}">Delete</button><span class="sr-only" id="one-sheet-why">${ONE_SHEET}</span>` : '<button data-act="del">Delete</button>')
     + sheetLearnLink(f && f.name);
-  $('#flow').innerHTML = L.FLOW_COLUMNS.map((c, i) => `<div class="col ${c.side}"><h3><span>${c.label}</span><span class="col-mark"></span></h3><textarea data-col="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(f.name)}">${escapeHtml((f.cells || {})[i] || '')}</textarea></div>`).join('');
+  $('#flow').innerHTML = L.FLOW_COLUMNS.map((c, i) => `<div class="col ${c.side}"><h3><span>${c.label}</span><span class="col-mark"></span></h3><div class="flow-cell"><div class="flow-hl" aria-hidden="true"></div><textarea data-col="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(f.name)}">${escapeHtml((f.cells || {})[i] || '')}</textarea></div></div>`).join('');
   markFlowColumns();
+  paintAllFlowMarks();
 }
 // The running speech's column gets a bar under its header, a "Now" label and a thin outline; a different column
 // the judge is looking at says "Viewing" (V7, spec 1.2). Only classes and labels change, so the caret stays put.
@@ -1159,10 +1209,11 @@ function renderAIFlow() {
       const behind = L.editIsBehind(sh, i);
       return `<div class="col ${c.side}"><h3><span>${c.label}</span>${ed ? '<span class="chip con" data-tip="You edited this cell. AI updates will not overwrite it.">Edited</span>' : ''}<span class="col-mark"></span></h3>`
         + (behind ? `<div class="aibar">AI has a newer version. <button data-ai-use="${i}">Use AI</button><button data-ai-keep="${i}">Keep mine</button></div>` : ed ? `<div class="aibar quiet"><button data-ai-use="${i}">Undo my edit</button></div>` : '')
-        + `<textarea data-aicol="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(sh.name)}">${escapeHtml(L.flowCellText(sh, i, level))}</textarea></div>`;
+        + `<div class="flow-cell"><div class="flow-hl" aria-hidden="true"></div><textarea data-aicol="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(sh.name)}">${escapeHtml(L.flowCellText(sh, i, level))}</textarea></div></div>`;
     }).join('')
     : '<p class="muted flow-empty">No AI flow yet. Click "Map docs to flow now" to flow your docs, or tick "Transcribe" in the round bar and start a speech. Needs AI connected and Live AI flow on (in Settings).</p>';
   markFlowColumns();
+  paintAllFlowMarks();
 }
 $('#flow-tabs').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
@@ -1206,14 +1257,47 @@ function deleteSheet() {
     R.flows = back.flows; R.flowIdx = back.flowIdx; save(); if (R.tab === 'flow') renderFlow();
   }, 'Sheet "' + undo.item.name + '" restored.');
 }
+// Option B (Q-8): the mark layer. Behind each flow textarea sits a mirror (.flow-hl) with the same font, padding,
+// wrapping and scroll position. It shows the same text, see-through, with a light shade on typed marks such as
+// "ext", "*" or "L/T" (L.flowMarkTokens). The textarea stays on top, so the caret, selection, undo and screen
+// readers work as before, and the saved flow is still plain text. One div per line, and a keystroke repaints only
+// the lines that changed, so a column of thousands of lines stays fast.
+const flowMarkLines = new WeakMap();
+function paintFlowMarks(ta) {
+  const hl = ta.previousElementSibling;
+  if (!hl || !hl.classList.contains('flow-hl')) return;
+  const lines = ta.value.split('\n');
+  const old = flowMarkLines.get(ta);
+  if (!old || hl.childElementCount !== old.length) {
+    hl.innerHTML = lines.map((ln) => '<div>' + L.flowMarkHtml(ln) + '</div>').join('');
+  } else {
+    const d = L.flowLinesChanged(old, lines);
+    const kids = hl.children;
+    const before = kids[d.oldTo] || null;
+    for (let i = d.oldTo - 1; i >= d.from; i--) kids[i].remove();
+    if (d.newTo > d.from) {
+      const html = lines.slice(d.from, d.newTo).map((ln) => '<div>' + L.flowMarkHtml(ln) + '</div>').join('');
+      if (before) before.insertAdjacentHTML('beforebegin', html); else hl.insertAdjacentHTML('beforeend', html);
+    }
+  }
+  flowMarkLines.set(ta, lines);
+  hl.scrollTop = ta.scrollTop;
+}
+function paintAllFlowMarks() { document.querySelectorAll('#flow .flow-cell textarea').forEach(paintFlowMarks); }
+// Scroll does not bubble, so listen in the capture phase. A resize or a new font size reflows both the same way.
+$('#flow').addEventListener('scroll', (e) => {
+  const ta = e.target;
+  if (ta.tagName === 'TEXTAREA' && ta.previousElementSibling && ta.previousElementSibling.classList.contains('flow-hl')) ta.previousElementSibling.scrollTop = ta.scrollTop;
+}, true);
 $('#flow').addEventListener('input', (e) => {
+  if (e.target.tagName === 'TEXTAREA') paintFlowMarks(e.target);
   const aicol = e.target.dataset.aicol;
   if (aicol != null) {
     const sh = (R.aiFlows || [])[aiIdx]; if (!sh) return;
     const wasEdited = Boolean(sh.edits && sh.edits[aicol]);
     (sh.edits ??= {})[aicol] = { text: e.target.value, base: (sh.edits[aicol] && sh.edits[aicol].base) ?? L.aiFlowCell(sh, Number(aicol), 'standard') };
     save();
-    if (!wasEdited) { const h = e.target.parentElement.querySelector('h3'); if (h && !h.querySelector('.chip')) h.querySelector('.col-mark').insertAdjacentHTML('beforebegin', '<span class="chip con" data-tip="You edited this cell. AI updates will not overwrite it.">Edited</span>'); }
+    if (!wasEdited) { const h = e.target.closest('.col').querySelector('h3'); if (h && !h.querySelector('.chip')) h.querySelector('.col-mark').insertAdjacentHTML('beforebegin', '<span class="chip con" data-tip="You edited this cell. AI updates will not overwrite it.">Edited</span>'); }
     return;
   }
   const col = e.target.dataset.col; if (col == null) return;
@@ -1573,11 +1657,11 @@ docStore.open().then(async () => {
   renderDocs();
 }).catch(() => renderDocs());
 
-// ---------- AI decision ----------
-// ---------- reading level ----------
+// ---------- reading level: "How the AI writes" (spec 4.9, Q15) ----------
 // Results are saved per reading level, so switching is instant and does not re-ask the AI.
+// One rule: this round's choice (R.reading, set in Round setup), else the device default (S.readLevel, in Settings).
 S.readLevel ??= 'expert';
-const lvl = () => (L.READING_LEVELS[S.readLevel] ? S.readLevel : 'expert');
+const lvl = () => L.readingFor(R.reading, S.readLevel);
 R.byLevel ??= {};
 (() => { // move results saved by older versions into the "expert" box
   const ex = (R.byLevel.expert ??= {});
@@ -1588,13 +1672,16 @@ R.byLevel ??= {};
 })();
 const LV = (level) => (R.byLevel[level || lvl()] ??= {});
 function renderReadLevel() {
-  document.querySelectorAll('[data-read]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.read === lvl())));
+  const device = L.readingFor(null, S.readLevel);
+  document.querySelectorAll('[data-read]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.read === (b.dataset.readScope === 'device' ? device : lvl()))));
+  const st = $('#dp-style'); if (st) st.textContent = 'Writing style: ' + L.READING_LEVELS[lvl()].label + '. Change it in Round setup.';
 }
 document.addEventListener('click', (e) => {
   const b = e.target.closest && e.target.closest('[data-read]');
   if (!b) return;
-  S.readLevel = b.dataset.read; saveSettings(); renderReadLevel();
-  $('#ai-out').textContent = LV().output || 'No draft at this reading level yet. Click "Generate decision draft".';
+  if (b.dataset.readScope === 'device') { S.readLevel = b.dataset.read; saveSettings(); }
+  else { R.reading = b.dataset.read; save(); }
+  renderReadLevel();
   if (R.tab === 'eval') renderEval();
   if (R.tab === 'analysis') renderAnalysis();
 });
@@ -1637,7 +1724,7 @@ const aiReady = () => {
   return Boolean(keys[e]);
 };
 // The "No AI" line (L.NO_AI) is muted, with a button to Settings (spec 2.2).
-const noAiHtml = (extra) => '<span class="is-quiet">' + escapeHtml(L.NO_AI) + ' <button class="linkish" type="button" data-tab-go="ai">Open Settings</button>' + (extra ? ' ' + escapeHtml(extra) : '') + '</span>';
+const noAiHtml = (extra, label) => '<span class="is-quiet">' + escapeHtml(L.NO_AI) + ' <button class="linkish" type="button" data-tab-go="ai">' + escapeHtml(label || 'Open Settings') + '</button>' + (extra ? ' ' + escapeHtml(extra) : '') + '</span>';
 // An AI error line: orange, except "offline", which is muted (it is not the judge's fault, spec 2.3).
 const errColor = (msg) => (msg === L.aiErrorText('offline') ? 'quiet' : 'error'); // a tone() name: offline is calm, not an error
 // A loading line: muted, with a small spinner, never green (spec 2.3).
@@ -1723,7 +1810,16 @@ const anonDocs = (docs) => docs.map((d) => ({ ...d, name: L.anonymize(d.name, R)
 // kind = 'flow' | 'routine' | 'ballot' | 'decision': sets the output cap; ballot and decision use the mid-tier ("deep") model.
 // docs = only the docs this call needs. The live flow sends one speech's docs; Live Eval, analysis, ballot and
 // decision judge the whole round, so they keep the default (all of them).
-async function callAI({ system, prompt, note, schema, effort = 'medium', reading, kind = 'routine', docs = DOCS }) {
+// signal: an AbortSignal from a Stop button (spec 4.5). It is joined to each call's own timeout with AbortSignal.any.
+// Where AbortSignal.any is missing, the call is not cut, but its late reply is thrown away (the caller sees 'stopped').
+const STOPPED = () => Object.assign(new Error('Stopped.'), { kind: 'stopped' });
+function withStop(signal, ms) {
+  const t = AbortSignal.timeout(ms);
+  if (!signal) return t;
+  return typeof AbortSignal.any === 'function' ? AbortSignal.any([signal, t]) : t;
+}
+async function callAI({ system, prompt, note, schema, effort = 'medium', reading, kind = 'routine', docs = DOCS, signal }) {
+  if (signal && signal.aborted) throw STOPPED();
   const eng = S.aiEngine;
   if (!aiReady()) throw Object.assign(new Error(L.NO_AI), { kind: 'noAI' });
   // Offline: show the offline text and make no call (spec 2.3).
@@ -1747,7 +1843,7 @@ async function callAI({ system, prompt, note, schema, effort = 'medium', reading
           system, messages: [{ role: 'user', content: L.buildUserContent(docs, prompt, note) }],
         });
         if (schema) params.output_config.format = { type: 'json_schema', schema };
-        return client.beta.messages.create(params);
+        return client.beta.messages.create(params, signal ? { signal } : undefined);
       });
       if (msg.stop_reason === 'refusal' || msg.stop_reason === 'max_tokens') throw aiError({ stop: msg.stop_reason }, eng);
       text = msg.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
@@ -1757,7 +1853,7 @@ async function callAI({ system, prompt, note, schema, effort = 'medium', reading
       const res = await fetch('/api/ai', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ engine: eng, system, prompt: (docText ? docText + '\n\n' + (note || L.DOC_NOTE) + '\n\n' : '') + prompt, schema, model: eng === 'codex-cli' ? (S.codexModel || '') : undefined }),
-        signal: AbortSignal.timeout(300000),
+        signal: withStop(signal, 300000),
       });
       const j = await res.json().catch(() => ({}));
       // A helper 4xx or 5xx goes through the normal rules (401/403 = "rejected", 5xx = "busy"), named by the plan.
@@ -1767,14 +1863,18 @@ async function callAI({ system, prompt, note, schema, effort = 'medium', reading
     } else {
       const res = await withModel(eng, purpose, (model) => {
         const req = P.buildAIRequest(eng, { key: keys[eng], model, system, prompt, docs, schema, title: L.docTitle, note: note || L.DOC_NOTE, maxTokens });
-        return fetch(req.url, { ...req.init, signal: AbortSignal.timeout(240000) });
+        return fetch(req.url, { ...req.init, signal: withStop(signal, 240000) });
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw httpAIError(res.status, j, eng);
       text = P.parseAIResponse(eng, j);
     }
+    if (signal && signal.aborted) throw STOPPED(); // a late reply after Stop is thrown away
     return L.deanonymize(schema ? P.extractJson(text) : text, R);
-  } catch (err) { throw asAIError(err, eng, P.SUBSCRIPTIONS[eng] ? { helper: true } : {}); }
+  } catch (err) {
+    if (signal && signal.aborted) throw STOPPED();
+    throw asAIError(err, eng, P.SUBSCRIPTIONS[eng] ? { helper: true } : {});
+  }
 }
 
 // ---------- connections UI ----------
@@ -1837,7 +1937,7 @@ function renderConnections() {
   aiChanged();
 }
 // Insights switches between its edge and the open pane with no reload when AI connects or goes (V9).
-function aiChanged() { applyPanes(); renderInsights(); }
+function aiChanged() { applyPanes(); renderInsights(); if (R.tab === 'eval') renderEvalStatus(); if (R.tab === 'analysis') renderAnalysis(); if (R.tab === 'ballot') renderDraftPanel(); }
 async function connectKey(raw) {
   const key = String(raw || '').trim();
   const msg = $('#key-msg');
@@ -1951,7 +2051,7 @@ document.addEventListener('click', (e) => {
 });
 document.addEventListener('change', (e) => { if (e.target.id === 'codex-model') { S.codexModel = e.target.value.trim(); saveSettings(); } });
 document.addEventListener('click', (e) => {
-  if (e.target.id === 'copy-helper') copy(HELPER_CMD);
+  if (e.target.id === 'copy-helper') copyToast(HELPER_CMD);
   if (e.target.id === 'recheck-helper') checkHelper();
 });
 
@@ -2181,67 +2281,6 @@ async function maybeD2Note() {
   if (v === 'flow') { S.liveFlow = true; $('#live-flow').checked = true; saveSettings(); setRecNote(''); toast('Live AI flow is on. It makes one AI call about every 30 s during a speech.'); }
 }
 setRecNote('');
-$('#ai-out').textContent = LV().output || 'No draft yet.';
-$('#ai-copy-prompt').addEventListener('click', () => {
-  const textDocs = DOCS.filter((d) => d.kind !== 'pdf').map((d) => '=== ' + L.docTitle(d) + ' ===\n' + d.data).join('\n\n');
-  const pdfs = DOCS.filter((d) => d.kind === 'pdf').map((d) => d.name);
-  copy(L.anonymize(L.JUDGE_SYSTEM + '\n\n' + (textDocs ? textDocs + '\n\n' : '') + (DOCS.length ? L.DOC_NOTE + '\n\n' : '') + L.buildJudgePrompt(R, DOCS), R));
-  if (pdfs.length) toast('Copied. Attach these PDFs by hand: ' + pdfs.join(', '));
-});
-
-$('#ai-go').addEventListener('click', async () => {
-  if (!aiReady()) return toast(L.NO_AI + ' Or use "Copy prompt instead".');
-  if (navigator.onLine === false) { $('#ai-status').textContent = L.AI_ERROR_PREFIX.decision + ' ' + L.aiErrorText('offline'); return; }
-  const btn = $('#ai-go'), status = $('#ai-status'), out = $('#ai-out');
-  btn.disabled = true; status.textContent = 'Starting…'; out.textContent = '';
-  const level = lvl(), box = LV(level); // a draft belongs to the reading level it was asked for
-  try {
-    if (S.aiEngine !== 'anthropic') {
-      status.textContent = 'Thinking with ' + $('#ai-engine').selectedOptions[0].textContent + '… (can take a minute)';
-      const text = await callAI({ system: L.JUDGE_SYSTEM, prompt: L.buildJudgePrompt(R, DOCS), note: L.DOC_NOTE, schema: null, effort: 'high', reading: level, kind: 'decision' });
-      out.textContent = text; box.output = text; save();
-      status.textContent = 'Done. Read it, then decide.';
-      return;
-    }
-    const client = await getClaude();
-    status.textContent = 'Thinking… (can take a minute)';
-    const msg = await withModel('anthropic', 'deep', (model) => {
-      out.textContent = '';
-      const stream = client.beta.messages.stream(P.claudeParams(model, {
-        max_tokens: P.outputCap('decision'),
-        thinking: { type: 'adaptive' },
-        output_config: { effort: 'high' },
-        system: L.JUDGE_SYSTEM + '\n\n' + L.readingGuide(level),
-        messages: [{ role: 'user', content: L.buildUserContent(anonDocs(DOCS), L.anonymize(L.buildJudgePrompt(R, DOCS), R)) }],
-      }));
-      let raw = '';
-      stream.on('text', (t) => { raw += t; out.textContent = L.deanonymize(raw, R); }); // names back in, live
-      return stream.finalMessage();
-    });
-    if (msg.stop_reason === 'refusal') {
-      status.textContent = L.AI_ERROR_PREFIX.decision + ' ' + L.aiErrorText('refused');
-    } else {
-      const text = L.deanonymize(msg.content.filter((b) => b.type === 'text').map((b) => b.text).join(''), R);
-      out.textContent = text;
-      box.output = text; save();
-      status.textContent = msg.stop_reason === 'max_tokens' ? 'Done, but the reply was cut off at the length limit. Use it as a start, or click again.' : 'Done. Read it, then decide.';
-    }
-  } catch (err) {
-    status.textContent = L.AI_ERROR_PREFIX.decision + ' ' + asAIError(err, S.aiEngine).message;
-  } finally { btn.disabled = false; }
-});
-$('#ai-use').addEventListener('click', () => {
-  const text = LV().output || '';
-  if (!text) return toast('No draft yet');
-  const w = L.parseDecision(text);
-  if (w) R.ballot.winner = w;
-  R.ballot.rfd = L.parseRfd(text);
-  const fb = L.parseFeedback(text);
-  R.ballot.affFb = fb.aff;
-  R.ballot.negFb = fb.neg;
-  Object.assign((R.ballot.touched ??= {}), { winner: Boolean(w), rfd: true, affFb: true, negFb: true });
-  save(); bindAll(); showTab('ballot'); toast('Copied to ballot. Edit it in your own words.');
-});
 
 // ---------- live eval ----------
 let evalBusy = false, evalAgain = false, evalErr = '', evalSoonTimer = null;
@@ -2275,19 +2314,23 @@ async function runEval() {
     if (evalAgain && !resetting) { evalAgain = false; runEval(); }
   }
 }
+// Live Eval states (spec 4.13): Run when nothing is saved, Update when something is. Status colour comes from classes.
 function renderEvalStatus() {
   const el = $('#eval-status'); if (!el) return;
-  $('#eval-go').disabled = evalBusy;
+  const ev = LV().liveEval;
+  const go = $('#eval-go');
+  go.textContent = L.runVerb(Boolean(ev));
+  const empty = !L.roundHasContent(R, DOCS);
+  go.disabled = evalBusy || !aiReady() || empty;
   tone(el);
-  if (evalBusy) el.innerHTML = busyHtml('Updating… (20–60 s)');
-  else if (!aiReady()) el.innerHTML = noAiHtml();
+  if (evalBusy) el.innerHTML = busyHtml('Updating… usually 20–60 seconds');
+  else if (!aiReady()) el.innerHTML = noAiHtml('', 'Connect AI');
+  else if (empty && !ev) el.innerHTML = '<span class="is-quiet">Nothing to read yet. Start the 1AC first.</span>';
   else if (evalErr) { tone(el, errColor(evalErr)); el.textContent = L.AI_ERROR_PREFIX.eval + ' ' + evalErr; }
   else el.textContent = '';
-  const ev = LV().liveEval;
-  const now = L.speechesSoFar(R);
-  const newer = ev ? now.filter((id) => !(ev.through || []).includes(id)) : [];
+  const stale = ev ? L.outOfDateText(ev.through, R) : '';
   $('#eval-meta').innerHTML = ev ? escapeHtml('Last updated ' + agoText(ev.at) + ', through ' + ((ev.through || []).length ? ev.through[ev.through.length - 1] : 'no speeches') + '.')
-    + (newer.length ? ' <span class="pill is-caution">Out of date: ' + escapeHtml(newer.join(', ')) + ' happened since. Click Update now.</span>' : '') : '';
+    + (stale ? ' <span class="pill is-caution">' + escapeHtml(stale) + '</span>' : '') : '';
 }
 setInterval(() => { if (R.tab === 'eval') renderEvalStatus(); }, 5000);
 const sideClass = (x) => (x === 'aff' ? 'aff' : x === 'neg' ? 'neg' : '');
@@ -2333,32 +2376,41 @@ document.addEventListener('click', (e) => {
 function renderEval() {
   renderEvalStatus();
   const ev = LV().liveEval && LV().liveEval.data;
-  if (!ev) { $('#eval-body').innerHTML = '<div class="card muted">No eval yet. Click "Update now".</div>'; return; }
+  if (!ev) { $('#eval-body').innerHTML = ''; return; }
   const e = escapeHtml;
   const lean = ev.leaning || {};
   const team = lean.side === 'aff' ? R.aff.team : lean.side === 'neg' ? R.neg.team : '';
-  const fb = (ev.feedback || []).map((f) => `<div class="card" style="margin:0">
-      <div class="row" style="justify-content:space-between"><strong class="${String(f.speaker || '').endsWith('A') ? 'aff' : 'neg'}">${e(f.speaker)} ${e(nameOf(f.speaker) !== f.speaker ? '· ' + nameOf(f.speaker) : '')}</strong><span class="muted">Points so far: ${e(f.points)}</span></div>
-      <p style="margin:var(--s2) 0">${e(f.so_far)}</p>
-      <p style="margin:var(--s1) 0"><span class="good">+</span> ${e(f.strength)}</p>
-      <p style="margin:var(--s1) 0"><span class="neg">Fix:</span> ${e(f.fix)}</p></div>`).join('');
+  const issues = ev.key_issues || [];
+  const tally = L.issueTally(issues);
+  const total = Math.max(1, tally.aff + tally.even + tally.neg);
+  // The paired bar: Aff on the left, Even in the middle, Neg on the right. The words carry the meaning, not the colours.
+  const bar = `<div class="tally" role="img" aria-label="${e(tally.text)}"><div class="tally-bar" aria-hidden="true">`
+    + [['aff', tally.aff], ['even', tally.even], ['neg', tally.neg]].filter(([, n]) => n).map(([k, n]) => `<span class="tally-${k}" data-w="${Math.round((n / total) * 100)}"></span>`).join('')
+    + `</div><p class="tally-text">${e(tally.text)}</p></div>`;
+  const fb = (ev.feedback || []).map((f) => `<div class="card fb-card">
+      <div class="row fb-head"><strong class="${String(f.speaker || '').endsWith('A') ? 'aff' : 'neg'}">${e(f.speaker)} ${e(nameOf(f.speaker) !== f.speaker ? '· ' + nameOf(f.speaker) : '')}</strong><span class="muted">Points so far: ${e(f.points)}</span></div>
+      <p class="fb-line">${e(f.so_far)}</p>
+      <p class="fb-line"><span class="fb-label">Did well:</span> ${e(f.strength)}</p>
+      <p class="fb-line"><span class="fb-label">To work on:</span> ${e(f.fix)}</p></div>`).join('');
   $('#eval-body').innerHTML = `
     <div class="card">
       <div class="lean ${sideClass(lean.side)}">Leaning: ${e(sideLabel(lean.side))}${team ? ' (' + e(team) + ')' : ''} <span class="pill">${e(lean.confidence || '')} confidence</span></div>
-      <p style="margin:var(--s2) 0 0">${e(lean.why || '')}</p>
+      <p class="card-text">${e(lean.why || '')}</p>
     </div>
-    <div class="card"><h2>State of the round</h2><p style="margin:0">${e(ev.summary || '')}</p></div>
-    <div class="card"><h2>Key issues</h2><div class="scroll"><table>
+    <div class="card"><h2>State of the round</h2><p class="card-text">${e(ev.summary || '')}</p></div>
+    <div class="card"><h2>Key issues</h2>${issues.length ? bar : ''}<div class="scroll"><table>
       <thead><tr><th>Issue</th><th>Ahead</th><th>Why</th></tr></thead>
-      <tbody>${(ev.key_issues || []).map((k) => `<tr><td>${e(k.issue)}</td><td><span class="pill ${sideClass(k.ahead)}">${e(sideLabel(k.ahead))}</span></td><td>${e(k.note)}</td></tr>`).join('')}</tbody>
+      <tbody>${issues.map((k) => `<tr><td>${e(k.issue)}</td><td><span class="pill ${sideClass(k.ahead)}">${e(sideLabel(k.ahead))}</span></td><td>${e(k.note)}</td></tr>`).join('')}</tbody>
     </table></div></div>
-    <div class="card"><h2>Listen for next</h2><ul style="margin:0;padding-left:20px">${(ev.watch_for || []).map((w) => '<li>' + e(w) + '</li>').join('')}</ul></div>
+    <div class="card"><h2>Listen for next</h2><ul class="plain-list">${(ev.watch_for || []).map((w) => '<li>' + e(w) + '</li>').join('')}</ul></div>
     <div class="grid">
-      <div class="card"><h2 class="aff">Aff needs to</h2><p style="margin:0">${e(ev.aff_needs || '')}</p></div>
-      <div class="card"><h2 class="neg">Neg needs to</h2><p style="margin:0">${e(ev.neg_needs || '')}</p></div>
+      <div class="card"><h2 class="aff">Aff needs to</h2><p class="card-text">${e(ev.aff_needs || '')}</p></div>
+      <div class="card"><h2 class="neg">Neg needs to</h2><p class="card-text">${e(ev.neg_needs || '')}</p></div>
     </div>
-    <div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Feedback so far</h2><button class="b" id="eval-to-ballot">Copy feedback to ballot</button></div>
-      <div class="grid" style="margin-top:var(--s3)">${fb}</div></div>`;
+    <div class="card"><div class="row card-head"><h2>Feedback so far</h2><button class="b" id="eval-to-ballot" type="button">Use this feedback on the ballot</button></div>
+      <div class="grid fb-grid">${fb}</div></div>`;
+  // Widths come from data-w through a class-free style property (no inline style attribute in the markup).
+  document.querySelectorAll('#eval-body .tally-bar span').forEach((el) => el.style.setProperty('--w', el.dataset.w + '%'));
 }
 $('#eval-go').addEventListener('click', () => {
   if (!aiReady()) return toast(L.NO_AI);
@@ -2366,21 +2418,11 @@ $('#eval-go').addEventListener('click', () => {
 });
 $('#auto-eval').checked = S.autoEval; // off unless the judge turned it on (spec 2.7, D2)
 $('#auto-eval').addEventListener('change', (e) => { S.autoEval = e.target.checked; saveSettings(); });
-document.addEventListener('click', async (e) => {
+// "Use this feedback on the ballot" opens the draft panel with the feedback option on (spec 4.13). No AI call here.
+document.addEventListener('click', (e) => {
   if (e.target.id !== 'eval-to-ballot') return;
-  const fb = (LV().liveEval && LV().liveEval.data && LV().liveEval.data.feedback) || [];
-  // Interim dialog (spec 2.4 #9); Slice 4 removes it.
-  if ((R.ballot.affFb || '').trim() || (R.ballot.negFb || '').trim()) {
-    const ok = await ask({
-      title: 'Replace your Aff and Neg comments?', body: 'The comment boxes on the Ballot already have text.',
-      buttons: [{ label: 'Keep mine', value: false, kind: 'plain' }, { label: 'Replace', value: true, kind: 'primary' }], cancelValue: false,
-    });
-    if (!ok) return;
-  }
-  const join = (side) => fb.filter((f) => String(f.speaker || '').endsWith(side) && !/^not yet/i.test(f.points || ''))
-    .map((f) => f.speaker + ': ' + f.so_far + ' Strength: ' + f.strength + ' Fix: ' + f.fix).join('\n');
-  R.ballot.affFb = join('A'); R.ballot.negFb = join('N'); save(); bindAll();
-  toast('Copied into the Aff and Neg comment boxes in Decide → Ballot.');
+  draftUi.feedback = true;
+  showTab('ballot'); openDraftPanel(e.target);
 });
 
 // ---------- analysis: paradigm lens, impact calculus, round map ----------
@@ -2416,11 +2458,11 @@ function cacheNote(entry) {
   const now = L.speechesSoFar(R);
   const newer = now.filter((id) => !(entry.through || []).includes(id));
   return '<span class="muted">Saved ' + agoText(entry.at) + ', through ' + escapeHtml((entry.through || []).slice(-1)[0] || 'no speeches') + '.</span>'
-    + (newer.length ? ' <span class="pill is-caution">Out of date: ' + escapeHtml(newer.join(', ')) + ' since. Click Refresh.</span>' : '');
+    + (newer.length ? ' <span class="pill is-caution">' + escapeHtml(L.outOfDateText(entry.through, R)) + ' Click Update.</span>' : '');
 }
 function statusLine(el, name, entry, idle) {
-  if (busy[name]) { tone(el); el.innerHTML = busyHtml('Working… (20–60 s)'); }
-  else if (!aiReady()) { tone(el); el.innerHTML = noAiHtml(); }
+  if (busy[name]) { tone(el); el.innerHTML = busyHtml('Working… usually 20–60 seconds'); }
+  else if (!aiReady()) { tone(el); el.innerHTML = noAiHtml('', 'Connect AI'); }
   else if (errs[name]) { tone(el, errColor(errs[name])); el.textContent = L.AI_ERROR_PREFIX.analysis + ' ' + errs[name]; }
   else { tone(el); el.innerHTML = entry ? cacheNote(entry) : '<span class="muted">' + idle + '</span>'; }
 }
@@ -2430,50 +2472,62 @@ function renderLensPicker() {
   const cur = sel.value || R.lensPick || R.ai.paradigm || 'policymaker';
   sel.innerHTML = Object.keys(L.PARADIGM_LABELS).map((k) => {
     const has = R.analysis.lens[L.lensKey(k, S.customParadigm) + (lvl() === 'expert' ? '' : '|' + lvl())] ? ' (saved)' : '';
-    return `<option value="${k}">${escapeHtml(L.PARADIGM_LABELS[k])}${has}</option>`;
+    const yours = k === (R.ai.paradigm || 'policymaker') ? ' (yours)' : ''; // the paradigm set in Settings (spec 4.9)
+    return `<option value="${k}">${escapeHtml(L.PARADIGM_LABELS[k])}${yours}${has}</option>`;
   }).join('');
   sel.value = cur;
 }
+// "Round at a glance" (spec 4.14): prep used and the key moments from the Round Map. No AI call.
+function renderGlance() {
+  const e = escapeHtml;
+  const p = L.prepUsed(R);
+  $('#glance-prep').innerHTML = p.any ? `<p class="glance-line"><span class="aff">${e(p.aff.text)}</span></p><p class="glance-line"><span class="neg">${e(p.neg.text)}</span></p>` : '<p class="muted glance-line">No prep used yet.</p>';
+  const km = L.keyMoments(R.analysis.map && R.analysis.map.data);
+  $('#glance-moments').innerHTML = km.length
+    ? '<ul class="plain-list">' + km.map((k) => `<li><span class="${sideClass(k.side)}">${e(k.speech)}</span> ${e(k.label)} <span class="chip ${k.status === 'dropped' ? 'drop' : 'con'}">${k.status === 'dropped' ? 'Dropped' : 'Conceded'}</span></li>`).join('') + '</ul>'
+    : '<p class="muted glance-line">' + (R.analysis.map && R.analysis.map.data && R.analysis.map.data.nodes.length ? 'No dropped or conceded arguments on the Round Map.' : 'Key moments show here after you run the Round Map.') + '</p>';
+}
 function renderAnalysis() {
   const e = escapeHtml;
+  renderGlance();
   renderLensPicker();
   // Never overwrite the paradigm box while the judge is typing in it.
   if (document.activeElement !== $('#lens-custom')) $('#lens-custom').value = S.customParadigm || '';
   if ($('#lens-pick').value === 'custom') $('#lens-custom-box').open = true;
   // Lens
   const lens = R.analysis.lens[currentLensKey()];
-  $('#lens-go').textContent = lens ? 'Refresh' : 'Weigh';
+  $('#lens-go').textContent = L.runVerb(Boolean(lens));
   $('#lens-go').disabled = busy.lens;
-  statusLine($('#lens-status'), 'lens', lens, 'Not weighed under this paradigm yet. Click Weigh.');
+  statusLine($('#lens-status'), 'lens', lens, 'Not weighed under this paradigm yet. Click Run.');
   if ($('#lens-pick').value === 'custom' && !(S.customParadigm || '').trim()) $('#lens-status').innerHTML = '<span class="is-caution">Paste your paradigm below first.</span>';
   const d = lens && lens.data;
   $('#lens-out').innerHTML = d ? `
     <div class="lean ${sideClass(d.winner)}">${e(sideLabel(d.winner))}${d.winner === 'aff' && R.aff.team ? ' (' + e(R.aff.team) + ')' : d.winner === 'neg' && R.neg.team ? ' (' + e(R.neg.team) + ')' : ''} <span class="pill">${e(d.confidence)} confidence</span></div>
     <p>${e(d.rfd)}</p>
-    <h2 style="margin-top:var(--s3)">What decides it here</h2><ul style="margin:0;padding-left:20px">${(d.deciding_factors || []).map((x) => '<li>' + e(x) + '</li>').join('')}</ul>
-    <h2 style="margin-top:var(--s3)">How this paradigm changes the call</h2><p style="margin:0">${e(d.lens_effect)}</p>` : '';
+    <h2 class="sub-h">What decides it here</h2><ul class="plain-list">${(d.deciding_factors || []).map((x) => '<li>' + e(x) + '</li>').join('')}</ul>
+    <h2 class="sub-h">How this paradigm changes the call</h2><p class="card-text">${e(d.lens_effect)}</p>` : '';
   // Impacts
   const imp = LV().impacts;
   $('#impact-go').disabled = busy.impacts;
-  $('#impact-go').textContent = imp ? 'Refresh' : 'Run';
+  $('#impact-go').textContent = L.runVerb(Boolean(imp));
   statusLine($('#impact-status'), 'impacts', imp, 'Not run yet. Click Run.');
   const id = imp && imp.data;
   $('#impact-out').innerHTML = id ? `
     <div class="lean small ${sideClass(id.net)}">Net: ${e(sideLabel(id.net))} outweighs</div>
-    <div class="scroll" style="margin-top:var(--s2)"><table>
+    <div class="mt-2"><table class="impact-table">
       <thead><tr><th>Impact</th><th>Side</th><th>Magnitude</th><th>Probability</th><th>Timeframe</th><th>Reversible?</th><th>Status</th></tr></thead>
-      <tbody>${(id.impacts || []).map((x) => `<tr><td><strong>${e(x.impact)}</strong><div class="muted">${e(x.note)}</div></td><td><span class="pill ${sideClass(x.side)}">${e(sideLabel(x.side))}</span></td><td>${e(x.magnitude)}</td><td>${e(x.probability)}</td><td>${e(x.timeframe)}</td><td>${e(x.reversibility)}</td><td>${e(x.status)}</td></tr>`).join('')}</tbody>
+      <tbody>${(id.impacts || []).map((x) => `<tr><td data-label="Impact"><strong>${e(x.impact)}</strong><div class="muted">${e(x.note)}</div></td><td data-label="Side"><span class="pill ${sideClass(x.side)}">${e(sideLabel(x.side))}</span></td><td data-label="Magnitude">${e(x.magnitude)}</td><td data-label="Probability">${e(x.probability)}</td><td data-label="Timeframe">${e(x.timeframe)}</td><td data-label="Reversible?">${e(x.reversibility)}</td><td data-label="Status">${e(x.status)}</td></tr>`).join('')}</tbody>
     </table></div>
-    <h2 style="margin-top:var(--s3)">Weighing the debaters did</h2><p style="margin:0">${e(id.weighing_done)}</p>
-    <h2 style="margin-top:var(--s3)">Comparison</h2><p style="margin:0">${e(id.comparison)}</p>` : '';
+    <h2 class="sub-h">Weighing the debaters did</h2><p class="card-text">${e(id.weighing_done)}</p>
+    <h2 class="sub-h">Comparison</h2><p class="card-text">${e(id.comparison)}</p>` : '';
   // Map
   const map = R.analysis.map;
   $('#map-go').disabled = busy.map;
-  $('#map-go').textContent = map ? 'Refresh' : 'Draw';
-  statusLine($('#map-status'), 'map', map, 'Not drawn yet. Click Draw.');
+  $('#map-go').textContent = L.runVerb(Boolean(map));
+  statusLine($('#map-status'), 'map', map, 'Not drawn yet. Click Run.');
   const view = R.mapView === 'diagram' ? 'diagram' : 'sheet';
   document.querySelectorAll('[data-mapview]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mapview === view)));
-  if (!(map && map.data)) { $('#map-out').innerHTML = '<p class="muted">No map yet. Click "+ Argument" to draw one by hand, or Draw to let the AI map the round.</p>'; lastMapCode = ''; return; }
+  if (!(map && map.data)) { $('#map-out').innerHTML = '<p class="muted">No map yet. Click "+ Argument" to draw one by hand, or Run to let the AI map the round.</p>'; lastMapCode = ''; return; }
   if (view === 'diagram') drawMap(map.data);
   else { lastMapCode = ''; mapSeq++; $('#map-out').innerHTML = mapSheetHtml(map.data); } // mapSeq++ stops a late diagram from covering the sheet
 }
@@ -2527,7 +2581,7 @@ $('#map-go').addEventListener('click', () => runTool('map', L.MAP_TASK, L.MAP_SC
 }));
 $('#map-copy').addEventListener('click', () => {
   if (!R.analysis.map) return toast('Draw the map first.');
-  copy(L.buildMermaid(R.analysis.map.data));
+  copyToast(L.buildMermaid(R.analysis.map.data));
 });
 
 // Mermaid is loaded only when a map is drawn (pinned version, integrity-checked).
@@ -2648,78 +2702,302 @@ $('#map-out').addEventListener('click', (e) => {
   }
 });
 
-// ---------- AI ballot filler ----------
-let fillBusy = false, fillErr = '', fillSoonTimer = null;
-let fillWaitsOnline = false;
+// ---------- Draft with AI: the panel, the review, Stop and Undo (spec 4.3–4.6, Q9) ----------
+// The panel opens from its button (or the palette, Slice 5). A draft writes nothing at first: it becomes a review
+// (R.ballotReview, kept across a reload), and only "Insert selected" or "Accept all" changes the ballot.
+const BALLOT_SYSTEM = () => L.JUDGE_SYSTEM.split('\n\nReply in this exact structure')[0] + '\n\n' + L.POINTS_GUIDE;
+const ptsRangeNow = () => L.ptsRange(R.ptsRange);
+const groupById = (id) => L.DRAFT_GROUPS.find((g) => g.id === id);
+const draftUi = { open: false, picks: null, feedback: false, busy: false, busyText: '', ctrl: null, err: '', stopped: false, idx: 0 };
+let fillSoonTimer = null, fillWaitsOnline = false;
+const wideBallot = matchMedia('(min-width: 1280px)'), narrowBallot = matchMedia('(max-width: 819.98px)');
+const evalFeedback = () => (LV().liveEval && LV().liveEval.data && LV().liveEval.data.feedback) || [];
+// ai.notes from the old Decision draft tab moves into the note box once (spec 4.3). ai.evidence stays in the prompt.
+if (R.ai && (R.ai.notes || '').trim()) { R.ballotInput = ((R.ballotInput || '').trim() ? R.ballotInput.trim() + '\n' : '') + R.ai.notes.trim(); R.ai.notes = ''; save(); }
+
+function defaultPicks() { return new Set(L.DRAFT_GROUPS.filter((g) => L.fieldState(R.ballot, g.fields) !== 'yours').map((g) => g.id)); }
+function openDraftPanel(opener) {
+  if (!draftUi.open) draftUi.picks = defaultPicks();
+  draftUi.open = true; draftUi.opener = opener || $('#draft-open');
+  $('#draft-panel').hidden = false;
+  $('#ballot-layout').classList.add('panel-open');
+  $('#draft-open').setAttribute('aria-expanded', 'true');
+  renderDraftPanel();
+  const head = R.ballotReview ? $('#rv-title') : $('#draft-title');
+  if (head) head.focus();
+}
+function closeDraftPanel(restoreFocus = true) {
+  if (!draftUi.open) return;
+  const inside = $('#draft-panel').contains(document.activeElement);
+  draftUi.open = false;
+  $('#draft-panel').hidden = true;
+  $('#ballot-layout').classList.remove('panel-open');
+  $('#draft-open').setAttribute('aria-expanded', 'false');
+  if (restoreFocus && inside) $('#draft-open').focus();
+}
+// Esc closes the panel and does not stop a call (spec 4.3).
+escLayer('draft-panel', 45, () => draftUi.open, () => closeDraftPanel());
+$('#draft-open').addEventListener('click', (e) => (draftUi.open ? closeDraftPanel() : openDraftPanel(e.currentTarget)));
+$('#draft-close').addEventListener('click', () => closeDraftPanel());
+for (const q of [wideBallot, narrowBallot]) q.addEventListener('change', () => { if (R.tab === 'ballot') renderDraftPanel(); });
+
+function renderDraftButton() {
+  const b = $('#draft-open'); if (!b) return;
+  b.textContent = R.ballotReview ? 'Draft ready' : 'Draft with AI';
+}
+const STATE_TEXT = {
+  empty: 'Nothing to draft from yet. The AI needs at least one speech, flow or doc.',
+  nothing: 'Pick at least one thing to draft.',
+  stopped: 'Stopped. Nothing on the ballot changed.',
+};
+function draftState() {
+  return L.draftPanelState({ busy: draftUi.busy, aiReady: aiReady(), offline: navigator.onLine === false, hasContent: L.roundHasContent(R, DOCS), picked: (draftUi.picks || defaultPicks()).size, error: draftUi.err, stopped: draftUi.stopped });
+}
+function renderDraftPanel() {
+  renderDraftButton();
+  if (!draftUi.open) return;
+  $('#draft-close').textContent = narrowBallot.matches ? 'Done' : 'Close';
+  const review = R.ballotReview;
+  $('#dp-compose').hidden = Boolean(review);
+  $('#dp-review').hidden = !review;
+  if (review) return renderReview();
+  renderReadLevel();
+  const picks = draftUi.picks || (draftUi.picks = defaultPicks());
+  const box = $('#dp-picks');
+  const keep = box.querySelector('legend').outerHTML;
+  const focusId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.pick : null;
+  box.innerHTML = keep + L.DRAFT_GROUPS.map((g) => {
+    const yours = L.fieldState(R.ballot, g.fields) === 'yours';
+    return `<label class="row check-row"><input type="checkbox" data-pick="${g.id}"${picks.has(g.id) ? ' checked' : ''}> ${escapeHtml(g.label)}${yours ? ' <span class="muted">(yours)</span>' : ''}</label>`;
+  }).join('');
+  if (focusId) { const el = box.querySelector(`[data-pick="${focusId}"]`); if (el) el.focus(); }
+  const fb = $('#dp-feedback');
+  const hasFb = evalFeedback().length > 0;
+  fb.disabled = !hasFb; fb.checked = hasFb && draftUi.feedback;
+  fb.parentElement.lastChild.textContent = hasFb ? ' Use Live Eval feedback for the comments' : ' Use Live Eval feedback for the comments (run Live Eval first)';
+  const st = draftState();
+  const el = $('#dp-status');
+  tone(el);
+  if (st === 'loading') el.innerHTML = busyHtml(draftUi.busyText || 'Drafting… usually 20–60 seconds');
+  else if (st === 'noAI') el.innerHTML = '<span class="is-quiet">Connect AI to draft the ballot. The ballot works by hand either way. <button class="linkish" type="button" data-tab-go="ai">Connect AI</button></span>';
+  else if (st === 'offline') { tone(el, 'quiet'); el.textContent = L.AI_ERROR_PREFIX.ballot + ' ' + L.aiErrorText('offline'); }
+  else if (st === 'error') { tone(el, errColor(draftUi.err)); el.innerHTML = escapeHtml(L.AI_ERROR_PREFIX.ballot + ' ' + draftUi.err) + ' <button class="b small" type="button" id="dp-retry">Try again</button>'; }
+  else if (STATE_TEXT[st]) { tone(el, 'quiet'); el.textContent = STATE_TEXT[st]; }
+  else el.textContent = '';
+  const go = $('#dp-go');
+  go.textContent = draftUi.busy ? 'Stop' : 'Draft';
+  go.classList.toggle('primary', !draftUi.busy);
+  const blocked = ['noAI', 'offline', 'empty', 'nothing'].includes(st);
+  go.disabled = !draftUi.busy && blocked;
+  go.setAttribute('aria-describedby', blocked ? 'dp-cost dp-status' : 'dp-cost');
+  $('#dp-undo').hidden = !R.ballotUndo;
+  $('#auto-ballot').checked = Boolean(S.autoBallot);
+  const d = LV().ballotDraft && LV().ballotDraft.data;
+  $('#dp-why-body').textContent = d ? 'AI confidence: ' + d.confidence + '\n' + (d.points_reasoning || '') : 'Draft the ballot first. The AI\'s reasons for the points show here.';
+}
+document.addEventListener('change', (e) => {
+  const p = e.target.dataset && e.target.dataset.pick;
+  if (p) { draftUi.picks ??= defaultPicks(); if (e.target.checked) draftUi.picks.add(p); else draftUi.picks.delete(p); draftUi.stopped = false; renderDraftPanel(); }
+  if (e.target.id === 'dp-feedback') draftUi.feedback = e.target.checked;
+});
+$('#auto-ballot').addEventListener('change', (e) => { S.autoBallot = e.target.checked; saveSettings(); });
+
+// One AI call for a draft. picks: group ids. redraft: { fields, previous } for [Redo this]. Returns the draft or null.
+async function runDraft({ picks, redraft, text }) {
+  if (draftUi.busy) return null;
+  const level = lvl();
+  const fields = picks.flatMap((id) => groupById(id).fields);
+  const ctrl = new AbortController();
+  Object.assign(draftUi, { busy: true, busyText: text || '', ctrl, err: '', stopped: false });
+  renderDraftPanel();
+  try {
+    const data = await callAI({
+      system: BALLOT_SYSTEM(),
+      prompt: L.buildBallotPrompt(R, DOCS, R.ballotInput || '', { only: fields, redraft, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null }),
+      schema: L.BALLOT_SCHEMA, effort: 'high', reading: level, kind: 'ballot', signal: ctrl.signal,
+    });
+    if (resetting) return null;
+    LV(level).ballotDraft = { data, at: Date.now(), through: L.speechesSoFar(R) };
+    return data;
+  } catch (err) {
+    if (err && err.kind === 'stopped') draftUi.stopped = true;
+    else { draftUi.err = (err && err.message) || String(err); console.warn('Ballot draft failed:', err); }
+    return null;
+  } finally {
+    draftUi.busy = false; draftUi.ctrl = null; draftUi.busyText = '';
+    save(); renderDraftPanel();
+  }
+}
+async function startDraft() {
+  if (draftUi.busy) { draftUi.ctrl && draftUi.ctrl.abort(); return; } // the button is [Stop] while a call runs
+  if (draftState() !== 'ready' && draftState() !== 'error' && draftState() !== 'stopped') return;
+  const picks = L.DRAFT_GROUPS.map((g) => g.id).filter((id) => (draftUi.picks || defaultPicks()).has(id));
+  const data = await runDraft({ picks });
+  if (!data) return;
+  R.ballotReview = L.reviewFromDraft(R.ballot, data, { picks, range: ptsRangeNow(), through: L.speechesSoFar(R), at: Date.now() });
+  draftUi.idx = 0; save(); renderDraftPanel();
+  const h = $('#rv-title'); if (h && draftUi.open) h.focus();
+}
+$('#dp-go').addEventListener('click', startDraft);
+document.addEventListener('click', (e) => { if (e.target.id === 'dp-retry') startDraft(); });
+// ⌘↵ / Ctrl+↵ in the note box runs Draft; in the review it runs Insert selected (spec 4.1, 4.3).
+$('#draft-panel').addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey) || e.isComposing) return;
+  if (R.ballotReview) { e.preventDefault(); insertReview(false); }
+  else if (e.target.id === 'ballot-input') { e.preventDefault(); startDraft(); }
+});
+$('#dp-prompt').addEventListener('click', async () => {
+  const fields = L.DRAFT_GROUPS.filter((g) => (draftUi.picks || defaultPicks()).has(g.id)).flatMap((g) => g.fields);
+  const textDocs = DOCS.filter((d) => d.kind !== 'pdf').map((d) => '=== ' + L.docTitle(d) + ' ===\n' + d.data).join('\n\n');
+  const pdfs = DOCS.filter((d) => d.kind === 'pdf').map((d) => d.name);
+  const text = L.anonymize(BALLOT_SYSTEM() + '\n\n' + L.readingGuide(lvl()) + '\n\n' + (textDocs ? textDocs + '\n\n' + L.DOC_NOTE + '\n\n' : '')
+    + L.buildBallotPrompt(R, DOCS, R.ballotInput || '', { only: fields, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null }), R);
+  const ok = await copy(text);
+  toast(ok ? (pdfs.length ? 'Prompt copied. Attach these PDFs by hand: ' + pdfs.join(', ') : 'Prompt copied. Paste it into any AI chat.') : 'Copy did not work in this browser.');
+});
+// Undo the last insert (or auto refill): one step, until the next edit (spec 4.5).
+function undoLastInsert() {
+  if (!R.ballotUndo) return false;
+  R.ballot = R.ballotUndo; R.ballotUndo = null;
+  if (R.ballotReview) R.ballotReview = L.staleReviewCards(R.ballotReview, R.ballot);
+  save(); renderBallot();
+}
+$('#dp-undo').addEventListener('click', () => { if (undoLastInsert() !== false) toast('Ballot put back.'); });
+function insertedToast(n) {
+  undoToast('AI text added to ' + n + (n === 1 ? ' field.' : ' fields.'), 'AI text added', undoLastInsert, 'Ballot put back.');
+}
+
+// ----- the review (spec 4.4) -----
+const diffHtml = (diff) => diff.map((d) => d.op === 'del' ? `<del><span class="sr-only">removed: </span>${escapeHtml(d.text)}</del>` : d.op === 'ins' ? `<ins><span class="sr-only">added: </span>${escapeHtml(d.text)}</ins>` : escapeHtml(d.text)).join('');
+const winText = (w) => (w === 'aff' ? 'Aff' : w === 'neg' ? 'Neg' : '–');
+function cardBody(c) {
+  const e = escapeHtml;
+  if (c.id === 'winner') return `<table class="rv-table"><thead><tr><th scope="col">Now</th><th scope="col">AI</th></tr></thead><tbody><tr><td>${winText(c.base.winner)}</td><td>${winText(c.after.winner)}</td></tr></tbody></table>`;
+  if (c.id === 'pts') {
+    const rows = L.SPEAKERS.map((s) => {
+      const now = [c.base['pts.' + s], c.base['ranks.' + s] ? 'rank ' + c.base['ranks.' + s] : ''].filter((x) => x !== '' && x != null).join(', ') || '–';
+      const ai = [c.after['pts.' + s], c.after['ranks.' + s] ? 'rank ' + c.after['ranks.' + s] : ''].filter((x) => x !== '' && x != null).join(', ') || '–';
+      return `<tr><th scope="row" class="${s.endsWith('A') ? 'aff' : 'neg'}">${s}</th><td>${e(now)}</td><td>${e(ai)}</td></tr>`;
+    }).join('');
+    const r = R.ballotReview.range;
+    const bad = (c.outOfRange || []).map((x) => `<p class="is-caution rv-note">${x.speaker}: The AI gave ${x.value}, which is outside ${r.min}–${r.max}. Set this one by hand.</p>`).join('');
+    return `<table class="rv-table"><thead><tr><th scope="col">Speaker</th><th scope="col">Now</th><th scope="col">AI</th></tr></thead><tbody>${rows}</tbody></table>${bad}`;
+  }
+  if (c.state === 'yours' && c.diff) return `<div class="rv-text rv-diff">${diffHtml(c.diff)}</div>`;
+  return `<div class="rv-text">${e(c.after[c.id] || '') || '<span class="muted">The AI wrote nothing here.</span>'}</div>`;
+}
+function cardChoice(c) {
+  if (c.empty) return '<p class="muted rv-none">Nothing to insert.</p>';
+  if (c.state === 'yours') {
+    return `<fieldset class="rv-choice"><legend class="sr-only">${escapeHtml(c.label)}</legend>`
+      + `<label class="row check-row"><input type="radio" name="rv-${c.id}" data-rv-choice="${c.id}" value="keep"${c.choice !== 'ai' ? ' checked' : ''}> Keep mine</label>`
+      + `<label class="row check-row"><input type="radio" name="rv-${c.id}" data-rv-choice="${c.id}" value="ai"${c.choice === 'ai' ? ' checked' : ''}> Use AI text</label></fieldset>`;
+  }
+  return `<label class="row check-row"><input type="checkbox" data-rv-choice="${c.id}"${c.choice !== 'skip' ? ' checked' : ''}> Insert this</label>`;
+}
+function renderReview() {
+  const rv = R.ballotReview;
+  const box = $('#dp-review');
+  const narrow = narrowBallot.matches;
+  const n = rv.cards.length;
+  draftUi.idx = Math.max(0, Math.min(draftUi.idx, n - 1));
+  const active = document.activeElement;
+  const keepFocus = active && box.contains(active) ? (active.id || (active.dataset.rvChoice ? 'c:' + active.dataset.rvChoice + ':' + active.value : active.dataset.rvRedo ? 'r:' + active.dataset.rvRedo : '')) : '';
+  const stale = L.speechEndedSince(rv, R);
+  const st = draftState();
+  const busy = st === 'loading';
+  box.innerHTML = `<div class="rv-head"><h3 id="rv-title" tabindex="-1">Review the draft</h3>
+      <p class="muted">Check AI text before you use it. Nothing changes on the ballot until you insert it.</p></div>
+    ${stale ? `<p class="warn rv-stale">A speech ended after this draft. <button class="b small" type="button" id="rv-redo-all" aria-describedby="rv-cost"${busy ? ' disabled' : ''}>Redo all</button></p>` : ''}
+    <p class="status-line" id="rv-status" role="status" aria-live="polite">${busy ? busyHtml(draftUi.busyText || 'Drafting…') : draftUi.err ? '<span class="is-error">' + escapeHtml(L.AI_ERROR_PREFIX.ballot + ' ' + draftUi.err) + '</span>' : draftUi.stopped ? '<span class="is-quiet">' + STATE_TEXT.stopped + '</span>' : ''}</p>
+    ${narrow && n > 1 ? `<div class="rv-pager"><button class="b small" type="button" id="rv-prev"${draftUi.idx === 0 ? ' disabled' : ''}>Previous</button><p class="rv-count" aria-live="polite">${draftUi.idx + 1} of ${n}: ${escapeHtml(rv.cards[draftUi.idx].label)}</p><button class="b small" type="button" id="rv-next"${draftUi.idx === n - 1 ? ' disabled' : ''}>Next</button></div>` : ''}
+    ${rv.cards.map((c, i) => `<section class="rv-card${i === draftUi.idx ? ' rv-current' : ''}" aria-labelledby="rv-h-${c.id}">
+      <div class="rv-card-head"><h4 id="rv-h-${c.id}">${escapeHtml(c.label)}</h4>${c.changed ? '<span class="pill is-caution">Changed since the draft</span>' : ''}${c.state === 'yours' ? '<span class="b-tag-ai">Yours</span>' : ''}</div>
+      ${cardBody(c)}
+      <div class="rv-card-foot">${cardChoice(c)}<button class="b small" type="button" data-rv-redo="${c.id}" aria-describedby="rv-cost"${busy ? ' disabled' : ''}>Redo this</button></div>
+    </section>`).join('')}
+    <p class="muted rv-cost" id="rv-cost">Redo is one AI call.</p>
+    <div class="rv-foot"><button class="b primary" type="button" id="rv-insert" aria-keyshortcuts="Meta+Enter Control+Enter">Insert selected</button><button class="b" type="button" id="rv-accept">Accept all</button><button class="b" type="button" id="rv-discard">Discard draft</button>${busy ? '<button class="b" type="button" id="rv-stop">Stop</button>' : ''}</div>`;
+  if (keepFocus) {
+    const [k, id, v] = keepFocus.split(':');
+    const el = k === 'c' ? box.querySelector(`[data-rv-choice="${id}"]${v && v !== 'on' ? `[value="${v}"]` : ''}`) : k === 'r' ? box.querySelector(`[data-rv-redo="${id}"]`) : document.getElementById(keepFocus);
+    if (el) el.focus();
+  }
+}
+$('#dp-review').addEventListener('change', (e) => {
+  const id = e.target.dataset.rvChoice; if (!id) return;
+  const c = R.ballotReview.cards.find((x) => x.id === id);
+  c.choice = e.target.type === 'checkbox' ? (e.target.checked ? 'insert' : 'skip') : e.target.value;
+  save();
+});
+$('#dp-review').addEventListener('click', async (e) => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.id === 'rv-insert') return insertReview(false);
+  if (t.id === 'rv-accept') return insertReview(true);
+  if (t.id === 'rv-stop' && draftUi.ctrl) return draftUi.ctrl.abort();
+  if (t.id === 'rv-prev' || t.id === 'rv-next') { draftUi.idx += t.id === 'rv-next' ? 1 : -1; renderReview(); const b = $('#' + t.id); if (b && !b.disabled) b.focus(); else $('#rv-title').focus(); return; }
+  if (t.id === 'rv-discard') {
+    const before = R.ballotReview;
+    R.ballotReview = null; save(); renderDraftPanel(); $('#draft-title').focus();
+    undoToast('Draft discarded. The ballot did not change.', 'discard draft', () => { R.ballotReview = before; save(); renderDraftPanel(); }, 'Draft back for review.');
+    return;
+  }
+  if (t.id === 'rv-redo-all') {
+    const picks = R.ballotReview.picks;
+    const data = await runDraft({ picks, text: 'Drafting again… usually 20–60 seconds' });
+    if (data) { R.ballotReview = L.reviewFromDraft(R.ballot, data, { picks, range: ptsRangeNow(), through: L.speechesSoFar(R), at: Date.now() }); save(); renderDraftPanel(); }
+    return;
+  }
+  const redo = t.dataset.rvRedo;
+  if (redo) {
+    const old = R.ballotReview.cards.find((x) => x.id === redo);
+    const data = await runDraft({ picks: [redo], redraft: { fields: old.fields.filter((f) => !f.startsWith('ranks.')), previous: old.id === 'pts' ? {} : { [redo]: old.after[redo] } }, text: 'Redrafting ' + old.label.toLowerCase() + '…' });
+    if (!data || !R.ballotReview) return;
+    const fresh = L.reviewFromDraft(R.ballot, data, { picks: [redo], range: ptsRangeNow() }).cards[0];
+    R.ballotReview.cards = R.ballotReview.cards.map((x) => (x.id === redo ? fresh : x));
+    save(); renderDraftPanel();
+    const b = $(`[data-rv-redo="${redo}"]`); if (b) b.focus();
+  }
+});
+function insertReview(all) {
+  const rv = R.ballotReview; if (!rv) return;
+  const before = L.ballotSnapshot(R.ballot);
+  const res = L.applyReview(R.ballot, rv, all);
+  R.ballotReview = null;
+  if (res.count) { R.ballot = res.ballot; R.ballotUndo = before; }
+  save(); renderBallot(); renderDraftPanel();
+  if ($('#draft-title') && draftUi.open) $('#draft-title').focus();
+  if (res.count) insertedToast(res.count); else toast('Nothing was inserted. The ballot did not change.');
+}
+
+// ----- auto refill (spec 4.6): off by default (D2). Never on an empty round, offline, with no AI, or while a review waits.
 function scheduleBallotSoon() {
   clearTimeout(fillSoonTimer);
   fillSoonTimer = setTimeout(() => {
     if (!S.autoBallot || !aiReady() || resetting) return;
     if (navigator.onLine === false) { fillWaitsOnline = true; return; } // runs when online, if still on (spec 2.3, D2)
-    runBallotFill(false, true);
+    runAutoRefill();
   }, 25000);
 }
-async function runBallotFill(override, auto) {
-  if (!aiReady()) return toast(L.NO_AI);
-  if (fillBusy) return toast('Still filling the ballot. Wait a moment.');
-  const level = lvl();
-  fillBusy = true; fillErr = ''; renderFiller();
-  try {
-    const data = await callAI({ system: L.JUDGE_SYSTEM.split('\n\nReply in this exact structure')[0] + '\n\n' + L.POINTS_GUIDE, prompt: L.buildBallotPrompt(R, DOCS, R.ballotInput || ''), schema: L.BALLOT_SCHEMA, effort: 'high', reading: level, kind: 'ballot' });
-    if (resetting) return;
-    LV(level).ballotDraft = { data, at: Date.now(), through: L.speechesSoFar(R) };
-    if (!auto) R.ballotUndo = JSON.parse(JSON.stringify(R.ballot)); // one step of undo, for fills the judge asked for
-    const touched = override ? {} : R.ballot.touched || {};
-    R.ballot = L.applyBallotDraft(R.ballot, data, { override });
-    R.ballot.touched = touched;
-    save();
-    if (R.tab === 'ballot') renderBallot();
-  } catch (err) {
-    fillErr = (err && err.message) || String(err);
-  } finally { fillBusy = false; renderFiller(); }
-}
-function renderFiller() {
-  const st = $('#fill-status'); if (!st) return;
-  $('#fill-go').disabled = fillBusy; $('#fill-redo').disabled = fillBusy;
-  const d = LV().ballotDraft;
-  if (fillBusy) { tone(st); st.innerHTML = busyHtml('Filling… (20–60 s)'); }
-  else if (!aiReady()) { tone(st); st.innerHTML = noAiHtml('The ballot below works by hand either way.'); }
-  else if (fillErr) { tone(st, errColor(fillErr)); st.textContent = L.AI_ERROR_PREFIX.ballot + ' ' + fillErr; }
-  else { tone(st, 'quiet'); st.textContent = d ? 'Last filled ' + agoText(d.at) + ', through ' + ((d.through || []).slice(-1)[0] || 'no speeches') + '.' : ''; }
-  $('#fill-why').textContent = d && d.data ? 'AI confidence: ' + d.data.confidence + '\n' + (d.data.points_reasoning || '') : '';
-  const locked = Object.keys(R.ballot.touched || {}).filter((k) => R.ballot.touched[k]).length;
-  $('#fill-unlock').hidden = !locked;
-  $('#fill-unlock').textContent = 'Let the AI refill my ' + locked + ' typed field' + (locked === 1 ? '' : 's') + ' too';
-  $('#auto-ballot').checked = Boolean(S.autoBallot);
-  $('#fill-undo').hidden = !R.ballotUndo;
-}
-$('#fill-go').addEventListener('click', () => runBallotFill(false));
-// "Redo with my input": the judge's note may need to change fields they typed (e.g. "I'm voting neg"). Ask first.
-$('#fill-redo').addEventListener('click', async () => {
-  if (!(R.ballotInput || '').trim()) { $('#ballot-input').focus(); return toast('Type your note for the AI first.'); }
-  const locked = Object.values(R.ballot.touched || {}).some(Boolean);
-  let override = false;
-  if (locked) {
-    // Interim dialog (spec 2.4 #11); Slice 4 removes it. Cancel makes no AI call.
-    const v = await ask({
-      title: 'Change fields you typed?',
-      body: 'Your note may need to change fields you typed yourself, for example the winner.',
-      buttons: [{ label: 'Cancel', value: 'cancel', kind: 'plain' }, { label: 'Keep my fields', value: 'keep', kind: 'plain' }, { label: 'Let the AI change them', value: 'change', kind: 'primary' }],
-      cancelValue: 'cancel',
-    });
-    if (v === 'cancel') return;
-    override = v === 'change';
+async function runAutoRefill() {
+  if (!S.autoBallot || !aiReady() || draftUi.busy || R.ballotReview || navigator.onLine === false || !L.roundHasContent(R, DOCS)) return;
+  const picks = L.DRAFT_GROUPS.map((g) => g.id);
+  const data = await runDraft({ picks, text: 'Refilling after the speech…' });
+  if (!data || R.ballotReview) return;
+  const plan = L.autoRefillPlan(R.ballot, data, ptsRangeNow());
+  if (plan.write.length) {
+    const before = L.ballotSnapshot(R.ballot);
+    R.ballot = L.applyBallotDraft(R.ballot, data, { only: plan.write, range: ptsRangeNow(), mark: 'ai' });
+    R.ballotUndo = before;
+    const groups = new Set(plan.write.map((f) => (f.includes('.') ? 'row.' + f.split('.')[1] : f)));
+    insertedToast(groups.size);
   }
-  runBallotFill(override);
-});
-$('#fill-undo').addEventListener('click', () => { if (!R.ballotUndo) return; R.ballot = R.ballotUndo; R.ballotUndo = null; save(); renderBallot(); toast('Ballot put back as it was before the last fill.'); });
-$('#fill-unlock').addEventListener('click', () => {
-  // Interim Undo toast (spec 2.4 #12); Slice 4 replaces it with a tag on each field.
-  const before = Object.assign({}, R.ballot.touched || {});
-  R.ballot.touched = {}; save(); renderBallot();
-  undoToast('The AI may now change fields you typed.', 'let the AI change your fields', () => { R.ballot.touched = before; save(); renderBallot(); }, 'Your fields are yours again.');
-});
-$('#auto-ballot').addEventListener('change', (e) => { S.autoBallot = e.target.checked; saveSettings(); });
+  if (plan.review.length) {
+    R.ballotReview = L.reviewFromDraft(R.ballot, data, { picks: plan.review, range: ptsRangeNow(), through: L.speechesSoFar(R), at: Date.now() });
+    toast('The AI would change text it wrote before. Review it in Draft with AI.');
+  }
+  save(); if (R.tab === 'ballot') renderBallot(); else renderDraftButton();
+}
 
 // ---------- backup and restore ----------
 function readAllStorage() {
@@ -2807,53 +3085,114 @@ $('#restore-file').addEventListener('change', async (e) => {
   setTimeout(() => location.reload(), 1500);
 });
 
-// ---------- ballot ----------
+// ---------- ballot (spec 4.1, 4.2, 4.7, 4.8, 4.12, and the narrow ballot 4.15 / 5.6c) ----------
 const nameOf = (s) => ({ '1A': R.aff.d1, '2A': R.aff.d2, '1N': R.neg.d1, '2N': R.neg.d2 }[s]) || s;
+const LOCK_SVG = '<svg class="lock" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
+// One tag per field group: the winner, each speaker row (points and rank), the RFD and each team's comments.
+const TAG_GROUPS = Object.assign({ winner: ['winner'], rfd: ['rfd'], affFb: ['affFb'], negFb: ['negFb'] }, Object.fromEntries(L.SPEAKERS.map((s) => ['row.' + s, ['pts.' + s, 'ranks.' + s]])));
+function tagHtml(key) {
+  const st = L.fieldState(R.ballot, TAG_GROUPS[key]);
+  if (st === 'yours') return `<button type="button" class="b-tag-btn" data-unlock="${key}" aria-label="Yours: ${escapeHtml(L.fieldLabel(key))}. Unlock it for the AI" data-tip="The AI will not change this. Click to let it.">${LOCK_SVG}Yours</button>`;
+  if (st === 'ai') return '<span class="b-tag-ai">AI draft</span>';
+  return '';
+}
+function renderBallotTags() {
+  document.querySelectorAll('#tab-ballot [data-tag]').forEach((el) => { const h = tagHtml(el.dataset.tag); if (el.innerHTML !== h) el.innerHTML = h; });
+  renderDraftPanel();
+}
+// "Yours" is a button: it unlocks the field at once, with an Undo toast and no dialog (spec 4.2).
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('[data-unlock]'); if (!b) return;
+  const key = b.dataset.unlock, fields = TAG_GROUPS[key];
+  const before = { touched: Object.assign({}, R.ballot.touched), aiFilled: Object.assign({}, R.ballot.aiFilled) };
+  R.ballot = L.markFields(R.ballot, fields, 'free'); save(); renderBallotTags();
+  const to = key === 'winner' ? document.querySelector('input[name="winner"]:checked') || document.querySelector('input[name="winner"]')
+    : key.startsWith('row.') ? document.querySelector(`[data-bind="ballot.pts.${key.slice(4)}"]`) : document.querySelector(`[data-bind="ballot.${key}"]`);
+  if (to) to.focus();
+  undoToast('The AI may now change ' + L.fieldLabel(key) + '.', 'unlock ' + L.fieldLabel(key), () => { Object.assign(R.ballot, before); save(); renderBallotTags(); }, 'It is yours again.');
+});
+
 function renderBallot() {
-  $('#ballot-title').textContent = 'Ballot' + (R.roundName ? ' — ' + R.roundName : '');
+  const r = ptsRangeNow();
+  $('#ballot-title').textContent = 'Ballot' + (R.roundName ? ' · ' + R.roundName : '');
   $('#w-aff').textContent = R.aff.team ? '(' + R.aff.team + ')' : '';
   $('#w-neg').textContent = R.neg.team ? '(' + R.neg.team + ')' : '';
   $('#fb-aff-code').textContent = R.aff.team ? '(' + R.aff.team + ')' : '';
   $('#fb-neg-code').textContent = R.neg.team ? '(' + R.neg.team + ')' : '';
-  document.querySelectorAll('input[name="winner"]').forEach((r) => { r.checked = r.value === R.ballot.winner; });
-  $('#pts-body').innerHTML = L.SPEAKERS.map((s) => `<tr>
-    <td class="${s.includes('A') ? 'aff' : 'neg'}"><strong>${s}</strong></td>
-    <td>${escapeHtml(nameOf(s))}</td>
-    <td><input type="number" min="25" max="30" step="0.1" data-bind="ballot.pts.${s}"></td>
-    <td><select data-bind="ballot.ranks.${s}"><option value=""></option><option>1</option><option>2</option><option>3</option><option>4</option></select></td>
-  </tr>`).join('');
-  bindAll(); renderBallotCheck(); renderFiller();
-  // Fields the judge typed get a thin mark, so it is clear which ones the AI will leave alone.
-  const t = R.ballot.touched || {};
-  document.querySelectorAll('#tab-ballot [data-bind^="ballot."]').forEach((el) => { const f = el.dataset.bind.slice(7); el.classList.toggle('touched', Boolean(t[f])); if (t[f]) el.dataset.tip = 'You set this. The AI ballot filler will not change it.'; else delete el.dataset.tip; });
+  document.querySelectorAll('input[name="winner"]').forEach((x) => { x.checked = x.value === R.ballot.winner; });
+  $('#pts-head').textContent = 'Points (' + r.min + '–' + r.max + ')';
+  $('#pts-body').innerHTML = L.SPEAKERS.map((s) => {
+    const side = s.endsWith('A') ? 'aff' : 'neg';
+    const nm = nameOf(s) !== s ? nameOf(s) : '';
+    return `<tr data-speaker="${s}">
+    <th scope="row" class="sp-cell ${side}"><strong>${s}</strong>${nm ? ' <span class="muted">' + escapeHtml(nm) + '</span>' : ''}</th>
+    <td class="pts-cell"><div class="stepper"><button type="button" class="step" data-step="-1" data-sp="${s}" aria-label="Lower ${s} points by 0.1">−</button><input type="number" inputmode="decimal" min="${r.min}" max="${r.max}" step="0.1" data-bind="ballot.pts.${s}" aria-label="${s} points"><button type="button" class="step" data-step="1" data-sp="${s}" aria-label="Raise ${s} points by 0.1">+</button></div></td>
+    ${[1, 2, 3, 4].map((k) => `<td class="rank-cell"><input type="radio" name="rank-${s}" value="${k}" data-rank="${s}" aria-label="${s}, rank ${k}"></td>`).join('')}
+    <td class="rank-sel-cell"><label class="sr-only" for="rank-sel-${s}">${s} rank</label><select id="rank-sel-${s}" data-rank-sel="${s}"><option value="">Rank</option><option value="1">1 (best)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></td>
+    <td class="tag-cell"><span class="b-tag" data-tag="row.${s}"></span></td>
+  </tr>`;
+  }).join('');
+  bindAll(); syncRanks(); renderBallotTags(); renderBallotCheck(true); renderSaveStatus();
 }
-function renderBallotCheck() {
+function syncRanks() {
+  const rk = R.ballot.ranks || {};
+  document.querySelectorAll('[data-rank]').forEach((x) => { x.checked = String(rk[x.dataset.rank] ?? '') === x.value; });
+  document.querySelectorAll('[data-rank-sel]').forEach((x) => { x.value = String(rk[x.dataset.rankSel] ?? ''); });
+}
+// Picking a rank another speaker has moves it, with a message (spec 4.8). The radio grid and the narrow select share it.
+function applyRank(speaker, value) {
+  const m = L.moveRank(R.ballot.ranks, speaker, value);
+  R.ballot.ranks = m.ranks;
+  markTouched('ranks.' + speaker); save(); syncRanks(); renderBallotCheck();
+  if (m.message) toast(m.message, { key: 'rank-moved' });
+}
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.name === 'winner') { R.ballot.winner = t.value; markTouched('winner'); save(); renderBallotCheck(); return; }
+  if (t.dataset && t.dataset.rank) return applyRank(t.dataset.rank, t.value);
+  if (t.dataset && t.dataset.rankSel) return applyRank(t.dataset.rankSel, t.value);
+  if (t.dataset && (t.dataset.bind || '').startsWith('ballot')) renderBallotCheck();
+});
+// − and + step the points by 0.1 inside the range (spec 4.8).
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('[data-step]'); if (!b) return;
+  const s = b.dataset.sp, input = document.querySelector(`[data-bind="ballot.pts.${s}"]`);
+  const v = L.stepPoints(input.value, Number(b.dataset.step), ptsRangeNow());
+  input.value = v; R.ballot.pts[s] = String(v); markTouched('pts.' + s); save(); renderBallotCheck();
+});
+// The check box is role="status": it changes at most once a second so a screen reader is not flooded (spec 4.8).
+let checkAt = 0, checkTimer = null;
+function renderBallotCheck(now) {
   const p = R.ballot.pts || {};
   const sum = (a, b) => (p[a] !== undefined && p[a] !== '' && p[b] !== undefined && p[b] !== '' ? (Number(p[a]) + Number(p[b])).toFixed(1) : '–');
   $('#sum-aff').textContent = 'Aff ' + sum('1A', '2A');
   $('#sum-neg').textContent = 'Neg ' + sum('1N', '2N');
-  const issues = L.checkBallot(R.ballot);
-  $('#ballot-check').innerHTML = issues.length
+  $('#ranks-set').textContent = 'Ranks: ' + L.ranksSet(R.ballot) + ' of 4 set.';
+  const wait = 1000 - (Date.now() - checkAt);
+  if (now === true || wait <= 0) return drawBallotCheck();
+  if (!checkTimer) checkTimer = setTimeout(drawBallotCheck, wait);
+}
+function drawBallotCheck() {
+  clearTimeout(checkTimer); checkTimer = null; checkAt = Date.now();
+  const issues = L.checkBallot(R.ballot, { range: ptsRangeNow() });
+  const html = issues.length
     ? `<div class="warn"><strong>Check before you submit:</strong><ul>${issues.map((i) => '<li>' + escapeHtml(i) + '</li>').join('')}</ul></div>`
     : '<p class="good">Ballot looks complete.</p>';
+  if ($('#ballot-check').innerHTML !== html) $('#ballot-check').innerHTML = html;
 }
-document.addEventListener('change', (e) => {
-  if (e.target.name === 'winner') { R.ballot.winner = e.target.value; (R.ballot.touched ??= {}).winner = true; save(); renderBallotCheck(); }
-  if (e.target.dataset && (e.target.dataset.bind || '').startsWith('ballot')) renderBallotCheck();
-});
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest && e.target.closest('[data-copy]');
-  const path = btn && btn.dataset.copy;
-  if (!path) return;
-  e.preventDefault();
-  const text = getPath(R, path) || '';
-  if (!text.trim()) return toast('Nothing to copy yet');
-  copy(text);
-});
-$('#b-tsv').addEventListener('click', () => copy(L.toTSV([L.ballotRow(R, new Date().toLocaleString())])));
-$('#b-csv').addEventListener('click', () => download(safeName(R.roundName) + '_ballot.csv', L.toCSV([L.BALLOT_HEADER, L.ballotRow(R, new Date().toLocaleString())])));
+function renderSaveStatus() {
+  const el = $('#save-status'); if (!el) return;
+  const t = lastSave.err === 'full' ? "Not saved: this browser's storage is full"
+    : lastSave.err ? 'Not saved: this browser is blocking storage'
+      : lastSave.at ? 'Saved in this browser · ' + new Date(lastSave.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+  el.textContent = t;
+  el.classList.toggle('is-error', Boolean(lastSave.err));
+}
+
+// ----- Save to Ballots (spec 4.12) -----
+function storeLog(list) { try { localStorage.setItem(LOG, JSON.stringify(list)); return ''; } catch (err) { return L.storageErrorKind(err); } }
 $('#b-save').addEventListener('click', async () => {
-  const issues = L.checkBallot(R.ballot);
+  const issues = L.checkBallot(R.ballot, { range: ptsRangeNow() });
   if (issues.length) {
     // "Fix it" gets first focus and goes to the first field with a problem; there is no danger button (spec 2.4 #15).
     const v = await ask({
@@ -2864,43 +3203,135 @@ $('#b-save').addEventListener('click', async () => {
     if (v !== 'save') return focusBallotProblem();
   }
   const log = store.get(LOG, []);
-  const row = L.ballotRow(R, new Date().toLocaleString());
+  const entry = L.savedBallotEntry(R, new Date().toLocaleString(), ptsRangeNow());
   const last = log[log.length - 1];
-  if (last && JSON.stringify(last.slice(1)) === JSON.stringify(row.slice(1))) return toast('Already saved');
-  log.push(row);
-  if (store.set(LOG, log)) {
-    // Offer a backup when there is none from the last 2 hours (spec 2.4 #16).
-    if (!S.lastBackupAt || Date.now() - S.lastBackupAt > 2 * 3600 * 1000) toast('Saved to Ballots. Your data lives only in this browser.', { action: { label: 'Download backup', run: () => downloadBackup(false) } });
-    else toast('Saved to Ballots.');
-  }
+  if (last && JSON.stringify(last.slice(1)) === JSON.stringify(entry.slice(1))) return toast('Already in Ballots.');
+  log.push(entry);
+  const err = storeLog(log);
+  if (err === 'full') return toast("Not saved: this browser's storage is full. Delete old saved ballots, or use Print / PDF to keep a copy.", { kind: 'error' });
+  if (err) return toast('Not saved: this browser is blocking storage. Use Print / PDF to keep a copy.', { kind: 'error' });
+  // Offer a backup when there is none from the last 2 hours (spec 2.4 #16).
+  if (!S.lastBackupAt || Date.now() - S.lastBackupAt > 2 * 3600 * 1000) toast('Saved to Ballots. Your data lives only in this browser.', { action: { label: 'Download backup', run: () => downloadBackup(false) } });
+  else toast('Saved to Ballots.');
 });
 // The first ballot field with a problem: the winner, then points, then ranks, then the RFD.
 function focusBallotProblem() {
-  const b = R.ballot, p = b.pts || {}, r = b.ranks || {};
+  const b = R.ballot, p = b.pts || {}, r = b.ranks || {}, rg = ptsRangeNow();
+  const bad = (v) => v === undefined || v === '' || Number(v) < rg.min || Number(v) > rg.max;
+  const narrow = narrowBallot.matches;
   const el = !b.winner ? document.querySelector('input[name="winner"]')
-    : document.querySelector(L.SPEAKERS.map((s) => (p[s] === undefined || p[s] === '' ? `[data-bind="ballot.pts.${s}"]` : '')).filter(Boolean)[0] || 'x-none')
-    || document.querySelector(L.SPEAKERS.map((s) => (!r[s] ? `[data-bind="ballot.ranks.${s}"]` : '')).filter(Boolean)[0] || 'x-none')
+    : document.querySelector(L.SPEAKERS.map((s) => (bad(p[s]) ? `[data-bind="ballot.pts.${s}"]` : '')).filter(Boolean)[0] || 'x-none')
+    || document.querySelector(L.SPEAKERS.map((s) => (!r[s] ? (narrow ? `[data-rank-sel="${s}"]` : `[data-rank="${s}"]`) : '')).filter(Boolean)[0] || 'x-none')
     || document.querySelector('[data-bind="ballot.rfd"]');
   if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); }
 }
 
-// ---------- log ----------
+// ----- Copy for the tournament ballot (spec 4.11) -----
+const copyDlg = modalDialog($('#copy-sheet'), $('#copy-card'), { name: 'copy', rank: 85 });
+let copyBlocks = [];
+function openCopySheet() {
+  copyBlocks = L.tournamentBlocks(R);
+  const n = L.checkBallot(R.ballot, { range: ptsRangeNow() }).length;
+  $('#copy-warn').hidden = !n;
+  $('#copy-warn').textContent = n ? 'This ballot has ' + n + (n === 1 ? ' problem' : ' problems') + '. Fix them first, or copy anyway.' : '';
+  $('#copy-blocks').innerHTML = copyBlocks.map((b) => `<section class="copy-block" aria-labelledby="cb-h-${b.id}">
+    <div class="copy-head"><h3 id="cb-h-${b.id}">${escapeHtml(b.label)}</h3>${b.text ? `<button class="b small" type="button" data-copy-block="${b.id}" aria-label="Copy ${escapeHtml(b.label)}">Copy</button>` : ''}</div>
+    ${b.text ? `<textarea class="copy-text" id="cb-t-${b.id}" readonly rows="${Math.min(8, Math.max(2, b.text.split('\n').length + Math.floor(b.text.length / 70)))}" aria-labelledby="cb-h-${b.id}">${escapeHtml(b.text)}</textarea>
+    <p class="copy-fail" id="cb-f-${b.id}" hidden>Press Ctrl+C (⌘C on Mac) to copy.</p>` : '<p class="muted">Nothing written yet</p>'}
+  </section>`).join('');
+  copyDlg.open($('#copy-blocks [data-copy-block]') || $('#copy-done'));
+}
+$('#copy-btn').addEventListener('click', openCopySheet);
+$('#copy-x').addEventListener('click', () => copyDlg.close());
+$('#copy-done').addEventListener('click', () => copyDlg.close());
+$('#copy-blocks').addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-copy-block]'); if (!btn) return;
+  const b = copyBlocks.find((x) => x.id === btn.dataset.copyBlock);
+  if (await copy(b.text)) {
+    btn.textContent = '✓ Copied'; announce(b.label + ' copied.');
+    setTimeout(() => { if (document.contains(btn)) btn.textContent = 'Copy'; }, 2000);
+  } else {
+    // Copy failed: select the text so the judge can copy it by hand.
+    const ta = $('#cb-t-' + b.id); $('#cb-f-' + b.id).hidden = false; ta.focus(); ta.select();
+  }
+});
+
+// ----- Print / PDF (spec 4.10, Q20) -----
+// The dialog builds #print-sheet from L.printModel, so long text prints in full, and removes it after printing.
+const printDlg = modalDialog($('#print-dialog'), $('#print-card'), { name: 'print', rank: 85 });
+let printSaved = null; // a saved ballot from Ballots, or null for the round on screen
+function openPrintDialog(saved) {
+  if (typeof window.print !== 'function') return toast('Printing is not available in this browser. Use Copy for the tournament ballot instead.', { kind: 'error' });
+  printSaved = saved || null;
+  $('#print-extras').hidden = Boolean(saved);
+  $('#print-saved-note').hidden = !saved;
+  syncOrient();
+  printDlg.open($('#print-go'));
+}
+function syncOrient() { const land = !printSaved && $('#print-flow').checked; document.querySelector(`input[name="print-orient"][value="${land ? 'landscape' : 'portrait'}"]`).checked = true; }
+$('#print-flow').addEventListener('change', syncOrient); // Landscape when the flow is included
+$('#print-btn').addEventListener('click', () => openPrintDialog());
+$('#print-x').addEventListener('click', () => printDlg.close());
+$('#print-cancel').addEventListener('click', () => printDlg.close());
+function currentPrintModel(opts) {
+  const o = opts || {};
+  const lens = R.analysis.lens[L.lensKey(R.ai.paradigm || 'policymaker', S.customParadigm) + (lvl() === 'expert' ? '' : '|' + lvl())];
+  const imp = LV().impacts && LV().impacts.data;
+  const km = L.keyMoments(R.analysis.map && R.analysis.map.data).map((k) => k.text).join('\n');
+  return L.printModel(R, { ...o, range: ptsRangeNow(), liveEval: LV().liveEval && LV().liveEval.data,
+    analysis: [['Paradigm Lens', lens && lens.data ? lens.data.rfd : ''], ['Impact Calculus', imp ? [imp.weighing_done, imp.comparison].filter(Boolean).join('\n\n') : ''], ['Key moments', km]] });
+}
+function buildPrintSheet(model) {
+  const e = escapeHtml;
+  removePrintSheet();
+  const el = document.createElement('div');
+  el.id = 'print-sheet'; el.className = 'print-sheet' + (model.orientation === 'landscape' ? ' landscape' : '');
+  el.innerHTML = `<h1>${e(model.title)}</h1>` + model.sections.map((s) => {
+    if (s.kind === 'facts') return s.items.length ? '<dl class="ps-facts">' + s.items.map(([k, v]) => `<div><dt>${e(k)}</dt><dd>${e(v)}</dd></div>`).join('') + '</dl>' : '';
+    if (s.kind === 'winner') return `<h2>${e(s.title)}</h2><p class="ps-win">${e(s.text)}</p>`;
+    if (s.kind === 'speakers') return `<h2>${e(s.title)}</h2><table><thead><tr><th>Speaker</th><th>Name</th><th>Points</th><th>Rank</th></tr></thead><tbody>${s.rows.map((r) => `<tr><td class="${r.side}">${r.speaker}</td><td>${e(r.name)}</td><td>${e(r.pts)}</td><td>${e(r.rank)}</td></tr>`).join('')}</tbody></table>`;
+    if (s.kind === 'flow') return `<h2>${e(s.title)}</h2><table class="ps-flow"><thead><tr>${s.cols.map((c) => `<th class="${c.side}">${e(c.label)}</th>`).join('')}</tr></thead><tbody><tr>${s.cols.map((c) => `<td class="${c.side}">${e(c.text)}</td>`).join('')}</tr></tbody></table>`;
+    return `<h2 class="${s.side || ''}">${e(s.title)}</h2><div class="ps-text">${e(s.text) || '<span class="muted">Nothing written.</span>'}</div>`;
+  }).join('');
+  document.body.append(el); document.body.classList.add('printing');
+}
+function removePrintSheet() { const old = $('#print-sheet'); if (old) old.remove(); document.body.classList.remove('printing'); }
+$('#print-go').addEventListener('click', () => {
+  const orientation = document.querySelector('input[name="print-orient"]:checked').value;
+  const model = printSaved ? L.printModel(printSaved.round, { range: printSaved.ptsRange, orientation })
+    : currentPrintModel({ flow: $('#print-flow').checked, transcripts: $('#print-tr').checked, aiNotes: $('#print-ai').checked, orientation });
+  printDlg.close();
+  buildPrintSheet(model);
+  // A frame later, so the dialog is gone and focus is back before the print window opens.
+  setTimeout(() => {
+    try { window.print(); } catch { removePrintSheet(); toast('Printing is not available in this browser. Use Copy for the tournament ballot instead.', { kind: 'error' }); }
+  }, 50);
+});
+// The browser's own Print menu still prints the full ballot (the sheet is built just before, then removed).
+addEventListener('beforeprint', () => { if (!$('#print-sheet')) buildPrintSheet(currentPrintModel({})); });
+addEventListener('afterprint', () => removePrintSheet());
+
+// ---------- log (Ballots) ----------
 function renderLog() {
   const log = store.get(LOG, []);
   if (!log.length) { $('#log-table').innerHTML = '<tr><td class="muted">No saved ballots yet. Save one from Decide → Ballot.</td></tr>'; return; }
   const cols = L.LOG_COLUMNS;
-  $('#log-table').innerHTML = '<tr>' + cols.map((i) => `<th>${L.BALLOT_HEADER[i]}</th>`).join('') + '<th></th></tr>'
-    + log.map((r, n) => '<tr>' + cols.map((i) => `<td>${escapeHtml(r[i] ?? '')}</td>`).join('') + `<td><button class="iconbtn" data-del="${n}" aria-label="Delete saved ballot from ${escapeHtml(r[0] || 'an unknown date')}">×</button></td></tr>`).join('');
+  $('#log-table').innerHTML = '<tr>' + cols.map((i) => `<th>${L.BALLOT_HEADER[i]}</th>`).join('') + '<th><span class="sr-only">Actions</span></th></tr>'
+    + log.map((r, n) => '<tr>' + cols.map((i) => `<td>${escapeHtml(r[i] ?? '')}</td>`).join('')
+      + `<td class="log-acts"><button class="b small" type="button" data-print-log="${n}" aria-label="Print the saved ballot from ${escapeHtml(r[0] || 'an unknown date')}">Print</button><button class="iconbtn" type="button" data-del="${n}" aria-label="Delete saved ballot from ${escapeHtml(r[0] || 'an unknown date')}">×</button></td></tr>`).join('');
 }
 $('#log-table').addEventListener('click', (e) => {
+  const pr = e.target.closest('[data-print-log]');
+  if (pr) { const entry = store.get(LOG, [])[Number(pr.dataset.printLog)]; if (entry) openPrintDialog(L.savedBallotView(entry)); return; }
   const btn = e.target.closest('[data-del]'); if (!btn) return;
   const { list, undo } = L.removeAt(store.get(LOG, []), Number(btn.dataset.del));
   if (!undo) return;
   store.set(LOG, list); renderLog();
   undoToast('Saved ballot deleted.', 'delete saved ballot', () => { store.set(LOG, L.restoreAt(store.get(LOG, []), undo.index, undo.item)); renderLog(); }, 'Saved ballot restored.');
 });
-$('#log-tsv').addEventListener('click', () => copy(L.toTSV([L.BALLOT_HEADER, ...store.get(LOG, [])])));
-$('#log-csv').addEventListener('click', () => download('policy_ballots.csv', L.toCSV([L.BALLOT_HEADER, ...store.get(LOG, [])])));
+// The spreadsheet exports live here (spec 4.1 [A]); each saved ballot gives its row without the extra data at the end.
+$('#log-tsv').addEventListener('click', () => copyToast(L.toTSV([L.BALLOT_HEADER, ...store.get(LOG, []).map(L.savedBallotRow)])));
+$('#log-csv').addEventListener('click', () => download('policy_ballots.csv', L.toCSV([L.BALLOT_HEADER, ...store.get(LOG, []).map(L.savedBallotRow)])));
 
 // ---------- theme (V10, Q3) ----------
 // Light / Dark / System in Settings, System by default. assets/theme-boot.js drew the saved theme before the page
@@ -2918,11 +3349,10 @@ document.addEventListener('change', (e) => {
 restoreClocksOnLoad();
 bindAll(); renderSpeeches(); renderClock(); renderPrep(); renderTranscript(); renderRecStrip(); renderRecNotice(); renderTheme();
 $('#t-start').dataset.tip = K.startTip(IS_MAC, S.singleKeys !== false);
-renderConnections(); checkHelper(); renderReadLevel(); applyPanes(); renderAudio(); listMics();
+renderConnections(); checkHelper(); renderReadLevel(); renderRange(); applyPanes(); renderAudio(); listMics();
 showTab(R.tab || 'flow'); renderPrepPresets(); showDrawer(Boolean(S.trDrawer)); resumeClips();
 renderSdList(); if (sdState().code) { sdFetchList(true); sdWatch(); } // resume watching this round's SpeechDrop room
 booted = true;
 if (L.shouldShowWelcome({ setupDone: S.setupDone, hostedPlan })) openWelcome();
 else maybeD2Note();
 
-$('#print-btn').addEventListener('click', () => window.print());

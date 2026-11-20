@@ -72,7 +72,7 @@
   .speeches { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--s2); }
   .sp { text-align: left; min-height: 48px; padding: var(--s2) var(--s3); border-radius: var(--r-md); border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; font: inherit; font-size: var(--fs-1); font-weight: var(--fw-3); line-height: var(--lh-ui); }
   .sp:hover { background: var(--sunk); }
-  .sp.aff { box-shadow: inset 3px 0 0 var(--aff-fill); } .sp.neg { box-shadow: inset 3px 0 0 var(--neg-fill); }
+  .sp.aff { color: var(--aff); font-weight: var(--fw-4); } .sp.neg { color: var(--neg); font-weight: var(--fw-4); } /* side shows in the label text, not a stripe */
   .sp.on { border: 2px solid var(--text); background: var(--sunk); }
   .sp small { display: block; color: var(--text-3); font-weight: var(--fw-1); font-size: var(--fs-1); margin-top: var(--s0); }
   .clock { font-family: var(--font-display); font-size: var(--fs-clock); font-weight: var(--fw-5); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; text-align: center; line-height: 1; margin: var(--s3) 0 var(--s4); }
@@ -109,6 +109,20 @@
   .flow textarea { display: block; min-height: 64vh; border: 0; border-radius: 0; background: transparent; padding: var(--s2) var(--s3); font: var(--fs-grid)/var(--lh-grid) var(--font-mono); }
   .flow textarea:focus-visible { outline-offset: -2px; }
   .flow .col.aff textarea { color: var(--aff); } .flow .col.neg textarea { color: var(--neg); }
+  /* Option B (Q-8) mark layer: a see-through mirror behind each flow textarea with the same box, font and wrapping.
+     Both reserve the same scrollbar gutter, so their text widths match. Only the mark shades show; the typed mark
+     itself stays visible in the textarea on top, so colour never carries the meaning alone. */
+  .flow-cell { position: relative; }
+  .flow .flow-cell textarea { position: relative; scrollbar-gutter: stable; }
+  .flow-hl { position: absolute; inset: 0; overflow: hidden; scrollbar-gutter: stable; pointer-events: none; user-select: none; padding: var(--s2) var(--s3); font: var(--fs-grid)/var(--lh-grid) var(--font-mono); white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; letter-spacing: normal; word-spacing: normal; text-indent: 0; text-transform: none; color: transparent; }
+  .flow-hl > div { min-height: var(--lh-grid); }
+  .flow-hl::after { content: ""; display: block; height: var(--lh-grid); }
+  .flow-hl span { border-radius: var(--r-sm); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .flow-hl .fm-drop { background: var(--caution-tint); text-decoration: underline dashed var(--caution); text-underline-offset: 3px; }
+  .flow-hl .fm-concede { background: var(--caution-tint); }
+  .flow-hl .fm-extend { background: var(--border); }
+  .flow-hl .fm-turn { box-shadow: inset 0 0 0 1px var(--border-ctl); }
+  .flow-hl .fm-weigh { text-decoration: underline var(--border-ctl); text-underline-offset: 3px; }
   .flow-empty { grid-column: 1 / -1; padding: var(--s4); margin: 0; }
   /* Tables, ballot, eval (14 px) */
   table { width: 100%; border-collapse: collapse; font-size: var(--fs-2); }
@@ -141,7 +155,6 @@
   .mapsheet .mrow:hover .mc { background: var(--sunk); }
   .mapsheet .mrow { display: contents; }
   .mcard { border: 1px solid var(--border); border-radius: var(--r-md); padding: 6px var(--s2); background: var(--panel); line-height: var(--lh-ui); }
-  .mcard.aff { box-shadow: inset 3px 0 0 var(--aff-fill); } .mcard.neg { box-shadow: inset 3px 0 0 var(--neg-fill); }
   .mcard .lbl { font-weight: var(--fw-3); color: var(--text); }
   .mcard .mk, .mk { color: var(--text-3); font-size: var(--fs-1); font-weight: var(--fw-3); }
   .mcard.dropped { border: 2px dashed var(--caution); background: var(--caution-tint); }
@@ -178,7 +191,6 @@
   .mrow:hover .madd, .madd:focus-visible { opacity: 1; }
   @media (hover: none) { .madd { opacity: 1; } }
   .linkish { background: none; border: 0; padding: 0; color: var(--text); font: inherit; text-decoration: underline; cursor: pointer; }
-  .touched { box-shadow: inset 2px 0 0 var(--text-2); }
   /* ----- layout: places, workspace panes, round bar ----- */
   header .spacer { flex: 1; }
   .iconbtn { display: inline-grid; place-items: center; width: var(--h-md); height: var(--h-md); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text-2); cursor: pointer; }
@@ -372,7 +384,7 @@
   body.drawer-open .toasts { bottom: calc(var(--rb-h) + var(--s3) + min(42vh, 420px) + 20px); bottom: calc(var(--rb-h) + var(--s3) + min(42dvh, 420px) + 20px); }
   .toast { pointer-events: auto; display: flex; align-items: flex-start; gap: var(--s2); background: var(--accent); color: var(--on-accent); padding: var(--s1) var(--s1) var(--s1) var(--s4); border-radius: var(--r-lg); font-size: var(--fs-2); box-shadow: var(--shadow-2); animation: toast-in var(--dur-1) ease-out; }
   .toast:not(.is-error) :focus-visible { outline-color: var(--on-accent); }
-  .toast.is-error { background: var(--panel); color: var(--text); border: 1px solid var(--border-ctl); border-left: 4px solid var(--error); padding-left: var(--s3); }
+  .toast.is-error { background: var(--panel); color: var(--text); border: 1px solid var(--border-ctl); }
   .toast-icon { flex: none; padding: 5px 0; font-weight: var(--fw-5); color: var(--error); }
   .toast-msg { flex: 1; min-width: 0; padding: 5px 0; overflow-wrap: anywhere; }
   .toast-act, .toast-x { flex: none; min-height: var(--h-sm); min-width: var(--h-sm); padding: 0 var(--s2); border-radius: var(--r-md); background: transparent; color: inherit; font: inherit; font-weight: var(--fw-3); cursor: pointer; }
@@ -424,13 +436,170 @@
     main { padding: var(--s3); }
     .prep { grid-template-columns: 1fr; }
   }
+  /* ----- Slice 4: Decide and ballot ----- */
+  .row-label, .inline-label { display: inline; margin: 0; font-size: var(--fs-2); font-weight: var(--fw-2); color: var(--text-2); }
+  .num-sm { width: 6em; }
+  .range-pick, .dlg-set, .b-winner, .dp-picks, .rv-choice { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .range-pick legend, .dlg-set legend, .dp-picks legend { padding: 0; margin-bottom: var(--s1); font-size: var(--fs-2); font-weight: var(--fw-2); color: var(--text-2); }
+  .field-err { margin: var(--s1) 0 0; color: var(--error); font-size: var(--fs-2); font-weight: var(--fw-3); }
+  .field-err:empty { display: none; }
+  .card-text { margin: var(--s2) 0 0; }
+  .card h2 + .card-text { margin-top: 0; }
+  .plain-list { margin: 0; padding-left: 20px; }
+  .plain-list li + li { margin-top: var(--s1); }
+  .sub-h { margin-top: var(--s3) !important; }
+  .wide-only { display: inline; } .narrow-only { display: none; }
+  /* Ballot: the left column, at most about 760 px; the draft panel opens on the right at 1280 px and up (4.1). */
+  .ballot-main { max-width: 760px; }
+  .ballot-card { padding: var(--s3) var(--s4); }
+  .ballot-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+  .ballot-head h2 { margin: 0; }
+  .ballot-note { margin: var(--s1) 0 var(--s2); }
+  .b-winner { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
+  .b-legend { display: inline-flex; align-items: center; gap: var(--s2); float: left; margin-right: var(--s2); padding: 0; font-size: var(--fs-2); font-weight: var(--fw-2); color: var(--text-2); }
+  .win-card { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--h-md); margin: 0; padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); font-size: var(--fs-3); font-weight: var(--fw-3); cursor: pointer; }
+  .win-card:hover { background: var(--sunk); }
+  .win-card:has(input:checked) { border: 2px solid var(--text); background: var(--sunk); }
+  .pts-table { margin-top: var(--s2); }
+  .pts-table th, .pts-table td { padding: var(--s1) var(--s2); vertical-align: middle; }
+  .pts-table .rank-h { text-align: center; width: 64px; white-space: nowrap; }
+  /* Long names wrap (the speaker code never does), so the table always fits the card and never runs under the panel. */
+  .pts-table .sp-cell { font-size: var(--fs-2); font-weight: var(--fw-1); line-height: var(--lh-ui); overflow-wrap: anywhere; }
+  .pts-table .sp-cell strong { white-space: nowrap; }
+  .rank-cell { text-align: center; }
+  .rank-cell input { width: 18px; height: 18px; min-width: 0; } /* not the 80 px number-input minimum from "td input" */
+  .rank-sel-cell { display: none; }
+  .tag-cell { width: 92px; text-align: right; white-space: nowrap; } /* fixed, so the columns do not jump when a tag changes */
+  .stepper { display: inline-flex; align-items: center; gap: var(--s1); }
+  .stepper input { width: 5.5em; min-width: 0; text-align: center; }
+  .step { width: var(--h-md); height: var(--h-md); flex: none; border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-3); font-weight: var(--fw-3); cursor: pointer; }
+  .step:hover { background: var(--sunk); border-color: var(--text-2); }
+  .b-totals { margin: var(--s1) 0 var(--s2); }
+  .ranks-set { display: none; }
+  .b-field { margin-top: var(--s2); }
+  .b-label { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); margin-bottom: var(--s1); }
+  .b-label label { margin: 0; }
+  .b-comments { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .b-comments .b-label { min-height: var(--hit-min); } /* the Aff and Neg boxes line up, whatever tag each label row shows */
+  .b-tag { display: inline-flex; }
+  .b-tag:empty { display: none; }
+  .b-tag-btn { display: inline-flex; align-items: center; gap: var(--s1); min-height: var(--hit-min); padding: 0 var(--s2); border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: var(--sunk); color: var(--text); font: inherit; font-size: var(--fs-1); font-weight: var(--fw-3); cursor: pointer; }
+  .b-tag-btn:hover { border-color: var(--text); }
+  .b-tag-ai { display: inline-flex; align-items: center; min-height: var(--hit-min); color: var(--text-3); font-size: var(--fs-1); font-weight: var(--fw-3); }
+  .ballot-check .warn, .ballot-check .good { margin: var(--s2) 0 0; }
+  .ballot-bar { position: sticky; bottom: var(--rb-h); z-index: var(--z-bar); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin-top: var(--s3); padding: var(--s2) var(--s3); background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); }
+  .bar-status { margin-left: auto; color: var(--text-3); font-size: var(--fs-1); font-weight: var(--fw-3); }
+  .bar-status.is-error { color: var(--error); }
+  /* The draft panel: inline at 1280 px and up, a flat overlay from the right below that, a full-screen sheet in the narrow layout. */
+  .draft-panel[hidden] { display: none !important; }
+  .draft-panel { background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); padding: var(--s3) var(--s4); font-size: var(--fs-2); overflow: auto; }
+  .dp-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); margin-bottom: var(--s2); }
+  .dp-head h2 { margin: 0; font-family: var(--font-display); font-size: var(--fs-3); font-weight: var(--fw-4); }
+  .dp-style { margin: 0 0 var(--s3); }
+  .dp-picks { display: grid; gap: var(--s1); }
+  .draft-panel .check-row { flex-wrap: nowrap; align-items: baseline; } /* a long label wraps beside its box, not under it */
+  .dp-links { display: flex; flex-wrap: wrap; gap: var(--s3); margin-top: var(--s2); font-size: var(--fs-2); }
+  .dp-why { white-space: pre-wrap; margin-top: var(--s2); }
+  @media (min-width: 1280px) {
+    .ballot-layout.panel-open { display: grid; grid-template-columns: minmax(0, 760px) 400px; gap: var(--s4); align-items: start; }
+    .draft-panel { position: sticky; top: calc(var(--header-h) + var(--s3)); max-height: calc(100dvh - var(--header-h) - var(--rb-h) - 2 * var(--s3)); }
+  }
+  /* When the panel scrolls, its last lines fade at the bottom edge, so a judge sees there is more below. */
+  @media (min-width: 820px) {
+    .draft-panel::after { content: ""; display: block; position: sticky; bottom: calc(-1 * var(--s3)); height: var(--s5); margin: 0 calc(-1 * var(--s4)); background: linear-gradient(transparent, var(--panel)); pointer-events: none; }
+  }
+  @media (min-width: 820px) and (max-width: 1279.98px) {
+    .draft-panel { position: fixed; top: calc(var(--header-h) + var(--s2)); bottom: calc(var(--rb-h) + var(--s2)); right: var(--s4); width: min(400px, calc(100vw - 32px)); z-index: var(--z-pop); }
+  }
+  /* The review (4.4). Changes show with words and marks (struck out, underlined, "removed:" / "added:"), not colour alone. */
+  .rv-head h3 { margin: 0; font-family: var(--font-display); font-size: var(--fs-3); font-weight: var(--fw-4); }
+  .rv-head p { margin: var(--s1) 0 var(--s2); }
+  .rv-stale { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
+  .rv-card { border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s2) var(--s3); margin-top: var(--s2); }
+  .rv-card-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin-bottom: var(--s1); }
+  .rv-card-head h4 { margin: 0; font-size: var(--fs-2); font-weight: var(--fw-4); }
+  .rv-text { white-space: pre-wrap; max-height: 220px; overflow: auto; padding: var(--s2); background: var(--sunk); border-radius: var(--r-md); font-size: var(--fs-2); line-height: var(--lh-read); }
+  .rv-diff del { color: var(--text-3); text-decoration: line-through; }
+  .rv-diff ins { color: var(--text); background: var(--caution-tint); text-decoration: underline 2px; text-underline-offset: 2px; }
+  .rv-table th, .rv-table td { padding: var(--s1) var(--s2); }
+  .rv-note { margin: var(--s1) 0 0; font-size: var(--fs-2); }
+  .rv-none { margin: 0; }
+  .rv-card-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2); margin-top: var(--s2); }
+  .rv-choice { display: flex; flex-wrap: wrap; gap: var(--s3); }
+  .rv-cost { margin: var(--s2) 0 0; }
+  .rv-foot { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s3); }
+  .rv-pager { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); margin-top: var(--s2); }
+  .rv-count { margin: 0; font-weight: var(--fw-3); }
+  /* Copy for the tournament ballot (4.11) and the print dialog (4.10). */
+  .copy-card { width: min(560px, calc(100% - 32px)); }
+  .copy-card .warn { margin-top: 0; }
+  .copy-block { margin-top: var(--s3); }
+  .copy-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); margin-bottom: var(--s1); }
+  .copy-head h3 { margin: 0; font-size: var(--fs-2); font-weight: var(--fw-4); }
+  .copy-text { font-size: var(--fs-2); resize: vertical; }
+  .copy-fail { margin: var(--s1) 0 0; color: var(--caution); font-size: var(--fs-2); font-weight: var(--fw-3); }
+  .copy-fail[hidden] { display: none; }
+  .log-acts { display: flex; gap: var(--s1); align-items: center; }
+  /* Live Eval (4.13): the paired summary bar and the feedback cards. */
+  .tally { margin: 0 0 var(--s3); }
+  .tally-bar { display: flex; height: 8px; border-radius: var(--r-pill); overflow: hidden; background: var(--border); }
+  .tally-bar span { width: var(--w); }
+  .tally-aff { background: var(--aff-fill); } .tally-even { background: var(--border-ctl); } .tally-neg { background: var(--neg-fill); }
+  .tally-text { margin: var(--s1) 0 0; font-size: var(--fs-2); font-weight: var(--fw-3); color: var(--text-2); }
+  .fb-grid { margin-top: var(--s3); }
+  .fb-card { margin: 0; }
+  .fb-head { justify-content: space-between; }
+  .fb-line { margin: var(--s1) 0; }
+  .fb-label { font-weight: var(--fw-3); color: var(--text-2); }
+  /* Analysis (4.14): Round at a glance, and the impact table as cards under 1100 px. */
+  .glance { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .glance-h { margin: 0 0 var(--s1); font-family: var(--font-display); font-size: var(--fs-2); font-weight: var(--fw-4); }
+  .glance-line { margin: 0 0 var(--s1); }
+  @media (max-width: 1100px) {
+    .impact-table thead { display: none; }
+    .impact-table, .impact-table tbody, .impact-table tr, .impact-table td { display: block; }
+    .impact-table tr { border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s2) var(--s3); margin-bottom: var(--s2); }
+    .impact-table td { border: 0; padding: var(--s1) 0; }
+    .impact-table td:not(:first-child)::before { content: attr(data-label) ": "; color: var(--text-3); font-weight: var(--fw-3); }
+  }
+  /* The narrow layout (under 820 px, Q-10): the ballot is one column (5.6c), with 44 px targets and 16 px form text. */
+  @media (max-width: 819.98px) {
+    .wide-only { display: none; } .narrow-only { display: inline; }
+    .ballot-head .b, .ballot-bar .b, .dp-head .b, .rv-foot .b, .rv-pager .b, .rv-card-foot .b { min-height: 44px; }
+    .b-winner { display: grid; grid-template-columns: 1fr 1fr; }
+    .b-legend { float: none; grid-column: 1 / -1; }
+    .win-card { min-height: 56px; flex-wrap: wrap; justify-content: center; gap: 0 var(--s2); text-align: center; }
+    .win-card .muted { flex-basis: 100%; }
+    .pts-table thead { display: none; }
+    .pts-table, .pts-table tbody { display: block; }
+    .pts-table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s2); align-items: center; padding: var(--s2) var(--s3); margin-bottom: var(--s2); border: 1px solid var(--border); border-radius: var(--r-lg); }
+    .pts-table th, .pts-table td { border: 0; padding: 0; }
+    .pts-table .rank-cell { display: none; }
+    .pts-table .rank-sel-cell { display: block; }
+    .rank-sel-cell select { min-height: 44px; width: auto; }
+    .step { width: 44px; height: 44px; }
+    .stepper input { min-height: 44px; }
+    .ranks-set { display: inline; margin-left: var(--s2); }
+    .b-tag-btn { min-height: 44px; }
+    .draft-panel { position: fixed; inset: 0; z-index: var(--z-pop); border: 0; border-radius: 0; background: var(--canvas); padding: var(--s4); }
+    .rv-card:not(.rv-current) { display: none; }
+    .ballot-bar { margin: var(--s3) calc(-1 * var(--s3)) 0; border-radius: 0; border-width: 1px 0 0; }
+    .bar-status { flex-basis: 100%; margin-left: 0; }
+  }
+  /* The print sheet (4.10): built from data just before printing, hidden on screen. */
+  @media screen { #print-sheet { display: none; } }
+  @page tabula-landscape { size: landscape; }
   /* Windows high contrast (V12): side colours become real borders, and the current column gets the system highlight. */
   @media (forced-colors: active) {
     .flow .col.aff h3, .mapsheet .mh.aff, .sp.aff, .mcard.aff { border-top: 3px solid CanvasText; }
     .flow .col.neg h3, .mapsheet .mh.neg, .sp.neg, .mcard.neg { border-top: 3px dashed CanvasText; }
     .flow .col.is-current { outline: 2px solid Highlight; outline-offset: -2px; }
+    .flow-hl { display: none; }
     .rec-strip { border-top: 1px solid CanvasText; }
     .tip-box { border: 1px solid CanvasText; }
+    .b-tag-btn, .win-card, .rv-card, .ballot-bar, .draft-panel { border: 1px solid CanvasText; }
+    .win-card:has(input:checked) { outline: 2px solid Highlight; }
+    .tally-bar span { border-right: 2px solid Canvas; background: CanvasText; }
   }
   /* Print: the ballot only. tokens.css switches every colour to the light values (colour rule 7). */
   @media print {
@@ -438,6 +607,21 @@
     body { padding-bottom: 0; background: var(--panel); color: var(--text); }
     section#tab-ballot { display: block !important; }
     .card { border-color: var(--border-ctl); }
+    body.printing > :not(#print-sheet) { display: none !important; }
+    #print-sheet { display: block; font-size: var(--fs-2); line-height: var(--lh-read); color: var(--text); }
+    #print-sheet.landscape { page: tabula-landscape; }
+    #print-sheet h1 { font-family: var(--font-display); font-size: var(--fs-4); margin: 0 0 var(--s2); }
+    #print-sheet h2 { font-size: var(--fs-3); margin: var(--s4) 0 var(--s1); break-after: avoid; }
+    #print-sheet .ps-facts { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); margin: 0; }
+    #print-sheet .ps-facts dt { display: inline; font-weight: var(--fw-3); }
+    #print-sheet .ps-facts dt::after { content: ": "; }
+    #print-sheet .ps-facts dd { display: inline; margin: 0; }
+    #print-sheet .ps-win { font-size: var(--fs-3); font-weight: var(--fw-4); margin: 0; }
+    #print-sheet .ps-text { white-space: pre-wrap; }
+    #print-sheet table { break-inside: auto; }
+    #print-sheet th, #print-sheet td { border: 1px solid var(--border-ctl); }
+    #print-sheet .ps-flow { table-layout: fixed; }
+    #print-sheet .ps-flow td { white-space: pre-wrap; font: var(--fs-1)/var(--lh-grid) var(--font-mono); overflow-wrap: anywhere; }
   }
 </style>
 </head>
@@ -449,7 +633,6 @@
   </a>
   <nav id="nav" aria-label="Main"></nav>
   <span class="spacer"></span>
-  <div class="seg" role="group" aria-label="Reading level" data-tip="How the AI writes: expert debate language, or plain words for students and parents"><button data-read="expert">Expert</button><button data-read="plain">Plain</button></div>
   <div class="help-wrap">
     <button class="iconbtn" id="help-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Help and tours" data-tip="Help and tours">?</button>
     <div class="help-menu" id="help-menu" role="menu" hidden>
@@ -467,7 +650,7 @@
 </header>
 <main>
 <nav id="subnav" class="subnav" aria-label="Decide" hidden>
-  <button data-tab="eval">Live Eval</button><button data-tab="analysis">Analysis</button><button data-tab="ballot">Ballot</button><button data-tab="draft">Decision draft</button>
+  <button data-tab="eval">Live Eval</button><button data-tab="analysis">Analysis</button><button data-tab="ballot">Ballot</button>
 </nav>
 
 <section class="tab" id="tab-setup">
@@ -496,10 +679,10 @@
       </div>
     </div>
   </div>
-  <div class="card" id="reading-card">
-    <h2>Reading level</h2>
-    <div class="row"><div class="seg" role="group" aria-label="Reading level"><button data-read="expert">Expert (college debate)</button><button data-read="plain">Plain (Feynman style)</button></div>
-    <span class="muted">How the AI writes the Live Eval, analysis, decision and feedback. Plain is easier for students and parents, and good for ballot comments. Each level keeps its own saved answers, so you can switch back and forth. The verdict does not change, only the wording. The same switch is in the top bar.</span></div>
+  <div class="card" id="writing-card">
+    <h2>AI writing</h2>
+    <div class="row"><span class="row-label" id="read-round-label">How the AI writes</span><div class="seg" role="group" aria-labelledby="read-round-label" aria-describedby="read-round-help"><button data-read="expert" data-read-scope="round">Expert</button><button data-read="plain" data-read-scope="round">Plain</button></div></div>
+    <p class="muted field-help" id="read-round-help">Plain uses short sentences and everyday words, for students and parents. The decision stays the same. This choice is for this round; the default for new rounds is in Settings.</p>
   </div>
   <div class="card" id="docs-card">
     <h2>Round documents</h2>
@@ -512,8 +695,8 @@
     <table class="mt-2"><tbody id="doc-list"></tbody></table>
     <div class="sd-mount"></div>
   </div>
-  <div class="card">
-    <h2>Times</h2>
+  <div class="card" id="times-card">
+    <h2>Times and points</h2>
     <div class="grid">
       <div><label for="prep-min">Prep per team (minutes)</label>
         <div class="row nowrap"><input type="number" min="0" max="20" step="1" id="prep-min" style="width:5.5em">
@@ -521,6 +704,15 @@
       </div>
     </div>
     <p class="muted">NSDA uses 8-3-5 speeches and 8 minutes prep. Many local leagues use 4 or 5. Tabula remembers your choice for new rounds.</p>
+    <fieldset class="range-pick mt-3" aria-describedby="range-help">
+      <legend>Speaker points range</legend>
+      <div class="row">
+        <div><label for="pts-min">Lowest</label><input type="number" id="pts-min" class="num-sm" min="0" max="100" step="1" inputmode="numeric" aria-describedby="range-err"></div>
+        <div><label for="pts-max">Highest</label><input type="number" id="pts-max" class="num-sm" min="0" max="100" step="1" inputmode="numeric" aria-describedby="range-err"></div>
+      </div>
+      <p class="muted field-help" id="range-help">Most leagues use 25–30. Change it if your tournament uses another range.</p>
+      <p class="field-err" id="range-err" aria-live="polite"></p>
+    </fieldset>
   </div>
   <div class="row noprint">
     <button class="b" id="new-round">New round (clear all)</button>
@@ -559,7 +751,7 @@
   <input type="file" id="round-open" accept=".tab,application/json" hidden>
   <div class="flowbar"><button class="b small" id="speeches-btn" type="button" aria-expanded="false" aria-controls="tab-timer" hidden>Speeches</button><div class="flowtabs" id="flow-tabs"></div>
     <span class="tip-wrap"><button class="tip" type="button" aria-label="About the flow columns" aria-expanded="false" aria-controls="flow-legend">?</button>
-      <span class="tip-box" id="flow-legend" role="tooltip" hidden>Aff columns are blue and Neg columns are red; each column header names its speech. Keep each argument on the same line across columns so the clash lines up. "Now" marks the speech the clock is timing.</span></span></div>
+      <span class="tip-box" id="flow-legend" role="tooltip" hidden>Aff columns are blue and Neg columns are red; each column header names its speech. Keep each argument on the same line across columns so the clash lines up. "Now" marks the speech the clock is timing. Some typed marks get a light shade: * or "dropped", "conc", "ext", "turn" or L/T, and O/W.</span></span></div>
   <div class="flow" id="flow"></div>
 </section>
 <aside class="pane pane-right" id="insights" aria-label="Insights" data-mode="open">
@@ -578,7 +770,7 @@
       <h2>Live Eval</h2>
       <div class="row">
         <label class="row check-row"><input type="checkbox" id="auto-eval"> Update after each speech <span class="muted">(one AI call each)</span></label>
-        <button class="b primary" id="eval-go">Update now</button>
+        <button class="b primary" id="eval-go" aria-describedby="eval-cost eval-status">Run</button><span class="muted" id="eval-cost">One AI call</span>
       </div>
     </div>
     <p class="muted help-line">A read of the round so far, from the transcripts, flows and docs. It is advice for you, not a decision. <span id="eval-meta"></span></p>
@@ -588,15 +780,22 @@
 </section>
 
 <section class="tab" id="tab-analysis">
+  <div class="card" id="glance-card">
+    <h2>Round at a glance</h2>
+    <div class="glance">
+      <div><h3 class="glance-h">Prep used</h3><div id="glance-prep"></div></div>
+      <div><h3 class="glance-h">Key moments</h3><div id="glance-moments"></div></div>
+    </div>
+  </div>
   <div class="card">
     <div class="row card-head">
       <h2>Paradigm Lens</h2>
       <div class="row">
-        <select id="lens-pick" class="w-auto" aria-label="Paradigm to weigh by"></select>
-        <button class="b primary" id="lens-go">Weigh</button>
+        <label for="lens-pick" class="inline-label">Weigh as</label><select id="lens-pick" class="w-auto"></select>
+        <button class="b primary" id="lens-go">Run</button>
       </div>
     </div>
-    <p class="muted help-line">Weigh the round as a judge with this paradigm would. Each paradigm keeps its own saved answer, so switching is free. It only reruns when you click the button.</p>
+    <p class="muted help-line">Weigh the round as a judge with this paradigm would. Each paradigm keeps its own saved answer, so switching is free. It only runs again when you click Update. "(yours)" marks the paradigm set in Settings.</p>
     <details id="lens-custom-box" class="mt-3">
       <summary class="muted">My own paradigm (paste the full text)</summary>
       <textarea id="lens-custom" class="mt-2" rows="6" aria-label="My own paradigm" placeholder="Paste your judging paradigm here."></textarea>
@@ -607,7 +806,7 @@
   <div class="card">
     <div class="row card-head">
       <h2>Impact Calculus</h2>
-      <button class="b" id="impact-go">Refresh</button>
+      <button class="b" id="impact-go">Run</button>
     </div>
     <p id="impact-status" class="status-line" role="status" aria-live="polite"></p>
     <div id="impact-out" class="mt-3"></div>
@@ -617,7 +816,7 @@
       <h2>Round Map</h2>
       <div class="row">
         <div class="seg" role="group" aria-label="Map view"><button data-mapview="sheet">Flow sheet</button><button data-mapview="diagram">Diagram</button></div>
-        <button class="b" id="map-add">+ Argument</button><button class="b" id="map-copy">Copy Mermaid code</button><button class="b" id="map-go">Refresh</button>
+        <button class="b" id="map-add">+ Argument</button><button class="b" id="map-copy">Copy Mermaid code</button><button class="b" id="map-go">Run</button>
       </div>
     </div>
     <p class="muted help-line" id="map-legend">Each row follows one argument across the speeches. <span class="mk">↩ answers</span> <span class="mk">↻ turns</span> <span class="mk">→ extends</span> <span class="mk">= concedes</span> <span class="chip drop">Dropped</span> marks an argument the other side never answered.</p>
@@ -684,14 +883,16 @@
         <li>Run the 5-second test with someone talking at the podium before the 1AC.</li>
       </ul></details>
   </div>
-  <div class="card">
-    <h2>Settings</h2>
-    <div class="grid">
-      <div><label>Paradigm for the decision</label>
-        <select data-bind="ai.paradigm">
+  <div class="card" id="writing-settings">
+    <h2>AI writing and decisions</h2>
+    <div class="row"><span class="row-label" id="read-device-label">How the AI writes</span><div class="seg" role="group" aria-labelledby="read-device-label" aria-describedby="read-device-help"><button data-read="expert" data-read-scope="device">Expert</button><button data-read="plain" data-read-scope="device">Plain</button></div><span class="muted">Default for new rounds</span></div>
+    <p class="muted field-help" id="read-device-help">Plain uses short sentences and everyday words, for students and parents. The decision stays the same. Change it for one round in Round setup.</p>
+    <div class="grid mt-3">
+      <div><label for="paradigm-pick">Paradigm for the decision</label>
+        <select id="paradigm-pick" data-bind="ai.paradigm">
           <option value="lay">Lay / stock issues</option>
           <option value="policymaker">Policymaker</option>
-          <option value="tabula">Tabula rasa</option>
+          <option value="tabula">Blank slate (tabula rasa)</option>
           <option value="tech">Tech over truth (flow)</option>
           <option value="critical">Critical (K-friendly)</option>
           <option value="games">Games / skills</option>
@@ -716,67 +917,55 @@
   </div>
 </section>
 
-<section class="tab" id="tab-draft">
-  <div class="card">
-    <h2>Decision draft</h2>
-    <div class="mt-3"><label>Your own notes for the AI (optional)</label><textarea data-bind="ai.notes" rows="2" placeholder="Example: I don't vote on condo bad unless it's dropped. I thought the 2AR extended solvency well."></textarea></div>
-    <div class="mt-3"><label>Evidence / speech docs (optional, paste text)</label><textarea data-bind="ai.evidence" rows="4"></textarea></div>
-    <div class="row mt-3">
-      <button class="b primary" id="ai-go">Generate decision draft</button>
-      <button class="b" id="ai-copy-prompt">Copy prompt instead</button>
-      <span class="muted" id="ai-status"></span>
-    </div>
-  </div>
-  <div class="card">
-    <h2>Draft</h2>
-    <div class="out" id="ai-out"></div>
-    <div class="row mt-3">
-      <button class="b" id="ai-use">Use as RFD + winner on ballot</button>
-    </div>
-  </div>
-</section>
-
 <section class="tab" id="tab-ballot">
-  <div class="card noprint" id="filler-card">
-    <div class="row card-head">
-      <h2>AI ballot filler</h2>
-      <div class="row">
-        <label class="row check-row"><input type="checkbox" id="auto-ballot"> Refill after each speech <span class="muted">(one AI call each)</span></label>
-        <button class="b" id="fill-go">Fill ballot now</button>
+  <div class="ballot-layout" id="ballot-layout">
+    <div class="ballot-main">
+      <div class="card ballot-card">
+        <div class="ballot-head">
+          <h2 id="ballot-title">Ballot</h2>
+          <button class="b" id="draft-open" type="button" aria-expanded="false" aria-controls="draft-panel">Draft with AI</button>
+        </div>
+        <p class="muted ballot-note">Anything you type is yours. The AI will not change it.</p>
+        <fieldset class="b-winner">
+          <legend class="b-legend">Winner <span class="b-tag" data-tag="winner"></span></legend>
+          <label class="win-card aff"><input type="radio" name="winner" value="aff"> <span class="aff">Aff wins</span> <span id="w-aff" class="muted"></span></label>
+          <label class="win-card neg"><input type="radio" name="winner" value="neg"> <span class="neg">Neg wins</span> <span id="w-neg" class="muted"></span></label>
+        </fieldset>
+        <table class="pts-table">
+          <thead><tr><th scope="col">Speaker</th><th scope="col" id="pts-head">Points (25–30)</th><th scope="col" class="rank-h">1 (best)</th><th scope="col" class="rank-h">2</th><th scope="col" class="rank-h">3</th><th scope="col" class="rank-h">4</th><th scope="col"><span class="sr-only">Who set it</span></th></tr></thead>
+          <tbody id="pts-body"></tbody>
+        </table>
+        <p class="muted b-totals">Team totals: <span class="aff" id="sum-aff">–</span> · <span class="neg" id="sum-neg">–</span> <span class="ranks-set" id="ranks-set"></span></p>
+        <div class="b-field"><div class="b-label"><label for="b-rfd">Reason for decision (RFD), goes to everyone</label><span class="b-tag" data-tag="rfd"></span></div><textarea id="b-rfd" data-bind="ballot.rfd" rows="6"></textarea></div>
+        <div class="b-comments">
+          <div class="b-field"><div class="b-label"><label for="b-affFb" class="aff">Aff team comments <span id="fb-aff-code"></span></label><span class="b-tag" data-tag="affFb"></span></div><textarea id="b-affFb" data-bind="ballot.affFb" rows="5"></textarea></div>
+          <div class="b-field"><div class="b-label"><label for="b-negFb" class="neg">Neg team comments <span id="fb-neg-code"></span></label><span class="b-tag" data-tag="negFb"></span></div><textarea id="b-negFb" data-bind="ballot.negFb" rows="5"></textarea></div>
+        </div>
+        <div id="ballot-check" class="ballot-check" role="status"></div>
       </div>
     </div>
-    <p class="muted help-line">Drafts the winner, points, ranks, RFD and team comments from everything in the round. <strong>Anything you type on the ballot is yours: the AI will not change it.</strong> <button class="linkish" id="fill-unlock">Let the AI refill my fields too</button></p>
-    <label for="ballot-input" class="mt-3">Tell the AI (optional)</label>
-    <textarea id="ballot-input" data-bind="ballotInput" rows="2" placeholder="Example: I'm voting aff on the perm. 2N was clearly the best speaker. Be kinder to the 1A."></textarea>
-    <div class="row mt-2"><button class="b" id="fill-redo">Redo with my input</button><button class="b" id="fill-undo">Undo last fill</button><span id="fill-status" class="status-inline" role="status" aria-live="polite"></span></div>
-    <div id="fill-why" class="muted" style="margin-top:var(--s2);white-space:pre-wrap"></div>
+    <aside class="draft-panel noprint" id="draft-panel" aria-labelledby="draft-title" hidden>
+      <div class="dp-head"><h2 id="draft-title" tabindex="-1">Draft with AI</h2><button class="b small" id="draft-close" type="button">Close</button></div>
+      <div id="dp-compose">
+        <p class="muted dp-style" id="dp-style"></p>
+        <fieldset class="dp-picks" id="dp-picks"><legend>What should the AI draft?</legend></fieldset>
+        <label class="row check-row"><input type="checkbox" id="dp-feedback"> Use Live Eval feedback for the comments</label>
+        <label for="ballot-input" class="mt-3">Tell the AI (optional)</label>
+        <textarea id="ballot-input" data-bind="ballotInput" rows="3" placeholder="Example: I'm voting aff on the perm. 2N was the best speaker. Be kind to the 1A." aria-keyshortcuts="Meta+Enter Control+Enter"></textarea>
+        <div class="row mt-2"><button class="b primary" id="dp-go" type="button" aria-describedby="dp-cost">Draft</button><span class="muted" id="dp-cost">One AI call</span></div>
+        <p id="dp-status" class="status-line" role="status" aria-live="polite"></p>
+        <div class="dp-links"><button class="linkish" id="dp-prompt" type="button">Copy the prompt instead</button><button class="linkish" id="dp-undo" type="button" hidden>Undo the last insert</button></div>
+        <label class="row check-row mt-3"><input type="checkbox" id="auto-ballot"> Refill after each speech <span class="muted">(one AI call each)</span></label>
+        <details id="dp-why" class="mt-3"><summary>Why the AI chose this</summary><div id="dp-why-body" class="muted dp-why"></div></details>
+      </div>
+      <div id="dp-review" hidden></div>
+    </aside>
   </div>
-  <div class="card">
-    <h2 id="ballot-title">Ballot</h2>
-    <div class="row" style="gap:18px">
-      <label class="row check-row winner"><input type="radio" name="winner" value="aff"> <span class="aff">Aff wins</span> <span id="w-aff" class="muted"></span></label>
-      <label class="row check-row winner"><input type="radio" name="winner" value="neg"> <span class="neg">Neg wins</span> <span id="w-neg" class="muted"></span></label>
-    </div>
-    <div class="scroll mt-3">
-      <table>
-        <thead><tr><th>Speaker</th><th>Name</th><th>Points (25–30)</th><th>Rank (1 = best)</th></tr></thead>
-        <tbody id="pts-body"></tbody>
-      </table>
-    </div>
-    <p class="muted">Team totals: <span class="aff" id="sum-aff">–</span> · <span class="neg" id="sum-neg">–</span></p>
-    <div class="mt-3"><label class="row card-head">Reason for decision (RFD) — goes to everyone <button class="b noprint" data-copy="ballot.rfd">Copy</button></label><textarea data-bind="ballot.rfd" rows="8"></textarea></div>
-    <div class="grid mt-3">
-      <div><label class="row card-head"><span class="aff">Aff team comments <span id="fb-aff-code"></span></span> <button class="b noprint" data-copy="ballot.affFb">Copy</button></label><textarea data-bind="ballot.affFb" rows="6"></textarea></div>
-      <div><label class="row card-head"><span class="neg">Neg team comments <span id="fb-neg-code"></span></span> <button class="b noprint" data-copy="ballot.negFb">Copy</button></label><textarea data-bind="ballot.negFb" rows="6"></textarea></div>
-    </div>
-    <p class="muted noprint">For the tournament ballot: paste the RFD into "Reason for Decision", then each team's comments into that team's box.</p>
-    <div id="ballot-check"></div>
-    <div class="row noprint mt-3">
-      <button class="b primary" id="b-save">Save to Ballots</button>
-      <button class="b" id="b-tsv">Copy row for a spreadsheet</button>
-      <button class="b" id="b-csv">Download CSV</button>
-      <button class="b" id="print-btn">Print</button>
-    </div>
+  <div class="ballot-bar noprint" role="toolbar" aria-label="Ballot actions">
+    <button class="b primary" id="print-btn" type="button" aria-label="Print or save the ballot as PDF">Print / PDF</button>
+    <button class="b" id="copy-btn" type="button"><span class="wide-only">Copy for the tournament ballot</span><span class="narrow-only">Copy for tournament</span></button>
+    <button class="b" id="b-save" type="button" aria-label="Save to Ballots"><span class="wide-only">Save to Ballots</span><span class="narrow-only" aria-hidden="true">Save</span></button>
+    <span class="bar-status" id="save-status"></span>
   </div>
 </section>
 
@@ -884,6 +1073,41 @@
     </div>
     <p class="muted ask-foot" id="ask-foot"></p>
     <div class="ask-btns" id="ask-btns"></div>
+  </div>
+</div>
+<div id="print-dialog" class="overlay ask" hidden>
+  <div class="overlay-card ask-card" id="print-card" role="dialog" aria-modal="true" aria-labelledby="print-title" aria-describedby="print-help">
+    <h2 id="print-title">Print or save as PDF</h2>
+    <button class="iconbtn ask-x" id="print-x" type="button" aria-label="Close">×</button>
+    <fieldset class="dlg-set">
+      <legend>What to print</legend>
+      <label class="row check-row"><input type="checkbox" checked disabled aria-describedby="print-always"> Ballot <span class="muted" id="print-always">(always included)</span></label>
+      <div id="print-extras">
+        <label class="row check-row"><input type="checkbox" id="print-flow"> Include the flow</label>
+        <label class="row check-row"><input type="checkbox" id="print-tr"> Include transcripts</label>
+        <label class="row check-row"><input type="checkbox" id="print-ai"> Include AI notes (Live Eval and analysis)</label>
+      </div>
+      <p class="muted field-help" id="print-saved-note" hidden>A saved ballot prints the ballot only. Its flow and transcripts are not kept in Ballots.</p>
+    </fieldset>
+    <fieldset class="dlg-set mt-3">
+      <legend>Page</legend>
+      <div class="row">
+        <label class="row check-row"><input type="radio" name="print-orient" value="portrait" checked> Portrait</label>
+        <label class="row check-row"><input type="radio" name="print-orient" value="landscape"> Landscape</label>
+      </div>
+    </fieldset>
+    <p class="muted field-help" id="print-help">To get a PDF, choose "Save as PDF" in the print window.</p>
+    <div class="ask-btns"><button class="b" id="print-cancel" type="button">Cancel</button><button class="b primary" id="print-go" type="button">Print</button></div>
+  </div>
+</div>
+<div id="copy-sheet" class="overlay ask" hidden>
+  <div class="overlay-card ask-card copy-card" id="copy-card" role="dialog" aria-modal="true" aria-labelledby="copy-title" aria-describedby="copy-hint">
+    <h2 id="copy-title">Copy for the tournament ballot</h2>
+    <button class="iconbtn ask-x" id="copy-x" type="button" aria-label="Close">×</button>
+    <p class="muted" id="copy-hint">Paste each block into the matching box on your tournament's ballot site.</p>
+    <p class="warn" id="copy-warn" hidden></p>
+    <div id="copy-blocks"></div>
+    <div class="ask-btns"><button class="b" id="copy-done" type="button">Done</button></div>
   </div>
 </div>
 

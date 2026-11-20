@@ -49,7 +49,9 @@ test('flags bad ranks and rank/point mismatch', () => {
 test('flags missing winner, points, out-of-range points and empty RFD', () => {
   const issues = L.checkBallot({ pts: { '1A': 31 }, ranks: {}, rfd: ' ' });
   assert.ok(issues.includes('Pick a winner.'));
-  assert.ok(issues.some((m) => m.startsWith('1A points (31)')));
+  // CHANGED 2026-11-20 because the owner's spec 4.7 sets the out-of-range message to "1A has 31, outside 25–30.".
+  // Old check: assert.ok(issues.some((m) => m.startsWith('1A points (31)')));
+  assert.ok(issues.includes('1A has 31, outside 25–30.'));
   assert.ok(issues.includes('Give 2N speaker points.'));
   assert.ok(issues.some((m) => m.includes('RFD')));
 });

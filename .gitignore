@@ -6,3 +6,9 @@ BUSINESS-PLAN.md
 
 # Library reviewer names stay private until they agree to be named.
 docs/library/REVIEWERS.local.md
+
+# Picture tools: this computer's private settings (archive path). See docs/library/visuals/STYLE.md §6.
+docs/library/visuals/local.json
+
+# Owner legal and business drafts (operating agreements, entity papers). Never commit.
+private/

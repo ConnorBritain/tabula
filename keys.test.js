@@ -98,7 +98,9 @@ test('registry: every entry has an id, a label, a group and both key sets', () =
     assert.ok(e.id && !ids.has(e.id), 'unique id ' + e.id); ids.add(e.id);
     assert.ok(e.label && e.group, e.id + ' has a label and a group');
     assert.ok(e.keys && e.keys.mac && e.keys.other, e.id + ' has mac and other keys');
-    assert.ok(['flow', 'global'].includes(e.scope), e.id + ' has a known scope');
+    // CHANGED 2026-11-20 because the owner's spec 4.1 adds ⌘P / Ctrl+P with the Ballot scope (Slice 4, 4.10).
+    // Old check: assert.ok(['flow', 'global'].includes(e.scope), e.id + ' has a known scope');
+    assert.ok(['flow', 'ballot', 'global'].includes(e.scope), e.id + ' has a known scope');
   }
 });
 
@@ -175,7 +177,9 @@ test('keyAction: gives the action of the matched entry, and clockKeyAction / spe
 
 // Why: an entry with no known action would match a key and then do nothing, so the judge's key press is lost.
 test('registry: every entry names an action app.js knows', () => {
-  for (const e of K.REGISTRY) assert.ok(['clock', 'speeches', 'close'].includes(e.action), e.id + ' action ' + e.action);
+  // CHANGED 2026-11-20 because the owner's spec 4.1 adds ⌘P / Ctrl+P (action 'print', the 4.10 dialog), which app.js runs.
+  // Old check: for (const e of K.REGISTRY) assert.ok(['clock', 'speeches', 'close'].includes(e.action), e.id + ' action ' + e.action);
+  for (const e of K.REGISTRY) assert.ok(['clock', 'speeches', 'close', 'print'].includes(e.action), e.id + ' action ' + e.action);
 });
 
 // Why: a second path from key to action in app.js (the old ACTION table) could drift from the tested keyAction.
@@ -183,4 +187,14 @@ test('app.js (guard): the key handler uses K.keyAction and no separate action ta
   const app = require('node:fs').readFileSync(require('node:path').join(__dirname, 'app.js'), 'utf8');
   assert.ok(/K\.keyAction\(/.test(app));
   assert.equal(/K\.ACTION\b/.test(app), false);
+});
+
+// Why: ⌘P on the Ballot must open Tabula's print dialog (full text, light colours); elsewhere it must stay the browser's own print.
+test('⌘P / Ctrl+P runs print only on the Ballot tab, also while typing, and never under a dialog', () => {
+  const ballot = (x) => Object.assign({ place: 'decide', tab: 'ballot', focus: 'none', modal: false, singleKeysOn: true }, x || {});
+  assert.equal(K.keyAction({ key: 'p', meta: true }, ballot()), 'print');
+  assert.equal(K.keyAction({ key: 'p', ctrl: true }, ballot({ focus: 'text' })), 'print');
+  assert.equal(K.keyAction({ key: 'p', ctrl: true }, ballot({ tab: 'eval' })), null);
+  assert.equal(K.keyAction({ key: 'p', ctrl: true }, ballot({ modal: true })), null);
+  assert.equal(K.keyAction({ key: 'p' }, ballot()), null, 'a plain p types a p');
 });

@@ -41,10 +41,35 @@ test('every AI call path swaps names out before sending', () => {
   assert.match(callAI, /return L\.deanonymize\(/);
   assert.match(callAI, /docs = anonDocs\(docs\);/, 'text docs in callAI');
   assert.match(app, /const anonDocs = \(docs\) => docs\.map\(\(d\) => \(\{ \.\.\.d, name: L\.anonymize\(d\.name, R\)/, 'doc file names are swapped too, PDFs included');
-  assert.match(app, /buildUserContent\(anonDocs\(DOCS\), L\.anonymize\(L\.buildJudgePrompt\(R, DOCS\), R\)\)/, 'decision stream');
-  assert.match(app, /copy\(L\.anonymize\(L\.JUDGE_SYSTEM/, 'copy prompt');
-  // Only callAI and the decision stream talk to Claude directly; a new direct call must also swap names.
-  assert.equal((app.match(/messages\.(create|stream)\(/g) || []).length, 2);
+  // CHANGED 2026-11-20 because the owner removed the Decision draft tab and its streamed decision (spec 4.0, 4.3, Q-7, Q9);
+  // its "Copy prompt instead" became the draft panel's "Copy the prompt instead", which copies the ballot prompt.
+  // Old checks:
+  //   assert.match(app, /buildUserContent\(anonDocs\(DOCS\), L\.anonymize\(L\.buildJudgePrompt\(R, DOCS\), R\)\)/, 'decision stream');
+  //   assert.match(app, /copy\(L\.anonymize\(L\.JUDGE_SYSTEM/, 'copy prompt');
+  //   // Only callAI and the decision stream talk to Claude directly; a new direct call must also swap names.
+  //   assert.equal((app.match(/messages\.(create|stream)\(/g) || []).length, 2);
+  assert.match(app, /const text = L\.anonymize\(BALLOT_SYSTEM\(\)/, 'copy the prompt instead');
+  // Only callAI talks to Claude directly; a new direct call must also swap names.
+  assert.equal((app.match(/messages\.(create|stream)\(/g) || []).length, 1);
+});
+
+// Why: "Copy the prompt instead" pastes into any AI chat; if the ballot prompt or the docs sit outside the name swap, student names leak with no API call to catch it.
+test('Copy the prompt instead swaps names in the whole copied text', () => {
+  const start = app.indexOf("$('#dp-prompt').addEventListener(");
+  assert.ok(start > 0, 'the copy-the-prompt handler exists');
+  const handler = app.slice(start, app.indexOf('\n});\n', start));
+  const open = handler.indexOf('const text = L.anonymize(');
+  assert.ok(open > 0, 'the copied text is built inside one L.anonymize( call');
+  let depth = 0, end = -1;
+  for (let i = open + 'const text = L.anonymize'.length; i < handler.length; i++) {
+    if (handler[i] === '(') depth++;
+    else if (handler[i] === ')' && --depth === 0) { end = i; break; }
+  }
+  const inside = handler.slice(open, end + 1);
+  for (const part of ['BALLOT_SYSTEM()', 'textDocs', 'L.buildBallotPrompt(R, DOCS']) assert.ok(inside.includes(part), part + ' is inside the name swap');
+  assert.match(inside, /, R\)$/, 'the swap uses this round');
+  assert.equal((handler.match(/copy\(/g) || []).length, 1, 'one copy call');
+  assert.match(handler, /await copy\(text\)/, 'it copies the swapped text');
 });
 
 // Why: the security rule (CSP) forbids inline scripts; an inline script or onclick= would silently stop working on the hosted site.

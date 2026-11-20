@@ -3,7 +3,7 @@
 (function (root) {
   'use strict';
 
-  // place: which part of the app to open first ('setup', 'flow', 'eval', 'analysis', 'ballot', 'draft', 'log', 'ai').
+  // place: which part of the app to open first ('setup', 'flow', 'eval', 'analysis', 'ballot', 'log', 'ai').
   // target: the part of the screen to highlight. Keep each step short: one idea, a few sentences.
   const TOURS = {
     main: {
@@ -14,8 +14,8 @@
         { place: 'flow', target: '.rb-ctl', title: 'Run the clock', body: 'Start and pause the speech clock here. On Flow, Space works when nothing is selected, and ⌘ Enter or Ctrl+Enter works even while you type. Prep clocks sit on the right.' },
         { place: 'flow', target: '.rb-rec', title: 'Record the speech', body: 'Tick Transcribe. Recording runs only while the speech clock runs. A short bar shows the mic level, and a note warns you if no words come through.' },
         { place: 'flow', target: '#tab-flow', title: 'Flow the round', body: '"My flow" is yours to type. "AI flow" fills itself from the transcript and docs. You can edit any AI cell, and your edits stick.' },
-        { place: 'eval', target: '#subnav', title: 'Decide', body: 'After the round: the Live Eval, deeper analysis, the ballot and a decision draft. Each one works with or without AI.' },
-        { place: 'ballot', target: '#filler-card', title: 'Fill the ballot', body: 'The AI can draft points, ranks, the RFD and comments. Anything you type is yours, and the AI will not change it. Copy buttons put each box into the tournament ballot.' },
+        { place: 'eval', target: '#subnav', title: 'Decide', body: 'After the round: the Live Eval, deeper analysis and the ballot. Each one works with or without AI.' },
+        { place: 'ballot', target: '#draft-open', title: 'Fill the ballot', body: 'Type the ballot yourself, or let the AI draft it. You check each AI field before it goes in, and anything you type stays yours. Then print it, or copy each box into the tournament ballot.' },
         { place: null, target: '#help-btn', title: 'Help is always here', body: 'Click ? to replay this tour, or to get a short tour of the page you are on. Connect AI any time with the gear; without AI, the timers, flow and ballot still work.' },
       ],
     },
@@ -33,8 +33,8 @@
       steps: [
         { place: 'eval', target: '#tab-eval', title: 'Live Eval', body: 'A read of the round so far: the leaning, key issues, what each side needs, and feedback for each debater.' },
         { place: 'analysis', target: '#tab-analysis', title: 'Analysis', body: 'Weigh the round under any paradigm (including your own), compare the impacts, and see the round as a map you can edit.' },
-        { place: 'ballot', target: '#filler-card', title: 'Ballot filler', body: 'Drafts the whole ballot. Tell it what you think in the box, and it redoes the draft with your view. Fields you typed stay yours.' },
-        { place: 'draft', target: '#tab-draft', title: 'Decision draft', body: 'A full written decision you can read, then send to the ballot as the RFD.' },
+        { place: 'ballot', target: '.ballot-card', title: 'Ballot', body: 'Winner, points, ranks, the RFD and comments. A "Yours" tag marks what you typed; the AI will not change it. Print, copy or save from the bar at the bottom.' },
+        { place: 'ballot', target: '#draft-open', title: 'Draft with AI', body: 'Pick what the AI should draft and tell it your view. Nothing changes until you review the draft and insert it.' },
       ],
     },
     settings: {
@@ -49,7 +49,8 @@
       steps: [
         { place: 'setup', target: '#round-card', title: 'Round details', body: 'The tournament, round, judge and resolution. They show on the ballot and in Ballots.' },
         { place: 'setup', target: '#docs-card', title: 'Round documents', body: 'Add speech docs and pick which speech each one belongs to. The AI maps them onto that speech on the flow.' },
-        { place: 'setup', target: '#reading-card', title: 'Reading level', body: 'Expert writes like a college judge. Plain writes for students and parents, which is good for ballot comments.' },
+        { place: 'setup', target: '#writing-card', title: 'How the AI writes', body: 'Expert writes like a college judge. Plain uses short sentences and everyday words, for students and parents. The decision stays the same.' },
+        { place: 'setup', target: '#times-card', title: 'Times and points', body: 'Prep time for each team, and the speaker points range your tournament uses. Most leagues use 25–30.' },
       ],
     },
     log: {

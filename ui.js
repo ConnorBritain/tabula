@@ -196,6 +196,48 @@
   }, true);
   escLayer('ask', 90, askIsOpen, () => askState.close());
 
+  // ---------- a dialog with its own markup (Slice 4: Print / PDF and Copy for the tournament ballot) ----------
+  // The same rules as ask(): the page behind is inert, Tab stays inside, Esc / × / the dim layer close it, and focus
+  // goes back to the opener. modalDialog(wrap, card, { rank, onClose }) -> { open(focusEl), close(), isOpen() }.
+  function modalDialog(wrap, card, opts) {
+    const o = opts || {};
+    let opener = null, wasInert = [], behind = [];
+    const isOpen = () => !wrap.hidden;
+    // A radio group is one Tab stop (arrow keys move inside it): keep only its checked radio, or its first when none is.
+    const oneStop = (el) => el.type !== 'radio' || !el.name || (() => {
+      const group = [...card.querySelectorAll('input[type="radio"]')].filter((r) => r.name === el.name);
+      return el.checked || (!group.some((r) => r.checked) && group[0] === el);
+    })();
+    const focusables = () => [...card.querySelectorAll('button, input, select, textarea, a[href], summary')].filter((el) => !el.disabled && !el.closest('[hidden]') && el.offsetParent !== null && oneStop(el));
+    const trap = (e) => {
+      if (e.key !== 'Tab') return;
+      const f = focusables(); if (!f.length) return;
+      e.preventDefault(); f[L.trapNext(f.indexOf(document.activeElement), f.length, e.shiftKey)].focus();
+    };
+    const onBackdrop = (e) => { if (e.target === wrap) close(); };
+    function open(focusEl) {
+      if (isOpen()) return;
+      opener = document.activeElement;
+      behind = [...document.querySelectorAll('header, main, .roundbar, #tr-drawer')];
+      wasInert = behind.map((el) => el.inert);
+      behind.forEach((el) => { el.inert = true; });
+      wrap.hidden = false;
+      card.addEventListener('keydown', trap); wrap.addEventListener('mousedown', onBackdrop);
+      const first = focusEl || focusables()[0];
+      if (first) first.focus();
+    }
+    function close() {
+      if (!isOpen()) return;
+      wrap.hidden = true;
+      card.removeEventListener('keydown', trap); wrap.removeEventListener('mousedown', onBackdrop);
+      behind.forEach((el, i) => { el.inert = wasInert[i]; });
+      if (o.onClose) o.onClose();
+      if (opener && opener.focus && document.contains(opener)) opener.focus();
+    }
+    escLayer(o.name || 'modal', o.rank || 85, isOpen, close);
+    return { open, close, isOpen };
+  }
+
   // ---------- tips: one module for label tips and help bubbles (spec 4.4, V11) ----------
   // Label tip: any element with data-tip="…". It shows after L.tipDelay (1 s on sheet tabs, 0.5 s on the rest), at once
   // on keyboard focus, and after a 500 ms long press on touch. It hides on mouse-out, blur, scroll, a key press or Esc.
@@ -325,5 +367,5 @@
     pinned = null;
   });
 
-  root.TabulaUI = { toast, dismissToast, announce, ask, askIsOpen, escLayer };
+  root.TabulaUI = { toast, dismissToast, announce, ask, askIsOpen, escLayer, modalDialog };
 })(window);

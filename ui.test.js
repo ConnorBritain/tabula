@@ -75,3 +75,13 @@ test('index.html loads ui.js after logic.js and before app.js, and the local hel
   assert.ok(at('ui.js') < html.indexOf('src="app.js"'), 'ui.js before app.js');
   assert.ok(/'\/ui\.js': 'ui\.js'/.test(fs.readFileSync(path.join(__dirname, 'bridge.mjs'), 'utf8')), 'bridge FILES lists /ui.js');
 });
+
+// Why: a radio group with one Tab stop per option makes a keyboard judge Tab through every choice in the print dialog; the platform rule is one stop, arrows inside.
+test('modalDialog: a radio group is one Tab stop in the focus trap', () => {
+  const ui = fs.readFileSync(path.join(__dirname, 'ui.js'), 'utf8');
+  const start = ui.indexOf('function modalDialog(');
+  const body = ui.slice(start, ui.indexOf('\n  }\n', start));
+  assert.match(body, /const oneStop = /, 'the trap has a radio-group rule');
+  assert.match(body, /el\.checked \|\| \(!group\.some\(\(r\) => r\.checked\) && group\[0\] === el\)/, 'only the checked radio, or the first when none is');
+  assert.match(body, /const focusables = \(\) => [^\n]*&& oneStop\(el\)\)/, 'the Tab list uses the rule');
+});

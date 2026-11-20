@@ -71,3 +71,14 @@ test('the Flow tour names the speeches pane the way the page does', () => {
   assert.equal(step.title, 'Speeches and docs');
   assert.match(step.body, /Open the transcript from the round bar/);
 });
+
+// Why: Slice 4 removed the Decision draft tab, the reading-level card and the old ballot filler card; a tour step on any of them highlights empty space.
+test('no tour step targets an element Slice 4 removed, or the removed draft place', () => {
+  const removed = ['#tab-draft', '#reading-card', '#filler-card'];
+  for (const [name, tour] of Object.entries(T.TOURS)) {
+    for (const st of tour.steps) {
+      assert.ok(!removed.includes(st.target), `${name}: "${st.title}" targets the removed ${st.target}`);
+      assert.notEqual(st.place, 'draft', `${name}: "${st.title}" opens the removed Decision draft tab`);
+    }
+  }
+});

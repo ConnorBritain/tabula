@@ -886,7 +886,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
 - **Undo:** only one Undo waits at a time. A new one makes the old one final. After Undo, a toast says "Restored." (or a message for that feature). The button's name is "Undo: {what}". Keyboard users reach it with Tab or through the palette row "Undo: {what}".
 - **Look:**
   - info: `--accent` fill, `--on-accent` text;
-  - error: `--panel` fill, a 4 px `--error` left edge, and a "!" icon;
+  - error: `--panel` fill, a 1 px `--border-ctl` edge, and a "!" icon in `--error` (CHANGED 2026-11-20 at the owner's request: no coloured left stripes anywhere);
   - × button: `aria-label="Dismiss message"`;
   - 150 ms fade (none under reduced motion).
 - **Place:** bottom centre at `calc(var(--rb-h)+12px)`. With the drawer open, it adds `min(42dvh,420px)+20px`. Width `min(560px,100vw−32px)`. Narrow layout: 16 px from each side. Layer `--z-toast`. The container is `pointer-events:none`, and each toast is `auto`. Hidden in print.

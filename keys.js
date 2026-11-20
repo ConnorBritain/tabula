@@ -8,7 +8,7 @@
   // single: a one-key shortcut. These obey the single-key off switch (WCAG 2.1.4). Modifier keys always work.
   // typing: it also works while the focus is in a text box.
   // noFocus: it works only when nothing has focus (Space keeps its native job on buttons and boxes).
-  // scope: 'flow' (only on the Flow place) or 'global'.
+  // scope: 'flow' (only on the Flow place), 'ballot' (only on Decide → Ballot, spec 4.1) or 'global'.
   // action: what the key does. Two keys can run the same action.
   // label, group and palette are the fields spec 4.1 names for the shortcut sheet and palette (Slice 5).
   const REGISTRY = [
@@ -16,6 +16,8 @@
     { id: 'clock.toggle.mod', action: 'clock', label: 'Start or pause the clock, also while typing', group: 'Clock', scope: 'flow', keys: { mac: 'Meta+Enter', other: 'Control+Enter' }, single: false, typing: true, noFocus: false, palette: false },
     { id: 'pane.speeches', action: 'speeches', label: 'Show or hide the speeches pane', group: 'Panes', scope: 'flow', keys: { mac: '[', other: '[' }, single: true, typing: false, noFocus: false, palette: false },
     { id: 'pane.speeches.mod', action: 'speeches', label: 'Show or hide the speeches pane, also while typing', group: 'Panes', scope: 'flow', keys: { mac: 'Meta+\\', other: 'Control+\\' }, single: false, typing: true, noFocus: false, palette: false },
+    // ⌘P / Ctrl+P on the Ballot opens the Print / PDF dialog (spec 4.1, 4.10) instead of the browser's print window.
+    { id: 'ballot.print', action: 'print', label: 'Print or save the ballot as PDF', group: 'Ballot', scope: 'ballot', keys: { mac: 'Meta+p', other: 'Control+p' }, single: false, typing: true, noFocus: false, palette: true },
     // Esc is run by the one Esc stack in app.js (it closes only the top layer). It is listed here so the
     // shortcut sheet and the clash tests see it.
     { id: 'layer.close', action: 'close', label: 'Close the top layer', group: 'General', scope: 'global', keys: { mac: 'Escape', other: 'Escape' }, single: false, typing: true, noFocus: false, palette: false, esc: true },
@@ -75,10 +77,11 @@
     return String(ev.key).toLowerCase() === key.toLowerCase();
   }
 
-  // May this entry run now? ctx: { place, focus, modal, singleKeysOn }.
+  // May this entry run now? ctx: { place, tab, focus, modal, singleKeysOn }. tab: the open tab (for the 'ballot' scope).
   function allowed(entry, ctx) {
     if (ctx.modal) return false; // a dialog, tour, welcome or node editor is open: shortcuts are off
     if (entry.scope === 'flow' && ctx.place !== 'flow') return false;
+    if (entry.scope === 'ballot' && ctx.tab !== 'ballot') return false;
     if (entry.single && ctx.singleKeysOn === false) return false;
     if (entry.noFocus && ctx.focus !== 'none') return false;
     if (!entry.typing && ctx.focus === 'text') return false;
@@ -97,7 +100,7 @@
     return null;
   }
 
-  // The action a key press runs ('clock', 'speeches') or null. app.js calls only this.
+  // The action a key press runs ('clock', 'speeches', 'print') or null. app.js calls only this.
   function keyAction(ev, ctx) {
     const id = matchKey(ev, ctx);
     const entry = id && REGISTRY.find((e) => e.id === id);
