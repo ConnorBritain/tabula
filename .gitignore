@@ -12,3 +12,6 @@ docs/library/visuals/local.json
 
 # Owner legal and business drafts (operating agreements, entity papers). Never commit.
 private/
+
+# Wrangler local cache (created when wrangler runs in this folder).
+.wrangler/
