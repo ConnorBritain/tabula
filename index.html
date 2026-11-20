@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tabula</title>
-<meta name="description" content="Tabula: a free judging tool for high school policy debate. Timers, flows, live transcripts, AI analysis and ballots.">
+<title data-brand-text="{name}">Tabula Debate</title>
+<meta name="description" content="Tabula Debate: a free judging tool for high school policy debate. Timers, flows, live transcripts, AI analysis and ballots.">
 <link rel="icon" type="image/png" href="assets/tabula-icon-64.png">
 <link rel="preload" href="assets/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin>
 <script src="assets/theme-boot.js"></script>
@@ -26,7 +26,11 @@
   .brand { display: inline-flex; align-items: center; gap: var(--s2); color: var(--text); text-decoration: none; margin-right: var(--s2); }
   .brand img { display: block; height: 26px; width: auto; }
   .wordmark, .display { font-family: var(--font-display); font-weight: var(--fw-5); font-style: italic; letter-spacing: -0.02em; }
-  .wordmark { font-size: var(--fs-4); line-height: 1; }
+  .wordmark { font-size: var(--fs-4); line-height: 1; white-space: nowrap; }
+  /* The wordmark is the family name and the product name on one line (owner, 2026-11-20): "Tabula" in the display
+     italic, the product word in the same face and size, upright and lighter. One colour; no accent. assets/brand.js
+     holds the product name. The two words always show together: never a bare "Tabula". */
+  .wordmark .wm-product { font-style: normal; font-weight: var(--fw-2); margin-left: var(--s0); }
   nav { display: flex; flex-wrap: nowrap; gap: var(--s0); min-width: 0; }
   /* The main and Decide tabs are quiet buttons (.b.quiet). These rules add only the type size and the selected tab's
      --border fill, which stays on hover. */
@@ -248,10 +252,19 @@
   /* The edge strip runs the full height of the grid row (the pane stretches; its max-height still caps it). */
   #workspace.ins-folded .pane-right { align-self: stretch; }
   #insights .ins-edge { display: flex; justify-content: center; align-items: flex-start; box-sizing: border-box; height: 100%; padding: var(--s2) 0; border-left: 1px solid var(--border); }
-  /* "Insights" is a quiet button (.b.quiet); "Connect AI" is a link-style action (.linkish). This rule is layout only. */
+  /* "Insights" is a quiet button (.b.quiet); "Connect AI" is a small outlined button (.b.small). This rule is layout only. */
   #insights .ins-edge-btn { writing-mode: vertical-rl; min-width: var(--edge-w); min-height: 120px; padding: var(--s2) 0; border-radius: var(--r-md); font-size: var(--fs-2); font-weight: var(--fw-3); }
-  .ins-edge-btn.linkish { text-decoration: underline; color: var(--text); }
-  .ins-edge-btn.linkish:hover { background: var(--sunk); }
+  /* The Connect AI prompt (owner, 2026-11-20). In the 32 px edge it is the vertical button alone: the reason line has
+     no room there. Under 1180 px it is one compact row on the sunk colour, edged on all four sides (no stripe):
+     the reason, then the button. It is as wide as its words (a compact card, centred under the grid), not a
+     page-wide bar. app.js hides the whole row (the hidden attribute) when AI is ready. */
+  #insights .ins-cta { display: contents; }
+  #insights .ins-cta[hidden], #insights .ins-cta-text { display: none; }
+  @media (max-width: 1180px) {
+    #insights .ins-cta { display: flex; flex: 0 1 auto; max-width: 100%; align-items: center; gap: var(--s3); padding: var(--s1) var(--s1) var(--s1) var(--s3); background: var(--sunk); border: 1px solid var(--border); border-radius: var(--r-md); }
+    #insights .ins-cta-text { display: block; flex: 1; min-width: 0; font-size: var(--fs-2); color: var(--text-2); }
+    #insights .ins-cta .ins-edge-btn { min-height: var(--h-sm); padding: 0 var(--s3); }
+  }
   .ins-lean { font-family: var(--font-display); font-weight: var(--fw-5); font-size: var(--fs-3); }
   .ins-meta { margin: var(--s0) 0 var(--s2); }
   .ins-why { margin: 0 0 var(--s2); }
@@ -289,9 +302,12 @@
   .start-panel[hidden] { display: none; }
   .start-panel h2 { font-family: var(--font-display); font-size: var(--fs-5); font-weight: var(--fw-5); margin: var(--s3) 0 var(--s2); }
   .start-panel p { margin: 0 0 var(--s4); }
+  .start-panel .start-alt { margin: var(--s4) 0 0; font-size: var(--fs-2); color: var(--text-2); }
+  .start-panel .start-alt .linkish { margin-left: var(--s1); } /* room for the 2 px focus ring after "round?" */
   .start-mark { display: block; margin: 0 auto; }
-  .start-actions { display: flex; flex-wrap: wrap; gap: var(--s2); justify-content: center; }
-  .start-actions .b { display: inline-flex; align-items: center; margin: 0; cursor: pointer; }
+  /* Owner, 2026-11-20: the two real starts are the buttons, in one row; opening a saved file is the quiet line under them. */
+  .start-actions { display: flex; flex-wrap: wrap; gap: var(--s3); justify-content: center; }
+  .start-actions .b { display: inline-flex; align-items: center; justify-content: center; min-height: var(--h-lg); margin: 0; cursor: pointer; }
   label.b { display: inline-flex; align-items: center; margin: 0; cursor: pointer; color: var(--text); font-size: var(--fs-2); font-weight: var(--fw-3); }
   #tab-flow.starting > :not(.start-panel):not(#round-open) { display: none !important; }
   /* The Flow tab row starts with the Speeches button (spec 1.5); app.js shows it when the pane is not inline. */
@@ -332,14 +348,15 @@
   @media (min-width: 820px) and (max-width: 1180px) {
     #workspace, #workspace.no-left { grid-template-columns: minmax(0, 1fr); }
     #workspace .pane-right { grid-column: 1 / -1; position: static; max-height: none; }
-    #insights .ins-edge { height: auto; padding: 0; border-left: 0; border-top: 1px solid var(--border); justify-content: flex-start; }
+    #insights .ins-edge { height: auto; padding: 0; margin-top: var(--s2); border-left: 0; justify-content: center; }
     #insights .ins-edge-btn { writing-mode: horizontal-tb; min-height: var(--h-md); min-width: 0; padding: 0 var(--s2); }
   }
   @media (max-width: 819.98px) {
     .workspace, .workspace.no-left { grid-template-columns: minmax(0, 1fr); }
     .pane-left, .pane-right { position: static; max-height: none; }
-    #insights .ins-edge { height: auto; padding: 0; border-left: 0; border-top: 1px solid var(--border); justify-content: flex-start; }
+    #insights .ins-edge { height: auto; padding: 0; margin-top: var(--s2); border-left: 0; justify-content: center; }
     #insights .ins-edge-btn { writing-mode: horizontal-tb; min-height: 44px; min-width: 0; padding: 0 var(--s2); }
+    #insights .ins-cta .ins-edge-btn { min-height: 44px; } /* touch size on a phone */
     .roundbar { gap: var(--s1) var(--s3); padding: var(--s2) var(--s3); }
     .roundbar .clock { font-size: var(--fs-5); }
     .rb-status { max-width: 180px; }
@@ -689,6 +706,11 @@
   .study-card { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); padding: var(--s1) var(--s4); background: var(--panel); border-top: 1px solid var(--border-ctl); font-size: var(--fs-2); font-weight: var(--fw-3); font-variant-numeric: tabular-nums; }
   .study-x { margin-left: auto; }
   .study-card[hidden] { display: none; }
+  /* Where the header row has no room for "Tabula Debate" beside the ? and gear (under 360 px), or beside the clock
+     chip too (under 480 px, while a clock runs off the Flow tab), it shows the mark alone; the link keeps its name for
+     screen readers. The whole wordmark goes, never only the product word. */
+  @media (max-width: 359.98px) { .hrow .wordmark { display: none; } }
+  @media (max-width: 479.98px) { .hrow:has(> .clock-chip:not([hidden])) .wordmark { display: none; } }
   /* 5.6 The narrow layout (under 820 px, Q-10). a: row 1 (48 px) brand mark, chip, offline dot, ?, gear; row 2 (40 px)
      four equal nav buttons; the strip under it. b: Flow is the clock view (no grid, panes or round bar). */
   @media (max-width: 819.98px) {
@@ -697,7 +719,7 @@
     .hrow .net-note { grid-area: net; } .hrow .help-wrap { grid-area: help; } .hrow #settings-btn { grid-area: gear; }
     .hrow nav { grid-area: nav; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .hrow nav button { min-height: var(--h-lg); padding: 0 var(--s1); }
-    .hrow .wordmark { display: none; }
+    .hrow .wordmark { font-size: var(--fs-3); }
     .hrow .iconbtn { width: 44px; height: 44px; }
     .clock-chip { min-height: 44px; padding: 0 var(--s2); }
     .net-text { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
@@ -761,9 +783,9 @@
 <body>
 <header>
   <div class="hrow">
-  <a class="brand" href="#" aria-label="Tabula: go to Flow" data-tab-link="flow">
+  <a class="brand" href="#" aria-label="Tabula Debate: go to Flow" data-brand-aria="{name}: go to Flow" data-tab-link="flow">
     <img class="on-light" src="assets/tabula-mark-black.png" alt="" width="30" height="24"><img class="on-dark" src="assets/tabula-mark-white.png" alt="" width="30" height="24">
-    <span class="wordmark">Tabula</span>
+    <span class="wordmark"><span class="wm-family">Tabula</span> <span class="wm-product" data-brand-product>Debate</span></span>
   </a>
   <nav id="nav" aria-label="Main"></nav>
   <span class="spacer"></span>
@@ -779,7 +801,7 @@
       <button class="b quiet" role="menuitem" type="button" tabindex="-1" data-help="keys">Keyboard shortcuts <kbd class="menu-key">?</kbd></button>
       <hr class="help-sep">
       <a role="menuitem" id="library-link" href="learn/" target="_blank" rel="noopener" tabindex="-1" aria-label="Debate library (opens a new tab)">Debate library</a>
-      <a role="menuitem" href="about.html" target="_blank" rel="noopener" tabindex="-1" aria-label="About Tabula (opens a new tab)">About Tabula</a>
+      <a role="menuitem" href="about.html" target="_blank" rel="noopener" tabindex="-1" aria-label="About Tabula Debate (opens a new tab)" data-brand-aria="About {name} (opens a new tab)" data-brand-text="About {name}">About Tabula Debate</a>
     </div>
   </div>
   <button class="iconbtn" id="settings-btn" data-tab="ai" aria-label="Settings" data-tip="Settings"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
@@ -861,7 +883,7 @@
   <div class="row noprint">
     <button class="b" id="new-round">New round (clear all)</button>
     <button class="b" id="round-save">Save round file (.tab)</button>
-    <label for="round-open" class="b">Open round file…</label>
+    <button class="b" id="setup-open" type="button" aria-controls="round-open">Open round file…</button>
     <span class="muted">Everything saves in this browser as you type. A .tab file holds this whole round, with its docs, to keep or move.</span>
   </div>
 </section>
@@ -908,10 +930,10 @@
     <h2>Ready for a round</h2>
     <p class="muted">Set up the teams first, or open a round you saved. You can also just start flowing and fill in the names later.</p>
     <div class="start-actions">
-      <button class="b primary" id="start-new">Set up a new round</button>
-      <label for="round-open" class="b" id="start-open">Open a round file (.tab)</label>
-      <button class="b" id="start-flow">Just start flowing</button>
+      <button class="b primary" id="start-new" type="button">Set up a new round</button>
+      <button class="b" id="start-flow" type="button">Just start flowing</button>
     </div>
+    <p class="start-alt">Have a saved round? <button class="linkish" id="start-open" type="button" aria-controls="round-open">Open a round file (.tab)</button></p>
   </div>
   <input type="file" id="round-open" accept=".tab,application/json" hidden>
   <div class="flowbar"><button class="b small" id="speeches-btn" type="button" aria-expanded="false" aria-controls="tab-timer" hidden>Speeches</button><div class="flowtabs" id="flow-tabs"></div>
@@ -923,7 +945,7 @@
   <div class="pane-head"><h2>Insights</h2><button class="b small" data-pane="right" aria-label="Hide the insights pane">Hide</button></div>
   <div id="insights-body"></div>
   <div class="ins-edge">
-    <button class="ins-edge-btn linkish" type="button" id="ins-connect" data-tab-go="ai" aria-label="Connect AI in Settings to get live insights">Connect AI</button>
+    <div class="ins-cta" id="ins-cta" data-ai="liveEval"><span class="ins-cta-text">Live insights need AI.</span><button class="b small ins-edge-btn" type="button" id="ins-connect" data-tab-go="ai" aria-label="Connect AI in Settings to get live insights">Connect AI</button></div>
     <button class="b quiet ins-edge-btn" type="button" id="ins-show" data-pane="right" aria-label="Show the insights pane">Insights</button>
   </div>
 </aside>
@@ -1167,7 +1189,7 @@
   </div>
 </section>
 
-  <p class="app-foot noprint"><a href="about.html" target="_blank" rel="noopener">About Tabula</a> · Made by Connor England</p>
+  <p class="app-foot noprint"><a href="about.html" target="_blank" rel="noopener" data-brand-text="About {name}">About Tabula Debate</a> · © <span data-year>2026</span> <span data-brand-text="{parent}">Tabula Speech</span></p>
 </main>
 <section class="tr-drawer noprint" id="tr-drawer" aria-label="Transcript" hidden>
   <div class="tr-drawer-head"><h2 id="tr-drawer-title">Transcript: <span id="tr-drawer-label"></span></h2>
@@ -1318,6 +1340,7 @@
 <script src="clipqueue.js"></script>
 <script src="keys.js"></script>
 <script src="ui.js"></script>
+<script defer src="assets/brand.js"></script>
 <script defer src="js/core.js"></script>
 <script defer src="js/clock.js"></script>
 <script defer src="js/recording.js"></script>

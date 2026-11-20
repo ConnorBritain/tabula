@@ -27,7 +27,9 @@ test('5.1 top bar: brand to Flow · nav · spacer · chip · offline note · ? �
 test('5.3 the ? menu: the items in order, two separators, no hint paragraph', () => {
   const menu = between('id="help-menu"', '</div>');
   const items = [...menu.matchAll(/role="menuitem"[^>]*>([^<]+)/g)].map((m) => m[1].trim());
-  assert.deepEqual(items, ['Take the full tour', 'Tour this page', 'Search and commands', 'Keyboard shortcuts', 'Debate library', 'About Tabula']);
+  // CHANGED 2026-11-20 because the owner asked for the product name to show. Old check:
+  //   assert.deepEqual(items, ['Take the full tour', 'Tour this page', 'Search and commands', 'Keyboard shortcuts', 'Debate library', 'About Tabula']);
+  assert.deepEqual(items, ['Take the full tour', 'Tour this page', 'Search and commands', 'Keyboard shortcuts', 'Debate library', 'About Tabula Debate']);
   assert.equal((menu.match(/<hr class="help-sep">/g) || []).length, 2);
   assert.doesNotMatch(menu, /<p\b/);
   assert.match(APP, /openPalette\(\$\('#help-btn'\)\)/, 'Search and commands opens the palette');

@@ -585,7 +585,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
 | Danger `.b.danger` | Only the confirm button of a danger dialog (`ask()` with `kind: 'danger'`) | `--danger-fill` fill, `--on-danger` text | `--danger-hover` fill | `--danger-press` fill |
 
   A selected tab (`.on`) keeps a `--border` fill and `--text`, also on hover. On a toast the quiet × takes the toast's own text colour, so it reads on the dark info fill. The help menu's link items use the same quiet text colour and weight as its buttons.
-  One exemption: `.linkish` is not a quiet button. It is an underlined action inside a sentence (for example "Connect AI"), and links keep their underline (NO-STRIPES.md §1). The toast's action button (`.toast-act`) keeps its 1 px `currentColor` edge, because it is the toast's one action, not a quiet one.
+  One exemption: `.linkish` is not a quiet button. It is an underlined action inside a sentence (for example "Open a round file (.tab)" on the start panel; CHANGED 2026-11-20, old example: "Connect AI"), and links keep their underline (NO-STRIPES.md §1). The toast's action button (`.toast-act`) keeps its 1 px `currentColor` edge, because it is the toast's one action, not a quiet one.
   Disabled is the same for all kinds (the row above). An inline delete stays a secondary or quiet button with an Undo toast. About and the library use `.btn` (secondary) and `.btn.primary` with the same hover and pressed states. Checkboxes use `accent-color: var(--text)` inside a 24 px hit area.
 - **V6 Only the grid is raised (Q1).** `.flow` gets `--raised`, a 1 px border, `--r-lg` and `--shadow-1`. The panes lose their background, border and shadow. The 1.5 overlay stays flat. Tiles keep a `--panel` fill. The current tile gets a 2 px `--text` edge. The header sits flat on the canvas with its bottom line [A]. The round bar stays opaque. Other screens' cards do not change [A]. The always-on legend moves into a `(?)` tip [A].
   - **Check:** screenshots of every row of the 1.5 width table; computed panes and the overlay have `box-shadow: none`.
@@ -602,7 +602,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - **Copy:** left pane `aria-label="Speeches and docs"`; Hide button `aria-label="Hide the speeches pane"`; placeholder "Words from the speech show here while the clock runs. You can type or fix them."; tour.js:25 title "Speeches and docs", body "Pick a speech and add its docs. Open the transcript from the round bar. Hide this pane for more room."
   - **Checks:** a grep finds no `#transcript`, `tr-label` or `transcript-block`; a tour test checks that no step targets a removed element; the 1.2 browser check passes again with the drawer.
 - **V9 Insights folds (Q8).** `L.insightsMode({aiReady, hideRight})` returns one of three modes:
-  - `edge-connect`: no AI. This wins over `hideRight`. A 32 px strip with vertical "Connect AI" text. At 1180 px and below, it is one line under the grid.
+  - `edge-connect`: no AI. This wins over `hideRight`. A 32 px strip with a vertical, outlined small "Connect AI" button (`.b.small`). At 1180 px and below, it is a compact card centred under the grid: the reason "Live insights need AI." and the same button, on `--sunk` with a 1 px `--border` on all four sides and `--r-md`, as wide as its words. No rule above it. The whole card (`#ins-cta`) is hidden in every other mode. (CHANGED 2026-11-20, owner request: the lone underlined link under a full-width line was not elegant. Old text: "A 32 px strip with vertical 'Connect AI' text. At 1180 px and below, it is one line under the grid.")
   - `edge-show`: a strip with an "Insights" button.
   - `open`: the 270 px flat pane.
 
@@ -612,7 +612,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - error: the `aiErrorText` with [Try again];
   - offline: the offline text, with Update disabled.
 
-  It switches with no reload when AI connects. The edge link gets `aria-label="Connect AI in Settings to get live insights"`. tour.js:28 must open the pane, or skip its step in `edge-connect`.
+  It switches with no reload when AI connects. The Connect AI button gets `aria-label="Connect AI in Settings to get live insights"` (CHANGED 2026-11-20: it was a link). tour.js:28 must open the pane, or skip its step in `edge-connect`.
   - **Checks:** unit tests for 4 input sets; at 1366 px with no key, about 184 px per column.
 - **V10 Theme (Q3).** `S.theme` is `'system' | 'light' | 'dark'`, with System by default. `L.resolveTheme(setting, prefersDark)` returns the theme.
   - A new `assets/theme-boot.js` file runs in `<head>` before the stylesheet, so there is no flash on load. It must be a file, because the security rule only allows scripts from this site (`script-src 'self'`). It loads in all three page types.
@@ -769,7 +769,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - Its name updates at most every 15 s. One message plays when it appears: "1AR clock still running".
   - CSS: `body[data-place="flow"]` scopes the round bar and its padding. `--rb-h` is 0 off Flow.
   - **Checks:** unit test of `chipText`; browser checks (start a speech then open Decide; click the chip; reload on Decide; reduced motion).
-- **5.3 ? menu.** Items: Take the full tour · Tour this page · ─ · **Search and commands** ⌘K (Ctrl+K on Windows and ChromeOS) · **Keyboard shortcuts** ? · ─ · Debate library ↗ · About Tabula ↗.
+- **5.3 ? menu.** Items: Take the full tour · Tour this page · ─ · **Search and commands** ⌘K (Ctrl+K on Windows and ChromeOS) · **Keyboard shortcuts** ? · ─ · Debate library ↗ · About Tabula Debate ↗ (CHANGED 2026-11-20, owner request for the product name. Old text: "About Tabula ↗").
   - Remove the hint `<p>`.
   - Real menu keys: ↑ and ↓ wrap, Home and End jump, Esc returns focus to ?, and Tab closes the menu.
   - The "Search and commands" and "Keyboard shortcuts" items ship in the same change as 5.4 and 5.5, so no menu item does nothing.
@@ -778,7 +778,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - Search placeholder: "Search commands, sheets and speeches". Footer: "↑↓ to move · ↵ to run · Esc to close". No match: "No match. Try "sheet", "prep" or a speech like "2AC"."
   - Esc first clears the search, then closes the palette. Focus and the caret go back to where they were.
   - Groups, with exact labels:
-    - **Go to:** Go to Flow, Go to Round setup, Go to Live Eval, Go to Analysis, Go to Ballot, Go to Ballots, Go to Settings, Open Debate library, Open About Tabula.
+    - **Go to:** Go to Flow, Go to Round setup, Go to Live Eval, Go to Analysis, Go to Ballot, Go to Ballots, Go to Settings, Open Debate library, Open About Tabula Debate (CHANGED 2026-11-20, owner request for the product name. Old label: "Open About Tabula").
     - **Clock and speeches:** Start or pause clock, Next speech, Previous speech, Go to speech: 1AC…2AR (CX rows as "CX of 1A"), Reset speech clock, Start/Stop Aff prep, Start/Stop Neg prep ("· pauses the 2AC" when a speech runs), Show/Hide transcript.
     - **Sheets:** Go to sheet: {name}, Next sheet, Previous sheet, New sheet, Rename, Duplicate and Delete sheet: {current}, Switch to My flow / AI flow.
     - **Panes:** Show/Hide speeches pane, Show/Hide insights, Focus mode.

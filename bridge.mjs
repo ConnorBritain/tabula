@@ -20,7 +20,7 @@ import { createRequire } from 'node:module';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8765);
 const FILES = { '/': 'index.html', '/index.html': 'index.html', '/logic.js': 'logic.js', '/keys.js': 'keys.js', '/ui.js': 'ui.js', '/providers.js': 'providers.js', '/tour.js': 'tour.js', '/app.js': 'app.js', '/tap.js': 'tap.js', '/clipqueue.js': 'clipqueue.js', '/about': 'about.html', '/about.html': 'about.html' };
-for (const f of ['tabula-mark-black.webp', 'tabula-mark-white.webp', 'tabula-wordmark-black.webp', 'tabula-wordmark-white.webp', 'tabula-mark-black.png', 'tabula-mark-white.png', 'tabula-icon-64.png', 'fonts/InterTight-latin.woff2', 'fonts/InterTight-Italic-latin.woff2', 'tokens.css', 'theme-boot.js']) FILES['/assets/' + f] = 'assets/' + f;
+for (const f of ['tabula-mark-black.webp', 'tabula-mark-white.webp', 'tabula-wordmark-black.webp', 'tabula-wordmark-white.webp', 'tabula-mark-black.png', 'tabula-mark-white.png', 'tabula-icon-64.png', 'fonts/InterTight-latin.woff2', 'fonts/InterTight-Italic-latin.woff2', 'tokens.css', 'theme-boot.js', 'brand.js']) FILES['/assets/' + f] = 'assets/' + f;
 // The page code and the pure logic are split by job into js/ and logic/ (the files index.html loads in order).
 for (const f of ['core', 'clock', 'recording', 'flow', 'docs', 'ai', 'settings', 'help', 'insights', 'decide', 'shell', 'palette', 'study']) FILES['/js/' + f + '.js'] = 'js/' + f + '.js';
 for (const f of ['round', 'audio', 'flow', 'files', 'rules', 'decide', 'prompts', 'shell']) FILES['/logic/' + f + '.js'] = 'logic/' + f + '.js';

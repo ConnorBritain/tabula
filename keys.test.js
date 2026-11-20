@@ -290,7 +290,8 @@ test('palette and registry links: every row key exists, and every palette entry 
 // Why: the spec gives exact labels; a changed label breaks the judge's search words and the facilitator's test script.
 test('COMMANDS: the groups and exact labels of spec 5.4', () => {
   const labels = rowsFor({ undo: 'Undo: delete sheet DA' }).map((r) => r.label);
-  for (const l of ['Go to Flow', 'Go to Round setup', 'Go to Live Eval', 'Go to Analysis', 'Go to Ballot', 'Go to Ballots', 'Go to Settings', 'Open Debate library', 'Open About Tabula',
+  // CHANGED 2026-11-20 because the owner asked for the product name to show; the palette now matches the ? menu item "About Tabula Debate". Old check: 'Open About Tabula' in this list.
+  for (const l of ['Go to Flow', 'Go to Round setup', 'Go to Live Eval', 'Go to Analysis', 'Go to Ballot', 'Go to Ballots', 'Go to Settings', 'Open Debate library', 'Open About Tabula Debate',
     'Start or pause clock', 'Next speech', 'Previous speech', 'Go to speech: 1AC', 'Go to speech: CX of 1A', 'Go to speech: 2AR', 'Reset speech clock', 'Start Aff prep', 'Start Neg prep', 'Show transcript',
     'Go to sheet: Case', 'Go to sheet: DA', 'Next sheet', 'Previous sheet', 'New sheet', 'Rename sheet: Case', 'Duplicate sheet: Case', 'Delete sheet: Case', 'Switch to AI flow',
     'Hide speeches pane', 'Hide insights', 'Focus mode', 'New round', 'Save round file (.tab)', 'Open round file',

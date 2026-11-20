@@ -11,7 +11,7 @@ Answers to the grill-me questions in `UX-RESEARCH.md` §6. The spec and the buil
 | Q5 | Clicking an earlier speech while the clock runs | **View only.** The clock and recording keep going. Label: "Viewing 1NC · 2AC running". |
 | Q6 | Space key | **Space starts/pauses the clock only on Flow, when nothing is focused.** **Cmd+Enter / Ctrl+Enter** works everywhere on Flow, also while typing. |
 | Q7 | Transcript | **Drawer only** (from the round bar). Removed from the left pane. |
-| Q8 | Insights pane with no AI | **Folds to a thin edge** with one "Connect AI" link. |
+| Q8 | Insights pane with no AI | **Folds to a thin edge** with one quiet "Connect AI" button; under 1180 px, a compact card with the reason "Live insights need AI." (CHANGED 2026-11-20, owner request. Old text: "with one 'Connect AI' link.") |
 | Q9 | AI ballot features | **One "Draft with AI" panel inside the Ballot.** Decision draft is no longer its own tab. |
 | Q10 | Speaker points range | **A setting in Round setup**, default 25–30. |
 | Q11 | First-time screen | **A lighter welcome screen, for free (bring-your-own-key) users only.** Paid-plan users skip it: hosted AI with credits just works, with no keys or model choices. All welcome copy, including the skip page, becomes short, clean and plain. |

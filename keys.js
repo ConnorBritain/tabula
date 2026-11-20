@@ -177,7 +177,7 @@
     { id: 'go.log', group: 'Go to', tab: 'log', label: 'Go to Ballots', alias: ['log', 'saved', 'history', 'backup', 'csv'] },
     { id: 'go.settings', group: 'Go to', tab: 'ai', label: 'Go to Settings', alias: ['preferences', 'options', 'key', 'audio', 'microphone', 'theme'] },
     { id: 'open.library', group: 'Go to', label: 'Open Debate library', alias: ['learn', 'guides', 'help'] },
-    { id: 'open.about', group: 'Go to', label: 'Open About Tabula', alias: ['privacy', 'version'] },
+    { id: 'open.about', group: 'Go to', label: 'Open About Tabula Debate', alias: ['privacy', 'version'] },
     { id: 'clock.toggle', group: 'Clock and speeches', label: 'Start or pause clock', key: 'clock.toggle', flow: true, alias: ['timer', 'stop', 'resume', 'play'] },
     { id: 'speech.next', group: 'Clock and speeches', label: 'Next speech', flow: true, alias: ['forward'] },
     { id: 'speech.prev', group: 'Clock and speeches', label: 'Previous speech', flow: true, alias: ['back'] },

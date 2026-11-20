@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>About Tabula</title>
-<meta name="description" content="Tabula is a free judging tool for high school policy debate, made by Connor England.">
+<title data-brand-text="About {name}">About Tabula Debate</title>
+<meta name="description" content="Tabula Debate is a free judging tool for high school policy debate.">
 <link rel="icon" type="image/png" href="assets/tabula-icon-64.png">
 <link rel="preload" href="assets/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin>
 <script src="assets/theme-boot.js"></script>
@@ -20,7 +20,18 @@
   .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; }
   .brand img { height: 30px; width: auto; display: block; }
   .wordmark, h1, h2 { font-family: var(--font-display); }
-  .wordmark { font-weight: var(--fw-5); font-style: italic; font-size: 24px; letter-spacing: -0.02em; }
+  .wordmark { font-weight: var(--fw-5); font-style: italic; font-size: 24px; letter-spacing: -0.02em; white-space: nowrap; }
+  /* The product name beside the family name, as in the app header: same face and size, upright and lighter. */
+  .wordmark .wm-product { font-style: normal; font-weight: var(--fw-2); margin-left: var(--s0); }
+  /* A phone-width header (under 420 px): the two-word name and the "Open Tabula Debate" button must share one row.
+     The name steps down to 16 px with a smaller mark, as the app header does under 820 px. The full name stays. */
+  @media (max-width: 419.98px) {
+    header { gap: var(--s3); }
+    .brand { gap: var(--s2); }
+    .brand img { height: 26px; }
+    .wordmark { font-size: var(--fs-3); }
+    header .btn { flex: none; white-space: nowrap; padding: 0 var(--s3); }
+  }
   /* Buttons: secondary (.btn) and primary (.btn.primary), with the app's hover and pressed states (spec V5). */
   .btn { display: inline-flex; align-items: center; min-height: var(--h-lg); padding: 0 var(--s4); border-radius: var(--r-lg); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font-weight: var(--fw-3); text-decoration: none; }
   .btn:hover { background: var(--sunk); border-color: var(--text-2); }
@@ -38,7 +49,60 @@
   p { margin: 0 0 var(--s3); }
   ul { margin: 0 0 var(--s3); padding-left: 22px; }
   li + li { margin-top: 6px; }
-  .shot { border: 1px dashed var(--border-ctl); border-radius: var(--r-xl); padding: 40px 20px; text-align: center; color: var(--text-3); background: var(--panel); margin-top: var(--s2); }
+  /* A picture of the app during a round: plain HTML and CSS that copies the app layout (owner, 2026-11-20), adapted from
+     the mock-up on tabuladebate.com. The whole box is one image to a screen reader (role="img" with a label), so its
+     words are not read twice. Aff and Neg colours show here only because the picture shows round data. No stripes:
+     sides show in the header fill and the text colour, as in the app. Container queries fit it to its own width. */
+  .pic { margin: var(--s5) 0 0; }
+  .pic figcaption { margin-top: var(--s2); color: var(--text-3); font-size: var(--fs-1); text-align: center; }
+  .app { container-type: inline-size; border: 1px solid var(--border); border-radius: var(--r-xl); background: var(--panel); box-shadow: var(--shadow-2); overflow: hidden; font-size: var(--fs-1); line-height: var(--lh-ui); color: var(--text); }
+  .app-top { display: flex; align-items: center; gap: var(--s3); padding: var(--s2) var(--s3); border-bottom: 1px solid var(--border); }
+  .app-top img { height: 18px; width: auto; display: block; }
+  .app-top .wordmark { font-size: var(--fs-2); }
+  .app-tabs { display: flex; gap: var(--s0); margin-left: auto; }
+  .app-tabs span { padding: var(--s1) var(--s2); border-radius: var(--r-md); color: var(--text-2); font-weight: var(--fw-2); }
+  .app-tabs span.on { background: var(--border); color: var(--text); font-weight: var(--fw-3); }
+  .app-body { display: grid; grid-template-columns: 150px minmax(0, 1fr); }
+  .app-side { border-right: 1px solid var(--border); padding: var(--s3) var(--s2); background: var(--canvas); }
+  .app-side b { display: block; margin-bottom: var(--s2); font-weight: var(--fw-4); }
+  .sp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s1); }
+  .sp { border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--s1) 6px; font-weight: var(--fw-4); background: var(--panel); }
+  .sp small { display: block; font-size: var(--fs-1); font-weight: var(--fw-1); color: var(--text-3); }
+  .sp.a { color: var(--aff); } .sp.n { color: var(--neg); }
+  .sp.on { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); background: var(--sunk); }
+  .sp.done, .sp.done.a, .sp.done.n { color: var(--text-3); } /* a finished speech reads quiet in a solid token colour, not by opacity, so its contrast is the token's own */
+  .app-flow { min-width: 0; display: flex; flex-direction: column; padding: var(--s3); gap: var(--s2); }
+  .app-sheets { display: flex; gap: var(--s1); overflow: hidden; }
+  .app-sheets span { padding: var(--s1) var(--s2); border: 1px solid var(--border-ctl); border-radius: var(--r-md); color: var(--text-2); white-space: nowrap; }
+  .app-sheets span.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .app-cols { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; flex: 1; }
+  .app-col { border-right: 1px solid var(--border); min-width: 0; }
+  .app-col:last-child { border-right: 0; }
+  .app-col h3 { margin: 0; padding: var(--s1) var(--s2); font-family: var(--font-sans); font-size: var(--fs-1); font-weight: var(--fw-4); letter-spacing: 0; border-bottom: 1px solid var(--border); }
+  .app-col.a h3 { background: var(--aff-tint); color: var(--aff); } .app-col.n h3 { background: var(--neg-tint); color: var(--neg); }
+  .app-col p { margin: 0; padding: var(--s1) var(--s2); overflow-wrap: anywhere; hyphens: auto; }
+  .app-col.a p { color: var(--aff); } .app-col.n p { color: var(--neg); }
+  .app-col p.key { font-weight: var(--fw-3); }
+  .app-col .drop { background: var(--caution-tint); color: var(--caution); border-radius: var(--r-sm); padding: 0 var(--s1); font-weight: var(--fw-3); }
+  .app-clock { display: flex; align-items: center; gap: var(--s3); padding: var(--s2) var(--s3); border-top: 1px solid var(--border); background: var(--canvas); white-space: nowrap; }
+  .app-clock .now { color: var(--text-2); }
+  .app-clock .now b { color: var(--aff); }
+  .app-clock .big { font-family: var(--font-display); font-size: var(--fs-4); font-weight: var(--fw-5); line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .app-clock .go { border-radius: var(--r-md); padding: var(--s0) var(--s2); background: var(--accent); color: var(--on-accent); font-weight: var(--fw-3); }
+  .app-clock .prep { margin-left: auto; display: flex; gap: var(--s3); }
+  .app-clock .prep b { margin-left: var(--s1); font-family: var(--font-display); font-weight: var(--fw-4); font-variant-numeric: tabular-nums; color: var(--text); }
+  .app-clock .pa { color: var(--aff); } .app-clock .pn { color: var(--neg); }
+  /* Narrower than the speech list plus five readable columns: hide the speech list. */
+  @container (max-width: 639.98px) { .app-body { grid-template-columns: minmax(0, 1fr); } .app-side { display: none; } }
+  /* Phone width: three columns (1AC to 2AC), the nav tabs and the second prep clock go. The clock and the current speech stay. */
+  @container (max-width: 459.98px) {
+    .app-cols { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .app-col:nth-child(n+4) { display: none; }
+    .app-col:nth-child(3) { border-right: 0; }
+    .app-tabs span:not(.on) { display: none; }
+    .app-clock .prep .pn { display: none; }
+    .app-flow { padding: var(--s2); }
+  }
   .steps { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
   .step { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--s4); }
   .step b { font-family: var(--font-display); font-size: 18px; display: block; margin-bottom: var(--s1); }
@@ -54,22 +118,57 @@
 <body>
 <div class="wrap">
   <header>
-    <a class="brand" href="./" aria-label="Open Tabula">
+    <a class="brand" href="./" aria-label="Open Tabula Debate" data-brand-aria="Open {name}">
       <img class="on-light" src="assets/tabula-mark-black.png" alt="" width="36" height="29"><img class="on-dark" src="assets/tabula-mark-white.png" alt="" width="36" height="29">
-      <span class="wordmark">Tabula</span>
+      <span class="wordmark"><span class="wm-family">Tabula</span> <span class="wm-product" data-brand-product>Debate</span></span>
     </a>
-    <a class="btn" href="./">Open Tabula</a>
+    <a class="btn" href="./" data-brand-text="Open {name}">Open Tabula Debate</a>
   </header>
 
   <div class="hero">
     <h1>Judge the round,<br>not the <span class="aff">paper</span><span class="neg">work</span>.</h1>
     <p class="lead">Tabula is a free judging tool for high school policy debate. It keeps time, keeps the flow, listens to the round, and helps you write a fair, readable decision for the debaters.</p>
     <div class="row">
-      <a class="btn primary" href="./">Open Tabula</a>
-      <a class="btn" href="https://github.com/ConnorBritain" rel="noopener">Connor on GitHub</a>
+      <a class="btn primary" href="./" data-brand-text="Open {name}">Open Tabula Debate</a>
       <a class="btn" href="#support">Support the project</a>
     </div>
-    <div class="shot" role="img" aria-label="Screenshot placeholder">Screenshot of the Flow workspace goes here (added with the homepage).</div>
+    <figure class="pic">
+      <div class="app" role="img" aria-label="Tabula Debate during an example round: the flow of the Case sheet, with the speech clock at 2:48 in the 1AR." data-brand-aria="{name} during an example round: the flow of the Case sheet, with the speech clock at 2:48 in the 1AR.">
+        <div class="app-top">
+          <img class="on-light" src="assets/tabula-mark-black.png" alt="" width="22" height="18"><img class="on-dark" src="assets/tabula-mark-white.png" alt="" width="22" height="18">
+          <span class="wordmark"><span class="wm-family">Tabula</span> <span class="wm-product" data-brand-product>Debate</span></span>
+          <span class="app-tabs"><span class="on">Flow</span><span>Round</span><span>Decide</span><span>Ballots</span></span>
+        </div>
+        <div class="app-body">
+          <div class="app-side">
+            <b>Speeches</b>
+            <div class="sp-grid">
+              <span class="sp a done">1AC<small>8 min</small></span><span class="sp n done">CX 1A<small>3 min</small></span>
+              <span class="sp n done">1NC<small>8 min</small></span><span class="sp a done">CX 1N<small>3 min</small></span>
+              <span class="sp a done">2AC<small>8 min</small></span><span class="sp n done">CX 2A<small>3 min</small></span>
+              <span class="sp n done">2NC<small>8 min</small></span><span class="sp a done">CX 2N<small>3 min</small></span>
+              <span class="sp n done">1NR<small>5 min</small></span><span class="sp a on">1AR<small>5 min</small></span>
+              <span class="sp n">2NR<small>5 min</small></span><span class="sp a">2AR<small>5 min</small></span>
+            </div>
+          </div>
+          <div class="app-flow">
+            <div class="app-sheets"><span class="on">Case</span><span>Econ DA</span><span>States CP</span><span>Topicality</span></div>
+            <div class="app-cols">
+              <div class="app-col a"><h3>1AC</h3><p class="key">Adv 1: grid fails without upgrades</p><p>Blackouts cost lives</p><p class="key">Plan: federal grid standard</p><p>Solvency: standards work</p></div>
+              <div class="app-col n"><h3>1NC</h3><p>No impact: grid is resilient</p><p>States lag behind</p><p>Circumvention</p></div>
+              <div class="app-col a"><h3>2AC</h3><p>Resilience cards are old</p><p>Federal floor stops lag</p><p>No warrant on circumvention</p></div>
+              <div class="app-col n"><h3>Block</h3><p>Extend: no impact</p><p>Turn: cost overruns</p><p>Lag is a state choice</p></div>
+              <div class="app-col a"><h3>1AR</h3><p>Impact cards are newer</p><p>Turn is not unique</p><p class="key">No warrant on circumvention <span class="drop">dropped</span></p></div>
+            </div>
+          </div>
+        </div>
+        <div class="app-clock">
+          <span class="now"><b>1AR</b> · 5 min</span><span class="big">2:48</span><span class="go">Pause</span>
+          <span class="prep"><span class="pa">Aff prep<b>4:30</b></span><span class="pn">Neg prep<b>3:05</b></span></span>
+        </div>
+      </div>
+      <figcaption>An example round. The arguments are made up.</figcaption>
+    </figure>
   </div>
 
   <section aria-labelledby="who">
@@ -123,11 +222,11 @@
 
   <footer>
     <div class="row" style="justify-content:space-between">
-      <span>Made by Connor England. © <span id="year">2026</span> <a href="https://patternengine.ai" rel="noopener">Pattern Engine LLC</a>.</span>
-      <span class="row"><a href="./">Open Tabula</a> · <a href="https://github.com/ConnorBritain" rel="noopener">GitHub</a></span>
+      <span>© <span data-year>2026</span> <span data-brand-text="{parent}">Tabula Speech</span> · <a href="https://patternengine.ai" rel="noopener">Pattern Engine LLC</a></span>
+      <span class="row"><a href="./" data-brand-text="Open {name}">Open Tabula Debate</a> · <a href="https://github.com/ConnorBritain" rel="noopener">GitHub</a></span>
     </div>
   </footer>
 </div>
-
+<script defer src="assets/brand.js"></script>
 </body>
 </html>

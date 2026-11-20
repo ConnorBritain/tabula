@@ -168,11 +168,12 @@ function applyPanes() {
   const ws = $('#workspace');
   ws.classList.toggle('no-left', !overlay && Boolean(S.hideLeft));
   ws.classList.toggle('left-open', overlay && leftOpen);
-  // Insights (V9, Q8): the open pane, or a 32 px edge. With no AI it folds to one "Connect AI" link.
+  // Insights (V9, Q8): the open pane, or a 32 px edge. With no AI it folds to the Connect AI prompt: the whole row
+  // (reason and button) is hidden in every other mode, so no empty box or AI prompt is left when AI is ready.
   const mode = insightsMode();
   ws.classList.toggle('ins-folded', mode !== 'open'); // not 'ins-edge': that is the strip's own class
   $('#insights').dataset.mode = mode;
-  $('#ins-connect').hidden = mode !== 'edge-connect';
+  $('#ins-cta').hidden = mode !== 'edge-connect';
   $('#ins-show').hidden = mode !== 'edge-show';
   const btn = $('#speeches-btn');
   btn.hidden = !(overlay || S.hideLeft);
@@ -313,6 +314,9 @@ async function saveRoundFile(strict) {
   download(L.roundFileName(R, stamp()), JSON.stringify(L.buildRoundFile(R, docs)), 'application/json');
 }
 $('#round-save').addEventListener('click', () => saveRoundFile(false));
+// Round setup's "Open round file…" is a real button (it was a <label>, which Tab skips), so a keyboard judge can
+// reach it and press it with Enter or Space. It opens the hidden file input's picker, as the start panel's link does.
+$('#setup-open').addEventListener('click', () => $('#round-open').click());
 $('#round-open').addEventListener('change', async (e) => {
   const file = e.target.files[0]; e.target.value = '';
   if (!file) return;
