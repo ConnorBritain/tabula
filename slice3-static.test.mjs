@@ -3,8 +3,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 
-const read = (f) => readFileSync(new URL(f, import.meta.url), 'utf8');
+// CHANGED 2026-11-20 because the owner approved the module split: the page code is now js/*.js plus app.js, and the
+// logic is logic/*.js plus logic.js. readSource('app.js') / readSource('logic.js') read every file of the group, so the
+// checks below cover the same code as before. Old line:
+//   const read = (f) => readFileSync(new URL(f, import.meta.url), 'utf8');
+const { readSource: read } = createRequire(import.meta.url)('./test-sources.js');
 const HTML = read('index.html');
 const STYLE = /<style>([\s\S]*?)<\/style>/.exec(HTML)[1];
 const APP = read('app.js');
@@ -149,12 +154,15 @@ test('the classes app.js toggles on #workspace are not the class of any element 
   for (const [rule] of STYLE.matchAll(/[^{}]*\.ins-edge\s*\{/g)) assert.match(rule, /#insights \.ins-edge\s*\{|\[data-mode="open"\] \.ins-edge/, rule.trim());
 });
 
-// Why: a screen reader user hears the accessible name, not the tip; a name that leaves out "theme" hides where the theme setting lives.
+// Why: a screen reader user hears the accessible name, not the tip; if the two differ, sighted and blind users are told different things.
+// CHANGED 2026-11-20 because the owner chose the spec (SPEC.md 5.1: the gear keeps aria-label="Settings" and the tip "Settings")
+// over this test's extra rule. Old check (the last line):
+//   assert.match(name, /theme/);
 test('the Settings button name says what the tip says', () => {
   const tag = /<button[^>]*id="settings-btn"[^>]*>/.exec(HTML)[0];
   const name = /aria-label="([^"]*)"/.exec(tag)[1], tip = /data-tip="([^"]*)"/.exec(tag)[1];
   assert.equal(name, tip);
-  assert.match(name, /theme/);
+  assert.equal(name, 'Settings');
 });
 
 // Why: tips that add words were title="" before; without aria-describedby screen readers lose those words (spec 4.4).

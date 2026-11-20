@@ -16,7 +16,9 @@ for (const page of PAGES) {
 // The security rule must not ship while the app still loads scripts from other sites (step A3).
 const headers = readFileSync(new URL('_headers', import.meta.url), 'utf8');
 if (/DO NOT DEPLOY/.test(headers)) { bad++; console.log('_headers: still marked DO NOT DEPLOY (finish step A3: self-host the remote libraries)'); }
-for (const f of ['index.html', 'app.js', 'about.html', 'learn/check.js']) {
+// The page code is split into js/*.js plus app.js (the module split before Slice 5), so every part is checked.
+const appParts = readdirSync(new URL('js/', import.meta.url)).filter((f) => f.endsWith('.js')).map((f) => 'js/' + f);
+for (const f of ['index.html', 'app.js', ...appParts, 'about.html', 'learn/check.js']) {
   for (const m of readFileSync(new URL(f, import.meta.url), 'utf8').matchAll(/(?:\bsrc\s*=\s*|\.src\s*=\s*|import\(\s*)['"`](https?:\/\/[^'"`]+)/g)) { bad++; console.log(`${f}: loads a remote script: ${m[1]}`); }
 }
 if (bad) { console.log(`\n${bad} problem(s) must be fixed before publishing.`); process.exit(1); }

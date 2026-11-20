@@ -1,0 +1,180 @@
+// Help: the guided tours and the welcome.
+// One part of the page code (see app.js for the load order). The parts are classic scripts that share one global
+// scope, so a part can use what any part declares; code that runs at load only uses parts that load before it.
+'use strict';
+
+// ---------- guided tours ----------
+// A dimmed screen with one part lit up and a short card beside it. Next/Back/Skip, arrow keys, Esc.
+const TOURS = window.Tours;
+let tourState = null; // { name, i, returnFocus, place, hideLeft, hideRight }
+function tourStart(name) {
+  if (name === 'page') name = TOURS.PLACE_TOUR[PLACE_OF[R.tab] || 'setup'] || 'main';
+  const tour = TOURS.TOURS[name]; if (!tour) return;
+  if (askIsOpen() || !$('#node-editor').hidden) return; // never on top of another dialog
+  closeHelpMenu(); $('#tour-offer').hidden = true;
+  // Remember where the judge was and how the panes were, so the tour leaves everything as it found it.
+  tourState = { name, i: 0, returnFocus: document.activeElement, place: R.tab, hideLeft: Boolean(S.hideLeft), hideRight: Boolean(S.hideRight) };
+  $('#tour').hidden = false;
+  for (const el of document.querySelectorAll('header, main, .roundbar, #keys-sheet, #study-card')) el.inert = true; // the page behind is not reachable
+  tourShow();
+}
+function tourShow() {
+  const tour = TOURS.TOURS[tourState.name];
+  const step = tour.steps[tourState.i];
+  if (step.place) showTab(step.place);
+  // A step inside a hidden pane opens that pane.
+  if (step.target === '#speech-list' || step.target === '#tab-timer') {
+    if (isOverlay()) { if (!leftOpen) { leftOpen = true; applyPanes(); } } // below 1440 px the pane is an overlay
+    else if (S.hideLeft) { S.hideLeft = false; applyPanes(); }
+  } else if (leftOpen) { leftOpen = false; applyPanes(); }
+  if (step.target === '#insights' && S.hideRight) { S.hideRight = false; applyPanes(); }
+  $('#tour-count').textContent = tour.title + ' · ' + (tourState.i + 1) + ' of ' + tour.steps.length;
+  $('#tour-dots').innerHTML = tour.steps.map((_, k) => '<i class="' + (k === tourState.i ? 'on' : k < tourState.i ? 'done' : '') + '"></i>').join('');
+  $('#tour-title').textContent = step.title;
+  $('#tour-body').textContent = step.body;
+  $('#tour-back').disabled = tourState.i === 0;
+  $('#tour-next').textContent = tourState.i === tour.steps.length - 1 ? 'Done' : 'Next';
+  const el = document.querySelector(step.target);
+  if (el && el.scrollIntoView && !el.closest('.roundbar') && !el.closest('header')) el.scrollIntoView({ block: 'center', behavior: 'instant' });
+  setTimeout(() => { tourPlace(); $('#tour-next').focus(); }, 0); // a plain timer: animation frames pause in background tabs
+}
+function tourPlace() {
+  if (!tourState) return;
+  const step = TOURS.TOURS[tourState.name].steps[tourState.i];
+  const el = document.querySelector(step.target);
+  const spot = $('#tour-spot'), card = $('#tour-card');
+  const view = { w: innerWidth, h: innerHeight };
+  let r = el ? el.getBoundingClientRect() : null;
+  if (!r || (!r.width && !r.height)) r = { top: view.h / 2, left: view.w / 2, width: 0, height: 0 };
+  const pad = 6;
+  const box = { top: Math.max(4, r.top - pad), left: Math.max(4, r.left - pad), width: Math.min(r.width + pad * 2, view.w - 8), height: Math.min(r.height + pad * 2, view.h - 8) };
+  Object.assign(spot.style, { top: box.top + 'px', left: box.left + 'px', width: box.width + 'px', height: box.height + 'px' });
+  const pos = TOURS.placeCard(box, { w: card.offsetWidth, h: card.offsetHeight }, view);
+  card.style.top = pos.top + 'px'; card.style.left = pos.left + 'px';
+}
+function tourEnd(finished) {
+  if (!tourState) return;
+  const st = tourState; tourState = null;
+  $('#tour').hidden = true;
+  for (const el of document.querySelectorAll('header, main, .roundbar, #keys-sheet, #study-card')) el.inert = false;
+  S.hideLeft = st.hideLeft; S.hideRight = st.hideRight; leftOpen = false; applyPanes();
+  if (st.name === 'main') S.tourDone = true;
+  saveSettings();
+  if (st.place) showTab(st.place); // back to where the judge was
+  if (st.returnFocus && st.returnFocus.focus) st.returnFocus.focus();
+}
+function tourGo(d) {
+  const steps = TOURS.TOURS[tourState.name].steps, n = steps.length;
+  let i = tourState.i + d;
+  // With no AI, Insights is folded to its "Connect AI" edge, so its step has nothing to show: skip it (V9).
+  while (i >= 0 && i < n && steps[i].target === '#insights' && insightsMode() === 'edge-connect') i += d;
+  if (i >= n) return tourEnd(true);
+  if (i < 0) return;
+  tourState.i = i; tourShow();
+}
+$('#tour-next').addEventListener('click', () => tourGo(1));
+$('#tour-back').addEventListener('click', () => tourGo(-1));
+$('#tour-skip').addEventListener('click', () => tourEnd(false));
+addEventListener('resize', () => { if (tourState) tourPlace(); });
+// Keep the light on its target when anything scrolls.
+let tourScrollT = null;
+addEventListener('scroll', () => { if (tourState && !tourScrollT) tourScrollT = setTimeout(() => { tourScrollT = null; tourPlace(); }, 50); }, true);
+document.addEventListener('keydown', (e) => {
+  if (!tourState) return;
+  if (e.key === 'ArrowRight') { e.preventDefault(); e.stopImmediatePropagation(); tourGo(1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopImmediatePropagation(); tourGo(-1); }
+  else if (e.key === 'Tab') { // keep focus inside the tour card
+    const f = [...$('#tour-card').querySelectorAll('button:not([disabled])')];
+    const i = f.indexOf(document.activeElement);
+    e.preventDefault(); f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+  }
+}, true);
+escLayer('tour', 100, () => Boolean(tourState), () => tourEnd(false)); // Esc ends the tour
+// The ? menu (spec 5.3): tours · Search and commands · Keyboard shortcuts · Debate library · About Tabula.
+// Real menu keys: ↑ and ↓ wrap, Home and End jump, Esc returns focus to ?, and Tab closes the menu.
+const helpItems = () => [...$('#help-menu').querySelectorAll('[role="menuitem"]')];
+function closeHelpMenu() { $('#help-menu').hidden = true; $('#help-btn').setAttribute('aria-expanded', 'false'); }
+function openHelpMenu(at) {
+  $('#help-menu').hidden = false; $('#help-btn').setAttribute('aria-expanded', 'true');
+  const items = helpItems();
+  items[at === 'last' ? items.length - 1 : 0].focus();
+}
+$('#help-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if ($('#help-menu').hidden) openHelpMenu('first'); else closeHelpMenu();
+});
+$('#help-btn').addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); openHelpMenu(e.key === 'ArrowUp' ? 'last' : 'first'); }
+});
+$('#help-menu').addEventListener('keydown', (e) => {
+  const items = helpItems(), i = items.indexOf(document.activeElement);
+  const go = (k) => { e.preventDefault(); items[(k + items.length) % items.length].focus(); };
+  if (e.key === 'ArrowDown') go(i + 1);
+  else if (e.key === 'ArrowUp') go(i - 1);
+  else if (e.key === 'Home') go(0);
+  else if (e.key === 'End') go(items.length - 1);
+  else if (e.key === 'Tab') { e.preventDefault(); closeHelpMenu(); (e.shiftKey ? $('#help-btn') : $('#settings-btn')).focus(); }
+});
+$('#help-menu').addEventListener('click', (e) => {
+  const t = e.target.closest('[data-tour]'); if (t) return tourStart(t.dataset.tour);
+  const h = e.target.closest('[data-help]');
+  if (h) { closeHelpMenu(); return h.dataset.help === 'palette' ? openPalette($('#help-btn')) : toggleKeysSheet(true, $('#help-btn')); }
+  if (e.target.closest('a')) closeHelpMenu();
+});
+$('#help-palette-key').textContent = K.formatKeys(IS_MAC ? 'Meta+k' : 'Control+k', IS_MAC);
+document.addEventListener('click', (e) => { if (!$('#help-menu').hidden && !e.target.closest('.help-wrap')) closeHelpMenu(); });
+escLayer('help-menu', 60, () => !$('#help-menu').hidden, () => { closeHelpMenu(); $('#help-btn').focus(); });
+// The gentle offer after the welcome screen (never on top of a dialog).
+function offerTour() { if (!S.tourDone && !S.tourOffered) { S.tourOffered = true; saveSettings(); $('#tour-offer').hidden = false; } }
+$('#tour-offer-go').addEventListener('click', () => tourStart('main'));
+$('#tour-offer-no').addEventListener('click', () => { $('#tour-offer').hidden = true; toast('You can take the tour any time from the ? menu.'); });
+
+// ---------- welcome (spec 2.1, Q11): free users only, built on the shared dialog ask() ----------
+// Paid-plan users (2.8, not built yet) never see it: hosted AI just works.
+const hostedPlan = L.hasHostedPlan();
+if (hostedPlan && !S.setupDone) { S.setupDone = true; saveSettings(); }
+$('#show-welcome').hidden = hostedPlan;
+async function openWelcome() {
+  const choices = [{ label: 'Connect an AI key', desc: 'Paste a key from any AI provider. Step-by-step help is included.', value: 'key' }];
+  if (LOCAL_ORIGIN) choices.push({ label: 'Use an AI app you pay for', desc: 'Uses an AI app you already pay for on this computer. Needs one Terminal command.', value: 'sub' });
+  choices.push({ label: 'Start without AI', desc: 'You can connect AI later in Settings.', value: 'skip' });
+  // × or Esc means "Start without AI" without the skip page. A click on the dim layer does nothing.
+  const v = await ask({ title: 'Welcome to Tabula', body: 'The clock, flow and ballot work without AI. AI can add a transcript, an AI flow and feedback.', buttons: choices, variant: 'choices', backdrop: false, cancelValue: 'none' });
+  if (v === 'skip') {
+    const go = await ask({
+      title: 'Start without AI',
+      body: ['You get the clock, prep timers, flow sheets and the ballot.', 'To add AI later, open Settings (the gear button).'],
+      buttons: [{ label: 'Back', value: 'back', kind: 'plain' }, { label: 'Start flowing', value: 'go', kind: 'primary' }], cancelValue: 'back',
+    });
+    return go === 'go' ? startWithoutAI() : openWelcome();
+  }
+  if (v !== 'key' && v !== 'sub') return startWithoutAI();
+  S.setupDone = true; saveSettings(); showTab('ai'); setTimeout(offerTour, 400);
+  if (v === 'key') setTimeout(() => $('#key-paste').focus(), 0);
+  else setTimeout(() => { $('#sub-box').scrollIntoView({ block: 'center' }); const btn = $('#sub-box .sub-btn:not([disabled])'); if (btn) btn.focus(); }, 0);
+}
+function startWithoutAI() {
+  S.setupDone = true; S.aiSkipped = true; saveSettings();
+  showTab('flow'); setTimeout(offerTour, 400);
+}
+$('#show-welcome').addEventListener('click', () => openWelcome());
+
+$('#chunk-sec').value = S.chunkSec; $('#live-flow').checked = S.liveFlow;
+$('#chunk-sec').addEventListener('change', (e) => { S.chunkSec = Math.max(4, Math.min(30, Number(e.target.value) || 8)); e.target.value = S.chunkSec; saveSettings(); setRecNote(''); });
+$('#live-flow').addEventListener('change', (e) => { S.liveFlow = e.target.checked; saveSettings(); setRecNote(''); });
+// The one-time note (spec 2.7, Q-2, Q-4): the first time AI is ready, say that the paid live updates are off and
+// where to turn them on. It waits while a clock runs, so it never covers the round.
+let booted = false;
+async function maybeD2Note() {
+  if (!booted || !L.needsD2Note({ aiReady: aiReady(), shown: S.d2NoteShown, clockRunning: Boolean(R.run) })) return;
+  S.d2NoteShown = true; saveSettings();
+  const v = await ask({
+    title: 'Live updates are off',
+    body: ['Live Eval and Live AI flow can update during the round. They are off, because each update is a paid AI call.', 'Turn Live Eval on in Decide → Live Eval. Turn Live AI flow on in Settings.'],
+    buttons: [{ label: 'Keep them off', value: 'off', kind: 'plain' }, { label: 'Turn on Live AI flow', value: 'flow', kind: 'plain' }, { label: 'Turn on Live Eval', value: 'eval', kind: 'plain' }],
+    cancelValue: 'off', focus: 'off',
+  });
+  if (v === 'eval') { S.autoEval = true; $('#auto-eval').checked = true; saveSettings(); toast('Live Eval now updates after each speech. Each update is one AI call.'); }
+  if (v === 'flow') { S.liveFlow = true; $('#live-flow').checked = true; saveSettings(); setRecNote(''); toast('Live AI flow is on. It makes one AI call about every 30 s during a speech.'); }
+}
+setRecNote('');

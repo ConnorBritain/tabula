@@ -19,12 +19,15 @@
   /* Status colour comes only from these classes (colour rule 4), and always goes with words. */
   .is-error { color: var(--error); } .is-caution { color: var(--caution); } .is-ok { color: var(--ok); } .is-quiet { color: var(--text-3); font-weight: var(--fw-1); }
   /* Header: flat on the page colour, with one line under it (V6). */
-  header { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); align-items: center; padding: var(--s2) var(--s4); background: var(--canvas); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: var(--z-bar); font-size: var(--fs-2); }
+  /* 5.1: one row of 52 px (brand · nav · spacer · chip · offline · ? · gear); it wraps only in the narrow layout. The
+     recording strip is its own full-width row under it. */
+  header { display: block; background: var(--canvas); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: var(--z-bar); font-size: var(--fs-2); }
+  .hrow { display: flex; flex-wrap: nowrap; gap: var(--s2) var(--s4); align-items: center; min-height: calc(var(--h-lg) + var(--s3)); padding: 0 var(--s4); }
   .brand { display: inline-flex; align-items: center; gap: var(--s2); color: var(--text); text-decoration: none; margin-right: var(--s2); }
   .brand img { display: block; height: 26px; width: auto; }
   .wordmark, .display { font-family: var(--font-display); font-weight: var(--fw-5); font-style: italic; letter-spacing: -0.02em; }
   .wordmark { font-size: var(--fs-4); line-height: 1; }
-  nav { display: flex; flex-wrap: wrap; gap: var(--s0); }
+  nav { display: flex; flex-wrap: nowrap; gap: var(--s0); min-width: 0; }
   nav button { min-height: var(--h-md); background: none; border: 0; color: var(--text-2); padding: 0 var(--s3); border-radius: var(--r-md); cursor: pointer; font: inherit; font-size: var(--fs-2); font-weight: var(--fw-2); }
   nav button:hover { color: var(--text); background: var(--sunk); }
   nav button.on { color: var(--text); background: var(--border); font-weight: var(--fw-3); }
@@ -361,7 +364,7 @@
   .help-menu button { display: block; width: 100%; text-align: left; padding: var(--s2); border: 0; border-radius: var(--r-md); background: none; color: var(--text); font: inherit; font-size: var(--fs-2); cursor: pointer; }
   .help-menu button:hover, .help-menu button:focus-visible { background: var(--sunk); }
   .help-menu p { margin: 0; padding: var(--s2); font-size: var(--fs-1); }
-  .help-sep { height: 1px; background: var(--border); margin: var(--s1) 0; }
+  .help-sep { height: 1px; border: 0; background: var(--border); margin: var(--s1) 0; }
   #tour[hidden] { display: none; }
   #tour { position: fixed; inset: 0; z-index: var(--z-tour); }
   .tour-spot { position: fixed; border-radius: var(--r-lg); box-shadow: var(--scrim) 0 0 0 9999px; outline: 2px solid var(--panel); pointer-events: none; }
@@ -417,7 +420,7 @@
   @media (prefers-reduced-motion: reduce) { .spin { border-right-color: currentColor; opacity: .6; } }
   /* The "Recording" strip: a full-width row inside the sticky header while the mic is on (spec 1.6, Q19).
      Steady and calm: no red, no orange, no blinking. */
-  .rec-strip { flex: 1 0 100%; order: 99; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); margin: 0 calc(-1 * var(--s4)) calc(-1 * var(--s2)); padding: var(--s1) var(--s4); background: var(--sunk); color: var(--text); border-top: 1px solid var(--border-ctl); font-size: var(--fs-2); font-weight: var(--fw-3); }
+  .rec-strip { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); margin: 0; padding: var(--s1) var(--s4); background: var(--sunk); color: var(--text); border-top: 1px solid var(--border-ctl); font-size: var(--fs-2); font-weight: var(--fw-3); }
   .rec-strip[hidden] { display: none; }
   .rec-strip .b.small { min-height: var(--h-sm); }
   /* View only (spec 1.2): the judge looks back at one speech while another one's clock runs. */
@@ -586,6 +589,111 @@
     .ballot-bar { margin: var(--s3) calc(-1 * var(--s3)) 0; border-radius: 0; border-width: 1px 0 0; }
     .bar-status { flex-basis: 100%; margin-left: 0; }
   }
+  /* ----- Slice 5: shell and reach ----- */
+  /* 5.2 (Q-1): the round bar shows only on Flow. Off Flow it is gone, so --rb-h (measured by app.js) is 0 and the
+     page padding, toasts and the ballot bar move down with it. The corner chip takes its place. */
+  body:not([data-place="flow"]) .roundbar { display: none; }
+  .clock-chip { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--h-md); padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); font-variant-numeric: tabular-nums; white-space: nowrap; cursor: pointer; flex: none; }
+  .clock-chip:hover { background: var(--sunk); border-color: var(--text-2); }
+  .clock-chip[hidden] { display: none; }
+  /* Last 30 s and over time (spec 5.2). These must come after .clock-chip, which sets color and would win over the global .is-caution / .is-error. */
+  .clock-chip.is-caution { color: var(--caution); } .clock-chip.is-error { color: var(--error); }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); flex: none; }
+  .clock-chip[data-side="aff"] .chip-dot { background: var(--aff-fill); }
+  .clock-chip[data-side="neg"] .chip-dot { background: var(--neg-fill); }
+  /* 5.1 The offline note: muted words, never red; a tip says what still works. */
+  .net-note { display: inline-flex; align-items: center; gap: var(--s1); color: var(--text-3); font-size: var(--fs-1); font-weight: var(--fw-3); white-space: nowrap; flex: none; }
+  .net-note:empty { display: none; }
+  .net-dot { width: 8px; height: 8px; border-radius: 50%; border: 2px solid currentColor; flex: none; }
+  .menu-key { float: right; margin-left: var(--s3); font: inherit; font-size: var(--fs-1); color: var(--text-3); }
+  .help-menu { width: 270px; }
+  .help-menu a[target="_blank"]::after { content: " ↗" / ""; color: var(--text-3); }
+  kbd.kbd { display: inline-block; min-width: var(--hit-min); padding: var(--s0) var(--s2); border: 1px solid var(--border-ctl); border-radius: var(--r-sm); background: var(--sunk); color: var(--text); font: var(--fw-3) var(--fs-1)/var(--lh-ui) var(--font-sans); text-align: center; white-space: nowrap; }
+  /* 5.5 The shortcut sheet: a flat, non-modal panel on the right (no shadow: it is a side pane). It can be open with the
+     transcript drawer; then it stops above the drawer. */
+  .keys-sheet { position: fixed; top: calc(var(--header-h) + var(--s2)); right: var(--s4); bottom: calc(var(--rb-h) + var(--s2)); width: min(360px, calc(100vw - 32px)); z-index: var(--z-drawer); display: flex; flex-direction: column; gap: var(--s2); background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); padding: var(--s3) var(--s4); font-size: var(--fs-2); }
+  .keys-sheet[hidden] { display: none; }
+  body.drawer-open .keys-sheet { bottom: calc(var(--rb-h) + var(--s2) + min(42vh, 420px) + var(--s3)); bottom: calc(var(--rb-h) + var(--s2) + min(42dvh, 420px) + var(--s3)); }
+  .ks-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+  .ks-head h2 { margin: 0; font-family: var(--font-display); font-size: var(--fs-3); font-weight: var(--fw-4); }
+  .ks-list { flex: 1; min-height: 0; overflow: auto; }
+  .ks-list h3 { margin: var(--s3) 0 var(--s1); font-family: var(--font-display); font-size: var(--fs-2); font-weight: var(--fw-4); color: var(--text-2); }
+  .ks-list h3:first-child { margin-top: 0; }
+  .ks-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); margin: 0; padding: var(--s1) 0; border-bottom: 1px solid var(--border); }
+  .ks-row dt { flex: 1; min-width: 0; }
+  .ks-row dd { margin: 0; flex: none; }
+  .ks-row.off dt, .ks-row.off kbd { color: var(--text-3); }
+  .ks-off { margin-left: var(--s1); color: var(--text-3); font-size: var(--fs-1); }
+  .ks-empty { margin: 0; }
+  .ks-foot { border-top: 1px solid var(--border); padding-top: var(--s2); }
+  .ks-foot .field-help { margin-top: var(--s1); font-size: var(--fs-1); }
+  /* 5.4 The palette: 560 px wide, 96 px from the top, modal, over the speeches overlay, the drawer and the sheet. */
+  .overlay.palette-wrap { place-items: start center; padding-top: calc(2 * var(--s7)); }
+  .palette { display: flex; flex-direction: column; width: min(560px, 100%); max-height: calc(100dvh - 2 * var(--s7) - var(--s4)); background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-xl); box-shadow: var(--shadow-3); padding: var(--s2); }
+  .pal-list { margin-top: var(--s2); max-height: min(440px, 56dvh); overflow: auto; }
+  .pal-list:empty { display: none; }
+  @media (pointer: coarse) { .pal-list { max-height: min(360px, 40dvh); } }
+  .pal-group { margin: var(--s2) 0 0; padding: var(--s1) var(--s3); color: var(--text-3); font-size: var(--fs-1); font-weight: var(--fw-3); }
+  .pal-group:first-child { margin-top: 0; }
+  .pal-row { display: flex; align-items: center; gap: var(--s3); min-height: var(--h-md); padding: var(--s1) var(--s3); border-radius: var(--r-md); color: var(--text); font-size: var(--fs-2); cursor: pointer; }
+  .pal-row:hover { background: var(--sunk); }
+  .pal-row.is-active { background: var(--sunk); box-shadow: inset 0 0 0 2px var(--ring); }
+  .pal-row[aria-disabled="true"] { color: var(--text-3); cursor: not-allowed; }
+  .pal-label { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .pal-note { color: var(--text-3); }
+  .pal-grp-name { color: var(--text-3); font-size: var(--fs-1); white-space: nowrap; }
+  .pal-empty { margin: var(--s3) var(--s3) var(--s2); }
+  .pal-empty[hidden] { display: none; }
+  .pal-foot { margin: var(--s2) var(--s3) 0; padding-top: var(--s2); border-top: 1px solid var(--border); font-size: var(--fs-1); }
+  /* 5.6b The clock view: only in the narrow layout, only on Flow. */
+  .clock-view { display: none; max-width: 560px; margin: 0 auto; text-align: center; }
+  .cv-speech { margin: 0; font-size: var(--fs-3); font-weight: var(--fw-3); }
+  .cv-clock { margin: var(--s3) 0 var(--s1); }
+  .cv-status { margin: 0 0 var(--s4); font-size: var(--fs-2); font-weight: var(--fw-3); color: var(--text-2); }
+  .clock-view .cv-start { width: 100%; min-height: calc(var(--s7) + var(--s2)); font-size: var(--fs-3); } /* 56 px; .clock-view beats button.b */
+  .cv-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2); margin-top: var(--s2); }
+  .cv-steps .b { min-height: 44px; }
+  .cv-preps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); margin-top: var(--s4); }
+  .cv-prep { padding: var(--s3); background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg); }
+  .cv-prep h2 { margin: 0; font-family: var(--font-display); font-size: var(--fs-3); font-weight: var(--fw-4); }
+  .cv-prep-t { margin: var(--s1) 0 var(--s2); font-family: var(--font-display); font-size: var(--fs-5); font-weight: var(--fw-5); font-variant-numeric: tabular-nums; }
+  .cv-prep .b { width: 100%; min-height: 44px; }
+  .cv-pauses { margin: var(--s2) 0 0; }
+  .cv-pauses:empty { display: none; }
+  .cv-speeches { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s1); margin-top: var(--s4); }
+  .cv-speeches .sp { min-height: 44px; padding: var(--s1); text-align: center; }
+  .cv-rec { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--s1) var(--s3); margin-top: var(--s4); }
+  .cv-rec label { min-height: 44px; margin: 0; color: var(--text); font-size: var(--fs-3); }
+  .cv-note { margin: var(--s4) 0 0; }
+  /* 5.7 Study mode result. */
+  .study-card { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); padding: var(--s1) var(--s4); background: var(--panel); border-top: 1px solid var(--border-ctl); font-size: var(--fs-2); font-weight: var(--fw-3); font-variant-numeric: tabular-nums; }
+  .study-x { margin-left: auto; }
+  .study-card[hidden] { display: none; }
+  /* 5.6 The narrow layout (under 820 px, Q-10). a: row 1 (48 px) brand mark, chip, offline dot, ?, gear; row 2 (40 px)
+     four equal nav buttons; the strip under it. b: Flow is the clock view (no grid, panes or round bar). */
+  @media (max-width: 819.98px) {
+    .hrow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto auto; grid-template-rows: calc(var(--h-lg) + var(--s2)) var(--h-lg); grid-template-areas: "brand spacer chip net help gear" "nav nav nav nav nav nav"; gap: 0 var(--s2); padding: 0 var(--s3); }
+    .hrow .brand { grid-area: brand; margin: 0; } .hrow .spacer { grid-area: spacer; } .hrow .clock-chip { grid-area: chip; }
+    .hrow .net-note { grid-area: net; } .hrow .help-wrap { grid-area: help; } .hrow #settings-btn { grid-area: gear; }
+    .hrow nav { grid-area: nav; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .hrow nav button { min-height: var(--h-lg); padding: 0 var(--s1); }
+    .hrow .wordmark { display: none; }
+    .hrow .iconbtn { width: 44px; height: 44px; }
+    .clock-chip { min-height: 44px; padding: 0 var(--s2); }
+    .net-text { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .net-note { min-width: 44px; min-height: 44px; justify-content: center; }
+    .rec-strip { padding: var(--s1) var(--s3); }
+    .roundbar { display: none; }
+    #workspace, #workspace.on { display: none; }
+    body[data-place="flow"] .clock-view { display: block; }
+    .keys-sheet { inset: 0; width: auto; border: 0; border-radius: 0; background: var(--canvas); padding: var(--s4); z-index: var(--z-pop); }
+    body.drawer-open .keys-sheet { bottom: 0; }
+    /* The full-screen sheet hides the first-run tour offer, which would sit on the single-key switch. It shows again when the sheet closes. */
+    body:has(#keys-sheet:not([hidden])) .tour-offer { display: none; }
+    .ks-head .b { min-height: 44px; }
+    .help-menu button, .help-menu a { min-height: 44px; }
+    .study-card { padding: var(--s1) var(--s3); }
+  }
   /* The print sheet (4.10): built from data just before printing, hidden on screen. */
   @media screen { #print-sheet { display: none; } }
   @page tabula-landscape { size: landscape; }
@@ -603,7 +711,7 @@
   }
   /* Print: the ballot only. tokens.css switches every colour to the light values (colour rule 7). */
   @media print {
-    header, nav, .noprint, aside.pane, .roundbar, .toasts, .tip-box, section.tab:not(#tab-ballot) { display: none !important; }
+    header, nav, .noprint, aside.pane, .roundbar, .toasts, .tip-box, .clock-view, section.tab:not(#tab-ballot) { display: none !important; }
     body { padding-bottom: 0; background: var(--panel); color: var(--text); }
     section#tab-ballot { display: block !important; }
     .card { border-color: var(--border-ctl); }
@@ -627,26 +735,37 @@
 </head>
 <body>
 <header>
-  <a class="brand" href="#" aria-label="Tabula home" data-tab-link="setup">
+  <div class="hrow">
+  <a class="brand" href="#" aria-label="Tabula: go to Flow" data-tab-link="flow">
     <img class="on-light" src="assets/tabula-mark-black.png" alt="" width="30" height="24"><img class="on-dark" src="assets/tabula-mark-white.png" alt="" width="30" height="24">
     <span class="wordmark">Tabula</span>
   </a>
   <nav id="nav" aria-label="Main"></nav>
   <span class="spacer"></span>
+  <button class="clock-chip" id="clock-chip" type="button" hidden><span class="chip-dot" aria-hidden="true"></span><span id="clock-chip-text" aria-hidden="true"></span></button>
+  <span class="net-note" id="net-note" role="status"></span>
   <div class="help-wrap">
-    <button class="iconbtn" id="help-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Help and tours" data-tip="Help and tours">?</button>
-    <div class="help-menu" id="help-menu" role="menu" hidden>
-      <button role="menuitem" data-tour="main">Take the full tour</button>
-      <button role="menuitem" data-tour="page">Tour this page</button>
-      <a role="menuitem" id="library-link" href="learn/" target="_blank" rel="noopener">Debate library</a>
-      <a role="menuitem" href="about.html" target="_blank" rel="noopener">About Tabula</a>
-      <div class="help-sep"></div>
-      <p class="muted">On Flow, Space starts or pauses the clock when no button or box is selected. ⌘ Enter (Ctrl+Enter on Windows and Chromebook) works even while you type. Esc closes a tour or dialog.</p>
+    <button class="iconbtn" id="help-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="help-menu" aria-label="Help and tours" data-tip="Help and tours">?</button>
+    <div class="help-menu" id="help-menu" role="menu" aria-label="Help" hidden>
+      <button role="menuitem" type="button" tabindex="-1" data-tour="main">Take the full tour</button>
+      <button role="menuitem" type="button" tabindex="-1" data-tour="page">Tour this page</button>
+      <hr class="help-sep">
+      <button role="menuitem" type="button" tabindex="-1" data-help="palette" id="help-palette">Search and commands <kbd class="menu-key" id="help-palette-key">⌘K</kbd></button>
+      <button role="menuitem" type="button" tabindex="-1" data-help="keys">Keyboard shortcuts <kbd class="menu-key">?</kbd></button>
+      <hr class="help-sep">
+      <a role="menuitem" id="library-link" href="learn/" target="_blank" rel="noopener" tabindex="-1" aria-label="Debate library (opens a new tab)">Debate library</a>
+      <a role="menuitem" href="about.html" target="_blank" rel="noopener" tabindex="-1" aria-label="About Tabula (opens a new tab)">About Tabula</a>
     </div>
   </div>
-  <button class="iconbtn" id="settings-btn" data-tab="ai" aria-label="Settings: AI, keys, audio and theme" data-tip="Settings: AI, keys, audio and theme"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
-  <span id="mini-speech" hidden></span>
+  <button class="iconbtn" id="settings-btn" data-tab="ai" aria-label="Settings" data-tip="Settings"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </div>
   <div class="rec-strip" id="rec-strip" hidden><span id="rec-strip-text"></span><button class="b small" id="rec-strip-btn" type="button"></button></div>
+  <!-- Study mode (spec 5.7, Part 6.3): only with ?study=1. Two local time marks; nothing is sent. A header row, so it never covers the ballot bar. -->
+  <div class="study-card noprint" id="study-card" role="region" aria-label="Study result" hidden>
+  <span id="study-text"></span>
+  <button class="b small" id="study-copy" type="button">Copy result</button>
+  <button class="iconbtn study-x" id="study-x" type="button" aria-label="Hide the study result">×</button>
+</div>
 </header>
 <main>
 <nav id="subnav" class="subnav" aria-label="Decide" hidden>
@@ -720,6 +839,27 @@
     <label for="round-open" class="b">Open round file…</label>
     <span class="muted">Everything saves in this browser as you type. A .tab file holds this whole round, with its docs, to keep or move.</span>
   </div>
+</section>
+
+<!-- The narrow clock view (spec 5.6b, Q17, Q-10): under 820 px Flow shows this in place of the grid, panes and round bar. -->
+<section class="clock-view" id="clock-view" aria-label="Clock">
+  <p class="cv-speech" id="cv-speech"></p>
+  <p class="clock cv-clock" id="cv-clock" aria-live="off">8:00</p>
+  <p class="cv-status" id="cv-status"></p>
+  <button class="b primary cv-start" id="cv-start" type="button">Start</button>
+  <div class="cv-steps">
+    <button class="b" id="cv-prev" type="button">Previous</button>
+    <button class="b" id="cv-next" type="button">Next speech</button>
+    <button class="b" id="cv-reset" type="button">Reset</button>
+  </div>
+  <div class="cv-preps">
+    <div class="cv-prep"><h2 class="aff">Aff prep</h2><p class="cv-prep-t" id="cv-prep-aff">8:00</p><button class="b" type="button" data-prep="aff" aria-label="Start Aff prep">Start</button></div>
+    <div class="cv-prep"><h2 class="neg">Neg prep</h2><p class="cv-prep-t" id="cv-prep-neg">8:00</p><button class="b" type="button" data-prep="neg" aria-label="Start Neg prep">Start</button></div>
+  </div>
+  <p class="muted cv-pauses" id="cv-pauses"></p>
+  <div class="speeches cv-speeches" id="cv-speech-list" role="group" aria-label="Speeches"></div>
+  <div class="cv-rec"><label class="row check-row"><input type="checkbox" id="cv-rec-on"> Transcribe</label><span class="muted" id="cv-rec-status"></span></div>
+  <p class="muted cv-note">Flowing needs a bigger screen. Use a tablet in landscape or a laptop to flow. Your clock and ballot work here.</p>
 </section>
 
 <div id="workspace" class="workspace">
@@ -915,6 +1055,12 @@
     </fieldset>
     <p class="muted field-help" id="theme-help">System follows your device setting.</p>
   </div>
+  <div class="card" id="keys-card">
+    <h2>Keyboard</h2>
+    <label class="row check-row"><input type="checkbox" data-single-keys aria-describedby="single-keys-help-set"> Single-key shortcuts (Space, [, ], \, ?)</label>
+    <p class="muted field-help" id="single-keys-help-set">Turn off if you use voice control or the keys get in your way. ⌘ Enter still starts and pauses the clock.</p>
+    <div class="row mt-2"><button class="b" type="button" data-help="keys">Show keyboard shortcuts</button></div>
+  </div>
 </section>
 
 <section class="tab" id="tab-ballot">
@@ -963,7 +1109,7 @@
   </div>
   <div class="ballot-bar noprint" role="toolbar" aria-label="Ballot actions">
     <button class="b primary" id="print-btn" type="button" aria-label="Print or save the ballot as PDF">Print / PDF</button>
-    <button class="b" id="copy-btn" type="button"><span class="wide-only">Copy for the tournament ballot</span><span class="narrow-only">Copy for tournament</span></button>
+    <button class="b" id="copy-btn" type="button"><span class="wide-only">Copy for the tournament ballot</span><span class="narrow-only">Copy for tournament<span class="sr-only"> ballot</span></span></button>
     <button class="b" id="b-save" type="button" aria-label="Save to Ballots"><span class="wide-only">Save to Ballots</span><span class="narrow-only" aria-hidden="true">Save</span></button>
     <span class="bar-status" id="save-status"></span>
   </div>
@@ -1005,6 +1151,28 @@
     <button class="b small" id="tr-drawer-close" aria-label="Hide the transcript">Hide</button></div>
   <textarea id="transcript-big" placeholder="Words from the speech show here while the clock runs. You can type or fix them." aria-labelledby="tr-drawer-title"></textarea>
 </section>
+<!-- The shortcut sheet (spec 5.5): a non-modal side panel built from the key registry (keys.js). -->
+<aside class="keys-sheet noprint" id="keys-sheet" aria-labelledby="ks-title" hidden>
+  <div class="ks-head"><h2 id="ks-title" tabindex="-1">Keyboard shortcuts</h2><button class="b small" id="ks-close" type="button"><span class="wide-only">Close</span><span class="narrow-only">Done</span></button></div>
+  <label for="ks-search" class="sr-only">Search shortcuts</label>
+  <input id="ks-search" type="search" autocomplete="off" placeholder="Search shortcuts">
+  <div class="ks-list" id="ks-list"></div>
+  <p class="muted ks-empty" id="ks-empty" hidden></p>
+  <div class="ks-foot">
+    <label class="row check-row"><input type="checkbox" data-single-keys aria-describedby="single-keys-help"> Single-key shortcuts (Space, [, ], \, ?)</label>
+    <p class="muted field-help" id="single-keys-help">Turn off if you use voice control or the keys get in your way. ⌘ Enter still starts and pauses the clock.</p>
+  </div>
+</aside>
+<!-- The palette, "Search and commands" (spec 5.4, Q13): a modal combobox over everything but toasts and tips. -->
+<div class="overlay palette-wrap noprint" id="palette" hidden>
+  <div class="palette" id="palette-card" role="dialog" aria-modal="true" aria-label="Search and commands">
+    <input id="pal-input" type="text" role="combobox" autocomplete="off" spellcheck="false" aria-expanded="true" aria-controls="pal-list" aria-autocomplete="list" aria-label="Search commands, sheets and speeches" placeholder="Search commands, sheets and speeches">
+    <div class="pal-list" id="pal-list" role="listbox" aria-label="Commands"></div>
+    <p class="muted pal-empty" id="pal-empty" hidden>No match. Try "sheet", "prep" or a speech like "2AC".</p>
+    <p class="muted pal-foot" aria-hidden="true">↑↓ to move · ↵ to run · Esc to close</p>
+    <div class="sr-only" id="pal-count" role="status" aria-live="polite"></div>
+  </div>
+</div>
 <footer class="roundbar noprint" aria-label="Round controls">
   <div class="rb-speech"><span id="cur-label"></span><span class="clock" id="clock" aria-live="off">8:00</span><span class="view-chip" id="view-chip" hidden><span id="view-text"></span><button class="b small" id="view-back" type="button"></button></span></div>
   <div class="rb-ctl">
@@ -1111,12 +1279,33 @@
   </div>
 </div>
 
+<script src="logic/round.js"></script>
+<script src="logic/audio.js"></script>
+<script src="logic/flow.js"></script>
+<script src="logic/files.js"></script>
+<script src="logic/rules.js"></script>
+<script src="logic/decide.js"></script>
+<script src="logic/prompts.js"></script>
+<script src="logic/shell.js"></script>
 <script src="logic.js"></script>
 <script src="providers.js"></script>
 <script src="tour.js"></script>
 <script src="clipqueue.js"></script>
 <script src="keys.js"></script>
 <script src="ui.js"></script>
+<script defer src="js/core.js"></script>
+<script defer src="js/clock.js"></script>
+<script defer src="js/recording.js"></script>
+<script defer src="js/flow.js"></script>
+<script defer src="js/docs.js"></script>
+<script defer src="js/ai.js"></script>
+<script defer src="js/settings.js"></script>
+<script defer src="js/help.js"></script>
+<script defer src="js/insights.js"></script>
+<script defer src="js/decide.js"></script>
+<script defer src="js/shell.js"></script>
+<script defer src="js/palette.js"></script>
+<script defer src="js/study.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

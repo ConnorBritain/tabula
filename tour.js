@@ -11,7 +11,7 @@
       steps: [
         { place: 'setup', target: '#round-card', title: 'Set up the round', body: 'Type the round, the teams and the debaters. It takes half a minute, and it fills the ballot later.' },
         { place: 'setup', target: '#docs-card', title: 'Add speech docs', body: 'Add the aff case or any speech doc (PDF, Word or text). The AI reads them and puts them on the flow. When a speech has no transcript, its doc counts as the speech.' },
-        { place: 'flow', target: '.rb-ctl', title: 'Run the clock', body: 'Start and pause the speech clock here. On Flow, Space works when nothing is selected, and ⌘ Enter or Ctrl+Enter works even while you type. Prep clocks sit on the right.' },
+        { place: 'flow', target: '.rb-ctl', title: 'Run the clock', body: 'Start and pause the speech clock here. On Flow, press ⌘↵ (Ctrl+↵ on Windows) any time, or Space when nothing is selected. Prep clocks for each team sit on the right.' },
         { place: 'flow', target: '.rb-rec', title: 'Record the speech', body: 'Tick Transcribe. Recording runs only while the speech clock runs. A short bar shows the mic level, and a note warns you if no words come through.' },
         { place: 'flow', target: '#tab-flow', title: 'Flow the round', body: '"My flow" is yours to type. "AI flow" fills itself from the transcript and docs. You can edit any AI cell, and your edits stick.' },
         { place: 'eval', target: '#subnav', title: 'Decide', body: 'After the round: the Live Eval, deeper analysis and the ballot. Each one works with or without AI.' },

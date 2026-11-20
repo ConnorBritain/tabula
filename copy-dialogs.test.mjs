@@ -6,7 +6,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 
-const read = (f) => readFileSync(new URL(f, import.meta.url), 'utf8');
+// CHANGED 2026-11-20 because the owner approved the module split: the page code is now js/*.js plus app.js, and the
+// logic is logic/*.js plus logic.js. readSource('app.js') / readSource('logic.js') read every file of the group, so the
+// checks below cover the same code as before. Old line:
+//   const read = (f) => readFileSync(new URL(f, import.meta.url), 'utf8');
+const { readSource: read } = createRequire(import.meta.url)('./test-sources.js');
 const P = createRequire(import.meta.url)('./providers.js');
 const JS_FILES = ['app.js', 'ui.js', 'tour.js', 'keys.js', 'logic.js', 'providers.js', 'clipqueue.js'];
 

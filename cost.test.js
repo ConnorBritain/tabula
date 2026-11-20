@@ -5,7 +5,11 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const read = (f) => fs.readFileSync(path.join(__dirname, f), 'utf8');
+// CHANGED 2026-11-20 because the owner approved the module split: the page code is now js/*.js plus app.js, and the
+// logic is logic/*.js plus logic.js. readSource('app.js') / readSource('logic.js') read every file of the group, so the
+// checks below cover the same code as before. Old line:
+//   const read = (f) => fs.readFileSync(path.join(__dirname, f), 'utf8');
+const { readSource: read } = require('./test-sources.js');
 const index = read('index.html');
 const app = read('app.js'); // the page's code (moved out of index.html so the CSP can forbid inline scripts)
 const L = require('./logic.js');

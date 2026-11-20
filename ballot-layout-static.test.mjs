@@ -30,3 +30,9 @@ test('the copy button takes its name from the visible words', () => {
   const btn = html.match(/<button[^>]*id="copy-btn"[^>]*>.*?<\/button>/)[0];
   assert.doesNotMatch(btn, /aria-label=|aria-hidden=/);
 });
+
+// Why: on a phone the copy button shows "Copy for tournament"; without the hidden word a screen reader hears a vague name (SPEC.md 5.6c asks for the full name).
+test('the narrow copy button keeps its full name for screen readers, and the visible words stay inside it', () => {
+  const btn = html.match(/<button[^>]*id="copy-btn"[^>]*>.*?<\/button>/)[0];
+  assert.match(btn, /<span class="narrow-only">Copy for tournament<span class="sr-only"> ballot<\/span><\/span>/);
+});

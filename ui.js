@@ -12,6 +12,8 @@
   // errors stay until closed. The same key or text restarts the timer instead of adding a copy. At most 3.
   // Screen readers hear info politely and errors at once, through two permanent live regions.
   const toastList = [];
+  // The parts of the page a modal makes inert (ask, modalDialog and the palette). One list, so a new side panel is added once.
+  const BEHIND = 'header, main, .roundbar, #tr-drawer, #keys-sheet, #study-card';
   function toast(msg, opts) {
     const o = opts || {};
     const kind = o.kind === 'error' ? 'error' : 'info';
@@ -46,7 +48,7 @@
     el.addEventListener('mouseleave', () => hold('hover', false));
     el.addEventListener('focusin', () => hold('focus', true));
     el.addEventListener('focusout', (e) => { if (!el.contains(e.relatedTarget)) hold('focus', false); });
-    $('#toasts').append(el); toastList.push(t); toastArm(t);
+    $('#toasts').append(el); toastList.push(t); toastArm(t); toastsChanged();
     return t;
   }
   function toastArm(t) {
@@ -67,10 +69,18 @@
   function toastClose(t) {
     clearTimeout(t.timer);
     const i = toastList.indexOf(t); if (i < 0) return;
-    toastList.splice(i, 1); t.el.remove();
+    toastList.splice(i, 1); t.el.remove(); toastsChanged();
   }
   // Close the toast with this key, if one shows (for example the storage error after a save works again).
   function dismissToast(key) { toastList.filter((t) => t.key === key).forEach(toastClose); }
+  // The Undo that waits now, for the palette row "Undo: {what}" (spec 4.3, 5.4): { name, run } or null.
+  // Only one Undo waits at a time (L.toastPlan). run() closes its toast and undoes, like the toast's own button.
+  // A toast came or went: the palette listens, so its Undo row follows without polling.
+  function toastsChanged() { document.dispatchEvent(new CustomEvent('tabula:toasts')); }
+  function pendingUndo() {
+    const t = toastList.find((x) => x.action && /^Undo: /.test(x.action.name || ''));
+    return t ? { name: t.action.name, run: () => { toastClose(t); t.action.run(); } } : null;
+  }
 
   // A short message for screen readers only (for example the view-only and recording messages).
   function announce(text) { const r = document.getElementById('sr-status'); if (!r) return; r.textContent = ''; setTimeout(() => { r.textContent = text; }, 60); }
@@ -153,7 +163,7 @@
         e.preventDefault(); pick(buttons[primaryIdx]);
       };
       // The page behind is not reachable while the dialog is open.
-      const behind = [...document.querySelectorAll('header, main, .roundbar, #tr-drawer')];
+      const behind = [...document.querySelectorAll(BEHIND)];
       const wasInert = behind.map((el) => el.inert);
       behind.forEach((el) => { el.inert = true; });
       const trap = (e) => {
@@ -186,10 +196,12 @@
   // ---------- one Esc stack (spec S0.4): Esc closes only the top layer ----------
   // Each layer says if it is open and how to close. A higher rank is nearer the top.
   const ESC_LAYERS = [];
+  // rank may be a function, for two side panels that close in the order they opened (Slice 5: the transcript drawer
+  // and the shortcut sheet, spec 5.5).
   function escLayer(name, rank, isOpen, close) { ESC_LAYERS.push({ name, rank, isOpen, close }); }
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape' || e.isComposing) return;
-    const top = L.escTop(ESC_LAYERS.map((l) => { let open = false; try { open = Boolean(l.isOpen()); } catch {} return { rank: l.rank, open }; }));
+    const top = L.escTop(ESC_LAYERS.map((l) => { let open = false; try { open = Boolean(l.isOpen()); } catch {} return { rank: typeof l.rank === 'function' ? l.rank() : l.rank, open }; }));
     if (top < 0) return;
     e.preventDefault(); e.stopImmediatePropagation();
     ESC_LAYERS[top].close();
@@ -218,7 +230,7 @@
     function open(focusEl) {
       if (isOpen()) return;
       opener = document.activeElement;
-      behind = [...document.querySelectorAll('header, main, .roundbar, #tr-drawer')];
+      behind = [...document.querySelectorAll(BEHIND)];
       wasInert = behind.map((el) => el.inert);
       behind.forEach((el) => { el.inert = true; });
       wrap.hidden = false;
@@ -367,5 +379,5 @@
     pinned = null;
   });
 
-  root.TabulaUI = { toast, dismissToast, announce, ask, askIsOpen, escLayer, modalDialog };
+  root.TabulaUI = { BEHIND, toast, dismissToast, pendingUndo, announce, ask, askIsOpen, escLayer, modalDialog };
 })(window);
