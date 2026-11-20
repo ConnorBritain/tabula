@@ -7,7 +7,7 @@
       "kind": "diagram",
       "after_heading": "The order and the common times",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "diagram",
       "purpose": "Show the eight speeches and four cross-exes in order, with their common times, so the reader sees who speaks when and why the 1AR is hard.",
       "diagram_spec": "One horizontal timeline, read left to right, of twelve blocks in this order: 1AC (8 min), CX (3 min), 1NC (8 min), CX (3 min), 2AC (8 min), CX (3 min), 2NC (8 min), CX (3 min), 1NR (5 min), 1AR (5 min), 2NR (5 min), 2AR (5 min). Block width is proportional to minutes. Each block shows its short name on the first line and its time on the second line (for example '1AC' / '8 min'). Aff speeches (1AC, 2AC, 1AR, 2AR) have a pale aff tint fill #eaf1fb, an aff blue #0055b8 edge and ink #16191d text. Neg speeches (1NC, 2NC, 1NR, 2NR) have a pale neg tint fill #fdecec, a neg red #f2232d edge and ink #16191d text. Never white text on a blue or red fill. CX blocks are light grey #e1e4e8 with ink text 'CX' / '3 min'. Below the timeline, two brackets: one under the first eight blocks labelled 'Constructives (build)', one under the last four labelled 'Rebuttals (answer, choose, weigh)'. Above the timeline, one bracket over 2NC, its CX and 1NR labelled 'The negative block: 13 min of neg speaking'. A small note under the brackets in mid grey: 'Each team also has prep time (often 8 or 10 min) to use between speeches. Times vary by league.' On narrow screens the timeline may wrap into two rows: constructives on row one, rebuttals on row two. Ink #16191d outlines, rounded corners, no arrows needed.",
       "alt": "Timeline of the eight speeches and four cross-exes with their times; aff speeches edged in blue, neg edged in red, and the 13-minute negative block marked.",
@@ -20,7 +20,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "Cross-ex is a quick back-and-forth of short questions and short answers between one debater from each team.",
       "subject": "Two standing faceless figures face each other at a polite distance. Between them, a short column of four small empty speech bubbles stacked from top to bottom, alternating: one pointing from the left figure, then one pointing from the right figure, then left, then right. All bubbles are small and the same size, showing short turns.",
       "composition": "The left figure stands in the left third, the right figure in the right third, both on one light grey ground line. The column of bubbles sits in the centre between their heads and shoulders. Plenty of white space above and below. No furniture.",
@@ -28,7 +28,7 @@
       "avoid": "No question marks or any marks inside the bubbles. No pointing fingers, raised fists or angry poses. No podium or timer.",
       "alt": "A blue figure and a red figure face each other with small speech bubbles taking turns between them: cross-ex is short questions and short answers.",
       "caption": "Short questions, short answers, one turn at a time.",
-      "file": "images/cross-examination-exchange.png"
+      "file": "images/cross-examination-exchange.webp"
     },
     {
       "id": "prep-time-hourglasses",
@@ -36,7 +36,7 @@
       "kind": "illustration",
       "after_heading": "How prep time works",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "inline",
       "purpose": "Each team has its own bank of prep time for the whole round and spends it in whatever amounts it chooses.",
       "subject": "Two identical simple hourglasses standing side by side on a plain ground line. Both started with the same amount of sand. The left hourglass has only a little sand left in its top bulb and a tall pile below. The right hourglass still has most of its sand in the top bulb and a small pile below.",
       "composition": "The two hourglasses stand a little apart, left and right of centre, the same size and on the same light grey ground line. Wide white space around them. Nothing else in the picture.",
@@ -44,7 +44,7 @@
       "avoid": "No clocks, numbers or tick marks. No falling stream drawn as a dashed line of dots that could look like writing.",
       "alt": "Two hourglasses, blue sand and red sand, with different amounts left: each team has its own prep time bank and spends it as it likes.",
       "caption": "Each team has one bank of prep time for the whole round.",
-      "file": "images/prep-time-hourglasses.png"
+      "file": "images/prep-time-hourglasses.webp"
     },
     {
       "id": "how-to-flow-sheet",
@@ -52,7 +52,7 @@
       "kind": "diagram",
       "after_heading": "Plain version",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "diagram",
       "purpose": "Show how a flow sheet works: one column per speech, each answer next to the argument it answers, and a dropped argument as an empty space in its row.",
       "diagram_spec": "A sheet titled 'DA sheet' drawn as a white rectangle with ink outline and rounded corners. Six columns with headers, left to right: '1NC', '2AC', 'Block (2NC/1NR)', '1AR', '2NR', '2AR'. Header text for 1NC, Block and 2NR in neg red text #c8161f; for 2AC, 1AR and 2AR in aff blue #0055b8. Thin light grey #cfd4da vertical rules between columns. Three rows. Row 1 cells: 1NC 'Link: plan costs $', 2AC 'Link turn: plan saves $', Block 'Savings take 5 yrs', 1AR 'Ext link turn', 2NR 'Savings too late', 2AR 'Ext: saves by yr 3'. Row 2 cells: 1NC 'Internal link: cost forces cuts', 2AC 'No cuts shown', Block 'Law requires cuts', 1AR empty cell with a dashed mid grey #7d8690 outline and nothing inside it (no star or other mark), 2NR 'Dropped in 1AR', 2AR empty. Row 3 cells: 1NC 'Impact: kids lose services', 2AC 'Case outweighs', Block 'DA turns case', 1AR 'Case > DA', 2NR 'DA turns case', 2AR 'Case outweighs'. Cell text colour follows the column's side: red text #c8161f or blue text #0055b8. Thin ink arrows run left to right along each row between cells. Callouts outside the sheet in ink with short leader lines: on the column headers, 'One column per speech'; on row 1, 'Read across a row to follow one argument'; on the dashed empty cell, an ink #16191d label 'Empty space = dropped argument'. Keep text short so it fits on a phone; on narrow screens the sheet may scroll sideways inside its own box.",
       "alt": "A flow sheet with one column per speech and three rows lined up across; an empty dashed cell in the 1AR column shows a dropped argument.",
@@ -65,7 +65,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "Shorthand turns a long spoken argument into a few quick marks, so the note fits in the time you have.",
       "subject": "On the left, a tall stack of four sheets of paper, each covered in many long plain straight lines. On the right, one small index card with only three short plain straight dashes on it. Between them, a simple wide plain arrow shape pointing right.",
       "composition": "The tall stack sits in the left third, the small card in the right third, both resting on one light grey ground line. The arrow sits at mid height in the centre. Lots of white space; the size difference between the stack and the card is the point.",
@@ -73,7 +73,7 @@
       "avoid": "No symbols, letters, arrows or squiggles drawn on the paper or card: only plain straight lines and dashes. No pen or hand.",
       "alt": "A tall stack of lined pages beside a small card with three short dashes: shorthand turns a long argument into a few quick marks.",
       "caption": "",
-      "file": "images/flow-shorthand-condense.png"
+      "file": "images/flow-shorthand-condense.webp"
     },
     {
       "id": "evidence-and-cards-parts",
@@ -81,7 +81,7 @@
       "kind": "diagram",
       "after_heading": "The parts of a card",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "diagram",
       "purpose": "Show the three parts of a card (tag, cite, text) and the layers inside the text (full paragraph, underlined, highlighted and read aloud).",
       "diagram_spec": "One card drawn as a white rectangle with an ink #16191d outline and rounded corners, with three stacked bands. Band 1 (top), bold ink text: 'Programs like this may pay for themselves by year three.' Band 2, smaller ink text: 'Analyst 21 — Pat Analyst, budget researcher, \"Cost Review of New Programs,\" Policy Journal, March 2021.' Band 3, normal ink text of the invented quote: '...early costs are real, but our review found that programs of this kind may return more than they spend by the third year, mainly through lower emergency costs...' In band 3, underline the words 'early costs are real', 'may return more than they spend by the third year' and 'lower emergency costs'; give 'may return more than they spend by the third year' a light grey #e1e4e8 highlight box behind it as the highlighted, read-aloud part. Labels on the right side with short ink leader lines: band 1 'Tag: the debater's one-line claim'; band 2 'Cite: who, when, where, qualifications'; band 3 'Text: the author's words, unchanged'. A small key under the card: an underline sample labelled 'Underlined: the important parts'; a grey highlight sample labelled 'Highlighted: read out loud'. A note under the key in mid grey #7d8690: 'The tag must match what the text says.' No blue or red. On narrow screens the labels move below each band.",
       "alt": "A card with its tag, cite and text labelled; inside the text, underlined words and one highlighted phrase show what is read out loud.",
@@ -94,7 +94,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "Each of the four debaters gets their own score on one shared scale, and most scores land close together near the top.",
       "subject": "A long horizontal track, like a plain slider bar, with evenly spaced short tick marks and no numbers. Four round markers sit on the track, all in its right third, close together but at slightly different spots.",
       "composition": "The track runs across the middle of the frame from left to right. The left two thirds of the track are plain and empty; the four markers cluster in the right third, not touching, with no marker at the far right end. Nothing above or below except white space.",
@@ -102,7 +102,7 @@
       "avoid": "No numbers, labels, stars or medals. No podium or ranking steps.",
       "alt": "Four round markers, two blue and two red, sit close together near the top of a long scale: each debater gets their own score.",
       "caption": "Each debater gets their own score, apart from who wins.",
-      "file": "images/speaker-points-track.png"
+      "file": "images/speaker-points-track.webp"
     },
     {
       "id": "ballot-and-rfd-card",
@@ -110,7 +110,7 @@
       "kind": "illustration",
       "after_heading": "What is on a ballot",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "inline",
       "purpose": "A ballot has three jobs: the winning side, a score for each debater, and a short written reason.",
       "subject": "A plain ballot card lying flat, with a pen resting beside it. The card has three areas from top to bottom: at the top, two small empty square boxes side by side; in the middle, a row of four small empty rectangular boxes; at the bottom, four plain straight lines for a short written reason.",
       "composition": "The card sits slightly left of centre, tilted a little, filling about half the frame height. The pen lies diagonally to the right of the card, its tip near the bottom lines. Wide white space around. No desk details beyond one light grey line.",
@@ -118,7 +118,7 @@
       "avoid": "No marks, ticks or fills in any box. No numbers or writing. No gavel or official seal.",
       "alt": "A ballot card with two empty side boxes, four score boxes and lines for the reason: the decision, speaker points and the RFD.",
       "caption": "Decision, speaker points, and the reason for decision.",
-      "file": "images/ballot-and-rfd-card.png"
+      "file": "images/ballot-and-rfd-card.webp"
     },
     {
       "id": "giving-feedback-note",
@@ -126,7 +126,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "Good feedback is short and specific: one or two clear notes handed to each debater.",
       "subject": "Two faceless figures seated at a small table, facing each other. The left figure, the judge, holds out a small card with just two short plain straight lines on it. The right figure, a debater, reaches out an open hand to take it.",
       "composition": "The judge figure sits in the left third, the debater in the right third, with the small round table between them. The card is at the centre, held between the two hands, the focus of the picture. Calm, open posture on both. White space all around.",
@@ -134,7 +134,7 @@
       "avoid": "No speech bubbles, pointing, frowns or a stack of many papers. No trophy or check marks on the card.",
       "alt": "A judge hands a debater a small card with two short lines: good feedback is short, specific and kind.",
       "caption": "One or two specific notes are worth more than a long speech.",
-      "file": "images/giving-feedback-note.png"
+      "file": "images/giving-feedback-note.webp"
     },
     {
       "id": "speech-docs-sharing",
@@ -142,7 +142,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "Before a speech, the team sends the same document to the other team and the judge at the same time.",
       "subject": "Three simple open laptops seen from the front, screens blank. From the laptop on the left, one sheet of paper with plain straight lines floats out and splits into two identical copies, each gliding toward one of the other two laptops along a soft dotted path.",
       "composition": "The sending laptop sits on the left at mid height. The two receiving laptops sit on the right, one upper right and one lower right. The sheets travel along two gentle curved dotted paths from left to right. Lots of white space; no desks or people.",
@@ -150,7 +150,7 @@
       "avoid": "No text or lines on the screens. No envelope with an @ sign, no app icons, no cloud logos.",
       "alt": "A blue laptop sends one document that splits into two copies, going to a red laptop and a grey judge laptop: the speech doc goes to everyone at once.",
       "caption": "The doc goes to the other team and the judge at the same time.",
-      "file": "images/speech-docs-sharing.png"
+      "file": "images/speech-docs-sharing.webp"
     },
     {
       "id": "round-conduct-open-door",
@@ -158,7 +158,7 @@
       "kind": "illustration",
       "after_heading": "Safety",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "inline",
       "purpose": "A safe round is an open, visible room where anyone can get help, and the tournament staff are close by.",
       "subject": "A plain classroom door standing wide open, seen straight on. Through the doorway, a simple calm room: two small tables facing each other and one small desk between them at the back, all empty.",
       "composition": "The door frame stands centred, filling most of the frame height, with the door swung open to the left. The room inside is small and simple, seen through the opening. A short light grey floor line runs under the doorway. Nothing else outside the door.",
@@ -166,7 +166,7 @@
       "avoid": "No signs on the door, no room number, no lock, no warning symbols, no figures, no dark or scary shading.",
       "alt": "A classroom door stands wide open onto a calm, empty debate room: keep rounds open, visible and safe.",
       "caption": "Keep the door open, and know where the tournament staff are.",
-      "file": "images/round-conduct-open-door.png"
+      "file": "images/round-conduct-open-door.webp"
     }
   ]
 }

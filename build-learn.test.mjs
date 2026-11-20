@@ -20,7 +20,10 @@ test('learn/ matches a fresh build of docs/library (run: node build-learn.mjs)',
   for (const [rel, text] of site.files) {
     const p = join(OUT, rel);
     assert.ok(existsSync(p), `learn/${rel} is missing`);
-    assert.equal(readFileSync(p, 'utf8'), text, `learn/${rel} is out of date`);
+    // CHANGED (pictures): images are binary, so a Buffer is compared byte for byte; text files as before.
+    // Was: assert.equal(readFileSync(p, 'utf8'), text, `learn/${rel} is out of date`);
+    if (Buffer.isBuffer(text)) assert.ok(readFileSync(p).equals(text), `learn/${rel} is out of date`);
+    else assert.equal(readFileSync(p, 'utf8'), text, `learn/${rel} is out of date`);
   }
   const onDisk = [];
   const walk = (d, pre = '') => { for (const e of readdirSync(d, { withFileTypes: true })) e.isDirectory() ? walk(join(d, e.name), pre + e.name + '/') : onDisk.push(pre + e.name); };
@@ -153,6 +156,15 @@ test('heading anchors are unique and quote paragraphs stay apart', () => {
   assert.match(html, /id="example"/);
   assert.match(html, /id="example-2"/);
   assert.match(html, /<blockquote><p>one<\/p><p>two<\/p><\/blockquote>/);
+});
+
+// WHY: writers mark the summary with "**Plain version.**", but readers should see only the summary; a visible label repeats on all 78 pages and looks like boilerplate.
+test('the Plain version marker sets the summary style but is not shown on the page', () => {
+  const ctx = { slug: 'a', pages: new Map(), missing: new Set() };
+  const { html, blocks } = markdown('> **Plain version.** A short summary.\n>\n> More.\n', ctx);
+  assert.match(html, /<blockquote class="plain"><p>A short summary\.<\/p><p>More\.<\/p><\/blockquote>/);
+  assert.doesNotMatch(html, /Plain version/);
+  assert.equal(blocks[0].kind, 'plain');
 });
 
 // WHY: search engines read the JSON-LD and the sitemap. If either is broken or missing a page, that page may not be found.

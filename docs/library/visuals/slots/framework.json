@@ -7,7 +7,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "Each team offers a rule for how to decide the round, and the judge picks one before weighing anything else.",
       "subject": "A simple faceless judge figure sits at a plain desk, seen from the front. On the desk lie two closed books of exactly the same size and shape, one on the left and one on the right, with space between them.",
       "composition": "Front view, centred. The desk runs across the lower middle of the frame. The figure sits behind the desk at the centre, round head and simple body, hands not shown. The two books lie flat on the desk, one to each side of the figure, at the same angle. Nothing else is in the picture.",
@@ -15,7 +15,7 @@
       "avoid": "No gavel, courtroom, robes, columns or scales. No writing or symbols on the books. No face or hair on the figure. Do not make either book larger, open or closer to the figure.",
       "alt": "A judge sits at a desk between two closed books, one blue and one red. In framework, each team offers a way to decide the round and the judge picks one.",
       "caption": "Framework: each team offers a rule for deciding, and the judge picks one.",
-      "file": "images/framework-two-rulebooks.png"
+      "file": "images/framework-two-rulebooks.webp"
     },
     {
       "id": "framework-vs-kritik-plan-and-ideas",
@@ -23,7 +23,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "Framework against a kritik is the question of what goes on the scale: the plan's results, the ideas behind it, or both.",
       "subject": "A simple two-pan balance scale on a plain stand. On the left pan lies a plain sheet with four straight lines (the plan). On the right pan rests a pair of simple round eyeglasses (the ideas behind it).",
       "composition": "Front view, centred. The beam is level and both pans hang at the same height, so neither side is shown winning. The sheet and the glasses are about the same visual size. Nothing else is in the picture.",
@@ -31,7 +31,7 @@
       "avoid": "No gavel, courtroom, columns or legal symbols. Do not tip the balance. No eyes, faces, people or hands.",
       "alt": "A level balance scale holds a plan sheet on one pan and a pair of glasses on the other. Framework asks whether to weigh the plan, the ideas, or both.",
       "caption": "What goes on the scale: the plan's results, the ideas behind it, or both?",
-      "file": "images/framework-vs-kritik-plan-and-ideas.png"
+      "file": "images/framework-vs-kritik-plan-and-ideas.webp"
     },
     {
       "id": "framework-vs-k-aff-two-models",
@@ -39,7 +39,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "Framework against a K aff is a choice between two models of debate built from the same parts, and each side says its model is limited and good.",
       "subject": "Two fenced fields of the same size side by side, each with a low fence of round-topped posts and plain rails. Each field holds the same five identical plain short posts. In the left field, the five posts stand in one straight row that leads to a shared post line across the centre of the field, one fixed place both teams meet at. In the right field, the same five posts are spread in a loose, open pattern across the field.",
       "composition": "Seen from slightly above. The two fields sit side by side across the middle of the frame, same size, same fence height, on one shared ground line, with a clear white gap between them. Both fields are fully enclosed. The posts in both fields are the same size and the same number; only their arrangement differs. Nothing else is in the picture.",
@@ -47,7 +47,7 @@
       "avoid": "No walls, locks, barbed wire, closed gates or anything that looks like keeping someone out. No people. No extra objects in either field. Do not make one field larger, brighter, richer, emptier, tidier or more inviting than the other.",
       "alt": "Two equal fenced fields with the same five posts: red-fenced, the posts in one row meeting at a centre line; blue-fenced, the posts spread loosely. Two models of debate.",
       "caption": "Same parts, two arrangements: the judge decides which model is better, as argued.",
-      "file": "images/framework-vs-k-aff-two-models.png"
+      "file": "images/framework-vs-k-aff-two-models.webp"
     }
   ]
 }

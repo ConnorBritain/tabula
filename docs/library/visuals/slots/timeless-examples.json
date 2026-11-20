@@ -7,7 +7,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 3,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "The reader sees the core move of the spending DA: space is limited, so adding something new pushes something else out.",
       "subject": "A single plain shelf, drawn as a flat rectangle, filled end to end with a row of equal square blocks. A new, wider block is being slid onto the shelf from the left end. At the right end, the last block is tipping over the edge, half off the shelf.",
       "composition": "The shelf runs left to right across the middle of the frame. The new block enters at the left end. The tipping block sits at the far right end, tilted about thirty degrees. The shelf has no wall, brackets or room behind it. Nothing else is in the picture.",
@@ -15,7 +15,7 @@
       "avoid": "No coins, money, dollar signs, bills, price tags, food or people. No falling debris, motion lines or broken pieces.",
       "alt": "A full shelf of blocks; a new block slides on at the left and the last block tips off the right end, like a plan's cost forcing a cut elsewhere.",
       "caption": "When the budget is full, something new can push something else out.",
-      "file": "images/example-spending-da-full-shelf.png"
+      "file": "images/example-spending-da-full-shelf.webp"
     },
     {
       "id": "example-states-cp-many-lanes",
@@ -23,7 +23,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 3,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "The reader sees the states counterplan as the same goal reached by a different actor: one wide road versus many narrow parallel paths.",
       "subject": "Two routes from a shared starting dot to the same round destination marker. The upper route is one single wide road. The lower route is a bundle of many narrow paths, side by side, that run parallel and meet again at the destination.",
       "composition": "The starting dot sits at the left middle. The routes split just right of it: the wide road curves gently up and across, the bundle of narrow paths curves gently down and across. Both rejoin at the destination marker at the right middle. Lots of white space above and below. No landscape, buildings, maps or borders.",
@@ -31,7 +31,7 @@
       "avoid": "No maps, state shapes, country outlines, flags, buildings, capitol domes or road signs. Do not count or number the narrow paths.",
       "alt": "One wide blue road and a bundle of many narrow red paths start at one point and reach the same goal: the plan's single actor versus fifty states acting.",
       "caption": "The same goal, reached by one actor or by many.",
-      "file": "images/example-states-cp-many-lanes.png"
+      "file": "images/example-states-cp-many-lanes.webp"
     },
     {
       "id": "example-pic-missing-piece",
@@ -39,7 +39,7 @@
       "kind": "illustration",
       "after_heading": "The plan-minus PIC",
       "priority": 3,
-      "aspect": "3:2",
+      "format": "inline",
       "purpose": "The reader sees that a PIC copies almost all of the plan and leaves out one piece, and that the fight is about that one piece.",
       "subject": "Two long bars made of six equal rectangular blocks each, one above the other. The upper bar is complete. The lower bar is the same, except that one block in it is missing; that block floats a little above the gap, lifted out.",
       "composition": "The upper bar sits in the upper third of the frame, the lower bar in the lower third, both centred and the same length. The gap in the lower bar is the fourth block from the left. The lifted block hovers just above its gap, between the two bars. Nothing else is in the picture.",
@@ -47,7 +47,7 @@
       "avoid": "No scissors, hands, tools, puzzle-piece tabs or arrows.",
       "alt": "A full blue bar of blocks above a red copy with one block lifted out: a PIC does the whole plan except one part.",
       "caption": "A PIC does the whole plan, minus one part.",
-      "file": "images/example-pic-missing-piece.png"
+      "file": "images/example-pic-missing-piece.webp"
     },
     {
       "id": "example-t-substantial-baseline",
@@ -55,7 +55,7 @@
       "kind": "illustration",
       "after_heading": "Compared to what?",
       "priority": 3,
-      "aspect": "3:2",
+      "format": "inline",
       "purpose": "The reader sees why the baseline matters: the same change looks large or small depending on what it is measured against.",
       "subject": "Two side-by-side scenes on one ground line. In each scene there is the same small cube, exactly the same size. In the left scene the cube stands next to a short, small box, so the cube looks large. In the right scene the cube stands next to a very tall, wide box, so the cube looks tiny.",
       "composition": "The left scene fills the left half, the right scene fills the right half, separated by white space. The two cubes sit on the same ground line at the same height and size. The small box is just left of the left cube; the large box rises behind and right of the right cube. Nothing else is in the picture.",
@@ -63,7 +63,7 @@
       "avoid": "No rulers, tape measures, scales, numbers or tick marks. No fences or fields.",
       "alt": "The same grey cube twice: beside a small box it looks big, beside a huge box it looks tiny. Whether a plan is substantial depends on the baseline.",
       "caption": "The same plan can look big or small, depending on what you compare it to.",
-      "file": "images/example-t-substantial-baseline.png"
+      "file": "images/example-t-substantial-baseline.webp"
     },
     {
       "id": "example-squo-solves-bridge",
@@ -71,7 +71,7 @@
       "kind": "illustration",
       "after_heading": "The advantage and solvency",
       "priority": 3,
-      "aspect": "3:2",
+      "format": "inline",
       "purpose": "The reader sees that status quo solves usually shrinks the advantage: the gap is mostly covered already, and the plan adds only the last piece.",
       "subject": "A gap between two flat ledges. A simple plank bridge already reaches from the left ledge across most of the gap. A small gap remains near the right ledge. A single short plank floats just above that remaining gap, ready to fill it.",
       "composition": "The left ledge is at the left edge of the subject, the right ledge at the right, both at the same height in the middle of the frame. The existing bridge runs from the left ledge to about four fifths of the way across. The short plank hovers just above the last fifth. No water, cliffs, landscape or sky detail.",
@@ -79,7 +79,7 @@
       "avoid": "No people, vehicles, water, rocks, cranes or tools.",
       "alt": "A bridge already spans most of a gap; one small blue plank floats over the rest. The status quo may solve much of the harm, leaving the plan less to add.",
       "caption": "If the status quo already covers most of the gap, the plan adds only the rest.",
-      "file": "images/example-squo-solves-bridge.png"
+      "file": "images/example-squo-solves-bridge.webp"
     },
     {
       "id": "example-extinction-vs-structural-balance",
@@ -87,7 +87,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 3,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "The reader sees the weighing question in neutral terms: one very large single weight against many small weights that add up, with neither side winning by default.",
       "subject": "A simple two-pan balance scale with its beam perfectly level. The left pan holds one single large round shape. The right pan holds a neat stack of many small square blocks. The two pans hang at exactly the same height.",
       "composition": "The balance stands in the centre of the frame on a plain base. The beam is level. The large round shape sits in the left pan; the stack of small blocks sits in the right pan, about as tall as the round shape. Equal white space on both sides. Nothing else is in the picture.",
@@ -95,7 +95,7 @@
       "avoid": "No explosions, fire, mushroom clouds, weapons, globes, skulls, injured or suffering people, crowds, hospitals or broken objects. Do not tilt the beam toward either side.",
       "alt": "A level balance with one large round weight on one pan and many small blocks on the other: a huge, uncertain harm weighed against harms that add up every day.",
       "caption": "Neither kind of harm wins by default; the teams' weighing decides.",
-      "file": "images/example-extinction-vs-structural-balance.png"
+      "file": "images/example-extinction-vs-structural-balance.webp"
     },
     {
       "id": "example-condo-debate-speech-choices",
@@ -103,7 +103,7 @@
       "kind": "diagram",
       "after_heading": "The shape of the round",
       "priority": 3,
-      "aspect": "3:2",
+      "format": "diagram",
       "purpose": "The reader sees, speech by speech, where condo enters the round and which choice each speech makes, without taking a side.",
       "diagram_spec": "A left-to-right timeline of seven speech boxes joined by plain arrows. Aff boxes have an aff blue #0055b8 outline and label; neg boxes have a neg red #f2232d outline and label; CX box is grey. Box 1 (neg) '1NC': 'Two CPs and a K, all conditional'. Box 2 (grey) 'CX of 1NC': 'Status? All conditional'. Box 3 (aff) '2AC': 'Answers everything; short condo block: interp, violation, standards, voter'. Box 4 (neg) 'Block': 'Counter-interp, standards, no harm in this round, reject the argument'. Box 5 (aff) '1AR' splits into two small stacked options: 'Extend condo as a real option' and 'Extend briefly or let it go'. A thin grey note under the second option: 'Most judges: then the 2AR cannot go for it'. Box 6 (neg) '2NR' with a short list: 'Collapse to one option', 'Answer line by line', 'Point to the 2AC', 'Hold the remedy'. Box 7 (aff) '2AR' splits into three small stacked options: 'All in', 'Part of the 2AR', 'Not at all'. On narrow screens the timeline wraps to a top-to-bottom column. No winner shown; plain sans-serif labels, ink text on white.",
       "alt": "Speech timeline for a condo debate: 1NC runs three conditional options, 2AC answers, block replies, 1AR extends or not, 2NR collapses, 2AR goes all in, part or not.",

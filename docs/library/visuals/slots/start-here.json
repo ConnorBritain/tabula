@@ -7,7 +7,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "The library starts simple and goes deeper one step at a time, so any reader can begin at the bottom.",
       "subject": "A gentle staircase of five wide steps, each step made of one thick closed book lying flat. The books get a little higher from left to right. On the lowest step sits one small open book with plain straight lines on its two pages, ready to read.",
       "composition": "The staircase rises from the lower left to the right of centre. The open book sits on the first, lowest step at the left, so the eye starts there and climbs right. Lots of white space above the steps. No figures, shelves, walls or floor beyond one short light grey ground line.",
@@ -15,7 +15,7 @@
       "avoid": "No titles or marks on the book spines. No ladder, arrows, flags or a figure climbing. No trophy or star at the top.",
       "alt": "A staircase of flat books rising left to right with an open book on the lowest step: the library starts simple and goes deeper.",
       "caption": "Start at the first step. Every page begins with a plain summary.",
-      "file": "images/index-steps.png"
+      "file": "images/index-steps.webp"
     },
     {
       "id": "debate-101-two-teams",
@@ -23,7 +23,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "A round is two teams of two, aff and neg, with one judge who decides.",
       "subject": "A simple debate room seen from the front. On the left, two seated faceless figures share one table. On the right, two seated faceless figures share another table. The two tables angle slightly toward each other. At the back in the centre, one faceless figure sits at a small desk with a plain clipboard, facing the room.",
       "composition": "The aff table sits in the left third, the neg table in the right third, both on the same ground line. The judge desk sits centred and a little higher, further back, between them. Wide white space between the three groups. No podium, windows, flags or wall details.",
@@ -31,7 +31,7 @@
       "avoid": "No gavel, bench or courtroom look. No laptops with screens, no speech bubbles, no timer.",
       "alt": "Two blue figures at a table on the left, two red figures on the right, and a judge at a desk between them: the two teams and the judge.",
       "caption": "Two teams of two, aff and neg, and one judge.",
-      "file": "images/debate-101-two-teams.png"
+      "file": "images/debate-101-two-teams.webp"
     },
     {
       "id": "first-round-judge-kit",
@@ -39,7 +39,7 @@
       "kind": "illustration",
       "after_heading": "What to bring",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "inline",
       "purpose": "A new judge needs only a few simple things: something to take notes on, two pens, a timer and water.",
       "subject": "A small set of judging supplies laid out flat on a table, seen from slightly above: a clipboard holding a sheet with plain straight lines in columns, two pens lying side by side, a round stopwatch with a plain face and no numbers, and a plain water bottle.",
       "composition": "The objects sit in one loose row from left to right: water bottle, clipboard (largest, near centre), the two pens next to it, then the stopwatch. Even gaps between them. One light grey line for the table edge. Nothing else.",
@@ -47,7 +47,7 @@
       "avoid": "No numbers or tick labels on the stopwatch. No phone, no snack wrappers, no name badge, no ballot.",
       "alt": "A clipboard with lined paper, two pens in different colours, a stopwatch and a water bottle: the few things a new judge needs to bring.",
       "caption": "Paper, two pens, a timer and water are enough.",
-      "file": "images/first-round-judge-kit.png"
+      "file": "images/first-round-judge-kit.webp"
     }
   ]
 }

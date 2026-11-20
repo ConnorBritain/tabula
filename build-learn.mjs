@@ -6,6 +6,10 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, existsSync
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTracks, loadChecks, trackState, renderCheck, buildTrackPages, renderHomeTracks } from './learn-tracks.mjs';
+import { loadApproved, figureHtml, shareImage, placeFigures, PLAIN } from './learn-visuals.mjs';
+import { FORMATS } from './docs/library/visuals/slots.mjs';
+// "**Plain version.**" at the start of a quote marks the page summary. It sets the summary style; readers do not see it.
+const PLAIN_LABEL = new RegExp(`^<p><strong>${PLAIN}\\.?</strong>\\s*`);
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 export const SRC = join(ROOT, 'docs', 'library');
@@ -104,6 +108,7 @@ function fence(lines, i) {
 function heading(lines, i, ctx) {
   const [, hashes, text] = /^(#{1,6})\s+(.*)$/.exec(lines[i]);
   const html = inline(text, ctx);
+  ctx.lastHeading = hashes.length === 1 ? null : text.trim(); // the place name a picture slot can point at
   if (hashes.length === 1) { ctx.h1 = html; return { html: `<h1>${html}</h1>`, next: i + 1 }; }
   if (hashes.length === 2) ctx.section = text;
   let id = slugify(html) || 'section', n = 2; // ids stay unique, so every anchor link lands
@@ -119,9 +124,10 @@ function quote(lines, i, ctx) {
     const t = lines[i].replace(/^>\s?/, '').trim();
     if (t) paras[paras.length - 1].push(t); else if (paras[paras.length - 1].length) paras.push([]);
   }
-  const html = paras.filter((p) => p.length).map((p) => `<p>${inline(p.join(' '), ctx)}</p>`).join('');
-  const plain = /^<p><strong>Plain version\.?<\/strong>/.test(html);
-  return { html: `<blockquote${plain ? ' class="plain"' : ''}>${html}</blockquote>`, next: i };
+  let html = paras.filter((p) => p.length).map((p) => `<p>${inline(p.join(' '), ctx)}</p>`).join('');
+  const plain = PLAIN_LABEL.test(html);
+  if (plain) html = html.replace(PLAIN_LABEL, '<p>');
+  return { html: `<blockquote${plain ? ' class="plain"' : ''}>${html}</blockquote>`, next: i, kind: plain ? 'plain' : 'other' };
 }
 
 function table(lines, i, ctx) {
@@ -174,18 +180,22 @@ function readerFor(lines, i) {
   return paragraph;
 }
 
-// Block Markdown. Returns { html, h1 }.
+// Block Markdown. Returns { html, h1, blocks }. Each block is { kind: 'heading' | 'plain' | 'other', place, html },
+// where place is a ##/### heading's text; learn-visuals.mjs placeFigures() uses the blocks to put pictures in.
 export function markdown(body, ctx) {
   ctx.ids = new Set(); ctx.section = ''; ctx.h1 = '';
   const lines = body.split('\n');
-  const out = [];
+  const blocks = [];
   for (let i = 0; i < lines.length;) {
     if (!lines[i].trim()) { i++; continue; }
-    const { html, next } = readerFor(lines, i)(lines, i, ctx);
-    if (html) out.push(html);
+    const reader = readerFor(lines, i);
+    const { html, next, kind } = reader(lines, i, ctx);
     i = next;
+    if (!html) continue;
+    if (reader === heading) blocks.push({ kind: 'heading', place: ctx.lastHeading, html });
+    else blocks.push({ kind: kind || 'other', html });
   }
-  return { html: out.join('\n'), h1: ctx.h1 };
+  return { html: blocks.map((b) => b.html).join('\n'), h1: ctx.h1, blocks };
 }
 
 // ---------- page shell ----------
@@ -240,7 +250,7 @@ function shell(slug, page, pages, paths) {
 <meta property="og:type" content="article">
 <meta property="og:title" content="${esc(meta.title)}">
 <meta property="og:description" content="${esc(meta.description)}">
-<meta property="og:url" content="${url}">
+<meta property="og:url" content="${url}">${page.ogImage ? `\n<meta property="og:image" content="${page.ogImage}">` : ''}
 <link rel="icon" type="image/png" href="${up}assets/tabula-icon-64.png">
 <link rel="preload" href="${up}assets/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin>
 <script src="${up}assets/theme-boot.js"></script>
@@ -283,9 +293,16 @@ export function buildSite(dir = SRC) {
   const raw = loadPages(dir);
   if (!raw.has('index')) throw new Error('docs/library/index.md (the library home) is missing');
   const missing = new Set();
+  const approved = loadApproved(dir); // pictures (docs/library/visuals/), approved slots only
+  for (const page of approved.keys()) if (!raw.has(page)) throw new Error(`an approved picture points at "${page}", which is not a library page`);
   for (const [slug, p] of raw) {
     const r = markdown(p.body, { slug, pages: raw, missing });
-    p.html = r.html; p.h1Text = stripTags(r.h1);
+    const pics = approved.get(slug) || [];
+    const root = '../'.repeat(segments(slug).length); // from this page to learn/
+    p.html = pics.length ? placeFigures(r.blocks, pics.map((s) => ({ place: s.after_heading, float: Boolean(FORMATS[s.format].float), html: figureHtml(s, root + s.out, esc) })), slug) : r.html;
+    const share = shareImage(pics);
+    if (share) p.ogImage = `${SITE}/learn/${share.out}`; // read by shell()
+    p.h1Text = stripTags(r.h1);
     if (!p.h1Text) throw new Error(`${slug}: needs one "# " heading`);
   }
   // Checks go at the foot of their page (TRACKS.md §3.4). Tracks get their own pages under learn/tracks/.
@@ -305,6 +322,7 @@ export function buildSite(dir = SRC) {
   for (const [id, p] of all) files.set(outPath(id), shell(id, p, raw, paths));
   files.set('learn.css', readFileSync(join(SRC, 'learn.css'), 'utf8'));
   if ([...all.values()].some((p) => p.script)) files.set('check.js', readFileSync(join(ROOT, 'check.js'), 'utf8'));
+  for (const list of approved.values()) for (const s of list) files.set(s.out, readFileSync(s.src)); // binary: a Buffer
   const listed = [...all].filter(([, p]) => !p.noindex); // draft pages stay out of search (the shell adds noindex)
   files.set('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${listed.map(([s, p]) => `  <url><loc>${pageUrl(s)}</loc><lastmod>${p.meta.updated}</lastmod></url>`).join('\n')}\n</urlset>\n`);
   return { files, missing: [...missing].sort(), states };
@@ -316,6 +334,7 @@ function latest(pages, slugs) {
   return slugs.map((s) => pages.get(s).meta.updated).sort().pop();
 }
 
+// files: Map(path in learn/ -> string, or a Buffer for a binary image).
 export function writeSite(files, out = OUT) {
   if (existsSync(out)) rmSync(out, { recursive: true });
   for (const [rel, text] of files) {

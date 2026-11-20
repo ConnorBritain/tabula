@@ -5,40 +5,42 @@
 // Commit the library before a session starts, so git can show what the session changed.
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadSlots } from './build-prompt.mjs';
+import { VISUALS as DIR, FORMATS, MAX_BYTES, STATUSES, loadSlots, loadStatus } from './slots.mjs';
 
-const DIR = dirname(fileURLToPath(import.meta.url));
 const LIB = join(DIR, '..');
 const ROOT = join(LIB, '..', '..');
-const MAX_BYTES = 1.5 * 1024 * 1024; // revisit once the Phase A anchors show real file sizes
-const SIZES = { '3:2': [1536, 1024], '1:1': [1024, 1024] };
 
-// PNG width and height from the IHDR chunk, or null if the file is not a PNG.
-export function pngSize(buf) {
-  if (buf.length < 24 || buf.toString('latin1', 1, 4) !== 'PNG') return null;
-  return [buf.readUInt32BE(16), buf.readUInt32BE(20)];
+// WebP width and height (VP8X, VP8 or VP8L), or null if the file is not a WebP.
+export function webpSize(buf) {
+  if (buf.length < 30 || buf.toString('latin1', 0, 4) !== 'RIFF' || buf.toString('latin1', 8, 12) !== 'WEBP') return null;
+  const kind = buf.toString('latin1', 12, 16);
+  if (kind === 'VP8X') return [1 + buf.readUIntLE(24, 3), 1 + buf.readUIntLE(27, 3)];
+  if (kind === 'VP8 ') return [buf.readUInt16LE(26) & 0x3fff, buf.readUInt16LE(28) & 0x3fff];
+  if (kind === 'VP8L') { const b = buf.readUInt32LE(21); return [1 + (b & 0x3fff), 1 + ((b >> 14) & 0x3fff)]; }
+  return null;
 }
 
 // Problems with the status ledger and image files (no git needed).
-export function checkFiles(slots = loadSlots(), status = JSON.parse(readFileSync(join(DIR, 'status.json'), 'utf8')).slots) {
+export function checkFiles(slots = loadSlots(), status = loadStatus()) {
   const bad = [];
   const ids = new Set(slots.map((s) => s.id));
   for (const id of Object.keys(status)) if (!ids.has(id)) bad.push(`status.json: "${id}" is not a slot`);
   for (const s of slots) {
     const st = status[s.id];
     if (!st) { bad.push(`${s.id}: missing from status.json`); continue; }
-    if (!['todo', 'draft', 'skipped', 'approved'].includes(st.status)) bad.push(`${s.id}: bad status "${st.status}"`);
+    if (!STATUSES.includes(st.status)) bad.push(`${s.id}: bad status "${st.status}"`);
     if (st.status === 'skipped' && !st.note) bad.push(`${s.id}: skipped without a note saying why`);
     if (st.status !== 'draft' && st.status !== 'approved') continue;
     const path = join(LIB, s.file);
     if (!existsSync(path)) { bad.push(`${s.id}: ${st.status} but docs/library/${s.file} does not exist`); continue; }
-    if (statSync(path).size > MAX_BYTES) bad.push(`${s.id}: image is over ${MAX_BYTES / 1048576} MB`);
+    if (statSync(path).size > MAX_BYTES) bad.push(`${s.id}: image is over ${MAX_BYTES / 1024} KB`);
     if (s.kind === 'illustration') {
-      const size = pngSize(readFileSync(path));
-      if (!size) bad.push(`${s.id}: docs/library/${s.file} is not a PNG`);
-      else if (size[0] * SIZES[s.aspect][1] !== size[1] * SIZES[s.aspect][0]) bad.push(`${s.id}: image is ${size.join('x')}, expected aspect ${s.aspect}`);
+      const size = webpSize(readFileSync(path));
+      const want = (FORMATS[s.format] || {}).out;
+      if (!size) bad.push(`${s.id}: docs/library/${s.file} is not a WebP (run process-image.mjs on the original)`);
+      else if (!want || size[0] !== want[0] || size[1] !== want[1]) bad.push(`${s.id}: image is ${size.join('x')}, expected ${want ? want.join('x') : '?'} for format "${s.format}" (run process-image.mjs)`);
     }
   }
   return bad;
@@ -53,7 +55,7 @@ function checkGit() {
   for (const p of changed) if (!allowed(p)) bad.push(`changed outside the session's area: ${p}`);
   let before = {};
   try { before = JSON.parse(git('show', 'HEAD:docs/library/visuals/status.json')).slots; } catch { console.log('Note: status.json is not committed yet, so the "approved" check is skipped.'); }
-  const now = JSON.parse(readFileSync(join(DIR, 'status.json'), 'utf8')).slots;
+  const now = loadStatus();
   for (const [id, st] of Object.entries(now)) if (st.status === 'approved' && (before[id] || {}).status !== 'approved') bad.push(`${id}: set to "approved" since the last commit (only the owner may do this; if you did, ignore this line)`);
   return bad;
 }

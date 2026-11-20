@@ -7,7 +7,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "A counterplan is the neg's other route to the same goal; the debate is about which route is better, for example one that goes around a harm the plan's route passes.",
       "subject": "A road splits into two roads that both reach the same simple house on the right. The lower road runs straight and passes beside a small grey pit at its edge. The upper road takes a small detour, bending up and around, and has no pit. Both roads are the same width and both arrive at the house.",
       "composition": "Seen from slightly above. One road enters from the left edge at mid height and splits a little left of centre. The lower road runs straight to the house; the small pit sits beside it halfway along. The upper road bends up and around in a gentle detour, then comes back down to meet the lower road just before the house. Neither road looks better made or more pleasant than the other. The house is a plain square with a triangle roof at the right, one door, no windows with detail. Nothing else is in the picture.",
@@ -15,7 +15,7 @@
       "avoid": "No cars, people, signs, trees or arrows. No road markings that look like dashes of text.",
       "alt": "A road splits in two and both routes reach the same house: one runs straight past a small pit, one takes a small detour around it, like a counterplan avoiding a harm.",
       "caption": "A counterplan is another route to the same goal.",
-      "file": "images/counterplans-two-roads.png"
+      "file": "images/counterplans-two-roads.webp"
     },
     {
       "id": "counterplan-text-one-change",
@@ -23,7 +23,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "Many counterplan texts copy the plan and change one part, and that one change is the reason the counterplan exists.",
       "subject": "Two plain index cards side by side. Each card shows the same single row of four thick, rounded bars, like the flow lines in the reference mark. On the right card, the first bar is replaced by a bar of a different length and colour; the other three bars match the left card exactly.",
       "composition": "The two cards sit side by side across the middle of the frame, same size, same height, with a clear gap between them. The row of bars sits at the same height on both cards. Nothing else is in the picture.",
@@ -31,7 +31,7 @@
       "avoid": "No letters, squiggles or writing-like marks on the cards. No pens or hands.",
       "alt": "Two cards with the same row of bars, except the first bar on the second card is different. A counterplan text often copies the plan and changes one part.",
       "caption": "Many counterplan texts copy the plan and change one thing.",
-      "file": "images/counterplan-text-one-change.png"
+      "file": "images/counterplan-text-one-change.webp"
     },
     {
       "id": "competition-one-tray",
@@ -39,7 +39,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "A counterplan competes only when the judge has to choose one option instead of the other.",
       "subject": "A lunch tray with room for exactly one bowl, in the middle. A soup bowl waits on the left of the tray and a salad bowl waits on the right. The empty space on the tray is the size of one bowl.",
       "composition": "The tray is a wide rounded rectangle in the lower middle of the frame, with one round, empty bowl-shaped space marked in its centre. The soup bowl sits on the table to the left of the tray and the salad bowl to the right, both the same size as the space. No people, hands or cutlery.",
@@ -47,7 +47,7 @@
       "avoid": "No steam lines, food detail, spoons or forks. No table pattern.",
       "alt": "A tray with room for one bowl, with a blue soup bowl on one side and a red salad bowl on the other. A counterplan competes only if the judge must choose one.",
       "caption": "Competition: is it a real choice, or could the judge have both?",
-      "file": "images/competition-one-tray.png"
+      "file": "images/competition-one-tray.webp"
     },
     {
       "id": "competition-two-tests",
@@ -55,7 +55,7 @@
       "kind": "diagram",
       "after_heading": "The two tests",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "diagram",
       "purpose": "Show the order a judge can use to decide whether a counterplan competes.",
       "diagram_spec": "A top-to-bottom decision chart. Start box: 'Can the plan and the counterplan both happen?' Arrow 'No' to the right, to an end box 'Competes: mutual exclusivity'. Arrow 'Yes' down to a second question box: 'Is the counterplan alone better than doing both (the perm)?' Arrow 'Yes' to the right, to an end box 'Competes: net benefits'. Arrow 'No' down to an end box 'Does not compete: compare the plan with the status quo. Any DA the plan causes still counts.' Question boxes: ink outline, white fill. 'Competes' end boxes: neg red #f2232d outline, because a competing counterplan is a neg win on this question. 'Does not compete' end box: aff blue #0055b8 outline, because it is an aff win on this question. Arrow labels in small ink text. A small note under the chart: 'Most counterplans compete through net benefits.'",
       "alt": "Flow chart: if the plan and counterplan cannot both happen, it competes. If they can, it competes only if the counterplan alone beats doing both.",
@@ -68,7 +68,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "The net benefit is the extra thing that makes the counterplan alone better than the plan.",
       "subject": "Two stacks of plain square blocks standing side by side on a thin ground line. Both stacks have the same three blocks. The right stack has one more block on top, so it is one block taller.",
       "composition": "The two stacks sit close together in the middle of the frame, the left stack a little left of centre and the right stack a little right of centre. The extra block on the right stack is the highest shape in the picture. Nothing else is in the picture.",
@@ -76,7 +76,7 @@
       "avoid": "No marks, letters or numbers on the blocks. No arrows pointing to the extra block.",
       "alt": "Two identical grey stacks of blocks; the right one has one extra red block on top. The net benefit is the extra reason the counterplan beats the plan.",
       "caption": "The net benefit is what the counterplan has that the plan does not.",
-      "file": "images/net-benefits-extra-block.png"
+      "file": "images/net-benefits-extra-block.webp"
     },
     {
       "id": "permutations-merge",
@@ -84,7 +84,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "A perm asks whether the plan and the counterplan can be done together, like two roads merging into one.",
       "subject": "Two roads come in from the left and merge into one wider road that continues to the right edge.",
       "composition": "Seen from slightly above. One road enters at the upper left and one at the lower left. They curve toward each other and join just right of centre. The single merged road runs straight on to the right edge. Nothing else is in the picture.",
@@ -92,7 +92,7 @@
       "avoid": "No cars, signs, arrows or dashed road markings.",
       "alt": "A blue road and a red road merge into one road. A perm tests whether the plan and the counterplan could be done together.",
       "caption": "A perm asks: could the judge just do both?",
-      "file": "images/permutations-merge.png"
+      "file": "images/permutations-merge.webp"
     },
     {
       "id": "permutations-three-worlds",
@@ -100,7 +100,7 @@
       "kind": "diagram",
       "after_heading": "What a perm is",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "diagram",
       "purpose": "Show the three worlds a perm debate compares, and how the net benefit decides whether the counterplan competes.",
       "diagram_spec": "Three columns side by side, each a rounded box with a title and two rows. Column 1 title 'Plan alone' (aff blue #0055b8 outline): row 'Solves the case: yes', row 'Causes the DA: yes'. Column 2 title 'Counterplan alone' (neg red #f2232d outline): row 'Solves the case: most or all', row 'Causes the DA: no'. Column 3 title 'Perm: do both' (ink outline, with a thin blue and a thin red stripe at the top): row 'Solves the case: yes', row 'Causes the DA: ?' with the question mark in a grey #e1e4e8 circle. Under column 3, two short arrows to two small result boxes: 'Perm avoids the DA: the counterplan does not compete (for a net-benefit counterplan)' and 'Perm still causes the DA: the counterplan competes'. Ink text throughout. On narrow screens the three columns stack top to bottom.",
       "alt": "Diagram comparing plan alone, counterplan alone, and the perm. If the perm avoids the DA, the counterplan does not compete (for a net-benefit counterplan); if not, it competes.",
@@ -113,7 +113,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "A solvency deficit is the piece of the problem the counterplan cannot solve.",
       "subject": "A square jigsaw puzzle of nine pieces in a three-by-three grid, almost complete. One piece on the right side of the grid is missing. That missing piece lies loose beside the puzzle, outside the grid.",
       "composition": "The puzzle sits left of centre. The gap is in the middle row, right column. The loose piece lies flat to the right of the puzzle, slightly lower, with a clear space between it and the gap. No hands, box or table edge.",
@@ -121,7 +121,7 @@
       "avoid": "No picture printed on the puzzle. No hands or arrows.",
       "alt": "A nine-piece puzzle with one piece missing, lying loose beside it. A solvency deficit is the part of the problem the counterplan cannot solve.",
       "caption": "A solvency deficit is the piece of the case the counterplan leaves out.",
-      "file": "images/solvency-deficits-missing-piece.png"
+      "file": "images/solvency-deficits-missing-piece.webp"
     },
     {
       "id": "common-counterplans-fan",
@@ -129,7 +129,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "Counterplans come in a few familiar shapes, each a different way around the plan.",
       "subject": "One road enters from the left and splits at a single point into six narrower paths that fan out toward the right. Each path has a different simple shape: one straight, one gently curved up, one curved down, one with a single bend, one with a small loop, one that runs close beside the straight path.",
       "composition": "Seen from above, like a simple map. The single road enters at mid height on the left and splits a little left of centre. The six paths spread out evenly across the right half of the frame and stop before the right margin. Nothing else is in the picture.",
@@ -137,7 +137,7 @@
       "avoid": "No signposts, labels, cars, buildings or arrows.",
       "alt": "One road splits into six differently shaped paths. Common counterplans, like states, agent, process and PICs, are different routes the neg can take.",
       "caption": "A few counterplan shapes come back every season.",
-      "file": "images/common-counterplans-fan.png"
+      "file": "images/common-counterplans-fan.webp"
     }
   ]
 }

@@ -15,8 +15,13 @@ a { color: var(--aff); text-underline-offset: 2px; }
 .brand img { height: 30px; width: auto; display: block; }
 .wordmark { font-family: var(--font-display); font-weight: 800; font-style: italic; font-size: 22px; letter-spacing: -0.02em; }
 .libname { color: var(--text-3); font-weight: 600; font-size: 15px; }
-.btn { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font-weight: 600; text-decoration: none; white-space: nowrap; }
+/* Buttons: secondary (.btn) and primary (.btn.primary), with the app's hover and pressed states (spec V5). */
+.btn { display: inline-flex; align-items: center; min-height: var(--h-lg); padding: 0 var(--s4); border-radius: var(--r-lg); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font-weight: var(--fw-3); text-decoration: none; white-space: nowrap; }
+.btn:hover { background: var(--sunk); border-color: var(--text-2); }
+.btn:active { background: var(--border); }
 .btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.primary:active { background: var(--accent-press); border-color: var(--accent-press); }
 
 .crumbs { font-size: 14px; color: var(--text-3); margin: 4px 0 0; }
 .crumbs a { color: var(--text-3); }
@@ -32,9 +37,12 @@ ul, ol { margin: 0 0 14px; padding-left: 24px; }
 li + li { margin-top: 6px; }
 code { font-family: var(--font-mono); font-size: 0.88em; background: var(--sunk); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
 
-blockquote { margin: 0 0 20px; padding: 16px 18px; background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--border-ctl); border-radius: 10px; }
+/* Quotes: a plain bordered panel. No coloured side stripe (a common "AI look"; see the AI-slop check in PLAN.md §1). */
+blockquote { margin: 0 0 20px; padding: 16px 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
 blockquote p:last-child { margin: 0; }
-blockquote.plain { border-left-color: var(--aff-fill); background: var(--aff-tint); font-size: 18px; }
+/* The page summary ("Plain version" in the Markdown): a lead paragraph under the title, as docs sites do it.
+   Larger text and a rule below set it apart. No box, no tint, no label. */
+blockquote.plain { margin: 0 0 28px; padding: 0 0 24px; background: none; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; font-size: 20px; line-height: 1.5; color: var(--text-2); }
 
 .table { overflow-x: auto; margin: 0 0 18px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
 table { border-collapse: collapse; width: 100%; font-size: 15px; }
@@ -58,6 +66,25 @@ footer p { margin: 0 0 6px; }
 @media (max-width: 520px) {
   .libname { display: none; }
   body { font-size: 16px; }
+}
+
+/* ---------- library pictures (docs/library/visuals/STYLE.md §6) ----------
+   Pictures are drawn on white. Banner and inline pictures sit on a white card in both themes; spot pictures
+   have no card: in light mode their white melts into the page (multiply), in dark mode they sit on a white tile
+   so the black lines stay visible. The raw #fff and #3c434c are on purpose (the light-theme --panel and
+   --text-2), so the cards do not follow the dark theme; learn.css defines no colour tokens. */
+.lib-figure { margin: 24px 0; }
+.lib-figure img { display: block; width: 100%; height: auto; }
+.lib-figure figcaption { margin-top: 8px; padding: 0 4px; font-size: var(--fs-2); line-height: 1.5; color: var(--text-2); }
+.lib-figure--hero, .lib-figure--inline, .lib-figure--diagram { padding: 12px; background: #fff; border: 1px solid var(--border); border-radius: 12px; }
+.lib-figure--hero figcaption, .lib-figure--inline figcaption, .lib-figure--diagram figcaption { color: #3c434c; }
+.lib-figure--inline, .lib-figure--diagram { max-width: 600px; margin-left: auto; margin-right: auto; }
+.lib-figure--spot { width: 200px; margin: 4px auto 16px; text-align: center; }
+.lib-figure--spot img { mix-blend-mode: multiply; }
+:root[data-theme="dark"] .lib-figure--spot img { mix-blend-mode: normal; background: #fff; border-radius: 16px; padding: 10px; }
+@media (min-width: 820px) {
+  .lib-figure--spot { float: right; width: 220px; margin: 4px 0 12px 24px; }
+  .lib-figure--spot ~ h2 { clear: both; }
 }
 
 /* ---------- guided tracks and checks (TRACKS.md §3.4) ---------- */

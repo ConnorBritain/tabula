@@ -7,7 +7,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "A kritik looks past the plan itself to the ideas the plan rests on.",
       "subject": "A plain sheet with four straight lines stands upright on top of a low stack of three plain rectangular blocks, like a sign on a base. A large round magnifying lens with a short handle hovers beside the stack, with its glass over the lowest block, so that block looks larger inside the lens.",
       "composition": "Front view. The sheet and its base sit left of centre on a thin ground line. The lens hangs in the air right of centre, tilted slightly, its glass circle placed over the bottom block. Inside the lens, the bottom block's edge appears enlarged. Nothing else is in the picture.",
@@ -15,7 +15,7 @@
       "avoid": "No cracks, damage, warning signs, people, hands, eyes or arrows. The blocks must look solid and ordinary; the picture is about looking closely, not about something being broken.",
       "alt": "A lens looks closely at the blocks a plan sheet rests on. A kritik questions the ideas under the plan, not only what the plan does.",
       "caption": "A kritik looks at the ideas the plan rests on.",
-      "file": "images/kritiks-lens-on-foundation.png"
+      "file": "images/kritiks-lens-on-foundation.webp"
     },
     {
       "id": "kritiks-parts",
@@ -23,7 +23,7 @@
       "kind": "diagram",
       "after_heading": "The parts",
       "priority": 1,
-      "aspect": "3:2",
+      "format": "diagram",
       "purpose": "Show the three core parts of a kritik in the 1NC, and the two questions the debate adds around them.",
       "diagram_spec": "A rounded group box titled 'In the 1NC' holds three rounded boxes in a row, left to right, joined by plain arrows pointing right. Box 1: title 'Link', line 'What does the aff do, say or assume?'. Box 2: title 'Impact', line 'Why is that way of thinking harmful?'. Box 3: title 'Alternative', line 'What should we do or think instead?'. Under the group box, a wider rounded band titled 'Debated around it' holds two boxes side by side: 'Framework: how should the judge decide?' and 'Role of the ballot: what is the vote for?'. A thin line joins the band to the group box above. Ink outlines and text, white fills, light grey #e1e4e8 behind the titles. No blue or red, because the parts belong to the argument, and both negs and kritikal affs use them. On narrow screens the three core boxes stack top to bottom, then the band's two boxes stack below.",
       "alt": "Diagram: the link, impact and alternative of a kritik in a row, with framework and role of the ballot shown below as the questions debated around them.",
@@ -36,7 +36,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "A strong kritik link points to one exact thing this aff did, said or assumed.",
       "subject": "On the left, a tall plain sheet with six straight lines. On the right, a small plain card. A single taut thread runs from the card to one exact line on the sheet, and is held there by a round pin.",
       "composition": "Front view. The sheet stands left of centre, the card right of centre, at about the same height. The thread runs in a straight line from the card to the fourth line of the sheet. The pinned line is slightly thicker than the others. Nothing else is in the picture.",
@@ -44,7 +44,7 @@
       "avoid": "No scissors, knives, hands, people or arrows. No writing-like squiggles on the sheet or card.",
       "alt": "A thread runs from a small card to one exact line on a longer sheet. A strong kritik link points to something specific this aff did or said.",
       "caption": "A strong link points to one exact thing this aff did or said.",
-      "file": "images/kritik-links-thread.png"
+      "file": "images/kritik-links-thread.webp"
     },
     {
       "id": "kritik-alternative-two-glasses",
@@ -52,7 +52,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "The alternative offers the judge a different way of seeing or acting, as a choice next to the aff's approach.",
       "subject": "Two pairs of simple eyeglasses resting side by side on a plain flat surface. The left pair has round frames. The right pair has rounded square frames. Both pairs are the same size and drawn with the same care.",
       "composition": "Front view, slightly from above. The two pairs sit in a row across the middle of the frame, with a clear gap between them, both facing the viewer and both folded open. A thin ground line runs under them. Nothing else is in the picture.",
@@ -60,7 +60,7 @@
       "avoid": "No eyes, faces or people. Do not make one pair cracked, dull, old-looking or smaller. No arrows or swap marks.",
       "alt": "Two pairs of glasses side by side, one round and one square. A kritik's alternative offers a different way of seeing the problem.",
       "caption": "The alternative offers another way to see or act on the problem.",
-      "file": "images/kritik-alternative-two-glasses.png"
+      "file": "images/kritik-alternative-two-glasses.webp"
     },
     {
       "id": "role-of-the-ballot-compass",
@@ -68,7 +68,7 @@
       "kind": "illustration",
       "after_heading": "Plain version",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "hero",
       "purpose": "A role of the ballot claim tells the judge which way the vote should point: what it should reward.",
       "subject": "A plain ballot card with three straight lines and an empty square box. Resting on the card is a simple round compass with a plain needle and no markings on its face.",
       "composition": "Seen from slightly above. The card lies flat across the middle of the frame. The compass sits on the right half of the card. The needle points up and to the left at an angle, not toward any mark. Nothing else is in the picture.",
@@ -76,7 +76,7 @@
       "avoid": "No letters, numbers, tick marks or star points on the compass. No ticks or crosses in the ballot box. No people or hands.",
       "alt": "A compass rests on a plain ballot card. A role of the ballot claim says which way the judge's vote should point: what it should reward.",
       "caption": "A role of the ballot says what the vote should reward.",
-      "file": "images/role-of-the-ballot-compass.png"
+      "file": "images/role-of-the-ballot-compass.webp"
     },
     {
       "id": "answering-kritiks-answer-each-part",
@@ -84,7 +84,7 @@
       "kind": "illustration",
       "after_heading": "The 2AC: a common order",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "inline",
       "purpose": "A good 2AC answers each part of the kritik, one answer per part.",
       "subject": "On the right, one tall plain card divided by straight lines into five equal horizontal bands. On the left, a column of five small plain cards, one beside each band. A short straight line joins each small card to the band it faces.",
       "composition": "Front view. The tall card stands right of centre. The column of small cards stands left of centre, evenly spaced so each one lines up with one band. The five joining lines are level and the same length. Nothing else is in the picture.",
@@ -92,7 +92,7 @@
       "avoid": "No arrows hitting the card, no weapons, sparks or breaking. No people. No writing-like marks on any card.",
       "alt": "Five small blue cards line up beside the five bands of a tall red card. A good 2AC answers each part of the kritik.",
       "caption": "Answer every part of the K, not only one.",
-      "file": "images/answering-kritiks-answer-each-part.png"
+      "file": "images/answering-kritiks-answer-each-part.webp"
     },
     {
       "id": "kritikal-affirmatives-range",
@@ -100,7 +100,7 @@
       "kind": "diagram",
       "after_heading": "The range of K affs",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "diagram",
       "purpose": "Show that K affs sit on a range, from close to a usual plan to far from it, and where the framework question starts.",
       "diagram_spec": "A plain horizontal line with a small round dot at each end (not an arrow). Under the left end, small text 'Closer to a usual plan'; under the right end, small text 'Further from a usual plan'. Four rounded boxes of exactly equal size sit evenly spaced along the line, left to right. Box 1: title 'Plan with critical advantages', line 'A topical plan, with critical reasons'. Box 2: title 'Advocacy in the topic's direction', line 'Agrees with the topic's goal, not government action'. Box 3: title 'Method or performance', line 'A way of debating used as the argument'. Box 4: title 'Critique of the resolution', line 'The topic sentence rests on a harmful frame'. Above box 1, a small bracket labelled 'Usually topical'. Above boxes 2 to 4, one bracket labelled 'Raises the framework question'. Ink outlines and text, white fills, light grey #e1e4e8 behind the titles. All boxes the same colour and weight. No blue or red, and no arrowheads, so no kind reads as better or as progress. On narrow screens the line turns vertical and the boxes stack top to bottom, with the end labels at top and bottom.",
       "alt": "Diagram of four kinds of K aff, evenly spaced on a line from closer to a usual plan to further from it. The last three raise the framework question.",
@@ -113,7 +113,7 @@
       "kind": "illustration",
       "after_heading": "What every family shares",
       "priority": 2,
-      "aspect": "3:2",
+      "format": "inline",
       "purpose": "Each kritik family looks through a different lens, but all of them look at the same aff and share the same parts; none is ranked above another.",
       "subject": "A row of five magnifying lenses with short handles, each frame a different simple shape: round, oval, rounded square, hexagon and rounded rectangle. All five are the same size and line weight. Below the row lies one wide plain sheet with straight lines, which all five lenses look down on.",
       "composition": "Front view. The five lenses hang in an even row across the upper middle of the frame, all at exactly the same height and evenly spaced, handles pointing up. The wide sheet lies across the lower middle. Nothing else is in the picture.",
@@ -121,7 +121,7 @@
       "avoid": "Nothing seen inside the lenses: no scenes, people, symbols, flags, maps, money, weapons, buildings or body parts. Do not make any lens bigger, higher, brighter or more detailed than the others, and do not put them in any order of size.",
       "alt": "Five lenses of different shapes, all the same size, hang in an even row over one sheet. Each kritik family is a different lens on the same aff.",
       "caption": "Different lenses, the same parts: link, impact and alternative.",
-      "file": "images/common-kritiks-many-lenses.png"
+      "file": "images/common-kritiks-many-lenses.webp"
     }
   ]
 }

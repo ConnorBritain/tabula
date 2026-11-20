@@ -2,18 +2,25 @@
 // The template block in TEMPLATE.md is the single source; this script only fills it in.
 // Usage: node docs/library/visuals/build-prompt.mjs <slot id>     (prints one prompt)
 //        node docs/library/visuals/build-prompt.mjs --all         (prints every todo illustration prompt)
-import { readFileSync, readdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { VISUALS as DIR, FORMATS, loadSlots, loadStatus } from './slots.mjs';
 
-const DIR = dirname(fileURLToPath(import.meta.url));
-const SIZES = { '3:2': '1536×1024', '1:1': '1024×1024' };
+export { loadSlots };
+// The last prompt part, per format: what to ask the image tool for (TEMPLATE.md part 6).
+// The sizes come from FORMATS (slots.mjs); only the per-format advice is written here.
+const ADVICE = {
+  hero: ' It will be cropped to a wide 2:1 banner, so keep every shape inside the middle band: leave the top 15% and the bottom 15% plain white.',
+  inline: '',
+  spot: ' One compact object or small group in the centre, with a wide white margin on all sides; it is shown small, so keep shapes bold and simple.',
+};
+const ratio = ([w, h]) => (w === h ? '1:1' : w * 2 === h * 3 ? '3:2' : `${w}:${h}`);
+const OUTPUT = Object.fromEntries(Object.entries(ADVICE).map(([f, advice]) => {
+  const g = FORMATS[f].gen;
+  return [f, `${ratio(g)} image (${g[0]}×${g[1]}), plain white background, PNG.${advice}`];
+}));
 const SIDE_RULE = ' Blue #0055b8 means the affirmative side and red #f2232d means the negative side; use them only as stated here, never as decoration.';
-
-export function loadSlots(dir = DIR) {
-  return readdirSync(join(dir, 'slots')).filter((f) => f.endsWith('.json')).sort()
-    .flatMap((f) => JSON.parse(readFileSync(join(dir, 'slots', f), 'utf8')).slots.map((s) => ({ ...s, _file: f })));
-}
 
 // The first ``` block in TEMPLATE.md, with the [n NAME] part headings removed.
 export function templateBlock(dir = DIR) {
@@ -26,11 +33,11 @@ const flat = (t) => t.replace(/\s*\n\s*/g, ' ').trim();
 
 export function buildPrompt(slot, template = templateBlock()) {
   if (slot.kind !== 'illustration') throw new Error(`${slot.id}: only illustration slots get an image prompt`);
-  if (!SIZES[slot.aspect]) throw new Error(`${slot.id}: aspect must be 3:2 or 1:1`);
+  if (!OUTPUT[slot.format]) throw new Error(`${slot.id}: format "${slot.format}" has no image prompt (only ${Object.keys(OUTPUT).join(', ')} do)`);
   const sided = /#0055b8|#f2232d/i.test(slot.colors) && !/no blue or red/i.test(slot.colors);
   const fill = {
     'slot.subject': slot.subject, 'slot.composition': slot.composition, 'slot.colors': slot.colors,
-    'slot.avoid': slot.avoid || '', side_rule: sided ? SIDE_RULE : '', aspect: slot.aspect, size: SIZES[slot.aspect],
+    'slot.avoid': slot.avoid || '', side_rule: sided ? SIDE_RULE : '', output: OUTPUT[slot.format],
   };
   const parts = template.split(/^\[\d [A-Z ]+\]\n/m).slice(1).map((p) => flat(p.replace(/\{([a-z_.]+)\}/g, (_, k) => {
     if (!(k in fill)) throw new Error(`${slot.id}: unknown template field {${k}}`);
@@ -44,7 +51,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const arg = process.argv[2];
   const slots = loadSlots();
   if (arg === '--all') {
-    const status = JSON.parse(readFileSync(join(DIR, 'status.json'), 'utf8')).slots;
+    const status = loadStatus();
     for (const s of slots.filter((x) => x.kind === 'illustration' && (status[x.id] || {}).status === 'todo')) console.log(`=== ${s.id} -> docs/library/${s.file}\n${buildPrompt(s)}\n`);
   } else {
     const s = slots.find((x) => x.id === arg);

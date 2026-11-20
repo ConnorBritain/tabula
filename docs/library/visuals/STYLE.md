@@ -64,14 +64,20 @@ Rules:
 
 ## 6. Format
 
-| Use | Aspect | Size | Where |
-|---|---|---|---|
-| Main picture on a page | 3:2 landscape | 1536×1024 | After the Plain version or the main "parts" heading |
-| Small inline picture | 1:1 square | 1024×1024 | Inside a deeper section |
+Each slot has a `format`. It sets the picture's shape, its size on the page and how it sits there. (Seen on good docs and blogs: a wide banner under the title, diagrams on a light card, and small "spot" pictures with no box.)
 
-- **Background: plain white `#ffffff`**, edge to edge. No frame, border or vignette. The page puts each picture on a white card, so it looks the same in light and dark mode.
-- Keep a clear margin (about 8% of the width) around the subject.
-- Save as PNG. The file name is the slot's `file` path.
+| Format | Where | Ask the image tool for | Web copy in the repo | On the page |
+|---|---|---|---|---|
+| `hero` | After the Plain version box | 3:2, 1536×1024, every shape inside the **middle band** (top and bottom 15% plain white) | 2:1 banner, 1536×768 (centre crop) | Full text width, on a white card |
+| `inline` | Inside a section | 3:2, 1536×1024 | 1200×800 | At most 600 px wide, centred, on a white card |
+| `spot` | Beside a paragraph | 1:1, 1024×1024, one compact object with a wide margin | 480×480 | About 220 px, floated right on wide screens, centred on phones; no card |
+| `diagram` | Anywhere | (drawn as SVG code, not by the image tool) | SVG | At most 600 px wide, on a white card |
+
+- **Background: always plain white `#ffffff`**, edge to edge. No frame, border or vignette.
+- **No transparent backgrounds.** The black outlines would vanish on the dark-mode page. Instead, the page does it: banner and inline pictures sit on a white card in both themes; a spot picture's white melts into the page in light mode, and sits on a small white tile in dark mode. This gives the "transparent" look without halos or lost lines.
+- Keep a clear margin (about 8% of the width) around the subject; for `hero`, also keep the top and bottom 15% empty, because they are cropped away.
+- **Files.** The image tool's full-size original goes to the archive on a big drive, never into the repo. Set the archive folder once per computer in `docs/library/visuals/local.json` (`{ "archive": "/path" }`; git ignores this file). The tools need macOS (`sips`) and `cwebp` (`brew install webp`). Run `node docs/library/visuals/process-image.mjs <slot id> <original>`: it archives the original, crops and resizes it for the format, and saves the small web copy (`docs/library/images/<slot id>.webp`, usually 5-60 KB).
+- The format is a slot field, so the owner can change a slot from `hero` to `spot` (for example) and reprocess the original.
 
 ## 7. Recurring metaphors (keep them consistent)
 
