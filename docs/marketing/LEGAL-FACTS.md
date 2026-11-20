@@ -1,6 +1,6 @@
-# Legal pages: business facts for the lawyer to confirm (2026-11-20)
+# Legal pages: business facts (approved 2026-11-20)
 
-The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/privacy/ and https://tabulaspeech.com/refunds/. They are written as final text with no hedging. These are the business facts and legal choices inside them that the owner or the lawyer must confirm. Source files: `~/Code/tabula-sites/sites/speech/pages/{terms,privacy,refunds}.html`.
+The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/privacy/ and https://tabulaspeech.com/refunds/. The owner approved them on 2026-11-20. These are the business facts and legal choices inside them. Change the pages and this file together. Source files: `~/Code/tabula-sites/sites/speech/pages/{terms,privacy,refunds}.html`.
 
 ## Facts from the owner
 
@@ -10,7 +10,7 @@ The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/pri
 - Free trial: 7 days, 8 rounds of hosted AI, no card.
 - Pass price: $5 a month or $50 a year. Packs and the two-app bundle are not priced yet.
 
-## Choices the drafter made (confirm or change)
+## Legal choices in the pages
 
 | Topic | What the pages say | Where |
 |---|---|---|
