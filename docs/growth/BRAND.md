@@ -13,6 +13,7 @@ Related: [FORMATS.md](FORMATS.md) (debate formats), [FORENSICS.md](FORENSICS.md)
 - **Apps run on subdomains** of tabulaspeech.com.
 - **Learning content sits on the commercial domains, by section:** debate learning at tabuladebate.com (the Debate Library, as today); speech-events learning at tabulaforensics.com, next to its marketing.
 - **Order:** LD, then PF, then speech events.
+- **Parent mark:** option C, the clipboard with outline-only speech bubbles (see §7).
 
 These decisions replace my earlier advice where they differ (for example, tabulaforensics.com is now a marketing site, not only a redirect).
 
@@ -147,7 +148,62 @@ When to split: only if outside contributors want just one product, or a product 
 
 The folder split is a refactor of app files. It is **not** part of this plan's scope. It should wait until the UI slices settle, and it needs its own design and tests.
 
-## 7. Open questions for the owner
+## 7. Colors and marks
+
+Owner decisions, 2026-11-20. Drafts of the marks are in [`marks/`](marks/). Open [`marks/preview.html`](marks/preview.html) in a browser to see all marks on light and dark. These are drafts. They are not in `assets/` and the app does not use them yet.
+
+### Rules for every product
+
+- **The clipboard is constant.** The black-and-white clipboard with the flow grid lines is in every mark. On dark backgrounds the clipboard turns white and the paper turns dark.
+- **The two speech bubbles change by product.** They tell you which app you are in.
+- **A brand color never carries meaning inside an app.** Meaning comes only from data colors (Aff and Neg) and status colors (error, warning, done). App chrome (buttons, menus) stays neutral.
+- **The clipboard must read alone at small sizes.** A small icon (clipboard only, 3 thick grid bars) is for 64 px and below: `marks/tabula-icon-light.svg` and `-dark.svg`.
+
+### Per product
+
+| Product | Bubbles | Accent | Notes |
+|---|---|---|---|
+| **Tabula Speech** (parent) | **Decided: option C**, outline bubbles in the clipboard's ink color, no fill. Option A (clipboard only) at very small sizes. Option B (purple gradient) was not chosen. | Purple core, gold as a small paired accent | Mature, corporate look: mostly black, white and gray. Purple is the mix of debate's blue and red. |
+| **Tabula Debate** | Blue (left) and red (right), as today | – | Same meaning as Aff and Neg. All debate formats keep red and blue; the format shows as a text label (Policy, LD, PF, Parli), never a new color. |
+| **Tabula Speech Events** | Deep sage (left) and light sage (right), same hue | Rust, logo and marketing only | Harmonious, not competitive, but still two distinct speakers. |
+
+### Palette (proposed hex values)
+
+Contrast is the WCAG ratio against white (`#ffffff`) and against the app's dark background (`#0f1114`). Text needs 4.5 or more. Large text and graphic shapes need 3 or more. Logos are exempt from the rule, but they should still be easy to see.
+
+| Color | Hex | On white | On #0f1114 | Use |
+|---|---|---|---|---|
+| Purple, text (light theme) | `#4b2a7b` | 10.96 | 1.73 | Headings, links and accents on light backgrounds |
+| Purple, text (dark theme) | `#b9a3e8` | 2.22 | 8.52 | The same roles on dark backgrounds |
+| Gold, mark | `#c9a227` | 2.42 | 7.82 | Small marks only (rules, dots, badges). **Never text on white.** |
+| Gold, text on white (if needed) | `#8a6a0e` | 5.06 | 3.74 | Only if gold text is a must on light backgrounds |
+| Purple gradient, light stop | `#b39be4` | 2.41 | 7.86 | Option B bubbles, gradient start (upper left) |
+| Purple gradient, deep stop | `#6e4bb2` | 6.34 | 2.98 | Option B bubbles, gradient end (lower right) |
+| Sage deep | `#4f6f58` | 5.60 | 3.37 | Speech Events bubble; also passes as text on white |
+| Sage light | `#93b39a` | 2.29 | 8.24 | Speech Events bubble; text only on dark |
+| Rust, accent | `#9a4a26` | 6.21 | 3.04 | Speech Events logo and marketing only |
+| Aff blue (existing token) | `#0055b8` | 7.02 | 2.69 | Debate bubble; unchanged |
+| Neg red fill (existing token) | `#f2232d` | 4.16 | 4.55 | Debate bubble; unchanged |
+
+Deep and light sage differ by a ratio of 2.44, so the two bubbles stay distinct.
+
+**Rust warning:** rust (`#9a4a26`) is very close to the app's error orange (`--error: #b93d0a`, a ratio of only 1.1 between them). Keep rust out of every app screen. Use it only in the logo and on marketing pages. If that rule feels hard to keep, a safer accent is plain warm gray, and the mark keeps its two sage bubbles.
+
+### Files
+
+| File | What |
+|---|---|
+| `marks/tabula-debate-{light,dark}.svg` | Tabula Debate, traced from `assets/tabula-mark-black.png` |
+| `marks/tabula-speech-events-{light,dark}.svg` | Tabula Speech Events |
+| `marks/tabula-speech-a-{light,dark}.svg` | Parent, option A (clipboard only) |
+| `marks/tabula-speech-b-{light,dark}.svg` | Parent, option B (purple gradient bubbles) |
+| `marks/tabula-speech-c-{light,dark}.svg` | Parent, option C (outline bubbles, no color). The bubble edge next to the clipboard is masked away, so the outlines tuck behind it. |
+| `marks/tabula-icon-{light,dark}.svg` | Small clipboard icon for 64 px and below |
+| `marks/preview.html` | All marks side by side, plus the palette |
+
+The SVGs are traced from the original PNG pixel by pixel (a small script reads each pixel's color, follows the shape edges, then smooths them while keeping sharp corners sharp). So the clipboard keeps the original angled perspective; it is not a straight clipboard turned on its side. Every mark uses the same traced clipboard and bubble shapes; only the colors change. A designer pass can still clean up curves for print.
+
+## 8. Open questions for the owner
 
 Decided 2026-11-20: app at `debate.tabulaspeech.com`; public name Tabula Speech Events; tabulaspeech.com as the commercial hub; tabuladebate.com and tabulaforensics.com as marketing sites; order LD, PF, speech events; speech-events learning content on tabulaforensics.com.
 
@@ -159,6 +215,8 @@ Still open:
 - **Q5.** Will you pay for a short trademark search on "Tabula" before marketing spend?
 - **Q6.** One shared credit wallet across all product lines: yes?
 - **Q7.** Keep one public repo with folders, and split only if a real need shows up: yes?
+- **Q8.** Decided 2026-11-20: the parent mark is **option C** (outline bubbles, no color). Option A (clipboard only) stands in at very small sizes.
+- **Q9.** Speech Events accent: rust (logo and marketing only), or warm gray to avoid any mix-up with the error color?
 
 ## Sources
 
@@ -166,3 +224,5 @@ Still open:
 - NSDA name "National Speech & Debate Association": https://www.speechanddebate.org/
 - Tabula PDF tool: https://tabula.technology/
 - Plan and credit rules: the owner's private business notes (not quoted here).
+- WCAG 2.2 contrast (1.4.3 text 4.5:1, 1.4.11 graphics 3:1; logos exempt): https://www.w3.org/TR/WCAG22/#contrast-minimum
+- Contrast numbers: computed with the WCAG relative-luminance formula, 2026-11-20. Existing colors from `assets/tokens.css`.

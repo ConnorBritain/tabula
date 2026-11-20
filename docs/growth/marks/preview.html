@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabula mark drafts</title>
+<style>
+  :root { --light: #ffffff; --dark: #0f1114; --text: #16191d; --muted: #5f6873; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px 48px; background: #f3f4f6; color: var(--text);
+         font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.lead { margin: 0 0 24px; color: var(--muted); max-width: 70ch; }
+  section { margin-bottom: 32px; }
+  h2 { font-size: 17px; margin: 0 0 4px; }
+  h2 small { font-weight: 400; color: var(--muted); }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .tile { border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px; border: 1px solid #d9dde2; }
+  .tile.light { background: var(--light); color: #16191d; }
+  .tile.dark { background: var(--dark); color: #e9ecef; border-color: #262a30; }
+  .big { width: 100%; max-width: 240px; height: auto; align-self: center; }
+  .small { display: flex; align-items: flex-end; gap: 16px; font-size: 12px; opacity: .8; }
+  .small img { display: block; }
+  .word { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
+  .word img { width: 40px; height: auto; }
+  .label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; opacity: .7; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .sw { border-radius: 10px; overflow: hidden; border: 1px solid #d9dde2; background: #fff; font-size: 13px; }
+  .sw div:first-child { height: 56px; }
+  .sw div:last-child { padding: 8px 10px; }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+</style>
+</head>
+<body>
+<h1>Tabula mark drafts</h1>
+<p class="lead">Drafts only, 2026-11-20. The clipboard is traced from the original logo (assets/tabula-mark-black.png) and is the same in every mark. The bubbles change by product. Each mark shows on light and dark, at full size, at 64 px and at 32 px. The last tile per row is the small clipboard icon at 64 px and 32 px.</p>
+
+<section id="marks"></section>
+
+<section>
+  <h2>Palette <small>contrast on white / on #0f1114</small></h2>
+  <div class="swatches" id="swatches"></div>
+</section>
+
+<script>
+  const marks = [
+    ['debate', 'Tabula Debate', 'Blue and red bubbles. Same meaning as Aff and Neg in the app.'],
+    ['speech-events', 'Tabula Speech Events', 'Two sage tints: harmonious, not competitive.'],
+    ['speech-a', 'Tabula Speech, option A', 'Parent mark: clipboard only.'],
+    ['speech-b', 'Tabula Speech, option B', 'Parent mark: purple bubbles with a soft gradient.'],
+    ['speech-c', 'Tabula Speech, option C', 'Parent mark: outline bubbles, no color.'],
+  ];
+  const root = document.getElementById('marks');
+  for (const [key, name, note] of marks) {
+    const s = document.createElement('section');
+    s.innerHTML = `<h2>${name} <small>${note}</small></h2><div class="row"></div>`;
+    const row = s.querySelector('.row');
+    for (const theme of ['light', 'dark']) {
+      const src = `tabula-${key}-${theme}.svg`;
+      const icon = `tabula-icon-${theme}.svg`;
+      row.insertAdjacentHTML('beforeend', `
+        <div class="tile ${theme}">
+          <span class="label">${theme}</span>
+          <img class="big" src="${src}" alt="${name} on ${theme}">
+          <div class="word"><img src="${src}" alt="">${name.replace(/, option .*/, '')}</div>
+          <div class="small">
+            <span><img src="${src}" width="64" alt=""> 64 px</span>
+            <span><img src="${src}" width="32" alt=""> 32 px</span>
+            <span><img src="${icon}" width="64" alt=""> icon 64</span>
+            <span><img src="${icon}" width="32" alt=""> icon 32</span>
+          </div>
+        </div>`);
+    }
+    root.appendChild(s);
+  }
+  const sw = [
+    ['Purple (text, light)', '#4b2a7b', '10.96 / 1.73'],
+    ['Purple (text, dark mode)', '#b9a3e8', '2.22 / 8.52'],
+    ['Purple (logo bubble)', '#7a55b8', '5.50 / 3.44'],
+    ['Gold (small marks only)', '#c9a227', '2.42 / 7.82'],
+    ['Gold (if text on white)', '#8a6a0e', '5.06 / 3.74'],
+    ['Purple gradient, light stop', '#b39be4', '2.41 / 7.86'],
+    ['Purple gradient, deep stop', '#6e4bb2', '6.34 / 2.98'],
+    ['Sage deep', '#4f6f58', '5.60 / 3.37'],
+    ['Sage light', '#93b39a', '2.29 / 8.24'],
+    ['Rust (logo, marketing)', '#9a4a26', '6.21 / 3.04'],
+    ['Aff blue (existing)', '#0055b8', '7.02 / 2.69'],
+    ['Neg red fill (existing)', '#f2232d', '4.16 / 4.55'],
+  ];
+  document.getElementById('swatches').innerHTML = sw.map(([n, h, c]) =>
+    `<div class="sw"><div style="background:${h}"></div><div><b>${n}</b><br><code>${h}</code><br>${c}</div></div>`).join('');
+</script>
+</body>
+</html>
