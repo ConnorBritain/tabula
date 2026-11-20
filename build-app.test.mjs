@@ -1,13 +1,18 @@
 // Tests for the app builder (build-app.mjs). Run with: node --test
-import test from 'node:test';
+import test, { before } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { build, listFiles } from './build-app.mjs';
+import { ALLOW, build, listFiles } from './build-app.mjs';
 
-const out = build(join(mkdtempSync(join(tmpdir(), 'app-')), 'app'));
-const files = listFiles(out);
+const tmp = () => join(mkdtempSync(join(tmpdir(), 'app-')), 'app');
+let out;
+let files;
+before(() => {
+  out = build(tmp());
+  files = listFiles(out);
+});
 
 // Why: the app host is public. If the business plan, private notes, evals or plans
 // shipped, prices, margins and student speech would be on the open web.
@@ -16,12 +21,17 @@ test('ships no private, planning, eval or test files', () => {
   assert.deepEqual(bad, []);
 });
 
-// Why: a file index.html loads but the build left out would break the live app
-// for every judge; the build must refuse, not ship a broken page.
-test('ships every local file index.html loads', () => {
-  for (const f of ['index.html', 'app.js', 'js/core.js', 'logic/round.js', 'vendor/anthropic-sdk-0.137.0.bundle.mjs', 'assets/tokens.css']) {
-    assert.ok(files.includes(f), f);
-  }
+// Why: allowed folders hold notes meant for this repo only (README files). The block
+// rule must drop them, or internal notes go public whenever a folder gains one.
+test('drops README notes inside allowed folders', () => {
+  assert.equal(files.filter((f) => /(^|\/)README\.md$/.test(f)).length, 0);
+  assert.ok(!files.includes('vendor/README.md'));
+});
+
+// Why: a page that loads a file the build left out is broken for every judge; the
+// build must stop, not ship it.
+test('refuses to build when a linked file is left out', () => {
+  assert.throws(() => build(tmp(), ALLOW.filter((n) => n !== 'logic')), /not in the output: .*logic\//);
 });
 
 // Why: the CSP header is what keeps judges' API keys safe from outside scripts.

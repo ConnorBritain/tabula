@@ -1,15 +1,19 @@
 // The hosted app at debate.tabulaspeech.com: static files only, no server code.
-// Build first: node --test && node check-publish.mjs && node build-app.mjs
 // Deploy (owner's yes first): npx wrangler deploy -c wrangler.app.jsonc
+// The build command below runs the gates first; a red test stops the deploy.
+// This is a Workers assets project on a route, not the Pages project with a custom
+// domain that docs/architecture/MARKETING-SITE.md §6 describes: a route needs no DNS change.
 //
 // The route debate.tabulaspeech.com/* sends pages here. The tabula-cloud Worker's
 // route debate.tabulaspeech.com/api/v1/* is more specific, so the API stays there.
 // The proxied placeholder DNS record for debate.tabulaspeech.com stays as it is.
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "tabula-app",
   "account_id": "36bbd78435b2291e928a50731e703509",
   "compatibility_date": "2026-10-01",
+  "build": {
+    "command": "node --test && node check-publish.mjs && node build-app.mjs"
+  },
   "assets": {
     "directory": "./dist/app"
   },

@@ -1,4 +1,4 @@
-# Cloudflare Pages response headers for the hosted site (tabuladebate.com).
+# Response headers for the hosted app (debate.tabulaspeech.com, Workers static assets; see wrangler.app.jsonc).
 # The Content-Security-Policy (CSP) is a browser rule: the page may run only scripts from this site,
 # and may talk only to this site and the four AI providers. Judges' API keys live in this page,
 # so a script from anywhere else must never run here.

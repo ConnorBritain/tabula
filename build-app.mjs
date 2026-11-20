@@ -1,7 +1,7 @@
 // App builder for debate.tabulaspeech.com (docs/architecture/MARKETING-SITE.md §6.1).
 // Copies an ALLOWLIST of the app's public files into dist/app/. A new file in the repo
 // root (a plan, a test, private notes) never ships unless someone adds it here.
-// Then it checks that every local file index.html loads is in the output.
+// Then it checks that every local file index.html and about.html link to is in the output.
 // Run: node build-app.mjs [outDir]
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -19,10 +19,10 @@ export const ALLOW = [
 // Never ship these, even inside an allowed folder.
 const BLOCK = [/\.test\.(m?js)$/, /(^|\/)README\.md$/, /\.local\./, /(^|\/)\./];
 
-export function build(out = join(ROOT, 'dist', 'app')) {
+export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW) {
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
-  for (const name of ALLOW) {
+  for (const name of allow) {
     const src = join(ROOT, name);
     if (!existsSync(src)) throw new Error(`build-app: allowed file is missing: ${name}`);
     cpSync(src, join(out, name), {
@@ -31,14 +31,17 @@ export function build(out = join(ROOT, 'dist', 'app')) {
     });
   }
   const missing = missingRefs(out);
-  if (missing.length) throw new Error(`build-app: index.html loads files that are not in the output: ${missing.join(', ')}`);
+  if (missing.length) throw new Error(`build-app: a shipped page links to files that are not in the output: ${missing.join(', ')}`);
   return out;
 }
 
-/** Local src/href targets in index.html that the output does not have. */
+/**
+ * Local src/href targets in index.html and about.html that the output does not
+ * have. It does not follow JS imports or the learn/ pages (build-learn.mjs owns those).
+ */
 export function missingRefs(out) {
-  const html = readFileSync(join(out, 'index.html'), 'utf8');
-  const refs = [...html.matchAll(/\b(?:src|href)="([^"#:?]+)"/g)].map((m) => m[1]);
+  const html = ['index.html', 'about.html'].map((f) => readFileSync(join(out, f), 'utf8')).join('\n');
+  const refs = [...html.matchAll(/\b(?:src|href)=["']([^"'#:?]+)["']/g)].map((m) => m[1]);
   return refs.filter((r) => {
     const p = join(out, r);
     return !(existsSync(p) && (statSync(p).isFile() || existsSync(join(p, 'index.html'))));
