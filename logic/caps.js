@@ -92,8 +92,9 @@
     return off;
   }
 
-  // Tour steps carry `feature` (dropped when off; palette rows filter the same way in keys.js buildCommands). A step whose words mention an AI part carries
-  // `mentions` and `plainBody` (the words with no AI, used when that feature is off). AI-POLICY §3b R3.
+  // Tour steps carry `feature` (dropped when off; palette rows filter the same way in keys.js buildCommands).
+  // A step whose words mention an AI part carries `mentions` and `plainBody` (the words with no AI, used when that
+  // feature is off). AI-POLICY §3b R3.
   function visibleTourSteps(steps, can) {
     return (steps || []).filter((st) => !st.feature || can(st.feature))
       .map((st) => (st.mentions && !can(st.mentions) ? Object.assign({}, st, { body: st.plainBody }) : st));
