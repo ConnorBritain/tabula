@@ -7,398 +7,413 @@
 <meta name="description" content="Tabula: a free judging tool for high school policy debate. Timers, flows, live transcripts, AI analysis and ballots.">
 <link rel="icon" type="image/png" href="assets/tabula-icon-64.png">
 <link rel="preload" href="assets/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script src="assets/theme-boot.js"></script>
+<link rel="stylesheet" href="assets/tokens.css">
 <style>
-  /* Inter Tight (SIL Open Font License), served from this app so it works offline. See assets/fonts/LICENSE.txt. */
-  @font-face { font-family: 'Inter Tight'; font-style: normal; font-weight: 600 800; font-display: swap; src: url('assets/fonts/InterTight-latin.woff2') format('woff2'); }
-  @font-face { font-family: 'Inter Tight'; font-style: italic; font-weight: 600 800; font-display: swap; src: url('assets/fonts/InterTight-Italic-latin.woff2') format('woff2'); }
-  /* Design tokens. One set for the whole app (ui-magic: one token set; spend colour on data, not chrome). */
-  :root {
-    --bg: #f4f5f7; --panel: #ffffff; --sunk: #f8f9fa; --ink: #16191d; --ink-2: #3c434c; --muted: #6a737d; --line: #e1e4e8; --line-2: #cfd4da;
-    /* Aff blue and Neg red come from the Tabula mark. Neg text uses a deeper red so small text stays readable. */
-    --aff: #0055b8; --aff-bg: #eaf1fb; --aff-line: #b3cdee; --aff-fill: #0055b8;
-    --neg: #c8161f; --neg-bg: #fdecec; --neg-line: #f4c0c2; --neg-fill: #f2232d;
-    /* Errors and overtime use orange, never the Neg red: red always means the Neg side. */
-    --danger: #b93d0a; --danger-bg: #fdf0e8;
-    --accent: #16191d; --on-accent: #ffffff; --ring: #16191d;
-    --font-display: 'Inter Tight', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --warn: #8a5a00; --warn-bg: #fff6dc; --ok: #1a7a3a; --ok-bg: #e8f6ec;
-    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px;
-    --r1: 6px; --r2: 8px; --r3: 12px;
-    --h-ctl: 32px; --h-ctl-lg: 40px;
-    --fs-xs: 12px; --fs-sm: 13px; --fs: 14px; --fs-md: 15px; --fs-lg: 18px;
-    /* Layers (spec S0.1). No raw z-index numbers: each layer has one name. V0 moves these to tokens.css. */
-    --z-sticky: 10; --z-bar: 20; --z-drawer: 30; --z-pop: 40; --z-dialog: 50; --z-tour: 60; --z-toast: 70; --z-tip: 80;
-    /* Layout (spec 1.5). --header-h and --rb-h are measured by app.js. */
-    --header-h: 52px; --pane-left-w: 290px; --pane-right-w: 270px; --col-min: 96px;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0f1114; --panel: #171a1e; --sunk: #121418; --ink: #e9ecef; --ink-2: #c3c9d0; --muted: #8b949e; --line: #262b31; --line-2: #343a42;
-      --aff: #7fb0ff; --aff-bg: #122038; --aff-line: #24406e; --aff-fill: #3b82f6;
-      --neg: #ff7b74; --neg-bg: #361517; --neg-line: #5e2426; --neg-fill: #f2232d;
-      --danger: #ff9a5c; --danger-bg: #3a2010;
-      --accent: #e9ecef; --on-accent: #0f1114; --ring: #e9ecef;
-      --warn: #ffd27a; --warn-bg: #33290f; --ok: #6fd190; --ok-bg: #12291a;
-    }
-  }
+  /* Tokens (colours, type, space, layers) live in assets/tokens.css (spec Part 2). This block only uses them.
+     Spend colour on data, not chrome: Aff blue and Neg red are for the round's content only. */
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: var(--fs)/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--canvas); color: var(--text); font: var(--fs-3)/var(--lh-read) var(--font-sans); -webkit-font-smoothing: antialiased; padding-bottom: calc(var(--rb-h) + var(--s4)); }
   :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-  /* Header: the live strip (current speech, clock, recording) is the one thing a judge glances at. */
-  header { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); align-items: center; padding: var(--s2) var(--s4); background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: var(--z-sticky); }
-  .brand { display: inline-flex; align-items: center; gap: var(--s2); color: var(--ink); text-decoration: none; margin-right: var(--s2); }
+  /* Status colour comes only from these classes (colour rule 4), and always goes with words. */
+  .is-error { color: var(--error); } .is-caution { color: var(--caution); } .is-ok { color: var(--ok); } .is-quiet { color: var(--text-3); font-weight: var(--fw-1); }
+  /* Header: flat on the page colour, with one line under it (V6). */
+  header { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); align-items: center; padding: var(--s2) var(--s4); background: var(--canvas); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: var(--z-bar); font-size: var(--fs-2); }
+  .brand { display: inline-flex; align-items: center; gap: var(--s2); color: var(--text); text-decoration: none; margin-right: var(--s2); }
   .brand img { display: block; height: 26px; width: auto; }
-  .wordmark, .display { font-family: var(--font-display); font-weight: 800; font-style: italic; letter-spacing: -0.02em; }
-  .wordmark { font-size: 20px; line-height: 1; }
-  nav { display: flex; flex-wrap: wrap; gap: 2px; }
-  nav button { min-height: var(--h-ctl); background: none; border: 0; color: var(--muted); padding: 0 var(--s3); border-radius: var(--r1); cursor: pointer; font: inherit; font-size: var(--fs-sm); font-weight: 500; }
-  nav button:hover { color: var(--ink); background: var(--sunk); }
-  nav button.on { color: var(--ink); background: var(--line-2); font-weight: 650; }
-  .mini { margin-left: auto; display: flex; gap: var(--s2); align-items: center; font-variant-numeric: tabular-nums; font-size: var(--fs-sm); }
-  .mini span:not(:empty) { padding: 2px var(--s2); border-radius: 999px; background: var(--sunk); border: 1px solid var(--line); color: var(--ink-2); font-weight: 600; }
+  .wordmark, .display { font-family: var(--font-display); font-weight: var(--fw-5); font-style: italic; letter-spacing: -0.02em; }
+  .wordmark { font-size: var(--fs-4); line-height: 1; }
+  nav { display: flex; flex-wrap: wrap; gap: var(--s0); }
+  nav button { min-height: var(--h-md); background: none; border: 0; color: var(--text-2); padding: 0 var(--s3); border-radius: var(--r-md); cursor: pointer; font: inherit; font-size: var(--fs-2); font-weight: var(--fw-2); }
+  nav button:hover { color: var(--text); background: var(--sunk); }
+  nav button.on { color: var(--text); background: var(--border); font-weight: var(--fw-3); }
   main { padding: var(--s4); max-width: 1440px; margin: 0 auto; }
   section.tab { display: none; } section.tab.on { display: block; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); padding: var(--s4); margin-bottom: var(--s3); }
-  .card h2 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; letter-spacing: -0.01em; color: var(--ink); margin: 0 0 var(--s3); }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s4); margin-bottom: var(--s3); }
+  .card h2 { font-family: var(--font-display); font-size: var(--fs-3); font-weight: var(--fw-4); letter-spacing: -0.01em; color: var(--text); margin: 0 0 var(--s3); }
+  .card-head { justify-content: space-between; }
+  .card-head h2 { margin: 0; }
   .grid { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-  label { display: block; font-size: var(--fs-xs); font-weight: 500; color: var(--muted); margin-bottom: var(--s1); }
-  input, select, textarea { width: 100%; min-height: var(--h-ctl); font: inherit; font-size: var(--fs); color: var(--ink); background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r1); padding: 5px 10px; }
-  input:hover, select:hover, textarea:hover { border-color: var(--muted); }
-  input[type="checkbox"], input[type="radio"] { width: 16px; height: 16px; min-height: 0; accent-color: var(--ink); margin: 0; }
-  input[type="file"] { padding: 4px; font-size: var(--fs-sm); }
-  textarea { resize: vertical; line-height: 1.5; }
-  button.b { min-height: var(--h-ctl); font: inherit; font-size: var(--fs-sm); font-weight: 550; padding: 0 var(--s3); border-radius: var(--r1); border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); cursor: pointer; white-space: nowrap; }
-  button.b:hover { background: var(--sunk); border-color: var(--muted); }
+  label { display: block; font-size: var(--fs-2); font-weight: var(--fw-2); color: var(--text-2); margin-bottom: var(--s1); }
+  /* Controls (V5): one look for every state. */
+  input, select, textarea { width: 100%; min-height: var(--h-md); font: inherit; font-size: var(--fs-3); color: var(--text); background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-md); padding: var(--s1) 10px; }
+  input:hover, select:hover, textarea:hover { border-color: var(--text-2); }
+  input[readonly], textarea[readonly] { background: var(--sunk); }
+  input:disabled, select:disabled, textarea:disabled { background: var(--sunk); color: var(--text-3); border-color: var(--border); cursor: not-allowed; }
+  input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] { border: 2px solid var(--error); }
+  input::placeholder, textarea::placeholder { color: var(--text-3); opacity: 1; }
+  input[type="checkbox"], input[type="radio"] { width: 16px; height: 16px; min-height: 0; accent-color: var(--text); margin: 0; flex: none; }
+  label.row:has(> input[type="checkbox"]), label.row:has(> input[type="radio"]) { min-height: var(--hit-min); cursor: pointer; }
+  input[type="file"] { padding: var(--s1); font-size: var(--fs-2); }
+  input.w-auto, select.w-auto { width: auto; }
+  textarea { resize: vertical; line-height: var(--lh-read); }
+  button.b { min-height: var(--h-md); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); padding: 0 var(--s3); border-radius: var(--r-md); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); cursor: pointer; white-space: nowrap; }
+  button.b:hover { background: var(--sunk); border-color: var(--text-2); }
+  button.b:active { background: var(--border); }
   button.b.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-  button.b.primary:hover { opacity: .9; }
-  button.b:disabled { opacity: .45; cursor: default; }
+  button.b.primary:hover { background: var(--text-2); border-color: var(--text-2); }
+  button.b:disabled, button.b:disabled:hover, button.b[aria-disabled="true"], button.b[aria-disabled="true"]:hover,
+  button.b.primary:disabled, button.b.primary[aria-disabled="true"] { background: var(--sunk); color: var(--text-3); border-color: var(--border); cursor: not-allowed; }
   .row { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
+  .row.nowrap { flex-wrap: nowrap; }
   .aff { color: var(--aff); } .neg { color: var(--neg); }
-  .muted { color: var(--muted); font-size: var(--fs-sm); }
+  .muted { color: var(--text-3); font-size: var(--fs-2); }
+  .status-line { font-weight: var(--fw-3); margin: var(--s2) 0 0; }
+  .help-line { margin: var(--s2) 0 0; }
+  .status-inline { font-weight: var(--fw-3); }
+  .mt-2 { margin-top: var(--s2); } .mt-3 { margin-top: var(--s3); }
+  label.winner { font-size: var(--fs-3); color: var(--text); }
+  summary { cursor: pointer; }
   /* Doc bars */
-  .docbar { padding: var(--s2) var(--s3); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); }
+  .docbar { padding: var(--s2) var(--s3); background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg); }
   .docbar select { width: auto; }
-  /* Timer */
+  /* Speech tiles (13 px, V1) */
   .speeches { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--s2); }
-  .sp { text-align: left; min-height: 48px; padding: var(--s2) var(--s3); border-radius: var(--r1); border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; font: inherit; font-size: var(--fs-sm); font-weight: 600; }
+  .sp { text-align: left; min-height: 48px; padding: var(--s2) var(--s3); border-radius: var(--r-md); border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; font: inherit; font-size: var(--fs-1); font-weight: var(--fw-3); line-height: var(--lh-ui); }
   .sp:hover { background: var(--sunk); }
   .sp.aff { box-shadow: inset 3px 0 0 var(--aff-fill); } .sp.neg { box-shadow: inset 3px 0 0 var(--neg-fill); }
-  .sp.on { border-color: var(--ink); background: var(--sunk); }
-  .sp small { display: block; color: var(--muted); font-weight: 400; font-size: var(--fs-xs); margin-top: 2px; }
-  .clock { font-family: var(--font-display); font-size: clamp(64px, 13vw, 128px); font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; text-align: center; line-height: 1; margin: var(--s3) 0 var(--s4); }
-  .clock.low { color: var(--warn); } .clock.over { color: var(--danger); }
+  .sp.on { border: 2px solid var(--text); background: var(--sunk); }
+  .sp small { display: block; color: var(--text-3); font-weight: var(--fw-1); font-size: var(--fs-1); margin-top: var(--s0); }
+  .clock { font-family: var(--font-display); font-size: var(--fs-clock); font-weight: var(--fw-5); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; text-align: center; line-height: 1; margin: var(--s3) 0 var(--s4); }
+  .clock.low { color: var(--caution); } .clock.over { color: var(--error); }
   .prep { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
-
   .prep .card { text-align: center; }
   .prep .card h2 { margin-bottom: var(--s1); }
-  .prep .t { font-family: var(--font-display); font-size: 32px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: var(--s2); }
-  /* Flow */
-  .flowtabs { display: flex; flex-wrap: wrap; gap: var(--s1); align-items: center; margin-bottom: var(--s2); }
-  .flowtabs button { min-height: 28px; font: inherit; font-size: var(--fs-sm); padding: 0 var(--s3); border-radius: var(--r1); border: 1px solid var(--line); background: var(--panel); color: var(--ink-2); cursor: pointer; }
-  .flowtabs button:hover { background: var(--sunk); }
+  .prep .t { font-family: var(--font-display); font-size: var(--fs-5); font-weight: var(--fw-5); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: var(--s2); }
+  /* Flow tabs and sheet tabs (14 px) */
+  .flowtabs { display: flex; flex-wrap: wrap; gap: var(--s1); align-items: center; margin-bottom: var(--s2); font-size: var(--fs-2); }
+  .flowtabs button { min-height: var(--h-sm); font: inherit; font-size: var(--fs-2); padding: 0 var(--s3); border-radius: var(--r-md); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text-2); cursor: pointer; }
+  .flowtabs button:hover { background: var(--sunk); border-color: var(--text-2); }
   .flowtabs button.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-  .flowtabs .sheet-learn { margin-left: auto; display: inline-flex; align-items: center; min-height: 28px; padding: 0 var(--s3); border-radius: var(--r1); border: 1px solid var(--line); color: var(--ink-2); font-size: var(--fs-sm); text-decoration: none; }
+  .flowtabs button[aria-disabled="true"], .flowtabs button[aria-disabled="true"]:hover { background: var(--sunk); color: var(--text-3); border-color: var(--border); cursor: not-allowed; }
+  .flowtabs .tab-gap { width: var(--s3); }
+  .flowtabs .sheet-learn { margin-left: auto; display: inline-flex; align-items: center; min-height: var(--h-sm); padding: 0 var(--s3); border-radius: var(--r-md); border: 1px solid var(--border-ctl); color: var(--text-2); font-size: var(--fs-2); text-decoration: none; }
   .flowtabs .sheet-learn:hover { background: var(--sunk); }
-  .flow { display: grid; grid-template-columns: repeat(7, minmax(var(--col-min), 1fr)); gap: 0; overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); }
-  .flow .col { border-right: 1px solid var(--line); min-width: 0; }
+  #ai-flow-status { flex-basis: 100%; font-weight: var(--fw-3); margin-top: var(--s1); }
+  /* The Flow grid (V6, V7, Q1, Q2): the one raised card. Mono text, one line height in every column, so rows line up.
+     13 px, 14 px when the grid is 840 px wide or more, and 16 px on touch devices so iPad Safari does not zoom (Q-9). */
+  #tab-flow { container: flow / inline-size; }
+  .flow { --fs-grid: var(--fs-1); display: grid; grid-template-columns: repeat(7, minmax(var(--col-min), 1fr)); gap: 0; overflow-x: auto; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
+  @container flow (min-width: 840px) { .flow { --fs-grid: var(--fs-2); } }
+  @media (pointer: coarse) { .flow { --fs-grid: var(--fs-3); } }
+  .flow .col { border-right: 1px solid var(--border); min-width: 0; position: relative; }
   .flow .col:last-child { border-right: 0; }
-  .flow .col h3 { position: sticky; top: 0; font-size: var(--fs-sm); font-weight: 700; margin: 0; padding: var(--s2) var(--s3); border-bottom: 1px solid var(--line); }
-  .flow .col.aff h3 { background: var(--aff-bg); color: var(--aff); }
-  .flow .col.neg h3 { background: var(--neg-bg); color: var(--neg); }
-  .flow textarea { min-height: 64vh; border: 0; border-radius: 0; background: transparent; padding: var(--s2) var(--s3); font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .flow .col h3 { position: sticky; top: 0; z-index: var(--z-sticky); display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s0) var(--s2); font-size: var(--fs-1); font-weight: var(--fw-4); line-height: var(--lh-grid); margin: 0; padding: var(--s2) var(--s3); border-bottom: 1px solid var(--border); }
+  .flow .col.aff h3 { background: var(--aff-tint); color: var(--aff); }
+  .flow .col.neg h3 { background: var(--neg-tint); color: var(--neg); }
+  .flow .col.is-current { box-shadow: inset 0 0 0 1px var(--border-ctl); }
+  .flow .col.is-current h3 { box-shadow: inset 0 -3px 0 var(--text); }
+  .col-mark { font-size: var(--fs-1); font-weight: var(--fw-3); color: var(--text); }
+  .col-mark:empty { display: none; }
+  .flow textarea { display: block; min-height: 64vh; border: 0; border-radius: 0; background: transparent; padding: var(--s2) var(--s3); font: var(--fs-grid)/var(--lh-grid) var(--font-mono); }
   .flow textarea:focus-visible { outline-offset: -2px; }
   .flow .col.aff textarea { color: var(--aff); } .flow .col.neg textarea { color: var(--neg); }
-  /* Tables, ballot, eval */
-  table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
-  th { text-align: left; font-size: var(--fs-xs); font-weight: 600; color: var(--muted); padding: var(--s2); border-bottom: 1px solid var(--line-2); }
-  td { text-align: left; padding: var(--s2); border-bottom: 1px solid var(--line); vertical-align: top; }
+  .flow-empty { grid-column: 1 / -1; padding: var(--s4); margin: 0; }
+  /* Tables, ballot, eval (14 px) */
+  table { width: 100%; border-collapse: collapse; font-size: var(--fs-2); }
+  th { text-align: left; font-size: var(--fs-1); font-weight: var(--fw-3); color: var(--text-2); padding: var(--s2); border-bottom: 1px solid var(--border-ctl); }
+  td { text-align: left; padding: var(--s2); border-bottom: 1px solid var(--border); vertical-align: top; }
   tr:last-child td { border-bottom: 0; }
   td input { min-width: 80px; font-variant-numeric: tabular-nums; }
-  .warn { background: var(--warn-bg); color: var(--warn); border-radius: var(--r2); padding: var(--s2) var(--s3); margin: var(--s3) 0; font-size: var(--fs-sm); }
+  .warn { background: var(--caution-tint); color: var(--caution); border-radius: var(--r-lg); padding: var(--s2) var(--s3); margin: var(--s3) 0; font-size: var(--fs-2); }
   .warn ul { margin: var(--s1) 0 0 18px; padding: 0; }
-  .good { color: var(--ok); font-weight: 600; font-size: var(--fs-sm); }
-  .out { white-space: pre-wrap; background: var(--sunk); border: 1px solid var(--line); border-radius: var(--r2); padding: var(--s3); min-height: 80px; font-size: var(--fs-sm); }
-  .lean { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; letter-spacing: -0.01em; display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
-  .pill { display: inline-flex; align-items: center; padding: 1px var(--s2); border-radius: 999px; font-size: var(--fs-xs); font-weight: 600; border: 1px solid var(--line-2); color: var(--ink-2); background: var(--sunk); }
-  .pill.aff { background: var(--aff-bg); color: var(--aff); border-color: var(--aff-line); }
-  .pill.neg { background: var(--neg-bg); color: var(--neg); border-color: var(--neg-line); }
+  .good { color: var(--ok); font-weight: var(--fw-3); font-size: var(--fs-2); }
+  .out { white-space: pre-wrap; background: var(--sunk); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s3); min-height: 80px; font-size: var(--fs-3); }
+  .lean { font-family: var(--font-display); font-size: var(--fs-4); font-weight: var(--fw-5); letter-spacing: -0.01em; display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
+  .lean.small { font-size: var(--fs-3); }
+  .pill { display: inline-flex; align-items: center; padding: 1px var(--s2); border-radius: var(--r-pill); font-size: var(--fs-1); font-weight: var(--fw-3); border: 1px solid var(--border-ctl); color: var(--text-2); background: var(--sunk); }
+  .pill.aff { background: var(--aff-tint); color: var(--aff); border-color: var(--aff-edge); }
+  .pill.neg { background: var(--neg-tint); color: var(--neg); border-color: var(--neg-edge); }
+  .pill.is-caution { color: var(--caution); }
   /* Segmented control */
-  .seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: var(--r1); overflow: hidden; }
-  .seg button { min-height: 30px; padding: 0 var(--s3); border: 0; background: var(--panel); color: var(--ink-2); font: inherit; font-size: var(--fs-sm); cursor: pointer; }
-  .seg button + button { border-left: 1px solid var(--line-2); }
+  .seg { display: inline-flex; border: 1px solid var(--border-ctl); border-radius: var(--r-md); overflow: hidden; }
+  .seg button { min-height: var(--h-md); padding: 0 var(--s3); border: 0; background: var(--panel); color: var(--text-2); font: inherit; font-size: var(--fs-2); cursor: pointer; }
+  .seg button:hover { background: var(--sunk); }
+  .seg button + button { border-left: 1px solid var(--border-ctl); }
   .seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
   /* Round map, flow-sheet view: same columns and colours as the Flow tab. */
-  .mapsheet { display: grid; border: 1px solid var(--line); border-radius: var(--r2); overflow: hidden; min-width: max-content; font-size: var(--fs-sm); }
-  .mapsheet .mh { position: sticky; top: 0; padding: var(--s2) var(--s3); font-size: var(--fs-xs); font-weight: 700; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
-  .mapsheet .mh.aff { background: var(--aff-bg); color: var(--aff); } .mapsheet .mh.neg { background: var(--neg-bg); color: var(--neg); }
-  .mapsheet .mc { padding: var(--s2); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: var(--s1); min-width: 160px; background: var(--panel); }
+  .mapsheet { display: grid; border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; min-width: max-content; font-size: var(--fs-2); }
+  .mapsheet .mh { position: sticky; top: 0; z-index: var(--z-sticky); padding: var(--s2) var(--s3); font-size: var(--fs-1); font-weight: var(--fw-4); border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+  .mapsheet .mh.aff { background: var(--aff-tint); color: var(--aff); } .mapsheet .mh.neg { background: var(--neg-tint); color: var(--neg); }
+  .mapsheet .mc { padding: var(--s2); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: var(--s1); min-width: 160px; background: var(--panel); }
   .mapsheet .mh.last, .mapsheet .mc.last { border-right: 0; }
   .mapsheet .mrow:hover .mc { background: var(--sunk); }
   .mapsheet .mrow { display: contents; }
-  .mcard { border: 1px solid var(--line); border-radius: var(--r1); padding: 6px var(--s2); background: var(--panel); line-height: 1.35; }
+  .mcard { border: 1px solid var(--border); border-radius: var(--r-md); padding: 6px var(--s2); background: var(--panel); line-height: var(--lh-ui); }
   .mcard.aff { box-shadow: inset 3px 0 0 var(--aff-fill); } .mcard.neg { box-shadow: inset 3px 0 0 var(--neg-fill); }
-  .mcard .lbl { font-weight: 600; color: var(--ink); }
-  .mcard .mk, .mk { color: var(--muted); font-size: var(--fs-xs); font-weight: 600; }
-  .mcard.dropped { border: 1.5px dashed var(--warn); background: var(--warn-bg); }
-  .mcard.conceded { opacity: .7; }
-  .mcard.ghost { border: 1.5px dashed var(--line-2); background: transparent; color: var(--muted); font-style: italic; box-shadow: none; }
-  .chip { display: inline-block; margin-left: var(--s1); padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 700; vertical-align: 1px; }
-  .chip.drop { background: var(--warn); color: var(--panel); }
-  .chip.ext { background: var(--ok-bg); color: var(--ok); }
-  .chip.con { background: var(--sunk); color: var(--muted); border: 1px solid var(--line-2); }
-  .overlay { position: fixed; inset: 0; background: rgba(10,12,15,.55); display: grid; place-items: center; z-index: var(--z-dialog); padding: var(--s4); }
+  .mcard .lbl { font-weight: var(--fw-3); color: var(--text); }
+  .mcard .mk, .mk { color: var(--text-3); font-size: var(--fs-1); font-weight: var(--fw-3); }
+  .mcard.dropped { border: 2px dashed var(--caution); background: var(--caution-tint); }
+  .mcard.conceded { border-style: dotted; color: var(--text-2); }
+  .mcard.ghost { border: 2px dashed var(--border-ctl); background: transparent; color: var(--text-3); font-style: italic; box-shadow: none; }
+  .chip { display: inline-block; margin-left: var(--s1); padding: 0 6px; border-radius: var(--r-pill); font-size: var(--fs-1); font-weight: var(--fw-4); line-height: var(--lh-ui); }
+  .chip.drop { background: var(--caution-tint); color: var(--caution); border: 1px solid var(--caution); }
+  .chip.ext { background: var(--ok-tint); color: var(--ok); }
+  .chip.con { background: var(--sunk); color: var(--text-2); border: 1px solid var(--border-ctl); }
+  .overlay { position: fixed; inset: 0; background: var(--scrim); display: grid; place-items: center; z-index: var(--z-dialog); padding: var(--s4); }
   .overlay[hidden] { display: none; }
-  .overlay-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r3); padding: var(--s5); width: min(620px, 100%); max-height: calc(100vh - 32px); overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  .overlay-card { background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-xl); padding: var(--s5); width: min(620px, 100%); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow: auto; box-shadow: var(--shadow-3); }
+  .overlay-card.narrow { width: min(480px, 100%); }
+  .overlay-card h2 { font-family: var(--font-display); font-size: var(--fs-4); font-weight: var(--fw-5); margin: 0 0 var(--s3); }
   .choices { display: grid; gap: var(--s2); }
-  .choice { text-align: left; display: grid; gap: 2px; padding: var(--s3) var(--s4); border: 1px solid var(--line-2); border-radius: var(--r2); background: var(--panel); color: var(--ink); font: inherit; cursor: pointer; }
-  .choice:hover { border-color: var(--ink); background: var(--sunk); }
-  .choice strong { font-size: var(--fs-md); }
-  .choice span { color: var(--muted); font-size: var(--fs-sm); }
-  .prov { border: 1px solid var(--line); border-radius: var(--r2); padding: var(--s2) var(--s3); margin-bottom: var(--s2); }
+  .choice { text-align: left; display: grid; gap: var(--s0); padding: var(--s3) var(--s4); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); background: var(--panel); color: var(--text); font: inherit; cursor: pointer; }
+  .choice:hover { border-color: var(--text); background: var(--sunk); }
+  .choice strong { font-size: var(--fs-3); }
+  .choice span { color: var(--text-3); font-size: var(--fs-2); }
+  .prov { border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s2) var(--s3); margin-bottom: var(--s2); }
   .prov-head { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
   .prov-head strong { min-width: 140px; }
-  .cap { font-size: var(--fs-xs); color: var(--muted); }
-  .cap b { color: var(--ink-2); font-weight: 600; }
-  .prov ol { margin: var(--s2) 0 0; padding-left: 20px; font-size: var(--fs-sm); color: var(--ink-2); }
-  .ok-pill { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
-  .aibar { display: flex; flex-wrap: wrap; gap: var(--s1); align-items: center; padding: 4px var(--s2); background: var(--warn-bg); color: var(--warn); font-size: var(--fs-xs); font-weight: 600; border-bottom: 1px solid var(--line); }
-  .aibar.quiet { background: transparent; color: var(--muted); }
-  .aibar button { min-height: 22px; padding: 0 6px; font: inherit; border: 1px solid currentColor; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; }
+  .prov-head .grow { flex: 1; }
+  .cap { font-size: var(--fs-1); color: var(--text-3); }
+  .cap b { color: var(--text-2); font-weight: var(--fw-3); }
+  .prov ol { margin: var(--s2) 0 0; padding-left: 20px; font-size: var(--fs-2); color: var(--text-2); }
+  .ok-pill { background: var(--ok-tint); color: var(--ok); border-color: transparent; }
+  .aibar { display: flex; flex-wrap: wrap; gap: var(--s1); align-items: center; padding: var(--s1) var(--s2); background: var(--caution-tint); color: var(--caution); font-size: var(--fs-1); font-weight: var(--fw-3); border-bottom: 1px solid var(--border); }
+  .aibar.quiet { background: transparent; color: var(--text-3); }
+  .aibar button { min-height: var(--hit-min); padding: 0 6px; font: inherit; border: 1px solid currentColor; border-radius: var(--r-sm); background: transparent; color: inherit; cursor: pointer; }
   button.mcard { display: block; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
-  button.mcard:hover { border-color: var(--ink-2); }
-  .madd { align-self: flex-start; min-height: 22px; padding: 0 8px; border: 1px dashed var(--line-2); border-radius: var(--r1); background: transparent; color: var(--muted); font: inherit; cursor: pointer; opacity: 0; }
+  button.mcard:hover { border-color: var(--text-2); }
+  .madd { align-self: flex-start; min-height: var(--hit-min); padding: 0 var(--s2); border: 1px dashed var(--border-ctl); border-radius: var(--r-md); background: transparent; color: var(--text-3); font: inherit; cursor: pointer; opacity: 0; }
   .mrow:hover .madd, .madd:focus-visible { opacity: 1; }
   @media (hover: none) { .madd { opacity: 1; } }
-  .linkish { background: none; border: 0; padding: 0; color: var(--ink); font: inherit; text-decoration: underline; cursor: pointer; }
-  .touched { box-shadow: inset 2px 0 0 var(--ink-2); }
+  .linkish { background: none; border: 0; padding: 0; color: var(--text); font: inherit; text-decoration: underline; cursor: pointer; }
+  .touched { box-shadow: inset 2px 0 0 var(--text-2); }
   /* ----- layout: places, workspace panes, round bar ----- */
   header .spacer { flex: 1; }
-  .iconbtn { display: inline-grid; place-items: center; width: var(--h-ctl); height: var(--h-ctl); border: 1px solid var(--line-2); border-radius: var(--r1); background: var(--panel); color: var(--ink-2); cursor: pointer; }
-  .iconbtn:hover { color: var(--ink); background: var(--sunk); }
-  .iconbtn[aria-current="page"] { background: var(--line-2); color: var(--ink); }
-  button.b.small { min-height: 26px; padding: 0 var(--s2); font-size: var(--fs-xs); }
-  .subnav { display: flex; gap: 2px; margin: 0 0 var(--s3); border-bottom: 1px solid var(--line); padding-bottom: var(--s2); }
+  .iconbtn { display: inline-grid; place-items: center; width: var(--h-md); height: var(--h-md); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text-2); cursor: pointer; }
+  .iconbtn:hover { color: var(--text); background: var(--sunk); border-color: var(--text-2); }
+  .iconbtn[aria-current="page"] { background: var(--border); color: var(--text); }
+  button.b.small { min-height: var(--h-sm); padding: 0 var(--s2); font-size: var(--fs-1); }
+  .subnav { display: flex; gap: var(--s0); margin: 0 0 var(--s3); border-bottom: 1px solid var(--border); padding-bottom: var(--s2); font-size: var(--fs-2); }
   .subnav[hidden] { display: none; }
-  .subnav button { min-height: 30px; padding: 0 var(--s3); border: 0; border-radius: var(--r1); background: none; color: var(--muted); font: inherit; font-size: var(--fs-sm); font-weight: 500; cursor: pointer; }
-  .subnav button:hover { color: var(--ink); background: var(--sunk); }
-  .subnav button.on { color: var(--ink); background: var(--line-2); font-weight: 650; }
-  .workspace { display: none; gap: var(--s3); align-items: start; grid-template-columns: 290px minmax(0, 1fr) 270px; }
+  .subnav button { min-height: var(--h-md); padding: 0 var(--s3); border: 0; border-radius: var(--r-md); background: none; color: var(--text-2); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-2); cursor: pointer; }
+  .subnav button:hover { color: var(--text); background: var(--sunk); }
+  .subnav button.on { color: var(--text); background: var(--border); font-weight: var(--fw-3); }
+  /* The Flow workspace: speeches pane, the grid, Insights. Panes sit flat on the page colour (Q1): no fill, border or shadow.
+     Insights is the 270 px pane when open, else a 32 px edge (V9, Q8). */
+  .workspace { --right-w: var(--pane-right-w); display: none; gap: var(--s3); align-items: start; grid-template-columns: var(--pane-left-w) minmax(0, 1fr) var(--right-w); }
+  .workspace.ins-folded { --right-w: var(--edge-w); }
   .workspace.on { display: grid; }
-  .workspace.no-left { grid-template-columns: minmax(0, 1fr) 270px; }
-  .workspace.no-right { grid-template-columns: 290px minmax(0, 1fr); }
-  .workspace.no-left.no-right { grid-template-columns: minmax(0, 1fr); }
-  .workspace.no-left .pane-left, .workspace.no-right .pane-right { display: none !important; }
+  .workspace.no-left { grid-template-columns: minmax(0, 1fr) var(--right-w); }
+  .workspace.no-left .pane-left { display: none !important; }
   .workspace .pane { display: block; min-width: 0; }
-  .pane-left, .pane-right { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); padding: var(--s3); position: sticky; top: calc(var(--header-h) + 12px); max-height: calc(100vh - var(--header-h) - var(--rb-h, 76px) - 24px); overflow: auto; }
+  .pane-left, .pane-right { position: sticky; top: calc(var(--header-h) + var(--s3)); max-height: calc(100vh - var(--header-h) - var(--rb-h) - var(--s5)); max-height: calc(100dvh - var(--header-h) - var(--rb-h) - var(--s5)); overflow: auto; font-size: var(--fs-2); }
+  .workspace .pane-left { display: flex; flex-direction: column; }
   .pane-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s2); }
-  .pane-head h2, .pane-block h2 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; margin: 0; }
+  .pane-head h2, .pane-block h2 { font-family: var(--font-display); font-size: var(--fs-3); font-weight: var(--fw-4); margin: 0; }
   .pane-block { margin-top: var(--s3); }
   .pane-block h2 { margin-bottom: var(--s2); }
   .pane-left .speeches { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s1); } /* one row per stage: 1st constructives + CX, 2nd constructives + CX, rebuttals */
-  .pane-left .sp { min-height: 40px; padding: var(--s1) 6px; position: relative; font-size: var(--fs-xs); }
+  .pane-left .sp { min-height: 40px; padding: var(--s1) 6px; position: relative; }
   .pane-left .sp small { margin-top: 0; }
   .sp-dot { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
-  .workspace .pane-left { display: flex; flex-direction: column; height: calc(100vh - var(--header-h) - var(--rb-h, 76px) - 24px); }
-  .transcript-block { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 220px; }
-  .transcript-block textarea { flex: 1 1 auto; min-height: 160px; resize: none; }
-  .pane-docs { margin-top: var(--s2); }
-  .pane-docs summary { cursor: pointer; font-size: var(--fs-sm); font-weight: 600; color: var(--ink); }
-  .tr-head { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s2); }
-  .tr-head h2 { margin: 0 !important; }
-  .tip-wrap { position: relative; display: inline-flex; }
-  .tip { position: relative; width: 16px; height: 16px; border-radius: 50%; border: 1px solid var(--line-2); background: none; color: var(--muted); font: 700 10px/1 var(--font-display); cursor: help; padding: 0; }
-  .tip:hover, .tip:focus-visible { color: var(--ink); border-color: var(--ink); }
-  .tip.warn::after { content: ''; position: absolute; top: -2px; right: -2px; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); } /* a transcription problem */
-  .tip-pop { display: none; position: absolute; left: -96px; top: calc(100% + 6px); z-index: var(--z-tip); width: 220px; padding: 8px 10px; background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-radius: var(--r1); box-shadow: 0 6px 18px rgba(0,0,0,.14); font-size: 12px; font-weight: 400; line-height: 1.4; }
-  .tip-line { display: block; }
-  .tip-line + .tip-line { margin-top: 4px; }
-  .tip-line b { color: var(--ink); font-weight: 600; }
-  .tip-problem { color: var(--danger); }
-  .tip-pop:empty { display: none !important; }
-  .tip-wrap.open .tip-pop { display: block; } /* opened by a click, or by hovering half a second (app.js) */
+  .pane-docs { margin-top: var(--s3); }
+  .pane-docs summary { cursor: pointer; font-size: var(--fs-2); font-weight: var(--fw-3); color: var(--text); min-height: var(--hit-min); }
   .pane-docs .docbar { margin-top: var(--s2); }
-  .sd-h { font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 700; margin: var(--s3) 0 var(--s1); }
+  .pane-left .docbar { flex-wrap: wrap; }
+  .pane-left .docbar input[type="file"] { width: 100%; min-width: 0; }
+  /* Insights pane and its edge (V9). */
+  #insights[data-mode="open"] .ins-edge, #insights:not([data-mode="open"]) .pane-head, #insights:not([data-mode="open"]) #insights-body { display: none; }
+  /* The edge strip runs the full height of the grid row (the pane stretches; its max-height still caps it). */
+  #workspace.ins-folded .pane-right { align-self: stretch; }
+  #insights .ins-edge { display: flex; justify-content: center; align-items: flex-start; box-sizing: border-box; height: 100%; padding: var(--s2) 0; border-left: 1px solid var(--border); }
+  .ins-edge-btn { writing-mode: vertical-rl; min-width: var(--edge-w); min-height: 120px; padding: var(--s2) 0; border: 0; border-radius: var(--r-md); background: none; color: var(--text-2); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); cursor: pointer; }
+  .ins-edge-btn:hover { background: var(--sunk); color: var(--text); }
+  .ins-edge-btn.linkish { text-decoration: underline; color: var(--text); }
+  .ins-lean { font-family: var(--font-display); font-weight: var(--fw-5); font-size: var(--fs-3); }
+  .ins-meta { margin: var(--s0) 0 var(--s2); }
+  .ins-why { margin: 0 0 var(--s2); }
+  .ins-h { font-family: var(--font-display); font-size: var(--fs-2); font-weight: var(--fw-4); margin: var(--s3) 0 0; }
+  .ins-msg { margin: 0 0 var(--s2); }
+  .ins-list { margin: var(--s1) 0 0; padding-left: 18px; color: var(--text-2); }
+  .ins-list li + li { margin-top: var(--s1); }
+  /* Help bubbles (?) and label tips (V11, spec 4.4): one look, placed by ui.js. */
+  .tip-wrap { position: relative; display: inline-flex; }
+  .tip { position: relative; width: var(--hit-min); height: var(--hit-min); border-radius: 50%; border: 1px solid var(--border-ctl); background: none; color: var(--text-2); font: var(--fw-4) var(--fs-1)/1 var(--font-display); cursor: help; padding: 0; flex: none; }
+  .tip:hover, .tip:focus-visible, .tip[aria-expanded="true"] { color: var(--text); border-color: var(--text); }
+  .tip.warn::after, #tr-toggle.warn::after { content: ''; position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--error); } /* a transcription problem; the words are in the bubble and the round bar */
+  #tr-toggle { position: relative; }
+  .tip-box { position: fixed; z-index: var(--z-tip); max-width: 260px; padding: var(--s2) 10px; background: var(--panel); color: var(--text-2); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--shadow-2); font-size: var(--fs-1); font-weight: var(--fw-1); line-height: var(--lh-ui); text-align: left; white-space: normal; }
+  .tip-box[hidden], .tip-box:empty { display: none; }
+  .tip-line { display: block; }
+  .tip-line + .tip-line { margin-top: var(--s1); }
+  .tip-line b { color: var(--text); font-weight: var(--fw-3); }
+  .tip-problem { color: var(--error); }
+  .sd-h { font-family: var(--font-display); font-size: var(--fs-2); font-weight: var(--fw-4); margin: var(--s3) 0 var(--s1); }
   .sd-box { margin-top: var(--s2); }
   .sd-mount[hidden] { display: none; }
   .sd-row { flex-wrap: nowrap; }
   .sd-row input { min-width: 0; flex: 1; }
-  .sd-status { margin: var(--s1) 0 0; font-size: var(--fs-xs); }
+  .sd-status { margin: var(--s1) 0 0; font-size: var(--fs-1); }
   .sd-status:empty { display: none; }
-  .sd-list { display: flex; flex-direction: column; gap: 4px; margin-top: var(--s1); }
-  .sd-file { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s2); align-items: center; font-size: var(--fs-xs); }
+  .sd-list { display: flex; flex-direction: column; gap: var(--s1); margin-top: var(--s1); }
+  .sd-file { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s2); align-items: center; font-size: var(--fs-1); }
   .sd-file .sd-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .sd-file select { width: auto; font-size: var(--fs-xs); padding: 2px 4px; }
-  .sd-new { color: var(--ok); font-weight: 700; margin-left: 4px; }
-  .sd-done { color: var(--muted); }
+  .sd-file select { width: auto; font-size: var(--fs-1); padding: var(--s0) var(--s1); }
+  .sd-new { color: var(--ok); font-weight: var(--fw-4); margin-left: var(--s1); }
+  .sd-done { color: var(--text-3); }
   .sd-actions { display: flex; gap: var(--s2); align-items: center; margin-top: var(--s1); }
-  .start-panel { max-width: 520px; margin: 10vh auto; text-align: center; padding: var(--s5, 32px) var(--s4); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r3); }
+  .start-panel { max-width: 520px; margin: 10vh auto; text-align: center; padding: var(--s6) var(--s4); background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-xl); }
   .start-panel[hidden] { display: none; }
-  .start-panel h2 { font-family: var(--font-display); font-size: var(--fs-xl, 24px); font-weight: 800; margin: var(--s3) 0 var(--s2); }
+  .start-panel h2 { font-family: var(--font-display); font-size: var(--fs-5); font-weight: var(--fw-5); margin: var(--s3) 0 var(--s2); }
   .start-panel p { margin: 0 0 var(--s4); }
   .start-mark { display: block; margin: 0 auto; }
-  @media (prefers-color-scheme: dark) { .start-mark { content: url('assets/tabula-mark-white.png'); } }
   .start-actions { display: flex; flex-wrap: wrap; gap: var(--s2); justify-content: center; }
   .start-actions .b { display: inline-flex; align-items: center; margin: 0; cursor: pointer; }
-  .start-actions label.b { color: var(--ink); font-size: var(--fs-sm); font-weight: 600; text-transform: none; letter-spacing: normal; }
+  label.b { display: inline-flex; align-items: center; margin: 0; cursor: pointer; color: var(--text); font-size: var(--fs-2); font-weight: var(--fw-3); }
   #tab-flow.starting > :not(.start-panel):not(#round-open) { display: none !important; }
-  .pane-left .docbar { margin-top: var(--s3); flex-wrap: wrap; }
-  .pane-left .docbar input[type="file"] { width: 100% !important; min-width: 0; }
-  .pane-toggles { display: none; gap: var(--s1); margin-bottom: var(--s2); }
-  .workspace.no-left .pane-toggles, .workspace.no-right .pane-toggles { display: flex; }
-  .workspace:not(.no-right) #show-right { display: none; }
-  .workspace.no-left:not(.no-right) .pane-toggles { display: none; }
   /* The Flow tab row starts with the Speeches button (spec 1.5); app.js shows it when the pane is not inline. */
   .flowbar { display: flex; gap: var(--s1); align-items: flex-start; }
   .flowbar .flowtabs { flex: 1; min-width: 0; }
-  #speeches-btn { min-height: 28px; flex: none; }
+  .flowbar .tip-wrap { margin-top: 2px; }
+  #speeches-btn { min-height: var(--h-sm); flex: none; }
   #speeches-btn[hidden] { display: none; }
-  #speeches-btn[aria-expanded="true"] { background: var(--sunk); border-color: var(--ink); }
-  .ins-lean { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-md); }
-  .ins-list { margin: var(--s1) 0 0; padding-left: 18px; font-size: var(--fs-sm); color: var(--ink-2); }
-  .ins-list li + li { margin-top: 4px; }
-  .tr-drawer { position: fixed; left: var(--s3); right: var(--s3); bottom: calc(var(--rb-h, 64px) + 8px); z-index: var(--z-drawer); height: min(42vh, 420px); display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r3) var(--r3) 0 0; box-shadow: 0 -12px 32px rgba(0,0,0,.18); padding: var(--s3); }
+  #speeches-btn[aria-expanded="true"] { background: var(--sunk); border-color: var(--text); }
+  /* The transcript lives only in the drawer above the round bar (V8, Q7). 16 px text. */
+  .tr-drawer { position: fixed; left: var(--s3); right: var(--s3); bottom: calc(var(--rb-h) + var(--s2)); z-index: var(--z-drawer); height: min(42vh, 420px); height: min(42dvh, 420px); display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-xl) var(--r-xl) 0 0; box-shadow: var(--shadow-2); padding: var(--s3); }
   .tr-drawer[hidden] { display: none; }
-  .tr-drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s2); }
-  .tr-drawer-head h2 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; margin: 0; }
-  .tr-drawer textarea { flex: 1; resize: none; font-size: var(--fs-md); line-height: 1.55; }
-  body.drawer-open main { padding-bottom: calc(min(42vh, 420px) + 24px); }
-  #tr-toggle.on { background: var(--sunk); border-color: var(--ink); }
-  .roundbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-bar); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); padding: var(--s2) var(--s4); background: var(--panel); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(0,0,0,.06); }
+  .tr-drawer-head { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s2); }
+  .tr-drawer-head h2 { font-family: var(--font-display); font-size: var(--fs-3); font-weight: var(--fw-4); margin: 0; }
+  .tr-drawer-head .b { margin-left: auto; }
+  .tr-drawer textarea { flex: 1; resize: none; font-size: var(--fs-3); line-height: var(--lh-read); }
+  body.drawer-open main { padding-bottom: calc(min(42vh, 420px) + var(--s5)); padding-bottom: calc(min(42dvh, 420px) + var(--s5)); }
+  #tr-toggle.on { background: var(--sunk); border-color: var(--text); }
+  .roundbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-bar); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); padding: var(--s2) var(--s4); background: var(--panel); border-top: 1px solid var(--border-ctl); font-size: var(--fs-2); }
   .rb-speech { display: flex; align-items: baseline; gap: var(--s2); min-width: 190px; }
-  .rb-speech #cur-label { font-size: var(--fs-sm); }
-  .roundbar .clock { font-size: 34px; margin: 0; line-height: 1; letter-spacing: -0.02em; text-align: left; }
+  .rb-speech #cur-label { font-size: var(--fs-2); }
+  .roundbar .clock { font-size: var(--fs-clock-bar); margin: 0; line-height: 1; letter-spacing: -0.02em; text-align: left; }
   .rb-ctl { display: flex; gap: var(--s1); }
   .rb-rec { display: flex; align-items: center; gap: var(--s2); min-width: 7.5rem; flex: 1; } /* room for the box and its label; the status line shrinks with an ellipsis */
-  .rb-rec > label { flex: none; flex-wrap: nowrap; white-space: nowrap; } /* the Transcribe label never breaks under its box */
-  .rb-status { font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }
-  .rb-prep { display: flex; align-items: center; gap: var(--s2); font-size: var(--fs-sm); font-weight: 600; }
-  .rb-prep .t { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-lg); font-variant-numeric: tabular-nums; }
-  .rb-ai { font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
-  body { padding-bottom: 76px; }
-  /* Below 1440 px the speeches pane is a flat overlay on the grid (spec 1.5, Q4, Q1): the 7 columns never reflow.
-     No shadow: only the flow grid is raised. It closes with Hide, Esc, the same key, or a click in the grid. */
+  .rb-rec > label { flex: none; flex-wrap: nowrap; white-space: nowrap; margin: 0; color: var(--text); font-size: var(--fs-2); } /* the Transcribe label never breaks under its box */
+  .rb-status { font-size: var(--fs-1); font-weight: var(--fw-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }
+  .rb-prep { display: flex; align-items: center; gap: var(--s2); font-size: var(--fs-2); font-weight: var(--fw-3); }
+  .rb-prep .t { font-family: var(--font-display); font-weight: var(--fw-5); font-size: var(--fs-4); font-variant-numeric: tabular-nums; }
+  .rb-ai { font-size: var(--fs-1); color: var(--text-3); font-variant-numeric: tabular-nums; }
+  /* 1440 px and up: the speeches pane is inline. From 820 to 1439 px it is a flat overlay on the grid (spec 1.5, Q4, Q1):
+     the 7 columns never reflow. No shadow: only the flow grid is raised. It closes with Hide, Esc, the same key, or a click in the grid. */
   @media (min-width: 820px) and (max-width: 1439.98px) {
-    #workspace, #workspace.no-left { grid-template-columns: minmax(0, 1fr) var(--pane-right-w); }
-    #workspace.no-right, #workspace.no-left.no-right { grid-template-columns: minmax(0, 1fr); }
-    #workspace .pane-left { display: none !important; position: fixed; top: calc(var(--header-h) + var(--s2)); bottom: calc(var(--rb-h, 76px) + var(--s2)); left: var(--s4); width: min(300px, calc(100vw - 32px)); height: auto; max-height: none; z-index: var(--z-pop); box-shadow: none; border: 1px solid var(--muted); }
+    #workspace, #workspace.no-left { grid-template-columns: minmax(0, 1fr) var(--right-w); }
+    #workspace .pane-left { display: none !important; position: fixed; top: calc(var(--header-h) + var(--s2)); bottom: calc(var(--rb-h) + var(--s2)); left: var(--s4); width: min(300px, calc(100vw - 32px)); max-height: none; z-index: var(--z-pop); padding: var(--s3); background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); box-shadow: none; }
     #workspace.left-open .pane-left { display: flex !important; }
   }
+  /* 820 to 1180 px: Insights goes under the grid. Its edge is one line there (V9). */
   @media (min-width: 820px) and (max-width: 1180px) {
-    #workspace, #workspace.no-left, #workspace.no-right, #workspace.no-left.no-right { grid-template-columns: minmax(0, 1fr); }
+    #workspace, #workspace.no-left { grid-template-columns: minmax(0, 1fr); }
     #workspace .pane-right { grid-column: 1 / -1; position: static; max-height: none; }
+    #insights .ins-edge { height: auto; padding: 0; border-left: 0; border-top: 1px solid var(--border); justify-content: flex-start; }
+    .ins-edge-btn { writing-mode: horizontal-tb; min-height: var(--h-md); min-width: 0; padding: 0 var(--s2); }
   }
   @media (max-width: 819.98px) {
-    .workspace, .workspace.no-left, .workspace.no-right { grid-template-columns: minmax(0, 1fr); }
+    .workspace, .workspace.no-left { grid-template-columns: minmax(0, 1fr); }
     .pane-left, .pane-right { position: static; max-height: none; }
+    #insights .ins-edge { height: auto; padding: 0; border-left: 0; border-top: 1px solid var(--border); justify-content: flex-start; }
+    .ins-edge-btn { writing-mode: horizontal-tb; min-height: 44px; min-width: 0; padding: 0 var(--s2); }
     .roundbar { gap: var(--s1) var(--s3); padding: var(--s2) var(--s3); }
-    .roundbar .clock { font-size: 28px; }
+    .roundbar .clock { font-size: var(--fs-5); }
     .rb-status { max-width: 180px; }
-    body { padding-bottom: 132px; }
-    .tour-offer { bottom: 148px; right: var(--s3); left: var(--s3); width: auto; }
+    .tour-offer { bottom: calc(var(--rb-h) + var(--s4)); right: var(--s3); left: var(--s3); width: auto; }
   }
-  .field-help { margin: 4px 0 0; font-size: var(--fs-xs); }
-  .remember-row { margin: var(--s2) 0 0; color: var(--ink); font-size: var(--fs-sm); }
-  .sub-pick { margin-top: var(--s4); padding-top: var(--s3); border-top: 1px solid var(--line); }
-  .sub-pick h3 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; margin: 0 0 4px; }
+  .field-help { margin: var(--s1) 0 0; font-size: var(--fs-2); }
+  .remember-row { margin: var(--s2) 0 0; color: var(--text); font-size: var(--fs-2); }
+  .check-row { margin: 0; color: var(--text); font-size: var(--fs-2); }
+  .sub-pick { margin-top: var(--s4); padding-top: var(--s3); border-top: 1px solid var(--border); }
+  .sub-pick h3 { font-family: var(--font-display); font-size: var(--fs-3); font-weight: var(--fw-4); margin: 0 0 var(--s1); }
   .sub-pick > p { margin: 0 0 var(--s2); }
-  .sub-btn { min-width: 140px; justify-content: center; gap: 8px; font-weight: 600; }
-  .sub-logo { width: 16px; height: 16px; flex: none; margin-right: 8px; }
-  .sub-btn[aria-pressed="true"] { border-color: var(--ink); background: var(--sunk); }
+  .sub-btn { min-width: 140px; justify-content: center; gap: var(--s2); font-weight: var(--fw-3); }
+  .sub-logo { width: 16px; height: 16px; flex: none; margin-right: var(--s2); }
+  .sub-btn[aria-pressed="true"] { border-color: var(--text); background: var(--sunk); }
   #sub-body { margin-top: var(--s2); }
   #sub-body:empty { display: none; }
   .model-picks { gap: var(--s3); margin-top: var(--s2); align-items: flex-end; }
-  .model-pick { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-xs); color: var(--muted); min-width: 0; flex: 1 1 220px; }
+  .model-pick { display: flex; flex-direction: column; gap: var(--s0); font-size: var(--fs-1); color: var(--text-3); min-width: 0; flex: 1 1 220px; }
   .model-pick select { max-width: 100%; }
-  .hover-tip { position: fixed; z-index: var(--z-tip); max-width: 260px; padding: 4px 8px; border-radius: var(--r1); background: var(--ink); color: var(--bg); font-size: var(--fs-xs); font-weight: 600; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.2); }
-  .hover-tip[hidden] { display: none; }
-  .meter { display: inline-block; width: 64px; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; vertical-align: middle; flex: none; }
+  /* Settings: Appearance (V10). Native radio buttons in a fieldset. */
+  .theme-pick { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .theme-pick legend { padding: 0; margin-bottom: var(--s1); font-size: var(--fs-2); font-weight: var(--fw-2); color: var(--text-2); }
+  .theme-pick .row { gap: var(--s4); }
+  .meter { display: inline-block; width: 64px; height: 8px; border-radius: var(--r-pill); background: var(--border); overflow: hidden; vertical-align: middle; flex: none; }
   .meter.big { width: 140px; height: 10px; }
   .meter[hidden] { display: none; }
-  .meter i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .09s linear; }
-  .meter[data-level="quiet"] i, .meter[data-level="silent"] i { background: var(--warn); }
-  .meter[data-level="loud"] i { background: var(--danger); }
+  .meter i { display: block; height: 100%; width: 0; background: var(--ok); transition: width var(--dur-1) linear; }
+  .meter[data-level="quiet"] i, .meter[data-level="silent"] i { background: var(--caution); }
+  .meter[data-level="loud"] i { background: var(--error); }
   .help-wrap { position: relative; }
-  #help-btn { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-md); }
-  .help-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: var(--z-pop); width: 250px; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r2); padding: var(--s1); box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+  #help-btn { font-family: var(--font-display); font-weight: var(--fw-5); font-size: var(--fs-3); }
+  .help-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: var(--z-pop); width: 250px; background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); padding: var(--s1); box-shadow: var(--shadow-2); }
   .help-menu[hidden] { display: none; }
-  .help-menu a { display: block; padding: var(--s2); border-radius: var(--r1); color: var(--ink); font-size: var(--fs-sm); text-decoration: none; }
+  .help-menu a { display: block; padding: var(--s2); border-radius: var(--r-md); color: var(--text); font-size: var(--fs-2); text-decoration: none; }
   .help-menu a:hover, .help-menu a:focus-visible { background: var(--sunk); }
-  .app-foot { margin: var(--s5) 0 0; text-align: center; font-size: var(--fs-xs); color: var(--muted); }
-  .app-foot a { color: var(--muted); }
-  .help-menu button { display: block; width: 100%; text-align: left; padding: var(--s2); border: 0; border-radius: var(--r1); background: none; color: var(--ink); font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+  .app-foot { margin: var(--s5) 0 0; text-align: center; font-size: var(--fs-1); color: var(--text-3); }
+  .app-foot a { color: var(--text-3); }
+  .help-menu button { display: block; width: 100%; text-align: left; padding: var(--s2); border: 0; border-radius: var(--r-md); background: none; color: var(--text); font: inherit; font-size: var(--fs-2); cursor: pointer; }
   .help-menu button:hover, .help-menu button:focus-visible { background: var(--sunk); }
-  .help-menu p { margin: 0; padding: var(--s2); font-size: var(--fs-xs); }
-  .help-sep { height: 1px; background: var(--line); margin: var(--s1) 0; }
+  .help-menu p { margin: 0; padding: var(--s2); font-size: var(--fs-1); }
+  .help-sep { height: 1px; background: var(--border); margin: var(--s1) 0; }
   #tour[hidden] { display: none; }
   #tour { position: fixed; inset: 0; z-index: var(--z-tour); }
-  .tour-spot { position: fixed; border-radius: var(--r2); box-shadow: 0 0 0 9999px rgba(10,12,15,.55); outline: 2px solid var(--panel); pointer-events: none; }
-  .tour-card { position: fixed; width: min(340px, calc(100vw - 24px)); background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r3); padding: var(--s4); box-shadow: 0 20px 50px rgba(0,0,0,.3); }
-  .tour-card h2 { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; margin: 0 0 var(--s2); }
-  .tour-card p { margin: 0; font-size: var(--fs); color: var(--ink-2); }
+  .tour-spot { position: fixed; border-radius: var(--r-lg); box-shadow: var(--scrim) 0 0 0 9999px; outline: 2px solid var(--panel); pointer-events: none; }
+  .tour-card { position: fixed; width: min(340px, calc(100vw - 24px)); background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-xl); padding: var(--s4); box-shadow: var(--shadow-3); }
+  .tour-card h2 { font-family: var(--font-display); font-size: var(--fs-4); font-weight: var(--fw-5); margin: 0 0 var(--s2); }
+  .tour-card p { margin: 0; font-size: var(--fs-3); color: var(--text-2); }
   .tour-dots { display: flex; gap: 5px; margin: 0 0 var(--s2); }
-  .tour-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line-2); }
-  .tour-dots i.done { background: var(--muted); }
-  .tour-dots i.on { background: var(--ink); width: 16px; border-radius: 3px; }
-  .tour-count { font-size: var(--fs-xs) !important; color: var(--muted) !important; margin-bottom: var(--s1) !important; font-variant-numeric: tabular-nums; }
-  .tour-offer { position: fixed; right: var(--s4); bottom: 92px; z-index: var(--z-pop); width: 290px; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r3); padding: var(--s4); box-shadow: 0 16px 40px rgba(0,0,0,.22); }
+  .tour-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--border-ctl); }
+  .tour-dots i.done { background: var(--text-3); }
+  .tour-dots i.on { background: var(--text); width: 16px; border-radius: 3px; }
+  .tour-card .tour-count { font-size: var(--fs-1); color: var(--text-3); margin-bottom: var(--s1); font-variant-numeric: tabular-nums; }
+  .tour-foot { justify-content: space-between; margin-top: var(--s3); }
+  .tour-offer { position: fixed; right: var(--s4); bottom: calc(var(--rb-h) + var(--s4)); z-index: var(--z-pop); width: 290px; background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-xl); padding: var(--s4); box-shadow: var(--shadow-2); }
   .tour-offer[hidden] { display: none; }
-  .tour-offer h2 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 800; margin: 0 0 var(--s1); }
+  .tour-offer h2 { font-family: var(--font-display); font-size: var(--fs-3); font-weight: var(--fw-5); margin: 0 0 var(--s1); }
   .tour-offer p { margin: 0 0 var(--s3); }
   /* Toasts (spec 4.3): bottom centre above the round bar, and above the transcript drawer when it is open.
      The stack lets clicks through; each toast takes them. Newest at the bottom, at most 3. */
-  .toasts { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--rb-h, 76px) + 12px); z-index: var(--z-toast); width: min(560px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: var(--s2); pointer-events: none; }
-  body.drawer-open .toasts { bottom: calc(var(--rb-h, 76px) + 12px + min(42vh, 420px) + 20px); }
-  .toast { pointer-events: auto; display: flex; align-items: flex-start; gap: var(--s2); background: var(--accent); color: var(--on-accent); padding: var(--s1) var(--s1) var(--s1) var(--s4); border-radius: var(--r2); font-size: var(--fs-sm); box-shadow: 0 4px 16px rgba(0,0,0,.18); animation: toast-in .15s ease-out; }
+  .toasts { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--rb-h) + var(--s3)); z-index: var(--z-toast); width: min(560px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: var(--s2); pointer-events: none; }
+  body.drawer-open .toasts { bottom: calc(var(--rb-h) + var(--s3) + min(42vh, 420px) + 20px); bottom: calc(var(--rb-h) + var(--s3) + min(42dvh, 420px) + 20px); }
+  .toast { pointer-events: auto; display: flex; align-items: flex-start; gap: var(--s2); background: var(--accent); color: var(--on-accent); padding: var(--s1) var(--s1) var(--s1) var(--s4); border-radius: var(--r-lg); font-size: var(--fs-2); box-shadow: var(--shadow-2); animation: toast-in var(--dur-1) ease-out; }
   .toast:not(.is-error) :focus-visible { outline-color: var(--on-accent); }
-  .toast.is-error { background: var(--panel); color: var(--ink); border: 1px solid var(--line-2); border-left: 4px solid var(--danger); padding-left: var(--s3); }
-  .toast-icon { flex: none; padding: 5px 0; font-weight: 800; color: var(--danger); }
+  .toast.is-error { background: var(--panel); color: var(--text); border: 1px solid var(--border-ctl); border-left: 4px solid var(--error); padding-left: var(--s3); }
+  .toast-icon { flex: none; padding: 5px 0; font-weight: var(--fw-5); color: var(--error); }
   .toast-msg { flex: 1; min-width: 0; padding: 5px 0; overflow-wrap: anywhere; }
-  .toast-act, .toast-x { flex: none; min-height: 28px; min-width: 28px; padding: 0 var(--s2); border-radius: var(--r1); background: transparent; color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
+  .toast-act, .toast-x { flex: none; min-height: var(--h-sm); min-width: var(--h-sm); padding: 0 var(--s2); border-radius: var(--r-md); background: transparent; color: inherit; font: inherit; font-weight: var(--fw-3); cursor: pointer; }
   .toast-act { border: 1px solid currentColor; }
-  .toast-x { border: 0; font-size: var(--fs-md); line-height: 1; }
-  .toast-x:hover, .toast-act:hover { background: rgba(127,127,127,.2); }
+  .toast-x { border: 0; font-size: var(--fs-3); line-height: 1; }
+  .toast-x:hover, .toast-act:hover { background: color-mix(in srgb, currentColor 20%, transparent); }
   @keyframes toast-in { from { opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   /* The in-app dialog, ask() (spec 4.2). */
   .overlay.ask { place-items: start center; padding-top: 20vh; }
-  .ask-card { position: relative; width: min(420px, calc(100% - 32px)); max-height: calc(80vh - 16px); }
-  .ask-card h2 { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; margin: 0 0 var(--s3); padding-right: 40px; }
-  .ask-body p { margin: 0 0 var(--s2); color: var(--ink-2); }
+  .ask-card { position: relative; width: min(420px, calc(100% - 32px)); max-height: calc(80vh - 16px); max-height: calc(80dvh - 16px); }
+  .ask-card h2 { font-family: var(--font-display); font-size: var(--fs-4); font-weight: var(--fw-5); margin: 0 0 var(--s3); padding-right: 40px; }
+  .ask-body p { margin: 0 0 var(--s2); color: var(--text-2); }
   .ask-foot { margin: var(--s3) 0 0; }
   .ask-foot:empty { display: none; }
   .ask-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2); margin-top: var(--s4); }
   .ask-x { position: absolute; top: var(--s3); right: var(--s3); }
-  button.b.danger { color: var(--danger); border-color: var(--danger); }
+  button.b.danger { color: var(--error); border-color: var(--error); }
   /* Slice 2: the dialog's text box, list and choice cards (the welcome), and the primary button while it waits. */
   .ask-card.ask-choices { width: min(440px, calc(100% - 32px)); }
   .ask-btns.choices { display: grid; justify-content: stretch; }
-  .ask-list { margin: 0 0 var(--s2); padding-left: 20px; color: var(--ink-2); }
+  .ask-list { margin: 0 0 var(--s2); padding-left: 20px; color: var(--text-2); }
   .ask-field { margin-top: var(--s2); }
   .ask-field[hidden] { display: none; }
-  .ask-err { margin: var(--s1) 0 0; min-height: 1.35em; color: var(--danger); font-size: var(--fs-sm); font-weight: 600; }
-  button.b[aria-disabled="true"], .flowtabs button[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
-  button.b.primary[aria-disabled="true"]:hover { opacity: .55; }
-  button.b:not(.primary)[aria-disabled="true"]:hover { background: var(--panel); border-color: var(--line-2); }
-  .flowtabs button[aria-disabled="true"]:hover { background: var(--panel); }
+  .ask-err { margin: var(--s1) 0 0; min-height: 1.35em; color: var(--error); font-size: var(--fs-2); font-weight: var(--fw-3); }
   @media (max-width: 1180px) and (pointer: coarse) { .overlay.ask:has(.has-input) { padding-top: 10vh; } }
   /* Loading lines are muted with a small spinner, never green (spec 2.3). */
   .spin { display: inline-block; width: .9em; height: .9em; margin-right: var(--s1); vertical-align: -.1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  @media (prefers-reduced-motion: reduce) { .spin { animation: none; border-right-color: currentColor; opacity: .6; } }
-  .ai-quiet { color: var(--muted); font-weight: 400; }
+  @media (prefers-reduced-motion: reduce) { .spin { border-right-color: currentColor; opacity: .6; } }
   /* The "Recording" strip: a full-width row inside the sticky header while the mic is on (spec 1.6, Q19).
      Steady and calm: no red, no orange, no blinking. */
-  .rec-strip { flex: 1 0 100%; order: 99; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); margin: 0 calc(-1 * var(--s4)) calc(-1 * var(--s2)); padding: var(--s1) var(--s4); background: var(--sunk); color: var(--ink); border-top: 1px solid var(--line-2); font-size: var(--fs-sm); font-weight: 600; }
+  .rec-strip { flex: 1 0 100%; order: 99; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); margin: 0 calc(-1 * var(--s4)) calc(-1 * var(--s2)); padding: var(--s1) var(--s4); background: var(--sunk); color: var(--text); border-top: 1px solid var(--border-ctl); font-size: var(--fs-2); font-weight: var(--fw-3); }
   .rec-strip[hidden] { display: none; }
-  .rec-strip .b.small { min-height: 28px; }
-  @media (forced-colors: active) { .rec-strip { border-top: 1px solid CanvasText; } }
+  .rec-strip .b.small { min-height: var(--h-sm); }
   /* View only (spec 1.2): the judge looks back at one speech while another one's clock runs. */
-  .view-chip { display: inline-flex; align-items: center; gap: var(--s2); font-size: var(--fs-sm); font-weight: 600; color: var(--ink-2); align-self: center; }
+  .view-chip { display: inline-flex; align-items: center; gap: var(--s2); font-size: var(--fs-2); font-weight: var(--fw-3); color: var(--text-2); align-self: center; }
   .view-chip[hidden] { display: none; }
-  .view-chip .b.small { min-height: var(--h-ctl); }
-  .sp.run { border-color: var(--ink); border-style: dashed; }
-  .sp .sp-run { display: block; font-size: var(--fs-xs); font-weight: 700; color: var(--ink); }
+  .view-chip .b.small { min-height: var(--h-md); }
+  .sp.run { border-color: var(--text); border-style: dashed; }
+  .sp .sp-run { display: block; font-size: var(--fs-1); font-weight: var(--fw-4); color: var(--text); }
   .scroll { overflow-x: auto; }
   @media (max-width: 819.98px) {
     .toasts { left: var(--s4); right: var(--s4); width: auto; transform: none; }
@@ -407,29 +422,36 @@
   }
   @media (max-width: 640px) {
     main { padding: var(--s3); }
-    .mini { margin-left: 0; }
     .prep { grid-template-columns: 1fr; }
   }
+  /* Windows high contrast (V12): side colours become real borders, and the current column gets the system highlight. */
+  @media (forced-colors: active) {
+    .flow .col.aff h3, .mapsheet .mh.aff, .sp.aff, .mcard.aff { border-top: 3px solid CanvasText; }
+    .flow .col.neg h3, .mapsheet .mh.neg, .sp.neg, .mcard.neg { border-top: 3px dashed CanvasText; }
+    .flow .col.is-current { outline: 2px solid Highlight; outline-offset: -2px; }
+    .rec-strip { border-top: 1px solid CanvasText; }
+    .tip-box { border: 1px solid CanvasText; }
+  }
+  /* Print: the ballot only. tokens.css switches every colour to the light values (colour rule 7). */
   @media print {
-    :root, :root:not([data-theme="light"]) { --bg: #fff; --panel: #fff; --sunk: #fff; --ink: #000; --ink-2: #222; --muted: #444; --line: #bbb; --line-2: #999; }
-    header, nav, .noprint, aside.pane, .roundbar, .toasts, section.tab:not(#tab-ballot) { display: none !important; }
-    body { padding-bottom: 0; }
+    header, nav, .noprint, aside.pane, .roundbar, .toasts, .tip-box, section.tab:not(#tab-ballot) { display: none !important; }
+    body { padding-bottom: 0; background: var(--panel); color: var(--text); }
     section#tab-ballot { display: block !important; }
-    body { background: #fff; color: #000; }
+    .card { border-color: var(--border-ctl); }
   }
 </style>
 </head>
 <body>
 <header>
   <a class="brand" href="#" aria-label="Tabula home" data-tab-link="setup">
-    <picture><source srcset="assets/tabula-mark-white.png" media="(prefers-color-scheme: dark)"><img src="assets/tabula-mark-black.png" alt="" width="30" height="24"></picture>
+    <img class="on-light" src="assets/tabula-mark-black.png" alt="" width="30" height="24"><img class="on-dark" src="assets/tabula-mark-white.png" alt="" width="30" height="24">
     <span class="wordmark">Tabula</span>
   </a>
   <nav id="nav" aria-label="Main"></nav>
   <span class="spacer"></span>
-  <div class="seg" role="group" aria-label="Reading level" title="How the AI writes: expert debate language, or plain words for students and parents"><button data-read="expert">Expert</button><button data-read="plain">Plain</button></div>
+  <div class="seg" role="group" aria-label="Reading level" data-tip="How the AI writes: expert debate language, or plain words for students and parents"><button data-read="expert">Expert</button><button data-read="plain">Plain</button></div>
   <div class="help-wrap">
-    <button class="iconbtn" id="help-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Help and tours" title="Help and tours">?</button>
+    <button class="iconbtn" id="help-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Help and tours" data-tip="Help and tours">?</button>
     <div class="help-menu" id="help-menu" role="menu" hidden>
       <button role="menuitem" data-tour="main">Take the full tour</button>
       <button role="menuitem" data-tour="page">Tour this page</button>
@@ -439,7 +461,7 @@
       <p class="muted">On Flow, Space starts or pauses the clock when no button or box is selected. ⌘ Enter (Ctrl+Enter on Windows and Chromebook) works even while you type. Esc closes a tour or dialog.</p>
     </div>
   </div>
-  <button class="iconbtn" id="settings-btn" data-tab="ai" aria-label="Settings: AI, keys and audio" title="Settings: AI, keys and audio"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  <button class="iconbtn" id="settings-btn" data-tab="ai" aria-label="Settings: AI, keys, audio and theme" data-tip="Settings: AI, keys, audio and theme"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   <span id="mini-speech" hidden></span>
   <div class="rec-strip" id="rec-strip" hidden><span id="rec-strip-text"></span><button class="b small" id="rec-strip-btn" type="button"></button></div>
 </header>
@@ -456,19 +478,19 @@
       <div><label>Round</label><input data-bind="roundName" placeholder="Round 3"></div>
       <div><label>Judge</label><input data-bind="judge"></div>
     </div>
-    <div style="margin-top:var(--s3)"><label>Resolution</label><input data-bind="topic" placeholder="Resolved: The United States federal government should…"></div>
+    <div class="mt-3"><label>Resolution</label><input data-bind="topic" placeholder="Resolved: The United States federal government should…"></div>
   </div>
   <div class="grid">
     <div class="card"><h2 class="aff">Affirmative</h2>
       <label>Team code</label><input data-bind="aff.team">
-      <div class="grid" style="margin-top:var(--s2)">
+      <div class="grid mt-2">
         <div><label>1A</label><input data-bind="aff.d1"></div>
         <div><label>2A</label><input data-bind="aff.d2"></div>
       </div>
     </div>
     <div class="card"><h2 class="neg">Negative</h2>
       <label>Team code</label><input data-bind="neg.team">
-      <div class="grid" style="margin-top:var(--s2)">
+      <div class="grid mt-2">
         <div><label>1N</label><input data-bind="neg.d1"></div>
         <div><label>2N</label><input data-bind="neg.d2"></div>
       </div>
@@ -483,18 +505,18 @@
     <h2>Round documents</h2>
     <p class="muted">Add speech docs or case files (PDF, Word .docx, or text). The AI reads them for the live flow and the decision. Pick the speech each doc belongs to: the AI maps it onto that speech's flow column right away, and fills gaps in the transcript from it (marked [doc]). Docs stay in this browser until you start a new round.</p>
     <div class="row">
-      <select id="doc-side" style="width:auto"><option value="aff">Aff doc</option><option value="neg">Neg doc</option><option value="other">Other</option></select>
-      <input type="file" id="doc-file" multiple accept=".pdf,.docx,.txt,.md,application/pdf" style="width:auto">
+      <select id="doc-side" class="w-auto" aria-label="Doc side"><option value="aff">Aff doc</option><option value="neg">Neg doc</option><option value="other">Other</option></select>
+      <input type="file" id="doc-file" class="w-auto" multiple accept=".pdf,.docx,.txt,.md,application/pdf" aria-label="Add round documents">
       <span class="muted" id="doc-status"></span>
     </div>
-    <table style="margin-top:var(--s2)"><tbody id="doc-list"></tbody></table>
+    <table class="mt-2"><tbody id="doc-list"></tbody></table>
     <div class="sd-mount"></div>
   </div>
   <div class="card">
     <h2>Times</h2>
     <div class="grid">
       <div><label for="prep-min">Prep per team (minutes)</label>
-        <div class="row" style="flex-wrap:nowrap"><input type="number" min="0" max="20" step="1" id="prep-min" style="width:5.5em">
+        <div class="row nowrap"><input type="number" min="0" max="20" step="1" id="prep-min" style="width:5.5em">
           <div class="seg" role="group" aria-label="Prep presets"><button data-prep-min="4">4</button><button data-prep-min="5">5</button><button data-prep-min="8">8</button><button data-prep-min="10">10</button></div></div>
       </div>
     </div>
@@ -503,26 +525,20 @@
   <div class="row noprint">
     <button class="b" id="new-round">New round (clear all)</button>
     <button class="b" id="round-save">Save round file (.tab)</button>
-    <label for="round-open" class="b" style="display:inline-flex;align-items:center;margin:0;cursor:pointer;color:var(--ink)">Open round file…</label>
+    <label for="round-open" class="b">Open round file…</label>
     <span class="muted">Everything saves in this browser as you type. A .tab file holds this whole round, with its docs, to keep or move.</span>
   </div>
 </section>
 
 <div id="workspace" class="workspace">
-<section class="tab pane pane-left" id="tab-timer" aria-label="Speeches and transcript">
-  <div class="pane-head"><h2>Speeches</h2><button class="b small" data-pane="left" aria-label="Hide the speeches and transcript pane">Hide</button></div>
+<section class="tab pane pane-left" id="tab-timer" aria-label="Speeches and docs">
+  <div class="pane-head"><h2>Speeches</h2><button class="b small" data-pane="left" aria-label="Hide the speeches pane">Hide</button></div>
   <div class="speeches" id="speech-list"></div>
-  <div class="pane-block transcript-block">
-    <div class="tr-head"><h2>Transcript: <span id="tr-label"></span></h2>
-      <span class="tip-wrap"><button class="tip" type="button" aria-label="About transcription" aria-expanded="false" aria-controls="rec-note">?</button>
-        <span class="tip-pop" id="rec-note" role="tooltip"></span></span></div>
-    <textarea id="transcript" rows="12" placeholder="Speech-to-text lands here while the clock runs. You can type or fix it too."></textarea>
-  </div>
   <details class="pane-docs" open>
     <summary>Speech docs: <span class="doc-count">none</span></summary>
     <div class="row docbar">
-      <select class="doc-quick-side" style="width:auto"><option value="aff">Aff doc</option><option value="neg">Neg doc</option><option value="other">Other</option></select>
-      <input type="file" class="doc-quick" multiple accept=".pdf,.docx,.txt,.md,application/pdf" style="width:auto">
+      <select class="doc-quick-side w-auto" aria-label="Doc side"><option value="aff">Aff doc</option><option value="neg">Neg doc</option><option value="other">Other</option></select>
+      <input type="file" class="doc-quick w-auto" multiple accept=".pdf,.docx,.txt,.md,application/pdf" aria-label="Add speech docs">
       <span class="muted doc-quick-status">Or drop files anywhere on the page.</span>
     </div>
     <div class="sd-mount"></div>
@@ -531,7 +547,7 @@
 
 <section class="tab pane pane-center" id="tab-flow" aria-label="Flow">
   <div class="start-panel" id="start-panel" hidden>
-    <img src="assets/tabula-mark-black.png" alt="" width="48" height="39" class="start-mark">
+    <img src="assets/tabula-mark-black.png" alt="" width="48" height="39" class="start-mark on-light"><img src="assets/tabula-mark-white.png" alt="" width="48" height="39" class="start-mark on-dark">
     <h2>Ready for a round</h2>
     <p class="muted">Set up the teams first, or open a round you saved. You can also just start flowing and fill in the names later.</p>
     <div class="start-actions">
@@ -541,87 +557,91 @@
     </div>
   </div>
   <input type="file" id="round-open" accept=".tab,application/json" hidden>
-  <div class="pane-toggles"><button class="b small" data-pane="right" id="show-right">Show insights</button></div>
-  <div class="flowbar"><button class="b small" id="speeches-btn" type="button" aria-expanded="false" aria-controls="tab-timer" hidden>Speeches</button><div class="flowtabs" id="flow-tabs"></div></div>
+  <div class="flowbar"><button class="b small" id="speeches-btn" type="button" aria-expanded="false" aria-controls="tab-timer" hidden>Speeches</button><div class="flowtabs" id="flow-tabs"></div>
+    <span class="tip-wrap"><button class="tip" type="button" aria-label="About the flow columns" aria-expanded="false" aria-controls="flow-legend">?</button>
+      <span class="tip-box" id="flow-legend" role="tooltip" hidden>Aff columns are blue and Neg columns are red; each column header names its speech. Keep each argument on the same line across columns so the clash lines up. "Now" marks the speech the clock is timing.</span></span></div>
   <div class="flow" id="flow"></div>
-  <p class="muted">Aff columns are blue. Neg columns are red. Keep each argument on the same line across columns so the clash lines up.</p>
 </section>
-<aside class="pane pane-right" id="insights" aria-label="Insights">
+<aside class="pane pane-right" id="insights" aria-label="Insights" data-mode="open">
   <div class="pane-head"><h2>Insights</h2><button class="b small" data-pane="right" aria-label="Hide the insights pane">Hide</button></div>
   <div id="insights-body"></div>
+  <div class="ins-edge">
+    <button class="ins-edge-btn linkish" type="button" id="ins-connect" data-tab-go="ai" aria-label="Connect AI in Settings to get live insights">Connect AI</button>
+    <button class="ins-edge-btn" type="button" id="ins-show" data-pane="right" aria-label="Show the insights pane">Insights</button>
+  </div>
 </aside>
 </div>
 
 <section class="tab" id="tab-eval">
   <div class="card">
-    <div class="row" style="justify-content:space-between">
-      <h2 style="margin:0">Live Eval</h2>
+    <div class="row card-head">
+      <h2>Live Eval</h2>
       <div class="row">
-        <label class="row" style="margin:0;color:var(--ink);font-size:var(--fs)"><input type="checkbox" id="auto-eval" style="width:auto"> Update after each speech <span class="muted">(one AI call each)</span></label>
+        <label class="row check-row"><input type="checkbox" id="auto-eval"> Update after each speech <span class="muted">(one AI call each)</span></label>
         <button class="b primary" id="eval-go">Update now</button>
       </div>
     </div>
-    <p class="muted" style="margin:var(--s2) 0 0">A read of the round so far, from the transcripts, flows and docs. It is advice for you, not a decision. <span id="eval-meta"></span></p>
-    <p id="eval-status" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
+    <p class="muted help-line">A read of the round so far, from the transcripts, flows and docs. It is advice for you, not a decision. <span id="eval-meta"></span></p>
+    <p id="eval-status" class="status-line" role="status" aria-live="polite"></p>
   </div>
   <div id="eval-body"></div>
 </section>
 
 <section class="tab" id="tab-analysis">
   <div class="card">
-    <div class="row" style="justify-content:space-between">
-      <h2 style="margin:0">Paradigm Lens</h2>
+    <div class="row card-head">
+      <h2>Paradigm Lens</h2>
       <div class="row">
-        <select id="lens-pick" style="width:auto" aria-label="Paradigm to weigh by"></select>
+        <select id="lens-pick" class="w-auto" aria-label="Paradigm to weigh by"></select>
         <button class="b primary" id="lens-go">Weigh</button>
       </div>
     </div>
-    <p class="muted" style="margin:var(--s2) 0 0">Weigh the round as a judge with this paradigm would. Each paradigm keeps its own saved answer, so switching is free. It only reruns when you click the button.</p>
-    <details id="lens-custom-box" style="margin-top:var(--s3)">
-      <summary class="muted" style="cursor:pointer">My own paradigm (paste the full text)</summary>
-      <textarea id="lens-custom" rows="6" style="margin-top:var(--s2)" placeholder="Paste your judging paradigm here."></textarea>
+    <p class="muted help-line">Weigh the round as a judge with this paradigm would. Each paradigm keeps its own saved answer, so switching is free. It only reruns when you click the button.</p>
+    <details id="lens-custom-box" class="mt-3">
+      <summary class="muted">My own paradigm (paste the full text)</summary>
+      <textarea id="lens-custom" class="mt-2" rows="6" aria-label="My own paradigm" placeholder="Paste your judging paradigm here."></textarea>
     </details>
-    <p id="lens-status" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
-    <div id="lens-out" style="margin-top:var(--s3)"></div>
+    <p id="lens-status" class="status-line" role="status" aria-live="polite"></p>
+    <div id="lens-out" class="mt-3"></div>
   </div>
   <div class="card">
-    <div class="row" style="justify-content:space-between">
-      <h2 style="margin:0">Impact Calculus</h2>
+    <div class="row card-head">
+      <h2>Impact Calculus</h2>
       <button class="b" id="impact-go">Refresh</button>
     </div>
-    <p id="impact-status" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
-    <div id="impact-out" style="margin-top:var(--s3)"></div>
+    <p id="impact-status" class="status-line" role="status" aria-live="polite"></p>
+    <div id="impact-out" class="mt-3"></div>
   </div>
   <div class="card">
-    <div class="row" style="justify-content:space-between">
-      <h2 style="margin:0">Round Map</h2>
+    <div class="row card-head">
+      <h2>Round Map</h2>
       <div class="row">
         <div class="seg" role="group" aria-label="Map view"><button data-mapview="sheet">Flow sheet</button><button data-mapview="diagram">Diagram</button></div>
         <button class="b" id="map-add">+ Argument</button><button class="b" id="map-copy">Copy Mermaid code</button><button class="b" id="map-go">Refresh</button>
       </div>
     </div>
-    <p class="muted" style="margin:var(--s2) 0 0" id="map-legend">Each row follows one argument across the speeches. <span class="mk">↩ answers</span> <span class="mk">↻ turns</span> <span class="mk">→ extends</span> <span class="mk">= concedes</span> <span class="chip drop">Dropped</span> marks an argument the other side never answered.</p>
-    <p id="map-status" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
-    <div id="map-out" class="scroll" style="margin-top:var(--s3)"></div>
+    <p class="muted help-line" id="map-legend">Each row follows one argument across the speeches. <span class="mk">↩ answers</span> <span class="mk">↻ turns</span> <span class="mk">→ extends</span> <span class="mk">= concedes</span> <span class="chip drop">Dropped</span> marks an argument the other side never answered.</p>
+    <p id="map-status" class="status-line" role="status" aria-live="polite"></p>
+    <div id="map-out" class="scroll mt-3"></div>
   </div>
 </section>
 
 <section class="tab" id="tab-ai">
   <div class="card" id="conn-card">
-    <div class="row" style="justify-content:space-between">
-      <h2 style="margin:0">Connect AI</h2>
+    <div class="row card-head">
+      <h2>Connect AI</h2>
       <button class="b" id="show-welcome">Show the first-time setup again</button>
     </div>
     <p class="muted" style="margin:var(--s2) 0 var(--s3)">Paste a key from any provider below. The app works out which one it is and checks that it works.</p>
-    <div class="row" style="flex-wrap:nowrap">
+    <div class="row nowrap">
       <input type="password" id="key-paste" placeholder="Paste an API key here (starts with AIza…, sk-…, sk-ant-…, xai-… or sk-or-…)" autocomplete="off" aria-label="API key">
       <button class="b primary" id="key-connect">Connect</button>
     </div>
     <label class="row remember-row"><input type="checkbox" id="remember-keys" aria-describedby="remember-help"> Remember this key on this computer</label>
     <p class="muted field-help" id="remember-help">Leave this off on a shared computer. When it is on, the key is saved in this browser as plain text.</p>
-    <p id="key-msg" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
-    <div id="prov-list" style="margin-top:var(--s3)"></div>
-    <div class="grid" style="margin-top:var(--s3)">
+    <p id="key-msg" class="status-line" role="status" aria-live="polite"></p>
+    <div id="prov-list" class="mt-3"></div>
+    <div class="grid mt-3">
       <div><label for="ai-engine">AI tools (flow, Live Eval, analysis, decision) use</label><select id="ai-engine"></select></div>
       <div><label for="tr-engine">Transcription uses</label><select id="tr-engine"></select></div>
     </div>
@@ -640,23 +660,23 @@
     <div class="grid">
       <div><label>Where is the round?</label>
         <div class="seg" role="group" aria-label="Audio mode"><button data-audio="room">In the room</button><button data-audio="zoom">Zoom or speakers</button></div>
-        <p class="muted" style="margin:var(--s2) 0 0" id="audio-mode-help"></p>
+        <p class="muted help-line" id="audio-mode-help"></p>
       </div>
       <div><label for="mic-pick">Microphone</label>
-        <div class="row" style="flex-wrap:nowrap"><select id="mic-pick"></select><button class="b" id="mic-refresh">Refresh</button></div>
-        <p class="muted" style="margin:var(--s2) 0 0">Used when a key you connected does the transcription. Free browser transcription always uses Chrome's default mic and its own sound settings, so the mic choice and the room/Zoom setting do not apply to it, and it shows no level meter.</p>
+        <div class="row nowrap"><select id="mic-pick"></select><button class="b" id="mic-refresh">Refresh</button></div>
+        <p class="muted help-line">Used when a key you connected does the transcription. Free browser transcription always uses Chrome's default mic and its own sound settings, so the mic choice and the room/Zoom setting do not apply to it, and it shows no level meter.</p>
       </div>
     </div>
-    <div class="row" style="margin-top:var(--s3)">
+    <div class="row mt-3">
       <button class="b" id="mic-test">Test the mic (5 s)</button>
       <span class="meter big" id="test-meter" role="img" aria-label="Mic test level" hidden><i></i></span>
-      <span id="mic-test-result" role="status" aria-live="polite" style="font-weight:600"></span>
+      <span id="mic-test-result" class="status-inline" role="status" aria-live="polite"></span>
     </div>
-    <div class="row" style="margin-top:var(--s3)">
+    <div class="row mt-3">
       <button class="b" id="rec-notice-reset" type="button">Show the recording notice again</button>
       <span class="muted" id="rec-notice-status"></span>
     </div>
-    <details style="margin-top:var(--s3)"><summary class="muted" style="cursor:pointer">Tips for a live room</summary>
+    <details class="mt-3"><summary class="muted">Tips for a live room</summary>
       <ul class="muted" style="margin:var(--s2) 0 0;padding-left:20px">
         <li>Put the laptop between the podium and the timekeeper, about 1–2 m from the speaker, screen facing you.</li>
         <li>Keep it off the desk you type on hardest; keyboard taps get picked up.</li>
@@ -679,17 +699,29 @@
         </select>
       </div>
       <div><label for="chunk-sec">Clip length for transcription</label><input type="number" id="chunk-sec" min="4" max="30" step="1" aria-describedby="chunk-sec-help"><p class="muted field-help" id="chunk-sec-help">Seconds, 4–30</p></div>
-      <div><label>&nbsp;</label><label class="row" style="color:var(--ink);font-size:var(--fs)"><input type="checkbox" id="live-flow"> Live AI flow during speeches <span class="muted">(one AI call about every 30 s)</span></label></div>
+      <div><label>&nbsp;</label><label class="row check-row"><input type="checkbox" id="live-flow"> Live AI flow during speeches <span class="muted">(one AI call about every 30 s)</span></label></div>
     </div>
+  </div>
+  <div class="card" id="appearance-card">
+    <h2>Appearance</h2>
+    <fieldset class="theme-pick" aria-describedby="theme-help">
+      <legend>Theme</legend>
+      <div class="row">
+        <label class="row check-row"><input type="radio" name="theme" value="system"> System</label>
+        <label class="row check-row"><input type="radio" name="theme" value="light"> Light</label>
+        <label class="row check-row"><input type="radio" name="theme" value="dark"> Dark</label>
+      </div>
+    </fieldset>
+    <p class="muted field-help" id="theme-help">System follows your device setting.</p>
   </div>
 </section>
 
 <section class="tab" id="tab-draft">
   <div class="card">
     <h2>Decision draft</h2>
-    <div style="margin-top:var(--s3)"><label>Your own notes for the AI (optional)</label><textarea data-bind="ai.notes" rows="2" placeholder="Example: I don't vote on condo bad unless it's dropped. I thought the 2AR extended solvency well."></textarea></div>
-    <div style="margin-top:var(--s3)"><label>Evidence / speech docs (optional, paste text)</label><textarea data-bind="ai.evidence" rows="4"></textarea></div>
-    <div class="row" style="margin-top:var(--s3)">
+    <div class="mt-3"><label>Your own notes for the AI (optional)</label><textarea data-bind="ai.notes" rows="2" placeholder="Example: I don't vote on condo bad unless it's dropped. I thought the 2AR extended solvency well."></textarea></div>
+    <div class="mt-3"><label>Evidence / speech docs (optional, paste text)</label><textarea data-bind="ai.evidence" rows="4"></textarea></div>
+    <div class="row mt-3">
       <button class="b primary" id="ai-go">Generate decision draft</button>
       <button class="b" id="ai-copy-prompt">Copy prompt instead</button>
       <span class="muted" id="ai-status"></span>
@@ -698,7 +730,7 @@
   <div class="card">
     <h2>Draft</h2>
     <div class="out" id="ai-out"></div>
-    <div class="row" style="margin-top:var(--s3)">
+    <div class="row mt-3">
       <button class="b" id="ai-use">Use as RFD + winner on ballot</button>
     </div>
   </div>
@@ -706,40 +738,40 @@
 
 <section class="tab" id="tab-ballot">
   <div class="card noprint" id="filler-card">
-    <div class="row" style="justify-content:space-between">
-      <h2 style="margin:0">AI ballot filler</h2>
+    <div class="row card-head">
+      <h2>AI ballot filler</h2>
       <div class="row">
-        <label class="row" style="margin:0;color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="auto-ballot"> Refill after each speech <span class="muted">(one AI call each)</span></label>
+        <label class="row check-row"><input type="checkbox" id="auto-ballot"> Refill after each speech <span class="muted">(one AI call each)</span></label>
         <button class="b" id="fill-go">Fill ballot now</button>
       </div>
     </div>
-    <p class="muted" style="margin:var(--s2) 0 0">Drafts the winner, points, ranks, RFD and team comments from everything in the round. <strong>Anything you type on the ballot is yours: the AI will not change it.</strong> <button class="linkish" id="fill-unlock">Let the AI refill my fields too</button></p>
-    <label for="ballot-input" style="margin-top:var(--s3)">Tell the AI (optional)</label>
+    <p class="muted help-line">Drafts the winner, points, ranks, RFD and team comments from everything in the round. <strong>Anything you type on the ballot is yours: the AI will not change it.</strong> <button class="linkish" id="fill-unlock">Let the AI refill my fields too</button></p>
+    <label for="ballot-input" class="mt-3">Tell the AI (optional)</label>
     <textarea id="ballot-input" data-bind="ballotInput" rows="2" placeholder="Example: I'm voting aff on the perm. 2N was clearly the best speaker. Be kinder to the 1A."></textarea>
-    <div class="row" style="margin-top:var(--s2)"><button class="b" id="fill-redo">Redo with my input</button><button class="b" id="fill-undo">Undo last fill</button><span id="fill-status" role="status" aria-live="polite" style="font-weight:600"></span></div>
+    <div class="row mt-2"><button class="b" id="fill-redo">Redo with my input</button><button class="b" id="fill-undo">Undo last fill</button><span id="fill-status" class="status-inline" role="status" aria-live="polite"></span></div>
     <div id="fill-why" class="muted" style="margin-top:var(--s2);white-space:pre-wrap"></div>
   </div>
   <div class="card">
     <h2 id="ballot-title">Ballot</h2>
     <div class="row" style="gap:18px">
-      <label class="row" style="margin:0;font-size:var(--fs-md)"><input type="radio" name="winner" value="aff" style="width:auto"> <span class="aff">Aff wins</span> <span id="w-aff" class="muted"></span></label>
-      <label class="row" style="margin:0;font-size:var(--fs-md)"><input type="radio" name="winner" value="neg" style="width:auto"> <span class="neg">Neg wins</span> <span id="w-neg" class="muted"></span></label>
+      <label class="row check-row winner"><input type="radio" name="winner" value="aff"> <span class="aff">Aff wins</span> <span id="w-aff" class="muted"></span></label>
+      <label class="row check-row winner"><input type="radio" name="winner" value="neg"> <span class="neg">Neg wins</span> <span id="w-neg" class="muted"></span></label>
     </div>
-    <div class="scroll" style="margin-top:var(--s3)">
+    <div class="scroll mt-3">
       <table>
         <thead><tr><th>Speaker</th><th>Name</th><th>Points (25–30)</th><th>Rank (1 = best)</th></tr></thead>
         <tbody id="pts-body"></tbody>
       </table>
     </div>
     <p class="muted">Team totals: <span class="aff" id="sum-aff">–</span> · <span class="neg" id="sum-neg">–</span></p>
-    <div style="margin-top:var(--s3)"><label class="row" style="justify-content:space-between">Reason for decision (RFD) — goes to everyone <button class="b noprint" data-copy="ballot.rfd">Copy</button></label><textarea data-bind="ballot.rfd" rows="8"></textarea></div>
-    <div class="grid" style="margin-top:var(--s3)">
-      <div><label class="row" style="justify-content:space-between"><span class="aff">Aff team comments <span id="fb-aff-code"></span></span> <button class="b noprint" data-copy="ballot.affFb">Copy</button></label><textarea data-bind="ballot.affFb" rows="6"></textarea></div>
-      <div><label class="row" style="justify-content:space-between"><span class="neg">Neg team comments <span id="fb-neg-code"></span></span> <button class="b noprint" data-copy="ballot.negFb">Copy</button></label><textarea data-bind="ballot.negFb" rows="6"></textarea></div>
+    <div class="mt-3"><label class="row card-head">Reason for decision (RFD) — goes to everyone <button class="b noprint" data-copy="ballot.rfd">Copy</button></label><textarea data-bind="ballot.rfd" rows="8"></textarea></div>
+    <div class="grid mt-3">
+      <div><label class="row card-head"><span class="aff">Aff team comments <span id="fb-aff-code"></span></span> <button class="b noprint" data-copy="ballot.affFb">Copy</button></label><textarea data-bind="ballot.affFb" rows="6"></textarea></div>
+      <div><label class="row card-head"><span class="neg">Neg team comments <span id="fb-neg-code"></span></span> <button class="b noprint" data-copy="ballot.negFb">Copy</button></label><textarea data-bind="ballot.negFb" rows="6"></textarea></div>
     </div>
     <p class="muted noprint">For the tournament ballot: paste the RFD into "Reason for Decision", then each team's comments into that team's box.</p>
     <div id="ballot-check"></div>
-    <div class="row noprint" style="margin-top:var(--s3)">
+    <div class="row noprint mt-3">
       <button class="b primary" id="b-save">Save to Ballots</button>
       <button class="b" id="b-tsv">Copy row for a spreadsheet</button>
       <button class="b" id="b-csv">Download CSV</button>
@@ -763,34 +795,37 @@
     <p class="muted" style="margin:0 0 var(--s3)">Everything you do is saved in this browser only. A backup file holds all of it: the round, flows, transcripts, analysis, ballots, saved ballots, settings and documents. Keep one before you clear the browser or switch computers.</p>
     <div class="row">
       <button class="b primary" id="backup-go">Download backup</button>
-      <label class="row" style="margin:0;color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="backup-keys"> Include my API keys (keep that file private)</label>
+      <label class="row check-row"><input type="checkbox" id="backup-keys"> Include my API keys (keep that file private)</label>
     </div>
-    <p class="muted" id="backup-last" style="margin:var(--s2) 0 0"></p>
-    <div class="row" style="margin-top:var(--s3)">
-      <label for="restore-file" class="b" style="display:inline-flex;align-items:center;margin:0;cursor:pointer;color:var(--ink)">Restore from a backup…</label>
+    <p class="muted help-line" id="backup-last"></p>
+    <div class="row mt-3">
+      <label for="restore-file" class="b">Restore from a backup…</label>
       <input type="file" id="restore-file" accept=".json,application/json" hidden>
       <span class="muted">Replaces what is in this browser now. Your current data is downloaded first, just in case.</span>
     </div>
-    <p id="backup-status" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
+    <p id="backup-status" class="status-line" role="status" aria-live="polite"></p>
   </div>
 </section>
 
   <p class="app-foot noprint"><a href="about.html" target="_blank" rel="noopener">About Tabula</a> · Made by Connor England</p>
 </main>
 <section class="tr-drawer noprint" id="tr-drawer" aria-label="Transcript" hidden>
-  <div class="tr-drawer-head"><h2>Transcript: <span id="tr-drawer-label"></span></h2><button class="b small" id="tr-drawer-close">Hide</button></div>
-  <textarea id="transcript-big" placeholder="Speech-to-text lands here while the clock runs. You can type or fix it too." aria-label="Transcript of the current speech"></textarea>
+  <div class="tr-drawer-head"><h2 id="tr-drawer-title">Transcript: <span id="tr-drawer-label"></span></h2>
+    <span class="tip-wrap"><button class="tip" type="button" aria-label="About transcription" aria-expanded="false" aria-controls="rec-note">?</button>
+      <span class="tip-box" id="rec-note" role="tooltip" hidden></span></span>
+    <button class="b small" id="tr-drawer-close" aria-label="Hide the transcript">Hide</button></div>
+  <textarea id="transcript-big" placeholder="Words from the speech show here while the clock runs. You can type or fix them." aria-labelledby="tr-drawer-title"></textarea>
 </section>
 <footer class="roundbar noprint" aria-label="Round controls">
   <div class="rb-speech"><span id="cur-label"></span><span class="clock" id="clock" aria-live="off">8:00</span><span class="view-chip" id="view-chip" hidden><span id="view-text"></span><button class="b small" id="view-back" type="button"></button></span></div>
   <div class="rb-ctl">
-    <button class="b primary" id="t-start" title="Start or pause (Space, or Ctrl+Enter while typing)" aria-keyshortcuts="Meta+Enter Control+Enter">Start</button>
+    <button class="b primary" id="t-start" data-tip="Start or pause (Space, or Ctrl+Enter while typing)" aria-keyshortcuts="Meta+Enter Control+Enter">Start</button>
     <button class="b" id="t-reset">Reset</button>
     <button class="b" id="t-next">Next speech</button>
-    <button class="b" id="tr-toggle" aria-expanded="false" aria-controls="tr-drawer" title="Show or hide the transcript">Transcript</button>
+    <button class="b" id="tr-toggle" aria-expanded="false" aria-controls="tr-drawer" data-tip="Show or hide the transcript">Transcript<span class="sr-only" id="tr-problem-sr"></span></button>
   </div>
   <div class="rb-rec">
-    <label class="row" style="margin:0;color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="rec-on"> Transcribe</label>
+    <label class="row"><input type="checkbox" id="rec-on"> Transcribe</label>
     <span id="rb-meter" class="meter" role="img" aria-label="Mic level" hidden><i></i></span>
     <span id="rec-status" class="rb-status" role="status" aria-live="polite"></span>
     <button class="b small" id="discard-audio" hidden>Discard waiting audio</button>
@@ -800,15 +835,15 @@
   <span id="mini-rec" class="rb-ai"></span>
 </footer>
 <div id="node-editor" class="overlay" role="dialog" aria-modal="true" aria-labelledby="ne-title" hidden>
-  <div class="overlay-card" style="width:min(480px,100%)">
-    <h2 id="ne-title" style="margin:0 0 var(--s3)">Argument</h2>
+  <div class="overlay-card narrow">
+    <h2 id="ne-title">Argument</h2>
     <label for="ne-label">Text</label><input id="ne-label" placeholder="e.g. No link — plan is cheap">
-    <div class="grid" style="margin-top:var(--s3)">
+    <div class="grid mt-3">
       <div><label for="ne-speech">Speech</label><select id="ne-speech"></select></div>
       <div><label for="ne-status">Status</label><select id="ne-status"><option value="open">Open</option><option value="answered">Answered</option><option value="extended">Extended</option><option value="dropped">Dropped</option><option value="conceded">Conceded</option></select></div>
     </div>
-    <label style="margin-top:var(--s3)" for="ne-target">Responds to</label>
-    <div class="row" style="flex-wrap:nowrap"><select id="ne-kind" style="width:auto" aria-label="How it responds"><option value="answers">answers</option><option value="turns">turns</option><option value="extends">extends</option><option value="concedes">concedes</option></select><select id="ne-target"></select></div>
+    <label class="mt-3" for="ne-target">Responds to</label>
+    <div class="row nowrap"><select id="ne-kind" class="w-auto" aria-label="How it responds"><option value="answers">answers</option><option value="turns">turns</option><option value="extends">extends</option><option value="concedes">concedes</option></select><select id="ne-target"></select></div>
     <div class="row" style="justify-content:space-between;margin-top:var(--s4)">
       <button class="b" id="ne-delete">Delete</button>
       <div class="row"><button class="b" id="ne-cancel">Cancel</button><button class="b primary" id="ne-save">Save</button></div>
@@ -822,7 +857,7 @@
     <div class="tour-dots" id="tour-dots" aria-hidden="true"></div>
     <h2 id="tour-title"></h2>
     <p id="tour-body"></p>
-    <div class="row" style="justify-content:space-between;margin-top:var(--s3)">
+    <div class="row tour-foot">
       <button class="linkish" id="tour-skip">Skip tour</button>
       <div class="row"><button class="b" id="tour-back">Back</button><button class="b primary" id="tour-next">Next</button></div>
     </div>

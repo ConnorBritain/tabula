@@ -1489,6 +1489,77 @@
     return (i + (back ? -1 : 1) + n) % n;
   }
 
+  // ---------- Slice 3: visual system and Flow look ----------
+  // V9 (Q8) How the Insights pane shows. No AI wins over the judge's own hide choice: a pane with nothing in it
+  // folds to a thin edge with one "Connect AI" link. 'edge-connect' | 'edge-show' (the judge hid it) | 'open'.
+  function insightsMode(o) {
+    const x = o || {};
+    if (!x.aiReady) return 'edge-connect';
+    return x.hideRight ? 'edge-show' : 'open';
+  }
+  // V10 (Q3) The theme to draw: the judge's setting ('system' | 'light' | 'dark'), else the device setting.
+  // assets/theme-boot.js has the same rule (it runs before this file loads); a test keeps the two equal.
+  function resolveTheme(setting, prefersDark) {
+    if (setting === 'light' || setting === 'dark') return setting;
+    return prefersDark ? 'dark' : 'light';
+  }
+  // V11 (spec 4.4) How long the pointer rests before a tip shows: 1 s on sheet tabs (they are passed over all
+  // the time while flowing), 0.5 s for every other label tip and help bubble.
+  const TIP_DELAY_MS = 500, SHEET_TIP_DELAY_MS = 1000;
+  function tipDelay(kind) { return kind === 'sheet' ? SHEET_TIP_DELAY_MS : TIP_DELAY_MS; }
+  // V11 (spec 4.4) Where a tip goes: centred below its target; flipped above when it would cross the top of the
+  // round bar (view.bottomInset = --rb-h); always 8 px inside the viewport. target: a rect; tip: { w, h }.
+  function tipPlace(target, tip, view) {
+    const m = 8, gap = 6;
+    const bottom = view.h - (view.bottomInset || 0);
+    let top = target.top + target.height + gap, side = 'below';
+    if (top + tip.h > bottom - m) {
+      const above = target.top - gap - tip.h;
+      if (above >= m) { top = above; side = 'above'; } else top = Math.max(m, bottom - m - tip.h);
+    }
+    const left = Math.max(m, Math.min(target.left + target.width / 2 - tip.w / 2, view.w - tip.w - m));
+    return { top, left, side };
+  }
+  // V11 (spec 4.4) aria-describedby points at a tip only when the tip adds words to the control's name. A tip that
+  // only repeats the name would make a screen reader say it twice. Case, spacing and end punctuation do not count.
+  function tipAddsWords(name, tip) {
+    const norm = (x) => String(x == null ? '' : x).toLowerCase().replace(/\s+/g, ' ').replace(/[\s.:;,!?\u2026]+$/, '').trim();
+    const n = norm(name), t = norm(tip);
+    if (!t) return false;
+    return !n.includes(t);
+  }
+  // V11 (spec 4.4) Touch long press. One step of the press state: { timer, eat } in, the next state out.
+  // ev: 'down' (a new touch starts), 'fire' (the 500 ms timer showed the tip), 'move' (the finger moved), 'up',
+  // 'cancel' (pointercancel or contextmenu), 'click' (out: eatNow says whether to cancel this click).
+  // Only the one click that ends the long press is eaten. A new touch always starts clean, so a lost click
+  // (Android gives contextmenu and no click) can never cancel the next real tap, for example on Start.
+  function pressStep(state, ev) {
+    const st = { timer: Boolean(state && state.timer), eat: Boolean(state && state.eat) };
+    if (ev === 'down') return { timer: true, eat: false, eatNow: false };
+    if (ev === 'fire') return st.timer ? { timer: false, eat: true, eatNow: false } : { ...st, eatNow: false };
+    if (ev === 'move' || ev === 'up') return { timer: false, eat: st.eat, eatNow: false };
+    if (ev === 'cancel') return { timer: false, eat: false, eatNow: false };
+    if (ev === 'click') return { timer: false, eat: false, eatNow: st.eat };
+    return { ...st, eatNow: false };
+  }
+  // V11 (spec 4.4) A tip shows at once on keyboard focus, but not when the code moved focus back after Esc
+  // (closing a pane returns focus to its button). The tip would cover what Esc just uncovered.
+  const ESC_FOCUS_QUIET_MS = 300;
+  function tipOnFocus(focusVisible, msSinceEsc) {
+    return Boolean(focusVisible) && !(msSinceEsc >= 0 && msSinceEsc < ESC_FOCUS_QUIET_MS);
+  }
+  // V7 Which flow columns get the "Now" and "Viewing" marks. runId: the speech the clock times (or null);
+  // curId: the speech on screen. CX speeches have no column. Returns column indexes or null:
+  // current = the column with the bar and outline (the running speech, else the one on screen),
+  // now = the running column (only while a clock runs), viewing = a different column the judge looks at.
+  function flowMarks(runId, curId) {
+    const runCol = runId ? speechColumn(runId) : null;
+    const curCol = curId ? speechColumn(curId) : null;
+    const current = runId ? runCol : curCol;
+    const viewing = runId && curCol != null && curCol !== runCol ? curCol : null;
+    return { current: current == null ? null : current, now: runId && runCol != null ? runCol : null, viewing };
+  }
+
   const api = {
     SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS, PARADIGMS,
     BALLOT_HEADER, JUDGE_SYSTEM, POINTS_GUIDE,
@@ -1509,6 +1580,8 @@
     resolveRememberKeys, splitRestoreKeys, restoreKeysLine, restoreTabKeys, undoSheetDelete, autoEvalDefault, liveFlowDefault, d2Reset, needsD2Note,
     // Slice 0: shared UI rules
     escTop, toastPlan, TOAST_MAX, askFirstFocus, trapNext,
+    // Slice 3: visual system and Flow look
+    insightsMode, resolveTheme, TIP_DELAY_MS, SHEET_TIP_DELAY_MS, tipDelay, tipPlace, flowMarks, tipAddsWords, pressStep, ESC_FOCUS_QUIET_MS, tipOnFocus,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PolicyLogic = api;

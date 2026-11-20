@@ -129,13 +129,19 @@ function applyPanes() {
   if (!overlay) leftOpen = false;
   const ws = $('#workspace');
   ws.classList.toggle('no-left', !overlay && Boolean(S.hideLeft));
-  ws.classList.toggle('no-right', Boolean(S.hideRight));
   ws.classList.toggle('left-open', overlay && leftOpen);
+  // Insights (V9, Q8): the open pane, or a 32 px edge. With no AI it folds to one "Connect AI" link.
+  const mode = insightsMode();
+  ws.classList.toggle('ins-folded', mode !== 'open'); // not 'ins-edge': that is the strip's own class
+  $('#insights').dataset.mode = mode;
+  $('#ins-connect').hidden = mode !== 'edge-connect';
+  $('#ins-show').hidden = mode !== 'edge-show';
   const btn = $('#speeches-btn');
   btn.hidden = !(overlay || S.hideLeft);
   btn.setAttribute('aria-expanded', String(overlay ? leftOpen : !S.hideLeft));
-  btn.title = K.speechesTip(IS_MAC, S.singleKeys !== false);
+  btn.dataset.tip = K.speechesTip(IS_MAC, S.singleKeys !== false);
 }
+const insightsMode = () => L.insightsMode({ aiReady: aiReady(), hideRight: Boolean(S.hideRight) });
 function focusSpeechTile() { const t = $('#speech-list .sp.run') || $('#speech-list .sp.on'); if (t) t.focus(); }
 function openSpeeches(from) {
   leftOpener = from && from !== document.body && !from.closest('#tab-timer') ? from : null;
@@ -161,6 +167,8 @@ document.addEventListener('click', (e) => {
   if (b.dataset.pane === 'left') { if (isOverlay()) return closeSpeeches(); S.hideLeft = !S.hideLeft; }
   else S.hideRight = !S.hideRight;
   saveSettings(); applyPanes();
+  // Showing or hiding Insights moves focus to the control that stays (the Hide button or the edge).
+  if (b.dataset.pane === 'right') { const to = S.hideRight ? $('#ins-show') : $('#insights [data-pane="right"]'); if (to && !to.hidden) to.focus(); }
 });
 // A click in the grid closes the overlay; a click in the round bar or on a speech tile does not.
 document.addEventListener('pointerdown', (e) => {
@@ -286,13 +294,14 @@ function stopTick() { clearInterval(tick); tick = null; }
 
 function renderSpeeches() {
   const runId = R.run && R.run.id;
+  markFlowColumns();
   $('#speech-list').innerHTML = L.SPEECHES.map((s, i) => {
     const isRun = s.id === runId;
     const done = R.timeLeft[s.id] != null && R.timeLeft[s.id] < fullTime(s);
-    const hasTr = (R.transcripts[s.id] || '').trim() ? ' · transcript' : '';
+    const hasTr = (R.transcripts[s.id] || '').trim() ? ' · has transcript' : '';
     const short = L.shortSpeech(s.id);
     const info = isRun ? '<small class="sp-run">Running</small>' : '<small>' + (done ? L.formatClock(Math.ceil(leftFor(s))) + ' left' : s.minutes + ' min') + '</small>';
-    return `<button class="sp ${s.side} ${i === R.cur ? 'on' : ''}${isRun ? ' run' : ''}" data-i="${i}" title="${s.label} · ${s.side.toUpperCase()}${hasTr}"${isRun ? ` aria-label="${s.label}, running"` : ''}${i === R.cur ? ' aria-current="true"' : ''}>${short}${hasTr ? '<i class="sp-dot" aria-label="has transcript"></i>' : ''}${info}</button>`;
+    return `<button class="sp ${s.side} ${i === R.cur ? 'on' : ''}${isRun ? ' run' : ''}" data-i="${i}" data-tip="${s.label} · ${s.side === 'aff' ? 'Aff' : 'Neg'}${hasTr}"${isRun ? ` aria-label="${s.label}, running"` : ''}${i === R.cur ? ' aria-current="true"' : ''}>${short}${hasTr ? '<i class="sp-dot" aria-label="has transcript"></i>' : ''}${info}</button>`;
   }).join('');
 }
 function renderClock() {
@@ -410,7 +419,7 @@ function renderPrep() {
     const left = mine ? (pr.endAt - Date.now()) / 1000 : R.prepLeft[side];
     const el = $('#prep-' + side);
     el.textContent = L.formatClock(Math.max(0, Math.ceil(left)));
-    el.style.color = left <= 0 ? 'var(--danger)' : '';
+    tone(el, left <= 0 ? 'error' : '');
     document.querySelector(`[data-prep="${side}"]`).textContent = mine ? 'Stop' : 'Start';
     if (mine && left <= 0) { stopPrep(); beep(); }
   }
@@ -508,20 +517,20 @@ let recProblem = '', lastTextAt = 0;
 function setRecStatus() {
   const el = $('#rec-status');
   if (!el) return;
-  if (recProblem) { el.style.color = 'var(--danger)'; el.textContent = 'Not transcribing: ' + recProblem; return; }
+  if (recProblem) { tone(el, 'error'); el.textContent = 'Not transcribing: ' + recProblem; return; }
   // Clips waiting for a better connection: say so plainly, and that the audio stays on this device.
   const q = CQ.state();
-  if (q.held) { el.style.color = 'var(--danger)'; el.textContent = 'Paused: ' + q.held.replace(/\.+$/, '') + '. ' + (q.backlog ? clipMinutes(q) + ' of audio is kept on this device until it is fixed.' : ''); return; }
-  if (q.degraded) { el.style.color = 'var(--warn)'; el.textContent = 'Connection trouble: recording safely. ' + clipMinutes(q) + ' of audio waiting, kept on this device only' + (q.retryInMs ? '. Trying again in ' + Math.ceil(q.retryInMs / 1000) + ' s.' : '.'); return; }
-  if (q.catchingUp) { el.style.color = 'var(--warn)'; el.textContent = 'Catching up: ' + clipMinutes(q) + ' of audio waiting, kept on this device only.'; return; }
-  if (!recWanted && q.backlog) { el.style.color = 'var(--muted)'; el.textContent = 'Finishing the transcript: ' + clipMinutes(q) + ' of audio waiting, kept on this device only.'; return; }
-  if (!$('#rec-on').checked) { el.style.color = 'var(--muted)'; el.textContent = 'Transcribe is off. Tick the box to record.'; return; }
-  if (!recWanted) { el.style.color = 'var(--muted)'; el.textContent = 'Ready. Recording starts when the speech clock starts.'; return; }
+  if (q.held) { tone(el, 'error'); el.textContent = 'Paused: ' + q.held.replace(/\.+$/, '') + '. ' + (q.backlog ? clipMinutes(q) + ' of audio is kept on this device until it is fixed.' : ''); return; }
+  if (q.degraded) { tone(el, 'caution'); el.textContent = 'Connection trouble: recording safely. ' + clipMinutes(q) + ' of audio waiting, kept on this device only' + (q.retryInMs ? '. Trying again in ' + Math.ceil(q.retryInMs / 1000) + ' s.' : '.'); return; }
+  if (q.catchingUp) { tone(el, 'caution'); el.textContent = 'Catching up: ' + clipMinutes(q) + ' of audio waiting, kept on this device only.'; return; }
+  if (!recWanted && q.backlog) { tone(el, 'quiet'); el.textContent = 'Finishing the transcript: ' + clipMinutes(q) + ' of audio waiting, kept on this device only.'; return; }
+  if (!$('#rec-on').checked) { tone(el, 'quiet'); el.textContent = 'Transcribe is off. Tick the box to record.'; return; }
+  if (!recWanted) { tone(el, 'quiet'); el.textContent = 'Ready. Recording starts when the speech clock starts.'; return; }
   const ago = lastTextAt ? Math.round((Date.now() - lastTextAt) / 1000) : null;
   const engine = activeEngine === 'browser' ? 'browser' : P.PROVIDERS[activeEngine].short;
   const stall = L.stallWarning({ startedAt: recStartedAt, lastTextAt, now: Date.now(), mode: S.audioMode });
-  if (stall) { el.style.color = 'var(--warn)'; el.textContent = 'Recording (' + engine + '). ' + stall; return; }
-  el.style.color = 'var(--ok)';
+  if (stall) { tone(el, 'caution'); el.textContent = 'Recording (' + engine + '). ' + stall; return; }
+  tone(el, 'ok');
   el.textContent = 'Recording (' + engine + ')' + (ago != null ? ' · last text ' + ago + ' s ago' : ' · waiting for first text…');
 }
 setInterval(() => { setRecStatus(); renderRecStrip(); }, 1000);
@@ -634,8 +643,11 @@ function setRecNote(extra) {
   lines.push('Live AI flow: ' + (S.liveFlow ? 'on' : 'off') + '.');
   if (extra) lines.push('<span class="tip-problem">' + escapeHtml(extra) + '</span>');
   $('#rec-note').innerHTML = lines.map((l) => '<span class="tip-line">' + l + '</span>').join('');
-  // A transcription problem puts a small red dot on the (?).
-  document.querySelector('.tr-head .tip').classList.toggle('warn', Boolean(extra));
+  // A transcription problem puts a small dot on the drawer's (?) and on the round-bar Transcript button (V8).
+  // The words are in the bubble and in the round-bar status line; screen readers hear them on the button too.
+  document.querySelector('.tr-drawer-head .tip').classList.toggle('warn', Boolean(extra));
+  $('#tr-toggle').classList.toggle('warn', Boolean(extra));
+  $('#tr-problem-sr').textContent = extra ? ' (transcription problem)' : '';
 }
 
 let activeEngine = 'browser', recStartedAt = 0;
@@ -676,7 +688,7 @@ function meterFeed(samples) {
   m.hidden = false;
   m.firstElementChild.style.width = info.pct + '%';
   m.dataset.level = info.level;
-  m.title = 'Mic level: ' + info.label;
+  m.dataset.tip = 'Mic level: ' + info.label;
   m.setAttribute('aria-label', 'Mic level: ' + info.label);
 }
 function renderRecBadge() {
@@ -1020,24 +1032,21 @@ async function runFlow(speechId, forced) {
   }
 }
 
+// The transcript lives only in the drawer above the round bar (V8, Q7). It shows the speech on screen (the viewed
+// one, spec 1.2); live words still go to the running speech's transcript.
 function renderTranscript() {
-  $('#tr-label').textContent = sp().label;
   $('#tr-drawer-label').textContent = sp().label;
   setTranscriptView(R.transcripts[sp().id] || '');
 }
-// The transcript shows in two places: the left pane and the big drawer above the round bar. Both stay in sync.
 function setTranscriptView(text) {
-  for (const el of [$('#transcript'), $('#transcript-big')]) {
-    if (el.value === text) continue;
-    // Keep the view at the newest words, unless the judge scrolled up to read.
-    const atEnd = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
-    el.value = text;
-    if (atEnd && document.activeElement !== el) el.scrollTop = el.scrollHeight;
-  }
+  const el = $('#transcript-big');
+  if (el.value === text) return;
+  // Keep the view at the newest words, unless the judge scrolled up to read.
+  const atEnd = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+  el.value = text;
+  if (atEnd && document.activeElement !== el) el.scrollTop = el.scrollHeight;
 }
-for (const id of ['#transcript', '#transcript-big']) {
-  $(id).addEventListener('input', (e) => { R.transcripts[sp().id] = e.target.value; save(); setTranscriptView(e.target.value); });
-}
+$('#transcript-big').addEventListener('input', (e) => { R.transcripts[sp().id] = e.target.value; save(); });
 function showDrawer(on) {
   S.trDrawer = on; saveSettings();
   $('#tr-drawer').hidden = !on;
@@ -1047,23 +1056,6 @@ function showDrawer(on) {
   if (on) { const t = $('#transcript-big'); t.scrollTop = t.scrollHeight; }
 }
 $('#tr-toggle').addEventListener('click', () => showDrawer($('#tr-drawer').hidden));
-// The (?) next to the transcript title: a click opens or closes it; hovering opens it after half a second,
-// so passing over it with the mouse does not cover the transcript.
-(() => {
-  const wrap = document.querySelector('.tr-head .tip-wrap'), btn = wrap.querySelector('.tip');
-  let timer = null, pinned = false;
-  const set = (on) => { wrap.classList.toggle('open', on); btn.setAttribute('aria-expanded', String(on)); };
-  wrap.addEventListener('mouseenter', () => { if (!pinned) timer = setTimeout(() => set(true), 500); });
-  wrap.addEventListener('mouseleave', () => { clearTimeout(timer); if (!pinned) set(false); });
-  btn.addEventListener('click', () => {
-    clearTimeout(timer);
-    const open = wrap.classList.contains('open');
-    pinned = !open || !pinned; // closed -> open and stay; open from hover -> stay; open and pinned -> close
-    set(pinned);
-  });
-  document.addEventListener('click', (e) => { if (pinned && !wrap.contains(e.target)) { pinned = false; set(false); } });
-  escLayer('tip', 50, () => wrap.classList.contains('open'), () => { pinned = false; set(false); });
-})();
 $('#tr-drawer-close').addEventListener('click', () => showDrawer(false));
 escLayer('drawer', 30, () => !$('#tr-drawer').hidden, () => showDrawer(false));
 // The drawer sits just above the round bar, which can wrap to two lines on narrow screens.
@@ -1091,16 +1083,29 @@ function renderFlow() {
     // With one sheet left, Delete stays focusable but says why it does nothing (spec 2.4 #7).
     + (R.flows.length < 2 ? `<button data-act="del" aria-disabled="true" aria-describedby="one-sheet-why" data-tip="${ONE_SHEET}">Delete</button><span class="sr-only" id="one-sheet-why">${ONE_SHEET}</span>` : '<button data-act="del">Delete</button>')
     + sheetLearnLink(f && f.name);
-  $('#flow').innerHTML = L.FLOW_COLUMNS.map((c, i) => `<div class="col ${c.side}"><h3>${c.label}</h3><textarea data-col="${i}" spellcheck="false">${escapeHtml((f.cells || {})[i] || '')}</textarea></div>`).join('');
+  $('#flow').innerHTML = L.FLOW_COLUMNS.map((c, i) => `<div class="col ${c.side}"><h3><span>${c.label}</span><span class="col-mark"></span></h3><textarea data-col="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(f.name)}">${escapeHtml((f.cells || {})[i] || '')}</textarea></div>`).join('');
+  markFlowColumns();
+}
+// The running speech's column gets a bar under its header, a "Now" label and a thin outline; a different column
+// the judge is looking at says "Viewing" (V7, spec 1.2). Only classes and labels change, so the caret stays put.
+function markFlowColumns() {
+  const m = L.flowMarks(R.run ? R.run.id : null, sp().id);
+  document.querySelectorAll('#flow .col').forEach((col, i) => {
+    col.classList.toggle('is-current', i === m.current);
+    const mark = col.querySelector('.col-mark');
+    if (mark) mark.textContent = i === m.now ? 'Now' : i === m.viewing ? 'Viewing' : '';
+    const ta = col.querySelector('textarea');
+    if (ta) ta.placeholder = i === m.current ? 'Type here' : '';
+  });
 }
 // A link from the open sheet to its Debate Library page (for example DA -> learn/disadvantages/). A real link, not a
 // tooltip, so keyboard and screen-reader users can reach it. Sheets with no page (for example "Notes") show nothing.
 function sheetLearnLink(name) {
   const p = L.sheetPage(name);
-  return p ? `<a class="sheet-learn" href="learn/${p.slug}/" target="_blank" rel="noopener" aria-label="Learn about ${p.topic} in the Debate Library (opens a new tab)" title="Learn about ${p.topic}">ⓘ Learn</a>` : '';
+  return p ? `<a class="sheet-learn" href="learn/${p.slug}/" target="_blank" rel="noopener" aria-label="Learn about ${p.topic} in the Debate Library (opens a new tab)" data-tip="Learn about ${p.topic}">ⓘ Learn</a>` : '';
 }
 function viewToggle() {
-  return `<button data-view="mine" class="${R.flowView !== 'ai' ? 'on' : ''}">My flow</button><button data-view="ai" class="${R.flowView === 'ai' ? 'on' : ''}">AI flow</button><span style="width:12px"></span>`;
+  return `<button data-view="mine" class="${R.flowView !== 'ai' ? 'on' : ''}">My flow</button><button data-view="ai" class="${R.flowView === 'ai' ? 'on' : ''}">AI flow</button><span class="tab-gap"></span>`;
 }
 let aiIdx = 0;
 function agoText(t) {
@@ -1111,9 +1116,9 @@ function agoText(t) {
 function flowStatusHtml() {
   if (flowBusy) return busyHtml('AI is flowing… (10–30 s)');
   if (!aiReady()) return noAiHtml();
-  if (navigator.onLine === false) return '<span class="ai-quiet">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + L.aiErrorText('offline')) + '</span>';
-  if (lastFlowErr) return '<span style="color:var(--danger)">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + lastFlowErr) + '</span>';
-  if (!S.liveFlow) return '<span class="ai-quiet">Live AI flow is off. Each update is a paid AI call. <button class="linkish" type="button" data-tab-go="ai">Turn it on in Settings</button></span>';
+  if (navigator.onLine === false) return '<span class="is-quiet">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + L.aiErrorText('offline')) + '</span>';
+  if (lastFlowErr) return '<span class="is-error">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + lastFlowErr) + '</span>';
+  if (!S.liveFlow) return '<span class="is-quiet">Live AI flow is off. Each update is a paid AI call. <button class="linkish" type="button" data-tab-go="ai">Turn it on in Settings</button></span>';
   return '';
 }
 // Keep the status line and "updated" time fresh without redrawing the flow.
@@ -1141,10 +1146,10 @@ function renderAIFlow() {
   const level = L.FLOW_LEVELS.includes(R.flowLevel) ? R.flowLevel : 'standard';
   const ago = agoText(R.aiFlowAt);
   $('#flow-tabs').innerHTML = viewToggle() + sheets.map((x, i) => sheetTab(x.name, `data-ai="${i}"`, i === aiIdx)).join('')
-    + '<span style="width:12px"></span>' + L.FLOW_LEVELS.map((lv) => `<button data-level="${lv}" class="${lv === level ? 'on' : ''}">${lv[0].toUpperCase() + lv.slice(1)}</button>`).join('')
-    + '<span style="width:12px"></span><button data-act="map-docs">Map docs to flow now</button>'
+    + '<span class="tab-gap"></span>' + L.FLOW_LEVELS.map((lv) => `<button data-level="${lv}" class="${lv === level ? 'on' : ''}">${lv[0].toUpperCase() + lv.slice(1)}</button>`).join('')
+    + '<span class="tab-gap"></span><button data-act="map-docs">Map docs to flow now</button>'
     + `<span class="muted" style="margin-left:var(--s2)" id="ai-flow-ago">Updated ${ago}.</span>` + sheetLearnLink((sheets[aiIdx] || {}).name)
-    + `<div id="ai-flow-status" style="flex-basis:100%;font-weight:600;margin-top:var(--s1)">${flowStatusHtml()}</div>`;
+    + `<div id="ai-flow-status">${flowStatusHtml()}</div>`;
   const sh = sheets[aiIdx];
   // Every cell can be edited. An edited cell keeps the judge's text; if the AI writes something newer
   // underneath, a small bar offers "Use AI" or "Keep mine".
@@ -1152,11 +1157,12 @@ function renderAIFlow() {
     ? L.FLOW_COLUMNS.map((c, i) => {
       const ed = sh.edits && sh.edits[i];
       const behind = L.editIsBehind(sh, i);
-      return `<div class="col ${c.side}"><h3>${c.label}${ed ? ' <span class="chip con" title="You edited this cell. AI updates will not overwrite it.">Edited</span>' : ''}</h3>`
+      return `<div class="col ${c.side}"><h3><span>${c.label}</span>${ed ? '<span class="chip con" data-tip="You edited this cell. AI updates will not overwrite it.">Edited</span>' : ''}<span class="col-mark"></span></h3>`
         + (behind ? `<div class="aibar">AI has a newer version. <button data-ai-use="${i}">Use AI</button><button data-ai-keep="${i}">Keep mine</button></div>` : ed ? `<div class="aibar quiet"><button data-ai-use="${i}">Undo my edit</button></div>` : '')
-        + `<textarea data-aicol="${i}" spellcheck="false" aria-label="${c.label} column, ${escapeHtml(sh.name)}">${escapeHtml(L.flowCellText(sh, i, level))}</textarea></div>`;
+        + `<textarea data-aicol="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(sh.name)}">${escapeHtml(L.flowCellText(sh, i, level))}</textarea></div>`;
     }).join('')
-    : '<p class="muted" style="grid-column:1/-1">No AI flow yet. Click "Map docs to flow now" to flow your docs, or tick "Transcribe" in the round bar and start a speech. Needs AI connected and Live AI flow on (in Settings).</p>';
+    : '<p class="muted flow-empty">No AI flow yet. Click "Map docs to flow now" to flow your docs, or tick "Transcribe" in the round bar and start a speech. Needs AI connected and Live AI flow on (in Settings).</p>';
+  markFlowColumns();
 }
 $('#flow-tabs').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
@@ -1207,7 +1213,7 @@ $('#flow').addEventListener('input', (e) => {
     const wasEdited = Boolean(sh.edits && sh.edits[aicol]);
     (sh.edits ??= {})[aicol] = { text: e.target.value, base: (sh.edits[aicol] && sh.edits[aicol].base) ?? L.aiFlowCell(sh, Number(aicol), 'standard') };
     save();
-    if (!wasEdited) { const h = e.target.parentElement.querySelector('h3'); if (h && !h.querySelector('.chip')) h.insertAdjacentHTML('beforeend', ' <span class="chip con">Edited</span>'); }
+    if (!wasEdited) { const h = e.target.parentElement.querySelector('h3'); if (h && !h.querySelector('.chip')) h.querySelector('.col-mark').insertAdjacentHTML('beforebegin', '<span class="chip con" data-tip="You edited this cell. AI updates will not overwrite it.">Edited</span>'); }
     return;
   }
   const col = e.target.dataset.col; if (col == null) return;
@@ -1232,27 +1238,14 @@ function sheetTab(name, attr, on) {
   const { short, full } = L.sheetLabel(name);
   return `<button ${attr} class="${on ? 'on' : ''}"${full ? ` data-tip="${escapeHtml(full)}" aria-label="${escapeHtml(full)}"` : ''}>${escapeHtml(short)}</button>`;
 }
-// Long-hover tips: any element with data-tip shows it after 1 s of hovering (or at once on keyboard focus).
-(() => {
-  const tip = document.createElement('div'); tip.className = 'hover-tip'; tip.setAttribute('role', 'tooltip'); tip.hidden = true;
-  document.body.appendChild(tip);
-  let timer = null, cur = null;
-  const show = (el) => {
-    tip.textContent = el.dataset.tip; tip.hidden = false;
-    const r = el.getBoundingClientRect(), w = tip.offsetWidth;
-    tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
-    tip.style.top = (r.bottom + 6) + 'px';
-  };
-  const hide = () => { clearTimeout(timer); timer = null; cur = null; tip.hidden = true; };
-  document.addEventListener('mouseover', (e) => {
-    const el = e.target.closest && e.target.closest('[data-tip]');
-    if (el === cur) return;
-    hide();
-    if (el) { cur = el; timer = setTimeout(() => show(el), 1000); }
-  });
-  document.addEventListener('focusin', (e) => { const el = e.target.closest && e.target.closest('[data-tip]'); if (el && e.target.matches(':focus-visible')) { cur = el; show(el); } });
-  for (const ev of ['focusout', 'mousedown', 'scroll', 'keydown']) document.addEventListener(ev, hide, true);
-})();
+// Label tips (data-tip) and help bubbles (?) are one module in ui.js (V11, spec 4.4).
+// Status colour comes only from the .is-error / .is-caution / .is-ok classes (spec colour rule 4). .is-quiet is not a
+// status colour: it is the one class for calm, muted status text (offline, busy, no AI), here and in rendered HTML.
+// kind: 'error' | 'caution' | 'ok' | 'quiet' | '' (none). The words beside the colour always carry the meaning.
+function tone(el, kind) {
+  el.classList.remove('is-error', 'is-caution', 'is-ok', 'is-quiet');
+  if (kind) el.classList.add('is-' + kind);
+}
 function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
 // ---------- round documents ----------
@@ -1362,7 +1355,7 @@ function docBytes(d) { return d.kind === 'pdf' ? Math.round(d.data.length * 0.75
 const FLOW_SPEECHES = ['1AC', '1NC', '2AC', '2NC', '1NR', '1AR', '2NR', '2AR'];
 function speechPicker(d) {
   const cur = L.docSpeech(d);
-  return `<select data-doc-speech="${d.id}" style="width:auto" title="Which speech this doc belongs to. It is mapped onto that speech's flow column.">`
+  return `<select data-doc-speech="${d.id}" class="w-auto" aria-label="Speech for ${escapeHtml(d.name || 'this doc')}" data-tip="Which speech this doc belongs to. It is mapped onto that speech's flow column.">`
     + `<option value=""${cur === '' ? ' selected' : ''}>Context only</option>`
     + FLOW_SPEECHES.map((sp) => `<option${sp === cur ? ' selected' : ''}>${sp}</option>`).join('') + '</select>';
 }
@@ -1441,7 +1434,7 @@ function renderSdList() {
     box.querySelector('.sd-list').innerHTML = !SD.files.length ? '' : SD.files.map((f) => {
       const done = st.imported[sdKey(f)], p = sdPick(f.i);
       return `<label class="sd-file${done ? ' sd-done' : ''}"><input type="checkbox" data-sd-i="${f.i}"${p.checked && !done ? ' checked' : ''}${done ? ' disabled' : ''}>
-        <span class="sd-name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}${done ? ' · added' : SD.fresh.has(sdKey(f)) ? '<span class="sd-new">new</span>' : ''}</span>
+        <span class="sd-name" data-tip="${escapeHtml(f.name)}">${escapeHtml(f.name)}${done ? ' · added' : SD.fresh.has(sdKey(f)) ? '<span class="sd-new">new</span>' : ''}</span>
         <select data-sd-speech="${f.i}" aria-label="Speech for ${escapeHtml(f.name)}"${done ? ' disabled' : ''}>${sdSpeeches.map(([v, t]) => `<option value="${v}"${v === p.speech ? ' selected' : ''}>${t}</option>`).join('')}</select></label>`;
     }).join('') + '<div class="sd-actions"><button class="b primary sd-add">Add selected</button><span class="muted">Checks for new files every 30 s.</span></div>';
   });
@@ -1644,11 +1637,11 @@ const aiReady = () => {
   return Boolean(keys[e]);
 };
 // The "No AI" line (L.NO_AI) is muted, with a button to Settings (spec 2.2).
-const noAiHtml = (extra) => '<span class="ai-quiet">' + escapeHtml(L.NO_AI) + ' <button class="linkish" type="button" data-tab-go="ai">Open Settings</button>' + (extra ? ' ' + escapeHtml(extra) : '') + '</span>';
+const noAiHtml = (extra) => '<span class="is-quiet">' + escapeHtml(L.NO_AI) + ' <button class="linkish" type="button" data-tab-go="ai">Open Settings</button>' + (extra ? ' ' + escapeHtml(extra) : '') + '</span>';
 // An AI error line: orange, except "offline", which is muted (it is not the judge's fault, spec 2.3).
-const errColor = (msg) => (msg === L.aiErrorText('offline') ? 'var(--muted)' : 'var(--danger)');
+const errColor = (msg) => (msg === L.aiErrorText('offline') ? 'quiet' : 'error'); // a tone() name: offline is calm, not an error
 // A loading line: muted, with a small spinner, never green (spec 2.3).
-const busyHtml = (text) => '<span class="ai-quiet"><span class="spin" aria-hidden="true"></span>' + escapeHtml(text) + '</span>';
+const busyHtml = (text) => '<span class="is-quiet"><span class="spin" aria-hidden="true"></span>' + escapeHtml(text) + '</span>';
 // An Undo toast (spec 2.4, 4.3). The change is already made; Undo puts it back. The button is named "Undo: {what}".
 // undo() returns false when it could not put the change back (it shows its own toast then).
 function undoToast(msg, what, undo, doneMsg) {
@@ -1820,7 +1813,7 @@ function renderConnections() {
         <strong>${e(p.name)}</strong>
         <span class="pill ${on ? 'ok-pill' : ''}">${on ? (S.rememberKeys ? 'Connected' : 'Ready (this visit only)') : 'Not set up'}</span>
         ${capText(p)}
-        <span style="flex:1"></span>
+        <span class="grow"></span>
         ${on ? `<button class="b" data-prov-test="${id}">Test</button><button class="b" data-prov-del="${id}">Remove</button>` : ''}
       </div>
       ${on ? modelPicker(id) : ''}
@@ -1841,15 +1834,18 @@ function renderConnections() {
   renderSubscriptions();
   saveSettings();
   setTimeout(maybeD2Note, 0);
+  aiChanged();
 }
+// Insights switches between its edge and the open pane with no reload when AI connects or goes (V9).
+function aiChanged() { applyPanes(); renderInsights(); }
 async function connectKey(raw) {
   const key = String(raw || '').trim();
   const msg = $('#key-msg');
   const id = P.detectProvider(key);
-  if (!key) { msg.style.color = 'var(--danger)'; msg.textContent = 'Paste a key first.'; return; }
-  if (!id) { msg.style.color = 'var(--danger)'; msg.textContent = 'This does not look like a key from ' + Object.values(P.PROVIDERS).map((x) => x.short + ' (' + x.prefix + '…)').join(', ').replace(/, ([^,]*)$/, ' or $1') + '. Check that you copied all of it.'; return; }
+  if (!key) { tone(msg, 'error'); msg.textContent = 'Paste a key first.'; return; }
+  if (!id) { tone(msg, 'error'); msg.textContent = 'This does not look like a key from ' + Object.values(P.PROVIDERS).map((x) => x.short + ' (' + x.prefix + '…)').join(', ').replace(/, ([^,]*)$/, ' or $1') + '. Check that you copied all of it.'; return; }
   const p = P.PROVIDERS[id];
-  msg.style.color = 'var(--muted)'; msg.textContent = 'Looks like ' + aOrAn(p.name) + ' key. Checking it…';
+  tone(msg, 'quiet'); msg.textContent = 'Looks like ' + aOrAn(p.name) + ' key. Checking it…';
   $('#key-connect').disabled = true;
   try {
     const req = P.modelsRequest(id, key);
@@ -1868,12 +1864,12 @@ async function connectKey(raw) {
     if (!aiReady()) S.aiEngine = id;
     if (S.trEngine === 'browser' && p.transcribe) S.trEngine = id;
     $('#key-paste').value = '';
-    msg.style.color = 'var(--ok)';
+    tone(msg, 'ok');
     msg.textContent = 'Connected ' + p.name + (p.transcribe ? ' — it can do AI tools and transcription.' : ' — it does AI tools. Transcription stays the free browser kind.');
     renderConnections(); setRecNote(''); setRecStatus();
     CQ.retryNow(); // clips paused for a missing or rejected key can go now
   } catch (err) {
-    msg.style.color = 'var(--danger)';
+    tone(msg, 'error');
     msg.textContent = 'Could not connect ' + p.name + '. ' + (err.message || err);
   } finally { $('#key-connect').disabled = false; }
 }
@@ -1881,7 +1877,7 @@ $('#key-connect').addEventListener('click', () => connectKey($('#key-paste').val
 $('#key-paste').addEventListener('keydown', (e) => { if (e.key === 'Enter') connectKey($('#key-paste').value); });
 $('#key-paste').addEventListener('input', (e) => {
   const id = P.detectProvider(e.target.value);
-  const m = $('#key-msg'); m.style.color = 'var(--muted)';
+  const m = $('#key-msg'); tone(m, 'quiet');
   m.textContent = id ? 'Looks like ' + aOrAn(P.PROVIDERS[id].name) + ' key. Click Connect.' : '';
 });
 $('#prov-list').addEventListener('click', (e) => {
@@ -1899,7 +1895,7 @@ async function removeKey(id) {
   if (!ok) return;
   delete keys[id]; delete S.models[id]; delete S.modelChoice[id]; delete S.modelLists[id]; saveKeys(); renderConnections(); setRecNote('');
 }
-$('#ai-engine').addEventListener('change', (e) => { S.aiEngine = e.target.value; subShown = ''; saveSettings(); renderSubscriptions(); });
+$('#ai-engine').addEventListener('change', (e) => { S.aiEngine = e.target.value; subShown = ''; saveSettings(); renderSubscriptions(); aiChanged(); });
 $('#tr-engine').addEventListener('change', (e) => { S.trEngine = e.target.value; saveSettings(); setRecNote(''); });
 $('#remember-keys').addEventListener('change', (e) => {
   S.rememberKeys = e.target.checked; saveKeys(); saveSettings(); renderConnections();
@@ -1995,7 +1991,7 @@ $('#mic-test').addEventListener('click', async () => {
   if (recWanted) return toast('Pause the speech clock first. The mic is in use.');
   testing = true;
   const btn = $('#mic-test'), out = $('#mic-test-result'), meter = $('#test-meter');
-  btn.disabled = true; out.style.color = 'var(--muted)'; out.textContent = 'Listening… talk normally from where the speaker stands.';
+  btn.disabled = true; tone(out, 'quiet'); out.textContent = 'Listening… talk normally from where the speaker stands.';
   let stream, ctx;
   const samples = [];
   try {
@@ -2016,15 +2012,15 @@ $('#mic-test').addEventListener('click', async () => {
         if (testAbort || performance.now() - t0 >= 5000) { clearInterval(iv); resolve(); }
       }, 100);
     });
-    if (testAbort) { out.style.color = 'var(--muted)'; out.textContent = 'Mic test stopped because a speech started.'; }
+    if (testAbort) { tone(out, 'quiet'); out.textContent = 'Mic test stopped because a speech started.'; }
     else {
       const v = L.micTestVerdict(samples);
-      out.style.color = v.ok ? 'var(--ok)' : 'var(--warn)';
+      tone(out, v.ok ? 'ok' : 'caution');
       out.textContent = v.text;
     }
     listMics(); // names show up once the mic has been allowed
   } catch (err) {
-    out.style.color = 'var(--danger)';
+    tone(out, 'error');
     out.textContent = 'Mic test failed: ' + (err && err.name === 'NotAllowedError' ? 'the microphone is blocked. Click the mic icon in the address bar and allow it.' : (err && err.message) || err);
   } finally {
     if (stream) stream.getTracks().forEach((t) => t.stop());
@@ -2094,8 +2090,10 @@ function tourEnd(finished) {
   if (st.returnFocus && st.returnFocus.focus) st.returnFocus.focus();
 }
 function tourGo(d) {
-  const n = TOURS.TOURS[tourState.name].steps.length;
-  const i = tourState.i + d;
+  const steps = TOURS.TOURS[tourState.name].steps, n = steps.length;
+  let i = tourState.i + d;
+  // With no AI, Insights is folded to its "Connect AI" edge, so its step has nothing to show: skip it (V9).
+  while (i >= 0 && i < n && steps[i].target === '#insights' && insightsMode() === 'edge-connect') i += d;
   if (i >= n) return tourEnd(true);
   if (i < 0) return;
   tourState.i = i; tourShow();
@@ -2280,39 +2278,53 @@ async function runEval() {
 function renderEvalStatus() {
   const el = $('#eval-status'); if (!el) return;
   $('#eval-go').disabled = evalBusy;
-  el.style.color = '';
+  tone(el);
   if (evalBusy) el.innerHTML = busyHtml('Updating… (20–60 s)');
   else if (!aiReady()) el.innerHTML = noAiHtml();
-  else if (evalErr) { el.style.color = errColor(evalErr); el.textContent = L.AI_ERROR_PREFIX.eval + ' ' + evalErr; }
+  else if (evalErr) { tone(el, errColor(evalErr)); el.textContent = L.AI_ERROR_PREFIX.eval + ' ' + evalErr; }
   else el.textContent = '';
   const ev = LV().liveEval;
   const now = L.speechesSoFar(R);
   const newer = ev ? now.filter((id) => !(ev.through || []).includes(id)) : [];
   $('#eval-meta').innerHTML = ev ? escapeHtml('Last updated ' + agoText(ev.at) + ', through ' + ((ev.through || []).length ? ev.through[ev.through.length - 1] : 'no speeches') + '.')
-    + (newer.length ? ' <span class="pill" style="color:var(--warn)">Out of date: ' + escapeHtml(newer.join(', ')) + ' happened since. Click Update now.</span>' : '') : '';
+    + (newer.length ? ' <span class="pill is-caution">Out of date: ' + escapeHtml(newer.join(', ')) + ' happened since. Click Update now.</span>' : '') : '';
 }
 setInterval(() => { if (R.tab === 'eval') renderEvalStatus(); }, 5000);
 const sideClass = (x) => (x === 'aff' ? 'aff' : x === 'neg' ? 'neg' : '');
 const sideLabel = (x) => ({ aff: 'Aff', neg: 'Neg', even: 'Even', unclear: 'Unclear', 'toss-up': 'Toss-up' }[x] || x);
-// The small Live Eval summary in the Flow workspace.
+// The small Live Eval summary in the Flow workspace (V9). With no AI the pane is folded to its edge, so it stays empty.
+// States: empty ("No read of the round yet."), loading ("Updating…"), error (the aiErrorText line and Try again),
+// offline (the offline line; Update is off and the line says why).
 function renderInsights() {
   const box = document.getElementById('insights-body'); if (!box) return;
+  if (!aiReady()) { box.textContent = ''; return; }
   const e = escapeHtml;
   const entry = LV().liveEval, ev = entry && entry.data;
-  const btn = aiReady() ? `<button class="b small" id="ins-update"${evalBusy ? ' disabled' : ''}>${evalBusy ? 'Updating…' : 'Update'}</button>` : '';
+  const offline = navigator.onLine === false;
+  let msg = '';
+  if (evalBusy) msg = busyHtml('Updating…');
+  else if (offline) msg = '<span class="is-quiet">' + e(L.aiErrorText('offline')) + '</span>';
+  else if (evalErr) msg = '<span class="is-error">' + e(evalErr) + '</span>';
+  const why = evalBusy || offline ? ' aria-describedby="ins-msg"' : '';
+  const action = evalErr && !evalBusy && !offline
+    ? '<button class="b small" id="ins-update">Try again</button>'
+    : `<button class="b small" id="ins-update"${evalBusy || offline ? ' disabled' : ''}${why}>${ev ? 'Update' : 'Update (one AI call)'}</button>`;
   const open = '<button class="b small" data-tab-go="eval">Open Live Eval</button>';
+  const status = msg ? `<p class="ins-msg" id="ins-msg">${msg}</p>` : '';
   if (!ev) {
-    box.innerHTML = `<p class="muted" style="margin:0 0 var(--s2)">${aiReady() ? 'No read of the round yet. It updates after each speech, or now:' : 'Connect AI in Settings to get a live read of the round here.'}</p><div class="row">${btn}${open}</div>`;
+    box.innerHTML = (status || '<p class="muted ins-msg">No read of the round yet.</p>') + `<div class="row">${action}${open}</div>`;
     return;
   }
   const lean = ev.leaning || {};
   box.innerHTML = `<div class="ins-lean ${sideClass(lean.side)}">Leaning ${e(sideLabel(lean.side))}${lean.side === 'aff' && R.aff.team ? ' (' + e(R.aff.team) + ')' : lean.side === 'neg' && R.neg.team ? ' (' + e(R.neg.team) + ')' : ''}</div>
-    <p class="muted" style="margin:2px 0 var(--s2)">${e(lean.confidence || '')} confidence · ${e(agoText(entry.at))}</p>
-    <p style="margin:0 0 var(--s2);font-size:var(--fs-sm)">${e(lean.why || '')}</p>
-    <h2 style="font-size:var(--fs-sm);margin:var(--s3) 0 0">Listen for next</h2>
+    <p class="muted ins-meta">${e(lean.confidence || '')} confidence · ${e(agoText(entry.at))}</p>
+    <p class="ins-why">${e(lean.why || '')}</p>
+    <h3 class="ins-h">Listen for next</h3>
     <ul class="ins-list">${(ev.watch_for || []).slice(0, 4).map((w) => '<li>' + e(w) + '</li>').join('')}</ul>
-    <div class="row" style="margin-top:var(--s3)">${btn}${open}</div>`;
+    ${status}<div class="row mt-3">${action}${open}</div>`;
 }
+addEventListener('online', () => renderInsights());
+addEventListener('offline', () => renderInsights());
 document.addEventListener('click', (e) => {
   if (e.target.id === 'ins-update') { scheduleEval(); setTimeout(renderInsights, 0); }
   const go = e.target.closest && e.target.closest('[data-tab-go]');
@@ -2404,13 +2416,13 @@ function cacheNote(entry) {
   const now = L.speechesSoFar(R);
   const newer = now.filter((id) => !(entry.through || []).includes(id));
   return '<span class="muted">Saved ' + agoText(entry.at) + ', through ' + escapeHtml((entry.through || []).slice(-1)[0] || 'no speeches') + '.</span>'
-    + (newer.length ? ' <span class="pill" style="color:var(--warn)">Out of date: ' + escapeHtml(newer.join(', ')) + ' since. Click Refresh.</span>' : '');
+    + (newer.length ? ' <span class="pill is-caution">Out of date: ' + escapeHtml(newer.join(', ')) + ' since. Click Refresh.</span>' : '');
 }
 function statusLine(el, name, entry, idle) {
-  if (busy[name]) { el.style.color = ''; el.innerHTML = busyHtml('Working… (20–60 s)'); }
-  else if (!aiReady()) { el.style.color = ''; el.innerHTML = noAiHtml(); }
-  else if (errs[name]) { el.style.color = errColor(errs[name]); el.textContent = L.AI_ERROR_PREFIX.analysis + ' ' + errs[name]; }
-  else { el.style.color = ''; el.innerHTML = entry ? cacheNote(entry) : '<span class="muted">' + idle + '</span>'; }
+  if (busy[name]) { tone(el); el.innerHTML = busyHtml('Working… (20–60 s)'); }
+  else if (!aiReady()) { tone(el); el.innerHTML = noAiHtml(); }
+  else if (errs[name]) { tone(el, errColor(errs[name])); el.textContent = L.AI_ERROR_PREFIX.analysis + ' ' + errs[name]; }
+  else { tone(el); el.innerHTML = entry ? cacheNote(entry) : '<span class="muted">' + idle + '</span>'; }
 }
 function currentLensKey() { return L.lensKey($('#lens-pick').value, S.customParadigm) + (lvl() === 'expert' ? '' : '|' + lvl()); }
 function renderLensPicker() {
@@ -2433,7 +2445,7 @@ function renderAnalysis() {
   $('#lens-go').textContent = lens ? 'Refresh' : 'Weigh';
   $('#lens-go').disabled = busy.lens;
   statusLine($('#lens-status'), 'lens', lens, 'Not weighed under this paradigm yet. Click Weigh.');
-  if ($('#lens-pick').value === 'custom' && !(S.customParadigm || '').trim()) $('#lens-status').innerHTML = '<span style="color:var(--warn)">Paste your paradigm below first.</span>';
+  if ($('#lens-pick').value === 'custom' && !(S.customParadigm || '').trim()) $('#lens-status').innerHTML = '<span class="is-caution">Paste your paradigm below first.</span>';
   const d = lens && lens.data;
   $('#lens-out').innerHTML = d ? `
     <div class="lean ${sideClass(d.winner)}">${e(sideLabel(d.winner))}${d.winner === 'aff' && R.aff.team ? ' (' + e(R.aff.team) + ')' : d.winner === 'neg' && R.neg.team ? ' (' + e(R.neg.team) + ')' : ''} <span class="pill">${e(d.confidence)} confidence</span></div>
@@ -2447,7 +2459,7 @@ function renderAnalysis() {
   statusLine($('#impact-status'), 'impacts', imp, 'Not run yet. Click Run.');
   const id = imp && imp.data;
   $('#impact-out').innerHTML = id ? `
-    <div class="lean ${sideClass(id.net)}" style="font-size:var(--fs-md)">Net: ${e(sideLabel(id.net))} outweighs</div>
+    <div class="lean small ${sideClass(id.net)}">Net: ${e(sideLabel(id.net))} outweighs</div>
     <div class="scroll" style="margin-top:var(--s2)"><table>
       <thead><tr><th>Impact</th><th>Side</th><th>Magnitude</th><th>Probability</th><th>Timeframe</th><th>Reversible?</th><th>Status</th></tr></thead>
       <tbody>${(id.impacts || []).map((x) => `<tr><td><strong>${e(x.impact)}</strong><div class="muted">${e(x.note)}</div></td><td><span class="pill ${sideClass(x.side)}">${e(sideLabel(x.side))}</span></td><td>${e(x.magnitude)}</td><td>${e(x.probability)}</td><td>${e(x.timeframe)}</td><td>${e(x.reversibility)}</td><td>${e(x.status)}</td></tr>`).join('')}</tbody>
@@ -2477,13 +2489,13 @@ function mapSheetHtml(data) {
     const chip = c.status === 'dropped' ? '<span class="chip drop">Dropped</span>'
       : c.status === 'extended' ? '<span class="chip ext">Extended</span>'
       : c.status === 'conceded' ? '<span class="chip con">Conceded</span>' : '';
-    return `<button class="mcard ${c.side} ${c.status === 'dropped' ? 'dropped' : c.status === 'conceded' ? 'conceded' : ''}" data-node="${e(c.id)}" title="Click to edit">`
+    return `<button class="mcard ${c.side} ${c.status === 'dropped' ? 'dropped' : c.status === 'conceded' ? 'conceded' : ''}" data-node="${e(c.id)}" data-tip="Click to edit">`
       + (c.kind ? `<div class="mk">${e(KIND_MARK[c.kind] || c.kind)}</div>` : '')
       + `<span class="lbl">${e(c.label)}</span>${chip}</button>`;
   };
   return `<div class="mapsheet" style="grid-template-columns: repeat(${cols.length}, minmax(160px, 1fr))">`
     + cols.map((sp, i) => `<div class="mh ${sideOf(sp)}${i === cols.length - 1 ? ' last' : ''}">${e(sp)}</div>`).join('')
-    + lay.rows.map((r) => `<div class="mrow" title="${e(r.title)}">`
+    + lay.rows.map((r) => `<div class="mrow" data-tip="${e(r.title)}">`
       + cols.map((sp, i) => `<div class="mc${i === cols.length - 1 ? ' last' : ''}">${(r.cells[sp] || []).map(card).join('')}<button class="madd" data-add-speech="${sp}" data-add-row="${e(r.root)}" aria-label="Add an argument in ${sp} on this row">+</button></div>`).join('')
       + '</div>').join('')
     + '</div>';
@@ -2525,16 +2537,22 @@ function loadMermaid() {
     const el = document.createElement('script');
     el.src = 'vendor/mermaid-10.9.1.min.js';
     el.integrity = 'sha384-WmdflGW9aGfoBdHc4rRyWzYuAjEmDwMdGdiPNacbwfGKxBW/SO6guzuQ76qjnSlr'; el.crossOrigin = 'anonymous';
-    el.onload = () => {
-      const dark = matchMedia('(prefers-color-scheme: dark)').matches;
-      window.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: dark ? 'dark' : 'default', flowchart: { useMaxWidth: false } });
-      res(window.mermaid);
-    };
+    el.onload = () => { mermaidTheme(); res(window.mermaid); };
     el.onerror = () => { mermaidReady = null; rej(new Error('could not load the diagram library (needs internet)')); };
     document.head.append(el);
   });
   return mermaidReady;
 }
+// The map drawing follows the app theme (V10). If a map is on screen when the theme changes, it is drawn again at once.
+function mermaidTheme() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  window.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: dark ? 'dark' : 'default', flowchart: { useMaxWidth: false } });
+}
+window.TabulaTheme.onChange(() => {
+  if (!window.mermaid || !lastMapCode) return;
+  mermaidTheme(); lastMapCode = '';
+  if (R.analysis && R.analysis.map && R.analysis.map.data) drawMap(R.analysis.map.data);
+});
 async function drawMap(data) {
   const code = L.buildMermaid(data);
   if (code === lastMapCode && $('#map-out').querySelector('svg')) return; // already drawn
@@ -2664,10 +2682,10 @@ function renderFiller() {
   const st = $('#fill-status'); if (!st) return;
   $('#fill-go').disabled = fillBusy; $('#fill-redo').disabled = fillBusy;
   const d = LV().ballotDraft;
-  if (fillBusy) { st.style.color = ''; st.innerHTML = busyHtml('Filling… (20–60 s)'); }
-  else if (!aiReady()) { st.style.color = ''; st.innerHTML = noAiHtml('The ballot below works by hand either way.'); }
-  else if (fillErr) { st.style.color = errColor(fillErr); st.textContent = L.AI_ERROR_PREFIX.ballot + ' ' + fillErr; }
-  else { st.style.color = 'var(--muted)'; st.textContent = d ? 'Last filled ' + agoText(d.at) + ', through ' + ((d.through || []).slice(-1)[0] || 'no speeches') + '.' : ''; }
+  if (fillBusy) { tone(st); st.innerHTML = busyHtml('Filling… (20–60 s)'); }
+  else if (!aiReady()) { tone(st); st.innerHTML = noAiHtml('The ballot below works by hand either way.'); }
+  else if (fillErr) { tone(st, errColor(fillErr)); st.textContent = L.AI_ERROR_PREFIX.ballot + ' ' + fillErr; }
+  else { tone(st, 'quiet'); st.textContent = d ? 'Last filled ' + agoText(d.at) + ', through ' + ((d.through || []).slice(-1)[0] || 'no speeches') + '.' : ''; }
   $('#fill-why').textContent = d && d.data ? 'AI confidence: ' + d.data.confidence + '\n' + (d.data.points_reasoning || '') : '';
   const locked = Object.keys(R.ballot.touched || {}).filter((k) => R.ballot.touched[k]).length;
   $('#fill-unlock').hidden = !locked;
@@ -2732,7 +2750,7 @@ $('#restore-file').addEventListener('change', async (e) => {
   const st = $('#backup-status');
   let b;
   try { b = L.parseBackup(await file.text()); }
-  catch (err) { st.style.color = 'var(--danger)'; st.textContent = 'Could not restore: ' + String(err.message || err); return; }
+  catch (err) { tone(st, 'error'); st.textContent = 'Could not restore: ' + String(err.message || err); return; }
   const sum = L.backupSummary(b);
   const when = b.exportedAt ? new Date(b.exportedAt).toLocaleString() : 'an unknown time';
   const hasKeys = b.includesKeys && [KEYS, KEY, OAKEY].some((k) => b.storage[k] != null);
@@ -2781,11 +2799,11 @@ $('#restore-file').addEventListener('change', async (e) => {
     try { writeTabKeys(oldTab); } catch {}
     try { await writeDocs(oldDocs); } catch {}
     resetting = false; restoring = false;
-    st.style.color = 'var(--danger)';
+    tone(st, 'error');
     st.textContent = 'Restore failed, and your previous data was put back: ' + String(err.message || err);
     return;
   }
-  st.style.color = 'var(--ok)'; st.textContent = 'Restored. Reloading…';
+  tone(st, 'ok'); st.textContent = 'Restored. Reloading…';
   setTimeout(() => location.reload(), 1500);
 });
 
@@ -2807,7 +2825,7 @@ function renderBallot() {
   bindAll(); renderBallotCheck(); renderFiller();
   // Fields the judge typed get a thin mark, so it is clear which ones the AI will leave alone.
   const t = R.ballot.touched || {};
-  document.querySelectorAll('#tab-ballot [data-bind^="ballot."]').forEach((el) => { const f = el.dataset.bind.slice(7); el.classList.toggle('touched', Boolean(t[f])); el.title = t[f] ? 'You set this. The AI ballot filler will not change it.' : ''; });
+  document.querySelectorAll('#tab-ballot [data-bind^="ballot."]').forEach((el) => { const f = el.dataset.bind.slice(7); el.classList.toggle('touched', Boolean(t[f])); if (t[f]) el.dataset.tip = 'You set this. The AI ballot filler will not change it.'; else delete el.dataset.tip; });
 }
 function renderBallotCheck() {
   const p = R.ballot.pts || {};
@@ -2884,10 +2902,22 @@ $('#log-table').addEventListener('click', (e) => {
 $('#log-tsv').addEventListener('click', () => copy(L.toTSV([L.BALLOT_HEADER, ...store.get(LOG, [])])));
 $('#log-csv').addEventListener('click', () => download('policy_ballots.csv', L.toCSV([L.BALLOT_HEADER, ...store.get(LOG, [])])));
 
+// ---------- theme (V10, Q3) ----------
+// Light / Dark / System in Settings, System by default. assets/theme-boot.js drew the saved theme before the page
+// painted; a change here draws at once and is saved with the other settings (other open tabs follow).
+function renderTheme() {
+  const v = S.theme === 'light' || S.theme === 'dark' ? S.theme : 'system';
+  document.querySelectorAll('input[name="theme"]').forEach((r) => { r.checked = r.value === v; });
+}
+document.addEventListener('change', (e) => {
+  if (e.target.name !== 'theme') return;
+  S.theme = e.target.value; saveSettings(); window.TabulaTheme.set(S.theme);
+});
+
 // ---------- start ----------
 restoreClocksOnLoad();
-bindAll(); renderSpeeches(); renderClock(); renderPrep(); renderTranscript(); renderRecStrip(); renderRecNotice();
-$('#t-start').title = K.startTip(IS_MAC, S.singleKeys !== false);
+bindAll(); renderSpeeches(); renderClock(); renderPrep(); renderTranscript(); renderRecStrip(); renderRecNotice(); renderTheme();
+$('#t-start').dataset.tip = K.startTip(IS_MAC, S.singleKeys !== false);
 renderConnections(); checkHelper(); renderReadLevel(); applyPanes(); renderAudio(); listMics();
 showTab(R.tab || 'flow'); renderPrepPresets(); showDrawer(Boolean(S.trDrawer)); resumeClips();
 renderSdList(); if (sdState().code) { sdFetchList(true); sdWatch(); } // resume watching this round's SpeechDrop room

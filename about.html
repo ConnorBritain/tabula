@@ -7,65 +7,51 @@
 <meta name="description" content="Tabula is a free judging tool for high school policy debate, made by Connor England.">
 <link rel="icon" type="image/png" href="assets/tabula-icon-64.png">
 <link rel="preload" href="assets/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script src="assets/theme-boot.js"></script>
+<link rel="stylesheet" href="assets/tokens.css">
 <style>
-  /* Inter Tight (SIL Open Font License), served from this app. See assets/fonts/LICENSE.txt. */
-  @font-face { font-family: 'Inter Tight'; font-style: normal; font-weight: 600 800; font-display: swap; src: url('assets/fonts/InterTight-latin.woff2') format('woff2'); }
-  @font-face { font-family: 'Inter Tight'; font-style: italic; font-weight: 600 800; font-display: swap; src: url('assets/fonts/InterTight-Italic-latin.woff2') format('woff2'); }
-  /* Same tokens as the app (index.html). Keep the two in sync until PLAN step 9 moves them to assets/tokens.css. */
-  :root {
-    --bg: #f4f5f7; --panel: #ffffff; --sunk: #f8f9fa; --ink: #16191d; --ink-2: #3c434c; --muted: #6a737d; --line: #e1e4e8; --line-2: #cfd4da;
-    --aff: #0055b8; --aff-bg: #eaf1fb; --neg: #c8161f; --neg-bg: #fdecec; --neg-fill: #f2232d; --aff-fill: #0055b8;
-    --warn: #8a5a00; --warn-bg: #fff6dc; --accent: #16191d; --on-accent: #ffffff;
-    --font-display: 'Inter Tight', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0f1114; --panel: #171a1e; --sunk: #121418; --ink: #e9ecef; --ink-2: #c3c9d0; --muted: #8b949e; --line: #262b31; --line-2: #343a42;
-      --aff: #7fb0ff; --aff-bg: #122038; --neg: #ff7b74; --neg-bg: #361517; --aff-fill: #3b82f6;
-      --warn: #ffd27a; --warn-bg: #33290f; --accent: #e9ecef; --on-accent: #0f1114;
-    }
-  }
+  /* Tokens and fonts come from assets/tokens.css, the one token file for every page (spec V0). */
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
-  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-  a { color: var(--ink); }
+  body { margin: 0; background: var(--canvas); color: var(--text); font: 16px/1.6 var(--font-sans); -webkit-font-smoothing: antialiased; }
+  :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  a { color: var(--text); }
   .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
   header { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
-  .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; }
   .brand img { height: 30px; width: auto; display: block; }
   .wordmark, h1, h2 { font-family: var(--font-display); }
   .wordmark { font-weight: 800; font-style: italic; font-size: 24px; letter-spacing: -0.02em; }
-  .btn { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); font-weight: 600; text-decoration: none; }
+  .btn { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font-weight: 600; text-decoration: none; }
   .btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
   .hero { padding: 40px 0 24px; }
   h1 { font-size: clamp(34px, 6vw, 52px); line-height: 1.05; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 16px; }
   h1 .aff { color: var(--aff); } h1 .neg { color: var(--neg); }
-  .lead { font-size: 19px; color: var(--ink-2); margin: 0 0 24px; max-width: 620px; }
+  .lead { font-size: 19px; color: var(--text-2); margin: 0 0 24px; max-width: 620px; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-  section { padding: 28px 0; border-top: 1px solid var(--line); }
+  section { padding: 28px 0; border-top: 1px solid var(--border); }
   h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; }
   p { margin: 0 0 12px; }
   ul { margin: 0 0 12px; padding-left: 22px; }
   li + li { margin-top: 6px; }
-  .shot { border: 1px dashed var(--line-2); border-radius: 12px; padding: 40px 20px; text-align: center; color: var(--muted); background: var(--panel); margin-top: 8px; }
+  .shot { border: 1px dashed var(--border-ctl); border-radius: 12px; padding: 40px 20px; text-align: center; color: var(--text-3); background: var(--panel); margin-top: 8px; }
   .steps { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-  .step { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .step { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
   .step b { font-family: var(--font-display); font-size: 18px; display: block; margin-bottom: 4px; }
   .who { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-  .who div { padding-left: 14px; box-shadow: inset 3px 0 0 var(--line-2); }
+  .who div { padding-left: 14px; box-shadow: inset 3px 0 0 var(--border-ctl); }
   .who div:nth-child(1) { box-shadow: inset 3px 0 0 var(--aff-fill); }
   .who div:nth-child(2) { box-shadow: inset 3px 0 0 var(--neg-fill); }
   /* A placeholder: text Connor still has to write. Easy to spot, easy to search for ("TODO"). */
-  .todo { background: var(--warn-bg); color: var(--warn); border-radius: 4px; padding: 0 4px; font-weight: 600; }
-  footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--muted); font-size: 14px; }
-  footer a { color: var(--muted); }
+  .todo { background: var(--caution-tint); color: var(--caution); border-radius: 4px; padding: 0 4px; font-weight: 600; }
+  footer { border-top: 1px solid var(--border); padding: 24px 0 40px; color: var(--text-3); font-size: 14px; }
+  footer a { color: var(--text-3); }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <a class="brand" href="./" aria-label="Open Tabula">
-      <picture><source srcset="assets/tabula-mark-white.png" media="(prefers-color-scheme: dark)"><img src="assets/tabula-mark-black.png" alt="" width="36" height="29"></picture>
+      <img class="on-light" src="assets/tabula-mark-black.png" alt="" width="36" height="29"><img class="on-dark" src="assets/tabula-mark-white.png" alt="" width="36" height="29">
       <span class="wordmark">Tabula</span>
     </a>
     <a class="btn" href="./">Open Tabula</a>

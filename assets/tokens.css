@@ -1,0 +1,115 @@
+/* Tabula design tokens: the one token file for the app, About and the Debate Library (spec Part 2, item V0).
+   Every page links this file first. Pages use these names only; no page keeps its own copy of the values.
+   assets/theme-boot.js sets <html data-theme="light|dark"> before this file loads, so there is no flash.
+   Breakpoints stay plain numbers in @media (CSS variables do not work there): 1440 px (left pane inline),
+   1180 px (wide), 820 px (narrow layout below it). */
+/* Inter Tight (SIL Open Font License), served from this site so it works offline. See assets/fonts/LICENSE.txt.
+   The paths are relative to this file, so every page type can use it. */
+@font-face { font-family: 'Inter Tight'; font-style: normal; font-weight: 600 800; font-display: swap; src: url('fonts/InterTight-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Inter Tight'; font-style: italic; font-weight: 600 800; font-display: swap; src: url('fonts/InterTight-Italic-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: light;
+  /* Surface */
+  --canvas: #f4f5f7; --sunk: #eef0f3; --panel: #fff; --raised: #fff;
+  /* Text */
+  --text: #16191d; --text-2: #3c434c; --text-3: #5f6873;
+  /* Border: --border for dividers only, --border-ctl for control and overlay edges (3:1 or more) */
+  --border: #e1e4e8; --border-ctl: #7d8690;
+  /* Side colours. Data only. Never white text on --aff-fill or --neg-fill. */
+  --aff: #0055b8; --aff-tint: #eaf1fb; --aff-edge: #b3cdee; --aff-fill: #0055b8;
+  --neg: #c8161f; --neg-tint: #fdecec; --neg-edge: #f4c0c2; --neg-fill: #f2232d;
+  /* Status. Orange is only for errors and over time; green is only for done. */
+  --error: #b93d0a; --error-tint: #fdf0e8;
+  --caution: #7a5000; --caution-tint: #fff6dc;
+  --ok: #1a7a3a; --ok-tint: #e8f6ec;
+  /* Accent: neutral, never a side colour */
+  --accent: #16191d; --on-accent: #fff; --ring: #16191d;
+  /* Shadow: --shadow-1 is for the Flow card only; --shadow-2 pop-ups and tips; --shadow-3 dialogs */
+  --shadow-1: 0 1px 2px rgb(0 0 0 / .06), 0 4px 16px rgb(0 0 0 / .06);
+  --shadow-2: 0 6px 18px rgb(0 0 0 / .14);
+  --shadow-3: 0 20px 50px rgb(0 0 0 / .28);
+  --scrim: rgb(10 12 15 / .55);
+
+  /* Font */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: 'Inter Tight', var(--font-sans);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Size: tiles, tips and captions / UI / reading and forms / heading / page title. There is no 12 px size. */
+  --fs-1: 13px; --fs-2: 14px; --fs-3: 16px; --fs-4: 20px; --fs-5: 28px;
+  --fs-grid: 13px; --lh-grid: 20px;
+  --fs-clock: clamp(56px, 12vw, 128px); --fs-clock-bar: 34px;
+  --fw-1: 400; --fw-2: 500; --fw-3: 600; --fw-4: 700; --fw-5: 800;
+  --lh-read: 1.5; --lh-ui: 1.35;
+  /* Space */
+  --s0: 2px; --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  /* Radius */
+  --r-sm: 4px; --r-md: 6px; --r-lg: 8px; --r-xl: 12px; --r-pill: 999px;
+  /* Height. Touch targets are 44 px in the narrow layout. */
+  --h-sm: 28px; --h-md: 32px; --h-lg: 40px; --hit-min: 24px;
+  /* Layout. --header-h and --rb-h are measured by app.js (--rb-h is 0 when the round bar is hidden). */
+  --header-h: 52px; --rb-h: 0px;
+  --pane-left-w: 290px; --pane-right-w: 270px; --edge-w: 32px; --col-min: 96px;
+  /* Layer. No raw z-index numbers anywhere. */
+  --z-sticky: 10; --z-bar: 20; --z-drawer: 30; --z-pop: 40; --z-dialog: 50; --z-tour: 60; --z-toast: 70; --z-tip: 80;
+  /* Motion. All motion is cut under reduced motion. */
+  --dur-1: .12s; --dur-2: .2s;
+}
+/* Dark. The same block twice: once for the theme the judge chose (theme-boot.js sets data-theme),
+   once for a page that runs no script (no data-theme) on a dark device. tokens.test.js keeps the two equal. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #0f1114; --sunk: #121418; --panel: #171a1e; --raised: #1a1e23;
+  --text: #e9ecef; --text-2: #c3c9d0; --text-3: #8b949e;
+  --border: #262b31; --border-ctl: #68717b;
+  --aff: #7fb0ff; --aff-tint: #122038; --aff-edge: #24406e; --aff-fill: #3b82f6;
+  --neg: #ff7b74; --neg-tint: #361517; --neg-edge: #5e2426; --neg-fill: #f2232d;
+  --error: #ff9a5c; --error-tint: #3a2010;
+  --caution: #ffd27a; --caution-tint: #33290f;
+  --ok: #6fd190; --ok-tint: #12291a;
+  --accent: #e9ecef; --on-accent: #0f1114; --ring: #e9ecef;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / .4), 0 4px 16px rgb(0 0 0 / .3);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --canvas: #0f1114; --sunk: #121418; --panel: #171a1e; --raised: #1a1e23;
+    --text: #e9ecef; --text-2: #c3c9d0; --text-3: #8b949e;
+    --border: #262b31; --border-ctl: #68717b;
+    --aff: #7fb0ff; --aff-tint: #122038; --aff-edge: #24406e; --aff-fill: #3b82f6;
+    --neg: #ff7b74; --neg-tint: #361517; --neg-edge: #5e2426; --neg-fill: #f2232d;
+    --error: #ff9a5c; --error-tint: #3a2010;
+    --caution: #ffd27a; --caution-tint: #33290f;
+    --ok: #6fd190; --ok-tint: #12291a;
+    --accent: #e9ecef; --on-accent: #0f1114; --ring: #e9ecef;
+    --shadow-1: 0 1px 2px rgb(0 0 0 / .4), 0 4px 16px rgb(0 0 0 / .3);
+  }
+}
+/* Print always uses the light values (colour rule 7). Later in the file and as specific as the dark blocks, so it wins. */
+@media print {
+  :root[data-theme], :root:not([data-theme]) {
+    color-scheme: light;
+    --canvas: #f4f5f7; --sunk: #eef0f3; --panel: #fff; --raised: #fff;
+    --text: #16191d; --text-2: #3c434c; --text-3: #5f6873;
+    --border: #e1e4e8; --border-ctl: #7d8690;
+    --aff: #0055b8; --aff-tint: #eaf1fb; --aff-edge: #b3cdee; --aff-fill: #0055b8;
+    --neg: #c8161f; --neg-tint: #fdecec; --neg-edge: #f4c0c2; --neg-fill: #f2232d;
+    --error: #b93d0a; --error-tint: #fdf0e8;
+    --caution: #7a5000; --caution-tint: #fff6dc;
+    --ok: #1a7a3a; --ok-tint: #e8f6ec;
+    --accent: #16191d; --on-accent: #fff; --ring: #16191d;
+    --shadow-1: none;
+  }
+}
+
+/* Shared theme helpers for all three page types. A logo has a dark-mode twin: .on-light shows in the light theme,
+   .on-dark in the dark theme. Only the one that does not fit is hidden, so each page keeps its own display rule. */
+@media screen {
+  :root[data-theme="light"] .on-dark, :root[data-theme="dark"] .on-light { display: none !important; }
+}
+@media screen and (prefers-color-scheme: light) { :root:not([data-theme]) .on-dark { display: none !important; } }
+@media screen and (prefers-color-scheme: dark) { :root:not([data-theme]) .on-light { display: none !important; } }
+@media print { .on-dark { display: none !important; } }
+/* Reduced motion (V12): one global rule for every page. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; scroll-behavior: auto !important; }
+}

@@ -22,7 +22,7 @@
     flow: {
       title: 'The Flow workspace',
       steps: [
-        { place: 'flow', target: '#tab-timer', title: 'Speeches and transcript', body: 'Pick a speech, add docs, and read or fix its transcript. Hide this pane for more room.' },
+        { place: 'flow', target: '#tab-timer', title: 'Speeches and docs', body: 'Pick a speech and add its docs. Open the transcript from the round bar. Hide this pane for more room.' },
         { place: 'flow', target: '#flow-tabs', title: 'Your flow and the AI flow', body: 'Switch between your flow and the AI flow. Sheets hold one argument each. Brief, Standard and Detailed change how much the AI flow shows.' },
         { place: 'flow', target: '#tab-flow', title: 'Edit anything', body: 'Type in any cell. An edited AI cell gets an "Edited" mark. If the AI writes something newer, you choose "Use AI" or "Keep mine".' },
         { place: 'flow', target: '#insights', title: 'Insights', body: 'The current leaning and what to listen for next. Click Update for a fresh read.' },

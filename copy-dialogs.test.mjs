@@ -1,6 +1,6 @@
 // Static checks for Slice 2 (copy and dialogs). Spec: docs/design/SPEC.md §3.2, §4.5 and §6.1. Run with: node --test
-// These tests read the source files as text. Two §6.1 checks belong to Slice 3 and are not here yet:
-// "no title= in index.html except on <iframe> and SVG <title>" and "no font-size under 13 px" (LATER: Slice 3, V0/V11).
+// These tests read the source files as text. The two §6.1 checks that belonged to Slice 3 are at the end of the file:
+// "no title= in index.html except on <iframe> and SVG <title>" (V11) and "no font-size under 13 px" (V1).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -145,4 +145,32 @@ test('the string scanner finds real strings and skips comments, regexes and code
   const src = "// Claude in a comment\nconst a = 'one', b = \"two\"; /* OpenAI */ const r = /Gemini/i; const t = `x${a}y${`in`}z`; const Codex = 1;";
   assert.deepEqual(jsStrings(src), ['one', 'two', 'x', 'y', 'in', 'z']);
   assert.ok(jsStrings(read('app.js')).length > 500, 'app.js has many strings');
+});
+
+// ---------- Slice 3 checks (spec §6.1, V1 and V11) ----------
+
+// Why: a title="" tooltip shows late, cannot be reached by keyboard or touch, and is read twice by screen readers; tips use data-tip (spec 4.4). An iframe needs its title for accessibility, and an SVG <title> is not an attribute.
+test('no title= attribute in index.html except on <iframe>', () => {
+  const html = read('index.html');
+  const hits = [...html.matchAll(/<([a-z][a-z0-9-]*)\b[^>]*\stitle="/gi)].filter((m) => m[1].toLowerCase() !== 'iframe').map((m) => m[0].slice(0, 80));
+  assert.deepEqual(hits, []);
+});
+
+// Why: the same rule for markup that app.js writes: a title tooltip slipping back in brings the old, unreachable tips back.
+test('app.js writes no title tooltips', () => {
+  const hits = read('app.js').split('\n').map((l, n) => [n + 1, l]).filter(([, l]) => /\stitle="|\.title\s*=/.test(l));
+  assert.deepEqual(hits, []);
+});
+
+// Why: text under 13 px is hard to read for judges on a laptop at arm's length (V1, Q2); Part 2 has no 12 px size.
+test('no font size under 13 px in the page, the app, the shared UI or the tokens', () => {
+  const sizes = (src) => [
+    ...[...src.matchAll(/font-size\s*:\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[0], Number(m[1])]),
+    ...[...src.matchAll(/font\s*:\s*[^;"]*?(\d+(?:\.\d+)?)px/g)].map((m) => [m[0], Number(m[1])]),
+    ...[...src.matchAll(/--fs-[a-z0-9-]+\s*:\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[0], Number(m[1])]),
+  ];
+  for (const f of ['index.html', 'app.js', 'ui.js', 'assets/tokens.css', 'about.html']) {
+    const small = sizes(read(f)).filter(([, px]) => px < 13).map(([t]) => t);
+    assert.deepEqual(small, [], f + ' has text under 13 px');
+  }
 });

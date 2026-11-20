@@ -77,7 +77,12 @@ test('private and planning files are never published', () => {
 test('built pages hold no runnable script, only JSON-LD data', () => {
   for (const [rel, html] of htmlPages) {
     // Allowed: JSON-LD data, and the one self-hosted check script (TRACKS.md §3.4) at any depth. Nothing inline.
-    for (const [tag] of html.matchAll(/<script\b[^>]*>/g)) assert.ok(tag === '<script type="application/ld+json">' || /^<script src="(\.\/|(\.\.\/)+)?check\.js" defer>$/.test(tag), `learn/${rel}: ${tag}`);
+    // CHANGED 2026-11-20 because the owner's spec (SPEC.md V10, Q3: Light / Dark / System theme with no flash) loads the
+    // self-hosted assets/theme-boot.js in <head> on all three page types. It is a same-site file, not inline, so the
+    // CSP still holds. Old check:
+    //   assert.ok(tag === '<script type="application/ld+json">' || /^<script src="(\.\/|(\.\.\/)+)?check\.js" defer>$/.test(tag), `learn/${rel}: ${tag}`);
+    for (const [tag] of html.matchAll(/<script\b[^>]*>/g)) assert.ok(tag === '<script type="application/ld+json">' || /^<script src="(\.\/|(\.\.\/)+)?check\.js" defer>$/.test(tag) || /^<script src="(\.\.\/)+assets\/theme-boot\.js">$/.test(tag), `learn/${rel}: ${tag}`);
+    for (const [, body] of html.matchAll(/<script src="[^"]*">([\s\S]*?)<\/script>/g)) assert.equal(body, '', `learn/${rel}: a script tag with a src must be empty`);
     for (const [, body] of html.matchAll(/<script src="[^"]*" defer>([\s\S]*?)<\/script>/g)) assert.equal(body, '', `learn/${rel}: a script tag with a src must be empty`);
     assert.doesNotMatch(html, /\son[a-z]+="/, `learn/${rel} has an inline event handler`);
   }
@@ -180,16 +185,30 @@ test("index.md lists each reading path's written pages in the PATHS order", () =
   }
 });
 
-// WHY: library pages must look like the app in light and dark mode. Copied color tokens drift unless something checks them.
-test('learn.css color tokens match about.html', () => {
-  const tokens = (css, dark) => {
-    const block = dark ? /prefers-color-scheme: dark[\s\S]*?\{[\s\S]*?\{([\s\S]*?)\}/.exec(css)[1] : /:root \{([\s\S]*?)\}/.exec(css)[1];
-    return Object.fromEntries([...block.matchAll(/(--[a-z0-9-]+):\s*(#[0-9a-f]+)/gi)]);
-  };
+// CHANGED 2026-11-20 because the owner's spec (SPEC.md V0) deletes the copied :root token blocks from learn.css and
+// about.html: both now link the one shared file, assets/tokens.css, so there is nothing left to compare. The new test
+// below keeps the same goal (library pages look like the app). Old check:
+// // WHY: library pages must look like the app in light and dark mode. Copied color tokens drift unless something checks them.
+// test('learn.css color tokens match about.html', () => {
+//   const tokens = (css, dark) => {
+//     const block = dark ? /prefers-color-scheme: dark[\s\S]*?\{[\s\S]*?\{([\s\S]*?)\}/.exec(css)[1] : /:root \{([\s\S]*?)\}/.exec(css)[1];
+//     return Object.fromEntries([...block.matchAll(/(--[a-z0-9-]+):\s*(#[0-9a-f]+)/gi)]);
+//   };
+//   const css = readFileSync(join(SRC, 'learn.css'), 'utf8'), about = readFileSync(join(ROOT, 'about.html'), 'utf8');
+//   for (const dark of [false, true]) {
+//     const mine = tokens(css, dark), theirs = tokens(about, dark);
+//     assert.ok(Object.keys(mine).length > 5);
+//     for (const [k, v] of Object.entries(mine)) assert.equal(v, theirs[k], `${dark ? 'dark ' : ''}${k} differs from about.html`);
+//   }
+// });
+
+// WHY: library pages must look like the app in light and dark mode. A copied token block drifts; one shared file cannot.
+test('library pages and About use the one shared token file and keep no copied colours', () => {
   const css = readFileSync(join(SRC, 'learn.css'), 'utf8'), about = readFileSync(join(ROOT, 'about.html'), 'utf8');
-  for (const dark of [false, true]) {
-    const mine = tokens(css, dark), theirs = tokens(about, dark);
-    assert.ok(Object.keys(mine).length > 5);
-    for (const [k, v] of Object.entries(mine)) assert.equal(v, theirs[k], `${dark ? 'dark ' : ''}${k} differs from about.html`);
+  for (const [name, text] of [['learn.css', css], ['about.html', about]]) {
+    assert.doesNotMatch(text, /:root\s*(\[[^\]]*\]\s*)?\{/, `${name} has its own :root block`);
+    assert.doesNotMatch(text, /--[a-z0-9-]+:\s*#[0-9a-f]{3,8}/i, `${name} defines its own colour token`);
   }
+  assert.match(about, /<link rel="stylesheet" href="assets\/tokens\.css">/);
+  for (const [rel, html] of htmlPages) assert.match(html, /<link rel="stylesheet" href="(\.\.\/)+assets\/tokens\.css">/, `learn/${rel} links tokens.css`);
 });

@@ -243,6 +243,8 @@ function shell(slug, page, pages, paths) {
 <meta property="og:url" content="${url}">
 <link rel="icon" type="image/png" href="${up}assets/tabula-icon-64.png">
 <link rel="preload" href="${up}assets/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script src="${up}assets/theme-boot.js"></script>
+<link rel="stylesheet" href="${up}assets/tokens.css">
 <link rel="stylesheet" href="${asset('learn.css')}">${page.script ? `\n<script src="${asset('check.js')}" defer></script>` : ''}${page.noindex ? '\n<meta name="robots" content="noindex">' : ''}
 <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>
 </head>
@@ -250,7 +252,7 @@ function shell(slug, page, pages, paths) {
 <a class="skip" href="#main">Skip to the page</a>
 <div class="wrap">
 <header class="top">
-  <a class="brand" href="${lib}"><picture><source srcset="${up}assets/tabula-mark-white.png" media="(prefers-color-scheme: dark)"><img src="${up}assets/tabula-mark-black.png" alt="" width="36" height="29"></picture><span><span class="wordmark">Tabula</span> <span class="libname">Debate Library</span></span></a>
+  <a class="brand" href="${lib}"><img class="on-light" src="${up}assets/tabula-mark-black.png" alt="" width="36" height="29"><img class="on-dark" src="${up}assets/tabula-mark-white.png" alt="" width="36" height="29"><span><span class="wordmark">Tabula</span> <span class="libname">Debate Library</span></span></a>
   <a class="btn" href="${up}">Open Tabula</a>
 </header>
 ${slug === 'index' ? '' : `<nav class="crumbs" aria-label="Breadcrumb"><a href="${lib}">Debate Library</a> › ${slug.startsWith('tracks/') ? `<a href="${relHref(slug, 'tracks')}">Guided tracks</a> › ` : ''}<span>${esc(meta.section || '')}</span></nav>`}

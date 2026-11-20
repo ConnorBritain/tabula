@@ -48,3 +48,26 @@ test('main tour has 6 to 8 steps', () => {
   const n = T.TOURS.main.steps.length;
   assert.ok(n >= 6 && n <= 8, 'main tour has ' + n + ' steps');
 });
+
+// Why: a tour step whose target is gone highlights nothing, and a new judge is left on a card that points at empty
+// space. Slice 3 removed the left-pane transcript (V8, Q7); every target must still be in the page.
+test('no tour step targets a removed element, and every target exists in index.html', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, 'index.html'), 'utf8');
+  const removed = ['#transcript', '.transcript-block', '#tr-label', '.tr-head'];
+  for (const [name, tour] of Object.entries(T.TOURS)) {
+    for (const st of tour.steps) {
+      assert.ok(!removed.some((r) => st.target === r || st.target.startsWith(r + ' ')), `${name}: "${st.title}" targets the removed ${st.target}`);
+      const first = /^([#.])([\w-]+)/.exec(st.target);
+      assert.ok(first, `${name}: target ${st.target} starts with an id or a class`);
+      const found = first[1] === '#' ? html.includes(`id="${first[2]}"`) : new RegExp(`class="[^"]*\\b${first[2]}\\b`).test(html);
+      assert.ok(found, `${name}: "${st.title}" targets ${st.target}, which is not in index.html`);
+    }
+  }
+});
+
+// Why: the Flow tour describes the speeches pane; after V8 the transcript is in the drawer, so the old words would send judges looking for a box that is gone.
+test('the Flow tour names the speeches pane the way the page does', () => {
+  const step = T.TOURS.flow.steps.find((s) => s.target === '#tab-timer');
+  assert.equal(step.title, 'Speeches and docs');
+  assert.match(step.body, /Open the transcript from the round bar/);
+});
