@@ -1,0 +1,268 @@
+{
+  "v": 2,
+  "source": "Hand-written from tabula-cloud docs/platform/CONTRACTS.md section 2 (phase 1 fields only). Replace with the file that tabula-cloud `npm run contracts` makes (platform phase 1A) when it lands.",
+  "featureKeys": [
+    "transcription",
+    "aiFlow",
+    "liveEval",
+    "analysis",
+    "ballotDraft",
+    "evidenceHelp",
+    "practiceAI",
+    "libraryAI"
+  ],
+  "records": {
+    "solo": {
+      "v": 2,
+      "product": "debate",
+      "edition": "judge",
+      "subject": {
+        "role": null,
+        "programId": null,
+        "programName": null,
+        "managed": false
+      },
+      "features": {
+        "transcription": {
+          "payer": "self"
+        },
+        "aiFlow": {
+          "payer": "self"
+        },
+        "liveEval": {
+          "payer": "self"
+        },
+        "analysis": {
+          "payer": "self"
+        },
+        "ballotDraft": {
+          "payer": "self"
+        }
+      },
+      "aiSetup": true,
+      "account": {
+        "plan": "free",
+        "hosted": false
+      },
+      "versions": {
+        "settings": 1,
+        "resolver": 1
+      },
+      "issuedAt": 1795216738000,
+      "expiresAt": 4102444800000
+    },
+    "judge-pool": {
+      "v": 2,
+      "product": "debate",
+      "edition": "judge",
+      "subject": {
+        "role": "judge",
+        "programId": "prog_fixture01",
+        "programName": "Fixture High Debate",
+        "managed": false
+      },
+      "features": {
+        "transcription": {
+          "payer": "program"
+        },
+        "aiFlow": {
+          "payer": "program"
+        },
+        "liveEval": {
+          "payer": "program"
+        },
+        "analysis": {
+          "payer": "program"
+        },
+        "ballotDraft": {
+          "payer": "program"
+        }
+      },
+      "aiSetup": false,
+      "account": {
+        "plan": "free",
+        "hosted": false
+      },
+      "versions": {
+        "settings": 1,
+        "resolver": 1
+      },
+      "issuedAt": 1795216738000,
+      "expiresAt": 4102444800000
+    },
+    "judge-self": {
+      "v": 2,
+      "product": "debate",
+      "edition": "judge",
+      "subject": {
+        "role": "judge",
+        "programId": "prog_fixture01",
+        "programName": "Fixture High Debate",
+        "managed": false
+      },
+      "features": {
+        "transcription": {
+          "payer": "self"
+        },
+        "aiFlow": {
+          "payer": "self"
+        },
+        "liveEval": {
+          "payer": "self"
+        },
+        "analysis": {
+          "payer": "self"
+        },
+        "ballotDraft": {
+          "payer": "self"
+        }
+      },
+      "aiSetup": true,
+      "account": {
+        "plan": "free",
+        "hosted": false
+      },
+      "versions": {
+        "settings": 1,
+        "resolver": 1
+      },
+      "issuedAt": 1795216738000,
+      "expiresAt": 4102444800000
+    },
+    "coach-hidden": {
+      "v": 2,
+      "product": "debate",
+      "edition": "judge",
+      "subject": {
+        "role": "coach",
+        "programId": "prog_fixture01",
+        "programName": "Fixture High Debate",
+        "managed": false
+      },
+      "features": {},
+      "aiSetup": false,
+      "account": {
+        "plan": "free",
+        "hosted": false
+      },
+      "versions": {
+        "settings": 1,
+        "resolver": 1
+      },
+      "issuedAt": 1795216738000,
+      "expiresAt": 4102444800000
+    },
+    "coach-self": {
+      "v": 2,
+      "product": "debate",
+      "edition": "judge",
+      "subject": {
+        "role": "coach",
+        "programId": "prog_fixture01",
+        "programName": "Fixture High Debate",
+        "managed": false
+      },
+      "features": {
+        "transcription": {
+          "payer": "self"
+        },
+        "aiFlow": {
+          "payer": "self"
+        },
+        "liveEval": {
+          "payer": "self"
+        },
+        "analysis": {
+          "payer": "self"
+        },
+        "ballotDraft": {
+          "payer": "self"
+        }
+      },
+      "aiSetup": true,
+      "account": {
+        "plan": "free",
+        "hosted": false
+      },
+      "versions": {
+        "settings": 1,
+        "resolver": 1
+      },
+      "issuedAt": 1795216738000,
+      "expiresAt": 4102444800000
+    },
+    "student-judge-off": {
+      "v": 2,
+      "product": "debate",
+      "edition": "judge",
+      "subject": {
+        "role": "student",
+        "programId": "prog_fixture01",
+        "programName": "Fixture High Debate",
+        "managed": false
+      },
+      "features": {},
+      "aiSetup": false,
+      "account": {
+        "plan": "free",
+        "hosted": false
+      },
+      "versions": {
+        "settings": 1,
+        "resolver": 1
+      },
+      "issuedAt": 1795216738000,
+      "expiresAt": 4102444800000
+    },
+    "student-clerk-no-pool": {
+      "v": 2,
+      "product": "debate",
+      "edition": "judge",
+      "subject": {
+        "role": "student",
+        "programId": "prog_fixture01",
+        "programName": "Fixture High Debate",
+        "managed": false
+      },
+      "features": {},
+      "aiSetup": false,
+      "account": {
+        "plan": "free",
+        "hosted": false
+      },
+      "versions": {
+        "settings": 1,
+        "resolver": 1
+      },
+      "issuedAt": 1795216738000,
+      "expiresAt": 4102444800000
+    },
+    "managed-expired": {
+      "v": 2,
+      "product": "debate",
+      "edition": "judge",
+      "subject": {
+        "role": "student",
+        "programId": "prog_fixture01",
+        "programName": "Fixture High Debate",
+        "managed": true
+      },
+      "features": {
+        "aiFlow": {
+          "payer": "program"
+        }
+      },
+      "aiSetup": false,
+      "account": {
+        "plan": "free",
+        "hosted": false
+      },
+      "versions": {
+        "settings": 1,
+        "resolver": 1
+      },
+      "issuedAt": 1795216738000,
+      "expiresAt": 1795000000000
+    }
+  }
+}

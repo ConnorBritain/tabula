@@ -70,7 +70,10 @@ const aiReady = () => {
   return Boolean(keys[e]);
 };
 // The "No AI" line (L.NO_AI) is muted, with a button to Settings (spec 2.2).
-const noAiHtml = (extra, label) => '<span class="is-quiet">' + escapeHtml(L.NO_AI) + ' <button class="linkish" type="button" data-tab-go="ai">' + escapeHtml(label || 'Open Settings') + '</button>' + (extra ? ' ' + escapeHtml(extra) : '') + '</span>';
+// L.NO_AI (it asks to connect AI) only while the Connect AI invite may show; else a plain line.
+const noAiText = () => (showSetup() ? L.NO_AI : 'AI is not available right now.');
+// The link to Settings shows only while the Connect AI invite may (CONTRACTS §5 rule 5); else the line is plain.
+const noAiHtml = (extra, label) => '<span class="is-quiet">' + escapeHtml(noAiText()) + (showSetup() ? ' <button class="linkish" type="button" data-tab-go="ai" data-ai-setup="invite">' + escapeHtml(label || 'Open Settings') + '</button>' : '') + (extra ? ' ' + escapeHtml(extra) : '') + '</span>';
 // An AI error line: orange, except "offline", which is muted (it is not the judge's fault, spec 2.3).
 const errColor = (msg) => (msg === L.aiErrorText('offline') ? 'quiet' : 'error'); // a tone() name: offline is calm, not an error
 // A loading line: muted, with a small spinner, never green (spec 2.3).
@@ -164,10 +167,12 @@ function withStop(signal, ms) {
   if (!signal) return t;
   return typeof AbortSignal.any === 'function' ? AbortSignal.any([signal, t]) : t;
 }
-async function callAI({ system, prompt, note, schema, effort = 'medium', reading, kind = 'routine', docs = DOCS, signal }) {
+// feature: the gate key of the caller (platform 1B). A feature that is off makes no call and shows nothing (stopped).
+async function callAI({ feature, system, prompt, note, schema, effort = 'medium', reading, kind = 'routine', docs = DOCS, signal }) {
+  if (!can(feature)) throw STOPPED();
   if (signal && signal.aborted) throw STOPPED();
   const eng = S.aiEngine;
-  if (!aiReady()) throw Object.assign(new Error(L.NO_AI), { kind: 'noAI' });
+  if (!aiReady()) throw Object.assign(new Error(noAiText()), { kind: 'noAI' });
   // Offline: show the offline text and make no call (spec 2.3).
   if (navigator.onLine === false) throw aiError({ online: false }, eng);
   const maxTokens = P.outputCap(kind);

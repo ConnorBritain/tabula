@@ -268,7 +268,7 @@
     box.style.left = pos.left + 'px'; box.style.top = pos.top + 'px';
   }
   const tipOf = (t) => (t && t.closest ? t.closest('[data-tip]') : null);
-  const kindOf = (el) => (el.closest('#flow-tabs') && el.matches('[data-i], [data-ai]') ? 'sheet' : 'label');
+  const kindOf = (el) => (el.closest('#flow-tabs') && el.matches('[data-i], [data-ai-sheet]') ? 'sheet' : 'label');
   const lt = { el: null, timer: 0, hideTimer: 0 };
   function showLabel(el) {
     if (!el.isConnected || !el.dataset.tip) return;

@@ -300,9 +300,12 @@
   // ---------- Slice 3: visual system and Flow look ----------
   // V9 (Q8) How the Insights pane shows. No AI wins over the judge's own hide choice: a pane with nothing in it
   // folds to a thin edge with one "Connect AI" link. 'edge-connect' | 'edge-show' (the judge hid it) | 'open'.
+  // allowed: can('liveEval') (platform 1B); false gives 'none': no pane, no edge, the grid takes the width.
+  // setup: showSetup(); false (the Connect AI invite may not show) also gives 'none' when AI is not ready.
   function insightsMode(o) {
     const x = o || {};
-    if (!x.aiReady) return 'edge-connect';
+    if (x.allowed === false) return 'none';
+    if (!x.aiReady) return x.setup === false ? 'none' : 'edge-connect';
     return x.hideRight ? 'edge-show' : 'open';
   }
   // V10 (Q3) The theme to draw: the judge's setting ('system' | 'light' | 'dark'), else the device setting.

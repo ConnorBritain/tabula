@@ -223,3 +223,15 @@ The roles plan is in the private tabula-cloud repo (docs/ACCOUNTS-AND-ROLES.md �
 - **Paradigm**: signed in, the account paradigm is the one source. Settings → Your paradigm edits and saves it (`PUT /api/v1/me/profile`). The Analysis box shows it read-only. Signed out, the paradigm on this device works as before. On the first sign-in, the app offers once to copy the device paradigm up. Code: `js/account.js`.
 - Only the profile (name, paradigm, schools) goes to the server. Round content never does.
 - **Not done**: the app has no hosted AI caller yet, so nothing sends `programId` today. The round stores it (`R.programId`). The hosted caller must build each body with `L.hostedAiBody(R, call)`; a test fails if page code calls `/api/v1/ai/` without it.
+
+## 10. The AI gate (platform phase 1B, built 2026-11-20)
+
+Spec: tabula-cloud `docs/platform/CONTRACTS.md` §2 and §5, `BUILD-PLAN.md` §3 1B, and `docs/design/AI-POLICY.md` §3 and §6.
+
+- One check, `can(feature)` (`js/caps.js`, rules in `logic/caps.js`). The record comes from `GET /api/v1/me/capabilities?v=2&product=debate[&programId=…]` at app start, sign-in, and when "Judging for" changes before the first speech. New rounds reload the page, so they start there too. The gate never changes mid-round.
+- With no record, a "Just me" round is today's app. A school round as coach, admin or student, or a managed account, hides all AI until a record arrives. A judge keeps their own AI.
+- Removed parts carry `data-ai="<feature>"` (or `data-ai-setup` for Connect AI surfaces). CSS hides them from `<html data-ai-off>`. `assets/caps-boot.js` writes that before the first paint. CSS, not the `hidden` attribute, because many of these nodes already use `hidden` for their own open or closed state.
+- Every AI call site calls `can()` before its first fetch. `ai-gate.test.mjs` checks this, with a negative case for each check.
+- Dev switches: `?ai=off` (Flow-only look) and `?caps=<fixture>` (a record from `fixtures/platform-v2.json`, which the hosted build does not ship).
+- `fixtures/platform-v2.json` is hand-written from CONTRACTS §2. Replace it with the file that tabula-cloud `npm run contracts` makes (phase 1A) when that lands.
+- Choice made here: the key settings (`#conn-card`) show while own AI is allowed, also after a key is in, so a judge can test or remove it. Only the Connect AI invites hide once the device is ready.

@@ -1,6 +1,6 @@
 // Pure logic for the policy judge app. No DOM here, so Node tests can load it.
 // The code lives in logic/, one file per job. This file joins the parts into the one API the page (window.PolicyLogic),
-// the local helper and the tests use. In the page, index.html loads the parts in this order: logic/round.js,
+// the local helper and the tests use. In the page, index.html loads the parts in this order: logic/caps.js (in <head>), logic/round.js,
 // logic/audio.js, logic/flow.js, logic/files.js, logic/rules.js, logic/decide.js, logic/prompts.js, logic/shell.js, logic/account.js, then this file.
 // In Node, require('./logic.js') loads the parts itself. A part only uses parts that load before it.
 (function (root) {
@@ -35,6 +35,8 @@
     EVAL_SCHEMA, buildEvalPrompt, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM, buildLiveFlowPrompt } = part('prompts');
   const { chipText, chipTip, CHIP_NAME_MS, chipNameDue, NET_TIP, netNote, speechLine, clockStatus, prepPausesLine,
     stepSpeechState, studyOn, studyMark, studyResult } = part('shell');
+  const { FEATURE_KEYS, APP_FEATURES, STORE_KEYS, capsRequest, parseCaps, capsOutcome, gateFor, canUse, payerOf, setupAllowed,
+    showSetupFor, offTokens, visibleTourSteps, paletteCommands, keyNoticeDue, KEY_NOTICE } = part('caps');
   const { PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
     activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody } = part('account');
 
@@ -73,6 +75,9 @@
     // Roles plan step 3: the account paradigm and "Judging for"
     PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
     activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody,
+    // Platform phase 1B: the AI gate
+    FEATURE_KEYS, APP_FEATURES, STORE_KEYS, capsRequest, parseCaps, capsOutcome, gateFor, canUse, payerOf, setupAllowed,
+    showSetupFor, offTokens, visibleTourSteps, paletteCommands, keyNoticeDue, KEY_NOTICE,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PolicyLogic = api;

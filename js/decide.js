@@ -84,7 +84,7 @@ function renderDraftPanel() {
   const el = $('#dp-status');
   tone(el);
   if (st === 'loading') el.innerHTML = busyHtml(draftUi.busyText || 'Drafting… usually 20–60 seconds');
-  else if (st === 'noAI') el.innerHTML = '<span class="is-quiet">Connect AI to draft the ballot. The ballot works by hand either way. <button class="linkish" type="button" data-tab-go="ai">Connect AI</button></span>';
+  else if (st === 'noAI') el.innerHTML = showSetup() ? '<span class="is-quiet">Connect AI to draft the ballot. The ballot works by hand either way. <button class="linkish" type="button" data-tab-go="ai" data-ai-setup="invite">Connect AI</button></span>' : '<span class="is-quiet">The ballot works by hand.</span>';
   else if (st === 'offline') { tone(el, 'quiet'); el.textContent = L.AI_ERROR_PREFIX.ballot + ' ' + L.aiErrorText('offline'); }
   else if (st === 'error') { tone(el, errColor(draftUi.err)); el.innerHTML = escapeHtml(L.AI_ERROR_PREFIX.ballot + ' ' + draftUi.err) + ' <button class="b small" type="button" id="dp-retry">Try again</button>'; }
   else if (STATE_TEXT[st]) { tone(el, 'quiet'); el.textContent = STATE_TEXT[st]; }
@@ -109,6 +109,7 @@ $('#auto-ballot').addEventListener('change', (e) => { S.autoBallot = e.target.ch
 
 // One AI call for a draft. picks: group ids. redraft: { fields, previous } for [Redo this]. Returns the draft or null.
 async function runDraft({ picks, redraft, text }) {
+  if (!can('ballotDraft')) return null;
   if (draftUi.busy) return null;
   const level = lvl();
   const fields = picks.flatMap((id) => groupById(id).fields);
@@ -117,6 +118,7 @@ async function runDraft({ picks, redraft, text }) {
   renderDraftPanel();
   try {
     const data = await callAI({
+      feature: 'ballotDraft',
       system: BALLOT_SYSTEM(),
       prompt: L.buildBallotPrompt(R, DOCS, R.ballotInput || '', { only: fields, redraft, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null }),
       schema: L.BALLOT_SCHEMA, effort: 'high', reading: level, kind: 'ballot', signal: ctrl.signal,
@@ -279,12 +281,13 @@ function insertReview(all) {
 function scheduleBallotSoon() {
   clearTimeout(fillSoonTimer);
   fillSoonTimer = setTimeout(() => {
-    if (!S.autoBallot || !aiReady() || resetting) return;
+    if (!can('ballotDraft') || !S.autoBallot || !aiReady() || resetting) return;
     if (navigator.onLine === false) { fillWaitsOnline = true; return; } // runs when online, if still on (spec 2.3, D2)
     runAutoRefill();
   }, 25000);
 }
 async function runAutoRefill() {
+  if (!can('ballotDraft')) return;
   if (!S.autoBallot || !aiReady() || draftUi.busy || R.ballotReview || navigator.onLine === false || !L.roundHasContent(R, DOCS)) return;
   const picks = L.DRAFT_GROUPS.map((g) => g.id);
   const data = await runDraft({ picks, text: 'Refilling after the speech…' });

@@ -43,7 +43,8 @@ async function refreshProfile() {
   } catch { out = { state: 'unknown' }; } // offline: keep the cached profile
   if (out.state === 'unknown') return;
   applyProfile(out.state === 'in' ? out.profile : null);
-  if (out.state === 'in') maybeOfferParadigmCopy();
+  if (out.state === 'in') { refreshCaps(R.programId); maybeOfferParadigmCopy(); } // the AI gate for this round
+  else clearCaps(); // signed out: forget the record (AI-POLICY §6d)
 }
 
 // Saves the paradigm to the account. Returns '' when saved, else what to tell the judge.

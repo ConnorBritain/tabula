@@ -63,8 +63,9 @@ function renderConnections() {
   aiChanged();
 }
 // Insights switches between its edge and the open pane with no reload when AI connects or goes (V9).
-function aiChanged() { applyPanes(); renderInsights(); if (R.tab === 'eval') renderEvalStatus(); if (R.tab === 'analysis') renderAnalysis(); if (R.tab === 'ballot') renderDraftPanel(); }
+function aiChanged() { writeAiOff(); applyPanes(); renderInsights(); if (R.tab === 'eval') renderEvalStatus(); if (R.tab === 'analysis') renderAnalysis(); if (R.tab === 'ballot') renderDraftPanel(); }
 async function connectKey(raw) {
+  if (!canSetup()) return;
   const key = String(raw || '').trim();
   const msg = $('#key-msg');
   const id = P.detectProvider(key);
@@ -133,6 +134,7 @@ $('#remember-keys').addEventListener('change', (e) => {
 const HELPER_CMD = 'node bridge.mjs';
 
 async function checkHelper() {
+  if (!canSetup()) { S.helper = {}; renderConnections(); return; }
   subShown = ''; // show what is true now, not an old click
   // The helper only exists on the judge's own computer. On the hosted site there is nothing to ask.
   if (!LOCAL_ORIGIN) { S.helper = {}; renderConnections(); return; }

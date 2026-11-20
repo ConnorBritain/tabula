@@ -15,6 +15,7 @@ function hasFlowSource(speechId) {
   return Boolean((R.transcripts[speechId] || '').trim()) || DOCS.some((d) => L.docSpeech(d) === speechId);
 }
 function scheduleFlow(speechId, force) {
+  if (!can('aiFlow')) return false;
   if (resetting || !S.liveFlow || L.speechColumn(speechId) == null || !aiReady()) return false;
   if (!hasFlowSource(speechId)) return false;
   flowPending.set(speechId, Boolean(flowPending.get(speechId) || force));
@@ -36,7 +37,7 @@ let flowRunningId = null;
 async function runFlow(speechId, forced) {
   flowBusy = true; flowRunningId = speechId; lastFlowAt = Date.now(); renderRecBadge();
   try {
-    const data = await callAI({ system: L.LIVE_FLOW_SYSTEM, prompt: L.buildLiveFlowPrompt(R, speechId, DOCS), note: L.DOC_FLOW_NOTE, schema: L.LIVE_FLOW_SCHEMA, effort: 'low', kind: 'flow', docs: L.docsForSpeech(DOCS, speechId) });
+    const data = await callAI({ feature: 'aiFlow', system: L.LIVE_FLOW_SYSTEM, prompt: L.buildLiveFlowPrompt(R, speechId, DOCS), note: L.DOC_FLOW_NOTE, schema: L.LIVE_FLOW_SCHEMA, effort: 'low', kind: 'flow', docs: L.docsForSpeech(DOCS, speechId) });
     if (resetting) return;
     // The docs for this speech may have been removed while Claude was working. Then drop the result.
     if (!hasFlowSource(speechId)) return;
@@ -148,6 +149,7 @@ function sheetLearnLink(name) {
   return p ? `<a class="sheet-learn" href="learn/${p.slug}/" target="_blank" rel="noopener" aria-label="Learn about ${p.topic} in the Debate Library (opens a new tab)" data-tip="Learn about ${p.topic}">ⓘ Learn</a>` : '';
 }
 function viewToggle() {
+  if (!can('aiFlow')) return ''; // no AI flow: no one-tab view switch
   return `<button data-view="mine" class="${R.flowView !== 'ai' ? 'on' : ''}">My flow</button><button data-view="ai" class="${R.flowView === 'ai' ? 'on' : ''}">AI flow</button><span class="tab-gap"></span>`;
 }
 let aiIdx = 0;
@@ -173,7 +175,8 @@ setInterval(() => {
   const ag = document.getElementById('ai-flow-ago'); if (ag) ag.textContent = 'Updated ' + agoText(R.aiFlowAt) + '.';
 }, 1000);
 function mapDocsNow() {
-  if (!aiReady()) return toast(L.NO_AI);
+  if (!can('aiFlow')) return;
+  if (!aiReady()) return toast(noAiText());
   if (!S.liveFlow) { S.liveFlow = true; saveSettings(); $('#live-flow').checked = true; toast('Turned Live AI flow on.'); }
   const speeches = [...new Set(DOCS.map((d) => L.docSpeech(d)).filter((sp) => sp && L.speechColumn(sp) != null))];
   if (!speeches.length) return toast(DOCS.length ? 'Your docs are all set to "Context only". Pick a speech for each doc in Round.' : 'No docs yet. Add them in Round or in the Flow workspace.');
@@ -188,7 +191,7 @@ function renderAIFlow() {
   aiIdx = Math.min(aiIdx, Math.max(0, sheets.length - 1));
   const level = L.FLOW_LEVELS.includes(R.flowLevel) ? R.flowLevel : 'standard';
   const ago = agoText(R.aiFlowAt);
-  $('#flow-tabs').innerHTML = viewToggle() + sheets.map((x, i) => sheetTab(x.name, `data-ai="${i}"`, i === aiIdx)).join('')
+  $('#flow-tabs').innerHTML = viewToggle() + sheets.map((x, i) => sheetTab(x.name, `data-ai-sheet="${i}"`, i === aiIdx)).join('')
     + '<span class="tab-gap"></span>' + L.FLOW_LEVELS.map((lv) => `<button data-level="${lv}" class="${lv === level ? 'on' : ''}">${lv[0].toUpperCase() + lv.slice(1)}</button>`).join('')
     + '<span class="tab-gap"></span><button data-act="map-docs">Map docs to flow now</button>'
     + `<span class="muted" style="margin-left:var(--s2)" id="ai-flow-ago">Updated ${ago}.</span>` + sheetLearnLink((sheets[aiIdx] || {}).name)
@@ -211,7 +214,7 @@ function renderAIFlow() {
 $('#flow-tabs').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.view) { R.flowView = b.dataset.view; save(); return renderFlow(); }
-  if (b.dataset.ai != null) { aiIdx = Number(b.dataset.ai); return renderFlow(); }
+  if (b.dataset.aiSheet != null) { aiIdx = Number(b.dataset.aiSheet); return renderFlow(); }
   if (b.dataset.level) { R.flowLevel = b.dataset.level; save(); return renderFlow(); }
   if (b.dataset.act === 'map-docs') return mapDocsNow();
   if (b.dataset.i != null) R.flowIdx = Number(b.dataset.i);
