@@ -81,6 +81,7 @@ function freshRound(prev) {
     ai: { paradigm: 'policymaker', notes: '', evidence: '', output: '' },
     ballot: { winner: '', pts: {}, ranks: {}, rfd: '', touched: {}, aiFilled: {} },
     id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), cur: 0, flowIdx: 0, tab: 'flow',
+    programId: null, // "Judging for": the school whose AI policy and credits apply (js/judging.js); null = Just me
     // The clocks (spec 1.1). run = the running speech { id, endAt, beeped, rec }; prepRun = { side, endAt }.
     // savedAt stamps the clock fields as one unit, so a second tab can tell which clock is newer.
     run: null, prepRun: null, savedAt: 0,
@@ -347,7 +348,7 @@ $('#round-open').addEventListener('change', async (e) => {
   stopAll(); resetting = true;
   CQ.clear(); await clipStore.clear().catch(() => {}); // the old round's waiting audio is deleted now
   const oldId = R.id;
-  R = Object.assign(freshRound(), opened.round, { tab: 'flow', started: true, run: null, prepRun: null }); // a saved file never brings a clock back
+  R = Object.assign(freshRound(), opened.round, { tab: 'flow', started: true, run: null, prepRun: null, programId: null }); // a saved file never brings a clock back, nor another judge's school
   save();
   docStore.clearRound(oldId).finally(() => location.reload());
 });

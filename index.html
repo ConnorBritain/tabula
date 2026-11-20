@@ -308,7 +308,7 @@
   /* Owner, 2026-11-20: the two real starts are the buttons, in one row; opening a saved file is the quiet line under them. */
   .start-actions { display: flex; flex-wrap: wrap; gap: var(--s3); justify-content: center; }
   .start-actions .b { display: inline-flex; align-items: center; justify-content: center; min-height: var(--h-lg); margin: 0; cursor: pointer; }
-  /* "School for this round" (roles plan step 3): only for a signed-in judge who belongs to a school. */
+  /* "Judging for" (roles plan step 3): only for a signed-in judge who belongs to a school. */
   .judging-row { margin: 0 0 var(--s3); }
   .judging-row[hidden] { display: none; }
   .judging-row select { max-width: 100%; }
@@ -829,7 +829,7 @@
   <div class="card" id="round-card">
     <h2>Round</h2>
     <div class="judging-row" data-judging-row hidden>
-      <label for="judging-for">School for this round</label>
+      <label for="judging-for">Judging for</label>
       <select id="judging-for" class="w-auto" data-judging aria-describedby="judging-help"></select>
       <p class="muted field-help" id="judging-help" data-judging-help></p>
     </div>
@@ -946,7 +946,7 @@
     </div>
     <p class="start-alt">Have a saved round? <button class="linkish" id="start-open" type="button" aria-controls="round-open">Open a round file (.tab)</button></p>
     <div class="judging-row start-judging" data-judging-row hidden>
-      <label for="start-judging">School for this round</label>
+      <label for="start-judging">Judging for</label>
       <select id="start-judging" class="w-auto" data-judging aria-describedby="start-judging-help"></select>
       <p class="muted field-help" id="start-judging-help" data-judging-help></p>
     </div>
@@ -1380,6 +1380,7 @@
 <script defer src="js/shell.js"></script>
 <script defer src="js/palette.js"></script>
 <script defer src="js/study.js"></script>
+<script defer src="js/judging.js"></script>
 <script defer src="js/account.js"></script>
 <script type="module" src="app.js"></script>
 </body>

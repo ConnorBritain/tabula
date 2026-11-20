@@ -1,5 +1,6 @@
-// The Tabula account (roles plan step 3, tabula-cloud docs/ACCOUNTS-AND-ROLES.md §5a and §6): "School for this
-// round" at round start, and the account paradigm as the one source while the judge is signed in.
+// The Tabula account (roles plan step 3, tabula-cloud docs/ACCOUNTS-AND-ROLES.md §5a and §6): the profile fetch and
+// cache, and the account paradigm as the one source while the judge is signed in. The "Judging for" picker that the
+// profile feeds is js/judging.js. Other parts read acctProfile and myParadigm() only when called, never at load.
 // Signed out (or on a page with no account server, such as the local helper): nothing here shows, and the app works
 // as before, with the paradigm kept on this device. Only the profile goes to the server, never round content.
 // One part of the page code (see app.js for the load order). The parts are classic scripts that share one global
@@ -8,8 +9,6 @@
 
 // The last profile the server sent, so the picker and paradigm still work offline at a tournament. A 401 clears it.
 const PROFILE_CACHE = 'tabula.profile.v1';
-// The judge's last "School for this round" on this device (a program id, or null for "Just me").
-const JUDGING_KEY = 'tabula.judgingFor.v1';
 // Set once the "copy your paradigm to your account" offer was shown on this device.
 const COPY_OFFERED = 'tabula.paradigmCopyOffered.v1';
 
@@ -20,13 +19,13 @@ let acctCheckedAt = 0;
 // The paradigm the app judges by (the "My own paradigm" text): the account's when signed in, else this device's.
 function myParadigm() { return L.activeParadigm(acctProfile, S.customParadigm); }
 
+// The one place that changes the signed-in state. R.ai.customParadigm (what the prompts read) follows it here; the
+// Analysis box writes it only while signed out (js/insights.js).
 function applyProfile(next) {
   const was = acctProfile;
   acctProfile = next;
   if (next) store.set(PROFILE_CACHE, next); else store.del(PROFILE_CACHE);
-  // Until the first speech, the round follows the device's last choice. After it, the round keeps its school,
-  // unless the judge no longer belongs to it (left the school, or signed out).
-  R.programId = L.judgingFor(L.judgingLocked(R) ? R.programId : store.get(JUDGING_KEY, null), next);
+  syncJudging(next);
   // Signed out with no account before, the round keeps its own paradigm text, as it always did.
   if (next || was) R.ai.customParadigm = myParadigm();
   save();
@@ -80,39 +79,10 @@ async function maybeOfferParadigmCopy() {
   toast(err || 'Your paradigm is now in your account.', err ? { kind: 'error' } : undefined);
 }
 
-// ---------- "School for this round" ----------
-function renderJudging() {
-  const opts = L.judgingOptions(acctProfile);
-  const locked = L.judgingLocked(R);
-  document.querySelectorAll('[data-judging-row]').forEach((row) => { row.hidden = !opts.length; });
-  if (!opts.length) return;
-  const name = (acctProfile.programs.find((p) => p.id === R.programId) || {}).name;
-  const help = locked
-    ? 'Set for this round. Start a new round to change it.'
-    : (name ? name + "'s AI rules and credits apply to this round." : 'Your own AI rules and credits apply to this round.') + ' Pick before the first speech.';
-  document.querySelectorAll('select[data-judging]').forEach((sel) => {
-    sel.innerHTML = opts.map((o) => `<option value="${escapeHtml(o.value)}">${escapeHtml(o.label)}</option>`).join('');
-    sel.value = R.programId || '';
-    sel.disabled = locked;
-  });
-  document.querySelectorAll('[data-judging-help]').forEach((p) => { p.textContent = help; });
-}
-document.addEventListener('change', (e) => {
-  if (!e.target.matches || !e.target.matches('select[data-judging]')) return;
-  if (L.judgingLocked(R)) { renderJudging(); return; } // a speech already ran; the round keeps its school
-  R.programId = L.judgingFor(e.target.value, acctProfile);
-  store.set(JUDGING_KEY, R.programId); save();
-  renderJudging();
-});
-
 // ---------- the account paradigm in Settings ----------
 function renderAccount() {
   const on = Boolean(acctProfile);
   $('#account-card').hidden = !on;
-  // The "My own paradigm" box in Decide → Analysis edits this device's copy; signed in, it shows the account's.
-  $('#lens-custom').readOnly = on;
-  $('#lens-custom-note').hidden = !on;
-  if (document.activeElement !== $('#lens-custom')) $('#lens-custom').value = myParadigm();
   const custom = $('#paradigm-pick option[value="custom"]');
   if (custom) custom.textContent = on ? 'My own paradigm (from my Tabula account)' : 'My own paradigm (paste it in Decide → Analysis)';
   if (!on) return;
@@ -126,7 +96,7 @@ function renderAcctCount() {
   const err = L.paradigmError($('#acct-paradigm').value);
   const n = L.cleanParadigm($('#acct-paradigm').value).length;
   const count = $('#acct-count');
-  count.textContent = err || n.toLocaleString('en-US') + ' of 5,000 characters';
+  count.textContent = err || n.toLocaleString('en-US') + ' of ' + L.MAX_PARADIGM.toLocaleString('en-US') + ' characters';
   tone(count, err ? 'error' : 'quiet');
 }
 $('#acct-paradigm').addEventListener('input', () => { acctDirty = true; tone($('#acct-status'), 'quiet'); $('#acct-status').textContent = ''; renderAcctCount(); });
