@@ -78,6 +78,16 @@ test('gateFor: an expired record on a managed account hides all AI, in any round
   assert.equal(L.gateFor({ record: { ...rec('solo'), expiresAt: NOW - 1 }, programId: null, now: NOW, profile: null }).mode, 'solo');
 });
 
+// Why: a managed student has no picker, so its own round must use its school's fresh record; ignoring it would hide
+// AI the school allows, and an expired one must still fail closed.
+test('gateFor: a managed account\'s fresh record covers its own round', () => {
+  const g = L.gateFor({ record: rec('managed-allowed'), programId: null, now: NOW, profile: null });
+  assert.equal(g.mode, 'record');
+  assert.equal(L.canUse(g, 'aiFlow'), true);
+  assert.equal(L.canUse(g, 'liveEval'), false);
+  assert.equal(L.gateFor({ record: rec('managed-expired'), programId: null, now: NOW, profile: null }).mode, 'none');
+});
+
 // Why: ?ai=off is the dev switch that proves the Flow-only look; it must hide everything whatever the record says.
 test('gateFor: off hides all AI', () => {
   assert.equal(L.gateFor({ record: rec('judge-pool'), programId: P, now: NOW, off: true }).mode, 'none');
@@ -121,7 +131,6 @@ test('visibleTourSteps: drops steps on removed parts and rewords steps that ment
   const none = () => false, all = () => true;
   assert.deepEqual(L.visibleTourSteps(steps, none).map((s) => [s.title, s.body]), [['A', 'x'], ['C', 'plain']]);
   assert.deepEqual(L.visibleTourSteps(steps, all).map((s) => [s.title, s.body]), [['A', 'x'], ['B', 'y'], ['C', 'AI words']]);
-  assert.deepEqual(L.paletteCommands([{ id: 'a' }, { id: 'b', feature: 'aiFlow' }], none).map((c) => c.id), ['a']);
 });
 
 // Why: with every tour filtered by an empty gate, no step may still be on or about an AI part.

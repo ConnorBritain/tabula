@@ -12,7 +12,7 @@
   // The keys this app has controls for. data-ai in index.html takes one of these, or 'any' (shown while any is allowed).
   const APP_FEATURES = ['transcription', 'aiFlow', 'liveEval', 'analysis', 'ballotDraft'];
   // The browser storage the gate reads, also before the first paint (assets/caps-boot.js).
-  const STORE_KEYS = { caps: 'tabula.caps.v2', profile: 'tabula.profile.v1', round: 'policyJudge.round.v1' };
+  const STORE_KEYS = { caps: 'tabula.caps.v2', profile: 'tabula.profile.v1', round: 'policyJudge.round.v1', keys: 'policyJudge.keys.v1' };
 
   // GET /api/v1/me/capabilities?v=2&product=debate[&programId=...]. programId: the "Judging for" choice; null = own round.
   function capsRequest(programId) {
@@ -60,7 +60,9 @@
     const s = st || {};
     if (s.off) return { mode: 'none', features: {} };
     const rec = s.record || null;
-    if (rec && rec.expiresAt > s.now && sameProgram(rec.subject.programId, s.programId)) return { mode: 'record', features: rec.features, aiSetup: rec.aiSetup, hosted: rec.account.hosted };
+    // A managed account has no picker: its own round is covered by its managed school's record (CONTRACTS §3 step 1).
+    const forRound = rec && (sameProgram(rec.subject.programId, s.programId) || (rec.subject.managed && !s.programId));
+    if (forRound && rec.expiresAt > s.now) return { mode: 'record', features: rec.features, aiSetup: rec.aiSetup, hosted: rec.account.hosted };
     if (s.programId) {
       const p = s.profile && s.profile.programs.find((x) => x.id === s.programId);
       return p && p.role === 'judge' ? { mode: 'solo', features: null } : { mode: 'none', features: {} };
@@ -90,13 +92,12 @@
     return off;
   }
 
-  // Tour steps and palette entries carry `feature` (dropped when off). A step whose words mention an AI part carries
+  // Tour steps carry `feature` (dropped when off; palette rows filter the same way in keys.js buildCommands). A step whose words mention an AI part carries
   // `mentions` and `plainBody` (the words with no AI, used when that feature is off). AI-POLICY §3b R3.
   function visibleTourSteps(steps, can) {
     return (steps || []).filter((st) => !st.feature || can(st.feature))
       .map((st) => (st.mentions && !can(st.mentions) ? Object.assign({}, st, { body: st.plainBody }) : st));
   }
-  function paletteCommands(cmds, can) { return (cmds || []).filter((c) => !c.feature || can(c.feature)); }
 
   // The one-time notice for a saved key in a program that hides all AI for this person (AI-POLICY §6c): at join,
   // once per program. Not when the school pays for AI: then the key is simply not needed.
@@ -109,7 +110,7 @@
 
   const api = {
     FEATURE_KEYS, APP_FEATURES, STORE_KEYS, capsRequest, parseCaps, capsOutcome, gateFor, canUse, payerOf, setupAllowed,
-    showSetupFor, offTokens, visibleTourSteps, paletteCommands, keyNoticeDue, KEY_NOTICE,
+    showSetupFor, offTokens, visibleTourSteps, keyNoticeDue, KEY_NOTICE,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).caps = api;

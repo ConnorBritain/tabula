@@ -8,7 +8,7 @@
 'use strict';
 
 // The last profile the server sent, so the picker and paradigm still work offline at a tournament. A 401 clears it.
-const PROFILE_CACHE = 'tabula.profile.v1';
+const PROFILE_CACHE = L.STORE_KEYS.profile;
 // Set once the "copy your paradigm to your account" offer was shown on this device.
 const COPY_OFFERED = 'tabula.paradigmCopyOffered.v1';
 

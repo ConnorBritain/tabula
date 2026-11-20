@@ -35,7 +35,7 @@ const AI_IDS = ['tab-eval', 'insights', 'eval-go', 'lens-go', 'impact-go', 'map-
 for (const name of ['coach-hidden', 'student-judge-off', 'student-clerk-no-pool', 'managed-expired']) {
   // Why: for a hidden role nothing about AI may show and nothing may call out (R1, R4); one leftover control is a taunt
   // to a student, and one call spends the school's money on a tool it turned off.
-  test(`${name}: no [data-ai] or [data-ai-setup] node is visible, and no AI call can start`, () => {
+  test(`${name}: no [data-ai] or [data-ai-setup] node is visible, and can() is false for every feature`, () => {
     const g = gateOf(name), off = L.offTokens(g, false);
     for (const n of gatedNodes()) assert.ok(hiddenBy(n, off), (n.attrs.id || n.tag) + ' is visible');
     for (const f of L.APP_FEATURES) assert.equal(L.canUse(g, f), false, f);
@@ -52,11 +52,22 @@ test('judge-self with no key: #conn-card is visible, and so is the AI', () => {
   for (const id of AI_IDS) assert.ok(visible(id, off), id);
 });
 
-// Why: when the school pays, the AI must show and the key card must not; a key card there asks the judge to pay twice.
-test('judge-pool: the AI is visible and #conn-card is not', () => {
-  const off = L.offTokens(gateOf('judge-pool'), false);
+// Why: when the school pays, the AI controls must show and the key card must not; a key card there asks the judge to pay twice.
+test('judge-pool: the AI controls are visible and #conn-card is not', () => {
+  const g = gateOf('judge-pool'), off = L.offTokens(g, false);
   for (const id of AI_IDS) assert.ok(visible(id, off), id);
-  for (const id of ['conn-card', 'sub-box', 'backup-keys']) assert.ok(!visible(id, off), id);
+  for (const id of ['conn-card', 'sub-box', 'backup-keys', 'ins-cta']) assert.ok(!visible(id, off), id);
+  // Known gap until the hosted AI caller exists (PLAN.md §10): school-paid AI has no engine on the device yet, so with
+  // no own key Insights has nothing to run and folds to 'none' instead of a Connect AI edge.
+  assert.equal(L.insightsMode({ allowed: true, setup: L.showSetupFor(g, false), aiReady: false }), 'none');
+});
+
+// Why: a managed student's school may allow some AI; those tools must show and the rest must not.
+test('managed-allowed: only the allowed tools show, and no key card', () => {
+  const record = L.parseCaps(FIX['managed-allowed']);
+  const off = L.offTokens(L.gateFor({ record, programId: null, now: NOW, profile: null }), false);
+  for (const id of ['rec-on', 'tr-toggle', 'live-flow']) assert.ok(visible(id, off), id);
+  for (const id of ['tab-eval', 'insights', 'lens-go', 'draft-open', 'conn-card', 'ins-cta']) assert.ok(!visible(id, off), id);
 });
 
 // Why: CONTRACTS §5 rule 6. A new device whose fetch fails, judging for a school as a coach, must show no AI until a

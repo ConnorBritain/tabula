@@ -8,7 +8,6 @@
 // scope, so a part can use what any part declares; code that runs at load only uses parts that load before it.
 'use strict';
 
-const KEY_NOTICE_SHOWN = 'tabula.keyNotice.v1'; // the programs whose one-time key notice was shown on this device
 const capsQuery = new URLSearchParams(location.search);
 const capsOff = capsQuery.get('ai') === 'off'; // dev switch: the Flow-only look
 const capsFixtureName = capsQuery.get('caps'); // dev switch: a fixture record from fixtures/platform-v2.json
@@ -28,20 +27,21 @@ function capsGateNow() {
 }
 
 const can = (f) => L.canUse(capsGate, f);
+// payer(f): who pays for f ('program' | 'self' | null). The hosted AI caller (not built yet) needs it; brief 1B API.
 const payer = (f) => L.payerOf(capsGate, f);
 // The device can run AI: a key or helper is connected (aiReady), or the record says a hosted plan.
 const ready = () => aiReady() || Boolean(capsGate.hosted);
 // The key settings may show (own AI allowed, no hosted plan). A judge with a key still sees them, to manage it.
 const canSetup = () => L.setupAllowed(capsGate);
 // The "Connect AI" invites may show: own AI allowed and the device not ready yet.
-const showSetup = () => L.showSetupFor(capsGate, aiReady());
+const showSetup = () => L.showSetupFor(capsGate, ready());
 
 // The gate for lists (tour steps, palette rows): a feature key, or 'any' (some AI is on), or 'setup' (key settings).
 const gateHas = (f) => (f === 'any' ? L.APP_FEATURES.some(can) : f === 'setup' ? canSetup() : can(f));
 
 // Writes <html data-ai-off>; CSS hides [data-ai] and [data-ai-setup] by it. Called by aiChanged() too, since being
 // ready (a key connected or removed) changes whether the invites show.
-function writeAiOff() { document.documentElement.setAttribute('data-ai-off', L.offTokens(capsGate, aiReady()).join(' ')); }
+function writeAiOff() { document.documentElement.setAttribute('data-ai-off', L.offTokens(capsGate, ready()).join(' ')); }
 
 // At a round boundary: take the newest answer, then redraw what is built in code.
 function applyCapabilities() {
@@ -50,7 +50,7 @@ function applyCapabilities() {
   aiChanged(); // writes data-ai-off, then the panes, Insights, Live Eval, Analysis and the draft panel
   if (R.tab === 'flow') renderFlow();
   if (R.tab === 'eval' && !can('liveEval')) showTab('ballot');
-  maybeKeyNotice();
+  maybeKeyNotice(capsRecord && capsRecord.subject.programId); // js/settings.js
 }
 // The gate may change now only before the round's first speech (the same lock as "Judging for").
 function capsBoundary() { if (!L.judgingLocked(R)) applyCapabilities(); }
@@ -72,23 +72,6 @@ async function refreshCaps(programId) {
 }
 // Sign-out: forget the record (AI-POLICY §6d). The gate changes at the next boundary.
 function clearCaps() { capsRecord = null; store.del(L.STORE_KEYS.caps); capsBoundary(); }
-
-// A saved key in a program that hides all AI: say so once, at join, and never again (AI-POLICY §6c). It names no
-// feature; the key belongs to the judge, so Tabula never deletes it unasked.
-async function maybeKeyNotice() {
-  const shown = store.get(KEY_NOTICE_SHOWN, []);
-  const programId = capsGate.mode === 'record' ? capsRecord && capsRecord.subject.programId : null;
-  if (!L.keyNoticeDue({ gate: capsGate, programId, hasSavedKey: S.rememberKeys && Object.keys(keys).length > 0, shown })) return;
-  if (R.run || modalOpen()) return; // never over a running speech or another dialog; it waits for the next boundary
-  store.set(KEY_NOTICE_SHOWN, [...shown, programId]);
-  const p = acctProfile && acctProfile.programs.find((x) => x.id === programId);
-  const remove = await ask({
-    title: 'Your saved key',
-    body: L.KEY_NOTICE(p ? p.name : 'this school\'s'),
-    buttons: [{ label: 'Keep it', value: false, kind: 'plain' }, { label: 'Remove it', value: true, kind: 'danger' }], cancelValue: false,
-  });
-  if (remove) { for (const id of Object.keys(keys)) delete keys[id]; saveKeys(); renderConnections(); }
-}
 
 // ?caps=<fixture>: the dev and test switch. The fixture file is only in the repo, never in the hosted build.
 if (capsFixtureName) {

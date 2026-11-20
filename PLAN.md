@@ -235,3 +235,7 @@ Spec: tabula-cloud `docs/platform/CONTRACTS.md` §2 and §5, `BUILD-PLAN.md` §3
 - Dev switches: `?ai=off` (Flow-only look) and `?caps=<fixture>` (a record from `fixtures/platform-v2.json`, which the hosted build does not ship).
 - `fixtures/platform-v2.json` is hand-written from CONTRACTS §2. Replace it with the file that tabula-cloud `npm run contracts` makes (phase 1A) when that lands.
 - Choice made here: the key settings (`#conn-card`) show while own AI is allowed, also after a key is in, so a judge can test or remove it. Only the Connect AI invites hide once the device is ready.
+- `#ins-cta` carries both `data-ai="liveEval"` and `data-ai-setup="invite"` (CSS before the first paint), and `applyPanes` also hides it by the Insights mode.
+- Known gap: the app has no hosted AI caller yet. When the school pays (`payer: program`) and the device has no own key, the AI controls show but have no engine. Insights then folds away instead of offering Connect AI. The hosted caller closes this.
+- Open questions for the platform architect: CONTRACTS §5 says `applyCapabilities` sets `hidden` (here: CSS from `data-ai-off`), and that `showSetup()` hides the key card once the device is ready (here: only the invites hide; the key card stays so a judge can manage the key).
+- The "Judging for" help line now says "rules and credits", not "AI rules and credits", so it names no AI to a role whose AI is hidden.

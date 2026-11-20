@@ -10,7 +10,7 @@ const L = window.PolicyLogic;
 const K = window.TabulaKeys;
 const IS_MAC = K.isMacPlatform(navigator.platform || navigator.userAgent);
 const $ = (s) => document.querySelector(s);
-const STORE = 'policyJudge.round.v1', LOG = 'policyJudge.log.v1', KEY = 'policyJudge.key';
+const STORE = L.STORE_KEYS.round, LOG = 'policyJudge.log.v1', KEY = 'policyJudge.key';
 
 // ---------- storage (never trust it to exist) ----------
 const store = {

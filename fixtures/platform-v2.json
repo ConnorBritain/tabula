@@ -263,6 +263,36 @@
       },
       "issuedAt": 1795216738000,
       "expiresAt": 1795000000000
+    },
+    "managed-allowed": {
+      "v": 2,
+      "product": "debate",
+      "edition": "judge",
+      "subject": {
+        "role": "student",
+        "programId": "prog_fixture01",
+        "programName": "Fixture High Debate",
+        "managed": true
+      },
+      "features": {
+        "aiFlow": {
+          "payer": "program"
+        },
+        "transcription": {
+          "payer": "program"
+        }
+      },
+      "aiSetup": false,
+      "account": {
+        "plan": "free",
+        "hosted": false
+      },
+      "versions": {
+        "settings": 1,
+        "resolver": 1
+      },
+      "issuedAt": 1795216738000,
+      "expiresAt": 4102444800000
     }
   }
 }

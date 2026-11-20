@@ -11,7 +11,10 @@
   var q = new URLSearchParams(root.location.search);
   var round = read(C.STORE_KEYS.round) || {};
   var profile = read(C.STORE_KEYS.profile);
-  var keys = read('policyJudge.keys.v1');
+  // Keys live in localStorage when remembered, else in this tab's sessionStorage (js/ai.js). A subscription helper is
+  // not known yet here, so on the judge's own computer its invite may show for a moment until the page checks it.
+  var keys = read(C.STORE_KEYS.keys);
+  if (!keys) { try { keys = JSON.parse(root.sessionStorage.getItem(C.STORE_KEYS.keys) || 'null'); } catch (e) { keys = null; } }
   var gate = C.gateFor({
     record: C.parseCaps(read(C.STORE_KEYS.caps)),
     profile: profile && Array.isArray(profile.programs) ? profile : null,

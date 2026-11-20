@@ -25,7 +25,7 @@ const AI_IDS = {
   any: ['writing-card', 'writing-settings', 'mini-rec', 'paradigm-pick'],
 };
 // The Connect AI surfaces: each must sit under data-ai-setup (CONTRACTS §5 rule 1).
-const SETUP_IDS = ['conn-card', 'key-paste', 'key-connect', 'prov-list', 'remember-keys', 'remember-help', 'ai-engine', 'tr-engine', 'sub-box', 'sub-body', 'backup-keys', 'show-welcome'];
+const SETUP_IDS = ['ins-cta', 'conn-card', 'key-paste', 'key-connect', 'prov-list', 'remember-keys', 'remember-help', 'ai-engine', 'tr-engine', 'sub-box', 'sub-body', 'backup-keys', 'show-welcome'];
 // Every network or start call site, and the gate call it must make before its first fetch (R4).
 const CALL_SITES = [
   ['js/insights.js', 'scheduleEval', "can('liveEval')"], ['js/insights.js', 'runEval', "can('liveEval')"],
@@ -34,7 +34,7 @@ const CALL_SITES = [
   ['js/flow.js', 'scheduleFlow', "can('aiFlow')"], ['js/flow.js', 'mapDocsNow', "can('aiFlow')"],
   ['js/docs.js', 'reflowForDocs', "can('aiFlow')"],
   ['js/recording.js', 'wantRec', "can('transcription')"], ['js/recording.js', 'startRec', "can('transcription')"],
-  ['js/recording.js', 'transcribeClip', "can('transcription')"], ['js/recording.js', 'transcribeRequest', "can('transcription')"],
+  ['js/recording.js', 'transcribeClip', "can('transcription')"],
   ['js/ai.js', 'callAI', 'can(feature)'],
   ['js/settings.js', 'connectKey', 'canSetup()'], ['js/settings.js', 'checkHelper', 'canSetup()'],
   ['js/help.js', 'openWelcome', 'showSetup()'], ['js/help.js', 'maybeD2Note', "can('liveEval')"],

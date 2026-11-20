@@ -36,7 +36,7 @@
   const { chipText, chipTip, CHIP_NAME_MS, chipNameDue, NET_TIP, netNote, speechLine, clockStatus, prepPausesLine,
     stepSpeechState, studyOn, studyMark, studyResult } = part('shell');
   const { FEATURE_KEYS, APP_FEATURES, STORE_KEYS, capsRequest, parseCaps, capsOutcome, gateFor, canUse, payerOf, setupAllowed,
-    showSetupFor, offTokens, visibleTourSteps, paletteCommands, keyNoticeDue, KEY_NOTICE } = part('caps');
+    showSetupFor, offTokens, visibleTourSteps, keyNoticeDue, KEY_NOTICE } = part('caps');
   const { PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
     activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody } = part('account');
 
@@ -77,7 +77,7 @@
     activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody,
     // Platform phase 1B: the AI gate
     FEATURE_KEYS, APP_FEATURES, STORE_KEYS, capsRequest, parseCaps, capsOutcome, gateFor, canUse, payerOf, setupAllowed,
-    showSetupFor, offTokens, visibleTourSteps, paletteCommands, keyNoticeDue, KEY_NOTICE,
+    showSetupFor, offTokens, visibleTourSteps, keyNoticeDue, KEY_NOTICE,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PolicyLogic = api;

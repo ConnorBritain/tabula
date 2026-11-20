@@ -37,7 +37,7 @@ document.addEventListener('click', (e) => {
 // default for new installs (spec 2.6, D1), they live in this tab only (sessionStorage, Q-3): a refresh keeps them,
 // and closing the tab forgets them.
 const P = window.Providers;
-const KEYS = 'policyJudge.keys.v1';
+const KEYS = L.STORE_KEYS.keys;
 const tabStore = {
   get(k, d) { try { const raw = sessionStorage.getItem(k); return raw ? JSON.parse(raw) : d; } catch { return d; } },
   set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },

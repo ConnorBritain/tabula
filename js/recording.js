@@ -474,7 +474,6 @@ async function transcribeClip(blob, prevText, timeoutMs = 30000, engine = active
 }
 // The transcription request for one clip.
 function transcribeRequest(eng, key, model, blob, ext, audio, prevText) {
-  if (!can('transcription')) throw Object.assign(new Error(''), { hold: true, retryable: false });
   let url, init;
   if (eng === 'openai' || eng === 'xai') {
     const fd = new FormData();
