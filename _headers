@@ -1,0 +1,11 @@
+# Cloudflare Pages response headers for the hosted site (tabuladebate.com).
+# The Content-Security-Policy (CSP) is a browser rule: the page may run only scripts from this site,
+# and may talk only to this site and the four AI providers. Judges' API keys live in this page,
+# so a script from anywhere else must never run here.
+# The libraries the app needs are self-hosted in vendor/ (see vendor/README.md).
+# Inline styles are allowed (the app uses style="" attributes); inline scripts are not.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://api.anthropic.com https://api.openai.com https://api.x.ai https://generativelanguage.googleapis.com; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: microphone=(self), camera=(), geolocation=()

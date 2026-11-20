@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About Tabula</title>
+<meta name="description" content="Tabula is a free judging tool for high school policy debate, made by Connor England.">
+<link rel="icon" type="image/png" href="assets/tabula-icon-64.png">
+<link rel="preload" href="assets/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Inter Tight (SIL Open Font License), served from this app. See assets/fonts/LICENSE.txt. */
+  @font-face { font-family: 'Inter Tight'; font-style: normal; font-weight: 600 800; font-display: swap; src: url('assets/fonts/InterTight-latin.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter Tight'; font-style: italic; font-weight: 600 800; font-display: swap; src: url('assets/fonts/InterTight-Italic-latin.woff2') format('woff2'); }
+  /* Same tokens as the app (index.html). Keep the two in sync until PLAN step 9 moves them to assets/tokens.css. */
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --sunk: #f8f9fa; --ink: #16191d; --ink-2: #3c434c; --muted: #6a737d; --line: #e1e4e8; --line-2: #cfd4da;
+    --aff: #0055b8; --aff-bg: #eaf1fb; --neg: #c8161f; --neg-bg: #fdecec; --neg-fill: #f2232d; --aff-fill: #0055b8;
+    --warn: #8a5a00; --warn-bg: #fff6dc; --accent: #16191d; --on-accent: #ffffff;
+    --font-display: 'Inter Tight', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1114; --panel: #171a1e; --sunk: #121418; --ink: #e9ecef; --ink-2: #c3c9d0; --muted: #8b949e; --line: #262b31; --line-2: #343a42;
+      --aff: #7fb0ff; --aff-bg: #122038; --neg: #ff7b74; --neg-bg: #361517; --aff-fill: #3b82f6;
+      --warn: #ffd27a; --warn-bg: #33290f; --accent: #e9ecef; --on-accent: #0f1114;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  a { color: var(--ink); }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+  .brand img { height: 30px; width: auto; display: block; }
+  .wordmark, h1, h2 { font-family: var(--font-display); }
+  .wordmark { font-weight: 800; font-style: italic; font-size: 24px; letter-spacing: -0.02em; }
+  .btn { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); font-weight: 600; text-decoration: none; }
+  .btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .hero { padding: 40px 0 24px; }
+  h1 { font-size: clamp(34px, 6vw, 52px); line-height: 1.05; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 16px; }
+  h1 .aff { color: var(--aff); } h1 .neg { color: var(--neg); }
+  .lead { font-size: 19px; color: var(--ink-2); margin: 0 0 24px; max-width: 620px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  section { padding: 28px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; }
+  p { margin: 0 0 12px; }
+  ul { margin: 0 0 12px; padding-left: 22px; }
+  li + li { margin-top: 6px; }
+  .shot { border: 1px dashed var(--line-2); border-radius: 12px; padding: 40px 20px; text-align: center; color: var(--muted); background: var(--panel); margin-top: 8px; }
+  .steps { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .step { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .step b { font-family: var(--font-display); font-size: 18px; display: block; margin-bottom: 4px; }
+  .who { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .who div { padding-left: 14px; box-shadow: inset 3px 0 0 var(--line-2); }
+  .who div:nth-child(1) { box-shadow: inset 3px 0 0 var(--aff-fill); }
+  .who div:nth-child(2) { box-shadow: inset 3px 0 0 var(--neg-fill); }
+  /* A placeholder: text Connor still has to write. Easy to spot, easy to search for ("TODO"). */
+  .todo { background: var(--warn-bg); color: var(--warn); border-radius: 4px; padding: 0 4px; font-weight: 600; }
+  footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--muted); font-size: 14px; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="./" aria-label="Open Tabula">
+      <picture><source srcset="assets/tabula-mark-white.png" media="(prefers-color-scheme: dark)"><img src="assets/tabula-mark-black.png" alt="" width="36" height="29"></picture>
+      <span class="wordmark">Tabula</span>
+    </a>
+    <a class="btn" href="./">Open Tabula</a>
+  </header>
+
+  <div class="hero">
+    <h1>Judge the round,<br>not the <span class="aff">paper</span><span class="neg">work</span>.</h1>
+    <p class="lead">Tabula is a free judging tool for high school policy debate. It keeps time, keeps the flow, listens to the round, and helps you write a fair, readable decision for the debaters.</p>
+    <div class="row">
+      <a class="btn primary" href="./">Open Tabula</a>
+      <a class="btn" href="https://github.com/ConnorBritain" rel="noopener">Connor on GitHub</a>
+      <a class="btn" href="#support">Support the project</a>
+    </div>
+    <div class="shot" role="img" aria-label="Screenshot placeholder">Screenshot of the Flow workspace goes here (added with the homepage).</div>
+  </div>
+
+  <section aria-labelledby="who">
+    <h2 id="who">Who it is for</h2>
+    <div class="who">
+      <div><b>Judges</b><br>From first-time parent judges to former debaters. Plain or expert wording, your choice.</div>
+      <div><b>Coaches</b><br>Give your judges a tool that makes the job easier.</div>
+      <div><b>Programs and tournaments</b><br>Clear written feedback for students, with each ballot box ready to copy into Tabroom.</div>
+    </div>
+  </section>
+
+  <section aria-labelledby="how">
+    <h2 id="how">How it works</h2>
+    <div class="steps">
+      <div class="step"><b>1. Before</b>Type the teams and add the speech docs. Pick how you judge.</div>
+      <div class="step"><b>2. During</b>Run the clock, record the speeches, and flow. The AI can flow alongside you, and your edits always win.</div>
+      <div class="step"><b>3. After</b>Read the live evaluation, weigh it under your paradigm, and fill the ballot. Copy each box into Tabroom.</div>
+    </div>
+    <p style="margin-top:16px">Works with an AI key (Google Gemini, OpenAI, Anthropic Claude or xAI Grok), with a Claude or ChatGPT subscription (on a Mac, through a small helper that runs on your computer), or with no AI at all.</p>
+  </section>
+
+  <section aria-labelledby="privacy">
+    <h2 id="privacy">Privacy</h2>
+    <ul>
+      <li>Your rounds stay in your own browser. There is no Tabula account and no Tabula server that stores them.</li>
+      <li>When you use AI, the round is sent only to the AI provider you chose, with your own key or subscription.</li>
+      <li>Your AI keys stay in this browser. They are saved as plain text unless you untick "Remember keys" in Settings.</li>
+      <li>Tabula does not keep audio. Short clips go to the transcription service you chose (or Chrome's own speech service), and only the text is saved.</li>
+      <li>Rounds include students' names and voices. Please follow your league's and school's rules when you record.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="about-me">
+    <h2 id="about-me">Who made it</h2>
+    <p>Hi, I'm Connor England. I debated for 7 years in the Kansas NFL district: 4 years in high school, then 3 years of parliamentary debate at Washburn University.</p>
+    <p>After debate, I worked in many fields, and I have been a software developer for a long time. Now I work in healthcare and in democratizing AI (making AI useful and affordable for everyone).</p>
+    <p>I built the first version of Tabula while judging real rounds, to keep serving the next generation of debaters.</p>
+    <p>More about me at <a href="https://connorengland.com" rel="noopener">connorengland.com</a>.</p>
+  </section>
+
+  <section aria-labelledby="open">
+    <h2 id="open">Free to use</h2>
+    <p>Tabula is free to use. Find me on GitHub at <a href="https://github.com/ConnorBritain" rel="noopener">github.com/ConnorBritain</a>. Tabula is open source under the <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="noopener">GNU AGPL-3.0</a>. The code and the issue tracker are at <a href="https://github.com/ConnorBritain/tabula" rel="noopener">github.com/ConnorBritain/tabula</a>. If you find a bug or have an idea, open an issue there.</p>
+  </section>
+
+  <section id="support" aria-labelledby="support-h">
+    <h2 id="support-h">Support the project</h2>
+    <p>Tabula is free. If it saves you time, you can buy me a coffee. It keeps the project going.</p>
+    <a class="btn primary" href="https://buymeacoffee.com/connorengland" rel="noopener">Buy me a coffee</a>
+  </section>
+
+  <footer>
+    <div class="row" style="justify-content:space-between">
+      <span>Made by Connor England. © <span id="year">2026</span> <a href="https://patternengine.ai" rel="noopener">Pattern Engine LLC</a>.</span>
+      <span class="row"><a href="./">Open Tabula</a> · <a href="https://github.com/ConnorBritain" rel="noopener">GitHub</a></span>
+    </div>
+  </footer>
+</div>
+
+</body>
+</html>

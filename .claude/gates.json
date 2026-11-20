@@ -1,0 +1,4 @@
+{
+  "test": "node --test",
+  "publish": "node check-publish.mjs"
+}

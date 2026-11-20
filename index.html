@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabula</title>
+<meta name="description" content="Tabula: a free judging tool for high school policy debate. Timers, flows, live transcripts, AI analysis and ballots.">
+<link rel="icon" type="image/png" href="assets/tabula-icon-64.png">
+<link rel="preload" href="assets/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Inter Tight (SIL Open Font License), served from this app so it works offline. See assets/fonts/LICENSE.txt. */
+  @font-face { font-family: 'Inter Tight'; font-style: normal; font-weight: 600 800; font-display: swap; src: url('assets/fonts/InterTight-latin.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter Tight'; font-style: italic; font-weight: 600 800; font-display: swap; src: url('assets/fonts/InterTight-Italic-latin.woff2') format('woff2'); }
+  /* Design tokens. One set for the whole app (ui-magic: one token set; spend colour on data, not chrome). */
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --sunk: #f8f9fa; --ink: #16191d; --ink-2: #3c434c; --muted: #6a737d; --line: #e1e4e8; --line-2: #cfd4da;
+    /* Aff blue and Neg red come from the Tabula mark. Neg text uses a deeper red so small text stays readable. */
+    --aff: #0055b8; --aff-bg: #eaf1fb; --aff-line: #b3cdee; --aff-fill: #0055b8;
+    --neg: #c8161f; --neg-bg: #fdecec; --neg-line: #f4c0c2; --neg-fill: #f2232d;
+    /* Errors and overtime use orange, never the Neg red: red always means the Neg side. */
+    --danger: #b93d0a; --danger-bg: #fdf0e8;
+    --accent: #16191d; --on-accent: #ffffff; --ring: #16191d;
+    --font-display: 'Inter Tight', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --warn: #8a5a00; --warn-bg: #fff6dc; --ok: #1a7a3a; --ok-bg: #e8f6ec;
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px;
+    --r1: 6px; --r2: 8px; --r3: 12px;
+    --h-ctl: 32px; --h-ctl-lg: 40px;
+    --fs-xs: 12px; --fs-sm: 13px; --fs: 14px; --fs-md: 15px; --fs-lg: 18px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1114; --panel: #171a1e; --sunk: #121418; --ink: #e9ecef; --ink-2: #c3c9d0; --muted: #8b949e; --line: #262b31; --line-2: #343a42;
+      --aff: #7fb0ff; --aff-bg: #122038; --aff-line: #24406e; --aff-fill: #3b82f6;
+      --neg: #ff7b74; --neg-bg: #361517; --neg-line: #5e2426; --neg-fill: #f2232d;
+      --danger: #ff9a5c; --danger-bg: #3a2010;
+      --accent: #e9ecef; --on-accent: #0f1114; --ring: #e9ecef;
+      --warn: #ffd27a; --warn-bg: #33290f; --ok: #6fd190; --ok-bg: #12291a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: var(--fs)/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  /* Header: the live strip (current speech, clock, recording) is the one thing a judge glances at. */
+  header { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); align-items: center; padding: var(--s2) var(--s4); background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+  .brand { display: inline-flex; align-items: center; gap: var(--s2); color: var(--ink); text-decoration: none; margin-right: var(--s2); }
+  .brand img { display: block; height: 26px; width: auto; }
+  .wordmark, .display { font-family: var(--font-display); font-weight: 800; font-style: italic; letter-spacing: -0.02em; }
+  .wordmark { font-size: 20px; line-height: 1; }
+  nav { display: flex; flex-wrap: wrap; gap: 2px; }
+  nav button { min-height: var(--h-ctl); background: none; border: 0; color: var(--muted); padding: 0 var(--s3); border-radius: var(--r1); cursor: pointer; font: inherit; font-size: var(--fs-sm); font-weight: 500; }
+  nav button:hover { color: var(--ink); background: var(--sunk); }
+  nav button.on { color: var(--ink); background: var(--line-2); font-weight: 650; }
+  .mini { margin-left: auto; display: flex; gap: var(--s2); align-items: center; font-variant-numeric: tabular-nums; font-size: var(--fs-sm); }
+  .mini span:not(:empty) { padding: 2px var(--s2); border-radius: 999px; background: var(--sunk); border: 1px solid var(--line); color: var(--ink-2); font-weight: 600; }
+  main { padding: var(--s4); max-width: 1440px; margin: 0 auto; }
+  section.tab { display: none; } section.tab.on { display: block; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); padding: var(--s4); margin-bottom: var(--s3); }
+  .card h2 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; letter-spacing: -0.01em; color: var(--ink); margin: 0 0 var(--s3); }
+  .grid { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  label { display: block; font-size: var(--fs-xs); font-weight: 500; color: var(--muted); margin-bottom: var(--s1); }
+  input, select, textarea { width: 100%; min-height: var(--h-ctl); font: inherit; font-size: var(--fs); color: var(--ink); background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r1); padding: 5px 10px; }
+  input:hover, select:hover, textarea:hover { border-color: var(--muted); }
+  input[type="checkbox"], input[type="radio"] { width: 16px; height: 16px; min-height: 0; accent-color: var(--ink); margin: 0; }
+  input[type="file"] { padding: 4px; font-size: var(--fs-sm); }
+  textarea { resize: vertical; line-height: 1.5; }
+  button.b { min-height: var(--h-ctl); font: inherit; font-size: var(--fs-sm); font-weight: 550; padding: 0 var(--s3); border-radius: var(--r1); border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); cursor: pointer; white-space: nowrap; }
+  button.b:hover { background: var(--sunk); border-color: var(--muted); }
+  button.b.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  button.b.primary:hover { opacity: .9; }
+  button.b:disabled { opacity: .45; cursor: default; }
+  .row { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
+  .aff { color: var(--aff); } .neg { color: var(--neg); }
+  .muted { color: var(--muted); font-size: var(--fs-sm); }
+  /* Doc bars */
+  .docbar { padding: var(--s2) var(--s3); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); }
+  .docbar select { width: auto; }
+  /* Timer */
+  .speeches { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--s2); }
+  .sp { text-align: left; min-height: 48px; padding: var(--s2) var(--s3); border-radius: var(--r1); border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; font: inherit; font-size: var(--fs-sm); font-weight: 600; }
+  .sp:hover { background: var(--sunk); }
+  .sp.aff { box-shadow: inset 3px 0 0 var(--aff-fill); } .sp.neg { box-shadow: inset 3px 0 0 var(--neg-fill); }
+  .sp.on { border-color: var(--ink); background: var(--sunk); }
+  .sp small { display: block; color: var(--muted); font-weight: 400; font-size: var(--fs-xs); margin-top: 2px; }
+  .clock { font-family: var(--font-display); font-size: clamp(64px, 13vw, 128px); font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; text-align: center; line-height: 1; margin: var(--s3) 0 var(--s4); }
+  .clock.low { color: var(--warn); } .clock.over { color: var(--danger); }
+  .prep { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+
+  .prep .card { text-align: center; }
+  .prep .card h2 { margin-bottom: var(--s1); }
+  .prep .t { font-family: var(--font-display); font-size: 32px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: var(--s2); }
+  .rec-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); margin-right: 6px; animation: blink 1.2s infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } }
+  /* Flow */
+  .flowtabs { display: flex; flex-wrap: wrap; gap: var(--s1); align-items: center; margin-bottom: var(--s2); }
+  .flowtabs button { min-height: 28px; font: inherit; font-size: var(--fs-sm); padding: 0 var(--s3); border-radius: var(--r1); border: 1px solid var(--line); background: var(--panel); color: var(--ink-2); cursor: pointer; }
+  .flowtabs button:hover { background: var(--sunk); }
+  .flowtabs button.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .flow { display: grid; grid-template-columns: repeat(7, minmax(136px, 1fr)); gap: 0; overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); }
+  .flow .col { border-right: 1px solid var(--line); min-width: 0; }
+  .flow .col:last-child { border-right: 0; }
+  .flow .col h3 { position: sticky; top: 0; font-size: var(--fs-sm); font-weight: 700; margin: 0; padding: var(--s2) var(--s3); border-bottom: 1px solid var(--line); }
+  .flow .col.aff h3 { background: var(--aff-bg); color: var(--aff); }
+  .flow .col.neg h3 { background: var(--neg-bg); color: var(--neg); }
+  .flow textarea { min-height: 64vh; border: 0; border-radius: 0; background: transparent; padding: var(--s2) var(--s3); font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .flow textarea:focus-visible { outline-offset: -2px; }
+  .flow .col.aff textarea { color: var(--aff); } .flow .col.neg textarea { color: var(--neg); }
+  /* Tables, ballot, eval */
+  table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+  th { text-align: left; font-size: var(--fs-xs); font-weight: 600; color: var(--muted); padding: var(--s2); border-bottom: 1px solid var(--line-2); }
+  td { text-align: left; padding: var(--s2); border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td input { min-width: 80px; font-variant-numeric: tabular-nums; }
+  .warn { background: var(--warn-bg); color: var(--warn); border-radius: var(--r2); padding: var(--s2) var(--s3); margin: var(--s3) 0; font-size: var(--fs-sm); }
+  .warn ul { margin: var(--s1) 0 0 18px; padding: 0; }
+  .good { color: var(--ok); font-weight: 600; font-size: var(--fs-sm); }
+  .out { white-space: pre-wrap; background: var(--sunk); border: 1px solid var(--line); border-radius: var(--r2); padding: var(--s3); min-height: 80px; font-size: var(--fs-sm); }
+  .lean { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; letter-spacing: -0.01em; display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
+  .pill { display: inline-flex; align-items: center; padding: 1px var(--s2); border-radius: 999px; font-size: var(--fs-xs); font-weight: 600; border: 1px solid var(--line-2); color: var(--ink-2); background: var(--sunk); }
+  .pill.aff { background: var(--aff-bg); color: var(--aff); border-color: var(--aff-line); }
+  .pill.neg { background: var(--neg-bg); color: var(--neg); border-color: var(--neg-line); }
+  /* Segmented control */
+  .seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: var(--r1); overflow: hidden; }
+  .seg button { min-height: 30px; padding: 0 var(--s3); border: 0; background: var(--panel); color: var(--ink-2); font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line-2); }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+  /* Round map, flow-sheet view: same columns and colours as the Flow tab. */
+  .mapsheet { display: grid; border: 1px solid var(--line); border-radius: var(--r2); overflow: hidden; min-width: max-content; font-size: var(--fs-sm); }
+  .mapsheet .mh { position: sticky; top: 0; padding: var(--s2) var(--s3); font-size: var(--fs-xs); font-weight: 700; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+  .mapsheet .mh.aff { background: var(--aff-bg); color: var(--aff); } .mapsheet .mh.neg { background: var(--neg-bg); color: var(--neg); }
+  .mapsheet .mc { padding: var(--s2); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: var(--s1); min-width: 160px; background: var(--panel); }
+  .mapsheet .mh.last, .mapsheet .mc.last { border-right: 0; }
+  .mapsheet .mrow:hover .mc { background: var(--sunk); }
+  .mapsheet .mrow { display: contents; }
+  .mcard { border: 1px solid var(--line); border-radius: var(--r1); padding: 6px var(--s2); background: var(--panel); line-height: 1.35; }
+  .mcard.aff { box-shadow: inset 3px 0 0 var(--aff-fill); } .mcard.neg { box-shadow: inset 3px 0 0 var(--neg-fill); }
+  .mcard .lbl { font-weight: 600; color: var(--ink); }
+  .mcard .mk, .mk { color: var(--muted); font-size: var(--fs-xs); font-weight: 600; }
+  .mcard.dropped { border: 1.5px dashed var(--warn); background: var(--warn-bg); }
+  .mcard.conceded { opacity: .7; }
+  .mcard.ghost { border: 1.5px dashed var(--line-2); background: transparent; color: var(--muted); font-style: italic; box-shadow: none; }
+  .chip { display: inline-block; margin-left: var(--s1); padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 700; vertical-align: 1px; }
+  .chip.drop { background: var(--warn); color: var(--panel); }
+  .chip.ext { background: var(--ok-bg); color: var(--ok); }
+  .chip.con { background: var(--sunk); color: var(--muted); border: 1px solid var(--line-2); }
+  .overlay { position: fixed; inset: 0; background: rgba(10,12,15,.55); display: grid; place-items: center; z-index: 20; padding: var(--s4); }
+  .overlay[hidden] { display: none; }
+  .overlay-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r3); padding: var(--s5); width: min(620px, 100%); max-height: calc(100vh - 32px); overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  .choices { display: grid; gap: var(--s2); }
+  .choice { text-align: left; display: grid; gap: 2px; padding: var(--s3) var(--s4); border: 1px solid var(--line-2); border-radius: var(--r2); background: var(--panel); color: var(--ink); font: inherit; cursor: pointer; }
+  .choice:hover { border-color: var(--ink); background: var(--sunk); }
+  .choice strong { font-size: var(--fs-md); }
+  .choice span { color: var(--muted); font-size: var(--fs-sm); }
+  .choice:first-child { border-color: var(--ink); }
+  .prov { border: 1px solid var(--line); border-radius: var(--r2); padding: var(--s2) var(--s3); margin-bottom: var(--s2); }
+  .prov-head { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
+  .prov-head strong { min-width: 140px; }
+  .cap { font-size: var(--fs-xs); color: var(--muted); }
+  .cap b { color: var(--ink-2); font-weight: 600; }
+  .prov ol { margin: var(--s2) 0 0; padding-left: 20px; font-size: var(--fs-sm); color: var(--ink-2); }
+  .ok-pill { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
+  .aibar { display: flex; flex-wrap: wrap; gap: var(--s1); align-items: center; padding: 4px var(--s2); background: var(--warn-bg); color: var(--warn); font-size: var(--fs-xs); font-weight: 600; border-bottom: 1px solid var(--line); }
+  .aibar.quiet { background: transparent; color: var(--muted); }
+  .aibar button { min-height: 22px; padding: 0 6px; font: inherit; border: 1px solid currentColor; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; }
+  button.mcard { display: block; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+  button.mcard:hover { border-color: var(--ink-2); }
+  .madd { align-self: flex-start; min-height: 22px; padding: 0 8px; border: 1px dashed var(--line-2); border-radius: var(--r1); background: transparent; color: var(--muted); font: inherit; cursor: pointer; opacity: 0; }
+  .mrow:hover .madd, .madd:focus-visible { opacity: 1; }
+  @media (hover: none) { .madd { opacity: 1; } }
+  .linkish { background: none; border: 0; padding: 0; color: var(--ink); font: inherit; text-decoration: underline; cursor: pointer; }
+  .touched { box-shadow: inset 2px 0 0 var(--ink-2); }
+  /* ----- layout: places, workspace panes, round bar ----- */
+  header .spacer { flex: 1; }
+  .iconbtn { display: inline-grid; place-items: center; width: var(--h-ctl); height: var(--h-ctl); border: 1px solid var(--line-2); border-radius: var(--r1); background: var(--panel); color: var(--ink-2); cursor: pointer; }
+  .iconbtn:hover { color: var(--ink); background: var(--sunk); }
+  .iconbtn[aria-current="page"] { background: var(--line-2); color: var(--ink); }
+  button.b.small { min-height: 26px; padding: 0 var(--s2); font-size: var(--fs-xs); }
+  .subnav { display: flex; gap: 2px; margin: 0 0 var(--s3); border-bottom: 1px solid var(--line); padding-bottom: var(--s2); }
+  .subnav[hidden] { display: none; }
+  .subnav button { min-height: 30px; padding: 0 var(--s3); border: 0; border-radius: var(--r1); background: none; color: var(--muted); font: inherit; font-size: var(--fs-sm); font-weight: 500; cursor: pointer; }
+  .subnav button:hover { color: var(--ink); background: var(--sunk); }
+  .subnav button.on { color: var(--ink); background: var(--line-2); font-weight: 650; }
+  .workspace { display: none; gap: var(--s3); align-items: start; grid-template-columns: 290px minmax(0, 1fr) 270px; }
+  .workspace.on { display: grid; }
+  .workspace.no-left { grid-template-columns: minmax(0, 1fr) 270px; }
+  .workspace.no-right { grid-template-columns: 290px minmax(0, 1fr); }
+  .workspace.no-left.no-right { grid-template-columns: minmax(0, 1fr); }
+  .workspace.no-left .pane-left, .workspace.no-right .pane-right { display: none !important; }
+  .workspace .pane { display: block; min-width: 0; }
+  .pane-left, .pane-right { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r2); padding: var(--s3); position: sticky; top: 64px; max-height: calc(100vh - 140px); overflow: auto; }
+  .pane-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s2); }
+  .pane-head h2, .pane-block h2 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; margin: 0; }
+  .pane-block { margin-top: var(--s3); }
+  .pane-block h2 { margin-bottom: var(--s2); }
+  .pane-left .speeches { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s1); } /* one row per stage: 1st constructives + CX, 2nd constructives + CX, rebuttals */
+  .pane-left .sp { min-height: 40px; padding: var(--s1) 6px; position: relative; font-size: var(--fs-xs); }
+  .pane-left .sp small { margin-top: 0; }
+  .sp-dot { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+  .workspace .pane-left { display: flex; flex-direction: column; height: calc(100vh - 140px); }
+  .transcript-block { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 220px; }
+  .transcript-block textarea { flex: 1 1 auto; min-height: 160px; resize: none; }
+  .pane-docs { margin-top: var(--s2); }
+  .pane-docs summary { cursor: pointer; font-size: var(--fs-sm); font-weight: 600; color: var(--ink); }
+  .tr-head { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s2); }
+  .tr-head h2 { margin: 0 !important; }
+  .tip-wrap { position: relative; display: inline-flex; }
+  .tip { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--panel); color: var(--muted); font: 700 12px/1 var(--font-display); cursor: help; padding: 0; }
+  .tip:hover, .tip:focus-visible { color: var(--ink); border-color: var(--ink); }
+  .tip.warn { color: var(--on-accent, #fff); background: var(--warn); border-color: var(--warn); }
+  .tip-pop { display: none; position: absolute; left: -96px; top: calc(100% + 6px); z-index: 20; width: 228px; padding: var(--s2) var(--s3); background: var(--panel); color: var(--ink-2); border: 1px solid var(--line-2); border-radius: var(--r2); box-shadow: 0 10px 28px rgba(0,0,0,.18); font-size: var(--fs-xs); font-weight: 400; line-height: 1.45; }
+  .tip-pop:empty { display: none !important; }
+  .tip-wrap.open .tip-pop { display: block; } /* opened by a click, or by hovering 2 s (app.js) */
+  .pane-docs .docbar { margin-top: var(--s2); }
+  .sd-h { font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 700; margin: var(--s3) 0 var(--s1); }
+  .sd-box { margin-top: var(--s2); }
+  .sd-mount[hidden] { display: none; }
+  .sd-row { flex-wrap: nowrap; }
+  .sd-row input { min-width: 0; flex: 1; }
+  .sd-status { margin: var(--s1) 0 0; font-size: var(--fs-xs); }
+  .sd-status:empty { display: none; }
+  .sd-list { display: flex; flex-direction: column; gap: 4px; margin-top: var(--s1); }
+  .sd-file { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s2); align-items: center; font-size: var(--fs-xs); }
+  .sd-file .sd-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sd-file select { width: auto; font-size: var(--fs-xs); padding: 2px 4px; }
+  .sd-new { color: var(--ok); font-weight: 700; margin-left: 4px; }
+  .sd-done { color: var(--muted); }
+  .sd-actions { display: flex; gap: var(--s2); align-items: center; margin-top: var(--s1); }
+  .start-panel { max-width: 520px; margin: 10vh auto; text-align: center; padding: var(--s5, 32px) var(--s4); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r3); }
+  .start-panel[hidden] { display: none; }
+  .start-panel h2 { font-family: var(--font-display); font-size: var(--fs-xl, 24px); font-weight: 800; margin: var(--s3) 0 var(--s2); }
+  .start-panel p { margin: 0 0 var(--s4); }
+  .start-mark { display: block; margin: 0 auto; }
+  @media (prefers-color-scheme: dark) { .start-mark { content: url('assets/tabula-mark-white.png'); } }
+  .start-actions { display: flex; flex-wrap: wrap; gap: var(--s2); justify-content: center; }
+  .start-actions .b { display: inline-flex; align-items: center; margin: 0; cursor: pointer; }
+  .start-actions label.b { color: var(--ink); font-size: var(--fs-sm); font-weight: 600; text-transform: none; letter-spacing: normal; }
+  #tab-flow.starting > :not(.start-panel):not(#round-open) { display: none !important; }
+  .pane-left .docbar { margin-top: var(--s3); flex-wrap: wrap; }
+  .pane-left .docbar input[type="file"] { width: 100% !important; min-width: 0; }
+  .pane-toggles { display: none; gap: var(--s1); margin-bottom: var(--s2); }
+  .workspace.no-left .pane-toggles, .workspace.no-right .pane-toggles { display: flex; }
+  .workspace:not(.no-left) #show-left, .workspace:not(.no-right) #show-right { display: none; }
+  .ins-lean { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-md); }
+  .ins-list { margin: var(--s1) 0 0; padding-left: 18px; font-size: var(--fs-sm); color: var(--ink-2); }
+  .ins-list li + li { margin-top: 4px; }
+  .tr-drawer { position: fixed; left: var(--s3); right: var(--s3); bottom: calc(var(--rb-h, 64px) + 8px); z-index: 7; height: min(42vh, 420px); display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r3) var(--r3) 0 0; box-shadow: 0 -12px 32px rgba(0,0,0,.18); padding: var(--s3); }
+  .tr-drawer[hidden] { display: none; }
+  .tr-drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s2); }
+  .tr-drawer-head h2 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; margin: 0; }
+  .tr-drawer textarea { flex: 1; resize: none; font-size: var(--fs-md); line-height: 1.55; }
+  body.drawer-open main { padding-bottom: calc(min(42vh, 420px) + 24px); }
+  #tr-toggle.on { background: var(--sunk); border-color: var(--ink); }
+  .roundbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); padding: var(--s2) var(--s4); background: var(--panel); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(0,0,0,.06); }
+  .rb-speech { display: flex; align-items: baseline; gap: var(--s2); min-width: 190px; }
+  .rb-speech #cur-label { font-size: var(--fs-sm); }
+  .roundbar .clock { font-size: 34px; margin: 0; line-height: 1; letter-spacing: -0.02em; text-align: left; }
+  .rb-ctl { display: flex; gap: var(--s1); }
+  .rb-rec { display: flex; align-items: center; gap: var(--s2); min-width: 0; flex: 1; }
+  .rb-status { font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }
+  .rb-prep { display: flex; align-items: center; gap: var(--s2); font-size: var(--fs-sm); font-weight: 600; }
+  .rb-prep .t { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-lg); font-variant-numeric: tabular-nums; }
+  .rb-ai { font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+  body { padding-bottom: 76px; }
+  @media (max-width: 1180px) {
+    .workspace, .workspace.no-left { grid-template-columns: 260px minmax(0, 1fr); }
+    .workspace .pane-right { grid-column: 1 / -1; position: static; max-height: none; }
+    .workspace.no-left, .workspace.no-left.no-right { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 820px) {
+    .workspace, .workspace.no-left, .workspace.no-right { grid-template-columns: minmax(0, 1fr); }
+    .pane-left, .pane-right { position: static; max-height: none; }
+    .roundbar { gap: var(--s1) var(--s3); padding: var(--s2) var(--s3); }
+    .roundbar .clock { font-size: 28px; }
+    .rb-status { max-width: 180px; }
+    body { padding-bottom: 132px; }
+    .toast { bottom: 148px; }
+    .tour-offer { bottom: 148px; right: var(--s3); left: var(--s3); width: auto; }
+  }
+  .model-picks { gap: var(--s3); margin-top: var(--s2); align-items: flex-end; }
+  .model-pick { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-xs); color: var(--muted); min-width: 0; flex: 1 1 220px; }
+  .model-pick select { max-width: 100%; }
+  .hover-tip { position: fixed; z-index: 50; max-width: 260px; padding: 4px 8px; border-radius: var(--r1); background: var(--ink); color: var(--bg); font-size: var(--fs-xs); font-weight: 600; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.2); }
+  .hover-tip[hidden] { display: none; }
+  .meter { display: inline-block; width: 64px; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; vertical-align: middle; flex: none; }
+  .meter.big { width: 140px; height: 10px; }
+  .meter[hidden] { display: none; }
+  .meter i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .09s linear; }
+  .meter[data-level="quiet"] i, .meter[data-level="silent"] i { background: var(--warn); }
+  .meter[data-level="loud"] i { background: var(--danger); }
+  .help-wrap { position: relative; }
+  #help-btn { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-md); }
+  .help-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: 250px; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r2); padding: var(--s1); box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+  .help-menu[hidden] { display: none; }
+  .help-menu a { display: block; padding: var(--s2); border-radius: var(--r1); color: var(--ink); font-size: var(--fs-sm); text-decoration: none; }
+  .help-menu a:hover, .help-menu a:focus-visible { background: var(--sunk); }
+  .app-foot { margin: var(--s5) 0 0; text-align: center; font-size: var(--fs-xs); color: var(--muted); }
+  .app-foot a { color: var(--muted); }
+  .help-menu button { display: block; width: 100%; text-align: left; padding: var(--s2); border: 0; border-radius: var(--r1); background: none; color: var(--ink); font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+  .help-menu button:hover, .help-menu button:focus-visible { background: var(--sunk); }
+  .help-menu p { margin: 0; padding: var(--s2); font-size: var(--fs-xs); }
+  .help-sep { height: 1px; background: var(--line); margin: var(--s1) 0; }
+  #tour[hidden] { display: none; }
+  #tour { position: fixed; inset: 0; z-index: 40; }
+  .tour-spot { position: fixed; border-radius: var(--r2); box-shadow: 0 0 0 9999px rgba(10,12,15,.55); outline: 2px solid var(--panel); pointer-events: none; }
+  .tour-card { position: fixed; width: min(340px, calc(100vw - 24px)); background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r3); padding: var(--s4); box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+  .tour-card h2 { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; margin: 0 0 var(--s2); }
+  .tour-card p { margin: 0; font-size: var(--fs); color: var(--ink-2); }
+  .tour-dots { display: flex; gap: 5px; margin: 0 0 var(--s2); }
+  .tour-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line-2); }
+  .tour-dots i.done { background: var(--muted); }
+  .tour-dots i.on { background: var(--ink); width: 16px; border-radius: 3px; }
+  .tour-count { font-size: var(--fs-xs) !important; color: var(--muted) !important; margin-bottom: var(--s1) !important; font-variant-numeric: tabular-nums; }
+  .tour-offer { position: fixed; right: var(--s4); bottom: 92px; z-index: 25; width: 290px; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r3); padding: var(--s4); box-shadow: 0 16px 40px rgba(0,0,0,.22); }
+  .tour-offer[hidden] { display: none; }
+  .tour-offer h2 { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 800; margin: 0 0 var(--s1); }
+  .tour-offer p { margin: 0 0 var(--s3); }
+  .toast { position: fixed; bottom: 92px; left: 50%; transform: translateX(-50%); max-width: min(560px, calc(100vw - 32px)); background: var(--accent); color: var(--on-accent); padding: var(--s2) var(--s4); border-radius: var(--r2); font-size: var(--fs-sm); opacity: 0; transition: opacity .15s; pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,.18); }
+  .toast.on { opacity: 1; }
+  .scroll { overflow-x: auto; }
+  @media (max-width: 640px) {
+    main { padding: var(--s3); }
+    .mini { margin-left: 0; }
+    .prep { grid-template-columns: 1fr; }
+  }
+  @media print {
+    :root, :root:not([data-theme="light"]) { --bg: #fff; --panel: #fff; --sunk: #fff; --ink: #000; --ink-2: #222; --muted: #444; --line: #bbb; --line-2: #999; }
+    header, nav, .noprint, aside.pane, .roundbar, section.tab:not(#tab-ballot) { display: none !important; }
+    body { padding-bottom: 0; }
+    section#tab-ballot { display: block !important; }
+    body { background: #fff; color: #000; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="#" aria-label="Tabula home" data-tab-link="setup">
+    <picture><source srcset="assets/tabula-mark-white.png" media="(prefers-color-scheme: dark)"><img src="assets/tabula-mark-black.png" alt="" width="30" height="24"></picture>
+    <span class="wordmark">Tabula</span>
+  </a>
+  <nav id="nav" aria-label="Places"></nav>
+  <span class="spacer"></span>
+  <div class="seg" role="group" aria-label="Reading level" title="How the AI writes: expert debate language, or plain words for students and parents"><button data-read="expert">Expert</button><button data-read="plain">Plain</button></div>
+  <div class="help-wrap">
+    <button class="iconbtn" id="help-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Help and tours" title="Help and tours">?</button>
+    <div class="help-menu" id="help-menu" role="menu" hidden>
+      <button role="menuitem" data-tour="main">Take the full tour</button>
+      <button role="menuitem" data-tour="page">Tour this page</button>
+      <a role="menuitem" href="about.html" target="_blank" rel="noopener">About Tabula</a>
+      <div class="help-sep"></div>
+      <p class="muted">Space starts and pauses the clock. Esc closes a tour or dialog.</p>
+    </div>
+  </div>
+  <button class="iconbtn" id="settings-btn" data-tab="ai" aria-label="Settings: AI, keys and audio" title="Settings: AI, keys and audio"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  <span id="mini-speech" hidden></span>
+</header>
+<main>
+<nav id="subnav" class="subnav" aria-label="Decide" hidden>
+  <button data-tab="eval">Live Eval</button><button data-tab="analysis">Analysis</button><button data-tab="ballot">Ballot</button><button data-tab="draft">Decision draft</button>
+</nav>
+
+<section class="tab" id="tab-setup">
+  <div class="card" id="round-card">
+    <h2>Round</h2>
+    <div class="grid">
+      <div><label>Tournament</label><input data-bind="tournament"></div>
+      <div><label>Round</label><input data-bind="roundName" placeholder="Round 3"></div>
+      <div><label>Judge</label><input data-bind="judge"></div>
+    </div>
+    <div style="margin-top:var(--s3)"><label>Resolution</label><input data-bind="topic" placeholder="Resolved: The United States federal government should…"></div>
+  </div>
+  <div class="grid">
+    <div class="card"><h2 class="aff">Affirmative</h2>
+      <label>Team code</label><input data-bind="aff.team">
+      <div class="grid" style="margin-top:var(--s2)">
+        <div><label>1A</label><input data-bind="aff.d1"></div>
+        <div><label>2A</label><input data-bind="aff.d2"></div>
+      </div>
+    </div>
+    <div class="card"><h2 class="neg">Negative</h2>
+      <label>Team code</label><input data-bind="neg.team">
+      <div class="grid" style="margin-top:var(--s2)">
+        <div><label>1N</label><input data-bind="neg.d1"></div>
+        <div><label>2N</label><input data-bind="neg.d2"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="reading-card">
+    <h2>Reading level</h2>
+    <div class="row"><div class="seg" role="group" aria-label="Reading level"><button data-read="expert">Expert (college debate)</button><button data-read="plain">Plain (Feynman style)</button></div>
+    <span class="muted">How the AI writes the Live Eval, analysis, decision and feedback. Plain is easier for students and parents, and good for Tabroom comments. Each level keeps its own saved answers, so you can switch back and forth. The verdict does not change, only the wording. The same switch is in the top bar.</span></div>
+  </div>
+  <div class="card" id="docs-card">
+    <h2>Round documents</h2>
+    <p class="muted">Add speech docs or case files (PDF, Word .docx, or text). Claude reads them for the live flow and the decision. Pick the speech each doc belongs to: Claude maps it onto that speech's flow column right away, and fills gaps in the transcript from it (marked [doc]). Docs stay in this browser until you start a new round.</p>
+    <div class="row">
+      <select id="doc-side" style="width:auto"><option value="aff">Aff doc</option><option value="neg">Neg doc</option><option value="other">Other</option></select>
+      <input type="file" id="doc-file" multiple accept=".pdf,.docx,.txt,.md,application/pdf" style="width:auto">
+      <span class="muted" id="doc-status"></span>
+    </div>
+    <table style="margin-top:var(--s2)"><tbody id="doc-list"></tbody></table>
+    <div class="sd-mount"></div>
+  </div>
+  <div class="card">
+    <h2>Times</h2>
+    <div class="grid">
+      <div><label for="prep-min">Prep per team (minutes)</label>
+        <div class="row" style="flex-wrap:nowrap"><input type="number" min="0" max="20" step="1" id="prep-min" style="width:5.5em">
+          <div class="seg" role="group" aria-label="Prep presets"><button data-prep-min="4">4</button><button data-prep-min="5">5</button><button data-prep-min="8">8</button><button data-prep-min="10">10</button></div></div>
+      </div>
+    </div>
+    <p class="muted">NSDA uses 8-3-5 speeches and 8 minutes prep. Many local leagues use 4 or 5. Tabula remembers your choice for new rounds.</p>
+  </div>
+  <div class="row noprint">
+    <button class="b" id="new-round">New round (clear all)</button>
+    <button class="b" id="round-save">Save round file (.tab)</button>
+    <label for="round-open" class="b" style="display:inline-flex;align-items:center;margin:0;cursor:pointer;color:var(--ink)">Open round file…</label>
+    <span class="muted">Everything saves in this browser as you type. A .tab file holds this whole round, with its docs, to keep or move.</span>
+  </div>
+</section>
+
+<div id="workspace" class="workspace">
+<section class="tab pane pane-left" id="tab-timer" aria-label="Speeches and transcript">
+  <div class="pane-head"><h2>Speeches</h2><button class="b small" data-pane="left" aria-label="Hide the speeches and transcript pane">Hide</button></div>
+  <div class="speeches" id="speech-list"></div>
+  <div class="pane-block transcript-block">
+    <div class="tr-head"><h2>Transcript: <span id="tr-label"></span></h2>
+      <span class="tip-wrap"><button class="tip" type="button" aria-label="About transcription" aria-expanded="false" aria-controls="rec-note">?</button>
+        <span class="tip-pop" id="rec-note" role="tooltip"></span></span></div>
+    <textarea id="transcript" rows="12" placeholder="Speech-to-text lands here while the clock runs. You can type or fix it too."></textarea>
+  </div>
+  <details class="pane-docs" open>
+    <summary>Speech docs: <span class="doc-count">none</span></summary>
+    <div class="row docbar">
+      <select class="doc-quick-side" style="width:auto"><option value="aff">Aff doc</option><option value="neg">Neg doc</option><option value="other">Other</option></select>
+      <input type="file" class="doc-quick" multiple accept=".pdf,.docx,.txt,.md,application/pdf" style="width:auto">
+      <span class="muted doc-quick-status">Or drop files anywhere on the page.</span>
+    </div>
+    <div class="sd-mount"></div>
+  </details>
+</section>
+
+<section class="tab pane pane-center" id="tab-flow" aria-label="Flow">
+  <div class="start-panel" id="start-panel" hidden>
+    <img src="assets/tabula-mark-black.png" alt="" width="48" height="39" class="start-mark">
+    <h2>Ready for a round</h2>
+    <p class="muted">Set up the teams first, or open a round you saved. You can also just start flowing and fill in the names later.</p>
+    <div class="start-actions">
+      <button class="b primary" id="start-new">Set up a new round</button>
+      <label for="round-open" class="b" id="start-open">Open a round file (.tab)</label>
+      <button class="b" id="start-flow">Just start flowing</button>
+    </div>
+  </div>
+  <input type="file" id="round-open" accept=".tab,application/json" hidden>
+  <div class="pane-toggles"><button class="b small" data-pane="left" id="show-left">Show speeches</button><button class="b small" data-pane="right" id="show-right">Show insights</button></div>
+  <div class="flowtabs" id="flow-tabs"></div>
+  <div class="flow" id="flow"></div>
+  <p class="muted">Aff columns are blue. Neg columns are red. Keep each argument on the same line across columns so the clash lines up.</p>
+</section>
+<aside class="pane pane-right" id="insights" aria-label="Insights">
+  <div class="pane-head"><h2>Insights</h2><button class="b small" data-pane="right" aria-label="Hide the insights pane">Hide</button></div>
+  <div id="insights-body"></div>
+</aside>
+</div>
+
+<section class="tab" id="tab-eval">
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Live Eval</h2>
+      <div class="row">
+        <label class="row" style="margin:0;color:var(--ink);font-size:var(--fs)"><input type="checkbox" id="auto-eval" style="width:auto"> Update after each speech <span class="muted">(one AI call each)</span></label>
+        <button class="b primary" id="eval-go">Update now</button>
+      </div>
+    </div>
+    <p class="muted" style="margin:var(--s2) 0 0">A read of the round so far, from the transcripts, flows and docs. It is advice for you, not a decision. <span id="eval-meta"></span></p>
+    <p id="eval-status" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
+  </div>
+  <div id="eval-body"></div>
+</section>
+
+<section class="tab" id="tab-analysis">
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Paradigm Lens</h2>
+      <div class="row">
+        <select id="lens-pick" style="width:auto" aria-label="Paradigm to weigh by"></select>
+        <button class="b primary" id="lens-go">Weigh</button>
+      </div>
+    </div>
+    <p class="muted" style="margin:var(--s2) 0 0">Weigh the round as a judge with this paradigm would. Each paradigm keeps its own saved answer, so switching is free. It only reruns when you click the button.</p>
+    <details id="lens-custom-box" style="margin-top:var(--s3)">
+      <summary class="muted" style="cursor:pointer">My Tabroom paradigm (paste the full text)</summary>
+      <textarea id="lens-custom" rows="6" style="margin-top:var(--s2)" placeholder="Paste your judging paradigm from Tabroom here."></textarea>
+    </details>
+    <p id="lens-status" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
+    <div id="lens-out" style="margin-top:var(--s3)"></div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Impact Calculus</h2>
+      <button class="b" id="impact-go">Refresh</button>
+    </div>
+    <p id="impact-status" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
+    <div id="impact-out" style="margin-top:var(--s3)"></div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Round Map</h2>
+      <div class="row">
+        <div class="seg" role="group" aria-label="Map view"><button data-mapview="sheet">Flow sheet</button><button data-mapview="diagram">Diagram</button></div>
+        <button class="b" id="map-add">+ Argument</button><button class="b" id="map-copy">Copy Mermaid code</button><button class="b" id="map-go">Refresh</button>
+      </div>
+    </div>
+    <p class="muted" style="margin:var(--s2) 0 0" id="map-legend">Each row follows one argument across the speeches. <span class="mk">↩ answers</span> <span class="mk">↻ turns</span> <span class="mk">→ extends</span> <span class="mk">= concedes</span> <span class="chip drop">Dropped</span> marks an argument the other side never answered.</p>
+    <p id="map-status" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
+    <div id="map-out" class="scroll" style="margin-top:var(--s3)"></div>
+  </div>
+</section>
+
+<section class="tab" id="tab-ai">
+  <div class="card" id="conn-card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Connect AI</h2>
+      <button class="b" id="show-welcome">Show the welcome screen</button>
+    </div>
+    <p class="muted" style="margin:var(--s2) 0 var(--s3)">Paste a key from any provider below. The app works out which one it is and checks that it works. Best value: an OpenAI key. It does transcription and AI, and in our test its small model flowed about as well as Claude Sonnet for about 4 cents a round.</p>
+    <div class="row" style="flex-wrap:nowrap">
+      <input type="password" id="key-paste" placeholder="Paste an API key here (starts with AIza…, sk-…, sk-ant-… or xai-…)" autocomplete="off" aria-label="API key">
+      <button class="b primary" id="key-connect">Connect</button>
+    </div>
+    <p id="key-msg" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
+    <div id="prov-list" style="margin-top:var(--s3)"></div>
+    <div class="grid" style="margin-top:var(--s3)">
+      <div><label for="ai-engine">AI tools (flow, Live Eval, analysis, decision) use</label><select id="ai-engine"></select></div>
+      <div><label for="tr-engine">Transcription uses</label><select id="tr-engine"></select></div>
+    </div>
+    <details id="sub-box" style="margin-top:var(--s3)">
+      <summary style="cursor:pointer;font-weight:600">Use a Claude or ChatGPT subscription instead of a key</summary>
+      <div id="sub-body" class="muted" style="margin-top:var(--s2)"></div>
+    </details>
+    <label class="row" style="margin-top:var(--s3);color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="remember-keys"> Remember keys on this computer (saved in this browser only, as plain text)</label>
+  </div>
+  <div class="card" id="audio-card">
+    <h2>Audio</h2>
+    <div class="grid">
+      <div><label>Where is the round?</label>
+        <div class="seg" role="group" aria-label="Audio mode"><button data-audio="room">In the room</button><button data-audio="zoom">Zoom or speakers</button></div>
+        <p class="muted" style="margin:var(--s2) 0 0" id="audio-mode-help"></p>
+      </div>
+      <div><label for="mic-pick">Microphone</label>
+        <div class="row" style="flex-wrap:nowrap"><select id="mic-pick"></select><button class="b" id="mic-refresh">Refresh</button></div>
+        <p class="muted" style="margin:var(--s2) 0 0">Used by Gemini, OpenAI and Grok transcription. Free browser transcription always uses Chrome's default mic and its own sound settings, so the mic choice and the room/Zoom setting do not apply to it, and it shows no level meter.</p>
+      </div>
+    </div>
+    <div class="row" style="margin-top:var(--s3)">
+      <button class="b" id="mic-test">Test the mic (5 s)</button>
+      <span class="meter big" id="test-meter" role="img" aria-label="Mic test level" hidden><i></i></span>
+      <span id="mic-test-result" role="status" aria-live="polite" style="font-weight:600"></span>
+    </div>
+    <details style="margin-top:var(--s3)"><summary class="muted" style="cursor:pointer">Tips for a live room</summary>
+      <ul class="muted" style="margin:var(--s2) 0 0;padding-left:20px">
+        <li>Put the laptop between the podium and the timekeeper, about 1–2 m from the speaker, screen facing you.</li>
+        <li>Keep it off the desk you type on hardest; keyboard taps get picked up.</li>
+        <li>For big rooms, a USB or clip-on mic near the podium helps a lot.</li>
+        <li>Run the 5-second test with someone talking at the podium before the 1AC.</li>
+      </ul></details>
+  </div>
+  <div class="card">
+    <h2>Settings</h2>
+    <div class="grid">
+      <div><label>Paradigm for the decision</label>
+        <select data-bind="ai.paradigm">
+          <option value="lay">Lay / stock issues</option>
+          <option value="policymaker">Policymaker</option>
+          <option value="tabula">Tabula rasa</option>
+          <option value="tech">Tech over truth (flow)</option>
+          <option value="critical">Critical (K-friendly)</option>
+          <option value="games">Games / skills</option>
+          <option value="custom">My Tabroom paradigm (paste it on the Analysis tab)</option>
+        </select>
+      </div>
+      <div><label for="chunk-sec">Clip length for transcription (seconds, 4–30)</label><input type="number" id="chunk-sec" min="4" max="30" step="1"></div>
+      <div><label>&nbsp;</label><label class="row" style="color:var(--ink);font-size:var(--fs)"><input type="checkbox" id="live-flow"> Live AI flow during speeches</label></div>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="tab-draft">
+  <div class="card">
+    <h2>Decision draft</h2>
+    <div style="margin-top:var(--s3)"><label>Your own notes for the AI (optional)</label><textarea data-bind="ai.notes" rows="2" placeholder="Example: I don't vote on condo bad unless it's dropped. I thought the 2AR extended solvency well."></textarea></div>
+    <div style="margin-top:var(--s3)"><label>Evidence / speech docs (optional, paste text)</label><textarea data-bind="ai.evidence" rows="4"></textarea></div>
+    <div class="row" style="margin-top:var(--s3)">
+      <button class="b primary" id="ai-go">Generate decision draft</button>
+      <button class="b" id="ai-copy-prompt">Copy prompt instead</button>
+      <span class="muted" id="ai-status"></span>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Draft</h2>
+    <div class="out" id="ai-out"></div>
+    <div class="row" style="margin-top:var(--s3)">
+      <button class="b" id="ai-use">Use as RFD + winner on ballot</button>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="tab-ballot">
+  <div class="card noprint" id="filler-card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">AI ballot filler</h2>
+      <div class="row">
+        <label class="row" style="margin:0;color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="auto-ballot"> Refill after each speech <span class="muted">(one AI call each)</span></label>
+        <button class="b" id="fill-go">Fill ballot now</button>
+      </div>
+    </div>
+    <p class="muted" style="margin:var(--s2) 0 0">Drafts the winner, points, ranks, RFD and team comments from everything in the round. <strong>Anything you type on the ballot is yours: the AI will not change it.</strong> <button class="linkish" id="fill-unlock">Let the AI refill my fields too</button></p>
+    <label for="ballot-input" style="margin-top:var(--s3)">Tell the AI (optional)</label>
+    <textarea id="ballot-input" data-bind="ballotInput" rows="2" placeholder="Example: I'm voting aff on the perm. 2N was clearly the best speaker. Be kinder to the 1A."></textarea>
+    <div class="row" style="margin-top:var(--s2)"><button class="b" id="fill-redo">Redo with my input</button><button class="b" id="fill-undo">Undo last fill</button><span id="fill-status" role="status" aria-live="polite" style="font-weight:600"></span></div>
+    <div id="fill-why" class="muted" style="margin-top:var(--s2);white-space:pre-wrap"></div>
+  </div>
+  <div class="card">
+    <h2 id="ballot-title">Ballot</h2>
+    <div class="row" style="gap:18px">
+      <label class="row" style="margin:0;font-size:var(--fs-md)"><input type="radio" name="winner" value="aff" style="width:auto"> <span class="aff">Aff wins</span> <span id="w-aff" class="muted"></span></label>
+      <label class="row" style="margin:0;font-size:var(--fs-md)"><input type="radio" name="winner" value="neg" style="width:auto"> <span class="neg">Neg wins</span> <span id="w-neg" class="muted"></span></label>
+    </div>
+    <div class="scroll" style="margin-top:var(--s3)">
+      <table>
+        <thead><tr><th>Speaker</th><th>Name</th><th>Points (25–30)</th><th>Rank (1 = best)</th></tr></thead>
+        <tbody id="pts-body"></tbody>
+      </table>
+    </div>
+    <p class="muted">Team totals: <span class="aff" id="sum-aff">–</span> · <span class="neg" id="sum-neg">–</span></p>
+    <div style="margin-top:var(--s3)"><label class="row" style="justify-content:space-between">Reason for decision (RFD) — goes to everyone <button class="b noprint" data-copy="ballot.rfd">Copy</button></label><textarea data-bind="ballot.rfd" rows="8"></textarea></div>
+    <div class="grid" style="margin-top:var(--s3)">
+      <div><label class="row" style="justify-content:space-between"><span class="aff">Aff team comments <span id="fb-aff-code"></span></span> <button class="b noprint" data-copy="ballot.affFb">Copy</button></label><textarea data-bind="ballot.affFb" rows="6"></textarea></div>
+      <div><label class="row" style="justify-content:space-between"><span class="neg">Neg team comments <span id="fb-neg-code"></span></span> <button class="b noprint" data-copy="ballot.negFb">Copy</button></label><textarea data-bind="ballot.negFb" rows="6"></textarea></div>
+    </div>
+    <p class="muted noprint">For Tabroom: paste the RFD into "Reason for Decision", then each team's comments into that team's tab.</p>
+    <div id="ballot-check"></div>
+    <div class="row noprint" style="margin-top:var(--s3)">
+      <button class="b primary" id="b-save">Save to log</button>
+      <button class="b" id="b-tsv">Copy row for Google Sheets</button>
+      <button class="b" id="b-csv">Download CSV</button>
+      <button class="b" id="print-btn">Print</button>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="tab-log">
+  <div class="card">
+    <h2>Saved ballots</h2>
+    <div class="row" style="margin-bottom:var(--s3)">
+      <button class="b primary" id="log-tsv">Copy all for Google Sheets</button>
+      <button class="b" id="log-csv">Download all as CSV</button>
+      <span class="muted">In Sheets: click cell A1, then paste.</span>
+    </div>
+    <div class="scroll"><table id="log-table"></table></div>
+  </div>
+  <div class="card" id="backup-card">
+    <h2>Back up and restore</h2>
+    <p class="muted" style="margin:0 0 var(--s3)">Everything you do is saved in this browser only. A backup file holds all of it: the round, flows, transcripts, analysis, ballots, saved ballots, settings and documents. Keep one before you clear the browser or switch computers.</p>
+    <div class="row">
+      <button class="b primary" id="backup-go">Download backup</button>
+      <label class="row" style="margin:0;color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="backup-keys"> Include my API keys (keep that file private)</label>
+    </div>
+    <p class="muted" id="backup-last" style="margin:var(--s2) 0 0"></p>
+    <div class="row" style="margin-top:var(--s3)">
+      <label for="restore-file" class="b" style="display:inline-flex;align-items:center;margin:0;cursor:pointer;color:var(--ink)">Restore from a backup…</label>
+      <input type="file" id="restore-file" accept=".json,application/json" hidden>
+      <span class="muted">Replaces what is in this browser now. Your current data is downloaded first, just in case.</span>
+    </div>
+    <p id="backup-status" role="status" aria-live="polite" style="font-weight:600;margin:var(--s2) 0 0"></p>
+  </div>
+</section>
+
+  <p class="app-foot noprint"><a href="about.html" target="_blank" rel="noopener">About Tabula</a> · Made by Connor England</p>
+</main>
+<section class="tr-drawer noprint" id="tr-drawer" aria-label="Transcript" hidden>
+  <div class="tr-drawer-head"><h2>Transcript: <span id="tr-drawer-label"></span></h2><button class="b small" id="tr-drawer-close">Hide</button></div>
+  <textarea id="transcript-big" placeholder="Speech-to-text lands here while the clock runs. You can type or fix it too." aria-label="Transcript of the current speech"></textarea>
+</section>
+<footer class="roundbar noprint" aria-label="Round controls">
+  <div class="rb-speech"><span id="cur-label"></span><span class="clock" id="clock" aria-live="off">8:00</span></div>
+  <div class="rb-ctl">
+    <button class="b primary" id="t-start" title="Start or pause (Space)">Start</button>
+    <button class="b" id="t-reset">Reset</button>
+    <button class="b" id="t-next">Next speech</button>
+    <button class="b" id="tr-toggle" aria-expanded="false" aria-controls="tr-drawer" title="Show or hide the transcript">Transcript</button>
+  </div>
+  <div class="rb-rec">
+    <label class="row" style="margin:0;color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="rec-on"> Transcribe</label>
+    <span id="rb-meter" class="meter" role="img" aria-label="Mic level" hidden><i></i></span>
+    <span id="rec-status" class="rb-status" role="status" aria-live="polite"></span>
+  </div>
+  <div class="rb-prep"><span class="aff">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
+  <div class="rb-prep"><span class="neg">Neg prep</span><span class="t" id="prep-neg">8:00</span><button class="b small" data-prep="neg">Start</button></div>
+  <span id="mini-rec" class="rb-ai"></span>
+</footer>
+<div id="node-editor" class="overlay" role="dialog" aria-modal="true" aria-labelledby="ne-title" hidden>
+  <div class="overlay-card" style="width:min(480px,100%)">
+    <h2 id="ne-title" style="margin:0 0 var(--s3)">Argument</h2>
+    <label for="ne-label">Text</label><input id="ne-label" placeholder="e.g. No link — plan is cheap">
+    <div class="grid" style="margin-top:var(--s3)">
+      <div><label for="ne-speech">Speech</label><select id="ne-speech"></select></div>
+      <div><label for="ne-status">Status</label><select id="ne-status"><option value="open">Open</option><option value="answered">Answered</option><option value="extended">Extended</option><option value="dropped">Dropped</option><option value="conceded">Conceded</option></select></div>
+    </div>
+    <label style="margin-top:var(--s3)" for="ne-target">Responds to</label>
+    <div class="row" style="flex-wrap:nowrap"><select id="ne-kind" style="width:auto" aria-label="How it responds"><option value="answers">answers</option><option value="turns">turns</option><option value="extends">extends</option><option value="concedes">concedes</option></select><select id="ne-target"></select></div>
+    <div class="row" style="justify-content:space-between;margin-top:var(--s4)">
+      <button class="b" id="ne-delete">Delete</button>
+      <div class="row"><button class="b" id="ne-cancel">Cancel</button><button class="b primary" id="ne-save">Save</button></div>
+    </div>
+  </div>
+</div>
+<div id="tour" hidden>
+  <div class="tour-spot" id="tour-spot"></div>
+  <div class="tour-card" id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-body">
+    <p class="tour-count" id="tour-count"></p>
+    <div class="tour-dots" id="tour-dots" aria-hidden="true"></div>
+    <h2 id="tour-title"></h2>
+    <p id="tour-body"></p>
+    <div class="row" style="justify-content:space-between;margin-top:var(--s3)">
+      <button class="linkish" id="tour-skip">Skip tour</button>
+      <div class="row"><button class="b" id="tour-back">Back</button><button class="b primary" id="tour-next">Next</button></div>
+    </div>
+  </div>
+</div>
+<div class="tour-offer" id="tour-offer" role="dialog" aria-labelledby="tour-offer-title" hidden>
+  <h2 id="tour-offer-title">New here?</h2>
+  <p class="muted">A one-minute tour shows where everything is.</p>
+  <div class="row"><button class="b primary" id="tour-offer-go">Take the tour</button><button class="b" id="tour-offer-no">Not now</button></div>
+</div>
+<div id="welcome" class="overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-title" hidden>
+  <div class="overlay-card">
+    <h1 id="welcome-title" class="display" style="font-size:26px;margin:0 0 var(--s1)">Welcome to Tabula</h1>
+    <p class="muted" style="margin:0 0 var(--s4)">Timers, flow sheets and the ballot always work. AI adds live transcripts, an auto-flow, a Live Eval and analysis. How do you want to start?</p>
+    <div class="choices" id="welcome-choices">
+      <button class="choice" data-choice="key"><strong>Connect an AI key</strong><span>Recommended. An OpenAI key is the best value: it does transcription and AI. Gemini, Claude and Grok work too. Step-by-step help included.</span></button>
+      <button class="choice" data-choice="sub"><strong>Use my Claude or ChatGPT subscription</strong><span>Uses the Claude Code or Codex app already signed in on this Mac. Needs one Terminal command. Transcription stays the free browser kind.</span></button>
+      <button class="choice" data-choice="skip"><strong>Skip — just flow</strong><span>No AI. Everything you type stays yours.</span></button>
+    </div>
+    <div id="skip-box" hidden style="margin-top:var(--s4)">
+      <p style="margin:0 0 var(--s2);font-weight:600">Without AI you get:</p>
+      <ul style="margin:0 0 var(--s3);padding-left:20px" class="muted">
+        <li>Speech and prep timers, flow sheets, the round map (drawn by hand), the ballot and the Tabroom copy boxes.</li>
+        <li>Free browser transcription in Chrome (weaker on fast speech).</li>
+      </ul>
+      <p style="margin:0 0 var(--s2);font-weight:600">You will not get:</p>
+      <ul style="margin:0 0 var(--s3);padding-left:20px" class="muted"><li>The AI flow, Live Eval, Impact Calculus, Paradigm Lens, auto-drawn map or decision draft.</li></ul>
+      <label class="row" style="color:var(--ink);font-size:var(--fs-sm)"><input type="checkbox" id="skip-ack"> I understand. I can connect AI later in "AI + Keys".</label>
+      <div class="row" style="margin-top:var(--s3)"><button class="b primary" id="skip-go" disabled>Start flowing</button><button class="b" id="skip-back">Back</button></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="logic.js"></script>
+<script src="providers.js"></script>
+<script src="tour.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

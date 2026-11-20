@@ -1,0 +1,89 @@
+// Guided tours: the steps, and the math that places the tour card next to the part it explains.
+// No DOM work here, so Node tests can check every tour.
+(function (root) {
+  'use strict';
+
+  // place: which part of the app to open first ('setup', 'flow', 'eval', 'analysis', 'ballot', 'draft', 'log', 'ai').
+  // target: the part of the screen to highlight. Keep each step short: one idea, a few sentences.
+  const TOURS = {
+    main: {
+      title: 'Tour of Tabula',
+      steps: [
+        { place: 'setup', target: '#round-card', title: 'Set up the round', body: 'Type the round, the teams and the debaters. It takes half a minute, and it fills the ballot later.' },
+        { place: 'setup', target: '#docs-card', title: 'Add speech docs', body: 'Add the aff case or any speech doc (PDF, Word or text). The AI reads them and puts them on the flow. When a speech has no transcript, its doc counts as the speech.' },
+        { place: 'flow', target: '.rb-ctl', title: 'Run the clock', body: 'Start and pause the speech clock here, or press Space from anywhere. Prep clocks for each team sit on the right of this bar.' },
+        { place: 'flow', target: '.rb-rec', title: 'Record the speech', body: 'Tick Transcribe. Recording runs only while the speech clock runs. A short bar shows the mic level, and a note warns you if no words come through.' },
+        { place: 'flow', target: '#tab-flow', title: 'Flow the round', body: '"My flow" is yours to type. "AI flow" fills itself from the transcript and docs. You can edit any AI cell, and your edits stick.' },
+        { place: 'eval', target: '#subnav', title: 'Decide', body: 'After the round: the Live Eval, deeper analysis, the ballot and a decision draft. Each one works with or without AI.' },
+        { place: 'ballot', target: '#filler-card', title: 'Fill the ballot', body: 'The AI can draft points, ranks, the RFD and comments. Anything you type is yours, and the AI will not change it. Copy buttons put each box into Tabroom.' },
+        { place: null, target: '#help-btn', title: 'Help is always here', body: 'Click ? to replay this tour, or to get a short tour of the page you are on. Connect AI any time with the gear; without AI, the timers, flow and ballot still work.' },
+      ],
+    },
+    flow: {
+      title: 'The Flow workspace',
+      steps: [
+        { place: 'flow', target: '#tab-timer', title: 'Speeches and transcript', body: 'Pick a speech, add docs, and read or fix its transcript. Hide this pane for more room.' },
+        { place: 'flow', target: '#flow-tabs', title: 'Your flow and the AI flow', body: 'Switch between your flow and the AI flow. Sheets hold one argument each. Brief, Standard and Detailed change how much the AI flow shows.' },
+        { place: 'flow', target: '#tab-flow', title: 'Edit anything', body: 'Type in any cell. An edited AI cell gets an "Edited" mark. If the AI writes something newer, you choose "Use AI" or "Keep mine".' },
+        { place: 'flow', target: '#insights', title: 'Insights', body: 'The current leaning and what to listen for next. Click Update for a fresh read.' },
+      ],
+    },
+    decide: {
+      title: 'Decide',
+      steps: [
+        { place: 'eval', target: '#tab-eval', title: 'Live Eval', body: 'A read of the round so far: the leaning, key issues, what each side needs, and feedback for each debater.' },
+        { place: 'analysis', target: '#tab-analysis', title: 'Analysis', body: 'Weigh the round under any paradigm (including your own Tabroom paradigm), compare the impacts, and see the round as a map you can edit.' },
+        { place: 'ballot', target: '#filler-card', title: 'Ballot filler', body: 'Drafts the whole ballot. Tell it what you think in the box, and it redoes the draft with your view. Fields you typed stay yours.' },
+        { place: 'draft', target: '#tab-draft', title: 'Decision draft', body: 'A full written decision you can read, then send to the ballot as the RFD.' },
+      ],
+    },
+    settings: {
+      title: 'Settings',
+      steps: [
+        { place: 'ai', target: '#conn-card', title: 'Connect AI', body: 'Paste a key from Google, OpenAI, Anthropic or xAI. Tabula works out which one it is and checks it. Step-by-step help is under each provider.' },
+        { place: 'ai', target: '#audio-card', title: 'Audio', body: 'Choose "In the room" or "Zoom", pick the microphone, and run the 5-second mic test before the round.' },
+      ],
+    },
+    setup: {
+      title: 'Round',
+      steps: [
+        { place: 'setup', target: '#round-card', title: 'Round details', body: 'The tournament, round, judge and resolution. They show on the ballot and the saved log.' },
+        { place: 'setup', target: '#docs-card', title: 'Round documents', body: 'Add speech docs and pick which speech each one belongs to. The AI maps them onto that speech on the flow.' },
+        { place: 'setup', target: '#reading-card', title: 'Reading level', body: 'Expert writes like a college judge. Plain writes for students and parents, which is good for Tabroom comments.' },
+      ],
+    },
+    log: {
+      title: 'Library',
+      steps: [
+        { place: 'log', target: '#tab-log .card', title: 'Saved ballots', body: 'Every ballot you save is here. Copy them all into Google Sheets, or download a CSV.' },
+        { place: 'log', target: '#backup-card', title: 'Back up your work', body: 'Everything lives in this browser only. Download a backup now and then, and restore it on any computer.' },
+      ],
+    },
+  };
+
+  // Which short tour fits the place the judge is on.
+  const PLACE_TOUR = { setup: 'setup', flow: 'flow', decide: 'decide', log: 'log', ai: 'settings' };
+
+  // Places the tour card next to the highlighted part: below it if it fits, else above, else beside;
+  // always fully inside the window with a margin.
+  function placeCard(target, card, view, gap) {
+    const g = gap == null ? 12 : gap;
+    const m = 12;
+    const clampX = (x) => Math.max(m, Math.min(x, view.w - card.w - m));
+    const clampY = (y) => Math.max(m, Math.min(y, view.h - card.h - m));
+    const below = target.top + target.height + g;
+    if (below + card.h + m <= view.h) return { top: below, left: clampX(target.left), side: 'below' };
+    const above = target.top - g - card.h;
+    if (above >= m) return { top: above, left: clampX(target.left), side: 'above' };
+    const right = target.left + target.width + g;
+    if (right + card.w + m <= view.w) return { top: clampY(target.top), left: right, side: 'right' };
+    const left = target.left - g - card.w;
+    if (left >= m) return { top: clampY(target.top), left, side: 'left' };
+    // The part is bigger than the screen: put the card in the lower corner over it.
+    return { top: clampY(view.h - card.h - m), left: clampX(view.w - card.w - m), side: 'over' };
+  }
+
+  const api = { TOURS, PLACE_TOUR, placeCard };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.Tours = api;
+})(typeof window !== 'undefined' ? window : globalThis);
