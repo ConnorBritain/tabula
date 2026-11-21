@@ -116,7 +116,7 @@ function speechPicker(d) {
 }
 // Re-flow a speech after its docs change. If nothing is left to flow it from, clear its AI notes.
 function reflowForDocs(speechId) {
-  if (!speechId) return;
+  if (!speechId || !can('aiFlow')) return;
   const hasSource = (R.transcripts[speechId] || '').trim() || DOCS.some((d) => L.docSpeech(d) === speechId);
   if (hasSource) scheduleFlow(speechId, true);
   else { R.aiFlows = L.applyLiveFlow(R.aiFlows, speechId, { sheets: [] }); save(); if (R.tab === 'flow') renderFlow(); }
@@ -150,7 +150,7 @@ async function addDocFiles(files, side, statusEl, speech) {
       statusEl.textContent = 'Added ' + file.name + ' (' + L.DOC_SIDES[side] + (sp ? ', mapped to ' + sp : '') + ')';
       if (sp) {
         if (S.liveFlow && aiReady()) scheduleFlow(sp, true);
-        else statusEl.textContent += '. Connect AI and turn on Live AI flow to map it onto the flow.';
+        else if (can('aiFlow')) statusEl.textContent += showSetup() ? '. Connect AI and turn on Live AI flow to map it onto the flow.' : '. Turn on Live AI flow in Settings to map it onto the flow.';
       }
       docStore.put(doc).catch(() => toast(file.name + ' is kept for this page only. It will be gone after a refresh.'));
     } catch (err) {

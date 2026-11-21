@@ -10,7 +10,7 @@ const L = window.PolicyLogic;
 const K = window.TabulaKeys;
 const IS_MAC = K.isMacPlatform(navigator.platform || navigator.userAgent);
 const $ = (s) => document.querySelector(s);
-const STORE = 'policyJudge.round.v1', LOG = 'policyJudge.log.v1', KEY = 'policyJudge.key';
+const STORE = L.STORE_KEYS.round, LOG = 'policyJudge.log.v1', KEY = 'policyJudge.key';
 
 // ---------- storage (never trust it to exist) ----------
 const store = {
@@ -133,6 +133,7 @@ function showTab(id) {
   if (id === 'decide') id = R.lastDecide || 'eval';
   if (id === 'timer') id = 'flow';
   id = L.decideTab(id);
+  if (id === 'eval' && !can('liveEval')) id = 'ballot'; // a removed tab never opens (Analysis stays: its glance and hand map need no AI)
   if (!PLACE_OF[id]) id = 'setup';
   const place = PLACE_OF[id];
   R.tab = id; if (place === 'decide') R.lastDecide = id; save();
@@ -173,7 +174,8 @@ function applyPanes() {
   // Insights (V9, Q8): the open pane, or a 32 px edge. With no AI it folds to the Connect AI prompt: the whole row
   // (reason and button) is hidden in every other mode, so no empty box or AI prompt is left when AI is ready.
   const mode = insightsMode();
-  ws.classList.toggle('ins-folded', mode !== 'open'); // not 'ins-edge': that is the strip's own class
+  ws.classList.toggle('ins-folded', mode !== 'open' && mode !== 'none'); // not 'ins-edge': that is the strip's own class
+  ws.classList.toggle('ins-none', mode === 'none'); // the AI gate removed Insights: the grid takes the width
   $('#insights').dataset.mode = mode;
   $('#ins-cta').hidden = mode !== 'edge-connect';
   $('#ins-show').hidden = mode !== 'edge-show';
@@ -182,7 +184,7 @@ function applyPanes() {
   btn.setAttribute('aria-expanded', String(overlay ? leftOpen : !S.hideLeft));
   btn.dataset.tip = K.speechesTip(IS_MAC, S.singleKeys !== false);
 }
-const insightsMode = () => L.insightsMode({ aiReady: aiReady(), hideRight: Boolean(S.hideRight) });
+const insightsMode = () => L.insightsMode({ allowed: can('liveEval'), setup: showSetup(), aiReady: aiReady(), hideRight: Boolean(S.hideRight) });
 function focusSpeechTile() { const t = $('#speech-list .sp.run') || $('#speech-list .sp.on'); if (t) t.focus(); }
 function openSpeeches(from) {
   leftOpener = from && from !== document.body && !from.closest('#tab-timer') ? from : null;
@@ -205,7 +207,7 @@ function toggleSpeechesPane(from) {
 $('#speeches-btn').addEventListener('click', (e) => toggleSpeechesPane(e.currentTarget));
 // ] shows or hides Insights (open / edge). With no AI it is folded to "Connect AI", so the key does nothing (spec 4.1).
 function toggleInsights() {
-  if (insightsMode() === 'edge-connect') return false;
+  if (insightsMode() === 'edge-connect' || insightsMode() === 'none') return false;
   S.hideRight = !S.hideRight; saveSettings(); applyPanes();
   return true;
 }

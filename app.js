@@ -1,6 +1,6 @@
 // Tabula app: the entry point of the page code. The code lives in files so the Content-Security-Policy can forbid
 // inline scripts. It is split by job into classic scripts in js/, which index.html loads with defer, in this order,
-// before this module: core, clock, recording, flow, docs, ai, settings, help, insights, decide, shell, palette, study, judging, account. They share one global
+// before this module: core, caps, clock, recording, flow, docs, ai, settings, help, insights, decide, shell, palette, study, judging, account. They share one global
 // scope (no imports, so no import cycles). This file draws the theme and starts the page.
 // ---------- theme (V10, Q3) ----------
 // Light / Dark / System in Settings, System by default. assets/theme-boot.js drew the saved theme before the page
@@ -19,6 +19,7 @@ restoreClocksOnLoad();
 bindAll(); renderSpeeches(); renderClock(); renderPrep(); renderTranscript(); renderRecStrip(); renderRecNotice(); renderTheme();
 renderSingleKeys(); renderNetNote(); // the Start and Speeches tips follow the single-key switch (5.5); the offline note (5.1)
 renderConnections(); checkHelper(); renderReadLevel(); renderRange(); applyPanes(); renderAudio(); listMics();
+applyCapabilities(); // the AI gate, before the first place is drawn (js/caps.js)
 showTab(R.tab || 'flow'); renderPrepPresets(); showDrawer(Boolean(S.trDrawer)); resumeClips();
 renderSdList(); if (sdState().code) { sdFetchList(true); sdWatch(); } // resume watching this round's SpeechDrop room
 booted = true;

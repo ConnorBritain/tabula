@@ -22,7 +22,7 @@ function renderJudging() {
   const name = (acctProfile.programs.find((p) => p.id === R.programId) || {}).name;
   const help = locked
     ? 'Set for this round. Start a new round to change it.'
-    : (name ? name + "'s AI rules and credits apply to this round." : 'Your own AI rules and credits apply to this round.') + ' Pick before the first speech.';
+    : (name ? name + "'s rules and credits apply to this round." : 'Your own rules and credits apply to this round.') + ' Pick before the first speech.';
   document.querySelectorAll('select[data-judging]').forEach((sel) => {
     sel.innerHTML = opts.map((o) => `<option value="${escapeHtml(o.value)}">${escapeHtml(o.label)}</option>`).join('');
     sel.value = R.programId || '';
@@ -36,4 +36,10 @@ document.addEventListener('change', (e) => {
   R.programId = L.judgingFor(e.target.value, acctProfile);
   store.set(JUDGING_KEY, R.programId); save();
   renderJudging();
+  refreshCaps(R.programId); // the school's AI policy for this round (js/caps.js)
 });
+// The server says the judge is not in that school (403 not_member): drop the choice and ask again.
+function dropJudging() {
+  R.programId = null; store.set(JUDGING_KEY, null); save();
+  renderJudging(); refreshCaps(null);
+}

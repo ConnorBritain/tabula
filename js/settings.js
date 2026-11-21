@@ -63,8 +63,9 @@ function renderConnections() {
   aiChanged();
 }
 // Insights switches between its edge and the open pane with no reload when AI connects or goes (V9).
-function aiChanged() { applyPanes(); renderInsights(); if (R.tab === 'eval') renderEvalStatus(); if (R.tab === 'analysis') renderAnalysis(); if (R.tab === 'ballot') renderDraftPanel(); }
+function aiChanged() { writeAiOff(); applyPanes(); renderInsights(); if (R.tab === 'eval') renderEvalStatus(); if (R.tab === 'analysis') renderAnalysis(); if (R.tab === 'ballot') renderDraftPanel(); }
 async function connectKey(raw) {
+  if (!canSetup()) return;
   const key = String(raw || '').trim();
   const msg = $('#key-msg');
   const id = P.detectProvider(key);
@@ -133,6 +134,7 @@ $('#remember-keys').addEventListener('change', (e) => {
 const HELPER_CMD = 'node bridge.mjs';
 
 async function checkHelper() {
+  if (!canSetup()) { S.helper = {}; renderConnections(); return; }
   subShown = ''; // show what is true now, not an old click
   // The helper only exists on the judge's own computer. On the hosted site there is nothing to ask.
   if (!LOCAL_ORIGIN) { S.helper = {}; renderConnections(); return; }
@@ -254,3 +256,23 @@ $('#mic-test').addEventListener('click', async () => {
     meter.hidden = true; btn.disabled = false; testing = false; testAbort = false;
   }
 });
+
+// ---------- the one-time key notice (platform 1B, AI-POLICY §6c) ----------
+const KEY_NOTICE_SHOWN = 'tabula.keyNotice.v1'; // the programs whose one-time key notice was shown on this device
+// A saved key in a program that hides all AI: say so once, at join, and never again (AI-POLICY §6c). It names no
+// feature; the key belongs to the judge, so Tabula never deletes it unasked.
+// recordProgramId: the school of the record the gate uses (js/caps.js applyCapabilities).
+async function maybeKeyNotice(recordProgramId) {
+  const shown = store.get(KEY_NOTICE_SHOWN, []);
+  const programId = capsGate.mode === 'record' ? recordProgramId : null;
+  if (!L.keyNoticeDue({ gate: capsGate, programId, hasSavedKey: S.rememberKeys && Object.keys(keys).length > 0, shown })) return;
+  if (R.run || modalOpen()) return; // never over a running speech or another dialog; it waits for the next boundary
+  store.set(KEY_NOTICE_SHOWN, [...shown, programId]);
+  const p = acctProfile && acctProfile.programs.find((x) => x.id === programId);
+  const remove = await ask({
+    title: 'Your saved key',
+    body: L.KEY_NOTICE(p ? p.name : 'this school\'s'),
+    buttons: [{ label: 'Keep it', value: false, kind: 'plain' }, { label: 'Remove it', value: true, kind: 'danger' }], cancelValue: false,
+  });
+  if (remove) { for (const id of Object.keys(keys)) delete keys[id]; saveKeys(); renderConnections(); }
+}

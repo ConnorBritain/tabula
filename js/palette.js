@@ -7,7 +7,7 @@
 
 // AI rows (Draft with AI, Switch to AI flow) show only when this says yes. Today it always does. It is the one place a
 // later program setting (designed in docs/design/AI-POLICY.md, not built) can hide them, so no row has its own check.
-function aiCommandsAllowed() { return true; }
+function aiCommandsAllowed() { return L.APP_FEATURES.some(can); }
 
 const pal = { opener: null, caret: null, rows: [], shown: [], active: 0, behind: [], wasInert: [], countTimer: 0 };
 const palOpen = () => !$('#palette').hidden;
@@ -17,7 +17,7 @@ function paletteContext() {
     prep: R.prepRun ? R.prepRun.side : '', drawerOpen: !$('#tr-drawer').hidden, flowView: R.flowView,
     sheets: R.flows.map((f) => f.name), sheetIdx: R.flowIdx,
     speechesShown: isOverlay() ? leftOpen : !S.hideLeft, insights: insightsMode(), narrow: narrowNow(),
-    online: navigator.onLine !== false, undo: (pendingUndo() || {}).name || '', aiAllowed: aiCommandsAllowed(),
+    online: navigator.onLine !== false, undo: (pendingUndo() || {}).name || '', aiAllowed: aiCommandsAllowed(), can: gateHas,
     speeches: L.SPEECHES.map((s) => ({ id: s.id, label: s.label })),
   };
 }

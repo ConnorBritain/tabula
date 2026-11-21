@@ -8,6 +8,8 @@
 <link rel="icon" type="image/png" href="assets/tabula-icon-64.png">
 <link rel="preload" href="assets/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin>
 <script src="assets/theme-boot.js"></script>
+<script src="logic/caps.js"></script>
+<script src="assets/caps-boot.js"></script>
 <link rel="stylesheet" href="assets/tokens.css">
 <style>
   /* Tokens (colours, type, space, layers) live in assets/tokens.css (spec Part 2). This block only uses them.
@@ -308,6 +310,18 @@
   /* Owner, 2026-11-20: the two real starts are the buttons, in one row; opening a saved file is the quiet line under them. */
   .start-actions { display: flex; flex-wrap: wrap; gap: var(--s3); justify-content: center; }
   .start-actions .b { display: inline-flex; align-items: center; justify-content: center; min-height: var(--h-lg); margin: 0; cursor: pointer; }
+  /* The AI gate (platform 1B, AI-POLICY §3): js/caps.js and assets/caps-boot.js write <html data-ai-off> with each
+     feature that is off ('any' when none is on, 'setup' for the key settings, 'invite' for the Connect AI invites).
+     A removed part leaves the layout and the accessibility tree; it is never greyed out. This uses CSS, not the
+     hidden attribute, because many of these nodes already use hidden for their own open or closed state. */
+  html[data-ai-off~="transcription"] [data-ai="transcription"], html[data-ai-off~="aiFlow"] [data-ai="aiFlow"],
+  html[data-ai-off~="liveEval"] [data-ai="liveEval"], html[data-ai-off~="analysis"] [data-ai="analysis"],
+  html[data-ai-off~="ballotDraft"] [data-ai="ballotDraft"], html[data-ai-off~="any"] [data-ai="any"],
+  html[data-ai-off~="setup"] [data-ai-setup], html[data-ai-off~="invite"] [data-ai-setup="invite"] { display: none !important; }
+  /* No Insights: the flow takes the width (Insights mode 'none'). */
+  .workspace.ins-none { grid-template-columns: var(--pane-left-w) minmax(0, 1fr); }
+  .workspace.ins-none.no-left { grid-template-columns: minmax(0, 1fr); }
+  .workspace.ins-none .pane-right { display: none !important; }
   /* "Judging for" (roles plan step 3): only for a signed-in judge who belongs to a school. */
   .judging-row { margin: 0 0 var(--s3); }
   .judging-row[hidden] { display: none; }
@@ -347,6 +361,7 @@
      the 7 columns never reflow. No shadow: only the flow grid is raised. It closes with Hide, Esc, the same key, or a click in the grid. */
   @media (min-width: 820px) and (max-width: 1439.98px) {
     #workspace, #workspace.no-left { grid-template-columns: minmax(0, 1fr) var(--right-w); }
+    #workspace.ins-none { grid-template-columns: minmax(0, 1fr); }
     #workspace .pane-left { display: none !important; position: fixed; top: calc(var(--header-h) + var(--s2)); bottom: calc(var(--rb-h) + var(--s2)); left: var(--s4); width: min(300px, calc(100vw - 32px)); max-height: none; z-index: var(--z-pop); padding: var(--s3); background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); box-shadow: none; }
     #workspace.left-open .pane-left { display: flex !important; }
   }
@@ -358,7 +373,7 @@
     #insights .ins-edge-btn { writing-mode: horizontal-tb; min-height: var(--h-md); min-width: 0; padding: 0 var(--s2); }
   }
   @media (max-width: 819.98px) {
-    .workspace, .workspace.no-left { grid-template-columns: minmax(0, 1fr); }
+    .workspace, .workspace.no-left, .workspace.ins-none { grid-template-columns: minmax(0, 1fr); }
     .pane-left, .pane-right { position: static; max-height: none; }
     #insights .ins-edge { height: auto; padding: 0; margin-top: var(--s2); border-left: 0; justify-content: center; }
     #insights .ins-edge-btn { writing-mode: horizontal-tb; min-height: 44px; min-width: 0; padding: 0 var(--s2); }
@@ -812,7 +827,7 @@
   </div>
   <button class="iconbtn" id="settings-btn" data-tab="ai" aria-label="Settings" data-tip="Settings"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   </div>
-  <div class="rec-strip" id="rec-strip" hidden><span id="rec-strip-text"></span><button class="b small" id="rec-strip-btn" type="button"></button></div>
+  <div class="rec-strip" id="rec-strip" data-ai="transcription" hidden><span id="rec-strip-text"></span><button class="b small" id="rec-strip-btn" type="button"></button></div>
   <!-- Study mode (spec 5.7, Part 6.3): only with ?study=1. Two local time marks; nothing is sent. A header row, so it never covers the ballot bar. -->
   <div class="study-card noprint" id="study-card" role="region" aria-label="Study result" hidden>
   <span id="study-text"></span>
@@ -822,7 +837,7 @@
 </header>
 <main>
 <nav id="subnav" class="subnav" aria-label="Decide" hidden>
-  <button type="button" class="b quiet" data-tab="eval">Live Eval</button><button type="button" class="b quiet" data-tab="analysis">Analysis</button><button type="button" class="b quiet" data-tab="ballot">Ballot</button>
+  <button type="button" class="b quiet" data-tab="eval" data-ai="liveEval">Live Eval</button><button type="button" class="b quiet" data-tab="analysis">Analysis</button><button type="button" class="b quiet" data-tab="ballot">Ballot</button>
 </nav>
 
 <section class="tab" id="tab-setup">
@@ -856,14 +871,14 @@
       </div>
     </div>
   </div>
-  <div class="card" id="writing-card">
+  <div class="card" id="writing-card" data-ai="any">
     <h2>AI writing</h2>
     <div class="row"><span class="row-label" id="read-round-label">How the AI writes</span><div class="seg" role="group" aria-labelledby="read-round-label" aria-describedby="read-round-help"><button data-read="expert" data-read-scope="round">Expert</button><button data-read="plain" data-read-scope="round">Plain</button></div></div>
     <p class="muted field-help" id="read-round-help">Plain uses short sentences and everyday words, for students and parents. The decision stays the same. This choice is for this round; the default for new rounds is in Settings.</p>
   </div>
   <div class="card" id="docs-card">
     <h2>Round documents</h2>
-    <p class="muted">Add speech docs or case files (PDF, Word .docx, or text). The AI reads them for the live flow and the decision. Pick the speech each doc belongs to: the AI maps it onto that speech's flow column right away, and fills gaps in the transcript from it (marked [doc]). Docs stay in this browser until you start a new round.</p>
+    <p class="muted">Add speech docs or case files (PDF, Word .docx, or text). Pick the speech each doc belongs to. <span data-ai="aiFlow">The AI reads them for the live flow and the decision: it maps each doc onto that speech's flow column right away, and fills gaps in the transcript from it (marked [doc]).</span> Docs stay in this browser until you start a new round.</p>
     <div class="row">
       <select id="doc-side" class="w-auto" aria-label="Doc side"><option value="aff">Aff doc</option><option value="neg">Neg doc</option><option value="other">Other</option></select>
       <input type="file" id="doc-file" class="w-auto" multiple accept=".pdf,.docx,.txt,.md,application/pdf" aria-label="Add round documents">
@@ -916,7 +931,7 @@
   </div>
   <p class="muted cv-pauses" id="cv-pauses"></p>
   <div class="speeches cv-speeches" id="cv-speech-list" role="group" aria-label="Speeches"></div>
-  <div class="cv-rec"><label class="row check-row"><input type="checkbox" id="cv-rec-on"> Transcribe</label><span class="muted" id="cv-rec-status" tabindex="0"></span></div>
+  <div class="cv-rec" data-ai="transcription"><label class="row check-row"><input type="checkbox" id="cv-rec-on"> Transcribe</label><span class="muted" id="cv-rec-status" tabindex="0"></span></div>
   <p class="muted cv-note">Flowing needs a bigger screen. Use a tablet in landscape or a laptop to flow. Your clock and ballot work here.</p>
 </section>
 
@@ -957,17 +972,17 @@
       <span class="tip-box" id="flow-legend" role="tooltip" hidden>Aff columns are blue and Neg columns are red; each column header names its speech. Keep each argument on the same line across columns so the clash lines up. "Now" marks the speech the clock is timing. Some typed marks get a light shade: * or "dropped", "conc", "ext", "turn" or L/T, and O/W.</span></span></div>
   <div class="flow" id="flow"></div>
 </section>
-<aside class="pane pane-right" id="insights" aria-label="Insights" data-mode="open">
+<aside class="pane pane-right" id="insights" aria-label="Insights" data-mode="open" data-ai="liveEval">
   <div class="pane-head"><h2>Insights</h2><button class="b small" data-pane="right" aria-label="Hide the insights pane">Hide</button></div>
   <div id="insights-body"></div>
   <div class="ins-edge">
-    <div class="ins-cta" id="ins-cta" data-ai="liveEval"><span class="ins-cta-text">Live insights need AI.</span><button class="b small ins-edge-btn" type="button" id="ins-connect" data-tab-go="ai" aria-label="Connect AI in Settings to get live insights">Connect AI</button></div>
+    <div class="ins-cta" id="ins-cta" data-ai="liveEval" data-ai-setup="invite"><span class="ins-cta-text">Live insights need AI.</span><button class="b small ins-edge-btn" type="button" id="ins-connect" data-tab-go="ai" aria-label="Connect AI in Settings to get live insights">Connect AI</button></div>
     <button class="b quiet ins-edge-btn" type="button" id="ins-show" data-pane="right" aria-label="Show the insights pane">Insights</button>
   </div>
 </aside>
 </div>
 
-<section class="tab" id="tab-eval">
+<section class="tab" id="tab-eval" data-ai="liveEval">
   <div class="card">
     <div class="row card-head">
       <h2>Live Eval</h2>
@@ -990,7 +1005,7 @@
       <div><h3 class="glance-h">Key moments</h3><div id="glance-moments"></div></div>
     </div>
   </div>
-  <div class="card">
+  <div class="card" id="lens-card" data-ai="analysis">
     <div class="row card-head">
       <h2>Paradigm Lens</h2>
       <div class="row">
@@ -1007,7 +1022,7 @@
     <p id="lens-status" class="status-line" role="status" aria-live="polite"></p>
     <div id="lens-out" class="mt-3"></div>
   </div>
-  <div class="card">
+  <div class="card" id="impact-card" data-ai="analysis">
     <div class="row card-head">
       <h2>Impact Calculus</h2>
       <button class="b" id="impact-go">Run</button>
@@ -1020,7 +1035,7 @@
       <h2>Round Map</h2>
       <div class="row">
         <div class="seg" role="group" aria-label="Map view"><button data-mapview="sheet">Flow sheet</button><button data-mapview="diagram">Diagram</button></div>
-        <button class="b" id="map-add">+ Argument</button><button class="b" id="map-copy">Copy Mermaid code</button><button class="b" id="map-go">Run</button>
+        <button class="b" id="map-add">+ Argument</button><button class="b" id="map-copy">Copy Mermaid code</button><button class="b" id="map-go" data-ai="analysis">Run</button>
       </div>
     </div>
     <p class="muted help-line" id="map-legend">Each row follows one argument across the speeches. <span class="mk">↩ answers</span> <span class="mk">↻ turns</span> <span class="mk">→ extends</span> <span class="mk">= concedes</span> <span class="chip drop">Dropped</span> marks an argument the other side never answered.</p>
@@ -1030,7 +1045,7 @@
 </section>
 
 <section class="tab" id="tab-ai">
-  <div class="card" id="conn-card">
+  <div class="card" id="conn-card" data-ai-setup>
     <div class="row card-head">
       <h2>Connect AI</h2>
       <button class="b" id="show-welcome">Show the first-time setup again</button>
@@ -1048,7 +1063,7 @@
       <div><label for="ai-engine">AI tools (flow, Live Eval, analysis, decision) use</label><select id="ai-engine"></select></div>
       <div><label for="tr-engine">Transcription uses</label><select id="tr-engine"></select></div>
     </div>
-    <div class="sub-pick" id="sub-box">
+    <div class="sub-pick" id="sub-box" data-ai-setup>
       <h3>Use your AI subscription</h3>
       <p class="muted">No key needed: Tabula uses the app you already pay for, on this computer.</p>
       <div class="row sub-btns" role="group" aria-label="AI subscription">
@@ -1058,7 +1073,7 @@
       <div id="sub-body" class="muted"></div>
     </div>
   </div>
-  <div class="card" id="audio-card">
+  <div class="card" id="audio-card" data-ai="transcription">
     <h2>Audio</h2>
     <div class="grid">
       <div><label>Where is the round?</label>
@@ -1087,7 +1102,7 @@
         <li>Run the 5-second test with someone talking at the podium before the 1AC.</li>
       </ul></details>
   </div>
-  <div class="card" id="writing-settings">
+  <div class="card" id="writing-settings" data-ai="any">
     <h2>AI writing and decisions</h2>
     <div class="row"><span class="row-label" id="read-device-label">How the AI writes</span><div class="seg" role="group" aria-labelledby="read-device-label" aria-describedby="read-device-help"><button data-read="expert" data-read-scope="device">Expert</button><button data-read="plain" data-read-scope="device">Plain</button></div><span class="muted">Default for new rounds</span></div>
     <p class="muted field-help" id="read-device-help">Plain uses short sentences and everyday words, for students and parents. The decision stays the same. Change it for one round in Round setup.</p>
@@ -1103,8 +1118,8 @@
           <option value="custom">My own paradigm (paste it in Decide → Analysis)</option>
         </select>
       </div>
-      <div><label for="chunk-sec">Clip length for transcription</label><input type="number" id="chunk-sec" min="4" max="30" step="1" aria-describedby="chunk-sec-help"><p class="muted field-help" id="chunk-sec-help">Seconds, 4–30</p></div>
-      <div><label>&nbsp;</label><label class="row check-row"><input type="checkbox" id="live-flow"> Live AI flow during speeches <span class="muted">(uses AI while a speech runs)</span></label></div>
+      <div data-ai="transcription"><label for="chunk-sec">Clip length for transcription</label><input type="number" id="chunk-sec" min="4" max="30" step="1" aria-describedby="chunk-sec-help"><p class="muted field-help" id="chunk-sec-help">Seconds, 4–30</p></div>
+      <div data-ai="aiFlow"><label>&nbsp;</label><label class="row check-row"><input type="checkbox" id="live-flow"> Live AI flow during speeches <span class="muted">(uses AI while a speech runs)</span></label></div>
     </div>
   </div>
   <div class="card" id="account-card" hidden>
@@ -1141,9 +1156,9 @@
       <div class="card ballot-card">
         <div class="ballot-head">
           <h2 id="ballot-title">Ballot</h2>
-          <button class="b" id="draft-open" type="button" aria-expanded="false" aria-controls="draft-panel">Draft with AI</button>
+          <button class="b" id="draft-open" data-ai="ballotDraft" type="button" aria-expanded="false" aria-controls="draft-panel">Draft with AI</button>
         </div>
-        <p class="muted ballot-note">Anything you type is yours. The AI will not change it.</p>
+        <p class="muted ballot-note" data-ai="ballotDraft">Anything you type is yours. The AI will not change it.</p>
         <fieldset class="b-winner">
           <legend class="b-legend">Winner <span class="b-tag" data-tag="winner"></span></legend>
           <label class="win-card aff"><input type="radio" name="winner" value="aff"> <span class="aff">Aff wins</span> <span id="w-aff" class="muted"></span></label>
@@ -1162,7 +1177,7 @@
         <div id="ballot-check" class="ballot-check" role="status"></div>
       </div>
     </div>
-    <aside class="draft-panel noprint" id="draft-panel" aria-labelledby="draft-title" hidden>
+    <aside class="draft-panel noprint" id="draft-panel" data-ai="ballotDraft" aria-labelledby="draft-title" hidden>
       <div class="dp-head"><h2 id="draft-title" tabindex="-1">Draft with AI</h2><button class="b small" id="draft-close" type="button">Close</button></div>
       <div id="dp-compose">
         <p class="muted dp-style" id="dp-style"></p>
@@ -1202,7 +1217,7 @@
     <p class="muted" style="margin:0 0 var(--s3)">Everything you do is saved in this browser only. A backup file holds all of it: the round, flows, transcripts, analysis, ballots, saved ballots, settings and documents. Keep one before you clear the browser or switch computers.</p>
     <div class="row">
       <button class="b primary" id="backup-go">Download backup</button>
-      <label class="row check-row"><input type="checkbox" id="backup-keys"> Include my API keys (keep that file private)</label>
+      <label class="row check-row" data-ai-setup><input type="checkbox" id="backup-keys"> Include my API keys (keep that file private)</label>
     </div>
     <p class="muted help-line" id="backup-last"></p>
     <div class="row mt-3">
@@ -1216,7 +1231,7 @@
 
   <p class="app-foot noprint"><a href="about.html" target="_blank" rel="noopener" data-brand-text="About {name}">About Tabula Debate</a> · © <span data-year>2026</span> <span data-brand-text="{parent}">Tabula Speech</span></p>
 </main>
-<section class="tr-drawer noprint" id="tr-drawer" aria-label="Transcript" hidden>
+<section class="tr-drawer noprint" id="tr-drawer" data-ai="transcription" aria-label="Transcript" hidden>
   <div class="tr-drawer-head"><h2 id="tr-drawer-title">Transcript: <span id="tr-drawer-label"></span></h2>
     <span class="tip-wrap"><button class="tip" type="button" aria-label="About transcription" aria-expanded="false" aria-controls="rec-note">?</button>
       <span class="tip-box" id="rec-note" role="tooltip" hidden></span></span>
@@ -1251,9 +1266,9 @@
     <button class="b primary" id="t-start" data-tip="Start or pause (Space, or Ctrl+Enter while typing)" aria-keyshortcuts="Meta+Enter Control+Enter">Start</button>
     <button class="b" id="t-reset">Reset</button>
     <button class="b" id="t-next">Next speech</button>
-    <button class="b" id="tr-toggle" aria-expanded="false" aria-controls="tr-drawer" data-tip="Show or hide the transcript">Transcript<span class="sr-only" id="tr-problem-sr"></span></button>
+    <button class="b" id="tr-toggle" data-ai="transcription" aria-expanded="false" aria-controls="tr-drawer" data-tip="Show or hide the transcript">Transcript<span class="sr-only" id="tr-problem-sr"></span></button>
   </div>
-  <div class="rb-rec">
+  <div class="rb-rec" data-ai="transcription">
     <label class="row"><input type="checkbox" id="rec-on"> Transcribe</label>
     <span id="rb-meter" class="meter" role="img" aria-label="Mic level" hidden><i></i></span>
     <span id="rec-status" class="rb-status" role="status" aria-live="polite" tabindex="0"></span>
@@ -1261,7 +1276,7 @@
   </div>
   <div class="rb-prep"><span class="aff">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
   <div class="rb-prep"><span class="neg">Neg prep</span><span class="t" id="prep-neg">8:00</span><button class="b small" data-prep="neg">Start</button></div>
-  <span id="mini-rec" class="rb-ai"></span>
+  <span id="mini-rec" class="rb-ai" data-ai="any"></span>
 </footer>
 <div id="node-editor" class="overlay" role="dialog" aria-modal="true" aria-labelledby="ne-title" hidden>
   <div class="overlay-card narrow">
@@ -1368,6 +1383,7 @@
 <script src="ui.js"></script>
 <script defer src="assets/brand.js"></script>
 <script defer src="js/core.js"></script>
+<script defer src="js/caps.js"></script>
 <script defer src="js/clock.js"></script>
 <script defer src="js/recording.js"></script>
 <script defer src="js/flow.js"></script>

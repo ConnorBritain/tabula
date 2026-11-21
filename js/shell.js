@@ -67,7 +67,7 @@ let ksOpener = null;
 const ksOpen = () => !$('#keys-sheet').hidden;
 function renderKeysSheet() {
   const q = $('#ks-search').value;
-  const groups = K.shortcutRows(IS_MAC, S.singleKeys !== false, q);
+  const groups = K.shortcutRows(IS_MAC, S.singleKeys !== false, q, gateHas);
   const e = escapeHtml;
   $('#ks-list').innerHTML = groups.map((g) => '<h3>' + e(g.group) + '</h3><dl>' + g.rows.map((r) =>
     `<div class="ks-row${r.off ? ' off' : ''}"><dt>${e(r.label)}</dt><dd><kbd class="kbd">${e(r.keys)}</kbd>${r.off ? '<span class="ks-off">off</span>' : ''}</dd></div>`).join('') + '</dl>').join('');

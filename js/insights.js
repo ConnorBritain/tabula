@@ -16,15 +16,16 @@ function scheduleEvalSoon() {
 }
 // No Live Eval before the round has something to read (L.insightsReady): not from a button, not from the auto path.
 function scheduleEval() {
-  if (!aiReady() || resetting || !L.insightsReady(R, DOCS)) return;
+  if (!can('liveEval') || !aiReady() || resetting || !L.insightsReady(R, DOCS)) return;
   if (evalBusy) { evalAgain = true; return; }
   runEval();
 }
 async function runEval() {
+  if (!can('liveEval')) return;
   const level = lvl();
   evalBusy = true; evalErr = ''; renderEvalStatus();
   try {
-    const data = await callAI({ system: L.EVAL_SYSTEM, prompt: L.buildEvalPrompt(R, DOCS), schema: L.EVAL_SCHEMA, effort: 'medium', reading: level });
+    const data = await callAI({ feature: 'liveEval', system: L.EVAL_SYSTEM, prompt: L.buildEvalPrompt(R, DOCS), schema: L.EVAL_SCHEMA, effort: 'medium', reading: level });
     if (resetting) return;
     LV(level).liveEval = { data, at: Date.now(), through: L.speechesSoFar(R) };
     save();
@@ -148,7 +149,7 @@ function renderEval() {
   document.querySelectorAll('#eval-body .tally-bar span').forEach((el) => el.style.setProperty('--w', el.dataset.w + '%'));
 }
 $('#eval-go').addEventListener('click', () => {
-  if (!aiReady()) return toast(L.NO_AI);
+  if (!aiReady()) return toast(noAiText());
   scheduleEval();
 });
 $('#auto-eval').checked = S.autoEval; // off unless the judge turned it on (spec 2.7, D2)
@@ -169,10 +170,11 @@ const busy = { lens: false, impacts: false, map: false };
 const errs = { lens: '', impacts: '', map: '' };
 
 async function askClaude(task, schema, opts) {
-  return callAI({ system: L.ANALYSIS_SYSTEM, prompt: L.buildAnalysisPrompt(R, DOCS, task, opts), schema, effort: 'medium', reading: schema === L.MAP_SCHEMA ? null : lvl() });
+  return callAI({ feature: 'analysis', system: L.ANALYSIS_SYSTEM, prompt: L.buildAnalysisPrompt(R, DOCS, task, opts), schema, effort: 'medium', reading: schema === L.MAP_SCHEMA ? null : lvl() });
 }
 async function runTool(name, task, schema, opts, store) {
-  if (!aiReady()) return toast(L.NO_AI);
+  if (!can('analysis')) return;
+  if (!aiReady()) return toast(noAiText());
   if (busy[name]) return toast('Still working on the last one. Try again when it finishes.');
   busy[name] = true; errs[name] = ''; renderAnalysis();
   try {

@@ -22,7 +22,7 @@
     // narrow layout the palette opens from the ? menu only (wideOnly).
     { id: 'palette.toggle', action: 'palette', label: 'Open or close Search and commands', group: 'General', scope: 'global', keys: { mac: 'Meta+k', other: 'Control+k' }, single: false, typing: true, noFocus: false, palette: false, wideOnly: true },
     { id: 'sheet.toggle', action: 'shortcuts', label: 'Show or hide keyboard shortcuts', group: 'General', scope: 'global', keys: { mac: '?', other: '?' }, single: true, typing: false, noFocus: true, palette: true },
-    { id: 'pane.insights', action: 'insights', label: 'Show or hide insights', group: 'Panes', scope: 'flow', keys: { mac: ']', other: ']' }, single: true, typing: false, noFocus: false, palette: true },
+    { id: 'pane.insights', action: 'insights', label: 'Show or hide insights', group: 'Panes', scope: 'flow', keys: { mac: ']', other: ']' }, single: true, typing: false, noFocus: false, palette: true, feature: 'liveEval' },
     { id: 'pane.focus', action: 'focus', label: 'Focus mode (hide both panes)', group: 'Panes', scope: 'flow', keys: { mac: '\\', other: '\\' }, single: true, typing: false, noFocus: false, palette: true },
     // Esc is run by the one Esc stack in app.js (it closes only the top layer). It is listed here so the
     // shortcut sheet and the clash tests see it.
@@ -148,10 +148,12 @@
   // ---------- the shortcut sheet (spec 5.5): built from the registry ----------
   // Groups in registry order. A single-key row is marked off when the single-key switch is off. query filters by the
   // label or the key name. Returns [{ group, rows: [{ id, label, keys, off }] }].
-  function shortcutRows(mac, singleKeysOn, query) {
+  // can: the AI gate (feature -> bool, optional); an entry with a feature that is off is left out (platform 1B).
+  function shortcutRows(mac, singleKeysOn, query, can) {
     const q = String(query || '').trim().toLowerCase();
     const groups = [];
     for (const e of REGISTRY) {
+      if (e.feature && can && !can(e.feature)) continue;
       const keys = entryKeys(e, mac);
       if (q && !e.label.toLowerCase().includes(q) && !keys.toLowerCase().includes(q)) continue;
       let g = groups.find((x) => x.group === e.group);
@@ -165,13 +167,14 @@
   // The commands, in the spec's groups and order. label: the exact row text; a function when the text depends on
   // the round. key: the registry entry that runs the same thing (the row shows its key). flow: a Flow command (run
   // from another place, it first goes to Flow). ai: an AI row (its visibility goes through one page helper, so a later
-  // program setting can hide it). net: it needs the internet. alias: other words a judge may type.
+  // program setting can hide it). feature: its AI gate key; the row is left out when ctx.can(feature) is false
+  // (platform 1B). net: it needs the internet. alias: other words a judge may type.
   // Theme and reading level are not in the palette (5.4).
   const GROUPS = ['Go to', 'Clock and speeches', 'Sheets', 'Panes', 'Round', 'Ballot', 'Undo', 'Help'];
   const COMMANDS = [
     { id: 'go.flow', group: 'Go to', tab: 'flow', label: 'Go to Flow', alias: ['grid', 'clock'] },
     { id: 'go.setup', group: 'Go to', tab: 'setup', label: 'Go to Round setup', alias: ['teams', 'names', 'tournament', 'setup'] },
-    { id: 'go.eval', group: 'Go to', tab: 'eval', label: 'Go to Live Eval', alias: ['decide', 'evaluation', 'feedback'] },
+    { id: 'go.eval', group: 'Go to', tab: 'eval', feature: 'liveEval', label: 'Go to Live Eval', alias: ['decide', 'evaluation', 'feedback'] },
     { id: 'go.analysis', group: 'Go to', tab: 'analysis', label: 'Go to Analysis', alias: ['decide', 'map', 'impacts', 'paradigm'] },
     { id: 'go.ballot', group: 'Go to', tab: 'ballot', label: 'Go to Ballot', alias: ['decide', 'rfd', 'points', 'ranks', 'winner'] },
     { id: 'go.log', group: 'Go to', tab: 'log', label: 'Go to History', alias: ['log', 'saved', 'history', 'ballots', 'backup', 'csv'] },
@@ -185,7 +188,7 @@
     { id: 'clock.reset', group: 'Clock and speeches', label: 'Reset speech clock', flow: true, alias: ['timer', 'restart'] },
     { id: 'prep.aff', group: 'Clock and speeches', label: (c) => (c.prep === 'aff' ? 'Stop Aff prep' : 'Start Aff prep'), flow: true, alias: ['prep', 'timer'] },
     { id: 'prep.neg', group: 'Clock and speeches', label: (c) => (c.prep === 'neg' ? 'Stop Neg prep' : 'Start Neg prep'), flow: true, alias: ['prep', 'timer'] },
-    { id: 'transcript', group: 'Clock and speeches', label: (c) => (c.drawerOpen ? 'Hide transcript' : 'Show transcript'), flow: true, alias: ['drawer', 'words', 'text'] },
+    { id: 'transcript', group: 'Clock and speeches', feature: 'transcription', label: (c) => (c.drawerOpen ? 'Hide transcript' : 'Show transcript'), flow: true, alias: ['drawer', 'words', 'text'] },
     { id: 'sheet.go', group: 'Sheets', label: 'Go to sheet', flow: true, each: 'sheet', alias: ['sheet', 'tab'] },
     { id: 'sheet.next', group: 'Sheets', label: 'Next sheet', flow: true, alias: ['tab'] },
     { id: 'sheet.prev', group: 'Sheets', label: 'Previous sheet', flow: true, alias: ['tab'] },
@@ -193,14 +196,14 @@
     { id: 'sheet.rename', group: 'Sheets', label: (c) => 'Rename sheet: ' + c.sheetName, flow: true, alias: ['name'] },
     { id: 'sheet.dup', group: 'Sheets', label: (c) => 'Duplicate sheet: ' + c.sheetName, flow: true, alias: ['copy'] },
     { id: 'sheet.del', group: 'Sheets', label: (c) => 'Delete sheet: ' + c.sheetName, flow: true, alias: ['remove'] },
-    { id: 'flow.view', group: 'Sheets', label: (c) => (c.flowView === 'ai' ? 'Switch to My flow' : 'Switch to AI flow'), flow: true, ai: true, alias: ['view', 'mine'] },
+    { id: 'flow.view', group: 'Sheets', label: (c) => (c.flowView === 'ai' ? 'Switch to My flow' : 'Switch to AI flow'), flow: true, ai: true, feature: 'aiFlow', alias: ['view', 'mine'] },
     { id: 'pane.speeches', group: 'Panes', label: (c) => (c.speechesShown ? 'Hide speeches pane' : 'Show speeches pane'), key: 'pane.speeches', flow: true, alias: ['left', 'docs'] },
-    { id: 'pane.insights', group: 'Panes', label: (c) => (c.insights === 'open' ? 'Hide insights' : 'Show insights'), key: 'pane.insights', flow: true, alias: ['right'] },
+    { id: 'pane.insights', group: 'Panes', label: (c) => (c.insights === 'open' ? 'Hide insights' : 'Show insights'), key: 'pane.insights', flow: true, feature: 'liveEval', alias: ['right'] },
     { id: 'pane.focus', group: 'Panes', label: 'Focus mode', key: 'pane.focus', flow: true, alias: ['zen', 'hide panes', 'full'] },
     { id: 'round.new', group: 'Round', label: 'New round', alias: ['clear', 'reset', 'start over'] },
     { id: 'round.save', group: 'Round', label: 'Save round file (.tab)', alias: ['download', 'export', 'tab file'] },
     { id: 'round.open', group: 'Round', label: 'Open round file', alias: ['import', 'load', 'tab file'] },
-    { id: 'ballot.draft', group: 'Ballot', label: 'Draft with AI', ai: true, net: true, alias: ['rfd', 'write'] },
+    { id: 'ballot.draft', group: 'Ballot', label: 'Draft with AI', ai: true, feature: 'ballotDraft', net: true, alias: ['rfd', 'write'] },
     { id: 'ballot.print', group: 'Ballot', label: 'Print or save as PDF', key: 'ballot.print', alias: ['pdf', 'print'] },
     { id: 'ballot.copy', group: 'Ballot', label: 'Copy for the tournament ballot', alias: ['paste', 'tabroom', 'clipboard'] },
     { id: 'ballot.save', group: 'Ballot', label: 'Save to History', alias: ['log', 'keep', 'ballots'] },
@@ -212,7 +215,8 @@
 
   // The rows the palette shows now. ctx: { place, cur (the viewed speech index), running, runId, prep ('aff' |
   // 'neg' | ''), drawerOpen, flowView, sheets: [names], sheetIdx, speechesShown, insights (insightsMode), narrow,
-  // online, undo ('Undo: …' or ''), aiAllowed (false hides AI rows), speeches: [{ id, label }] }.
+  // online, undo ('Undo: …' or ''), aiAllowed (false hides AI rows), can (the AI gate, feature -> bool; optional),
+  // speeches: [{ id, label }] }.
   // Each row: { id, arg, group, label, note, disabled, keyId, alias }. note is the grey text after the label: why a
   // row does nothing ("· already at 2AR"), or what it does first ("· goes to Flow").
   function buildCommands(ctx) {
@@ -225,6 +229,7 @@
     const rows = [];
     for (const cmd of COMMANDS) {
       if (cmd.ai && c.aiAllowed === false) continue;
+      if (cmd.feature && c.can && !c.can(cmd.feature)) continue;
       if (cmd.id === 'undo' && !c.undo) continue;
       const base = { id: cmd.id, group: cmd.group, keyId: cmd.key || '', alias: cmd.alias || [] };
       const why = disabledWhy(cmd, c, { lastIdx, sheets });

@@ -29,8 +29,9 @@ test('insightsReady turns true when a speech clock runs or has run, or words exi
 // Why: if only the button hides, the auto path (Live Eval after each speech, the reconnect retry) could still spend AI
 // on an empty round; the real scheduleEval must refuse to start a run until the round is ready.
 test('scheduleEval runs no Live Eval while insightsReady is false, and runs one once it is true', () => {
-  const make = new Function('aiReady', 'L', 'R', 'DOCS', 'runEval',
-    'let resetting = false, evalBusy = false, evalAgain = false;\n' + fnSource(INS, 'scheduleEval') + '\nreturn scheduleEval;');
+  // The platform 1B merge (2026-11-20) added can('liveEval') to scheduleEval, so the stub world passes can too.
+  const make = (aiReady, L, R, DOCS, runEval, can = () => true) => new Function('aiReady', 'L', 'R', 'DOCS', 'runEval', 'can',
+    'let resetting = false, evalBusy = false, evalAgain = false;\n' + fnSource(INS, 'scheduleEval') + '\nreturn scheduleEval;')(aiReady, L, R, DOCS, runEval, can);
   let runs = 0;
   const run = () => { runs++; };
   make(() => true, L, { started: false }, [], run)();
@@ -38,6 +39,8 @@ test('scheduleEval runs no Live Eval while insightsReady is false, and runs one 
   assert.equal(runs, 0, 'no run before the round has something to read');
   make(() => true, L, { started: true, run: { id: '1AC' } }, [], run)();
   assert.equal(runs, 1, 'one run once a speech clock runs');
+  make(() => true, L, { started: true, run: { id: '1AC' } }, [], run, () => false)();
+  assert.equal(runs, 1, 'no run when the school turned Live Eval off, even on a ready round');
 });
 
 // Why: a new Live Eval caller that skips scheduleEval would bypass the guard and spend AI on an empty round.

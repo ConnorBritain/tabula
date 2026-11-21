@@ -9,17 +9,20 @@ const TOURS = window.Tours;
 let tourState = null; // { name, i, returnFocus, place, hideLeft, hideRight }
 function tourStart(name) {
   if (name === 'page') name = TOURS.PLACE_TOUR[PLACE_OF[R.tab] || 'setup'] || 'main';
-  const tour = TOURS.TOURS[name]; if (!tour) return;
+  const all = TOURS.TOURS[name]; if (!all) return;
+  // The AI gate drops steps on removed parts and rewords steps that mention them (AI-POLICY §3b R3).
+  let tour = { title: all.title, steps: L.visibleTourSteps(all.steps, gateHas) };
+  if (!tour.steps.length) tour = { title: TOURS.TOURS.main.title, steps: L.visibleTourSteps(TOURS.TOURS.main.steps, gateHas) };
   if (askIsOpen() || !$('#node-editor').hidden) return; // never on top of another dialog
   closeHelpMenu(); $('#tour-offer').hidden = true;
   // Remember where the judge was and how the panes were, so the tour leaves everything as it found it.
-  tourState = { name, i: 0, returnFocus: document.activeElement, place: R.tab, hideLeft: Boolean(S.hideLeft), hideRight: Boolean(S.hideRight) };
+  tourState = { name, tour, i: 0, returnFocus: document.activeElement, place: R.tab, hideLeft: Boolean(S.hideLeft), hideRight: Boolean(S.hideRight) };
   $('#tour').hidden = false;
   for (const el of document.querySelectorAll('header, main, .roundbar, #keys-sheet, #study-card')) el.inert = true; // the page behind is not reachable
   tourShow();
 }
 function tourShow() {
-  const tour = TOURS.TOURS[tourState.name];
+  const tour = tourState.tour;
   const step = tour.steps[tourState.i];
   if (step.place) showTab(step.place);
   // A step inside a hidden pane opens that pane.
@@ -40,7 +43,7 @@ function tourShow() {
 }
 function tourPlace() {
   if (!tourState) return;
-  const step = TOURS.TOURS[tourState.name].steps[tourState.i];
+  const step = tourState.tour.steps[tourState.i];
   const el = document.querySelector(step.target);
   const spot = $('#tour-spot'), card = $('#tour-card');
   const view = { w: innerWidth, h: innerHeight };
@@ -64,10 +67,10 @@ function tourEnd(finished) {
   if (st.returnFocus && st.returnFocus.focus) st.returnFocus.focus();
 }
 function tourGo(d) {
-  const steps = TOURS.TOURS[tourState.name].steps, n = steps.length;
+  const steps = tourState.tour.steps, n = steps.length;
   let i = tourState.i + d;
   // With no AI, Insights is folded to its "Connect AI" edge, so its step has nothing to show: skip it (V9).
-  while (i >= 0 && i < n && steps[i].target === '#insights' && insightsMode() === 'edge-connect') i += d;
+  while (i >= 0 && i < n && steps[i].target === '#insights' && (insightsMode() === 'edge-connect' || insightsMode() === 'none')) i += d;
   if (i >= n) return tourEnd(true);
   if (i < 0) return;
   tourState.i = i; tourShow();
@@ -135,6 +138,7 @@ const hostedPlan = L.hasHostedPlan();
 if (hostedPlan && !S.setupDone) { S.setupDone = true; saveSettings(); }
 $('#show-welcome').hidden = hostedPlan;
 async function openWelcome() {
+  if (!showSetup()) return; // no own AI to set up (or already set up): no welcome
   const choices = [{ label: 'Connect an AI key', desc: 'Paste a key from any AI provider. Step-by-step help is included.', value: 'key' }];
   if (LOCAL_ORIGIN) choices.push({ label: 'Use an AI app you pay for', desc: 'Uses an AI app you already pay for on this computer. Needs one Terminal command.', value: 'sub' });
   choices.push({ label: 'Start without AI', desc: 'You can connect AI later in Settings.', value: 'skip' });
@@ -166,6 +170,7 @@ $('#live-flow').addEventListener('change', (e) => { S.liveFlow = e.target.checke
 // where to turn them on. It waits while a clock runs, so it never covers the round.
 let booted = false;
 async function maybeD2Note() {
+  if (!can('liveEval') || !can('aiFlow')) return; // its words name both; it never names a removed tool
   if (!booted || !L.needsD2Note({ aiReady: aiReady(), shown: S.d2NoteShown, clockRunning: Boolean(R.run) })) return;
   S.d2NoteShown = true; saveSettings();
   const v = await ask({

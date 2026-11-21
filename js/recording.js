@@ -76,6 +76,7 @@ const OFFLINE_SR = 'You are offline. Your browser\'s speech service needs the in
 // Recording would start now. The first time on this device, a plain notice asks first. The clock is
 // already running; only the mic waits for the choice.
 async function wantRec() {
+  if (!can('transcription')) return;
   if (L.needsRecNotice(S)) {
     if (recNoticeOpen) return;
     recNoticeOpen = true;
@@ -178,6 +179,7 @@ function setRecNote(extra) {
 
 let activeEngine = 'browser', recStartedAt = 0;
 function startRec() {
+  if (!can('transcription')) return;
   if (testing) testAbort = true; // a speech starting ends the mic test
   recWanted = true; recSpeechId = runSp().id; recGen++; recProblem = ''; recStartedAt = Date.now(); recLive = false; recStoppedByReload = false;
   activeEngine = S.trEngine || 'browser';
@@ -451,6 +453,7 @@ function blobToBase64(blob) {
 // Sends one audio clip to the chosen provider and returns the words.
 // Errors say if trying again could help (err.retryable): a timeout or a lost connection can; a rejected key cannot.
 async function transcribeClip(blob, prevText, timeoutMs = 30000, engine = activeEngine) {
+  if (!can('transcription')) throw Object.assign(new Error(''), { hold: true, retryable: false }); // keep the audio, send nothing
   const eng = engine;
   const fail = (msg, retryable) => Object.assign(new Error(msg), { retryable });
   // No key, or a rejected key: pause and keep the audio (err.hold) until the judge fixes it.

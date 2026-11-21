@@ -8,7 +8,7 @@
 'use strict';
 
 // The last profile the server sent, so the picker and paradigm still work offline at a tournament. A 401 clears it.
-const PROFILE_CACHE = 'tabula.profile.v1';
+const PROFILE_CACHE = L.STORE_KEYS.profile;
 // Set once the "copy your paradigm to your account" offer was shown on this device.
 const COPY_OFFERED = 'tabula.paradigmCopyOffered.v1';
 
@@ -43,7 +43,8 @@ async function refreshProfile() {
   } catch { out = { state: 'unknown' }; } // offline: keep the cached profile
   if (out.state === 'unknown') return;
   applyProfile(out.state === 'in' ? out.profile : null);
-  if (out.state === 'in') maybeOfferParadigmCopy();
+  if (out.state === 'in') { refreshCaps(R.programId); maybeOfferParadigmCopy(); } // the AI gate for this round
+  else clearCaps(); // signed out: forget the record (AI-POLICY §6d)
 }
 
 // Saves the paradigm to the account. Returns '' when saved, else what to tell the judge.
