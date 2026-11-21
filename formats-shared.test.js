@@ -56,6 +56,22 @@ test('History export: a mixed history is one table; each row fills only its own 
   assert.equal(L.toCSV([t.header, ...t.rows]).split('\r\n').length, 3, 'one header line and one line per ballot');
 });
 
+// Why: a ballot saved by a newer Tabula (a format this copy does not have) must not be passed off as a policy ballot.
+// Labeled "Policy (CX)", a coach would file it with policy rounds and trust points that may sit in the wrong columns.
+// And with the Format column hidden, a policy + unknown history would hide the true label on the History page.
+test('History export: a ballot in an unknown format is labeled by its id and version, and the page shows Format', () => {
+  const e = L.savedBallotEntry(policyRound, 'later', range);
+  Object.assign(e[L.BALLOT_HEADER.length], { format: 'pf', formatVersion: 2 });
+  const t = L.historyTable([L.savedBallotEntry(policyRound, 'a', range), e]);
+  const col = (r, n) => t.rows[r][t.header.indexOf(n)];
+  assert.equal(col(0, 'Format'), 'Policy (CX)');
+  assert.equal(col(1, 'Format'), 'pf v2');
+  assert.ok(L.historyColumns(t).map((i) => t.header[i]).includes('Format'), 'the History page shows the Format column');
+  const noVersion = L.savedBallotEntry(policyRound, 'later', range);
+  Object.assign(noVersion[L.BALLOT_HEADER.length], { format: 'pf', formatVersion: undefined });
+  assert.equal(L.historyTable([noVersion]).rows[0][t.header.indexOf('Format')], 'pf', 'no version: the id alone');
+});
+
 // ---------- study mode ----------
 
 // Why: study mode times the first view to the first Start for the five-judge test. In an LD round there is no 1AC, so
