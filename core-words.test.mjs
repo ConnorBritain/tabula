@@ -38,6 +38,15 @@ test('core/ uses no product word', () => {
   for (const f of CORE) assert.deepEqual(bannedIn(read(f)), [], f + ' uses a product word');
 });
 
+// Why: a debate side colour in the shared tokens would give the second app a blue and red it has no meaning for, and
+// would let shared styles start to depend on debate sides (step C4).
+test('core/tokens.css uses no product word, and the side colours stay in assets/tokens.css', () => {
+  assert.deepEqual(bannedIn(read('core/tokens.css')), [], 'core/tokens.css uses a product word');
+  assert.doesNotMatch(read('core/tokens.css'), /--(aff|neg)\b/, 'a side colour token is in core/tokens.css');
+  assert.match(read('assets/tokens.css'), /^@import url\('\.\.\/core\/tokens\.css'\);$/m);
+  assert.match(read('assets/tokens.css'), /--aff:/);
+});
+
 // Why: classic files read core/ ES modules with require(), which needs Node 22.12 or newer. On an older Node every
 // test that loads logic/ fails with a confusing error; this test names the real cause first.
 test('Node is new enough to require() a core/ ES module (22.12 or newer)', () => {

@@ -175,7 +175,7 @@ test('no font size under 13 px in the page, the app, the shared UI or the tokens
     ...[...src.matchAll(/font\s*:\s*[^;"]*?(\d+(?:\.\d+)?)px/g)].map((m) => [m[0], Number(m[1])]),
     ...[...src.matchAll(/--fs-[a-z0-9-]+\s*:\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[0], Number(m[1])]),
   ];
-  for (const f of ['index.html', 'app.js', 'ui.js', 'assets/tokens.css', 'about.html']) {
+  for (const f of ['index.html', 'app.js', 'ui.js', 'core/ui.js', 'assets/tokens.css', 'core/tokens.css', 'about.html']) {
     const small = sizes(read(f)).filter(([, px]) => px < 13).map(([t]) => t);
     assert.deepEqual(small, [], f + ' has text under 13 px');
   }

@@ -27,7 +27,7 @@ test('no old token names are left anywhere', () => {
   for (const f of ['index.html', 'app.js', 'ui.js', 'about.html', 'docs/library/learn.css']) assert.deepEqual(read(f).match(old), null, f);
 });
 
-// Why: the three copied token blocks drifted apart once already; only assets/tokens.css may define tokens (V0).
+// Why: the three copied token blocks drifted apart once already; only the token files (core/tokens.css, through assets/tokens.css) may define tokens (V0).
 test('index.html keeps no :root token block and links tokens.css', () => {
   assert.doesNotMatch(STYLE, /:root\s*(\[[^\]]*\]|:not\([^)]*\))?\s*\{/);
   assert.match(HTML, /<link rel="stylesheet" href="assets\/tokens\.css">/);
@@ -97,7 +97,8 @@ test('small controls have a 24 px hit area', () => {
 
 // Why: V12: motion must stop for judges who ask for less of it, and Windows high-contrast users must still tell Aff from Neg and find the current column.
 test('reduced motion and forced colours are handled', () => {
-  assert.match(read('assets/tokens.css'), /@media \(prefers-reduced-motion: reduce\) \{\s*\*, \*::before, \*::after/);
+  // The global rule moved with the shared tokens to core/tokens.css (step C4); assets/tokens.css imports it.
+  assert.match(read('core/tokens.css'), /@media \(prefers-reduced-motion: reduce\) \{\s*\*, \*::before, \*::after/);
   const fc = /@media \(forced-colors: active\) \{([\s\S]*?)\n  \}/.exec(STYLE)[1];
   // CHANGED 2026-11-20 because the owner approved docs/design/NO-STRIPES.md (D3: the side shows as a word, not a
   // 3 px top border). Old check:
