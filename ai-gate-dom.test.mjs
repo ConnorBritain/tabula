@@ -14,9 +14,10 @@ const { parseHtml, walk, byId, ancestorsAndSelf } = require('./test-html.js');
 const L = require('./logic.js');
 const HTML = read('index.html');
 const ROOT = parseHtml(HTML);
-const FIX = JSON.parse(read('fixtures/platform-v2.json')).records;
+// tabula-cloud's contract file (made by the real resolver): fixtures.<name> = { note, record }.
+const FIX = Object.fromEntries(Object.entries(JSON.parse(read('fixtures/platform-v2.json')).fixtures).map(([k, v]) => [k, v.record]));
 const NOW = 1795300000000;
-const P = 'prog_fixture01';
+const P = FIX['judge-self'].subject.programId;
 
 // The gate for a fixture: the round judges for the fixture's school, as ?caps=<fixture> does on the page.
 const gateOf = (name, over) => {
@@ -62,9 +63,17 @@ test('judge-pool: the AI controls are visible and #conn-card is not', () => {
   assert.equal(L.insightsMode({ allowed: true, setup: L.showSetupFor(g, false), aiReady: false }), 'none');
 });
 
-// Why: a managed student's school may allow some AI; those tools must show and the rest must not.
-test('managed-allowed: only the allowed tools show, and no key card', () => {
-  const record = L.parseCaps(FIX['managed-allowed']);
+// Why: a managed account has no picker, so its own round must follow its school's record: AI the school allows
+// (here, own AI for a managed coach) must show with its key card; hiding it would take tools the school gave.
+test('managed-allowed: the allowed AI and its key card show in the account\'s own round', () => {
+  const off = L.offTokens(L.gateFor({ record: L.parseCaps(FIX['managed-allowed']), programId: null, now: NOW, profile: null }), false);
+  for (const id of AI_IDS) assert.ok(visible(id, off), id);
+  assert.ok(visible('conn-card', off));
+});
+
+// Why: a managed record that allows only some tools must show those and remove the rest.
+test('a managed record with some tools: only those show, and no key card', () => {
+  const record = L.parseCaps({ ...FIX['managed-allowed'], features: { aiFlow: { payer: 'program' }, transcription: { payer: 'program' } }, aiSetup: false });
   const off = L.offTokens(L.gateFor({ record, programId: null, now: NOW, profile: null }), false);
   for (const id of ['rec-on', 'tr-toggle', 'live-flow']) assert.ok(visible(id, off), id);
   for (const id of ['tab-eval', 'insights', 'lens-go', 'draft-open', 'conn-card', 'ins-cta']) assert.ok(!visible(id, off), id);
@@ -73,7 +82,7 @@ test('managed-allowed: only the allowed tools show, and no key card', () => {
 // Why: CONTRACTS §5 rule 6. A new device whose fetch fails, judging for a school as a coach, must show no AI until a
 // record arrives; it only removes, so the round itself never waits.
 test('new device, fetch fails, judging for a school as coach: all AI is hidden', () => {
-  const g = L.gateFor({ record: null, programId: P, now: NOW, profile: { programs: [{ id: P, name: 'Fixture High Debate', role: 'coach' }] } });
+  const g = L.gateFor({ record: null, programId: P, now: NOW, profile: { programs: [{ id: P, name: 'Lincoln HS Debate', role: 'coach' }] } });
   const off = L.offTokens(g, false);
   for (const n of gatedNodes()) assert.ok(hiddenBy(n, off), (n.attrs.id || n.tag) + ' is visible');
 });

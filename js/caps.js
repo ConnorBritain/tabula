@@ -73,10 +73,13 @@ async function refreshCaps(programId) {
 // Sign-out: forget the record (AI-POLICY §6d). The gate changes at the next boundary.
 function clearCaps() { capsRecord = null; store.del(L.STORE_KEYS.caps); capsBoundary(); }
 
-// ?caps=<fixture>: the dev and test switch. The fixture file is only in the repo, never in the hosted build.
+// ?caps=<fixture>: the dev and test switch. fixtures/platform-v2.json is tabula-cloud's contracts/platform-v2.json
+// (made by the real resolver; each fixture is { note, record }). It is only in the repo, never in the hosted build.
+// Records expire (expiresAt), so a fixture file older than 14 days shows its records as expired.
 if (capsFixtureName) {
   fetch('fixtures/platform-v2.json').then((r) => r.json()).then((j) => {
-    const rec = j && j.records ? j.records[capsFixtureName] : null;
+    const fx = j && j.fixtures ? j.fixtures[capsFixtureName] : null;
+    const rec = fx ? fx.record : null;
     capsFixture = rec ? L.parseCaps(rec) : null;
     if (capsFixture) applyCapabilities();
   }).catch(() => {});

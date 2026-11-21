@@ -1,7 +1,8 @@
 {
+  "contract": "platform",
   "v": 2,
-  "source": "Hand-written from tabula-cloud docs/platform/CONTRACTS.md section 2 (phase 1 fields only). Replace with the file that tabula-cloud `npm run contracts` makes (platform phase 1A) when it lands.",
-  "featureKeys": [
+  "resolver": 1,
+  "features": [
     "transcription",
     "aiFlow",
     "liveEval",
@@ -11,288 +12,586 @@
     "practiceAI",
     "libraryAI"
   ],
-  "records": {
+  "products": {
+    "debate": {
+      "judge": [
+        "transcription",
+        "aiFlow",
+        "liveEval",
+        "analysis",
+        "ballotDraft",
+        "libraryAI"
+      ],
+      "student": [
+        "transcription",
+        "aiFlow",
+        "evidenceHelp",
+        "practiceAI",
+        "libraryAI"
+      ]
+    },
+    "events": {
+      "judge": [
+        "ballotDraft"
+      ],
+      "student": [
+        "transcription",
+        "practiceAI"
+      ]
+    }
+  },
+  "scopes": [
+    "program",
+    "admin",
+    "coach",
+    "judge",
+    "student"
+  ],
+  "registry": [
+    {
+      "key": "ai.mode",
+      "scopes": [
+        "admin",
+        "coach",
+        "judge",
+        "student"
+      ],
+      "products": [
+        "debate",
+        "events"
+      ],
+      "defaults": {
+        "admin": "program",
+        "coach": "program",
+        "judge": "program",
+        "student": null
+      },
+      "options": {
+        "admin": [
+          {
+            "value": "program",
+            "available": false,
+            "needs": "pool"
+          },
+          {
+            "value": "self",
+            "available": true
+          },
+          {
+            "value": "hidden",
+            "available": true
+          }
+        ],
+        "coach": [
+          {
+            "value": "program",
+            "available": false,
+            "needs": "pool"
+          },
+          {
+            "value": "self",
+            "available": true
+          },
+          {
+            "value": "hidden",
+            "available": true
+          }
+        ],
+        "judge": [
+          {
+            "value": "program",
+            "available": false,
+            "needs": "pool"
+          },
+          {
+            "value": "self",
+            "available": true
+          }
+        ],
+        "student": [
+          {
+            "value": "program",
+            "available": false,
+            "needs": "pool"
+          },
+          {
+            "value": "hidden",
+            "available": true
+          }
+        ]
+      }
+    },
+    {
+      "key": "ai.features",
+      "scopes": [
+        "admin",
+        "coach",
+        "student"
+      ],
+      "products": [
+        "debate",
+        "events"
+      ],
+      "defaults": {
+        "admin": [
+          "transcription",
+          "aiFlow",
+          "liveEval",
+          "analysis",
+          "ballotDraft",
+          "evidenceHelp",
+          "practiceAI",
+          "libraryAI"
+        ],
+        "coach": [
+          "transcription",
+          "aiFlow",
+          "liveEval",
+          "analysis",
+          "ballotDraft",
+          "evidenceHelp",
+          "practiceAI",
+          "libraryAI"
+        ],
+        "student": [
+          "transcription",
+          "aiFlow",
+          "evidenceHelp",
+          "practiceAI"
+        ]
+      },
+      "options": {
+        "admin": [
+          {
+            "value": "transcription",
+            "available": true
+          },
+          {
+            "value": "aiFlow",
+            "available": true
+          },
+          {
+            "value": "liveEval",
+            "available": true
+          },
+          {
+            "value": "analysis",
+            "available": true
+          },
+          {
+            "value": "ballotDraft",
+            "available": true
+          },
+          {
+            "value": "libraryAI",
+            "available": true
+          }
+        ],
+        "coach": [
+          {
+            "value": "transcription",
+            "available": true
+          },
+          {
+            "value": "aiFlow",
+            "available": true
+          },
+          {
+            "value": "liveEval",
+            "available": true
+          },
+          {
+            "value": "analysis",
+            "available": true
+          },
+          {
+            "value": "ballotDraft",
+            "available": true
+          },
+          {
+            "value": "libraryAI",
+            "available": true
+          }
+        ],
+        "student": [
+          {
+            "value": "transcription",
+            "available": true
+          },
+          {
+            "value": "aiFlow",
+            "available": true
+          },
+          {
+            "value": "evidenceHelp",
+            "available": true
+          },
+          {
+            "value": "practiceAI",
+            "available": true
+          },
+          {
+            "value": "libraryAI",
+            "available": true
+          }
+        ]
+      }
+    },
+    {
+      "key": "ai.studentJudges",
+      "scopes": [
+        "student"
+      ],
+      "products": [
+        "debate",
+        "events"
+      ],
+      "defaults": {
+        "student": false
+      },
+      "options": {
+        "student": [
+          {
+            "value": true,
+            "available": true
+          },
+          {
+            "value": false,
+            "available": true
+          }
+        ]
+      }
+    }
+  ],
+  "fixtures": {
     "solo": {
-      "v": 2,
-      "product": "debate",
-      "edition": "judge",
-      "subject": {
-        "role": null,
-        "programId": null,
-        "programName": null,
-        "managed": false
-      },
-      "features": {
-        "transcription": {
-          "payer": "self"
+      "note": "Signed in, no program: today's solo app.",
+      "record": {
+        "v": 2,
+        "product": "debate",
+        "edition": "judge",
+        "subject": {
+          "role": "solo",
+          "programId": null,
+          "programName": null,
+          "managed": false
         },
-        "aiFlow": {
-          "payer": "self"
+        "features": {
+          "transcription": {
+            "payer": "self"
+          },
+          "aiFlow": {
+            "payer": "self"
+          },
+          "liveEval": {
+            "payer": "self"
+          },
+          "analysis": {
+            "payer": "self"
+          },
+          "ballotDraft": {
+            "payer": "self"
+          },
+          "libraryAI": {
+            "payer": "self"
+          }
         },
-        "liveEval": {
-          "payer": "self"
+        "aiSetup": true,
+        "account": {
+          "plan": "free",
+          "hosted": false
         },
-        "analysis": {
-          "payer": "self"
+        "versions": {
+          "settings": 0,
+          "resolver": 1
         },
-        "ballotDraft": {
-          "payer": "self"
-        }
-      },
-      "aiSetup": true,
-      "account": {
-        "plan": "free",
-        "hosted": false
-      },
-      "versions": {
-        "settings": 1,
-        "resolver": 1
-      },
-      "issuedAt": 1795216738000,
-      "expiresAt": 4102444800000
+        "issuedAt": 1795000000000,
+        "expiresAt": 1796209600000
+      }
     },
     "judge-pool": {
-      "v": 2,
-      "product": "debate",
-      "edition": "judge",
-      "subject": {
-        "role": "judge",
-        "programId": "prog_fixture01",
-        "programName": "Fixture High Debate",
-        "managed": false
-      },
-      "features": {
-        "transcription": {
-          "payer": "program"
+      "note": "Program judge, the school's pool pays. Only possible once pools exist (phase 3).",
+      "record": {
+        "v": 2,
+        "product": "debate",
+        "edition": "judge",
+        "subject": {
+          "role": "judge",
+          "programId": "p_fixture",
+          "programName": "Lincoln HS Debate",
+          "managed": false
         },
-        "aiFlow": {
-          "payer": "program"
+        "features": {
+          "transcription": {
+            "payer": "program"
+          },
+          "aiFlow": {
+            "payer": "program"
+          },
+          "liveEval": {
+            "payer": "program"
+          },
+          "analysis": {
+            "payer": "program"
+          },
+          "ballotDraft": {
+            "payer": "program"
+          },
+          "libraryAI": {
+            "payer": "program"
+          }
         },
-        "liveEval": {
-          "payer": "program"
+        "aiSetup": false,
+        "account": {
+          "plan": "free",
+          "hosted": false
         },
-        "analysis": {
-          "payer": "program"
+        "versions": {
+          "settings": 4,
+          "resolver": 1
         },
-        "ballotDraft": {
-          "payer": "program"
-        }
-      },
-      "aiSetup": false,
-      "account": {
-        "plan": "free",
-        "hosted": false
-      },
-      "versions": {
-        "settings": 1,
-        "resolver": 1
-      },
-      "issuedAt": 1795216738000,
-      "expiresAt": 4102444800000
+        "issuedAt": 1795000000000,
+        "expiresAt": 1796209600000
+      }
     },
     "judge-self": {
-      "v": 2,
-      "product": "debate",
-      "edition": "judge",
-      "subject": {
-        "role": "judge",
-        "programId": "prog_fixture01",
-        "programName": "Fixture High Debate",
-        "managed": false
-      },
-      "features": {
-        "transcription": {
-          "payer": "self"
+      "note": "Program judge on their own AI. The Connect AI card may show.",
+      "record": {
+        "v": 2,
+        "product": "debate",
+        "edition": "judge",
+        "subject": {
+          "role": "judge",
+          "programId": "p_fixture",
+          "programName": "Lincoln HS Debate",
+          "managed": false
         },
-        "aiFlow": {
-          "payer": "self"
+        "features": {
+          "transcription": {
+            "payer": "self"
+          },
+          "aiFlow": {
+            "payer": "self"
+          },
+          "liveEval": {
+            "payer": "self"
+          },
+          "analysis": {
+            "payer": "self"
+          },
+          "ballotDraft": {
+            "payer": "self"
+          },
+          "libraryAI": {
+            "payer": "self"
+          }
         },
-        "liveEval": {
-          "payer": "self"
+        "aiSetup": true,
+        "account": {
+          "plan": "free",
+          "hosted": false
         },
-        "analysis": {
-          "payer": "self"
+        "versions": {
+          "settings": 4,
+          "resolver": 1
         },
-        "ballotDraft": {
-          "payer": "self"
-        }
-      },
-      "aiSetup": true,
-      "account": {
-        "plan": "free",
-        "hosted": false
-      },
-      "versions": {
-        "settings": 1,
-        "resolver": 1
-      },
-      "issuedAt": 1795216738000,
-      "expiresAt": 4102444800000
+        "issuedAt": 1795000000000,
+        "expiresAt": 1796209600000
+      }
     },
     "coach-hidden": {
-      "v": 2,
-      "product": "debate",
-      "edition": "judge",
-      "subject": {
-        "role": "coach",
-        "programId": "prog_fixture01",
-        "programName": "Fixture High Debate",
-        "managed": false
-      },
-      "features": {},
-      "aiSetup": false,
-      "account": {
-        "plan": "free",
-        "hosted": false
-      },
-      "versions": {
-        "settings": 1,
-        "resolver": 1
-      },
-      "issuedAt": 1795216738000,
-      "expiresAt": 4102444800000
+      "note": "The school hid AI for coaches: no AI, no Connect AI card.",
+      "record": {
+        "v": 2,
+        "product": "debate",
+        "edition": "judge",
+        "subject": {
+          "role": "coach",
+          "programId": "p_fixture",
+          "programName": "Lincoln HS Debate",
+          "managed": false
+        },
+        "features": {},
+        "aiSetup": false,
+        "account": {
+          "plan": "free",
+          "hosted": false
+        },
+        "versions": {
+          "settings": 4,
+          "resolver": 1
+        },
+        "issuedAt": 1795000000000,
+        "expiresAt": 1796209600000
+      }
     },
     "coach-self": {
-      "v": 2,
-      "product": "debate",
-      "edition": "judge",
-      "subject": {
-        "role": "coach",
-        "programId": "prog_fixture01",
-        "programName": "Fixture High Debate",
-        "managed": false
-      },
-      "features": {
-        "transcription": {
-          "payer": "self"
+      "note": "Coach on their own AI.",
+      "record": {
+        "v": 2,
+        "product": "debate",
+        "edition": "judge",
+        "subject": {
+          "role": "coach",
+          "programId": "p_fixture",
+          "programName": "Lincoln HS Debate",
+          "managed": false
         },
-        "aiFlow": {
-          "payer": "self"
+        "features": {
+          "transcription": {
+            "payer": "self"
+          },
+          "aiFlow": {
+            "payer": "self"
+          },
+          "liveEval": {
+            "payer": "self"
+          },
+          "analysis": {
+            "payer": "self"
+          },
+          "ballotDraft": {
+            "payer": "self"
+          },
+          "libraryAI": {
+            "payer": "self"
+          }
         },
-        "liveEval": {
-          "payer": "self"
+        "aiSetup": true,
+        "account": {
+          "plan": "free",
+          "hosted": false
         },
-        "analysis": {
-          "payer": "self"
+        "versions": {
+          "settings": 4,
+          "resolver": 1
         },
-        "ballotDraft": {
-          "payer": "self"
-        }
-      },
-      "aiSetup": true,
-      "account": {
-        "plan": "free",
-        "hosted": false
-      },
-      "versions": {
-        "settings": 1,
-        "resolver": 1
-      },
-      "issuedAt": 1795216738000,
-      "expiresAt": 4102444800000
+        "issuedAt": 1795000000000,
+        "expiresAt": 1796209600000
+      }
     },
     "student-judge-off": {
-      "v": 2,
-      "product": "debate",
-      "edition": "judge",
-      "subject": {
-        "role": "student",
-        "programId": "prog_fixture01",
-        "programName": "Fixture High Debate",
-        "managed": false
-      },
-      "features": {},
-      "aiSetup": false,
-      "account": {
-        "plan": "free",
-        "hosted": false
-      },
-      "versions": {
-        "settings": 1,
-        "resolver": 1
-      },
-      "issuedAt": 1795216738000,
-      "expiresAt": 4102444800000
+      "note": "Student judging a round; student judges may not use AI.",
+      "record": {
+        "v": 2,
+        "product": "debate",
+        "edition": "judge",
+        "subject": {
+          "role": "student",
+          "programId": "p_fixture",
+          "programName": "Lincoln HS Debate",
+          "managed": false
+        },
+        "features": {},
+        "aiSetup": false,
+        "account": {
+          "plan": "free",
+          "hosted": false
+        },
+        "versions": {
+          "settings": 4,
+          "resolver": 1
+        },
+        "issuedAt": 1795000000000,
+        "expiresAt": 1796209600000
+      }
     },
     "student-clerk-no-pool": {
-      "v": 2,
-      "product": "debate",
-      "edition": "judge",
-      "subject": {
-        "role": "student",
-        "programId": "prog_fixture01",
-        "programName": "Fixture High Debate",
-        "managed": false
-      },
-      "features": {},
-      "aiSetup": false,
-      "account": {
-        "plan": "free",
-        "hosted": false
-      },
-      "versions": {
-        "settings": 1,
-        "resolver": 1
-      },
-      "issuedAt": 1795216738000,
-      "expiresAt": 4102444800000
-    },
-    "managed-expired": {
-      "v": 2,
-      "product": "debate",
-      "edition": "judge",
-      "subject": {
-        "role": "student",
-        "programId": "prog_fixture01",
-        "programName": "Fixture High Debate",
-        "managed": true
-      },
-      "features": {
-        "aiFlow": {
-          "payer": "program"
-        }
-      },
-      "aiSetup": false,
-      "account": {
-        "plan": "free",
-        "hosted": false
-      },
-      "versions": {
-        "settings": 1,
-        "resolver": 1
-      },
-      "issuedAt": 1795216738000,
-      "expiresAt": 1795000000000
+      "note": "Student AI clerk, school pays, but no pool: hidden.",
+      "record": {
+        "v": 2,
+        "product": "debate",
+        "edition": "student",
+        "subject": {
+          "role": "student",
+          "programId": "p_fixture",
+          "programName": "Lincoln HS Debate",
+          "managed": false
+        },
+        "features": {},
+        "aiSetup": false,
+        "account": {
+          "plan": "free",
+          "hosted": false
+        },
+        "versions": {
+          "settings": 4,
+          "resolver": 1
+        },
+        "issuedAt": 1795000000000,
+        "expiresAt": 1796209600000
+      }
     },
     "managed-allowed": {
-      "v": 2,
-      "product": "debate",
-      "edition": "judge",
-      "subject": {
-        "role": "student",
-        "programId": "prog_fixture01",
-        "programName": "Fixture High Debate",
-        "managed": true
-      },
-      "features": {
-        "aiFlow": {
-          "payer": "program"
+      "note": "Managed account, AI allowed: a managed coach whose program gives coaches Own AI only. (A managed student is always hidden until pools exist.)",
+      "record": {
+        "v": 2,
+        "product": "debate",
+        "edition": "judge",
+        "subject": {
+          "role": "coach",
+          "programId": "p_fixture",
+          "programName": "Lincoln HS Debate",
+          "managed": true
         },
-        "transcription": {
-          "payer": "program"
-        }
-      },
-      "aiSetup": false,
-      "account": {
-        "plan": "free",
-        "hosted": false
-      },
-      "versions": {
-        "settings": 1,
-        "resolver": 1
-      },
-      "issuedAt": 1795216738000,
-      "expiresAt": 4102444800000
+        "features": {
+          "transcription": {
+            "payer": "self"
+          },
+          "aiFlow": {
+            "payer": "self"
+          },
+          "liveEval": {
+            "payer": "self"
+          },
+          "analysis": {
+            "payer": "self"
+          },
+          "ballotDraft": {
+            "payer": "self"
+          },
+          "libraryAI": {
+            "payer": "self"
+          }
+        },
+        "aiSetup": true,
+        "account": {
+          "plan": "free",
+          "hosted": false
+        },
+        "versions": {
+          "settings": 4,
+          "resolver": 1
+        },
+        "issuedAt": 1795000000000,
+        "expiresAt": 1796209600000
+      }
+    },
+    "managed-expired": {
+      "note": "Managed student whose record has expired (the app is offline).",
+      "record": {
+        "v": 2,
+        "product": "debate",
+        "edition": "student",
+        "subject": {
+          "role": "student",
+          "programId": "p_fixture",
+          "programName": "Lincoln HS Debate",
+          "managed": true
+        },
+        "features": {},
+        "aiSetup": false,
+        "account": {
+          "plan": "free",
+          "hosted": false
+        },
+        "versions": {
+          "settings": 4,
+          "resolver": 1
+        },
+        "issuedAt": 1793704000000,
+        "expiresAt": 1794913600000
+      }
     }
   }
 }

@@ -148,13 +148,23 @@ test('the Insights mode and its Connect AI row follow the gate', () => {
   assert.match(core, /L\.insightsMode\(\{ allowed: can\('liveEval'\), setup: showSetup\(\),/);
   assert.match(core, /\$\('#ins-cta'\)\.hidden = mode !== 'edge-connect';/);
 });
-// Why: the app must use only keys the server's contract file has; a key it invents is never sent, so its tool would vanish for all.
+// Why: CONTRACTS §4. The app must use only keys the server's contract file has; a key it invents is never sent, so its tool
+// would vanish for everyone.
 test('every gate key in the code is in the contract fixture file', () => {
   const used = new Set();
   for (const src of [HTML, ...Object.values(APP_SOURCES), read('tour.js'), read('keys.js')]) {
     for (const m of src.matchAll(/data-ai="([^"]+)"|\bcan\('([^']+)'\)|\bfeature: '([^']+)'/g)) used.add(m[1] || m[2] || m[3]);
   }
-  for (const k of used) if (k !== 'any' && k !== 'setup') assert.ok(FIXTURE.featureKeys.includes(k), k + ' is not in fixtures/platform-v2.json');
+  for (const k of used) if (k !== 'any' && k !== 'setup') assert.ok(FIXTURE.features.includes(k), k + ' is not in fixtures/platform-v2.json');
+});
+
+// Why: CONTRACTS §4. The gate's own key lists must match the contract: a key the debate judge edition does not have
+// could never be granted, so its control would stay hidden for everyone.
+test('the gate\'s key lists match the contract file', () => {
+  assert.deepEqual(L.FEATURE_KEYS, FIXTURE.features);
+  for (const k of L.APP_FEATURES) assert.ok(FIXTURE.products.debate.judge.includes(k), k + ' is not a debate judge feature');
+  assert.equal(FIXTURE.v, 2);
+  for (const [name, fx] of Object.entries(FIXTURE.fixtures)) assert.ok(L.parseCaps(fx.record), name + ' does not parse as a v2 debate record');
 });
 // Why: if the CSS lost a rule, data-ai-off would name a feature and the page would still show it.
 test('the CSS hides each gate word', () => {

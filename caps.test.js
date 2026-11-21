@@ -7,11 +7,12 @@ const path = require('node:path');
 const L = require('./logic.js');
 const K = require('./keys.js');
 
-const FIX = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/platform-v2.json'), 'utf8')).records;
+// tabula-cloud's contract file (made by the real resolver): fixtures.<name> = { note, record }.
+const FIX = Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/platform-v2.json'), 'utf8')).fixtures).map(([k, v]) => [k, v.record]));
 const rec = (name) => L.parseCaps(FIX[name]);
 const NOW = 1795300000000;
-const P = 'prog_fixture01';
-const profileAs = (role) => ({ displayName: '', paradigm: '', programs: [{ id: P, name: 'Fixture High Debate', role }] });
+const P = FIX['judge-self'].subject.programId;
+const profileAs = (role) => ({ displayName: '', paradigm: '', programs: [{ id: P, name: 'Lincoln HS Debate', role }] });
 const gateOf = (name, over) => L.gateFor(Object.assign({ record: rec(name), programId: name === 'solo' ? null : P, now: NOW, profile: null }, over));
 
 // Why: the app must ask the v2 contract for its own product and school, or the server answers for the wrong one.
@@ -84,7 +85,10 @@ test('gateFor: a managed account\'s fresh record covers its own round', () => {
   const g = L.gateFor({ record: rec('managed-allowed'), programId: null, now: NOW, profile: null });
   assert.equal(g.mode, 'record');
   assert.equal(L.canUse(g, 'aiFlow'), true);
-  assert.equal(L.canUse(g, 'liveEval'), false);
+  // A managed record that allows only some tools shows only those.
+  const some = L.gateFor({ record: L.parseCaps({ ...FIX['managed-allowed'], features: { aiFlow: { payer: 'self' } } }), programId: null, now: NOW, profile: null });
+  assert.equal(L.canUse(some, 'aiFlow'), true);
+  assert.equal(L.canUse(some, 'liveEval'), false);
   assert.equal(L.gateFor({ record: rec('managed-expired'), programId: null, now: NOW, profile: null }).mode, 'none');
 });
 
@@ -162,7 +166,7 @@ test('keyNoticeDue and KEY_NOTICE: once per program, hidden roles with a saved k
   assert.equal(L.keyNoticeDue({ ...st, hasSavedKey: false }), false);
   assert.equal(L.keyNoticeDue({ ...st, gate: gateOf('judge-pool') }), false, 'the school pays: AI is not hidden');
   assert.equal(L.keyNoticeDue({ ...st, gate: L.gateFor({ record: null, programId: null, now: NOW }) }), false, 'solo');
-  const text = L.KEY_NOTICE('Fixture High Debate');
-  assert.equal(text, 'Your saved key is paused in Fixture High Debate rounds. It stays on this device.');
+  const text = L.KEY_NOTICE('Lincoln HS Debate');
+  assert.equal(text, 'Your saved key is paused in Lincoln HS Debate rounds. It stays on this device.');
   assert.doesNotMatch(text, /transcri|flow|eval|analysis|ballot|draft|\bAI\b/i);
 });
