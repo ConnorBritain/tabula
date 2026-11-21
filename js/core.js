@@ -11,6 +11,9 @@ const K = window.TabulaKeys;
 const IS_MAC = K.isMacPlatform(navigator.platform || navigator.userAgent);
 const $ = (s) => document.querySelector(s);
 const STORE = L.STORE_KEYS.round, LOG = 'policyJudge.log.v1', KEY = 'policyJudge.key';
+// Feature flags (logic/flags.js). A flagged part starts hidden in index.html and shows only when its flag is on.
+const flagOn = (name) => L.flagOn(name, { search: location.search, local: LOCAL_ORIGIN });
+document.querySelectorAll('[data-flag]').forEach((el) => { if (flagOn(el.dataset.flag)) el.hidden = false; });
 
 // ---------- storage (never trust it to exist) ----------
 const store = {
@@ -82,7 +85,7 @@ function freshRound(prev, fmt) {
   return {
     ...L.formatFields(f),
     ptsRange: prev && prev.ptsRange ? L.ptsRange(prev.ptsRange) : L.ptsRange(f.ballot.points),
-    tournament: '', roundName: '', judge: '', topic: '',
+    tournament: '', roundName: '', judge: '', topic: '', room: '', start: '', flight: '',
     aff: { team: '', d1: '', d2: '' }, neg: { team: '', d1: '', d2: '' },
     prepSeconds: prep,
     prepLeft: L.fullPrep(f, prep),
@@ -210,7 +213,7 @@ function applyPanes() {
   btn.setAttribute('aria-expanded', String(overlay ? leftOpen : !S.hideLeft));
   btn.dataset.tip = K.speechesTip(IS_MAC, S.singleKeys !== false);
 }
-const insightsMode = () => L.insightsMode({ allowed: can('liveEval'), setup: showSetup(), aiReady: aiReady(), hideRight: Boolean(S.hideRight) });
+const insightsMode = () => L.insightsMode({ allowed: can('liveEval'), setup: showSetup(), aiReady: ready(), hideRight: Boolean(S.hideRight) });
 function focusSpeechTile() { const t = $('#speech-list .sp.run') || $('#speech-list .sp.on'); if (t) t.focus(); }
 function openSpeeches(from) {
   leftOpener = from && from !== document.body && !from.closest('#tab-timer') ? from : null;

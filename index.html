@@ -600,6 +600,10 @@
   .copy-block { margin-top: var(--s3); }
   .copy-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); margin-bottom: var(--s1); }
   .copy-head h3 { margin: 0; font-size: var(--fs-2); font-weight: var(--fw-4); }
+  .copy-words { font-size: var(--fs-1); }
+  .copy-note { margin: var(--s1) 0 0; }
+  /* Feature flags (logic/flags.js): a flagged part starts hidden; js/core.js shows it when its flag is on. */
+  [data-flag][hidden] { display: none; }
   .copy-text { font-size: var(--fs-2); resize: vertical; }
   .copy-fail { margin: var(--s1) 0 0; color: var(--caution); font-size: var(--fs-2); font-weight: var(--fw-3); }
   .copy-fail[hidden] { display: none; }
@@ -856,12 +860,28 @@
       <select id="judging-for" class="w-auto" data-judging aria-describedby="judging-help"></select>
       <p class="muted field-help" id="judging-help" data-judging-help></p>
     </div>
+    <p class="muted field-help" id="ai-limits" hidden></p>
     <div class="grid">
       <div><label>Tournament</label><input data-bind="tournament"></div>
       <div><label>Round</label><input data-bind="roundName" placeholder="Round 3"></div>
       <div><label>Judge</label><input data-bind="judge"></div>
     </div>
+    <div class="grid mt-3" data-flag="roundDetails" hidden>
+      <div><label>Room</label><input data-bind="room"></div>
+      <div><label>Start time</label><input data-bind="start" placeholder="9:00 AM"></div>
+      <div><label>Flight</label><input data-bind="flight" placeholder="A"></div>
+    </div>
     <div class="mt-3"><label>Resolution</label><input data-bind="topic" placeholder="Resolved: The United States federal government should…"></div>
+    <details class="mt-3 noprint" id="paste-round" data-flag="pasteRound" hidden>
+      <summary class="muted">Paste the round from the tournament site</summary>
+      <p class="muted field-help" id="paste-round-help">On the tournament site, select your round on your judge page or in the pairings, copy it, and paste it here. Tabula reads the text in this browser. It does not connect to the tournament site.</p>
+      <textarea id="paste-round-text" class="mt-2" rows="5" aria-label="Round text from the tournament site" aria-describedby="paste-round-help" spellcheck="false" placeholder="Round 3&#10;Aff: Lincoln AB  Alex Smith &amp; Bo Jones&#10;Neg: Westfield CD  Cam Lee &amp; Dee Park"></textarea>
+      <div id="paste-round-found" class="mt-2" aria-live="polite"></div>
+      <div class="row mt-2">
+        <button class="b primary" id="paste-round-fill" type="button" aria-disabled="true">Fill the round</button>
+        <button class="b" id="paste-round-swap" type="button">Swap Aff and Neg</button>
+      </div>
+    </details>
   </div>
   <div class="grid">
     <div class="card"><h2 class="aff">Affirmative</h2>
@@ -1285,6 +1305,7 @@
   <div class="rb-prep"><span class="aff">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
   <div class="rb-prep"><span class="neg">Neg prep</span><span class="t" id="prep-neg">8:00</span><button class="b small" data-prep="neg">Start</button></div>
   <span id="mini-rec" class="rb-ai" data-ai="any"></span>
+  <span id="ai-round" class="rb-ai" role="status" aria-live="polite" hidden><span id="ai-round-text"></span> <button class="b small" id="ai-resume" type="button" hidden>Turn AI back on</button></span>
 </footer>
 <div id="node-editor" class="overlay" role="dialog" aria-modal="true" aria-labelledby="ne-title" hidden>
   <div class="overlay-card narrow">
@@ -1382,11 +1403,15 @@
 <script defer src="logic/audio.js"></script>
 <script defer src="logic/flow.js"></script>
 <script defer src="logic/files.js"></script>
+<script defer src="logic/pairing.js"></script>
 <script defer src="logic/rules.js"></script>
 <script defer src="logic/decide.js"></script>
 <script defer src="logic/prompts.js"></script>
 <script defer src="logic/shell.js"></script>
 <script defer src="logic/account.js"></script>
+<script defer src="logic/flags.js"></script>
+<script defer src="logic/limits.js"></script>
+<script defer src="logic/hosted.js"></script>
 <script defer src="logic.js"></script>
 <script defer src="providers.js"></script>
 <script defer src="tour.js"></script>
@@ -1396,12 +1421,14 @@
 <script defer src="assets/brand.js"></script>
 <script defer src="js/core.js"></script>
 <script defer src="js/formatsetup.js"></script>
+<script defer src="js/pairing.js"></script>
 <script defer src="js/caps.js"></script>
 <script defer src="js/clock.js"></script>
 <script defer src="js/recording.js"></script>
 <script defer src="js/flow.js"></script>
 <script defer src="js/docs.js"></script>
 <script defer src="js/ai.js"></script>
+<script defer src="js/limits.js"></script>
 <script defer src="js/settings.js"></script>
 <script defer src="js/help.js"></script>
 <script defer src="js/insights.js"></script>

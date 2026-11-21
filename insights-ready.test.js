@@ -30,8 +30,9 @@ test('insightsReady turns true when a speech clock runs or has run, or words exi
 // on an empty round; the real scheduleEval must refuse to start a run until the round is ready.
 test('scheduleEval runs no Live Eval while insightsReady is false, and runs one once it is true', () => {
   // The platform 1B merge (2026-11-20) added can('liveEval') to scheduleEval, so the stub world passes can too.
-  const make = (aiReady, L, R, DOCS, runEval, can = () => true) => new Function('aiReady', 'L', 'R', 'DOCS', 'runEval', 'can',
-    'let resetting = false, evalBusy = false, evalAgain = false;\n' + fnSource(INS, 'scheduleEval') + '\nreturn scheduleEval;')(aiReady, L, R, DOCS, runEval, can);
+  // The hosted AI caller (2026-11-21) made scheduleEval ask ready() (a key, or hosted access), so the stub passes it too.
+  const make = (aiReady, L, R, DOCS, runEval, can = () => true) => new Function('aiReady', 'ready', 'L', 'R', 'DOCS', 'runEval', 'can',
+    'let resetting = false, evalBusy = false, evalAgain = false;\n' + fnSource(INS, 'scheduleEval') + '\nreturn scheduleEval;')(aiReady, aiReady, L, R, DOCS, runEval, can);
   let runs = 0;
   const run = () => { runs++; };
   make(() => true, L, { started: false }, [], run)();

@@ -152,6 +152,14 @@
     return Number(v);
   }
 
+  // True when the winner has fewer total points than the loser (all points filled in). fmt: the round's format.
+  function isLowPointWin(ballot, fmt) {
+    const b = ballot || {}, pts = b.pts || {};
+    const sideSum = (side) => F.speakersOn(fmt, side).reduce((t, sp) => t + num(pts[sp.id]), 0);
+    const affSum = sideSum('aff'), negSum = sideSum('neg');
+    if (Number.isNaN(affSum) || Number.isNaN(negSum)) return false;
+    return (b.winner === 'aff' && affSum < negSum) || (b.winner === 'neg' && negSum < affSum);
+  }
   // Returns a list of problems a tab room would bounce the ballot for.
   // Slice 4 (4.7, 4.8): opts.range { min, max } is the round's points range (opts.minPts / maxPts still work);
   // opts.range === null is an old saved ballot with no range, so points get no range check. Points outside the range
@@ -176,13 +184,7 @@
       else if (!noRange && (p < o.minPts || p > o.maxPts)) out.push(label(s) + ' has ' + p + ', outside ' + o.minPts + '–' + o.maxPts + '.');
     }
     if (fmt.ballot.speakerRanks) for (const s of ids) if (ranks[s] == null || String(ranks[s]).trim() === '') out.push('Give ' + label(s) + ' a rank.');
-    const sideSum = (side) => F.speakersOn(fmt, side).reduce((t, sp) => t + num(pts[sp.id]), 0);
-    const affSum = sideSum('aff');
-    const negSum = sideSum('neg');
-    if (!Number.isNaN(affSum) && !Number.isNaN(negSum)) {
-      if (b.winner === 'aff' && affSum < negSum) out.push('Low-point win: the Aff wins with fewer points. Check that you meant this.');
-      if (b.winner === 'neg' && negSum < affSum) out.push('Low-point win: the Neg wins with fewer points. Check that you meant this.');
-    }
+    if (isLowPointWin(b, fmt)) out.push('Low-point win: the ' + (b.winner === 'aff' ? 'Aff' : 'Neg') + ' wins with fewer points. Check that you meant this.');
     const rankVals = ids.map((s) => num(ranks[s])).filter((n) => !Number.isNaN(n));
     if (fmt.ballot.speakerRanks && rankVals.length === ids.length) {
       const sorted = rankVals.slice().sort((a, b) => a - b);
@@ -259,7 +261,7 @@
 
   const api = { SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS,
     SPEAKERS, PARADIGMS, PARADIGM_LABELS, paradigmText, hashText, lensKey, formatClock, sheetSafe, csvCell, toCSV,
-    toTSV, BALLOT_HEADER, LOG_SLOTS, ballotRow, num, checkBallot, parseDecision, parseRfd, LOG_COLUMNS, BALLOT_FIELDS, ballotFields,
+    toTSV, BALLOT_HEADER, LOG_SLOTS, ballotRow, num, isLowPointWin, checkBallot, parseDecision, parseRfd, LOG_COLUMNS, BALLOT_FIELDS, ballotFields,
     speechesSoFar, MAP_SPEECHES, DEFAULT_PTS_RANGE, ptsRange, rangeError, isDefaultRange };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).round = api;

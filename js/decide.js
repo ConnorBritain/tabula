@@ -58,7 +58,7 @@ const STATE_TEXT = {
   stopped: 'Stopped. Nothing on the ballot changed.',
 };
 function draftState() {
-  return L.draftPanelState({ busy: draftUi.busy, aiReady: aiReady(), offline: navigator.onLine === false, hasContent: L.roundHasContent(R, DOCS), picked: (draftUi.picks || defaultPicks()).size, error: draftUi.err, stopped: draftUi.stopped });
+  return L.draftPanelState({ busy: draftUi.busy, aiReady: ready(), offline: navigator.onLine === false, hasContent: L.roundHasContent(R, DOCS), picked: (draftUi.picks || defaultPicks()).size, error: draftUi.err, stopped: draftUi.stopped });
 }
 function renderDraftPanel() {
   renderDraftButton();
@@ -119,11 +119,14 @@ async function runDraft({ picks, redraft, text }) {
   Object.assign(draftUi, { busy: true, busyText: text || '', ctrl, err: '', stopped: false });
   renderDraftPanel();
   try {
+    // One request for both paths: buildBallotPrompt and L.hostedState read the same keys (ballotRequestLines).
+    const ask = { only: fields, redraft, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null };
     const data = await callAI({
       feature: 'ballotDraft',
       system: BALLOT_SYSTEM(),
-      prompt: L.buildBallotPrompt(R, DOCS, R.ballotInput || '', { only: fields, redraft, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null }),
+      prompt: L.buildBallotPrompt(R, DOCS, R.ballotInput || '', ask),
       schema: L.promptsFor(FMT()).ballotSchema, effort: 'high', reading: level, kind: 'ballot', signal: ctrl.signal,
+      hosted: { job: 'ballot', extra: Object.assign({ judgeInput: R.ballotInput || '' }, ask) },
     });
     if (resetting) return null;
     LV(level).ballotDraft = { data, at: Date.now(), through: L.speechesSoFar(R) };
@@ -284,14 +287,14 @@ function insertReview(all) {
 function scheduleBallotSoon() {
   clearTimeout(fillSoonTimer);
   fillSoonTimer = setTimeout(() => {
-    if (!can('ballotDraft') || !S.autoBallot || !aiReady() || resetting) return;
+    if (!can('ballotDraft') || !S.autoBallot || !ready() || resetting) return;
     if (navigator.onLine === false) { fillWaitsOnline = true; return; } // runs when online, if still on (spec 2.3, D2)
     runAutoRefill();
   }, 25000);
 }
 async function runAutoRefill() {
   if (!can('ballotDraft')) return;
-  if (!S.autoBallot || !aiReady() || draftUi.busy || R.ballotReview || navigator.onLine === false || !L.roundHasContent(R, DOCS)) return;
+  if (!S.autoBallot || !ready() || draftUi.busy || R.ballotReview || navigator.onLine === false || !L.roundHasContent(R, DOCS)) return;
   const picks = draftGroupsNow().map((g) => g.id);
   const data = await runDraft({ picks, text: 'Refilling after the speech…' });
   if (!data || R.ballotReview) return;
@@ -548,13 +551,14 @@ function focusBallotProblem() {
 const copyDlg = modalDialog($('#copy-sheet'), $('#copy-card'), { name: 'copy', rank: 85 });
 let copyBlocks = [];
 function openCopySheet() {
-  copyBlocks = L.tournamentBlocks(R);
+  copyBlocks = L.tournamentBlocks(R, { tips: flagOn('copyTips') });
   const n = L.checkBallot(R.ballot, { range: ptsRangeNow(), format: FMT() }).length;
   $('#copy-warn').hidden = !n;
   $('#copy-warn').textContent = n ? 'This ballot has ' + n + (n === 1 ? ' problem' : ' problems') + '. Fix them first, or copy anyway.' : '';
   $('#copy-blocks').innerHTML = copyBlocks.map((b) => `<section class="copy-block" aria-labelledby="cb-h-${b.id}">
-    <div class="copy-head"><h3 id="cb-h-${b.id}">${escapeHtml(b.label)}</h3>${b.text ? `<button class="b small" type="button" data-copy-block="${b.id}" aria-label="Copy ${escapeHtml(b.label)}">Copy</button>` : ''}</div>
+    <div class="copy-head"><h3 id="cb-h-${b.id}">${escapeHtml(b.label)}${b.text && b.words !== undefined ? ` <span class="muted copy-words">${b.words} ${b.words === 1 ? 'word' : 'words'}</span>` : ''}</h3>${b.text ? `<button class="b small" type="button" data-copy-block="${b.id}" aria-label="Copy ${escapeHtml(b.label)}">Copy</button>` : ''}</div>
     ${b.text ? `<textarea class="copy-text" id="cb-t-${b.id}" readonly rows="${Math.min(8, Math.max(2, b.text.split('\n').length + Math.floor(b.text.length / 70)))}" aria-labelledby="cb-h-${b.id}">${escapeHtml(b.text)}</textarea>
+    ${b.note ? `<p class="field-help copy-note">${escapeHtml(b.note)}</p>` : ''}
     <p class="copy-fail" id="cb-f-${b.id}" hidden>Press Ctrl+C (⌘C on Mac) to copy.</p>` : '<p class="muted">Nothing written yet</p>'}
   </section>`).join('');
   copyDlg.open($('#copy-blocks [data-copy-block]') || $('#copy-done'));
