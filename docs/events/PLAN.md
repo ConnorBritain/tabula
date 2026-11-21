@@ -4,6 +4,8 @@ Status: **approved by the owner, 2026-11-20** ("Yes, all my picks": Q1–Q10 all
 
 Read in this order: this file, then [ARCHITECTURE.md](ARCHITECTURE.md), [EVENTS.md](EVENTS.md), [SHARED-VS-NEW.md](SHARED-VS-NEW.md), [DESIGN.md](DESIGN.md).
 
+**Added 2026-11-21 (catalog and core plan, for owner approval):** [CATALOG.md](CATALOG.md) (the full event panel and which app owns each event), [SEASON.md](SEASON.md) (fall versus spring, Friday versus Saturday, the LD question), [MODELS.md](MODELS.md) (object, data and design models per event family, shared objects), [LANDING.md](LANDING.md) (the rest of the `core/` lift, the atomic landing order, and two open owner choices, Q12 and Q13). These files change no decision below on their own. Q12 and Q13 (LANDING.md §5) are open: each proposes a change (Q12 B: P1 order and R2; Q13 B: Q8 and P5) and needs an owner answer.
+
 ## 1. The plan in one screen
 
 - **What:** a room tool for speech judges. Time each speaker, write comments, rank with no ties, copy to Tabroom or SpeechWire. Offline first. AI only cleans up the judge's own words, on request.
