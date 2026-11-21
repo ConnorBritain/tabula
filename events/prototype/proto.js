@@ -1,6 +1,8 @@
 // Tabula Speech Events: clickable prototype for the 5-judge lay test. Throwaway code: the real app waits for core/.
 // It follows docs/events/DESIGN.md §3–§5. No AI, no network calls, no recording. State lives in memory and in
 // localStorage under the tabulaEvents.proto.* prefix, so a reload keeps the room.
+// Do not port this file. In the real build, the clock, the sticky over-grace flag and the rank rules go into core/
+// with their own tests, and the small helpers here (esc, fmt, store) come from core/ too.
 'use strict';
 (function () {
   const DATA = window.TABULA_EVENTS_DATA;
