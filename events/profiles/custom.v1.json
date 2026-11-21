@@ -1,0 +1,14 @@
+{
+  "id": "custom",
+  "version": 1,
+  "name": "Custom",
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "Tabula defaults (ARCHITECTURE.md §6.2), 2026-27 season. The judge changes them per room."
+}

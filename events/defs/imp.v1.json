@@ -1,0 +1,50 @@
+{
+  "id": "imp",
+  "version": 1,
+  "name": "Impromptu",
+  "short": "IMP",
+  "category": "limitedPrep",
+  "performers": 1,
+  "timing": {
+    "limit": 420,
+    "inRoomPrep": true,
+    "sharedClock": true
+  },
+  "material": "noNotes",
+  "checks": [
+    "noNotes"
+  ],
+  "prompts": [
+    "Did the speech tie back to the topic?",
+    "Was there a clear structure?",
+    "Were the examples a good fit?",
+    "Did the speaker stay calm?"
+  ],
+  "tags": [
+    {
+      "id": "topicLink",
+      "label": "Link to the topic",
+      "strength": "You tied the speech back to your topic all the way through.",
+      "toWork": "Tie each point back to the topic you drew."
+    },
+    {
+      "id": "structure",
+      "label": "Structure",
+      "strength": "Your speech was easy to follow from point to point.",
+      "toWork": "Make each part of the speech easier to follow, with clear steps."
+    },
+    {
+      "id": "examples",
+      "label": "Examples",
+      "strength": "Your examples fit the topic well.",
+      "toWork": "Use one or two clear examples to support each point."
+    },
+    {
+      "id": "poise",
+      "label": "Poise",
+      "strength": "You stayed calm and sure of yourself.",
+      "toWork": "Take a breath and stay steady when you lose your place."
+    }
+  ],
+  "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season. Summarized in our own words; no rule text copied."
+}

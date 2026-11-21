@@ -1,0 +1,57 @@
+{
+  "id": "pro",
+  "version": 1,
+  "name": "Prose",
+  "short": "PRO",
+  "category": "interp",
+  "performers": 1,
+  "timing": {
+    "limit": 300,
+    "inRoomPrep": false,
+    "sharedClock": false
+  },
+  "material": "manuscript",
+  "checks": [
+    "manuscript",
+    "titleAuthor",
+    "noAiText"
+  ],
+  "prompts": [
+    "Were the narrator and characters clear?",
+    "Did the cutting tell a full story?",
+    "Was the script used well?"
+  ],
+  "tags": [
+    {
+      "id": "narration",
+      "label": "Narration",
+      "strength": "Your narrator voice guided me through the story.",
+      "toWork": "Make the narrator voice clearer and different from the characters."
+    },
+    {
+      "id": "characters",
+      "label": "Characters",
+      "strength": "Each character was clear and different.",
+      "toWork": "Make each character more different in voice and body."
+    },
+    {
+      "id": "cut",
+      "label": "Cutting",
+      "strength": "Your cutting told a complete story.",
+      "toWork": "Make the cutting tell a clearer, complete story."
+    },
+    {
+      "id": "binder",
+      "label": "Script use",
+      "strength": "You used the script with skill and control.",
+      "toWork": "Handle the script more smoothly so it does not distract."
+    },
+    {
+      "id": "intro",
+      "label": "Intro",
+      "strength": "Your intro set up the piece well and named the title and author.",
+      "toWork": "Use the intro to set up the piece and name the title and author."
+    }
+  ],
+  "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season. Summarized in our own words; no rule text copied."
+}

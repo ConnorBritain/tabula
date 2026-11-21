@@ -1,0 +1,58 @@
+{
+  "id": "poi",
+  "version": 1,
+  "name": "Program Oral Interpretation",
+  "short": "POI",
+  "category": "interp",
+  "performers": 1,
+  "timing": {
+    "limit": 600,
+    "inRoomPrep": false,
+    "sharedClock": false
+  },
+  "material": "manuscript",
+  "checks": [
+    "manuscript",
+    "titleAuthor",
+    "noAiText"
+  ],
+  "prompts": [
+    "Did the program make one clear point?",
+    "Were the moves between pieces smooth?",
+    "Were the characters clear?",
+    "Was the script used well?"
+  ],
+  "tags": [
+    {
+      "id": "argument",
+      "label": "Program argument",
+      "strength": "The program made a clear point as a whole.",
+      "toWork": "Make the point of the whole program clearer."
+    },
+    {
+      "id": "transitions",
+      "label": "Transitions",
+      "strength": "Your moves between pieces were smooth.",
+      "toWork": "Make the moves between pieces smoother and clearer."
+    },
+    {
+      "id": "characters",
+      "label": "Characters",
+      "strength": "Each character was clear and different.",
+      "toWork": "Make each character more different in voice and body."
+    },
+    {
+      "id": "binder",
+      "label": "Script use",
+      "strength": "You used the script with skill and control.",
+      "toWork": "Handle the script more smoothly so it does not distract."
+    },
+    {
+      "id": "intro",
+      "label": "Intro",
+      "strength": "Your intro set up the piece well and named the title and author.",
+      "toWork": "Use the intro to set up the piece and name the title and author."
+    }
+  ],
+  "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season. Summarized in our own words; no rule text copied."
+}

@@ -1,0 +1,50 @@
+{
+  "id": "dec",
+  "version": 1,
+  "name": "Declamation",
+  "short": "DEC",
+  "category": "publicAddress",
+  "performers": 1,
+  "timing": {
+    "limit": 600,
+    "inRoomPrep": false,
+    "sharedClock": false
+  },
+  "material": "memorized",
+  "checks": [
+    "memorized",
+    "titleAuthor"
+  ],
+  "prompts": [
+    "Did the intro give the title, author and date?",
+    "Did the speaker show why the speech matters?",
+    "How was the delivery?"
+  ],
+  "tags": [
+    {
+      "id": "introDec",
+      "label": "Intro",
+      "strength": "Your intro gave the speech, its author and its date clearly.",
+      "toWork": "Give the speech title, its author and its date clearly in the intro."
+    },
+    {
+      "id": "purpose",
+      "label": "Purpose",
+      "strength": "You showed why this speech still matters today.",
+      "toWork": "Show why this speech still matters today."
+    },
+    {
+      "id": "delivery",
+      "label": "Delivery",
+      "strength": "Your voice and pace were easy to listen to.",
+      "toWork": "Vary your voice and pace so key lines stand out."
+    },
+    {
+      "id": "pacing",
+      "label": "Pacing",
+      "strength": "Your pacing gave key moments room to land.",
+      "toWork": "Slow down at key moments so they have room to land."
+    }
+  ],
+  "source": "NSDA Middle School Unified Manual, 2026-27 season. Summarized in our own words; no rule text copied."
+}

@@ -30,6 +30,10 @@ const SOURCES = {
   'page code (js/*.js + app.js)': readSource('app.js'),
   'ui.js': readSource('ui.js'),
   'tour.js': readSource('tour.js'),
+  // Added 2026-11-21: the Speech Events prototype follows the same rule (docs/events/DESIGN.md §1 rule 3).
+  'events/prototype/index.html': readSource('events/prototype/index.html'),
+  'events/prototype/proto.css': readSource('events/prototype/proto.css'),
+  'events/prototype/proto.js': readSource('events/prototype/proto.js'),
 };
 
 // Split a CSS value on top-level commas (not the commas inside rgb() or var()).
