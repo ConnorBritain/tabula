@@ -21,7 +21,7 @@
   const MATERIAL = { memorized: 'from memory', manuscript: 'with a script', noNotes: 'no notes' };
 
   // ---------- State ----------
-  const fresh = () => ({ v: 1, screen: 'setup', draft: { eventId: 'oo', profileId: 'nsda-district', round: '', paste: '', grace: 30, effect: 'noFirst', decided: {} }, room: null });
+  const fresh = () => ({ v: 1, screen: 'setup', draft: { eventId: 'oo', profileId: 'nsda-district', round: '', paste: '', grace: 30, effect: 'noFirst', limit: '', decided: {} }, room: null });
   let S;
   try { S = JSON.parse(store.get(KEY)) || fresh(); } catch { S = fresh(); }
   if (!S || S.v !== 1) S = fresh();
@@ -40,7 +40,8 @@
   const now = () => Date.now();
   const running = (en) => { const r = en.timing.runs; return r.length > 0 && r[r.length - 1].e == null; };
   const used = (en, t = now()) => Math.max(0, en.timing.runs.reduce((a, r) => a + ((r.e ?? t) - r.s), 0) + en.timing.offsetMs);
-  const limitMs = () => ev().timing.limit * 1000;
+  // A Custom room may set its own limit (for example middle school Prose and Poetry at 7:00; PLAN.md Q11).
+  const limitMs = () => (room().limitSec || ev().timing.limit) * 1000;
   const graceMs = () => prof().overtime.grace * 1000;
   const fmt = (ms) => { const s = Math.floor(Math.abs(ms) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
   const parseTime = (txt) => { const m = /^\s*(\d{1,2})(?::(\d{1,2}))?\s*$/.exec(txt); if (!m) return null; const sec = m[2] == null ? +m[1] * 60 : +m[1] * 60 + +m[2]; return m[2] != null && +m[2] > 59 ? null : sec * 1000; };
@@ -149,7 +150,11 @@
     const checks = parsed.check.map((c, i) => `<li class="check-row"><div><div class="mono">${esc(c.line)}</div><div class="muted">${esc(c.why)}</div></div>
       <div class="row-btns">${c.guess ? `<button type="button" class="b" data-act="decide" data-line="${esc(c.key)}" data-code="${esc(c.guess)}" data-key="chk-add-${i}">Add as ${esc(c.guess)}</button>` : ''}
       <button type="button" class="b quiet" data-act="decide" data-line="${esc(c.key)}" data-code="skip" data-key="chk-skip-${i}">Skip</button></div></li>`).join('');
-    const custom = d.profileId === 'custom' ? `<div class="grid2">
+    const lim = customLimit();
+    const custom = d.profileId === 'custom' ? `<label class="field"><span>Time limit for this room <span class="muted">(minutes:seconds; empty uses ${fmt(e.timing.limit * 1000)})</span></span>
+      <input value="${esc(d.limit)}" data-bind="limit" data-key="limit" inputmode="numeric" autocomplete="off" placeholder="${fmt(e.timing.limit * 1000)}"${lim.bad ? ' aria-invalid="true" aria-describedby="limit-err"' : ''}>
+      ${lim.bad ? '<span class="field-error" id="limit-err">Use minutes and seconds, like 7:00.</span>' : ''}</label>
+      <div class="grid2">
       <label class="field"><span>Grace (seconds)</span><input type="number" inputmode="numeric" min="0" max="120" step="5" value="${d.grace}" data-bind="grace" data-key="grace"></label>
       <label class="field"><span>Past grace</span><select data-bind="effect" data-key="effect">
         <option value="noFirst"${d.effect === 'noFirst' ? ' selected' : ''}>I may not rank them 1st</option>
@@ -159,7 +164,7 @@
       <div class="setup-grid">
         <div class="card">
           <label class="field"><span>Event</span><select data-bind="eventId" data-key="eventId">${groups}</select></label>
-          <p class="hint">${fmt(e.timing.limit * 1000)} limit${e.timing.sharedClock ? ', prep and speech together' : ''} · ${p.overtime.grace} s grace · ${MATERIAL[e.material]}${e.performers === 2 ? ' · 2 performers' : ''}</p>
+          <p class="hint">${fmt((lim.sec || e.timing.limit) * 1000)} limit${e.timing.sharedClock ? ', prep and speech together' : ''} · ${p.overtime.grace} s grace · ${MATERIAL[e.material]}${e.performers === 2 ? ' · 2 performers' : ''}</p>
           <div class="grid2">
             <label class="field"><span>Tournament rules</span><select data-bind="profileId" data-key="profileId">${profiles}</select></label>
             <label class="field"><span>Round (optional)</span><input value="${esc(d.round)}" data-bind="round" data-key="round" autocomplete="off" placeholder="Round 2"></label>
@@ -177,11 +182,16 @@
           ${parsed.skipped.length ? `<p class="muted">Skipped ${parsed.skipped.length} ${parsed.skipped.length === 1 ? "line" : "lines"}: ${esc(parsed.skipped.join(' · '))}</p>` : ''}
           <div class="row-end">
             ${room() ? '<button type="button" class="b" data-act="go" data-screen="room" data-key="back-room">Back to my room</button>' : ''}
-            <button type="button" class="b primary" data-act="start-room" data-key="start-room"${parsed.entries.length < 2 || parsed.check.length ? ' disabled' : ''}>Start room</button>
+            <button type="button" class="b primary" data-act="start-room" data-key="start-room"${parsed.entries.length < 2 || parsed.check.length || lim.bad ? ' disabled' : ''}>Start room</button>
           </div>
           ${parsed.check.length ? '<p class="hint">Sort out the lines under "Check these" first.</p>' : parsed.entries.length < 2 ? '<p class="hint">Add at least 2 speakers.</p>' : ''}
         </div>
       </div></section>`;
+  }
+  // The Custom limit, in seconds: { sec } when set, { bad: true } when typed wrong, {} when empty or not Custom.
+  function customLimit() {
+    const d = S.draft; if (d.profileId !== 'custom' || !String(d.limit || '').trim()) return {};
+    const ms = parseTime(d.limit); return ms && ms > 0 ? { sec: ms / 1000 } : { bad: true };
   }
   function setupProfile() {
     const d = S.draft; const base = JSON.parse(JSON.stringify(profileById(d.profileId)));
@@ -193,7 +203,7 @@
     if (room() && !(await ask({ title: 'Start a new room?', body: 'This replaces the room you have open now. Its notes and ranks go away.', ok: 'Start new room', danger: true }))) return;
     const e = eventById(d.eventId);
     S.room = {
-      id: 'r' + now().toString(36), createdAt: now(), productLine: 'events', eventId: e.id, eventVersion: e.version,
+      id: 'r' + now().toString(36), createdAt: now(), productLine: 'events', eventId: e.id, eventVersion: e.version, limitSec: customLimit().sec || null,
       profile: setupProfile(), round: d.round, state: 'judging', reasonForRank: '', ranksCopied: false, ranked: false, rankOrder: null,
       entries: parsed.entries.map((x, i) => ({
         id: 'e' + i, code: x.code, name: x.name, order: i, status: 'waiting',
@@ -227,7 +237,7 @@
   function timerCard(en) {
     const st = stage(en); const e = ev(); const u = used(en); const left = limitMs() - u;
     const digits = st.cls === 'stopped' || st.cls === 'ready' && u === 0 ? fmt(st.cls === 'ready' ? limitMs() : u) : left >= 0 ? fmt(left) : '+' + fmt(-left);
-    const unit = st.cls === 'stopped' ? 'used' : st.cls === 'ready' ? 'limit' : left >= 0 ? 'left' : 'over';
+    const unit = st.cls === 'stopped' ? 'used' : st.cls === 'ready' ? '' : left >= 0 ? 'left' : 'over';
     const prep = e.timing.inRoomPrep ? `<ol class="phase" aria-label="Phase">
         <li class="${en.timing.phase === 'prep' ? 'on' : 'done'}">Prep${en.timing.prepMs != null ? ' ' + fmt(en.timing.prepMs) : ''}</li>
         <li class="${en.timing.phase === 'speech' ? 'on' : ''}">Speech</li></ol>` : '';
@@ -236,7 +246,7 @@
       ${prep}
       <div class="t-top"><span class="t-word" id="t-word">${esc(st.word)}</span><span class="t-flags" id="t-flags">${flagPills(en)}</span></div>
       <div class="t-digits" id="t-digits">${digits}</div>
-      <div class="t-sub"><span id="t-unit">${unit}</span> · ${fmt(limitMs())} limit${e.timing.sharedClock ? ' (prep and speech)' : ''} · ${prof().overtime.grace} s grace</div>
+      <div class="t-sub"><span id="t-unit">${unit}</span>${unit ? ' · ' : ''}${fmt(limitMs())} limit${e.timing.sharedClock ? ' (prep and speech)' : ''} · ${prof().overtime.grace} s grace</div>
       <div class="sig-slot"><span class="sig-chip${sig ? '' : ' empty'}" id="sig-chip">${esc(sig)}</span></div>
       <div class="t-main-btns">
         <button type="button" class="b primary big" data-act="startstop" data-key="startstop">${running(en) ? 'Stop' : en.timing.runs.length ? 'Resume' : 'Start'}</button>
