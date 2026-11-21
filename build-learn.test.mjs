@@ -370,3 +370,12 @@ test('library pages and About use the one shared token file and keep no copied c
   assert.match(about, /<link rel="stylesheet" href="assets\/tokens\.css">/);
   for (const [rel, html] of htmlPages) assert.match(html, /<link rel="stylesheet" href="(\.\.\/)+assets\/tokens\.css">/, `learn/${rel} links tokens.css`);
 });
+
+// WHY: the owner took his personal GitHub handle off the public sites (2026-11-21). If a Library page links it again, every reader and the marketing copy of the Library show it.
+test('library pages send mistake reports to the support email, not a personal GitHub page', () => {
+  for (const [rel, html] of htmlPages) {
+    assert.doesNotMatch(html, /github\.com\/ConnorBritain/, `learn/${rel} links the personal GitHub page`);
+  }
+  const home = site.files.get('index.html');
+  assert.match(home, /href="mailto:support@tabulaspeech\.com"/);
+});

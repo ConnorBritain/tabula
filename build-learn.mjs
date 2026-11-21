@@ -96,6 +96,7 @@ export function inline(text, ctx) {
       return `<a href="${relHref(ctx.slug, local[1])}${local[2] || ''}">${label}</a>`;
     }
     if (/^https?:\/\//.test(href)) return `<a href="${href}" rel="noopener">${label}</a>`;
+    if (/^mailto:[^@\s]+@[a-z0-9.-]+$/i.test(href)) return `<a href="${href}">${label}</a>`;
     throw new Error(`${ctx.slug}: unsupported link target "${href}"`);
   });
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?![*\w])/g, '$1<em>$2</em>');
@@ -275,7 +276,7 @@ function siteFooter(lib) {
   <nav class="foot-nav" aria-label="Tabula sites"><a href="${SITE}/">Tabula Debate</a><a href="${lib}">Library</a><a href="${SITE}/coaches/">Coaches</a><a href="${SITE}/school-it/">School IT</a><a href="${FAMILY}/plans/">Plans</a><a href="${FAMILY}/trust/">Your data</a><a href="${FAMILY}/about/">About</a></nav>
   <p>All evidence cards and authors in examples are invented for teaching.</p>
   <p>From the <a href="${lib}">Tabula Debate Library</a>. Text licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>. © 2026 Pattern Engine LLC.</p>
-  <p>Found a mistake? <a href="https://github.com/ConnorBritain/tabula/issues" rel="noopener">Open an issue</a>.</p>
+  <p>Found a mistake? <a href="mailto:support@tabulaspeech.com">Email us</a>.</p>
 </div></footer>`;
 }
 
