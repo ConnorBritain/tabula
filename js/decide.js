@@ -314,11 +314,7 @@ async function runAutoRefill() {
 }
 
 // ---------- backup and restore ----------
-function readAllStorage() {
-  const out = {};
-  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('policyJudge.')) out[k] = localStorage.getItem(k); } } catch {}
-  return out;
-}
+const readAllStorage = () => store.snapshot(STORE_PREFIX);
 async function readAllDocs() {
   try { return (await docStore.tx('readonly', (st) => st.getAll())) || []; } catch { return DOCS.slice(); }
 }
@@ -371,8 +367,7 @@ $('#restore-file').addEventListener('change', async (e) => {
     for (const [k, v] of Object.entries(entries)) sessionStorage.setItem(k, v); // a failure here runs the rollback below
   };
   const writeStorage = (entries) => {
-    for (const k of Object.keys(readAllStorage())) localStorage.removeItem(k);
-    for (const [k, v] of Object.entries(entries)) localStorage.setItem(k, v);
+    store.replaceAll(STORE_PREFIX, entries);
   };
   const writeDocs = (docs) => docStore.tx('readwrite', (store2) => { store2.clear(); let last = null; for (const d of docs) last = store2.put(d); return last; });
   try {
@@ -511,6 +506,8 @@ function renderSaveStatus() {
 }
 
 // ----- Save to History (spec 4.12) -----
+// The one direct write left: Save to History needs the error kind ('full' or 'blocked') for its own message, which
+// store.set does not return. LOG is a policyJudge.* key, so it stays inside debate's names.
 function storeLog(list) { try { localStorage.setItem(LOG, JSON.stringify(list)); return ''; } catch (err) { return L.storageErrorKind(err); } }
 $('#b-save').addEventListener('click', async () => {
   const issues = L.checkBallot(R.ballot, { range: ptsRangeNow(), format: FMT() });
