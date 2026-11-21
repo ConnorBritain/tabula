@@ -487,7 +487,9 @@
   .view-chip .b.small { min-height: var(--h-md); }
   .sp.run { border-color: var(--text); border-style: dashed; }
   .sp .sp-run { display: block; font-size: var(--fs-1); font-weight: var(--fw-4); color: var(--text); }
-  .scroll { overflow-x: auto; }
+  /* position: relative keeps absolute children (the sr-only "Actions" label in the History table) inside the scroll box;
+     without it they escape the box and widen the whole page on a phone. */
+  .scroll { overflow-x: auto; position: relative; }
   @media (max-width: 819.98px) {
     .toasts { left: var(--s4); right: var(--s4); width: auto; transform: none; }
     .ask-btns { flex-direction: column-reverse; }
