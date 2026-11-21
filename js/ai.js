@@ -167,11 +167,89 @@ function withStop(signal, ms) {
   if (!signal) return t;
   return typeof AbortSignal.any === 'function' ? AbortSignal.any([signal, t]) : t;
 }
+// ---------- hosted AI (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3) ----------
+// With hosted access (own credits, or the school pays for the feature), AI calls go to the Tabula server, which owns
+// the prompts and the prices. The page sends round state only, with names swapped for roles. A problem becomes one
+// error with plain words (L.hostedError); "out of rounds" also shows a toast with a Buy rounds link.
+const hostedOn = (f) => L.hostedOn(capsGate, f);
+const newCallId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2, 10));
+function hostedFail(info) {
+  if (info.quiet) return STOPPED();
+  if (info.signOut) clearCaps(); // signed out: today's app (AI-POLICY §6d)
+  if (info.link && !(info.fallback && aiReady())) {
+    const { label, url } = info.link;
+    toast('Get more rounds on your Tabula account.', { key: 'hosted-link', action: { label, name: label + ' (opens a new tab)', run: () => window.open(url, '_blank', 'noopener') } });
+  }
+  return Object.assign(new Error(info.text), { kind: 'hosted', hosted: info.kind, retryable: info.retryable, fallback: info.fallback, status: info.status });
+}
+// One hosted call. job: an L.HOSTED_TASKS key; extra: what that job needs from the caller (L.hostedState).
+// Returns the answer text. The judge's Stop (signal) cancels the stream, and the server charges only what it sent.
+async function callHosted({ job, extra, signal }) {
+  const anon = (v) => L.anonymize(v, R);
+  const state = L.hostedState(job, R, DOCS, extra);
+  for (const k of Object.keys(state)) state[k] = anon(state[k]);
+  // All of the round's text docs, the same text in the same order on every call (§3a: the provider caches them).
+  const docs = P.docsAsText(anonDocs(DOCS), L.docTitle);
+  if (docs) state.docs = docs;
+  const req = L.hostedRequest(R, job, state, newCallId());
+  let res;
+  try { res = await fetch(req.url, { ...req.init, signal: withStop(signal, 240000) }); }
+  catch (err) {
+    if (signal && signal.aborted) throw STOPPED();
+    if (navigator.onLine === false) throw aiError({ online: false }, '');
+    throw hostedFail(Object.assign(L.hostedError(err && err.name === 'TimeoutError' ? 503 : 0, ''), { status: 0 }));
+  }
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    throw hostedFail(Object.assign(L.hostedError(res.status, j && j.error), { status: res.status }));
+  }
+  let acc = L.sseStep({}, {});
+  try {
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    while (!acc.done && !acc.error) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const got = L.readSse(buf + dec.decode(value, { stream: true }));
+      buf = got.rest;
+      for (const ev of got.events) acc = L.sseStep(acc, ev);
+    }
+    if (acc.done || acc.error) reader.cancel().catch(() => {});
+  } catch (err) {
+    if (signal && signal.aborted) throw STOPPED();
+    throw hostedFail(Object.assign(L.hostedError(0, 'stream'), { status: 0 }));
+  }
+  // A stream that ends without "done" gave no full answer. The balance shows at the next capability check (§3a).
+  if (!acc.done) throw hostedFail(Object.assign(L.hostedError(0, acc.error || 'stream'), { status: 0 }));
+  return acc.text;
+}
+// The answer as the caller wants it: JSON for a schema, else text; names put back.
+function hostedResult(text, schema) {
+  let out = text;
+  if (schema) {
+    try { out = P.extractJson(text); }
+    catch { throw Object.assign(new Error(L.HOSTED_TEXT.badReply), { kind: 'hosted', hosted: 'badReply', retryable: true }); }
+  }
+  return L.deanonymize(out, R);
+}
+
 // feature: the gate key of the caller (platform 1B). A feature that is off makes no call and shows nothing (stopped).
-async function callAI({ feature, system, prompt, note, schema, effort = 'medium', reading, kind = 'routine', docs = DOCS, signal }) {
+// hosted: { job, extra } for the hosted path (L.HOSTED_TASKS, L.hostedState). With hosted access the call goes to the
+// Tabula server; when the server says this account cannot use it now (signed out, billing hold, busy), the judge's own
+// key is used if there is one. Without hosted access, the own key is used as before.
+async function callAI({ feature, system, prompt, note, schema, effort = 'medium', reading, kind = 'routine', docs = DOCS, signal, hosted }) {
   if (!can(feature)) throw STOPPED();
   if (signal && signal.aborted) throw STOPPED();
   const eng = S.aiEngine;
+  if (hosted && hostedOn(feature)) {
+    if (navigator.onLine === false) throw aiError({ online: false }, '');
+    try { return hostedResult(await callHosted({ job: hosted.job, extra: hosted.extra, signal }), schema); }
+    catch (err) {
+      if (!(err.fallback && aiReady())) throw err;
+      console.warn('Hosted AI is not available now (' + err.hosted + '); using the own key.');
+    }
+  }
   if (!aiReady()) throw Object.assign(new Error(noAiText()), { kind: 'noAI' });
   // Offline: show the offline text and make no call (spec 2.3).
   if (navigator.onLine === false) throw aiError({ online: false }, eng);

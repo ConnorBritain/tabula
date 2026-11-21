@@ -184,7 +184,7 @@ function applyPanes() {
   btn.setAttribute('aria-expanded', String(overlay ? leftOpen : !S.hideLeft));
   btn.dataset.tip = K.speechesTip(IS_MAC, S.singleKeys !== false);
 }
-const insightsMode = () => L.insightsMode({ allowed: can('liveEval'), setup: showSetup(), aiReady: aiReady(), hideRight: Boolean(S.hideRight) });
+const insightsMode = () => L.insightsMode({ allowed: can('liveEval'), setup: showSetup(), aiReady: ready(), hideRight: Boolean(S.hideRight) });
 function focusSpeechTile() { const t = $('#speech-list .sp.run') || $('#speech-list .sp.on'); if (t) t.focus(); }
 function openSpeeches(from) {
   leftOpener = from && from !== document.body && !from.closest('#tab-timer') ? from : null;

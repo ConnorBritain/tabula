@@ -16,7 +16,7 @@ function hasFlowSource(speechId) {
 }
 function scheduleFlow(speechId, force) {
   if (!can('aiFlow')) return false;
-  if (resetting || !S.liveFlow || L.speechColumn(speechId) == null || !aiReady()) return false;
+  if (resetting || !S.liveFlow || L.speechColumn(speechId) == null || !ready()) return false;
   if (!hasFlowSource(speechId)) return false;
   flowPending.set(speechId, Boolean(flowPending.get(speechId) || force));
   pumpFlow();
@@ -37,7 +37,7 @@ let flowRunningId = null;
 async function runFlow(speechId, forced) {
   flowBusy = true; flowRunningId = speechId; lastFlowAt = Date.now(); renderRecBadge();
   try {
-    const data = await callAI({ feature: 'aiFlow', system: L.LIVE_FLOW_SYSTEM, prompt: L.buildLiveFlowPrompt(R, speechId, DOCS), note: L.DOC_FLOW_NOTE, schema: L.LIVE_FLOW_SCHEMA, effort: 'low', kind: 'flow', docs: L.docsForSpeech(DOCS, speechId) });
+    const data = await callAI({ feature: 'aiFlow', system: L.LIVE_FLOW_SYSTEM, prompt: L.buildLiveFlowPrompt(R, speechId, DOCS), note: L.DOC_FLOW_NOTE, schema: L.LIVE_FLOW_SCHEMA, effort: 'low', kind: 'flow', docs: L.docsForSpeech(DOCS, speechId), hosted: { job: 'flow', extra: { speech: speechId } } });
     if (resetting) return;
     // The docs for this speech may have been removed while Claude was working. Then drop the result.
     if (!hasFlowSource(speechId)) return;
@@ -49,6 +49,7 @@ async function runFlow(speechId, forced) {
     if (R.tab === 'flow' && R.flowView === 'ai') redrawAIFlowSafely();
   } catch (err) {
     // Shown with the AI flow (its status line and a toast), not in the transcription note.
+    if (err.kind === 'stopped') return; // the AI policy turned off (hosted 403 policyOff): stop quietly
     if (err.kind === 'offline') { flowPending.set(speechId, Boolean(flowPending.get(speechId) || forced)); return; } // tried again when online
     if (err.status === 413 || /too long|too large|exceed/i.test(err.raw || '')) {
       S.liveFlow = false; saveSettings(); $('#live-flow').checked = false; flowPending.clear();
@@ -160,7 +161,7 @@ function agoText(t) {
 }
 function flowStatusHtml() {
   if (flowBusy) return busyHtml('AI is flowing… (10–30 s)');
-  if (!aiReady()) return noAiHtml();
+  if (!ready()) return noAiHtml();
   if (navigator.onLine === false) return '<span class="is-quiet">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + L.aiErrorText('offline')) + '</span>';
   if (lastFlowErr) return '<span class="is-error">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + lastFlowErr) + '</span>';
   if (!S.liveFlow) return '<span class="is-quiet">Live AI flow is off. When on, it uses AI while a speech runs. <button class="linkish" type="button" data-tab-go="ai">Turn it on in Settings</button></span>';
@@ -176,7 +177,7 @@ setInterval(() => {
 }, 1000);
 function mapDocsNow() {
   if (!can('aiFlow')) return;
-  if (!aiReady()) return toast(noAiText());
+  if (!ready()) return toast(noAiText());
   if (!S.liveFlow) { S.liveFlow = true; saveSettings(); $('#live-flow').checked = true; toast('Turned Live AI flow on.'); }
   const speeches = [...new Set(DOCS.map((d) => L.docSpeech(d)).filter((sp) => sp && L.speechColumn(sp) != null))];
   if (!speeches.length) return toast(DOCS.length ? 'Your docs are all set to "Context only". Pick a speech for each doc in Round.' : 'No docs yet. Add them in Round or in the Flow workspace.');

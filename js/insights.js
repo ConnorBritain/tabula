@@ -16,7 +16,7 @@ function scheduleEvalSoon() {
 }
 // No Live Eval before the round has something to read (L.insightsReady): not from a button, not from the auto path.
 function scheduleEval() {
-  if (!can('liveEval') || !aiReady() || resetting || !L.insightsReady(R, DOCS)) return;
+  if (!can('liveEval') || !ready() || resetting || !L.insightsReady(R, DOCS)) return;
   if (evalBusy) { evalAgain = true; return; }
   runEval();
 }
@@ -25,12 +25,13 @@ async function runEval() {
   const level = lvl();
   evalBusy = true; evalErr = ''; renderEvalStatus();
   try {
-    const data = await callAI({ feature: 'liveEval', system: L.EVAL_SYSTEM, prompt: L.buildEvalPrompt(R, DOCS), schema: L.EVAL_SCHEMA, effort: 'medium', reading: level });
+    const data = await callAI({ feature: 'liveEval', system: L.EVAL_SYSTEM, prompt: L.buildEvalPrompt(R, DOCS), schema: L.EVAL_SCHEMA, effort: 'medium', reading: level, hosted: { job: 'eval' } });
     if (resetting) return;
     LV(level).liveEval = { data, at: Date.now(), through: L.speechesSoFar(R) };
     save();
     if (R.tab === 'eval') renderEval();
   } catch (err) {
+    if (err && err.kind === 'stopped') return; // the AI policy turned off: keep the last result, show nothing
     evalErr = (err && err.message) || String(err) || 'unknown error';
     console.warn('Live eval failed:', err);
     if (R.tab !== 'eval') toast(L.AI_ERROR_PREFIX.eval + ' ' + evalErr);
@@ -46,10 +47,10 @@ function renderEvalStatus() {
   const go = $('#eval-go');
   go.textContent = L.runVerb(Boolean(ev));
   const empty = !L.insightsReady(R, DOCS);
-  go.disabled = evalBusy || !aiReady() || empty;
+  go.disabled = evalBusy || !ready() || empty;
   tone(el);
   if (evalBusy) el.innerHTML = busyHtml('Updating… usually 20–60 seconds');
-  else if (!aiReady()) el.innerHTML = noAiHtml('', 'Connect AI');
+  else if (!ready()) el.innerHTML = noAiHtml('', 'Connect AI');
   else if (empty && !ev) el.innerHTML = '<span class="is-quiet">' + INS_WAIT + '</span>';
   else if (evalErr) { tone(el, errColor(evalErr)); el.textContent = L.AI_ERROR_PREFIX.eval + ' ' + evalErr; }
   else el.textContent = '';
@@ -66,7 +67,7 @@ const sideLabel = (x) => ({ aff: 'Aff', neg: 'Neg', even: 'Even', unclear: 'Uncl
 // (L.insightsReady), one quiet line and no Update button.
 function renderInsights() {
   const box = document.getElementById('insights-body'); if (!box) return;
-  if (!aiReady()) { box.textContent = ''; return; }
+  if (!ready()) { box.textContent = ''; return; }
   if (!L.insightsReady(R, DOCS)) { box.innerHTML = '<p class="muted ins-msg" id="ins-wait">' + INS_WAIT + '</p>'; return; }
   const e = escapeHtml;
   const entry = LV().liveEval, ev = entry && entry.data;
@@ -98,7 +99,7 @@ function renderInsights() {
 // catches the rest (flow text typed, a doc mapped, another tab's clock).
 function syncInsightsReady() {
   const box = document.getElementById('insights-body');
-  if (!box || !aiReady()) return;
+  if (!box || !ready()) return;
   if (L.insightsReady(R, DOCS) === !box.querySelector('#ins-wait')) return;
   renderInsights();
 }
@@ -149,7 +150,7 @@ function renderEval() {
   document.querySelectorAll('#eval-body .tally-bar span').forEach((el) => el.style.setProperty('--w', el.dataset.w + '%'));
 }
 $('#eval-go').addEventListener('click', () => {
-  if (!aiReady()) return toast(noAiText());
+  if (!ready()) return toast(noAiText());
   scheduleEval();
 });
 $('#auto-eval').checked = S.autoEval; // off unless the judge turned it on (spec 2.7, D2)
@@ -169,20 +170,22 @@ R.ai.customParadigm = S.customParadigm || R.ai.customParadigm || '';
 const busy = { lens: false, impacts: false, map: false };
 const errs = { lens: '', impacts: '', map: '' };
 
-async function askClaude(task, schema, opts) {
-  return callAI({ feature: 'analysis', system: L.ANALYSIS_SYSTEM, prompt: L.buildAnalysisPrompt(R, DOCS, task, opts), schema, effort: 'medium', reading: schema === L.MAP_SCHEMA ? null : lvl() });
+// name: 'lens' | 'impacts' | 'map', also the hosted job (L.HOSTED_TASKS).
+async function askClaude(name, task, schema, opts) {
+  return callAI({ feature: 'analysis', system: L.ANALYSIS_SYSTEM, prompt: L.buildAnalysisPrompt(R, DOCS, task, opts), schema, effort: 'medium', reading: schema === L.MAP_SCHEMA ? null : lvl(), hosted: { job: name, extra: opts } });
 }
 async function runTool(name, task, schema, opts, store) {
   if (!can('analysis')) return;
-  if (!aiReady()) return toast(noAiText());
+  if (!ready()) return toast(noAiText());
   if (busy[name]) return toast('Still working on the last one. Try again when it finishes.');
   busy[name] = true; errs[name] = ''; renderAnalysis();
   try {
-    const data = await askClaude(task, schema, opts);
+    const data = await askClaude(name, task, schema, opts);
     if (resetting) return;
     store({ data, at: Date.now(), through: L.speechesSoFar(R) });
     save();
   } catch (err) {
+    if (err && err.kind === 'stopped') return; // the AI policy turned off: keep the last result, show nothing
     errs[name] = (err && err.message) || String(err) || 'unknown error';
     console.warn(name + ' failed:', err);
   } finally {
@@ -199,7 +202,7 @@ function cacheNote(entry) {
 }
 function statusLine(el, name, entry, idle) {
   if (busy[name]) { tone(el); el.innerHTML = busyHtml('Working… usually 20–60 seconds'); }
-  else if (!aiReady()) { tone(el); el.innerHTML = noAiHtml('', 'Connect AI'); }
+  else if (!ready()) { tone(el); el.innerHTML = noAiHtml('', 'Connect AI'); }
   else if (errs[name]) { tone(el, errColor(errs[name])); el.textContent = L.AI_ERROR_PREFIX.analysis + ' ' + errs[name]; }
   else { tone(el); el.innerHTML = entry ? cacheNote(entry) : '<span class="muted">' + idle + '</span>'; }
 }

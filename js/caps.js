@@ -27,10 +27,10 @@ function capsGateNow() {
 }
 
 const can = (f) => L.canUse(capsGate, f);
-// payer(f): who pays for f ('program' | 'self' | null). The hosted AI caller (not built yet) needs it; brief 1B API.
+// payer(f): who pays for f ('program' | 'self' | null). The hosted AI caller uses it through L.hostedOn (js/ai.js).
 const payer = (f) => L.payerOf(capsGate, f);
-// The device can run AI: a key or helper is connected (aiReady), or the record says a hosted plan.
-const ready = () => aiReady() || Boolean(capsGate.hosted);
+// The device can run AI: a key or helper is connected (aiReady), or the record says a hosted plan or a school that pays.
+const ready = () => aiReady() || Boolean(capsGate.hosted) || L.hostedAny(capsGate);
 // The key settings may show (own AI allowed, no hosted plan). A judge with a key still sees them, to manage it.
 const canSetup = () => L.setupAllowed(capsGate);
 // The "Connect AI" invites may show: own AI allowed and the device not ready yet.

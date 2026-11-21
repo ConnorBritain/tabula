@@ -9,6 +9,60 @@
   const { docSpeech } = part('files');
   const { fieldLabel, markFields, feedbackLines, outOfRangePoints, draftValue } = part('decide');
 
+  // The parts of the round the prompts share (the hosted AI state uses them too, logic/hosted.js).
+  // Each speech's transcript under a heading. A speech with no transcript but a speech doc names the doc instead:
+  // debaters usually read their doc, so the doc is the speech. Empty list: nothing recorded.
+  function transcriptLines(round, docs) {
+    const lines = [];
+    for (const sp of SPEECHES) {
+      const t = (round.transcripts || {})[sp.id];
+      const head = '--- ' + sp.label + ' (' + sp.side.toUpperCase() + ', ' + sp.speaker + ') ---';
+      if (t && t.trim()) lines.push(head, t.trim());
+      else {
+        const mine = (docs || []).filter((d) => docSpeech(d) === sp.id).map((d) => d.name);
+        if (mine.length) lines.push(head, '(No transcript. Treat the speech doc as what was said: ' + mine.join(', ') + '.)');
+      }
+    }
+    return lines;
+  }
+  // The judge's own flow, sheet by sheet. Empty list: an empty flow.
+  function judgeFlowLines(round) {
+    const lines = [];
+    for (const f of round.flows || []) {
+      const cols = FLOW_COLUMNS.map((c, i) => [c.label, (f.cells || {})[i]]).filter(([, v]) => v && v.trim());
+      if (!cols.length) continue;
+      lines.push('### Sheet: ' + f.name);
+      for (const [label, v] of cols) lines.push('[' + label + ']\n' + v.trim());
+    }
+    return lines;
+  }
+  // The AI flow, one text block per sheet that has cells.
+  function aiFlowSheets(round) {
+    return (round.aiFlows || []).map((sh) => {
+      const cols = FLOW_COLUMNS.map((c, i) => [c.label + (sh.edits && sh.edits[i] ? ' (edited by the judge)' : ''), flowCellText(sh, i, 'detailed')]).filter(([, v]) => v);
+      return cols.length ? '### Sheet: ' + sh.name + '\n' + cols.map(([l, v]) => '[' + l + ']\n' + v).join('\n') : '';
+    }).filter(Boolean);
+  }
+  // The AI flow of the earlier speeches, for the live flow of speechId (its own part is left out). Empty list: nothing yet.
+  function flowSoFarLines(round, speechId) {
+    const col = speechColumn(speechId);
+    const lines = [];
+    for (const sheet of round.aiFlows || []) {
+      const cols = [];
+      for (let c = 0; c < FLOW_COLUMNS.length; c++) {
+        const parts = Object.assign({}, sheet.parts);
+        delete parts[speechId];
+        const edited = sheet.edits && sheet.edits[c] && c !== col;
+        const text = edited ? sheet.edits[c].text + ' (edited by the judge; trust this)' : aiFlowCell({ parts }, c, 'standard');
+        if (text) cols.push('[' + FLOW_COLUMNS[c].label + ']\n' + text);
+      }
+      if (!cols.length) continue;
+      lines.push('### ' + sheet.name);
+      lines.push(cols.join('\n'));
+    }
+    return lines;
+  }
+
   function buildJudgePrompt(round, docs, opts) {
     const lines = [];
     const ai = round.ai || {};
@@ -23,40 +77,13 @@
     if (ai.notes && ai.notes.trim()) lines.push('Extra judge notes: ' + ai.notes.trim());
     lines.push('');
     lines.push('TRANSCRIPTS (machine speech-to-text; expect errors and gaps)');
-    let any = false;
-    for (const sp of SPEECHES) {
-      const t = (round.transcripts || {})[sp.id];
-      const head = '--- ' + sp.label + ' (' + sp.side.toUpperCase() + ', ' + sp.speaker + ') ---';
-      if (t && t.trim()) {
-        any = true;
-        lines.push(head);
-        lines.push(t.trim());
-      } else {
-        // No transcript, but a speech doc: debaters usually read their doc, so the doc is the speech.
-        const mine = (docs || []).filter((d) => docSpeech(d) === sp.id).map((d) => d.name);
-        if (mine.length) {
-          any = true;
-          lines.push(head);
-          lines.push('(No transcript. Treat the speech doc as what was said: ' + mine.join(', ') + '.)');
-        }
-      }
-    }
-    if (!any) lines.push('(none recorded)');
+    const said = transcriptLines(round, docs);
+    lines.push(...(said.length ? said : ['(none recorded)']));
     lines.push('');
     lines.push("JUDGE'S FLOW (the human judge's own notes; trust these over the transcript when they conflict)");
-    let anyFlow = false;
-    for (const f of round.flows || []) {
-      const cols = FLOW_COLUMNS.map((c, i) => [c.label, (f.cells || {})[i]]).filter(([, v]) => v && v.trim());
-      if (!cols.length) continue;
-      anyFlow = true;
-      lines.push('### Sheet: ' + f.name);
-      for (const [label, v] of cols) lines.push('[' + label + ']\n' + v.trim());
-    }
-    if (!anyFlow) lines.push('(empty)');
-    const aiSheets = (round.aiFlows || []).map((sh) => {
-      const cols = FLOW_COLUMNS.map((c, i) => [c.label + (sh.edits && sh.edits[i] ? ' (edited by the judge)' : ''), flowCellText(sh, i, 'detailed')]).filter(([, v]) => v);
-      return cols.length ? '### Sheet: ' + sh.name + '\n' + cols.map(([l, v]) => '[' + l + ']\n' + v).join('\n') : '';
-    }).filter(Boolean);
+    const mine = judgeFlowLines(round);
+    lines.push(...(mine.length ? mine : ['(empty)']));
+    const aiSheets = aiFlowSheets(round);
     if (aiSheets.length) {
       lines.push('');
       lines.push('AI FLOW (machine-made from the transcript during the round; less reliable than the judge\'s flow)');
@@ -159,22 +186,8 @@
     lines.push('Resolution: ' + (round.topic || '-'));
     lines.push('');
     lines.push('FLOW SO FAR (earlier speeches):');
-    let any = false;
-    for (const sheet of round.aiFlows || []) {
-      const cols = [];
-      for (let c = 0; c < FLOW_COLUMNS.length; c++) {
-        const parts = Object.assign({}, sheet.parts);
-        delete parts[speechId];
-        const edited = sheet.edits && sheet.edits[c] && c !== col;
-        const text = edited ? sheet.edits[c].text + ' (edited by the judge; trust this)' : aiFlowCell({ parts }, c, 'standard');
-        if (text) cols.push('[' + FLOW_COLUMNS[c].label + ']\n' + text);
-      }
-      if (!cols.length) continue;
-      any = true;
-      lines.push('### ' + sheet.name);
-      lines.push(cols.join('\n'));
-    }
-    if (!any) lines.push('(nothing yet)');
+    const soFar = flowSoFarLines(round, speechId);
+    lines.push(...(soFar.length ? soFar : ['(nothing yet)']));
     lines.push('');
     lines.push('CURRENT SPEECH: ' + speechId + ' (' + (sp ? sp.side.toUpperCase() : '?') + ') → flow column "' + (col == null ? '?' : FLOW_COLUMNS[col].label) + '"');
     const mine = (docs || []).filter((d) => docSpeech(d) === speechId).map((d) => d.name);
@@ -585,7 +598,8 @@
   const api = { buildJudgePrompt, POINTS_GUIDE, JUDGE_SYSTEM, parseFeedback, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM,
     buildLiveFlowPrompt, BALLOT_SCHEMA, BALLOT_TASK, buildBallotPrompt, applyBallotDraft, READING_LEVELS,
     readingGuide, nextSpeech, EVAL_SYSTEM, EVAL_SCHEMA, buildEvalPrompt, ANALYSIS_SYSTEM, MAP_SCHEMA, MAP_TASK,
-    IMPACT_SCHEMA, IMPACT_TASK, LENS_SCHEMA, LENS_TASK, buildAnalysisPrompt, buildMermaid, layoutMap };
+    IMPACT_SCHEMA, IMPACT_TASK, LENS_SCHEMA, LENS_TASK, buildAnalysisPrompt, buildMermaid, layoutMap,
+    transcriptLines, judgeFlowLines, aiFlowSheets, flowSoFarLines };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).prompts = api;
 })(typeof window !== 'undefined' ? window : globalThis);
