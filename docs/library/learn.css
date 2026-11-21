@@ -109,12 +109,14 @@ code { font-family: var(--font-mono); font-size: 0.88em; background: var(--sunk)
 /* Quotes: a plain bordered panel. No coloured side stripe (a common "AI look"; see the AI-slop check in PLAN.md §1). */
 blockquote { margin: 0 0 20px; padding: 16px 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
 blockquote p:last-child { margin: 0; }
-/* The page summary ("Plain version" in the Markdown): a card under the title with a small "In short" label, one
-   lead sentence, then a few short points (each can start with a bold label). Body-size text, so it reads as a
-   summary, not a second headline. No coloured side stripe (see the AI-slop check in PLAN.md §1). */
-blockquote.plain { margin: 0 0 36px; padding: 18px 22px 20px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-xl); font-size: 17px; line-height: 1.6; color: var(--text); }
+/* The page summary ("Plain version" in the Markdown): a card under the title with a "The big idea" label, one
+   lead sentence, then a few short points (each can start with a bold label). It uses the site's blue (the link
+   colour) as a light tint with a blue label, so it stands out. The --aff tokens are reused on purpose as the
+   Library's link blue (as the link rule does); a neutral brand alias in assets/tokens.css is a follow-up. Body-size text, so it reads as
+   a summary, not a second headline. No coloured side stripe (no-stripes rule, PLAN.md §1). */
+blockquote.plain { margin: 0 0 36px; padding: 18px 22px 20px; background: var(--aff-tint); border: 1px solid var(--aff-edge); border-radius: var(--r-xl); font-size: 17px; line-height: 1.6; color: var(--text); }
 /* The label is set here, not in each page, so no page can miss it. */
-blockquote.plain::before { content: "In short"; display: block; margin: 0 0 6px; font-size: 13px; font-weight: var(--fw-3); color: var(--text-3); letter-spacing: 0.02em; }
+blockquote.plain::before { content: "The big idea"; display: block; margin: 0 0 6px; font-size: 13px; font-weight: var(--fw-4); color: var(--aff); letter-spacing: 0.02em; }
 blockquote.plain > p:first-of-type { font-weight: var(--fw-3); }
 blockquote.plain p { margin: 0 0 10px; }
 blockquote.plain p:last-child { margin: 0; }
@@ -130,6 +132,20 @@ tr:last-child td { border-bottom: 0; }
 
 pre.flow { overflow-x: auto; margin: 0 0 10px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; font: 13px/1.5 var(--font-mono); }
 pre.flow code { background: none; border: 0; padding: 0; font-size: inherit; }
+
+/* Library home: "Pick your path". A row of three choices that jump to their path, then one card per path. */
+.path-chooser { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--s3); margin: 0 0 var(--s5); }
+.path-pick { display: grid; gap: 4px; padding: 14px 16px; border-radius: var(--r-xl); border: 1px solid var(--border); background: var(--panel); color: var(--text); text-decoration: none; }
+.path-pick:hover { border-color: var(--aff-edge); background: var(--aff-tint); }
+.path-pick-name { font-weight: var(--fw-4); line-height: 1.3; }
+.path-pick-meta { font-size: 14px; color: var(--text-3); }
+.path-card { margin: 0 0 var(--s4); padding: 20px 22px; border-radius: var(--r-xl); border: 1px solid var(--border); background: var(--panel); }
+.path-card h3 { margin: 0; font-size: 21px; scroll-margin-top: 24px; }
+.path-when { margin: 2px 0 12px; font-size: 14px; color: var(--text-3); }
+.path-card ol, .path-card ul { margin-bottom: 0; }
+.path-card > :last-child { margin-bottom: 0; }
+.path-track { margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--border); font-size: 15px; color: var(--text-2); }
+.path-track a { font-weight: var(--fw-4); }
 
 /* End of page: one card ("Next on your path"), then a plain call to action. No stack of boxes. */
 .paths { margin: 56px 0 0; padding: 18px 20px; border-radius: var(--r-xl); background: var(--panel); border: 1px solid var(--border); }

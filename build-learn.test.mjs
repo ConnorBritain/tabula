@@ -6,6 +6,7 @@ import { join, dirname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { buildSite, markdown, inline, relHref, nextSteps, isPageFile, parseFrontMatter, readingPaths, metaText, placeLead, OUT, SRC } from './build-learn.mjs';
 import { loadTracks } from './learn-tracks.mjs';
+import { renderPathCards } from './learn-home.mjs';
 const PATHS = readingPaths(loadTracks(SRC));
 
 const ROOT = dirname(new URL(import.meta.url).pathname);
@@ -261,6 +262,34 @@ test('long pages carry the hooks the reading helper needs and load library.js', 
   assert.match(html, /<script src="\.\.\/library\.js"><\/script>\n<\/body>/);
   const js = readFileSync(join(SRC, 'library.js'), 'utf8');
   for (const hook of ["'nav.toc'", "'.page-main'", 'dataset.minutes', "'.toc-title'", "'a[data-app]'"]) assert.ok(js.includes(hook), `library.js no longer reads ${hook}`);
+});
+
+// WHY: a new judge or debater picks a path on the home page; if the choices blur into one long list, or a choice
+// points at a missing section, readers start in the wrong place or give up before the first page.
+test('the home page offers each path as a card, and the judge path links to its guided track', () => {
+  const home = site.files.get('index.html');
+  const picks = [...home.matchAll(/<a class="path-pick" href="#([^"]+)">/g)].map((m) => m[1]);
+  assert.ok(picks.length >= 3, 'fewer than three path choices');
+  for (const id of picks) assert.match(home, new RegExp(`<section class="path-card" aria-labelledby="${id}"><h3 id="${id}">`), `choice #${id} has no card`);
+  assert.match(home, /<section class="path-card" aria-labelledby="i-am-judging-soon[^"]*">[\s\S]*?<a href="tracks\/judge\/">Take it as a guided track<\/a>[\s\S]*?<\/section>/);
+  assert.match(home, /<span class="path-pick-meta">About 30 minutes · 6 pages<\/span>/, 'the judge choice should say how long and how many pages');
+  const debater = /<section class="path-card" aria-labelledby="i-am-a-new-debater[^"]*">[\s\S]*?<\/section>/.exec(home)[0];
+  assert.doesNotMatch(debater, /class="path-track"/, 'a path whose track is not built must not link to it or promise it');
+  assert.doesNotMatch(home, /coming/i, 'the home page must not promise unbuilt tracks');
+});
+
+// WHY: the home page's path cards are rebuilt from index.md; an intro line under "Pick your path" must not vanish, a
+// branch list must not claim a page count, and a broken heading must stop the build instead of losing a path.
+test('path cards keep intro text, count only numbered paths, and reject a malformed heading', () => {
+  const html = '<h2 id="pick-your-path">Pick your path</h2>\n<p>Intro.</p>\n<h3 id="a">New (about 5 minutes)</h3><ol><li><a href="x/">X</a></li><li><a href="y/">Y</a></li></ol>\n<h3 id="b">Old hand</h3><ul><li><a href="z/">Z</a></li></ul>\n<h2 id="next">Next</h2>';
+  const tracks = [{ id: 't', steps: ['x', 'y'] }, { id: 'u', steps: ['x'] }];
+  const out = renderPathCards(html, tracks, new Map([['t', { ready: true }], ['u', { ready: true }]]), (id) => id + '/');
+  assert.match(out, /<\/h2>\s*<p>Intro\.<\/p>\s*<nav class="path-chooser"/);
+  assert.match(out, /<span class="path-pick-meta">About 5 minutes · 2 pages<\/span>/);
+  assert.match(out, /<a class="path-pick" href="#b"><span class="path-pick-name">Old hand<\/span><span class="path-pick-meta"><\/span>/);
+  assert.equal((out.match(/Take it as a guided track/g) || []).length, 1, 'only the exact-match track links, once');
+  assert.match(out, /<a href="tracks\/t\/">Take it as a guided track/);
+  assert.throws(() => renderPathCards('<h2 id="pick-your-path">P</h2><h3 class="x">Bad</h3><h2 id="n">N</h2>', [], new Map(), String), /expected a "### " path heading/);
 });
 
 // WHY: the top bar already names the site; a breadcrumb or meta line that repeats "Debate Library" or the section is

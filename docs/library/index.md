@@ -32,6 +32,8 @@ You do not need debate experience to judge well. You need to listen, take notes,
 
 ### I am a new debater (your first month)
 
+You have seen a practice round or two. Learn the core arguments in the order you will use them.
+
 1. [Debate 101](debate-101.md): what happens in a round.
 2. [Speeches, order and times](speeches-and-times.md): who speaks when, and for how long.
 3. [How to flow](how-to-flow.md), then [Flow shorthand](flow-shorthand.md): how to take notes.
@@ -46,6 +48,8 @@ You do not need debate experience to judge well. You need to listen, take notes,
 Also useful early: [Evidence and cards](evidence-and-cards.md).
 
 ### I already know debate (pick a branch)
+
+You know the speeches and the core arguments. Pick the area you want to sharpen.
 
 - **Theory:** [Theory](theory.md), [Fiat](fiat.md), [Conditionality](conditionality.md), [Reasons to reject](reject-the-team.md), [Common theory arguments](common-theory.md).
 - **Critical:** [Kritiks](kritiks.md), [The link](kritik-links.md), [The alternative](kritik-alternative.md), [Role of the ballot](role-of-the-ballot.md), [Framework](framework.md), [Framework vs a kritik](framework-vs-kritik.md), [Kritikal affirmatives](kritikal-affirmatives.md), [Common kritik families](common-kritiks.md), [Framework vs a K aff](framework-vs-k-aff.md).

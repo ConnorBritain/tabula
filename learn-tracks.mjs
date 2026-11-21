@@ -206,6 +206,7 @@ export function renderTrackList(tracks, states, href, md) {
 ${progressBox()}`;
 }
 
+
 // The "Guided tracks" box on the library home (TRACKS.md §3.4). `href(id)` links from the home page.
 export function renderHomeTracks(tracks, states, href, md) {
   const items = tracks.filter((t) => states.get(t.id).ready).map((t) => trackItem(t, states.get(t.id), href(`tracks/${t.id}`), md)).join('');

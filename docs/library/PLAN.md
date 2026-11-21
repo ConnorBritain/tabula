@@ -230,7 +230,7 @@ updated: 2026-11-19
 
 > **Plain version.** (One lead sentence, 30 words at most, then 1 to 4 points as
 > "- **Short label:** one or two sentences". No jargon, or jargon explained at once.
-> This is what the page shows first, as an "In short" card.)
+> This is what the page shows first, under the label "The big idea".)
 
 ## The parts            (or "How it works")
 ## How to answer it      (for debaters)
@@ -253,7 +253,7 @@ The build adds things that are not in the Markdown. Writers do not add them by h
 
 **Rules for the template**
 
-- The **Plain version** comes first and stands alone. A parent who stops reading after it should still be right. Format: one lead sentence (30 words at most) with the core takeaway, then a blank `>` line and 1 to 4 points, each `> - **Short label:** one or two sentences`. A very short summary can be the lead sentence alone. The page shows it as an "In short" card.
+- The **Plain version** comes first and stands alone. A parent who stops reading after it should still be right. Format: one lead sentence (30 words at most) with the core takeaway, then a blank `>` line and 1 to 4 points, each `> - **Short label:** one or two sentences`. A very short summary can be the lead sentence alone. The page shows it under the label "The big idea".
 - One H1 per page. The H1 uses the common name and the short name: "Disadvantages (DA)".
 - The deeper sections go from simple to hard. Advanced material sits at the bottom, under a heading that says so.
 - Every **example** uses flow shorthand in a code block, with a one-line note under it. Keep it to the core moves. Every line in the block is 40 characters or fewer, so it reads on a phone: stack the speeches one under another instead of side by side. If the block uses short forms, put one line that starts with `Key:` just above it.

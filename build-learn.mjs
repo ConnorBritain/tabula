@@ -6,6 +6,7 @@
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { renderPathCards } from './learn-home.mjs';
 import { loadTracks, loadChecks, trackState, renderCheck, buildTrackPages, renderHomeTracks } from './learn-tracks.mjs';
 import { loadApproved, figureHtml, shareImage, placeFigures, PLAIN } from './learn-visuals.mjs';
 import { FORMATS } from './docs/library/visuals/slots.mjs';
@@ -381,6 +382,7 @@ export function buildSite(dir = SRC) {
   const tracks = loadTracks(dir);
   const states = new Map(tracks.map((t) => [t.id, trackState(t, raw, checks)]));
   const extra = buildTrackPages(tracks, states, raw, { relHref, latest: (slugs) => latest(raw, slugs) }, MD);
+  raw.get('index').html = renderPathCards(raw.get('index').html, tracks, states, (id) => relHref('index', id));
   if (tracks.length) raw.get('index').html += '\n' + renderHomeTracks(tracks, states, (id) => relHref('index', id), MD);
   const all = new Map([...raw, ...extra]);
   const files = new Map();
