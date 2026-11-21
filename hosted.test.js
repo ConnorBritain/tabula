@@ -410,15 +410,15 @@ test('hostedState sends the reading key and the points range only to the jobs th
 // key. Without these notes the hosted draft overwrites the judge's own points and ignores "redo the RFD".
 test('the hosted ballot notes carry the hand-set fields, the judge input, a redo and Live Eval feedback', () => {
   const r = { ...round(), ballot: { winner: 'aff', touched: { winner: true } } };
-  const notes = L.hostedState('ballot', r, [], {
+  const ask = {
     judgeInput: 'Aff on the DA.', only: ['rfd'], redraft: { fields: ['rfd'], previous: { rfd: 'Old reason.' } },
     liveEvalFeedback: [{ speaker: '1A', strength: 'Clear plan text.', fix: 'Slow down.' }],
-  }).notes;
+  };
+  const notes = L.hostedState('ballot', r, [], ask).notes;
   assert.match(notes, /winner = aff/);
   assert.match(notes, /Aff on the DA\./);
   assert.match(notes, /REDO/);
   assert.match(notes, /Old reason\./);
-  assert.equal(notes, L.hostedState('ballot', r, [], { judgeInput: 'Aff on the DA.', only: ['rfd'], redraft: { fields: ['rfd'], previous: { rfd: 'Old reason.' } }, liveEvalFeedback: [{ speaker: '1A', strength: 'Clear plan text.', fix: 'Slow down.' }] }).notes);
   assert.ok(notes.includes(L.buildBallotPrompt(r, [], 'Aff on the DA.', { only: ['rfd'] }).split('\n').find((l) => l.startsWith('THE JUDGE WANTS NEW TEXT'))), 'the same words as the own-key prompt');
 });
 
@@ -431,4 +431,14 @@ test('callAI sends the reading level and keeps the points range an object', asyn
   const state = JSON.parse(w.calls[0].init.body).state;
   assert.equal(state.reading, 'plain');
   assert.deepEqual(state.pointsRange, { min: 20, max: 30 });
+});
+
+// Why: the own-key ballot prompt was split so the hosted notes can share its request lines. If the parts moved, the
+// own-key AI would read the judge's request after the round instead of before it, and drafts would get worse.
+test('the own-key ballot prompt keeps its parts in order after the split', () => {
+  const r = { aff: {}, neg: {}, ballot: { winner: 'aff', touched: { winner: true } } };
+  const p = L.buildBallotPrompt(r, [], 'Judge says aff.', { only: ['rfd'], redraft: { fields: ['rfd'], previous: { rfd: 'old' } }, range: { min: 20, max: 30 } });
+  const at = (s) => { const i = p.indexOf(s); assert.ok(i >= 0, s); return i; };
+  const order = [L.BALLOT_TASK.split('\n')[0], 'Speaker points must mean something', 'This tournament uses 20', 'THE JUDGE ALREADY SET THESE BY HAND', "THE JUDGE'S OWN INPUT", 'THE JUDGE WANTS NEW TEXT', 'REDO:', 'ROUND INFO'].map(at);
+  assert.deepEqual(order, [...order].sort((a, b) => a - b));
 });

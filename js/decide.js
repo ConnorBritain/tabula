@@ -117,6 +117,7 @@ async function runDraft({ picks, redraft, text }) {
   Object.assign(draftUi, { busy: true, busyText: text || '', ctrl, err: '', stopped: false });
   renderDraftPanel();
   try {
+    // One request for both paths: buildBallotPrompt and L.hostedState read the same keys (ballotRequestLines).
     const ask = { only: fields, redraft, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null };
     const data = await callAI({
       feature: 'ballotDraft',

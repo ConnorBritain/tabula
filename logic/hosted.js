@@ -47,8 +47,8 @@
   const text = (v) => String(v == null ? '' : v).trim();
   const block = (lines) => lines.join('\n');
 
-  // The judge's own words the round-wide jobs need: the resolution, the paradigm and extra notes. The ballot adds its
-  // request (hand-set fields, the judge's input, a redo, Live Eval feedback) in hostedState. Tournament, school and student names are not needed and are not sent.
+  // The judge's own words the round-wide jobs need: the resolution, the paradigm and extra notes.
+  // The ballot adds its request (hand-set fields, the judge's input, a redo, Live Eval feedback) in hostedState. Tournament, school and student names are not needed and are not sent.
   function judgeNotes(round, extra) {
     const ai = round.ai || {};
     const e = extra || {};
@@ -78,6 +78,7 @@
     if (job === 'ballot') notes = [notes, ...ballotRequestLines(r, e.judgeInput, e)].join('\n').trim();
     const state = { transcript: block(transcriptLines(r, docs)), flow: flowText, notes };
     // The server owns the guide text for each reading level and the points scale (tabula-cloud contracts/ai-replies-v1).
+    // The round map gets no level (callAI passes reading: null for it, as on the own-key path): its text is short labels.
     if (e.reading === 'expert' || e.reading === 'plain') state.reading = e.reading;
     if (job === 'ballot' || job === 'eval') state.pointsRange = ptsRange(e.range || r.ptsRange);
     return state;

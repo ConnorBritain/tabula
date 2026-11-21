@@ -256,7 +256,7 @@ async function callAI({ feature, system, prompt, note, schema, effort = 'medium'
   if (hosted && useHosted(feature)) {
     if (navigator.onLine === false) throw aiError({ online: false }, '');
     // The reading level goes as a key; the server owns its guide text.
-    try { return hostedResult(await callHosted({ job: hosted.job, extra: Object.assign({ reading }, hosted.extra), signal }), schema); }
+    try { return hostedResult(await callHosted({ job: hosted.job, extra: Object.assign({}, hosted.extra, { reading }), signal }), schema); }
     catch (err) {
       if (!(err.fallback && aiReady())) throw err;
       console.warn('Hosted AI is not available now (' + err.hosted + '); using the own key.');
