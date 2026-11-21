@@ -11,7 +11,10 @@ updated: 2026-11-20
 
 # Common disadvantage shapes
 
-> **Plain version.** A disadvantage, or DA, says the plan causes something bad. The topic changes every year, but a few kinds of DA come back every year, because they fit almost any plan. Most plans cost money, use up political support, affect the economy, set an example, or change how other countries see us. Each of those is a common DA. If you know these shapes, you can follow most DA debates on any topic.
+> **Plain version.** A disadvantage, or DA, says the plan causes something bad; the topic changes yearly, but a few kinds come back every year.
+>
+> - **Why they come back:** They fit almost any plan. Most plans cost money, use up political support, affect the economy, set an example, or change how other countries see us, and each of those is a common DA.
+> - **Why learn them:** If you know these shapes, you can follow most DA debates on any topic.
 
 ## Why the same DAs come back
 

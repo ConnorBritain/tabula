@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Writing a paradigm
 
-> **Plain version.** A paradigm is a short note that tells debaters how you judge. Debaters read it before the round so they can speak in a way you can follow. You do not need debate experience to write one. Say who you are, how fast you can follow, what you value, and what you will not accept. A few honest sentences help more than a long essay.
+> **Plain version.** A paradigm is a short note that tells debaters how you judge.
+>
+> - **Why it helps:** Debaters read it before the round so they can speak in a way you can follow.
+> - **Who can write one:** You do not need debate experience to write one.
+> - **What to include:** Say who you are, how fast you can follow, what you value, and what you will not accept. A few honest sentences help more than a long essay.
 
 ## Why write one
 

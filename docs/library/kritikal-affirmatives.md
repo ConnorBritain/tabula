@@ -11,7 +11,12 @@ updated: 2026-11-20
 
 # Kritikal affirmatives (K affs)
 
-> **Plain version.** Most affirmative teams defend a plan: a government action that fits the topic. A kritikal affirmative, or K aff, puts a critique of ideas at the center of its case instead. Some K affs still have a plan, but give critical reasons for it. Others do not defend a government plan at all, and argue for a way of thinking or acting about the topic. The negative often answers with framework, an argument that the aff should have defended a plan. Judges differ a lot on these debates, so both teams should explain their view in plain words.
+> **Plain version.** A kritikal affirmative, or K aff, puts a critique of ideas at the center of its case.
+>
+> - **How it differs:** most affirmative teams defend a plan: a government action that fits the topic.
+> - **Two kinds:** some K affs still have a plan, but give critical reasons for it. Others do not defend a government plan at all, and argue for a way of thinking or acting about the topic.
+> - **How the negative answers:** the negative often answers with framework, an argument that the aff should have defended a plan.
+> - **How judges decide:** judges differ a lot on these debates, so both teams should explain their view in plain words.
 
 ## What a K aff is
 

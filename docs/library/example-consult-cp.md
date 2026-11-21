@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # The consult counterplan (consult CP)
 
-> **Plain version.** The consult counterplan says: before doing the plan, ask someone else first. The government asks a close ally, or an international body, whether it supports the plan. If that party says yes, the government does the plan. If it says no, the government does not. The negative argues that asking first builds trust, and that trust matters. The affirmative usually answers that the plan should simply be done, that asking first causes delay, and that the counterplan may not be a fair choice.
+> **Plain version.** The consult counterplan says: before doing the plan, ask someone else first.
+>
+> - **How it works:** The government asks a close ally, or an international body, whether it supports the plan. It does the plan only if that party says yes.
+> - **The neg's case:** Asking first builds trust, and that trust matters.
+> - **The aff usually answers:** the plan should simply be done, asking first causes delay, and the counterplan may not be a fair choice.
 
 ## The shape
 

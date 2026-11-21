@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Rebuttal strategy (2NR and 2AR)
 
-> **Plain version.** The last two speeches, the 2NR and the 2AR, decide most rounds. By then, each team has too many arguments to cover in five minutes. So each team must choose. A good last speech picks the one or two arguments that win, explains them well, and tells the judge why they matter more than what the other team has. Going for everything usually means winning nothing.
+> **Plain version.** The last two speeches, the 2NR and the 2AR, decide most rounds.
+>
+> - **Why you must choose:** by then, each team has too many arguments to cover in five minutes. So each team must choose.
+> - **What works:** a good last speech picks the one or two arguments that win and explains them well. It tells the judge why they matter more than what the other team has.
+> - **What fails:** going for everything usually means winning nothing.
 
 ## What the last rebuttals do
 

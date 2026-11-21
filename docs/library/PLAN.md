@@ -228,8 +228,9 @@ updated: 2026-11-19
 
 # Disadvantages (DA)
 
-> **Plain version** (3 to 6 short sentences. No jargon, or jargon explained at once.
-> This is what the app shows first, and what Google may show as a snippet.)
+> **Plain version.** (One lead sentence, 30 words at most, then 1 to 4 points as
+> "- **Short label:** one or two sentences". No jargon, or jargon explained at once.
+> This is what the page shows first, as an "In short" card.)
 
 ## The parts            (or "How it works")
 ## How to answer it      (for debaters)
@@ -252,7 +253,7 @@ The build adds things that are not in the Markdown. Writers do not add them by h
 
 **Rules for the template**
 
-- The **Plain version** comes first and stands alone. A parent who stops reading after it should still be right.
+- The **Plain version** comes first and stands alone. A parent who stops reading after it should still be right. Format: one lead sentence (30 words at most) with the core takeaway, then a blank `>` line and 1 to 4 points, each `> - **Short label:** one or two sentences`. A very short summary can be the lead sentence alone. The page shows it as an "In short" card.
 - One H1 per page. The H1 uses the common name and the short name: "Disadvantages (DA)".
 - The deeper sections go from simple to hard. Advanced material sits at the bottom, under a heading that says so.
 - Every **example** uses flow shorthand in a code block, with a one-line note under it. Keep it to the core moves. Every line in the block is 40 characters or fewer, so it reads on a phone: stack the speeches one under another instead of side by side. If the block uses short forms, put one line that starts with `Key:` just above it.
@@ -297,7 +298,7 @@ Write each page for the reader `READERS.md` names for it, at the point in their 
 
 **Slugs.** Under `/learn/`. Short, no dates, and no stop words except a joining "and" where it reads better (`speeches-and-times`): `/learn/disadvantages`, not `/learn/what-is-a-disadvantage-in-debate-2026`.
 
-**Meta description.** 140 to 160 characters. Use the Plain version's first two sentences as the base.
+**Meta description.** 140 to 160 characters. Use the Plain version's lead sentence and first point as the base.
 
 **Headings.** H2s match real questions ("How do you answer a disadvantage?") where it reads well. These can win "People also ask" spots.
 

@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # The Tabula Debate Library
 
-> **Plain version.** This is a free library about high school policy debate. It starts simple and goes deeper, one topic per page. Every page begins with a short plain summary, so you can stop there or keep going. Pick the path below that fits you. If you hit a word you do not know, check the [glossary](glossary.md).
+> **Plain version.** This is a free library about high school policy debate.
+>
+> - **How it works:** it starts simple and goes deeper, one topic per page. Every page begins with a short plain summary, so you can stop there or keep going.
+> - **Where to start:** pick the path below that fits you.
+> - **New words:** if you hit a word you do not know, check the [glossary](glossary.md).
 
 ## Pick your path
 

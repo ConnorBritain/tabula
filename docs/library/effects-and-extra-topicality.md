@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Effects and extra topicality (FX T and XT)
 
-> **Plain version.** Topicality, or T, asks whether the plan fits the resolution, the topic sentence for the season. Two special kinds of T come up often. Effects topicality says the plan does not do what the resolution asks. It only causes it later, through a chain of results. Extra topicality says the plan does what the resolution asks, and then does something more that is outside the topic. Teams argue about both, and they also argue about what the judge should do if the negative wins.
+> **Plain version.** Topicality, or T, asks whether the plan fits the resolution, the topic sentence for the season, and two special kinds come up often.
+>
+> - **Effects topicality:** It says the plan does not do what the resolution asks. It only causes it later, through a chain of results.
+> - **Extra topicality:** It says the plan does what the resolution asks, and then does something more that is outside the topic.
+> - **What teams argue:** Teams argue about both, and they also argue about what the judge should do if the negative wins.
 
 ## Two special kinds of violation
 

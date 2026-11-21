@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # The politics DA
 
-> **Plain version.** The politics disadvantage says the plan has a political cost. Leaders have only so much support to spend. If the leader must spend it on the plan, there is less left for another goal the leader cares about, and that goal fails. The failure of that other goal is the harm. The affirmative often answers that the plan is popular, that the other goal will fail or pass anyway, or that this kind of argument does not fit the debate's rules about imagining the plan passes.
+> **Plain version.** The politics disadvantage says the plan has a political cost.
+>
+> - **How it works:** Leaders have only so much support to spend. If the leader must spend it on the plan, there is less left for another goal the leader cares about, and that goal fails.
+> - **The harm:** The failure of that other goal.
+> - **The aff often answers:** the plan is popular, the other goal will fail or pass anyway, or this kind of argument does not fit the debate's rules about imagining the plan passes.
 
 ## The generic shape
 

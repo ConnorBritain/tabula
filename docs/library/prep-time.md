@@ -11,7 +11,12 @@ updated: 2026-11-20
 
 # Prep time
 
-> **Plain version.** Prep time is planning time between speeches. Each team gets one fixed amount for the whole round, often 8 or 10 minutes. A team uses it before its own speeches, in any amounts it likes. When a team stops to prepare, the clock runs. When the speaker is ready, the clock stops. When a team has no prep time left, it must speak without more planning.
+> **Plain version.** Prep time is planning time between speeches.
+>
+> - **How much:** each team gets one fixed amount for the whole round, often 8 or 10 minutes.
+> - **How to use it:** a team uses it before its own speeches, in any amounts it likes.
+> - **The clock:** when a team stops to prepare, the clock runs. When the speaker is ready, the clock stops.
+> - **Running out:** when a team has no prep time left, it must speak without more planning.
 
 ## How prep time works
 

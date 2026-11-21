@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Plan-inclusive counterplans (PICs) and the word PIC
 
-> **Plain version.** A counterplan is the negative's own plan. A plan-inclusive counterplan, or PIC, does almost all of the affirmative's plan but leaves out one part. The negative says that one part causes a harm, so the plan without it is better. A word PIC is a special kind: it does the whole plan but drops or changes one word the negative says is harmful. PICs are hard for the affirmative to answer, so teams often argue about whether they are fair. Judges decide that question as it is argued in the round.
+> **Plain version.** A plan-inclusive counterplan, or PIC, is a counterplan (the negative's own plan) that does almost all of the affirmative's plan but leaves out one part.
+>
+> - **The neg's case:** That one part causes a harm, so the plan without it is better.
+> - **Word PICs:** A special kind. It does the whole plan but drops or changes one word the negative says is harmful.
+> - **Fairness:** PICs are hard for the affirmative to answer, so teams often argue about whether they are fair. Judges decide that question as it is argued in the round.
 
 ## The shape
 

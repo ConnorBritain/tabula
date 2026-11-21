@@ -12,7 +12,11 @@ updated: 2026-11-20
 
 # Topicality (T)
 
-> **Plain version.** Every season has one topic sentence, the resolution. The affirmative's plan has to fit inside it. Topicality, or T, is the negative's argument that the plan does not fit. The negative picks a word in the resolution, says what it should mean, and shows that the plan is outside that meaning. Then it explains why its meaning makes for fairer, better debates. If the judge agrees, the affirmative usually loses, because it did not debate the topic.
+> **Plain version.** Topicality, or T, is the negative's argument that the plan does not fit the resolution, the season's one topic sentence.
+>
+> - **The rule:** Every season has one resolution. The affirmative's plan has to fit inside it.
+> - **How the negative argues it:** It picks a word in the resolution, says what it should mean, and shows that the plan is outside that meaning. Then it explains why its meaning makes for fairer, better debates.
+> - **What happens if it wins:** If the judge agrees, the affirmative usually loses, because it did not debate the topic.
 
 ## Why topicality exists
 

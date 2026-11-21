@@ -58,8 +58,13 @@ a { color: var(--aff); text-underline-offset: 2px; }
 .rd-bar { height: 4px; border-radius: var(--r-pill); background: var(--border); overflow: hidden; margin: var(--s2) 0 6px; }
 .rd-fill { height: 100%; width: 0; background: var(--text-2); border-radius: var(--r-pill); }
 .rd-left { margin: 0 0 var(--s3); font-size: 13px; color: var(--text-3); }
-.rd-pill { position: fixed; right: var(--s4); bottom: var(--s4); z-index: var(--z-pop); display: flex; align-items: center; gap: 10px; max-width: min(340px, calc(100vw - 32px)); min-height: 48px; padding: 6px 16px 6px 6px; border-radius: var(--r-pill); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font: inherit; cursor: pointer; box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity .15s, transform .15s, visibility .15s; }
+.rd-pill { position: fixed; right: var(--s4); bottom: var(--s4); z-index: var(--z-pop); display: flex; align-items: center; gap: 10px; max-width: min(340px, calc(100vw - 32px)); min-height: 48px; padding: 6px 16px 6px 6px; border-radius: var(--r-pill); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity .15s, transform .15s, visibility .15s; }
 .rd-pill.rd-show, .rd-pill[aria-expanded="true"] { opacity: 1; visibility: visible; transform: none; }
+/* The whole bar is one target: children never take the tap, the hit area reaches 8px past the edge, and taps
+   are not delayed or zoomed (touch-action on the main .rd-pill rule). */
+.rd-pill > * { pointer-events: none; }
+.rd-pill::after { content: ""; position: absolute; inset: -8px; }
+.rd-icon { display: grid; place-items: center; margin-left: auto; color: var(--text-2); }
 .rd-pct { display: grid; place-items: center; min-width: 36px; height: 36px; border-radius: var(--r-pill); background: var(--sunk); font-size: 12px; font-weight: var(--fw-4); font-variant-numeric: tabular-nums; }
 .rd-label { display: grid; text-align: left; min-width: 0; line-height: 1.3; }
 .rd-sec { font-size: 14px; font-weight: var(--fw-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -73,6 +78,8 @@ a { color: var(--aff); text-underline-offset: 2px; }
 .rd-list a { display: block; padding: 10px var(--s2); border-radius: var(--r-lg); color: var(--text-2); text-decoration: none; }
 .rd-list a:hover { background: var(--sunk); }
 @media (max-width: 520px) {
+  /* Phones: a full-width bar, lifted clear of the browser's bottom edge (a tap there opens the browser bar). */
+  .rd-pill { left: var(--s3); right: var(--s3); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); max-width: none; min-height: 56px; padding-right: 14px; }
   .rd-panel { right: 0; left: 0; bottom: 0; width: auto; max-height: 75vh; border-radius: var(--r-xl) var(--r-xl) 0 0; padding-bottom: calc(var(--s4) + env(safe-area-inset-bottom)); }
 }
 @media (min-width: 1100px) { .rd-pill, .rd-panel { display: none; } .has-reader .site-foot { padding-bottom: 48px; } }
@@ -102,9 +109,18 @@ code { font-family: var(--font-mono); font-size: 0.88em; background: var(--sunk)
 /* Quotes: a plain bordered panel. No coloured side stripe (a common "AI look"; see the AI-slop check in PLAN.md §1). */
 blockquote { margin: 0 0 20px; padding: 16px 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
 blockquote p:last-child { margin: 0; }
-/* The page summary ("Plain version" in the Markdown): a lead paragraph under the title, as docs sites do it.
-   Larger text and space below set it apart. No box, no tint, no label, no rule. */
-blockquote.plain { margin: 0 0 36px; padding: 0; background: none; border: 0; border-radius: 0; font-size: 20px; line-height: 1.55; color: var(--text-2); }
+/* The page summary ("Plain version" in the Markdown): a card under the title with a small "In short" label, one
+   lead sentence, then a few short points (each can start with a bold label). Body-size text, so it reads as a
+   summary, not a second headline. No coloured side stripe (see the AI-slop check in PLAN.md §1). */
+blockquote.plain { margin: 0 0 36px; padding: 18px 22px 20px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-xl); font-size: 17px; line-height: 1.6; color: var(--text); }
+/* The label is set here, not in each page, so no page can miss it. */
+blockquote.plain::before { content: "In short"; display: block; margin: 0 0 6px; font-size: 13px; font-weight: var(--fw-3); color: var(--text-3); letter-spacing: 0.02em; }
+blockquote.plain > p:first-of-type { font-weight: var(--fw-3); }
+blockquote.plain p { margin: 0 0 10px; }
+blockquote.plain p:last-child { margin: 0; }
+blockquote.plain ul { margin: 12px 0 0; padding-left: 20px; color: var(--text-2); }
+blockquote.plain li + li { margin-top: 8px; }
+blockquote.plain li strong { color: var(--text); }
 
 .table { overflow-x: auto; margin: 0 0 18px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
 table { border-collapse: collapse; width: 100%; font-size: 15px; }

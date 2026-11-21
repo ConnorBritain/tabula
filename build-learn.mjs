@@ -125,14 +125,24 @@ function heading(lines, i, ctx) {
   return { html: `<h${hashes.length} id="${id}">${html}</h${hashes.length}>`, next: i + 1 };
 }
 
-// A blank ">" line starts a new paragraph inside the quote.
+// A blank ">" line starts a new paragraph inside the quote. Lines that start with "- " form a bullet list, so a
+// summary can be one lead sentence plus a few short points instead of one long paragraph. This applies to every
+// quote on purpose (today only summaries use it). One level only: an indented bullet stops the build.
 function quote(lines, i, ctx) {
-  const paras = [[]];
+  const parts = [{ kind: 'p', lines: [] }];
+  const last = () => parts[parts.length - 1];
   for (; i < lines.length && lines[i].startsWith('>'); i++) {
     const t = lines[i].replace(/^>\s?/, '').trim();
-    if (t) paras[paras.length - 1].push(t); else if (paras[paras.length - 1].length) paras.push([]);
+    if (/^>\s{2,}[-*]\s/.test(lines[i])) throw new Error(`${ctx.slug}: nested lists are not supported in a quote (line ${i + 1}: ${lines[i].trim()})`);
+    const item = /^[-*]\s+(.*)$/.exec(t);
+    if (item) { if (last().kind !== 'ul') parts.push({ kind: 'ul', lines: [] }); last().lines.push(item[1]); }
+    else if (t && last().kind === 'ul' && /^>\s{3,}\S/.test(lines[i])) last().lines[last().lines.length - 1] += ' ' + t; // an indented line continues the point above
+    else if (t) { if (last().kind !== 'p') parts.push({ kind: 'p', lines: [] }); last().lines.push(t); }
+    else if (last().lines.length) parts.push({ kind: 'p', lines: [] });
   }
-  let html = paras.filter((p) => p.length).map((p) => `<p>${inline(p.join(' '), ctx)}</p>`).join('');
+  let html = parts.filter((x) => x.lines.length).map((x) => (x.kind === 'ul'
+    ? `<ul>${x.lines.map((l) => `<li>${inline(l, ctx)}</li>`).join('')}</ul>`
+    : `<p>${inline(x.lines.join(' '), ctx)}</p>`)).join('');
   const plain = PLAIN_LABEL.test(html);
   if (plain) html = html.replace(PLAIN_LABEL, '<p>');
   return { html: `<blockquote${plain ? ' class="plain"' : ''}>${html}</blockquote>`, next: i, kind: plain ? 'plain' : 'other' };

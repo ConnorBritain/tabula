@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Condo with three or more advocacies
 
-> **Plain version.** Sometimes the negative offers several options of its own, such as two counterplans and a kritik. It says it may drop any of them later. This is called conditionality, or condo. The affirmative often argues that three or more options is unfair, because it must answer all of them in one speech. The negative answers that options are a fair way to test the plan. This page walks through that debate, speech by speech, without taking a side.
+> **Plain version.** Conditionality, or condo, means the negative offers several options of its own, such as two counterplans and a kritik, and may drop any later.
+>
+> - **The aff often argues:** three or more options is unfair, because the affirmative must answer all of them in one speech.
+> - **The neg's view:** Options are a fair way to test the plan.
+> - **This page:** It walks through that debate, speech by speech, without taking a side.
 
 ## The shape of the round
 

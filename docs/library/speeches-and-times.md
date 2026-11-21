@@ -11,7 +11,12 @@ updated: 2026-11-20
 
 # Speeches, order and times
 
-> **Plain version.** A policy round has eight speeches. Each of the four debaters gives two. The first four speeches are constructives, where teams build their arguments. The last four are rebuttals, where teams answer, pick their best arguments and explain why they win. After each constructive, the other team asks questions for three minutes. This is cross-examination. Each team also has a set amount of prep time (planning time) to use between speeches.
+> **Plain version.** A policy round has eight speeches, and each of the four debaters gives two.
+>
+> - **Constructives:** The first four speeches are constructives, where teams build their arguments.
+> - **Rebuttals:** The last four speeches are rebuttals, where teams answer, pick their best arguments and explain why they win.
+> - **Cross-examination:** After each constructive, the other team asks questions for three minutes.
+> - **Prep time:** Each team also has a set amount of prep time (planning time) to use between speeches.
 
 ## The order and the common times
 

@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Harms
 
-> **Plain version.** Harms are the bad things happening now that the affirmative wants to fix. The affirmative must show who is hurt, how, and how badly. Harms are one of the stock issues, the basic jobs of an affirmative case. If there is no real harm, the plan fixes nothing that matters. The negative can attack harms by showing the problem is smaller, or less bad, than the affirmative says.
+> **Plain version.** Harms are the bad things happening now that the affirmative wants to fix.
+>
+> - **What to show:** who is hurt, how, and how badly.
+> - **Why it matters:** Harms are one of the stock issues, the basic jobs of an affirmative case. If there is no real harm, the plan fixes nothing that matters.
+> - **How to answer it:** the negative can show the problem is smaller, or less bad, than the affirmative says.
 
 ## What harms are
 

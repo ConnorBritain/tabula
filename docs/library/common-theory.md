@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Common theory arguments
 
-> **Plain version.** A theory argument says the other team's strategy is unfair or bad for debate. A few theory arguments come back every season, whatever the topic. Most are about counterplans, the negative's own plan, or about the permutation, the affirmative's test of a counterplan. For each one, both sides have real arguments, and judges differ. For most of these, many judges ignore the argument if the theory is won. Conditionality is the main exception: many judges will reject the team.
+> **Plain version.** A theory argument says the other team's strategy is unfair or bad for debate, and a few come back every season, whatever the topic.
+>
+> - **What they are about:** Most are about counterplans, the negative's own plan, or about the permutation, the affirmative's test of a counterplan.
+> - **Both sides:** For each one, both sides have real arguments, and judges differ.
+> - **If the theory is won:** For most of these, many judges ignore the argument. Conditionality is the main exception: many judges will reject the team.
 
 ## How these arguments work
 

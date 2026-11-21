@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Oral critiques and feedback
 
-> **Plain version.** After a round, judges often give the debaters feedback. Some of it is spoken in the room, which is called an oral critique. Some of it is written on the ballot. Whether you may tell the teams who won depends on the tournament's rules. Good feedback is kind, specific and short. It names one or two things to keep doing and one or two things to change, so each debater knows what to practice next.
+> **Plain version.** Good feedback is kind, specific and short, and names one or two things to keep doing and one or two to change.
+>
+> - **Two kinds:** After a round, judges often give the debaters feedback. Some is spoken in the room, which is called an oral critique, and some is written on the ballot.
+> - **Telling who won:** Whether you may tell the teams who won depends on the tournament's rules.
+> - **Why it works:** Each debater knows what to practice next.
 
 ## Two kinds of feedback
 

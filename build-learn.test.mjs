@@ -188,6 +188,28 @@ test('the Plain version marker sets the summary style but is not shown on the pa
   assert.equal(blocks[0].kind, 'plain');
 });
 
+// WHY: a summary written as one long paragraph reads as a wall of text; the lead sentence plus short points must
+// render as a real list, or the summary falls back to the run-on block readers skip.
+test('a summary can be a lead sentence followed by a bullet list', () => {
+  const ctx = { slug: 'a', pages: new Map(), missing: new Set() };
+  const { html } = markdown('> **Plain version.** The lead.\n>\n> - **One:** first point.\n> - **Two:** second point,\n>   carried on.\n', ctx);
+  assert.equal(html, '<blockquote class="plain"><p>The lead.</p><ul><li><strong>One:</strong> first point.</li><li><strong>Two:</strong> second point, carried on.</li></ul></blockquote>');
+  assert.throws(() => markdown('> **Plain version.** L.\n>\n> - One.\n>   - Nested.\n', ctx), /nested lists are not supported/, 'a nested point would be silently flattened');
+});
+
+// WHY: without this gate, a page summary can quietly slide back into one long paragraph (or grow a fifth point) and
+// nothing fails; hurried readers then skip the one part written for them.
+test('every page summary is one short lead sentence plus at most four points', () => {
+  for (const [rel, html] of htmlPages) {
+    const box = /<blockquote class="plain">([\s\S]*?)<\/blockquote>/.exec(html);
+    if (!box) continue;
+    const m = /^<p>([\s\S]*?)<\/p>(?:<ul>((?:<li>[\s\S]*?<\/li>){1,4})<\/ul>)?$/.exec(box[1]);
+    assert.ok(m, `learn/${rel}: the summary must be one lead paragraph, then at most one list of 1 to 4 points`);
+    const words = m[1].replace(/<[^>]+>/g, '').split(/\s+/).filter(Boolean).length;
+    assert.ok(words <= 30, `learn/${rel}: the summary's lead is ${words} words (30 at most)`);
+  }
+});
+
 // WHY: search engines read the JSON-LD and the sitemap. If either is broken or missing a page, that page may not be found.
 test('JSON-LD parses, and the sitemap lists every page with a date', () => {
   const sitemap = site.files.get('sitemap.xml');

@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # The "status quo solves" argument (SQ solves)
 
-> **Plain version.** The status quo is the world as it is now, without the plan. "Status quo solves" is a negative argument that says the problem is already being fixed. A new law, a current program or a trend is taking care of it. If that is true, the plan adds little or nothing, so there is less reason to vote for it. The affirmative usually answers that the current fix is too slow, too small, or blocked. This argument comes back every year, whatever the topic.
+> **Plain version.** "Status quo solves" is a negative argument: the status quo, meaning the world as it is now without the plan, is already fixing the problem.
+>
+> - **How it works:** A new law, a current program or a trend is taking care of it. If that is true, the plan adds little or nothing, so there is less reason to vote for it.
+> - **The aff usually answers:** the current fix is too slow, too small, or blocked.
+> - **When it comes up:** Every year, whatever the topic.
 
 ## The shape
 

@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Theory
 
-> **Plain version.** Most arguments in debate are about the plan: is it good or bad? A theory argument is about the rules of the game. It says the other team did something unfair, or something that makes debate worse. For example, the negative ran too many options and dropped them later. If the judge agrees, the judge may ignore that argument, or in some cases vote against the team that made it.
+> **Plain version.** A theory argument is about the rules of the game, not about whether the plan is good or bad.
+>
+> - **What it says:** The other team did something unfair, or something that makes debate worse.
+> - **An example:** The negative ran too many options and dropped them later.
+> - **What the judge can do:** If the judge agrees, the judge may ignore that argument. In some cases, the judge may vote against the team that made it.
 
 ## What a theory argument is
 

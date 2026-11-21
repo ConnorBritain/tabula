@@ -47,7 +47,10 @@
   const btn = el('button', 'rd-pill'); btn.type = 'button';
   btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'rd-panel');
   const pct = el('span', 'rd-pct'); const label = el('span', 'rd-label'); const sec = el('span', 'rd-sec'); const left = el('span', 'rd-time');
-  label.append(sec, left); btn.append(pct, label);
+  label.append(sec, left);
+  const icon = el('span', 'rd-icon'); // a list icon, so the bar reads as something to tap
+  icon.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>';
+  btn.append(pct, label, icon);
   const panel = el('div', 'rd-panel'); panel.id = 'rd-panel'; panel.hidden = true;
   // A disclosure, not a dialog: the button says it is expanded and which panel it controls; focus is not trapped.
   panel.setAttribute('aria-labelledby', 'rd-title');

@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Framework against a kritik
 
-> **Plain version.** When the negative runs a kritik, the two teams often disagree about what the judge should weigh. A kritik, or K, questions the ideas behind the affirmative. The affirmative usually says: weigh the plan's results against the present system or another policy. The negative usually says: first ask whether the aff's ideas, words and assumptions are sound. Many judges land somewhere in between. This debate is called framework, and it often decides which arguments count at all.
+> **Plain version.** When the negative runs a kritik, or K, which questions the ideas behind the affirmative, the two teams often disagree about what the judge should weigh.
+>
+> - **The aff usually says:** weigh the plan's results against the present system or another policy.
+> - **The neg usually says:** first ask whether the aff's ideas, words and assumptions are sound.
+> - **Where judges land:** Many judges land somewhere in between. This debate is called framework, and it often decides which arguments count at all.
 
 ## Where this fits
 

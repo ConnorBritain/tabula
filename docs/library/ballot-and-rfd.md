@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # The ballot and the RFD
 
-> **Plain version.** The ballot is where the judge records the result. It names the winning team, gives each debater speaker points, and explains the decision in a short note called the RFD, the reason for decision. A good RFD names the main issue, says which team won it, and says why. It uses the debaters' own arguments, not the judge's opinions. Debaters and coaches read RFDs closely to learn what to fix.
+> **Plain version.** The ballot is where the judge records the result.
+>
+> - **What it holds:** The winning team, speaker points for each debater, and a short note that explains the decision, called the RFD, the reason for decision.
+> - **A good RFD:** It names the main issue, says which team won it, and says why. It uses the debaters' own arguments, not the judge's opinions.
+> - **Why it matters:** Debaters and coaches read RFDs closely to learn what to fix.
 
 ## What is on a ballot
 

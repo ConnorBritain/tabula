@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # The spending / trade-off DA
 
-> **Plain version.** Almost every plan costs money or takes effort. The spending disadvantage says that cost has to come from somewhere. If the budget is tight, the plan's cost forces cuts to another program, and people who rely on that program are hurt. The affirmative usually answers that the budget is not that tight, that the plan is cheap or saves money, or that the plan's good outweighs the cuts.
+> **Plain version.** The spending disadvantage says a plan's cost has to come from somewhere.
+>
+> - **Why it fits any plan:** Almost every plan costs money or takes effort.
+> - **The harm:** If the budget is tight, the plan's cost forces cuts to another program. People who rely on that program are hurt.
+> - **The aff usually answers:** the budget is not that tight, the plan is cheap or saves money, or the plan's good outweighs the cuts.
 
 ## The generic shape
 

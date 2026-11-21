@@ -11,7 +11,12 @@ updated: 2026-11-20
 
 # The kritik alternative (alt)
 
-> **Plain version.** The alternative, or alt, is what a kritik offers instead of the affirmative's approach. Some alts ask the judge to reject the aff's way of thinking. Others propose a different way to act. Like a counterplan, the alt has to solve something, and the negative must explain how. The aff often argues that the alt is too vague, or that it can do the plan and the alt together. Some negative teams go for the kritik without the alt, and teams still debate whether that is enough.
+> **Plain version.** The alternative, or alt, is what a kritik offers instead of the affirmative's approach.
+>
+> - **Two kinds:** some alts ask the judge to reject the aff's way of thinking. Others propose a different way to act.
+> - **It must solve:** like a counterplan, the alt has to solve something, and the negative must explain how.
+> - **How the aff answers:** the aff often argues that the alt is too vague, or that it can do the plan and the alt together.
+> - **Going without it:** some negative teams go for the kritik without the alt, and teams still debate whether that is enough.
 
 ## What the alt is for
 

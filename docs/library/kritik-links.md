@@ -11,7 +11,12 @@ updated: 2026-11-20
 
 # The kritik link
 
-> **Plain version.** The link is the part of a kritik, or K, that ties it to this affirmative. It answers one question: what did the aff do, say or assume that the kritik criticizes? A link can be to the plan, to the reasons for the plan, to the words the aff used, or to the ideas under its case. Links that fit this aff closely are stronger than links that fit any aff. Most judges expect a link, so a K without one usually loses.
+> **Plain version.** The link is the part of a kritik, or K, that ties it to this affirmative.
+>
+> - **The question it answers:** what did the aff do, say or assume that the kritik criticizes?
+> - **What it can link to:** the plan, the reasons for the plan, the words the aff used, or the ideas under its case.
+> - **Strong links:** links that fit this aff closely are stronger than links that fit any aff.
+> - **Why it matters:** most judges expect a link, so a K without one usually loses.
 
 ## Why the link matters
 

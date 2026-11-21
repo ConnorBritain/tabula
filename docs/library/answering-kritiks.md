@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Answering a kritik (K)
 
-> **Plain version.** A kritik, or K, is a negative argument that questions the ideas behind the affirmative. Answering one well takes a plan. First, use cross-ex to learn what the K says and what its alternative does. Then, in the 2AC, answer each part: framework, the perm, the link, the impact and the alternative. Always explain why your case still matters. Later speeches pick the best few answers and go deep on them.
+> **Plain version.** A kritik, or K, is a negative argument that questions the ideas behind the affirmative, and answering one well takes a plan.
+>
+> - **First, in cross-ex:** Learn what the K says and what its alternative does.
+> - **Then, in the 2AC:** Answer each part: framework, the perm, the link, the impact and the alternative. Always explain why your case still matters.
+> - **Later speeches:** Pick the best few answers and go deep on them.
 
 ## Before the 2AC: listen and ask
 

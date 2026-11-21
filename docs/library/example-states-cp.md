@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # The states counterplan (50 states CP)
 
-> **Plain version.** Many plans have the federal government act. The states counterplan says: let all fifty states do it instead. The negative argues that the states can solve the same problem without a harm the federal plan causes. The affirmative usually answers that the states cannot do everything the federal government can. Teams also argue whether it is fair to imagine all fifty states acting at once. This counterplan comes back almost every year, whatever the topic.
+> **Plain version.** Many plans have the federal government act; the states counterplan says to let all fifty states do it instead.
+>
+> - **The neg's case:** The states can solve the same problem without a harm the federal plan causes.
+> - **The aff usually answers:** the states cannot do everything the federal government can. Teams also argue whether it is fair to imagine all fifty states acting at once.
+> - **When it comes up:** Almost every year, whatever the topic.
 
 ## The shape
 

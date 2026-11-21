@@ -12,7 +12,10 @@ updated: 2026-11-20
 
 # Counterplans (CP)
 
-> **Plain version.** A counterplan, or CP, is the negative's own plan. The negative says: "There is a better way than your plan." To be a reason to vote negative, the counterplan must be better than the plan, and it must be a real choice: the judge should not be able to just do both. Most counterplans fix the same problem as the plan but avoid a harm the plan causes. That harm is called the net benefit.
+> **Plain version.** A counterplan, or CP, is the negative's own plan, and the negative says: "There is a better way than your plan."
+>
+> - **What it must show:** The counterplan must be better than the plan, and it must be a real choice: the judge should not be able to just do both.
+> - **The net benefit:** Most counterplans fix the same problem as the plan but avoid a harm the plan causes. That harm is called the net benefit.
 
 ## The parts
 

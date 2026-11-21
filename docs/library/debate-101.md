@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Debate 101: what policy debate is
 
-> **Plain version.** Policy debate is a game between two teams of two. Each year has one topic, called the resolution. One team, the affirmative (aff), proposes a plan that fits the topic. The other team, the negative (neg), argues the plan is a bad idea, or that the aff did not do its job. Each person gives two speeches, and asks and answers questions. At the end, the judge decides which team did the better debating, writes why, and gives each debater points.
+> **Plain version.** Policy debate is a game between two teams of two, and the judge decides which team did the better debating.
+>
+> - **The topic:** Each year has one topic, called the resolution.
+> - **The two sides:** The affirmative (aff) proposes a plan that fits the topic. The negative (neg) argues the plan is a bad idea, or that the aff did not do its job.
+> - **The round:** Each person gives two speeches, and asks and answers questions. At the end, the judge writes why one team won and gives each debater points.
 
 ## The resolution
 

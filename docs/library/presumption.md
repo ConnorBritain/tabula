@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Presumption
 
-> **Plain version.** Sometimes neither team gives the judge a good reason to vote for it. Presumption is the rule for that case. It says which team wins when nothing else decides the round. Most judges start by giving presumption to the negative, because the affirmative is asking for a change and has to prove the change is good. Some judges move presumption to the affirmative when the negative offers its own change, such as a counterplan. Teams can argue about this in the round.
+> **Plain version.** Presumption is the rule that says which team wins when nothing else decides the round.
+>
+> - **When it applies:** sometimes neither team gives the judge a good reason to vote for it.
+> - **Who gets it:** most judges start by giving presumption to the negative, because the affirmative is asking for a change and has to prove the change is good.
+> - **When it can move:** some judges move presumption to the affirmative when the negative offers its own change, such as a counterplan. Teams can argue about this in the round.
 
 ## The basic idea
 

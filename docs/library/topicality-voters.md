@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Topicality voters, competing interpretations and reasonability
 
-> **Plain version.** A voter is a reason an argument should decide the round. For topicality (T), the usual voters are fairness and education. The judge also needs a test for T. Under competing interpretations, the judge picks the better of the two meanings of the word. Under reasonability, the affirmative wins T if its meaning is good enough. Teams should argue which test to use, and the judge should use the one that wins.
+> **Plain version.** A voter is a reason an argument should decide the round, and for topicality (T) the usual voters are fairness and education.
+>
+> - **The judge's test:** The judge also needs a test for T. Teams should argue which test to use, and the judge should use the one that wins.
+> - **Competing interpretations:** Under this test, the judge picks the better of the two meanings of the word.
+> - **Reasonability:** Under this test, the affirmative wins T if its meaning is good enough.
 
 ## What a voter is
 

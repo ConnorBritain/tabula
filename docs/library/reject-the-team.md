@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Reasons to reject: the argument or the team
 
-> **Plain version.** A theory argument says the other team did something unfair. If the judge agrees, the judge picks one of two main remedies. The judge can ignore the unfair argument and decide the rest of the round as normal. Or the judge can vote against the team that made it. Teams argue which choice fits. Many judges ignore the argument unless they hear a good reason to do more.
+> **Plain version.** A theory argument says the other team did something unfair, and if the judge agrees, the judge picks one of two main remedies.
+>
+> - **Ignore the argument:** the judge can ignore the unfair argument and decide the rest of the round as normal.
+> - **Vote against the team:** or the judge can vote against the team that made it.
+> - **How judges decide:** teams argue which choice fits. Many judges ignore the argument unless they hear a good reason to do more.
 
 ## The two main remedies
 

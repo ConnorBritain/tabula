@@ -11,7 +11,10 @@ updated: 2026-11-20
 
 # Advantages (Adv)
 
-> **Plain version.** An advantage is a good result the plan causes. It is the affirmative's reason to vote for the plan. Each advantage tells a short story. Something bad is happening now, and the plan changes it. That change leads, step by step, to a better world. The negative can attack any step, and a broken step makes the whole advantage weaker.
+> **Plain version.** An advantage is a good result the plan causes: the affirmative's reason to vote for the plan.
+>
+> - **Each tells a story:** Something bad is happening now, and the plan changes it. That change leads, step by step, to a better world.
+> - **How to attack it:** The negative can attack any step. A broken step makes the whole advantage weaker.
 
 ## What an advantage is
 

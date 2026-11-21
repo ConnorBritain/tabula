@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Answering a disadvantage (the 2AC block)
 
-> **Plain version.** When the negative reads a disadvantage, the affirmative must answer it in the next aff speech, the 2AC. A good answer has a few short, numbered points. Some points show the disadvantage is weak. One or two points, if you can, turn it into a reason to vote for the plan. The last point says why the plan's good outweighs any risk left. Then, in the 1AR, the aff picks the best points and explains them.
+> **Plain version.** When the negative reads a disadvantage, the affirmative must answer it in the next aff speech, the 2AC.
+>
+> - **A good answer:** A few short, numbered points. Some show the disadvantage is weak, and one or two, if you can, turn it into a reason to vote for the plan.
+> - **The last point:** It says why the plan's good outweighs any risk left.
+> - **In the 1AR:** The aff picks the best points and explains them.
 
 ## What a "block" is
 

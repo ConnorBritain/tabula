@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Evidence and cards
 
-> **Plain version.** Debaters back up their claims with evidence: short quotes from experts and other sources. Each quote is called a card. A card has a tag, which is a one-line summary written by the debater, a cite, which says who wrote it and where, and the text, which is the quote itself. Debaters read only the key parts out loud. A card is only as strong as what the author really said, so judges and debaters can ask to read it.
+> **Plain version.** Debaters back up their claims with evidence: short quotes from experts and other sources, each called a card.
+>
+> - **Parts of a card:** A tag, a one-line summary written by the debater; a cite, which says who wrote it and where; and the text, which is the quote itself.
+> - **Reading it out loud:** Debaters read only the key parts out loud.
+> - **What makes it strong:** A card is only as strong as what the author really said, so judges and debaters can ask to read it.
 
 ## The parts of a card
 

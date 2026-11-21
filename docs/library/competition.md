@@ -11,7 +11,10 @@ updated: 2026-11-20
 
 # Competition
 
-> **Plain version.** A counterplan is the negative's own plan. It is only a reason to vote negative if it competes with the affirmative's plan. To compete means the judge has to choose: the plan or the counterplan, not both. If the judge could simply do both and lose nothing, the counterplan does not compete. Then it is not a reason to reject the plan. Teams test competition in two main ways: mutual exclusivity and net benefits.
+> **Plain version.** A counterplan, the negative's own plan, is a reason to vote negative only if it competes with the affirmative's plan.
+>
+> - **What compete means:** The judge has to choose: the plan or the counterplan, not both. If the judge could simply do both and lose nothing, the counterplan does not compete, and it is not a reason to reject the plan.
+> - **How teams test it:** Two main ways: mutual exclusivity and net benefits.
 
 ## Why competition matters
 

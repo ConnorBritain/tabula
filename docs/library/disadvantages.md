@@ -12,7 +12,10 @@ updated: 2026-11-20
 
 # Disadvantages (DA)
 
-> **Plain version.** A disadvantage, or DA, is the negative's way of saying "the plan causes something bad." To work, it must show four things. First, the bad thing is not happening now. Second, the plan starts it. Third, there is a clear path from the plan to the harm. Fourth, the harm is bad enough to matter. If the bad result of the plan is bigger than the good the plan does, the judge should vote negative.
+> **Plain version.** A disadvantage, or DA, is the negative's way of saying "the plan causes something bad."
+>
+> - **It needs four things:** the bad thing is not happening now, the plan starts it, there is a clear path from the plan to the harm, and the harm is bad enough to matter.
+> - **How it wins:** if the bad result of the plan is bigger than the good the plan does, the judge should vote negative.
 
 ## The four parts
 

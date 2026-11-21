@@ -11,7 +11,10 @@ updated: 2026-11-20
 
 # Common kritik families
 
-> **Plain version.** A kritik, or K, questions the ideas behind the affirmative's case. Many kritiks fall into a few well-known families. This page gives a short, fair summary of each: its claim, its usual link, what it offers instead, and how affirmative teams answer. Judges hold strong and different views about these arguments, and this page does not rank them.
+> **Plain version.** A kritik, or K, questions the ideas behind the affirmative's case, and many kritiks fall into a few well-known families.
+>
+> - **What this page gives:** A short, fair summary of each: its claim, its usual link, what it offers instead, and how affirmative teams answer.
+> - **Judges differ:** Judges hold strong and different views about these arguments, and this page does not rank them.
 
 ## Before you read
 

@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Speech docs and email chains
 
-> **Plain version.** Most policy debaters type their evidence into a file before they read it. This file is called a speech document, or speech doc. Before each speech, the team sends it to the other team and the judge, often by an email thread called the email chain, or by a shared folder. The doc lets everyone read the cards as they are spoken. But the doc is not the speech. The judge decides from what was said out loud, as written on the flow (the judge's notes).
+> **Plain version.** Most policy debaters type their evidence into a file, called a speech document or speech doc, before they read it.
+>
+> - **How it is shared:** Before each speech, the team sends it to the other team and the judge. They often use an email thread called the email chain, or a shared folder.
+> - **What it is for:** The doc lets everyone read the cards as they are spoken.
+> - **The doc is not the speech:** The judge decides from what was said out loud, as written on the flow (the judge's notes).
 
 ## What a speech doc is
 

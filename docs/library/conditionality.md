@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Conditionality (condo)
 
-> **Plain version.** The negative can offer its own options, such as a counterplan (its own plan) or a kritik (a challenge to the affirmative's ideas). Conditionality, or condo, means the negative may drop an option later in the round. If it drops one, the judge simply compares the plan with the world as it is now. Some people think this is fair, because it lets the negative test the plan from several sides. Others think it is unfair, because the affirmative must answer every option and the negative keeps only the best one. Judges differ, so teams argue it in the round.
+> **Plain version.** Conditionality, or condo, means the negative may drop one of its options later in the round.
+>
+> - **What it means:** The negative can offer options such as a counterplan (its own plan) or a kritik (a challenge to the affirmative's ideas). If it drops one, the judge simply compares the plan with the world as it is now.
+> - **The case for it:** Some people think this is fair, because it lets the negative test the plan from several sides.
+> - **The case against it:** Others think it is unfair, because the affirmative must answer every option and the negative keeps only the best one. Judges differ, so teams argue it in the round.
 
 ## The three statuses
 

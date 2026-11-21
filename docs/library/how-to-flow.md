@@ -11,7 +11,12 @@ updated: 2026-11-20
 
 # How to flow
 
-> **Plain version.** Flowing is how you take notes in a debate. You give each speech its own column. You write each argument in a few words, in the order it was said. You put each answer next to the argument it answers, so you can read across a row and follow one argument from start to end. If a row stops early, that argument was dropped. A good flow lets a judge decide the round, and lets a debater know what to say next.
+> **Plain version.** Flowing is how you take notes in a debate.
+>
+> - **The layout:** you give each speech its own column. You write each argument in a few words, in the order it was said.
+> - **Reading across:** you put each answer next to the argument it answers. Then you can read across a row and follow one argument from start to end.
+> - **Dropped arguments:** if a row stops early, that argument was dropped.
+> - **Why it matters:** a good flow lets a judge decide the round, and lets a debater know what to say next.
 
 ## Why flowing matters
 

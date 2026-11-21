@@ -12,7 +12,11 @@ updated: 2026-11-20
 
 # The affirmative case
 
-> **Plain version.** The affirmative case is the first speech of the round, the 1AC (first affirmative constructive). In it, the affirmative team says what it wants to do and why. The "what" is the plan: one sentence that says who acts and what they do. The "why" is a set of advantages: good results the plan causes. Each advantage shows a real problem, shows the problem will not fix itself, and shows the plan fixes it. The rest of the round is mostly about whether the case holds up.
+> **Plain version.** The affirmative case is the 1AC (first affirmative constructive), the round's first speech: what the affirmative wants to do, and why.
+>
+> - **The what:** The plan: one sentence that says who acts and what they do.
+> - **The why:** A set of advantages, good results the plan causes. Each shows a real problem, shows the problem will not fix itself, and shows the plan fixes it.
+> - **Why it matters:** The rest of the round is mostly about whether the case holds up.
 
 ## The parts
 

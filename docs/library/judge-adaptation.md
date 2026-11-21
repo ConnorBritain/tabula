@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Adapting to your judge
 
-> **Plain version.** Every judge decides a little differently. Some want slow, plain speeches. Some can follow very fast speech and know every argument type. Adapting means changing how you debate so this judge can follow you and see why you win. You change your speed, your words, how many arguments you run and how much you explain. You do not change what is true or fair.
+> **Plain version.** Adapting means changing how you debate so this judge can follow you and see why you win.
+>
+> - **Why adapt:** every judge decides a little differently. Some want slow, plain speeches, and some can follow very fast speech and know every argument type.
+> - **What you change:** your speed, your words, how many arguments you run and how much you explain.
+> - **What you keep:** you do not change what is true or fair.
 
 ## Why adaptation matters
 
