@@ -14,8 +14,9 @@
 
   // Where a judge buys rounds (the buy page lives on the account site). The staging app (debate.tabulaspeech.dev)
   // links to the staging account site, so a test purchase never opens the live one.
-  const BUY_URL = 'https://tabulaspeech.com/account/';
+  // Staging hosts: tabula-cloud docs/DEPLOY.md "Staging site" (the one list).
   const ACCOUNT_SITES = ['tabulaspeech.com', 'tabulaspeech.dev'];
+  const BUY_URL = 'https://' + ACCOUNT_SITES[0] + '/account/';
   function accountUrl(host) {
     const h = String(host || '').toLowerCase();
     const site = ACCOUNT_SITES.find((d) => h === d || h.endsWith('.' + d));

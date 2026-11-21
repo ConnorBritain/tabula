@@ -383,4 +383,5 @@ test('the Buy rounds link follows the site the app runs on', async () => {
   await assert.rejects(w.callAI(EVAL_CALL));
   w.toasts[0].o.action.run();
   assert.deepEqual(w.opened, ['https://tabulaspeech.dev/account/']);
+  assert.equal(L.hostedError(402, 'age_required', L.accountUrl('debate.tabulaspeech.dev')).link.url, 'https://tabulaspeech.dev/account/', 'Open account too');
 });
