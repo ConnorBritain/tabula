@@ -12,7 +12,7 @@
   // The keys this app has controls for. data-ai in index.html takes one of these, or 'any' (shown while any is allowed).
   const APP_FEATURES = ['transcription', 'aiFlow', 'liveEval', 'analysis', 'ballotDraft'];
   // The browser storage the gate reads, also before the first paint (assets/caps-boot.js).
-  const STORE_KEYS = { caps: 'tabula.caps.v2', profile: 'tabula.profile.v1', round: 'policyJudge.round.v1', keys: 'policyJudge.keys.v1' };
+  const STORE_KEYS = { caps: 'tabula.caps.v2', profile: 'tabula.profile.v1', round: 'policyJudge.round.v1', keys: 'policyJudge.keys.v1', settings: 'policyJudge.settings.v1' };
 
   // GET /api/v1/me/capabilities?v=2&product=debate[&programId=...]. programId: the "Judging for" choice; null = own round.
   function capsRequest(programId) {

@@ -22,6 +22,8 @@
     const site = ACCOUNT_SITES.find((d) => h === d || h.endsWith('.' + d));
     return site ? 'https://' + site + '/account/' : BUY_URL;
   }
+  // The Plans page (prices and packs) on the same account site, for links that must not buy yet (the demo's nudge).
+  function plansUrl(host) { return accountUrl(host).replace(/\/account\/$/, '/plans/'); }
   // The round format the server knows (tabula-cloud src/ai/tasks.ts KNOWN_FORMATS). A new version needs the server first.
   const FORMAT = 'policy-hs', FORMAT_VERSION = 1;
 
@@ -184,7 +186,7 @@
     return out('noAnswer', { retryable: true });
   }
 
-  const api = { BUY_URL, accountUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError };
+  const api = { BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).hosted = api;
 })(typeof window !== 'undefined' ? window : globalThis);

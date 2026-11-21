@@ -15,6 +15,7 @@
     pasteRound: true, // Round card: paste the round from the tournament site, and Swap Aff and Neg
     roundDetails: true, // Round card: room, start time and flight (the paste fills them too)
     copyTips: true, // Copy sheet: word counts, and the low-point-win note for the tournament ballot
+    demoBuy: false, // the demo's end card: a "Buy a round" button. Off until buying has had full QA and capacity tests.
   });
   // The main switch each flag is under. A flag is on only when it and its main switch are both on.
   const FLAG_GROUP = Object.freeze({ pasteRound: 'tournamentSite', roundDetails: 'tournamentSite', copyTips: 'tournamentSite' });

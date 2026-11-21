@@ -7,6 +7,7 @@
 <meta name="description" content="Tabula Debate: a free judging tool for high school policy debate. Timers, flows, live transcripts, AI analysis and ballots.">
 <link rel="icon" type="image/png" href="assets/tabula-icon-64.png">
 <link rel="preload" href="assets/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script src="assets/demo-boot.js"></script>
 <script src="assets/theme-boot.js"></script>
 <script src="logic/caps.js"></script>
 <script src="assets/caps-boot.js"></script>
@@ -734,6 +735,17 @@
   .study-card { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); padding: var(--s1) var(--s4); background: var(--panel); border-top: 1px solid var(--border-ctl); font-size: var(--fs-2); font-weight: var(--fw-3); font-variant-numeric: tabular-nums; }
   .study-x { margin-left: auto; }
   .study-card[hidden] { display: none; }
+  /* The staged demo (?demo=policy or ?demo=ld; js/demo.js): a header row that names the demo on every screen,
+     says what the step shows, and has Next, Start over and Leave demo. Its last step is the nudge to try a round. */
+  .demo-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); padding: var(--s2) var(--s4); background: var(--caution-tint); border-top: 1px solid var(--border-ctl); }
+  .demo-bar[hidden] { display: none; }
+  .demo-tag { padding: 0 var(--s2); border: 1px solid var(--text); border-radius: var(--r-sm); font-size: var(--fs-1); font-weight: var(--fw-4); line-height: var(--lh-ui); }
+  .demo-text { flex: 1 1 22rem; min-width: 0; }
+  .demo-text p { margin: 0; }
+  .demo-title { font-weight: var(--fw-4); font-size: var(--fs-3); }
+  .demo-end .demo-title { font-size: var(--fs-4); }
+  .demo-count { font-size: var(--fs-1); font-variant-numeric: tabular-nums; }
+  .demo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
   /* Where the header row has no room for "Tabula Debate" beside the ? and gear (under 360 px), or beside the clock
      chip too (under 480 px, while a clock runs off the Flow tab), it shows the mark alone; the link keeps its name for
      screen readers. The whole wordmark goes, never only the product word. */
@@ -763,6 +775,8 @@
     .ks-head .b { min-height: 44px; }
     .help-menu button.b, .help-menu a { min-height: 44px; }
     .study-card { padding: var(--s1) var(--s3); }
+    .demo-bar { padding: var(--s2) var(--s3); }
+    .demo-actions .b { min-height: 44px; }
   }
   /* The print sheet (4.10): built from data just before printing, hidden on screen. */
   @media screen { #print-sheet { display: none; } }
@@ -824,6 +838,7 @@
     <div class="help-menu" id="help-menu" role="menu" aria-label="Help" hidden>
       <button class="b quiet" role="menuitem" type="button" tabindex="-1" data-tour="main">Take the full tour</button>
       <button class="b quiet" role="menuitem" type="button" tabindex="-1" data-tour="page">Tour this page</button>
+      <a role="menuitem" id="demo-link" data-ai="any" href="?demo=policy" target="_blank" rel="noopener" tabindex="-1" aria-label="Watch the AI demo (opens a new tab)">Watch the AI demo</a>
       <hr class="help-sep">
       <button class="b quiet" role="menuitem" type="button" tabindex="-1" data-help="palette" id="help-palette">Search and commands <kbd class="menu-key" id="help-palette-key">⌘K</kbd></button>
       <button class="b quiet" role="menuitem" type="button" tabindex="-1" data-help="keys">Keyboard shortcuts <kbd class="menu-key">?</kbd></button>
@@ -841,6 +856,19 @@
   <button class="b small" id="study-copy" type="button">Copy result</button>
   <button class="iconbtn study-x" id="study-x" type="button" aria-label="Hide the study result">×</button>
 </div>
+  <!-- The staged demo (only with ?demo=policy or ?demo=ld; js/demo.js). A sample round with saved AI answers; nothing is sent or saved. -->
+  <div class="demo-bar noprint" id="demo-bar" role="region" aria-label="Demo" hidden>
+    <span class="demo-tag">Demo</span>
+    <div class="demo-text"><p class="demo-title" id="demo-title" aria-live="polite"></p><p class="muted" id="demo-body"></p></div>
+    <span class="muted demo-count" id="demo-count"></span>
+    <div class="demo-actions">
+      <a class="b primary" id="demo-plans" target="_blank" rel="noopener" hidden>See plans</a>
+      <a class="b" id="demo-buy" target="_blank" rel="noopener" hidden>Buy a round</a>
+      <button class="b primary" id="demo-next" type="button">Next</button>
+      <button class="b" id="demo-again" type="button">Start over</button>
+      <button class="b quiet" id="demo-leave" type="button">Leave demo</button>
+    </div>
+  </div>
 </header>
 <main>
 <nav id="subnav" class="subnav" aria-label="Decide" hidden>
@@ -1400,6 +1428,8 @@
 <script type="module" src="core/ui.js"></script>
 <script defer src="formats/policy-hs.v1.js"></script>
 <script defer src="formats/ld.v1.js"></script>
+<script defer src="demo/policy.js"></script>
+<script defer src="demo/ld.js"></script>
 <script defer src="logic/format.js"></script>
 <script defer src="logic/round.js"></script>
 <script defer src="logic/audio.js"></script>
@@ -1414,6 +1444,7 @@
 <script defer src="logic/flags.js"></script>
 <script defer src="logic/limits.js"></script>
 <script defer src="logic/hosted.js"></script>
+<script defer src="logic/demo.js"></script>
 <script defer src="logic.js"></script>
 <script defer src="providers.js"></script>
 <script defer src="tour.js"></script>
@@ -1421,6 +1452,7 @@
 <script defer src="keys.js"></script>
 <script defer src="ui.js"></script>
 <script defer src="assets/brand.js"></script>
+<script defer src="js/demo.js"></script>
 <script defer src="js/core.js"></script>
 <script defer src="js/formatsetup.js"></script>
 <script defer src="js/pairing.js"></script>

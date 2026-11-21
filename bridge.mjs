@@ -20,11 +20,12 @@ import { createRequire } from 'node:module';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8765);
 const FILES = { '/': 'index.html', '/index.html': 'index.html', '/logic.js': 'logic.js', '/keys.js': 'keys.js', '/ui.js': 'ui.js', '/providers.js': 'providers.js', '/tour.js': 'tour.js', '/app.js': 'app.js', '/tap.js': 'tap.js', '/clipqueue.js': 'clipqueue.js', '/about': 'about.html', '/about.html': 'about.html' };
-for (const f of ['tabula-mark-black.webp', 'tabula-mark-white.webp', 'tabula-wordmark-black.webp', 'tabula-wordmark-white.webp', 'tabula-mark-black.png', 'tabula-mark-white.png', 'tabula-icon-64.png', 'fonts/InterTight-latin.woff2', 'fonts/InterTight-Italic-latin.woff2', 'tokens.css', 'theme-boot.js', 'brand.js', 'caps-boot.js']) FILES['/assets/' + f] = 'assets/' + f;
+for (const f of ['tabula-mark-black.webp', 'tabula-mark-white.webp', 'tabula-wordmark-black.webp', 'tabula-wordmark-white.webp', 'tabula-mark-black.png', 'tabula-mark-white.png', 'tabula-icon-64.png', 'fonts/InterTight-latin.woff2', 'fonts/InterTight-Italic-latin.woff2', 'tokens.css', 'theme-boot.js', 'brand.js', 'caps-boot.js', 'demo-boot.js']) FILES['/assets/' + f] = 'assets/' + f;
 // The page code and the pure logic are split by job into js/ and logic/ (the files index.html loads in order).
-for (const f of ['core', 'formatsetup', 'pairing', 'caps', 'clock', 'recording', 'flow', 'docs', 'ai', 'limits', 'settings', 'help', 'insights', 'decide', 'shell', 'palette', 'study', 'judging', 'account']) FILES['/js/' + f + '.js'] = 'js/' + f + '.js';
-for (const f of ['format', 'round', 'audio', 'flow', 'files', 'pairing', 'rules', 'decide', 'prompts', 'shell', 'account', 'flags', 'caps', 'limits', 'hosted']) FILES['/logic/' + f + '.js'] = 'logic/' + f + '.js';
+for (const f of ['demo', 'core', 'formatsetup', 'pairing', 'caps', 'clock', 'recording', 'flow', 'docs', 'ai', 'limits', 'settings', 'help', 'insights', 'decide', 'shell', 'palette', 'study', 'judging', 'account']) FILES['/js/' + f + '.js'] = 'js/' + f + '.js';
+for (const f of ['format', 'round', 'audio', 'flow', 'files', 'pairing', 'rules', 'decide', 'prompts', 'shell', 'account', 'flags', 'caps', 'limits', 'hosted', 'demo']) FILES['/logic/' + f + '.js'] = 'logic/' + f + '.js';
 for (const f of ['policy-hs.v1', 'ld.v1']) FILES['/formats/' + f + '.js'] = 'formats/' + f + '.js';
+for (const f of ['policy', 'ld']) FILES['/demo/' + f + '.js'] = 'demo/' + f + '.js'; // the demo's sample rounds
 // Shared ES modules (docs/events/LANDING.md §3). index.html loads them with type="module".
 for (const f of ['defs', 'store', 'ui']) FILES['/core/' + f + '.js'] = 'core/' + f + '.js';
 for (const f of ['mammoth-1.6.0.browser.min.js', 'mermaid-10.9.1.min.js', 'anthropic-sdk-0.137.0.bundle.mjs']) FILES['/vendor/' + f] = 'vendor/' + f;

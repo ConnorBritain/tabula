@@ -44,7 +44,7 @@ C0's done-when names the chosen bridge. This is an engineering call inside the o
 **Chosen in C0 (2026-11-21): (a), the dual-export file.** How it works:
 - Each `core/` file is an ES module. Its last line also sets `globalThis.TabulaCore.<name>`.
 - `core/package.json` (`"type": "module"`) tells Node that `core/` holds ES modules. Classic files read a module with `require('../core/<name>.js')` (Node 22.12 or newer). The hosted build leaves `core/package.json` out.
-- `index.html` loads each `core/` file with `type="module"` before the classic scripts. Every classic script after it loads with `defer`, so the browser runs it after the module, in page order. Only the three head scripts (`theme-boot.js`, `logic/caps.js` and `caps-boot.js`) still run at once.
+- `index.html` loads each `core/` file with `type="module"` before the classic scripts. Every classic script after it loads with `defer`, so the browser runs it after the module, in page order. Only the head scripts (`demo-boot.js`, `theme-boot.js`, `logic/caps.js` and `caps-boot.js`) still run at once.
 - `core-words.test.mjs` checks the banned words, that `import`, `require()` and `globalThis.TabulaCore` give the same functions, the load order, and that `bridge.mjs` and `build-app.mjs` include `core/`.
 - First user: `logic/format.js` takes `deepFreeze` from `core/defs.js`.
 
