@@ -7,7 +7,7 @@ This file answers two parts of the owner's request of 2026-11-21:
 - "Figure out how we can meaningfully build out the remaining shared core that's necessary" (§2, §3).
 - "Then we can start atomically landing the different event types" (§4).
 
-It builds on [SHARED-VS-NEW.md](SHARED-VS-NEW.md) §2, §4 and §7, on PLAN.md P1, and on [MODELS.md](MODELS.md). **Two owner choices are in §5. Both propose a change to a decided plan** (Q12: PLAN.md P1 and R2; Q13: PLAN.md Q8 and P5). Nothing changes until the owner answers.
+It builds on [SHARED-VS-NEW.md](SHARED-VS-NEW.md) §2, §4 and §7, on PLAN.md P1, and on [MODELS.md](MODELS.md). **The two owner choices in §5 are decided: Q12 B and Q13 B (owner, 2026-11-21).** PLAN.md P1, R2, Q8 and the phase table now match.
 
 ## 1. Where things stand (2026-11-21)
 
@@ -128,7 +128,7 @@ E9 to E12 are independent once E8 is in. They touch different files, so they can
 
 How a new field enters the data without breaking the frozen v1 files is in MODELS.md §5.
 
-### 4.3 Congress (PLAN.md P5; see Q13 in §5)
+### 4.3 Congress (PLAN.md P5, right after v1 by Q13 B)
 
 | Step | What lands | Needs | Done when |
 |---|---|---|---|
@@ -144,7 +144,7 @@ A parliamentarian view past K6 (for example TFA, where the parliamentarian score
 
 ## 5. Owner choices
 
-The owner's order stands in PLAN.md and is not changed here: **LD, then PF, then Speech Events, with the `core/` lift after PF ships.** Two places may serve the owner's new goal ("a meaningful dent" for speech events) better. Each is a choice for the owner.
+**Decided 2026-11-21 (owner): "Q12 B and Q13 B, go ahead".** The new order: the `core/` lift now; then PF and Speech Events side by side; Congress right after v1. The options are kept below as the record of the choice.
 
 ### Q12. When does the `core/` lift start?
 
@@ -153,7 +153,7 @@ Context: the reason to wait (PLAN.md R2: "the lift delays LD and PF") was half a
 - **A. Keep the order.** PF is next. The `core/` lift starts after PF ships (target: September 2027). Speech Events v1 lands after that. PF code is written on today's globals. The lift then moves it into the module layout.
 - **B. Lift `core/` now. Then build PF and Speech Events side by side.** The core steps run first (about 2–3 weeks, a guess). Then PF and the Speech Events landings run in parallel, in separate sessions. They touch different folders (`formats/` and `js/` for PF; `events/` for Speech Events). PF is built once, on `core/`. The cost: PF starts about 2–3 weeks later. The lift's risk to the live debate app (R1) also moves into the 2026-27 season.
 - **Dates are a guess.** v1 is 15 landings after the lift (E0–E14), and PLAN.md P2 needs a 10-judge test at a real tournament. Under B, a spring 2027 pilot is a stretch goal, not a promise. Under A, the first real speech tournament is late fall 2027 at the earliest.
-- **My pick: B.** The format refactor already removed the main reason to wait. PF built once on `core/` avoids a second move of the PF code. B keeps a chance at the 2027 spring season; A gives it up. The R1 safeguards apply either way: one module at a time, all gates, no in-season weekend deploys.
+- **Decided: B.** The format refactor already removed the main reason to wait. PF built once on `core/` avoids a second move of the PF code. B keeps a chance at the 2027 spring season; A gives it up. The R1 safeguards apply either way: one module at a time, all gates, no in-season weekend deploys.
 
 ### Q13. Where does Congress go?
 
@@ -161,10 +161,10 @@ Context: PLAN.md Q8 put Congress in P5, after league packs (P3) and coach tools 
 
 - **A. Keep Congress in P5** (after P3 and P4).
 - **B. Move Congress to right after v1** (before league packs). K1–K7 need only core steps and the paste parser that v1 already lands.
-- **My pick: B.** It reaches more judges sooner than the packs do, and the packs' events already work through the Custom form.
+- **Decided: B.** It reaches more judges sooner than the packs do, and the packs' events already work through the Custom form.
 
 ## 6. What this plan does not change
 
-- No change to PLAN.md §5 decisions Q1–Q11 **unless the owner picks B in Q12 or Q13**. Q12 B changes PLAN.md P1 and R2. Q13 B changes Q8 and P5.
+- No change to PLAN.md §5 decisions Q1–Q11 except what Q12 B and Q13 B changed: P1 and R2 (Q12), Q8 and the phase table (Q13).
 - No change to `tabula-cloud`. The cloud items for Speech Events (the `events.cleanup` task, the Q2 round rule) stay with the cloud session (PLAN.md §5 follow-ups).
-- No app code until the owner approves this plan.
+- The owner approved this plan on 2026-11-21. App code starts with C0.

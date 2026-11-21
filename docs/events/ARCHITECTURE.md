@@ -86,7 +86,7 @@ Seven screens in v1. The flow is a straight line: set up, judge, rank, review.
 | 6 | **Review and copy** | First copies the **ranks and ratings** (the tournament wants these about 5–10 minutes after the last speaker). Then reads each speaker's card (comments, reason for rank) and copies each into the online ballot. Prints. | Two stages, because Tabroom and SpeechWire lock ranks on submit but keep comments open until the tournament ends. "Clean up my comments" (AI, optional) lives here, one speaker at a time, with review before it goes in. |
 | 7 | **Settings** | AI, account, theme, tournament rules profile. | From the shared shell. |
 
-Phase P4 adds **Practice** (coach and student timer, recording, transcript, time-use report) and the **Ballot box** (past comments by student and event). Phase P5 adds the **Congress grid**. See PLAN.md.
+Phase P4 adds **Practice** (coach and student timer, recording, transcript, time-use report) and the **Ballot box** (past comments by student and event). Phase P5 adds the **Congress grid**; it comes right after v1, before P3 and P4 (PLAN.md Q13 B). See PLAN.md.
 
 ## 6. Data
 

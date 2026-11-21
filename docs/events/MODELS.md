@@ -25,7 +25,7 @@ An **event family** is a group of events that share one shape on screen and in d
 | F7 | **Group events** | Readers Theatre, Ensemble, Choral Reading, One-Act | Not planned | Group entries, long limits |
 | — | **Debate events** | Policy, LD, PF, World Schools, Big Questions, Extemp Debate, Parli | **Tabula Debate, not this app** | Format files in `formats/` ([CATALOG.md](CATALOG.md) §3) |
 
-F1 to F3 make up the 17 v1 events. F4 and F5 come with league packs (PLAN.md P3). F6 is Congress (PLAN.md P5; see the order question in [LANDING.md](LANDING.md) §5).
+F1 to F3 make up the 17 v1 events. F4 and F5 come with league packs (PLAN.md P3). F6 is Congress (PLAN.md P5, right after v1 by Q13 B; [LANDING.md](LANDING.md) §5).
 
 ## 2. Shared objects
 
