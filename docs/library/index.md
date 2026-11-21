@@ -88,4 +88,4 @@ Every page, grouped by topic. New readers can skip this list and use a path abov
 - **Timeless.** Examples are generic. They do not depend on this year's topic.
 - **Local rules differ.** Times, prep and point scales here are the common national format. Check your tournament's rules.
 - **Share it.** The text is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). You may copy it into a handout for your team, with credit.
-- **Found a mistake?** Open an issue on [the Tabula GitHub page](https://github.com/ConnorBritain/tabula/issues). Each page gets a review by an experienced coach before it goes live, and we fix errors fast.
+- **Found a mistake?** Email [support@tabulaspeech.com](mailto:support@tabulaspeech.com). Each page gets a review by an experienced coach before it goes live, and we fix errors fast.
