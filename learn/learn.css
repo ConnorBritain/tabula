@@ -116,8 +116,8 @@ blockquote p:last-child { margin: 0; }
    a summary, not a second headline. No coloured side stripe (no-stripes rule, PLAN.md §1). */
 blockquote.plain { margin: 0 0 36px; padding: 18px 22px 20px; background: var(--aff-tint); border: 1px solid var(--aff-edge); border-radius: var(--r-xl); font-size: 17px; line-height: 1.6; color: var(--text); }
 /* The label is set here, not in each page, so no page can miss it. */
-blockquote.plain::before { content: "The big idea"; display: block; margin: 0 0 6px; font-size: 13px; font-weight: var(--fw-4); color: var(--aff); letter-spacing: 0.02em; }
-blockquote.plain > p:first-of-type { font-weight: var(--fw-3); }
+blockquote.plain::before { content: "The big idea"; display: block; margin: 0 0 8px; font-size: 12px; font-weight: var(--fw-5); color: var(--aff); text-transform: uppercase; letter-spacing: 0.1em; }
+blockquote.plain > p:first-of-type { font-size: 19px; line-height: 1.45; font-weight: var(--fw-4); letter-spacing: -0.01em; }
 blockquote.plain p { margin: 0 0 10px; }
 blockquote.plain p:last-child { margin: 0; }
 blockquote.plain ul { margin: 12px 0 0; padding-left: 20px; color: var(--text-2); }
@@ -144,6 +144,12 @@ pre.flow code { background: none; border: 0; padding: 0; font-size: inherit; }
 .path-when { margin: 2px 0 12px; font-size: 14px; color: var(--text-3); }
 .path-card ol, .path-card ul { margin-bottom: 0; }
 .path-card > :last-child { margin-bottom: 0; }
+/* With library.js the choices are tabs: the chosen one is tinted and only its path shows. The card's own heading
+   stays for screen readers but is hidden on screen, because the tab already names the path. */
+.has-path-tabs .path-chooser { margin-bottom: var(--s3); }
+.path-pick[aria-selected="true"] { border-color: var(--aff-edge); background: var(--aff-tint); }
+.path-pick[aria-selected="true"] .path-pick-name { color: var(--aff); }
+.has-path-tabs .path-card > h3, .has-path-tabs .path-card > .path-when { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .path-track { margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--border); font-size: 15px; color: var(--text-2); }
 .path-track a { font-weight: var(--fw-4); }
 

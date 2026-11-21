@@ -74,7 +74,7 @@ Step order lives in `docs/library/tracks.json` (entry `novice`); if this table a
 | 13 | `impact-calculus` | (Same check as 2.1, step 6.) |
 | 14 | `rebuttal-strategy` | Choose what the 2NR should go for, from a flow. |
 
-**Ready:** 14 of 14 pages written (the 3 wave-2 pages landed 2026-11-20). Listed in `tracks.json`, but it has no checks for 11 of its steps (3 are shared with the judge track), so it is not live. The 3 wave-2 pages still need coach review (`docs/library/PLAN.md` §10 item 3), then the 11 checks. **Badge:** yes, for students in Phase 3, so this track also needs its own hidden final-check pool (§5.3).
+**Status:** built (2026-11-21). All 14 checks are written (11 new drafts), so the track is built as a draft (noindex) until coach review. The 3 wave-2 pages still need coach review (`docs/library/PLAN.md` §10 item 3), then review of the checks. **Badge:** yes, for students in Phase 3, so this track also needs its own hidden final-check pool (§5.3).
 
 ### 2.3 Intro to the K
 
@@ -88,9 +88,9 @@ Prerequisite (suggested, not enforced): the novice track, or `disadvantages` and
 | 4 | `role-of-the-ballot` | Say what a given role-of-the-ballot claim would change about the decision. |
 | 5 | `framework-vs-kritik` | Match each side's framework claim to its answer (aff: weigh the plan; neg: weigh the kritik first), fair to both sides. |
 | 6 | `answering-kritiks` | Pick the answer that is a permutation, and the one that is a link turn. |
-| 7 | `example-cap-k` *(planned)* | Read a short flow of the cap K debate and say which side is ahead on the link. |
+| 7 | `example-cap-k` | Read a short flow of the cap K debate and say which side is ahead on the link. |
 
-**Ready:** 6 of 7 pages written. Missing: `example-cap-k` (wave 3). The `common-kritiks` page is left out on purpose: it is the hardest page to write fairly (`docs/library/PLAN.md` §2.7), and a quiz on it risks a "right answer" about a contested idea.
+**Status:** built (2026-11-21) as track `kritik`. All 7 checks are drafts, so the track is a draft (noindex) until coach review. The `common-kritiks` page is left out on purpose: it is the hardest page to write fairly (`docs/library/PLAN.md` §2.7), and a quiz on it risks a "right answer" about a contested idea.
 
 ### 2.4 Theory basics
 
@@ -100,10 +100,10 @@ Prerequisite (suggested, not enforced): the novice track, or `disadvantages` and
 | 2 | `fiat` | Tell a fiat answer from a solvency answer. |
 | 3 | `conditionality` | Say what "conditional" means for a CP the neg can drop. |
 | 4 | `reject-the-team` | Say whether an argument asks to reject the argument or the team. |
-| 5 | `common-theory` *(planned)* | Read a short 1NC and say which theory argument the aff could make against it, and why. |
-| 6 | `example-condo-debate` *(planned)* | Read a condo flow and find what each side's interpretation is. |
+| 5 | `common-theory` | Read a short 1NC and say which theory argument the aff could make against it, and why. |
+| 6 | `example-condo-debate` | Read a condo flow and find what each side's interpretation is. |
 
-**Ready:** 4 of 6 pages written. Missing: `common-theory`, `example-condo-debate` (wave 3).
+**Status:** built (2026-11-21) as track `theory`. All 6 checks are drafts, so the track is a draft (noindex) until coach review.
 
 ### 2.5 Judging well: decisions and RFDs
 
@@ -119,7 +119,7 @@ For judges who have done the parent track, or who judge often.
 | 6 | `giving-feedback` | Pick the oral feedback that is specific and kind. |
 | 7 | `writing-a-paradigm` | Self-check a short paradigm draft for the 4 things debaters look for. |
 
-**Ready:** 7 of 7 pages written; it needs its checks and coach review. This track has a badge, so it also needs its own hidden final-check pool (§5.3).
+**Status:** built (2026-11-21) as track `judging`. All its checks are drafts, so the track is a draft (noindex) until coach review. This track has a badge, so it also needs its own hidden final-check pool (§5.3).
 
 ### 2.6 Policy vs K: framework
 
@@ -167,9 +167,10 @@ Built in Phase 1 (2026-11-19):
 
 - `docs/library/tracks.json` is the **one source** for track step lists. Its schema is checked by `loadTracks()` in `learn-tracks.mjs`; read that, not this doc, for the exact fields.
 - Two fields carry design meaning. `pathName` makes a track also a reading path: the "Next on your path" box shows only for those entries, with labels "New judge path" and "New debater path". `badge` marks a track that will give a badge in Phase 2 or 3, and `audience` (`judge` or `debater`) decides who may earn it (§5.2, §6.2: students never earn a judge badge). Phase 1 reads neither, and `loadTracks()` does not validate them yet. **Phase 2 must validate both**, because a wrong `audience` would weaken a privacy rule.
+- `home` (optional, added 2026-11-21) holds the heading id of a "Pick your path" card on the library home page (for example `i-already-know-debate-pick-a-branch`). The card then lists the track, once it is built. A track with no `home` is listed on a card only when its steps equal that card's numbered list, in order. The build stops with an error if `home` names a card that does not exist, so renaming a path heading means updating `home`. One built track on a card shows "Take it as a guided track"; several show a list.
 - `build-learn.mjs` builds the reading paths from `tracks.json` with `readingPaths(tracks)`. The old hard-coded `PATHS` lists are gone. A test still checks that `index.md` lists each path's written pages in the same order.
 - `docs/library/PLAN.md` §3 points to `tracks.json` for the step lists.
-- Tracks 2.3 to 2.8 are not in `tracks.json` yet. When one is added, its order there wins, and this doc keeps only its check-intent table. Tracks 2.4 to 2.6 replace the PLAN.md §3 Path C branches.
+- Tracks 2.3 to 2.5 are in `tracks.json` (2026-11-21, ids `kritik`, `theory`, `judging`), listed on the home page's "I already know debate" card through their `home` field. Tracks 2.6 to 2.8 are not in `tracks.json` yet. When one is added, its order there wins, and this doc keeps only its check-intent table. Tracks 2.4 to 2.6 replace the PLAN.md §3 Path C branches.
 
 ## 3. Checks
 

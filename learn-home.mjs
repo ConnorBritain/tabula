@@ -30,11 +30,14 @@ export function renderPathCards(html, tracks, states, href) {
   if (/<h3\b/.test(lead)) parseCard(lead.slice(lead.search(/<h3\b/))); // a heading the builder cannot read stops the build
   const cards = first < 0 ? [] : section.slice(first).split(/(?=<h3 id=")/).map(parseCard);
   const sameSteps = (a, b) => a.length === b.length && a.every((s, i) => s === b[i]);
+  for (const t of tracks) if (t.home && !cards.some((c) => c.id === t.home)) throw new Error(`tracks.json: track "${t.id}" names home card "${t.home}", but index.md has no such "Pick your path" heading`);
   const cardHtml = cards.map((c) => {
-    const track = tracks.find((t) => c.steps.length && sameSteps(t.steps, c.steps));
-    const ready = track && states.get(track.id)?.ready;
+    // A track belongs to a card when tracks.json names the card ("home") or has exactly the card's numbered pages.
     // Only a built track gets a line: no promise of tracks that do not exist yet.
-    const trackLine = ready ? `<p class="path-track"><a href="${href(`tracks/${track.id}`)}">Take it as a guided track</a>, with a quick check after each page.</p>` : '';
+    const own = tracks.filter((t) => (t.home === c.id || (c.steps.length && sameSteps(t.steps, c.steps))) && states.get(t.id)?.ready);
+    const trackLine = own.length === 1
+      ? `<p class="path-track"><a href="${href(`tracks/${own[0].id}`)}">Take it as a guided track</a>, with a quick check after each page.</p>`
+      : own.length ? `<p class="path-track">Guided tracks, with a quick check after each page: ${own.map((t) => `<a href="${href(`tracks/${t.id}`)}">${t.name}</a>`).join(' · ')}.</p>` : '';
     return `<section class="path-card" aria-labelledby="${c.id}">${c.body}${trackLine}</section>`;
   });
   const meta = (c) => [c.when, c.steps.length ? `${c.steps.length} pages` : ''].filter(Boolean).join(' · ');

@@ -273,8 +273,14 @@ test('the home page offers each path as a card, and the judge path links to its 
   for (const id of picks) assert.match(home, new RegExp(`<section class="path-card" aria-labelledby="${id}"><h3 id="${id}">`), `choice #${id} has no card`);
   assert.match(home, /<section class="path-card" aria-labelledby="i-am-judging-soon[^"]*">[\s\S]*?<a href="tracks\/judge\/">Take it as a guided track<\/a>[\s\S]*?<\/section>/);
   assert.match(home, /<span class="path-pick-meta">About 30 minutes · 6 pages<\/span>/, 'the judge choice should say how long and how many pages');
+  // CHANGED 2026-11-21 because the owner approved building the novice and three experienced tracks; the new-debater
+  // card now has a built track. The no-promise rule for unbuilt tracks is covered by the unit test below. Old check:
+  //   const debater = /<section class="path-card" aria-labelledby="i-am-a-new-debater[^"]*">[\s\S]*?<\/section>/.exec(home)[0];
+  //   assert.doesNotMatch(debater, /class="path-track"/, 'a path whose track is not built must not link to it or promise it');
   const debater = /<section class="path-card" aria-labelledby="i-am-a-new-debater[^"]*">[\s\S]*?<\/section>/.exec(home)[0];
-  assert.doesNotMatch(debater, /class="path-track"/, 'a path whose track is not built must not link to it or promise it');
+  assert.match(debater, /<a href="tracks\/novice\/">Take it as a guided track<\/a>/);
+  const branch = /<section class="path-card" aria-labelledby="i-already-know-debate[^"]*">[\s\S]*?<\/section>/.exec(home)[0];
+  for (const id of ['kritik', 'theory', 'judging']) assert.match(branch, new RegExp(`<a href="tracks/${id}/">`), `the experienced card should list the ${id} track`);
   assert.doesNotMatch(home, /coming/i, 'the home page must not promise unbuilt tracks');
 });
 
@@ -288,8 +294,24 @@ test('path cards keep intro text, count only numbered paths, and reject a malfor
   assert.match(out, /<span class="path-pick-meta">About 5 minutes · 2 pages<\/span>/);
   assert.match(out, /<a class="path-pick" href="#b"><span class="path-pick-name">Old hand<\/span><span class="path-pick-meta"><\/span>/);
   assert.equal((out.match(/Take it as a guided track/g) || []).length, 1, 'only the exact-match track links, once');
+  // Why: a link to a track that is not built sends a parent or student to a page that does not exist.
+  const notBuilt = renderPathCards(html, [{ id: 't', steps: ['x', 'y'] }], new Map([['t', { ready: false }]]), (id) => id + '/');
+  assert.doesNotMatch(notBuilt, /class="path-track"/, 'a track that is not built must not be linked or promised');
   assert.match(out, /<a href="tracks\/t\/">Take it as a guided track/);
   assert.throws(() => renderPathCards('<h2 id="pick-your-path">P</h2><h3 class="x">Bad</h3><h2 id="n">N</h2>', [], new Map(), String), /expected a "### " path heading/);
+  // Why: renaming a path heading would silently drop its tracks from the home page; the build must say so instead.
+  assert.throws(() => renderPathCards(html, [{ id: 'k', steps: ['z'], home: 'gone' }], new Map([['k', { ready: true }]]), String), /names home card "gone"/);
+});
+
+// WHY: the home page shows one path at a time through these hooks; if the builder's markup and library.js drift apart,
+// the tabs silently stop working and the page falls back to repeating every path name twice.
+test('the home page path choices carry the hooks the tab script needs (markup contract only; tab behavior is checked in a browser)', () => {
+  const home = site.files.get('index.html');
+  assert.match(home, /<nav class="path-chooser" aria-label="Choose a path"><a class="path-pick" href="#[^"]+">/);
+  assert.match(home, /<section class="path-card" aria-labelledby="[^"]+"><h3 id="[^"]+">/);
+  assert.match(home, /<script src="library\.js"><\/script>/);
+  const js = readFileSync(join(SRC, 'library.js'), 'utf8');
+  for (const hook of ["'.path-chooser'", "'a.path-pick'", "'.path-card'", "'has-path-tabs'"]) assert.ok(js.includes(hook), `library.js no longer reads ${hook}`);
 });
 
 // WHY: the top bar already names the site; a breadcrumb or meta line that repeats "Debate Library" or the section is
