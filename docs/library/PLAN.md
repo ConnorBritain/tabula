@@ -244,7 +244,11 @@ There are two page types. Both start with the front matter, the H1 and the Plain
 - **Concept pages** (an argument, such as DA, T, K, CP): "The parts", "How to answer it", "How to judge it". Headings can name the argument ("How judges decide T").
 - **Process pages** (a skill or part of the round, such as Debate 101 or How to flow): free middle sections, in the order a beginner needs them.
 
-The build adds two things that are not in the Markdown: the "Reading paths" box (section 3) and one soft call to action (section 7). Writers do not add them by hand.
+The build adds things that are not in the Markdown. Writers do not add them by hand:
+
+- **The page frame** (redesign, 2026-11-20). A top bar that copies the tabuladebate.com header: brand (to the site home), Library, Coaches, School IT, Sign in, and "Open the app". A breadcrumb ("Library › section") and a meta line ("7 min read · Beginner"). A footer with the site links. The nav is copied from the site repo (`tabula-sites/layout.mjs`), so a nav change there must change `SITE_NAV` in `build-learn.mjs` too. The marketing-sites session tells the Library session when the site nav, footer or app address changes; nothing checks it automatically.
+- **"On this page"** on article pages with 3 or more `##` headings. On wide screens it is a side list; on narrower screens `library.js` turns it into a floating button with progress, minutes left and the section list. Without the script, a fold-out list shows under the summary.
+- The "Reading paths" box (section 3), as one card, and one soft call to action (section 7).
 
 **Rules for the template**
 
@@ -303,7 +307,7 @@ Write each page for the reader `READERS.md` names for it, at the point in their 
 - Every hub links to all its pages.
 - The glossary links every term to its page. Every page links its key terms to the glossary only when no full page exists yet.
 - Use descriptive anchor text ("how permutations work"), never "click here".
-- Each page has one soft call to action at the bottom, added by the build: "Flow your next round in Tabula, free." No pop-ups. No email wall. The library stays free and readable without the app.
+- Each page has one soft call to action at the bottom, added by the build: "Flow your next round in Tabula, free." No pop-ups. No email wall. The library stays free and readable without the app. The top bar's "Open the app" button is site navigation (it copies the site header), not a second pitch.
 
 **Structured data.** Add `Article` and `BreadcrumbList` JSON-LD on each page. Add `FAQPage` only where the page truly has a Q&A block, and keep it honest. The glossary can use `DefinedTermSet`.
 
@@ -324,6 +328,7 @@ Add one item to `#help-menu` in `index.html`, after "Tour this page":
 ```
 
 - `learn/` is the **built** output folder (see section 9), not the Markdown source. The app and the website serve the same folder at the same relative path, so one link works in both.
+- Inside the Library, "Open the app" links to the app's web address, which is right on the website. When the Library is opened from the app, `learn/library.js` points it back to the app (the site root) as "Back to the app", so the reader never leaves the running app. This needs JavaScript (the app needs it anyway); without it the link goes to the app's web address.
 - Offline is a goal, not a fact yet. The app has no service worker today (PLAN.md step 8 is not built). When step 8 lands, its offline cache should include `learn/`.
 
 ### 8.2 Sheet tabs (T, DA, CP, K, FW, Case)

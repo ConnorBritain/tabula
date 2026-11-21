@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync, readdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { buildSite, markdown, inline, relHref, nextSteps, isPageFile, parseFrontMatter, readingPaths, OUT, SRC } from './build-learn.mjs';
+import { buildSite, markdown, inline, relHref, nextSteps, isPageFile, parseFrontMatter, readingPaths, metaText, placeLead, OUT, SRC } from './build-learn.mjs';
 import { loadTracks } from './learn-tracks.mjs';
 const PATHS = readingPaths(loadTracks(SRC));
 
@@ -80,7 +80,10 @@ test('private and planning files are never published', () => {
   assert.equal(isPageFile('LICENSE.md'), false);
   const dir = tmpSite({ 'index.md': fm('index') + '# Home\n', 'secret.local.md': fm('secret') + '# S\n\n- Ann Lee: coach\n', 'PLAN.md': fm('PLAN') + '# Plan\n\nAnn Lee\n' });
   const { files } = buildSite(dir);
-  assert.deepEqual([...files.keys()].sort(), ['index.html', 'learn.css', 'sitemap.xml']);
+  // CHANGED 2026-11-20 because the owner asked for a reading helper and an in-app "Back to the app" link (Library
+  // redesign); both live in one self-hosted file, library.js, which every build now writes. Old check:
+  //   assert.deepEqual([...files.keys()].sort(), ['index.html', 'learn.css', 'sitemap.xml']);
+  assert.deepEqual([...files.keys()].sort(), ['index.html', 'learn.css', 'library.js', 'sitemap.xml']);
   for (const text of files.values()) assert.ok(!text.includes('Ann Lee'));
   // The real private file, when it exists on this machine, must not leak either.
   for (const f of readdirSync(SRC).filter((x) => x.endsWith('.local.md'))) {
@@ -98,7 +101,11 @@ test('built pages hold no runnable script, only JSON-LD data', () => {
     // self-hosted assets/theme-boot.js in <head> on all three page types. It is a same-site file, not inline, so the
     // CSP still holds. Old check:
     //   assert.ok(tag === '<script type="application/ld+json">' || /^<script src="(\.\/|(\.\.\/)+)?check\.js" defer>$/.test(tag), `learn/${rel}: ${tag}`);
-    for (const [tag] of html.matchAll(/<script\b[^>]*>/g)) assert.ok(tag === '<script type="application/ld+json">' || /^<script src="(\.\/|(\.\.\/)+)?check\.js" defer>$/.test(tag) || /^<script src="(\.\.\/)+assets\/theme-boot\.js">$/.test(tag), `learn/${rel}: ${tag}`);
+    // CHANGED 2026-11-20 because the owner asked for a reading helper (progress, minutes left, jump to a section) and an
+    // in-app "Back to the app" link: one self-hosted learn/library.js at the end of each page. Still no inline script.
+    // Old check:
+    //   for (const [tag] of html.matchAll(/<script\b[^>]*>/g)) assert.ok(tag === '<script type="application/ld+json">' || /^<script src="(\.\/|(\.\.\/)+)?check\.js" defer>$/.test(tag) || /^<script src="(\.\.\/)+assets\/theme-boot\.js">$/.test(tag), `learn/${rel}: ${tag}`);
+    for (const [tag] of html.matchAll(/<script\b[^>]*>/g)) assert.ok(tag === '<script type="application/ld+json">' || /^<script src="(\.\/|(\.\.\/)+)?check\.js" defer>$/.test(tag) || /^<script src="(\.\.\/)+assets\/theme-boot\.js">$/.test(tag) || /^<script src="(\.\/|(\.\.\/)+)?library\.js">$/.test(tag), `learn/${rel}: ${tag}`);
     for (const [, body] of html.matchAll(/<script src="[^"]*">([\s\S]*?)<\/script>/g)) assert.equal(body, '', `learn/${rel}: a script tag with a src must be empty`);
     for (const [, body] of html.matchAll(/<script src="[^"]*" defer>([\s\S]*?)<\/script>/g)) assert.equal(body, '', `learn/${rel}: a script tag with a src must be empty`);
     assert.doesNotMatch(html, /\son[a-z]+="/, `learn/${rel} has an inline event handler`);
@@ -198,6 +205,58 @@ test('JSON-LD parses, and the sitemap lists every page with a date', () => {
 test('built pages carry the call to action, and path pages carry "Next on your path"', () => {
   for (const [rel, html] of htmlPages) assert.match(html, /class="cta"[\s\S]*Flow your next round in Tabula, free\./, `learn/${rel}: no call to action`);
   assert.match(site.files.get('debate-101/index.html'), /Next on your path[\s\S]*New judge path: <a href="..\/first-round-judge\/">/);
+});
+
+// WHY: the Library is part of tabuladebate.com and is also opened from the app. Without the site's top bar and a real
+// app link, a reader who lands from search has no way back to the app or on to the rest of the site.
+test('every page has the site top bar, a link to the app, and the site footer links', () => {
+  for (const [rel, html] of htmlPages) {
+    const top = /<header class="site">[\s\S]*?<\/header>/.exec(html)?.[0] || '';
+    assert.match(top, /href="https:\/\/tabuladebate\.com\/"/, `learn/${rel}: brand does not go to the site home`);
+    assert.match(top, />Coaches<\/a>/, `learn/${rel}: no site nav`);
+    assert.match(top, /href="https:\/\/debate\.tabulaspeech\.com\/" data-app="(\.\.\/)+" data-back-label="Back to the app">Open the app</, `learn/${rel}: no app link (or no in-app way back)`);
+    assert.doesNotMatch(top, /Debate Library/, `learn/${rel}: the top bar repeats the Library name`);
+    assert.match(html, /<nav class="foot-nav"[\s\S]*?tabulaspeech\.com\/plans\//, `learn/${rel}: no site links in the footer`);
+  }
+});
+
+// WHY: long pages need "On this page" so a reader can jump to the part they came for; the list must point at real headings.
+test('long article pages get an "On this page" list that links to their sections', () => {
+  const html = site.files.get('disadvantages/index.html');
+  const toc = /<nav class="toc"[\s\S]*?<\/nav>/.exec(html)?.[0] || '';
+  const ids = [...toc.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(ids.length >= 3, 'no On this page list');
+  for (const id of ids) assert.match(html, new RegExp(`<h2 id="${id}">`), `On this page points at a missing heading: ${id}`);
+  assert.doesNotMatch(site.files.get('index.html'), /class="toc"/, 'the home page should not get an On this page list');
+});
+
+// WHY: the reading helper (library.js) builds its progress, minutes left and section list from these hooks; if the
+// builder drops one, readers lose their place-keeping silently ("N min left" turns into a bare percent, or nothing).
+test('long pages carry the hooks the reading helper needs and load library.js', () => {
+  const html = site.files.get('disadvantages/index.html');
+  assert.match(html, /<div class="page-main" data-minutes="\d+">/);
+  assert.match(html, /<nav class="toc" aria-label="On this page"><p class="toc-title">On this page<\/p><ul>/);
+  assert.match(html, /<script src="\.\.\/library\.js"><\/script>\n<\/body>/);
+  const js = readFileSync(join(SRC, 'library.js'), 'utf8');
+  for (const hook of ["'nav.toc'", "'.page-main'", 'dataset.minutes', "'.toc-title'", "'a[data-app]'"]) assert.ok(js.includes(hook), `library.js no longer reads ${hook}`);
+});
+
+// WHY: the top bar already names the site; a breadcrumb or meta line that repeats "Debate Library" or the section is
+// clutter a reader must skip on every page.
+test('the breadcrumb starts at "Library" and the meta line is just read time and level', () => {
+  const html = site.files.get('disadvantages/index.html');
+  assert.match(html, /<nav class="crumbs" aria-label="Breadcrumb"><a href="..\/">Library<\/a> ›/);
+  assert.match(html, /<\/h1>\n<p class="meta">\d+ min read · Beginner<\/p>/);
+  assert.equal(metaText({ reading_time: 7, level: 'intermediate', section: 'Disadvantages' }), '7 min read · Intermediate');
+});
+
+// WHY: the summary is the page's whole point for a reader who stops early, and the banner picture belongs to it; a
+// list or control wedged in before them pushes the answer down.
+test('the phone "On this page" list comes after the summary and its banner picture', () => {
+  const lead = '<h1>T</h1>\n<blockquote class="plain"><p>S.</p></blockquote>\n<figure class="lib-figure lib-figure--hero"><img src="a"></figure>\n<h2 id="x">X</h2>';
+  assert.equal(placeLead(lead, '<p class="meta">M</p>', '<details class="toc-m"></details>'),
+    '<h1>T</h1>\n<p class="meta">M</p>\n<blockquote class="plain"><p>S.</p></blockquote>\n<figure class="lib-figure lib-figure--hero"><img src="a"></figure>\n<details class="toc-m"></details>\n<h2 id="x">X</h2>');
+  assert.equal(placeLead('<h1>T</h1>\n<p>P</p>', '', ''), '<h1>T</h1>\n<p>P</p>', 'no meta and no list leaves the page alone');
 });
 
 // WHY: the home page and the "next" box must agree on the order of each path, or a reader gets two different routes.
