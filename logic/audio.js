@@ -8,6 +8,7 @@
 
   // ---------- live transcription (OpenAI) ----------
   // A short vocabulary hint helps the speech model spell debate words. It comes from the format file (ai.transcribeHint).
+  // Deprecated alias: the policy hint under its old name (old callers and tests). Page code passes the round's format.
   const TRANSCRIBE_HINT = F.POLICY.ai.transcribeHint;
 
   // The model reads only the end of the prompt, so pass a short tail of what came before.
@@ -16,6 +17,14 @@
     const hint = (fmt || F.POLICY).ai.transcribeHint;
     const tail = (prevText || '').slice(-300);
     return tail ? hint + ' ' + tail : hint;
+  }
+
+  // On silence the model sometimes repeats the vocabulary hint instead of words. true when the text holds the start of
+  // the format's hint ("policy debate. Terms:", "Lincoln-Douglas debate. Terms:"), so the page drops it.
+  function isHintEcho(text, fmt) {
+    const hint = (fmt || F.POLICY).ai.transcribeHint;
+    const start = hint.slice(0, hint.indexOf('Terms:') + 'Terms:'.length).replace(/^High school /, '');
+    return String(text || '').includes(start);
   }
 
   function appendChunk(prev, chunk) {
@@ -136,7 +145,7 @@
       full: 'Recording (' + x.engine + ')' + (x.ago != null ? ' \u00b7 last text ' + x.ago + ' s ago' : ' \u00b7 waiting for first text\u2026') };
   }
 
-  const api = { TRANSCRIBE_HINT, buildTranscribePrompt, appendChunk, encodeWav, rms, mergeOverlap, AUDIO_MODES,
+  const api = { TRANSCRIBE_HINT, buildTranscribePrompt, isHintEcho, appendChunk, encodeWav, rms, mergeOverlap, AUDIO_MODES,
     micConstraints, levelInfo, micTestVerdict, stallWarning, recStatus, REC_PROBLEM_WORD };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).audio = api;

@@ -80,8 +80,45 @@
   // Full prep for every clock: { aff: 480, neg: 480 } or { Aff: 240, Neg: 240 }.
   const fullPrep = (fmt, seconds) => Object.fromEntries(prepClocks(fmt).map((c) => [c.id, seconds]));
 
+  // ---------- example wording per format ----------
+  // Hints and examples in shared places (the Resolution box, the ballot box, the reading level, the live flow) that
+  // name things only one format has ("plan", "the 1A"). They are copy, not rules, so they live here and not in the
+  // format files: a published format file never changes, and a new hint must not need a new format version.
+  // Policy keeps the exact words judges and the AI had before formats. A format with no entry gets plain wording.
+  const COPY = {
+    'policy-hs': {
+      topicHint: 'Resolved: The United States federal government should…',
+      ballotExample: 'Example: I\'m voting aff on the perm. 2N was the best speaker. Be kind to the 1A.',
+      argExample: 'e.g. No link — plan is cheap',
+      flowBriefExamples: '"Perm do both", "No link — plan is cheap"',
+      readingJudge: 'college policy judge',
+      readingExample: 'the link, meaning why the plan causes the problem',
+    },
+    ld: {
+      topicHint: 'Resolved: A just government ought to…',
+      ballotExample: 'Example: I\'m voting neg on framework. The Neg was the better speaker. Be kind to the Aff.',
+      argExample: 'e.g. Util fails — no link to the criterion',
+      flowBriefExamples: '"Util outweighs", "No link to the criterion"',
+      readingJudge: 'Lincoln-Douglas judge',
+      readingExample: 'the criterion, meaning the test for which side better meets the value',
+    },
+  };
+  function formatCopy(fmt) {
+    const own = COPY[fmt.id];
+    if (own) return own;
+    const first = fmt.speakers[0].label;
+    return {
+      topicHint: 'Resolved: …',
+      ballotExample: 'Example: I\'m voting aff. ' + first + ' was the best speaker. Be kind to the ' + first + '.',
+      argExample: 'e.g. No link',
+      flowBriefExamples: '"No link", "Extend the impact"',
+      readingJudge: fmt.ai.abbr + ' judge',
+      readingExample: 'the burden, meaning what a side must prove to win',
+    };
+  }
+
   const api = { FORMAT_FILES: FILES, FORMAT_IDS, DEFAULT_FORMAT_ID, OLD_ROUND, getFormat, formatOf, formatKnown, formatFields,
-    formatFromSearch, speechOf, columnOf, speakerOf, speakersOn, speakerTag, speakerName, prepClocks, fullPrep,
+    formatFromSearch, speechOf, columnOf, speakerOf, speakersOn, speakerTag, speakerName, prepClocks, fullPrep, formatCopy,
     POLICY: getFormat('policy-hs', 1) };
   if (isNode) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).format = api;

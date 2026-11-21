@@ -116,7 +116,7 @@ function startSpeech() {
   const s = sp();
   const left = leftFor(s);
   R.run = { id: s.id, endAt: Date.now() + left * 1000, startLeft: left, beeped: left <= 0, rec: false };
-  studyStart(s.id); // study mode (5.7): the first 1AC Start, by any method; does nothing unless ?study=1
+  studyStart(s.id); // study mode (5.7): the first Start of the first speech, by any method; does nothing unless ?study=1
   recStoppedByReload = false;
   saveClocks(); startTick(); renderClock(); renderSpeeches();
   if ($('#rec-on').checked) wantRec();

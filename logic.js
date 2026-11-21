@@ -8,12 +8,12 @@
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./logic/' + name + '.js') : root.PolicyLogicParts[name]);
   const { FORMAT_FILES, FORMAT_IDS, DEFAULT_FORMAT_ID, OLD_ROUND, getFormat, formatOf, formatKnown, formatFields,
-    formatFromSearch, speechOf, columnOf, speakerOf, speakersOn, speakerTag, speakerName, prepClocks, fullPrep } = part('format');
+    formatFromSearch, speechOf, columnOf, speakerOf, speakersOn, speakerTag, speakerName, prepClocks, fullPrep, formatCopy } = part('format');
   const { SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS,
     PARADIGMS, BALLOT_HEADER, LOG_COLUMNS, formatClock, sheetSafe, csvCell, toCSV, toTSV, ballotRow, checkBallot,
     parseDecision, parseRfd, PARADIGM_LABELS, paradigmText, hashText, lensKey, MAP_SPEECHES, BALLOT_FIELDS,
     speechesSoFar, DEFAULT_PTS_RANGE, ptsRange, rangeError, ballotFields } = part('round');
-  const { TRANSCRIBE_HINT, buildTranscribePrompt, appendChunk, AUDIO_MODES, micConstraints, levelInfo,
+  const { TRANSCRIBE_HINT, buildTranscribePrompt, isHintEcho, appendChunk, AUDIO_MODES, micConstraints, levelInfo,
     micTestVerdict, stallWarning, recStatus, REC_PROBLEM_WORD, encodeWav, rms, mergeOverlap } = part('audio');
   const { speechColumn, FLOW_LEVELS, partText, aiFlowCell, flowCellText, editIsBehind, mergeMap, applyLiveFlow,
     FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged } = part('flow');
@@ -30,11 +30,11 @@
   const { PTS_FIELDS, DRAFT_GROUPS, ptsFields, draftGroups, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot, roundHasContent, insightsReady,
     draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft, staleReviewCards,
     reviewInsertFields, applyReview, autoRefillPlan, speechEndedSince, ranksSet, moveRank, stepPoints,
-    savedBallotEntry, savedBallotRow, savedBallotView, decisionText, tournamentBlocks, printModel, prepUsed,
+    savedBallotEntry, savedBallotRow, savedBallotView, historyTable, historyColumns, decisionText, tournamentBlocks, printModel, prepUsed,
     keyMoments, issueTally, andList, outOfDateText, runVerb, readingFor, decideTab } = part('decide');
   const { JUDGE_SYSTEM, POINTS_GUIDE, parseFeedback, buildJudgePrompt, ANALYSIS_SYSTEM, MAP_SCHEMA, MAP_TASK,
     IMPACT_SCHEMA, IMPACT_TASK, LENS_SCHEMA, LENS_TASK, buildAnalysisPrompt, buildMermaid, layoutMap, READING_LEVELS,
-    readingGuide, BALLOT_SCHEMA, BALLOT_TASK, buildBallotPrompt, applyBallotDraft, nextSpeech, EVAL_SYSTEM,
+    readingLevels, readingGuide, BALLOT_SCHEMA, BALLOT_TASK, buildBallotPrompt, applyBallotDraft, nextSpeech, EVAL_SYSTEM,
     EVAL_SCHEMA, buildEvalPrompt, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM, buildLiveFlowPrompt, promptsFor } = part('prompts');
   const { chipText, chipTip, CHIP_NAME_MS, chipNameDue, NET_TIP, netNote, speechLine, clockStatus, prepPausesLine,
     stepSpeechState, studyOn, studyMark, studyResult } = part('shell');
@@ -48,7 +48,7 @@
     BALLOT_HEADER, JUDGE_SYSTEM, POINTS_GUIDE,
     LOG_COLUMNS,
     formatClock, sheetSafe, csvCell, toCSV, toTSV, ballotRow, checkBallot, parseDecision, parseRfd, parseFeedback, buildJudgePrompt,
-    TRANSCRIBE_HINT, buildTranscribePrompt, appendChunk, AUDIO_MODES, micConstraints, levelInfo, micTestVerdict, stallWarning, recStatus, REC_PROBLEM_WORD, encodeWav, rms, mergeOverlap,
+    TRANSCRIBE_HINT, buildTranscribePrompt, isHintEcho, appendChunk, AUDIO_MODES, micConstraints, levelInfo, micTestVerdict, stallWarning, recStatus, REC_PROBLEM_WORD, encodeWav, rms, mergeOverlap,
     PARADIGM_LABELS, paradigmText, hashText, lensKey,
     ANALYSIS_SYSTEM, MAP_SPEECHES, MAP_SCHEMA, MAP_TASK, IMPACT_SCHEMA, IMPACT_TASK, LENS_SCHEMA, LENS_TASK, buildAnalysisPrompt, buildMermaid, layoutMap,
     buildBackup, parseBackup, backupSummary,
@@ -68,7 +68,7 @@
     // Slice 4: Decide and ballot
     DEFAULT_PTS_RANGE, ptsRange, rangeError, PTS_FIELDS, DRAFT_GROUPS, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot,
     roundHasContent, insightsReady, draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft, staleReviewCards, reviewInsertFields, applyReview, autoRefillPlan,
-    speechEndedSince, ranksSet, moveRank, stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, decisionText, tournamentBlocks, printModel,
+    speechEndedSince, ranksSet, moveRank, stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, historyTable, historyColumns, decisionText, tournamentBlocks, printModel,
     prepUsed, keyMoments, issueTally, andList, outOfDateText, runVerb, readingFor, decideTab,
     // Slice 4, Option B (Q-8): flow mark shading
     FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged,
@@ -83,8 +83,8 @@
     showSetupFor, offTokens, visibleTourSteps, keyNoticeDue, KEY_NOTICE,
     // Formats as data (ARCHITECTURE.md §9): the format files, a round's format, and the format-keyed lists and prompts
     FORMAT_FILES, FORMAT_IDS, DEFAULT_FORMAT_ID, OLD_ROUND, getFormat, formatOf, formatKnown, formatFields, formatFromSearch,
-    speechOf, columnOf, speakerOf, speakersOn, speakerTag, speakerName, prepClocks, fullPrep, ballotFields, ptsFields,
-    draftGroups, promptsFor,
+    speechOf, columnOf, speakerOf, speakersOn, speakerTag, speakerName, prepClocks, fullPrep, formatCopy, ballotFields, ptsFields,
+    draftGroups, promptsFor, readingLevels,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PolicyLogic = api;

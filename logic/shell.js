@@ -75,22 +75,28 @@
   function studyOn(search) {
     try { return new URLSearchParams(String(search || '')).get('study') === '1'; } catch { return false; }
   }
-  // Two local time marks: the first view, and the first 1AC Start by any method. A mark that exists is never moved.
-  // ev: { type: 'view' | 'start', at (ms), speechId (for 'start') }.
-  function studyMark(marks, ev) {
+  // Two local time marks: the first view, and the first Start of the format's first speech (the 1AC in policy, the AC
+  // in LD) by any method. A mark that exists is never moved. The start mark keeps which speech it was (firstSpeech).
+  // ev: { type: 'view' | 'start', at (ms), speechId (for 'start') }. fmt: the round's format (policy-hs when not given).
+  function studyMark(marks, ev, fmt) {
     const m = Object.assign({}, marks || {});
     if (!ev || !Number.isFinite(ev.at)) return m;
+    const first = (fmt || F.POLICY).speeches[0].id;
     if (ev.type === 'view' && !m.firstView) m.firstView = ev.at;
-    if (ev.type === 'start' && ev.speechId === '1AC' && m.firstView && !m.firstStart) m.firstStart = Math.max(ev.at, m.firstView);
+    if (ev.type === 'start' && ev.speechId === first && m.firstView && !m.firstStart) {
+      m.firstStart = Math.max(ev.at, m.firstView);
+      m.firstSpeech = first;
+    }
     return m;
   }
-  // "Study: 0:47 to start" and the line [Copy result] copies, or null until both marks exist.
+  // "Study: 0:47 to start" and the line [Copy result] copies, or null until both marks exist. A mark saved before
+  // formats has no firstSpeech: study mode then counted only the 1AC.
   function studyResult(marks) {
     const m = marks || {};
     if (!Number.isFinite(m.firstView) || !Number.isFinite(m.firstStart)) return null;
     const seconds = Math.max(0, Math.round((m.firstStart - m.firstView) / 1000));
     const clock = formatClock(seconds);
-    return { seconds, text: 'Study: ' + clock + ' to start', copy: 'Tabula study: ' + clock + ' (' + seconds + ' s) from first view to the first 1AC Start.', pass: seconds <= 60 };
+    return { seconds, text: 'Study: ' + clock + ' to start', copy: 'Tabula study: ' + clock + ' (' + seconds + ' s) from first view to the first ' + (m.firstSpeech || '1AC') + ' Start.', pass: seconds <= 60 };
   }
 
   const api = { chipText, chipTip, CHIP_NAME_MS, chipNameDue, NET_TIP, netNote, speechLine, clockStatus, prepPausesLine,

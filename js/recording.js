@@ -403,7 +403,7 @@ const CQ = window.ClipQueue.createClipQueue({
     // Ids, not times: a computer clock that is wrong or corrected must never make real clips look applied.
     R.appliedClips = (R.appliedClips || []).concat(rec.id).slice(-200);
     // On silence the model sometimes repeats the vocabulary hint. Drop that.
-    if (text.includes('policy debate. Terms:')) text = '';
+    if (L.isHintEcho(text, FMT())) text = '';
     if (text) {
       if (rec.overlap) text = L.mergeOverlap(R.transcripts[rec.speechId], text);
       R.transcripts[rec.speechId] = L.appendChunk(R.transcripts[rec.speechId], text);

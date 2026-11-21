@@ -1,4 +1,5 @@
-// Study mode (Slice 5, spec 5.7, Part 6.3, Q-12): time from the first view to the first 1AC Start, for the
+// Study mode (Slice 5, spec 5.7, Part 6.3, Q-12): time from the first view to the first Start of the round's first
+// speech (the 1AC in policy, the AC in LD), for the
 // five-judge test. Only with ?study=1 in the address; it never turns on by itself. It keeps two local time marks in
 // this browser and sends nothing over the network. The rules are pure code in logic/shell.js (studyMark, studyResult).
 // One part of the page code (see app.js for the load order). The parts are classic scripts that share one global
@@ -13,11 +14,12 @@ function studyBoot() {
   store.set(STUDY, L.studyMark(store.get(STUDY, {}), { type: 'view', at: Date.now() }));
   renderStudy();
 }
-// The first 1AC Start, by any method (Start, Space, ⌘ Enter, the clock view, the palette). Called by startSpeech().
+// The first Start of the round's first speech, by any method (Start, Space, ⌘ Enter, the clock view, the palette).
+// Called by startSpeech().
 function studyStart(speechId) {
   if (!studyIsOn) return;
   const before = store.get(STUDY, {});
-  const after = L.studyMark(before, { type: 'start', at: Date.now(), speechId });
+  const after = L.studyMark(before, { type: 'start', at: Date.now(), speechId }, FMT());
   if (after.firstStart === before.firstStart) return;
   store.set(STUDY, after);
   renderStudy();

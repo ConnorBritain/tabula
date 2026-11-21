@@ -39,7 +39,7 @@ async function runFlow(speechId, forced) {
   try {
     const data = await callAI({ feature: 'aiFlow', system: L.promptsFor(FMT()).liveFlowSystem, prompt: L.buildLiveFlowPrompt(R, speechId, DOCS), note: L.DOC_FLOW_NOTE, schema: L.LIVE_FLOW_SCHEMA, effort: 'low', kind: 'flow', docs: L.docsForSpeech(DOCS, speechId) });
     // (No format needed above: addDocFiles sets each new doc's speech, so only docs from before formats, all policy,
-    // use the default speech rule.)
+    // use the default speech rule. cost.test.js checks this exact call.)
     if (resetting) return;
     // The docs for this speech may have been removed while Claude was working. Then drop the result.
     if (!hasFlowSource(speechId)) return;

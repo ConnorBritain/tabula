@@ -178,7 +178,7 @@ async function callAI({ feature, system, prompt, note, schema, effort = 'medium'
   const maxTokens = P.outputCap(kind);
   const purpose = kind === 'ballot' || kind === 'decision' ? 'deep' : 'ai';
   // Reading level: the same analysis, worded for an expert judge or in plain words.
-  if (reading) system = system + '\n\n' + L.readingGuide(reading);
+  if (reading) system = system + '\n\n' + L.readingGuide(reading, FMT());
   // Students' names are swapped for positions (1A, 2N...) in everything typed or transcribed, and in text docs,
   // before it goes to the AI; names come back in the reply. PDFs are sent as they are (their text cannot be edited here).
   system = L.anonymize(system, R); prompt = L.anonymize(prompt, R);
