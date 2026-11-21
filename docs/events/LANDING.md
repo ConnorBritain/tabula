@@ -70,6 +70,8 @@ C0's done-when names the chosen bridge. This is an engineering call inside the o
 | **C13** | `core/ai.js`: providers, hosted client, key store; anonymizer passed in | `providers.js`; `js/ai.js` `callAI` and key store | Debate AI tests pass; no debate round shape inside |
 | Later | `core/recording.js` | `js/recording.js`, `clipqueue.js` | Practice only (PLAN.md P4) |
 
+**Done so far:** C0 (`db966d8`) and C1 (`core/defs.js` registry; `logic/format.js` and an events test load through it).
+
 **Minimal chains** (what each first events step waits for):
 
 - **Events shell (E1):** C0 → C1, C2, C3, C4. All low-risk.
