@@ -60,7 +60,11 @@ test('the parent judge track page is built, lists its six steps, and is a noinde
   assert.match(html, /<meta name="robots" content="noindex">/);
   assert.match(html, /Draft track/);
   assert.match(html, /Not a certification or endorsement by any league or tournament\. Not verified\./);
-  assert.ok(!site.files.has('tracks/novice/index.html'), 'the novice track has unwritten steps, so it must not be built');
+  // CHANGED 2026-11-21 because the owner approved building the novice track (all 14 checks now written, as drafts).
+  // A track missing a check must still not be built; the unit test of trackState() covers that rule. Old check:
+  //   assert.ok(!site.files.has('tracks/novice/index.html'), 'the novice track has unwritten steps, so it must not be built');
+  assert.ok(site.files.has('tracks/novice/index.html'), 'the novice track has all its checks, so it must be built');
+  assert.equal(site.states.get('novice').live, false, 'its checks are drafts, so the novice track must stay a draft');
 });
 
 // Why: every page with a check needs the script and a check section; without the script tag the quiz never becomes interactive.
