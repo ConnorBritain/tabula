@@ -12,8 +12,15 @@
   const { hostedAiBody } = part('account');
   const { parseRound } = part('limits');
 
-  // Where a judge buys rounds (the buy page lives on the account site).
+  // Where a judge buys rounds (the buy page lives on the account site). The staging app (debate.tabulaspeech.dev)
+  // links to the staging account site, so a test purchase never opens the live one.
   const BUY_URL = 'https://tabulaspeech.com/account/';
+  const ACCOUNT_SITES = ['tabulaspeech.com', 'tabulaspeech.dev'];
+  function accountUrl(host) {
+    const h = String(host || '').toLowerCase();
+    const site = ACCOUNT_SITES.find((d) => h === d || h.endsWith('.' + d));
+    return site ? 'https://' + site + '/account/' : BUY_URL;
+  }
   // The round format the server knows (tabula-cloud src/ai/tasks.ts KNOWN_FORMATS). A new version needs the server first.
   const FORMAT = 'policy-hs', FORMAT_VERSION = 1;
 
@@ -140,9 +147,11 @@
   // status: the HTTP status (0: the stream itself failed). code: the server's error code.
   // Returns { kind, text, retryable, fallback (use the judge's own key if there is one), quiet (stop and show
   // nothing), signOut (forget the capability record), link: { label, url } or null }.
-  function hostedError(status, code) {
+  // account: the account page for this app (accountUrl); the production one by default.
+  function hostedError(status, code, account) {
     const out = (kind, more) => Object.assign({ kind, text: HOSTED_TEXT[kind], retryable: false, fallback: false, quiet: false, signOut: false, link: null }, more);
-    const buy = { label: 'Buy rounds', url: BUY_URL };
+    const page = account || BUY_URL;
+    const buy = { label: 'Buy rounds', url: page };
     const s = Number(status) || 0;
     const c = String(code || '');
     if (c === 'policyOff' || c === 'duplicate_call') return out('quiet', { quiet: true }); // policy off: stop quietly; duplicate: the first answer stands
@@ -156,7 +165,7 @@
       if (c === 'round_cap') return out('roundCap');
       if (c === 'day_cap') return out('dayCap');
       if (c === 'plan_required') return out('planRequired', { fallback: true, link: buy });
-      if (c === 'age_required') return out('ageRequired', { fallback: true, link: { label: 'Open account', url: BUY_URL } });
+      if (c === 'age_required') return out('ageRequired', { fallback: true, link: { label: 'Open account', url: page } });
       return out('noCredits', { link: buy });
     }
     if (s === 403) return c === 'billing_hold' ? out('billingHold', { fallback: true }) : out('notAllowed');
@@ -167,7 +176,7 @@
     return out('noAnswer', { retryable: true });
   }
 
-  const api = { BUY_URL, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError };
+  const api = { BUY_URL, accountUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).hosted = api;
 })(typeof window !== 'undefined' ? window : globalThis);

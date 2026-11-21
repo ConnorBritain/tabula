@@ -166,7 +166,7 @@ const sse = (frames) => {
 const refusal = (status, error) => ({ ok: false, status, json: async () => ({ error }), body: null });
 
 // A page world: the gate, an optional own key (the subscription helper path), a fetch stub, and the toasts shown.
-function world({ g, ownKey = false, answers }) {
+function world({ g, ownKey = false, answers, host }) {
   const calls = [], toasts = [], opened = [];
   let cleared = 0;
   const S = { aiEngine: ownKey ? 'claude-cli' : '', helper: { 'claude-cli': ownKey } };
@@ -176,10 +176,10 @@ function world({ g, ownKey = false, answers }) {
     if (url === '/api/ai') return { ok: true, status: 200, json: async () => ({ text: 'own key answer' }) };
     return answers.shift();
   };
-  const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console',
+  const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console', 'location',
     PAGE + '\nreturn [callAI, () => hostedLimits, (v) => { hostedLimits = v; }];');
   const [callAI, limits, setLimits] = make(L, P, S, R, [], g, (f) => L.canUse(g, f), () => ownKey, () => L.NO_AI, fetch,
-    (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} });
+    (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} }, { host: host || 'debate.tabulaspeech.com' });
   return { callAI, calls, toasts, opened, R, cleared: () => cleared, limits, setLimits };
 }
 const EVAL_CALL = { feature: 'liveEval', system: 'sys', prompt: 'p', schema: L.EVAL_SCHEMA, hosted: { job: 'eval' } };
@@ -370,4 +370,17 @@ test('resumedRound clears only a pause; roundAfterRefusal follows the server', (
   assert.deepEqual([L.roundAfterRefusal(ROUND({ endsAt: 99 }), 'idle', {}).state, L.roundAfterRefusal(ROUND({ endsAt: 99 }), 'idle', {}).endsAt], ['idle', 99]);
   assert.equal(L.roundAfterRefusal(null, '', {}), null);
   assert.match(L.roundLine(ROUND({ state: 'free', freeReason: 'cover' }), now).text, /used all the AI we cover\. The live AI flow, Live Eval and Analysis are off\./);
+});
+
+// Why: a test purchase on the staging site must open the staging account page (Stripe test mode). A link to the live
+// page from staging would take a tester's real card; a staging link in production would send real buyers to a test page.
+test('the Buy rounds link follows the site the app runs on', async () => {
+  assert.equal(L.accountUrl('debate.tabulaspeech.com'), 'https://tabulaspeech.com/account/');
+  assert.equal(L.accountUrl('debate.tabulaspeech.dev'), 'https://tabulaspeech.dev/account/');
+  assert.equal(L.accountUrl('localhost:8765'), 'https://tabulaspeech.com/account/', 'anything else: production');
+  assert.equal(L.accountUrl('evil-tabulaspeech.dev'), 'https://tabulaspeech.com/account/', 'only the real domain or its subdomains');
+  const w = world({ g: gate(record(ALL_SCHOOL, true)), answers: [refusal(402, 'no_credits')], host: 'debate.tabulaspeech.dev' });
+  await assert.rejects(w.callAI(EVAL_CALL));
+  w.toasts[0].o.action.run();
+  assert.deepEqual(w.opened, ['https://tabulaspeech.dev/account/']);
 });

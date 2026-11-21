@@ -204,7 +204,7 @@ async function callHosted({ job, extra, signal }) {
   }
   if (!res.ok) {
     const j = await res.json().catch(() => ({}));
-    const info = L.hostedError(res.status, j && j.error);
+    const info = L.hostedError(res.status, j && j.error, L.accountUrl(location.host));
     setHostedRound(L.roundAfterRefusal(hostedLimits && hostedLimits.round, info.roundState, j));
     throw hostedFail(Object.assign(info, { status: res.status }));
   }
