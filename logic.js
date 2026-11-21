@@ -2,7 +2,7 @@
 // The code lives in logic/, one file per job. This file joins the parts into the one API the page (window.PolicyLogic),
 // the local helper and the tests use. In the page, index.html loads the parts in this order: logic/caps.js (in <head>), the format
 // files (formats/*.js), logic/format.js, logic/round.js,
-// logic/audio.js, logic/flow.js, logic/files.js, logic/rules.js, logic/decide.js, logic/prompts.js, logic/shell.js, logic/account.js, then this file.
+// logic/audio.js, logic/flow.js, logic/files.js, logic/pairing.js, logic/rules.js, logic/decide.js, logic/prompts.js, logic/shell.js, logic/account.js, then this file.
 // In Node, require('./logic.js') loads the parts itself. A part only uses parts that load before it.
 (function (root) {
   'use strict';
@@ -20,6 +20,7 @@
   const { buildBackup, parseBackup, backupSummary, DOC_SIDES, DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech,
     parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty,
     buildRoundFile, parseRoundFile, roundFileName, docTitle, buildDocBlocks, buildUserContent } = part('files');
+  const { parseRoundPaste, roundPasteChanges, swapSides } = part('pairing');
   const { OVER_LIMIT, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer,
     shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere, NO_AI,
     hasHostedPlan, shouldShowWelcome, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt,
@@ -85,6 +86,8 @@
     FORMAT_FILES, FORMAT_IDS, DEFAULT_FORMAT_ID, OLD_ROUND, getFormat, formatOf, formatKnown, formatFields, formatFromSearch,
     speechOf, columnOf, speakerOf, speakersOn, speakerTag, speakerName, prepClocks, fullPrep, formatCopy, ballotFields, ptsFields,
     draftGroups, promptsFor, readingLevels,
+    // Round import by paste (docs/research/TABROOM.md, Option D)
+    parseRoundPaste, roundPasteChanges, swapSides,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PolicyLogic = api;

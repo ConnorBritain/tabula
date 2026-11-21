@@ -862,6 +862,16 @@
       <div><label>Judge</label><input data-bind="judge"></div>
     </div>
     <div class="mt-3"><label>Resolution</label><input data-bind="topic" placeholder="Resolved: The United States federal government should…"></div>
+    <details class="mt-3 noprint" id="paste-round">
+      <summary class="muted">Paste the round from the tournament site</summary>
+      <p class="muted field-help" id="paste-round-help">On the tournament site, select your round on your judge page or in the pairings, copy it, and paste it here. Tabula reads the text in this browser. It does not connect to the tournament site.</p>
+      <textarea id="paste-round-text" class="mt-2" rows="5" aria-label="Round text from the tournament site" aria-describedby="paste-round-help" spellcheck="false" placeholder="Round 3&#10;Aff: Lincoln AB  Alex Smith &amp; Bo Jones&#10;Neg: Westfield CD  Cam Lee &amp; Dee Park"></textarea>
+      <div id="paste-round-found" class="mt-2" aria-live="polite"></div>
+      <div class="row mt-2">
+        <button class="b primary" id="paste-round-fill" type="button" aria-disabled="true">Fill the round</button>
+        <button class="b" id="paste-round-swap" type="button">Swap Aff and Neg</button>
+      </div>
+    </details>
   </div>
   <div class="grid">
     <div class="card"><h2 class="aff">Affirmative</h2>
@@ -1381,6 +1391,7 @@
 <script src="logic/audio.js"></script>
 <script src="logic/flow.js"></script>
 <script src="logic/files.js"></script>
+<script src="logic/pairing.js"></script>
 <script src="logic/rules.js"></script>
 <script src="logic/decide.js"></script>
 <script src="logic/prompts.js"></script>
@@ -1395,6 +1406,7 @@
 <script defer src="assets/brand.js"></script>
 <script defer src="js/core.js"></script>
 <script defer src="js/formatsetup.js"></script>
+<script defer src="js/pairing.js"></script>
 <script defer src="js/caps.js"></script>
 <script defer src="js/clock.js"></script>
 <script defer src="js/recording.js"></script>

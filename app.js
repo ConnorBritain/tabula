@@ -1,6 +1,6 @@
 // Tabula app: the entry point of the page code. The code lives in files so the Content-Security-Policy can forbid
 // inline scripts. It is split by job into classic scripts in js/, which index.html loads with defer, in this order,
-// before this module: core, caps, clock, recording, flow, docs, ai, settings, help, insights, decide, shell, palette, study, judging, account. They share one global
+// before this module: core, formatsetup, pairing, caps, clock, recording, flow, docs, ai, settings, help, insights, decide, shell, palette, study, judging, account. They share one global
 // scope (no imports, so no import cycles). This file draws the theme and starts the page.
 // ---------- theme (V10, Q3) ----------
 // Light / Dark / System in Settings, System by default. assets/theme-boot.js drew the saved theme before the page
