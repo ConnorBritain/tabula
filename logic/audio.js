@@ -3,17 +3,19 @@
 (function (root) {
   'use strict';
 
+  const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
+  const F = part('format');
+
   // ---------- live transcription (OpenAI) ----------
-  // A short vocabulary hint helps the speech model spell debate words.
-  const TRANSCRIBE_HINT = 'High school policy debate. Terms: affirmative, negative, 1AC, 1NC, 2AC, 2NC, 1NR, 1AR, 2NR, 2AR, '
-    + 'cross-ex, plan text, inherency, harms, solvency, advantage, topicality, T, interpretation, violation, '
-    + 'counterplan, CP, disad, DA, uniqueness, link, internal link, impact, kritik, K, alternative, perm, '
-    + 'framework, condo, extend, turn, card, tag, status quo, USFG.';
+  // A short vocabulary hint helps the speech model spell debate words. It comes from the format file (ai.transcribeHint).
+  const TRANSCRIBE_HINT = F.POLICY.ai.transcribeHint;
 
   // The model reads only the end of the prompt, so pass a short tail of what came before.
-  function buildTranscribePrompt(prevText) {
+  // fmt: the round's format (policy-hs when not given).
+  function buildTranscribePrompt(prevText, fmt) {
+    const hint = (fmt || F.POLICY).ai.transcribeHint;
     const tail = (prevText || '').slice(-300);
-    return tail ? TRANSCRIBE_HINT + ' ' + tail : TRANSCRIBE_HINT;
+    return tail ? hint + ' ' + tail : hint;
   }
 
   function appendChunk(prev, chunk) {

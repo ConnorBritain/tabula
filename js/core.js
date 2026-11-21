@@ -63,20 +63,30 @@ document.addEventListener('keydown', (e) => {
   else if (act === 'focus') { e.preventDefault(); toggleFocusMode(); } // \ (spec 4.1)
 });
 
-// Prep per team for a new round: the judge's last choice, else the NSDA 8 minutes.
-function prepDefault() {
-  const m = Number((store.get('policyJudge.settings.v1', {}) || {}).prepMin);
-  return Number.isFinite(m) && m >= 0 && m <= 20 ? m * 60 : L.DEFAULT_PREP_SECONDS;
+// The round's format (formats/*.js through logic/format.js). Page code reads speeches, flow columns, debaters and prep
+// clocks from it and passes it into the logic; the logic never reads R. A round keeps its format for its whole life.
+const FMT = () => L.formatOf(R);
+// The judge's last prep choice per format, in minutes. Policy keeps its old setting name (prepMin), so no judge loses it.
+const prepMinSaved = (s, fmt) => (fmt.id === 'policy-hs' ? s.prepMin : (s.prepMinFor || {})[fmt.id]);
+// Prep per clock for a new round: the judge's last choice for this format, else the format's own time (NSDA: 8 minutes
+// per team in policy, 4 per debater in LD).
+function prepDefault(fmt) {
+  const m = Number(prepMinSaved(store.get('policyJudge.settings.v1', {}) || {}, fmt) ?? NaN);
+  return Number.isFinite(m) && m >= 0 && m <= 20 ? m * 60 : fmt.prep.seconds;
 }
-// prev: the round being replaced. Its points range carries over to the new round (spec 4.7); the first round ever uses 25–30.
-function freshRound(prev) {
+// prev: the round being replaced. Its points range carries over to the new round (spec 4.7); the first round ever uses
+// the format's range (25–30). fmt: the new round's format; when not given, prev's format, else policy.
+function freshRound(prev, fmt) {
+  const f = fmt || (prev ? L.formatOf(prev) : L.getFormat(L.DEFAULT_FORMAT_ID));
+  const prep = prepDefault(f);
   return {
-    ptsRange: prev && prev.ptsRange ? L.ptsRange(prev.ptsRange) : { ...L.DEFAULT_PTS_RANGE },
+    ...L.formatFields(f),
+    ptsRange: prev && prev.ptsRange ? L.ptsRange(prev.ptsRange) : L.ptsRange(f.ballot.points),
     tournament: '', roundName: '', judge: '', topic: '',
     aff: { team: '', d1: '', d2: '' }, neg: { team: '', d1: '', d2: '' },
-    prepSeconds: prepDefault(),
-    prepLeft: { aff: prepDefault(), neg: prepDefault() },
-    flows: L.DEFAULT_FLOWS.map((name) => ({ name, cells: {} })),
+    prepSeconds: prep,
+    prepLeft: L.fullPrep(f, prep),
+    flows: f.defaultSheets.map((name) => ({ name, cells: {} })),
     transcripts: {}, timeLeft: {}, aiFlows: [], aiFlowAt: 0, flowView: 'mine',
     ai: { paradigm: 'policymaker', notes: '', evidence: '', output: '' },
     ballot: { winner: '', pts: {}, ranks: {}, rfd: '', touched: {}, aiFilled: {} },
@@ -87,8 +97,24 @@ function freshRound(prev) {
     run: null, prepRun: null, savedAt: 0,
   };
 }
-let R = Object.assign(freshRound(), store.get(STORE, {}));
+// A saved round with no format is from before formats: it loads as policy-hs version 1 (L.OLD_ROUND).
+const storedRound = store.get(STORE, null);
+let R = Object.assign(freshRound(), storedRound ? L.OLD_ROUND : {}, storedRound || {});
+if (!L.formatKnown(R)) {
+  // A round from a newer Tabula (a format or version this copy does not have). Keep a copy, then start clean.
+  store.set(STORE + '.unknown-format-backup', R);
+  R = freshRound();
+  setTimeout(() => toast('The saved round uses a debate format this copy of Tabula does not have, so a new round was started. Reload the page to get the newest Tabula; a copy of the old round is kept in this browser.', { kind: 'error', key: 'format' }));
+}
 R.ptsRange = L.ptsRange(R.ptsRange); // a round saved before Slice 4 has none: 25–30
+// The defaults above are policy's. A round in another format whose prep fields are missing or damaged gets that
+// format's prep clocks at full time.
+function fitPrepToFormat() {
+  const clocks = L.prepClocks(FMT());
+  if (!Number.isFinite(R.prepSeconds)) R.prepSeconds = prepDefault(FMT());
+  if (!clocks.every((c) => Number.isFinite((R.prepLeft || {})[c.id]))) R.prepLeft = L.fullPrep(FMT(), R.prepSeconds);
+}
+fitPrepToFormat();
 R.id ??= String(Date.now());
 // Save at once so the round id is fixed before any doc is tied to it.
 const bootSaved = store.set(STORE, R);
@@ -257,7 +283,7 @@ document.addEventListener('change', (e) => { if (e.target.dataset && e.target.da
 // A ballot field the judge types into is theirs: the AI will not change it (spec 4.2). path: 'ballot.rfd' or a field.
 function markTouched(path) {
   const f = path.startsWith('ballot.') ? path.slice(7) : path;
-  if (!L.BALLOT_FIELDS.includes(f)) return;
+  if (!L.ballotFields(FMT()).includes(f)) return;
   const was = L.fieldState(R.ballot, f);
   R.ballot = L.markFields(R.ballot, [f], 'yours');
   R.ballotUndo = null; // "Undo the last insert" lasts until the next edit (spec 4.5)
@@ -266,19 +292,22 @@ function markTouched(path) {
 }
 
 $('#prep-min').value = Math.round(R.prepSeconds / 60);
+// "each team" (prep per team) or "each debater" (prep per debater).
+const prepWho = () => (FMT().prep.mode === 'perDebater' ? 'each debater' : 'each team');
 $('#prep-min').addEventListener('change', (e) => {
   const m = Math.max(0, Math.min(20, Number(e.target.value) || 0));
-  const used = R.prepRun || R.prepLeft.aff < R.prepSeconds || R.prepLeft.neg < R.prepSeconds;
+  const used = R.prepRun || L.prepClocks(FMT()).some((c) => R.prepLeft[c.id] < R.prepSeconds);
   stopPrep();
-  const before = { prepSeconds: R.prepSeconds, prepLeft: { ...R.prepLeft }, prepMin: S.prepMin };
-  setPrep(m * 60, { aff: m * 60, neg: m * 60 }, m);
+  const before = { prepSeconds: R.prepSeconds, prepLeft: { ...R.prepLeft }, prepMin: prepMinSaved(S, FMT()) };
+  setPrep(m * 60, L.fullPrep(FMT(), m * 60), m);
   // Prep already in use: the change is made, and Undo gives each team its time back (spec 2.4 #1).
-  if (used) undoToast('Prep set to ' + m + ' min for each team.', 'prep time change', () => setPrep(before.prepSeconds, before.prepLeft, before.prepMin), 'Prep time restored.');
+  if (used) undoToast('Prep set to ' + m + ' min for ' + prepWho() + '.', 'prep time change', () => setPrep(before.prepSeconds, before.prepLeft, before.prepMin), 'Prep time restored.');
 });
 function setPrep(seconds, left, min) {
   stopPrep(); R.prepSeconds = seconds; R.prepLeft = left; saveClocks(); renderPrep();
   $('#prep-min').value = Math.round(seconds / 60);
-  S.prepMin = min; saveSettings(); renderPrepPresets();
+  if (FMT().id === 'policy-hs') S.prepMin = min; else (S.prepMinFor ??= {})[FMT().id] = min;
+  saveSettings(); renderPrepPresets();
 }
 function renderPrepPresets() { document.querySelectorAll('[data-prep-min]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.prepMin) * 60 === R.prepSeconds))); }
 document.addEventListener('click', (e) => {
@@ -351,19 +380,25 @@ $('#round-open').addEventListener('change', async (e) => {
   CQ.clear(); await clipStore.clear().catch(() => {}); // the old round's waiting audio is deleted now
   const oldId = R.id;
   R = Object.assign(freshRound(), opened.round, { tab: 'flow', started: true, run: null, prepRun: null, programId: null }); // a saved file never brings a clock back, nor another judge's school
+  fitPrepToFormat(); // the file's round keeps its own format (none = an old policy round; unknown ones were refused)
   save();
   docStore.clearRound(oldId).finally(() => location.reload());
 });
-$('#new-round').addEventListener('click', async () => {
-  const ok = await ask({
-    title: 'Start a new round?',
-    body: 'This clears the flow, clocks, docs and any audio not yet transcribed. Saved ballots stay in History.',
-    buttons: [{ label: 'Cancel', value: false, kind: 'plain' }, { label: 'Clear and start new', value: true, kind: 'danger' }], cancelValue: false,
-  });
-  if (!ok) return;
+// Clears the round and starts a new one in fmt (the same format when not given), then reloads the page.
+function startNewRound(fmt) {
   resetting = true; stopAll();
   CQ.clear(); clipStore.clear().catch(() => {}); // the old round's waiting audio is deleted now
   const oldId = R.id;
-  R = freshRound(R); save();
+  R = freshRound(R, fmt); save();
   docStore.clearRound(oldId).finally(() => location.reload());
+}
+const NEW_ROUND_BODY = 'This clears the flow, clocks, docs and any audio not yet transcribed. Saved ballots stay in History.';
+$('#new-round').addEventListener('click', async () => {
+  const ok = await ask({
+    title: 'Start a new round?',
+    body: NEW_ROUND_BODY,
+    buttons: [{ label: 'Cancel', value: false, kind: 'plain' }, { label: 'Clear and start new', value: true, kind: 'danger' }], cancelValue: false,
+  });
+  if (!ok) return;
+  startNewRound();
 });

@@ -191,7 +191,7 @@ async function callAI({ feature, system, prompt, note, schema, effort = 'medium'
       const msg = await withModel('anthropic', purpose, (model) => {
         const params = P.claudeParams(model, {
           max_tokens: maxTokens, thinking: { type: 'adaptive' }, output_config: { effort },
-          system, messages: [{ role: 'user', content: L.buildUserContent(docs, prompt, note) }],
+          system, messages: [{ role: 'user', content: L.buildUserContent(docs, prompt, note, FMT()) }],
         });
         if (schema) params.output_config.format = { type: 'json_schema', schema };
         return client.beta.messages.create(params, signal ? { signal } : undefined);
@@ -200,7 +200,8 @@ async function callAI({ feature, system, prompt, note, schema, effort = 'medium'
       text = msg.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
     } else if (P.SUBSCRIPTIONS[eng]) {
       // The subscription helper has no per-token bill, so it gets no output cap.
-      const docText = P.docsAsText(docs, L.docTitle);
+      const docTitle = (d) => L.docTitle(d, FMT());
+      const docText = P.docsAsText(docs, docTitle);
       const res = await fetch('/api/ai', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ engine: eng, system, prompt: (docText ? docText + '\n\n' + (note || L.DOC_NOTE) + '\n\n' : '') + prompt, schema, model: eng === 'codex-cli' ? (S.codexModel || '') : undefined }),
@@ -213,7 +214,7 @@ async function callAI({ feature, system, prompt, note, schema, effort = 'medium'
       text = j.text || '';
     } else {
       const res = await withModel(eng, purpose, (model) => {
-        const req = P.buildAIRequest(eng, { key: keys[eng], model, system, prompt, docs, schema, title: L.docTitle, note: note || L.DOC_NOTE, maxTokens });
+        const req = P.buildAIRequest(eng, { key: keys[eng], model, system, prompt, docs, schema, title: (d) => L.docTitle(d, FMT()), note: note || L.DOC_NOTE, maxTokens });
         return fetch(req.url, { ...req.init, signal: withStop(signal, 240000) });
       });
       const j = await res.json().catch(() => ({}));

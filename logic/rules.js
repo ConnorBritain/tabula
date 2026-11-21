@@ -3,20 +3,19 @@
 (function (root) {
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
-  const { SPEECHES } = part('round');
+  const F = part('format');
   const { speechColumn } = part('flow');
   const { KEYS_ENTRY, OLD_KEY_ENTRIES } = part('files');
 
   // ---------- Slice 1: round safety (docs/design/SPEC.md §3.1) ----------
   // A running clock stops by itself at -9:59 (599 s over), on screen and after a reload.
   const OVER_LIMIT = -599;
-  const speechById = (id) => SPEECHES.find((s) => s.id === id) || null;
 
   // 1.1 The speech clock after a reload, a crash or sleep. run = { id, endAt, ... } as saved with the round.
-  // Time always comes from the wall clock, so a closed tab keeps "running".
-  function restoreRun(run, now, speechLength) {
+  // Time always comes from the wall clock, so a closed tab keeps "running". fmt: the round's format (policy-hs when not given).
+  function restoreRun(run, now, speechLength, fmt) {
     if (!run || typeof run !== 'object') return { state: 'none' };
-    const s = speechById(run.id);
+    const s = F.speechOf(fmt || F.POLICY, run.id);
     if (!s || typeof run.endAt !== 'number' || !Number.isFinite(run.endAt) || !Number.isFinite(now)) return { state: 'none' };
     const len = Number.isFinite(speechLength) ? speechLength : s.minutes * 60;
     const left = (run.endAt - now) / 1000;
@@ -29,10 +28,12 @@
     return { state: 'running', id: s.id, left, endAt: run.endAt };
   }
 
-  // 1.1b A prep clock after a reload. prepRun = { side, endAt }. maxSeconds = the round's prep per team.
-  function restorePrep(prepRun, now, maxSeconds) {
+  // 1.1b A prep clock after a reload. prepRun = { side, endAt }: side is the prep clock's id (a side for prep per team,
+  // a debater for prep per debater; F.prepClocks). maxSeconds = the round's prep per clock. clockIds: the format's
+  // prep clock ids (the two sides when not given).
+  function restorePrep(prepRun, now, maxSeconds, clockIds) {
     if (!prepRun || typeof prepRun !== 'object') return { state: 'none' };
-    if (!['aff', 'neg'].includes(prepRun.side) || typeof prepRun.endAt !== 'number' || !Number.isFinite(prepRun.endAt) || !Number.isFinite(now)) return { state: 'none' };
+    if (!(clockIds || ['aff', 'neg']).includes(prepRun.side) || typeof prepRun.endAt !== 'number' || !Number.isFinite(prepRun.endAt) || !Number.isFinite(now)) return { state: 'none' };
     const left = (prepRun.endAt - now) / 1000;
     if (left <= 0) return { state: 'paused', side: prepRun.side, left: 0, reason: 'ran-out' };
     if (Number.isFinite(maxSeconds) && left > maxSeconds) return { state: 'running', side: prepRun.side, left: maxSeconds, endAt: now + maxSeconds * 1000, reason: 'clock-moved' };
@@ -41,9 +42,9 @@
 
   // Both clocks at once. Only one may run: a prep start always pauses the speech, so prep wins
   // and the speech is paused at its restored time (a damaged file or a race can save both).
-  function restoreClocks(run, prepRun, now, maxPrepSeconds, speechLength) {
-    let speech = restoreRun(run, now, speechLength);
-    const prep = restorePrep(prepRun, now, maxPrepSeconds);
+  function restoreClocks(run, prepRun, now, maxPrepSeconds, speechLength, fmt) {
+    let speech = restoreRun(run, now, speechLength, fmt);
+    const prep = restorePrep(prepRun, now, maxPrepSeconds, fmt ? F.prepClocks(fmt).map((c) => c.id) : undefined);
     if (speech.state === 'running' && prep.state === 'running') speech = { state: 'paused', id: speech.id, left: speech.left, reason: 'prep-running' };
     return { speech, prep };
   }
@@ -363,9 +364,9 @@
   // curId: the speech on screen. CX speeches have no column. Returns column indexes or null:
   // current = the column with the 2 px outline (the running speech, else the one on screen),
   // now = the running column (only while a clock runs), viewing = a different column the judge looks at.
-  function flowMarks(runId, curId) {
-    const runCol = runId ? speechColumn(runId) : null;
-    const curCol = curId ? speechColumn(curId) : null;
+  function flowMarks(runId, curId, fmt) {
+    const runCol = runId ? speechColumn(runId, fmt) : null;
+    const curCol = curId ? speechColumn(curId, fmt) : null;
     const current = runId ? runCol : curCol;
     const viewing = runId && curCol != null && curCol !== runCol ? curCol : null;
     return { current: current == null ? null : current, now: runId && runCol != null ? runCol : null, viewing };

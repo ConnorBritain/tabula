@@ -4,28 +4,37 @@
 (function (root) {
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
-  const { SPEECHES, FLOW_COLUMNS, SPEAKERS, formatClock, BALLOT_HEADER, ballotRow, num, BALLOT_FIELDS, speechesSoFar,
-    MAP_SPEECHES, ptsRange } = part('round');
+  const F = part('format');
+  const { formatClock, BALLOT_HEADER, LOG_SLOTS, ballotRow, num, ballotFields, speechesSoFar, ptsRange } = part('round');
   const { speechSide } = part('files');
 
   // ---------- Slice 4: Decide and ballot (docs/design/SPEC.md §3.4) ----------
 
   // 4.2 Field groups. Fields are the BALLOT_FIELDS paths. The picker in the draft panel has five groups; the tags on
   // the ballot have one per speaker row (points and rank together).
-  const PTS_FIELDS = SPEAKERS.flatMap((s) => ['pts.' + s, 'ranks.' + s]);
-  const DRAFT_GROUPS = [
-    { id: 'winner', label: 'Winner', fields: ['winner'] },
-    { id: 'pts', label: 'Points and ranks', fields: PTS_FIELDS },
-    { id: 'rfd', label: 'Reason for decision', fields: ['rfd'] },
-    { id: 'affFb', label: 'Aff comments', fields: ['affFb'] },
-    { id: 'negFb', label: 'Neg comments', fields: ['negFb'] },
-  ];
+  // fmt: the round's format (policy-hs when not given). A format with no speaker ranks has points fields only.
+  const ptsFields = (fmt) => { const f = fmt || F.POLICY; return f.speakerIds.flatMap((s) => (f.ballot.speakerRanks ? ['pts.' + s, 'ranks.' + s] : ['pts.' + s])); };
+  const draftGroups = (fmt) => {
+    const f = fmt || F.POLICY;
+    return [
+      { id: 'winner', label: 'Winner', fields: ['winner'] },
+      { id: 'pts', label: f.ballot.speakerRanks ? 'Points and ranks' : 'Points', fields: ptsFields(f) },
+      { id: 'rfd', label: 'Reason for decision', fields: ['rfd'] },
+      { id: 'affFb', label: 'Aff comments', fields: ['affFb'] },
+      { id: 'negFb', label: 'Neg comments', fields: ['negFb'] },
+    ];
+  };
+  const PTS_FIELDS = ptsFields(F.POLICY);
+  const DRAFT_GROUPS = draftGroups(F.POLICY);
   const FIELD_LABELS = { winner: 'the winner', rfd: 'the reason for decision', affFb: 'the Aff comments', negFb: 'the Neg comments' };
-  function fieldLabel(f) {
+  function fieldLabel(f, fmt) {
     if (FIELD_LABELS[f]) return FIELD_LABELS[f];
+    const fm = fmt || F.POLICY;
     const [a, s] = String(f).split('.');
-    if (a === 'row') return s + ' points and rank';
-    return s + (a === 'pts' ? ' points' : ' rank');
+    const sp = F.speakerOf(fm, s);
+    const name = sp ? sp.label : s;
+    if (a === 'row') return name + (fm.ballot.speakerRanks ? ' points and rank' : ' points');
+    return name + (a === 'pts' ? ' points' : ' rank');
   }
   function fieldValue(ballot, f) {
     const b = ballot || {};
@@ -92,10 +101,10 @@
       .map((f) => f.speaker + ': ' + (f.so_far || '') + ' Did well: ' + (f.strength || '') + ' To work on: ' + (f.fix || ''));
   }
   // AI points outside the range: these are never inserted (4.4).
-  function outOfRangePoints(draft, range) {
+  function outOfRangePoints(draft, range, fmt) {
     const r = ptsRange(range);
     const pts = (draft && draft.points) || {};
-    return SPEAKERS.filter((s) => typeof pts[s] === 'number' && (pts[s] < r.min || pts[s] > r.max)).map((s) => ({ speaker: s, value: Math.round(pts[s] * 10) / 10 }));
+    return (fmt || F.POLICY).speakerIds.filter((s) => typeof pts[s] === 'number' && (pts[s] < r.min || pts[s] > r.max)).map((s) => ({ speaker: s, value: Math.round(pts[s] * 10) / 10 }));
   }
   // The value the AI draft has for one field, in ballot form (points to one decimal, ranks as text).
   function draftValue(draft, f) {
@@ -129,22 +138,24 @@
 
   // 4.4 The review: one card per picked group. A "yours" card starts on "Keep mine"; others start on "Insert this".
   // Each card remembers the ballot values it was made against (base), so an edit during the review shows.
-  function reviewCard(ballot, draft, group, range) {
+  function reviewCard(ballot, draft, group, range, fmt) {
     const state = fieldState(ballot, group.fields);
     const base = Object.fromEntries(group.fields.map((f) => [f, fieldValue(ballot, f) ?? '']));
     const after = Object.fromEntries(group.fields.map((f) => [f, draftValue(draft, f) ?? '']));
     // A card with no AI text has nothing to insert, so it does not start ticked ("empty": the panel shows no choice).
     const empty = group.fields.every((f) => isEmptyValue(after[f]));
     const card = { id: group.id, label: group.label, fields: group.fields.slice(), state, base, after, choice: state === 'yours' || empty ? 'keep' : 'insert', changed: false, empty };
-    if (group.id === 'pts') card.outOfRange = outOfRangePoints(draft, range);
+    if (group.id === 'pts') card.outOfRange = outOfRangePoints(draft, range, fmt);
     if (['rfd', 'affFb', 'negFb'].includes(group.id) && state === 'yours') card.diff = wordDiff(base[group.id], after[group.id]);
     return card;
   }
+  // opts.format: the round's format (policy-hs when not given).
   function reviewFromDraft(ballot, draft, opts) {
     const o = opts || {};
-    const picks = o.picks || DRAFT_GROUPS.map((g) => g.id);
+    const groups = draftGroups(o.format);
+    const picks = o.picks || groups.map((g) => g.id);
     const range = ptsRange(o.range);
-    const cards = DRAFT_GROUPS.filter((g) => picks.includes(g.id)).map((g) => reviewCard(ballot, draft, g, range));
+    const cards = groups.filter((g) => picks.includes(g.id)).map((g) => reviewCard(ballot, draft, g, range, o.format));
     return { at: o.at || 0, through: (o.through || []).slice(), range, picks: picks.slice(), draft, cards };
   }
   // A field the judge changed while the review waits: the card says "Changed since the draft", gets a fresh diff
@@ -197,10 +208,10 @@
   }
   // 4.6 Auto refill: empty fields are written at once (as AI text); an AI field with a value the draft would change
   // goes to review; a "yours" field is never touched. Returns { write: [fields], review: [group ids] }.
-  function autoRefillPlan(ballot, draft, range) {
-    const bad = new Set(outOfRangePoints(draft, range).map((x) => 'pts.' + x.speaker));
-    const write = BALLOT_FIELDS.filter((f) => fieldState(ballot, f) === 'empty' && !bad.has(f) && !isEmptyValue(draftValue(draft, f)));
-    const review = DRAFT_GROUPS.filter((g) => g.fields.some((f) => fieldState(ballot, f) === 'ai' && !isEmptyValue(draftValue(draft, f)) && String(draftValue(draft, f)) !== String(fieldValue(ballot, f)))).map((g) => g.id);
+  function autoRefillPlan(ballot, draft, range, fmt) {
+    const bad = new Set(outOfRangePoints(draft, range, fmt).map((x) => 'pts.' + x.speaker));
+    const write = ballotFields(fmt).filter((f) => fieldState(ballot, f) === 'empty' && !bad.has(f) && !isEmptyValue(draftValue(draft, f)));
+    const review = draftGroups(fmt).filter((g) => g.fields.some((f) => fieldState(ballot, f) === 'ai' && !isEmptyValue(draftValue(draft, f)) && String(draftValue(draft, f)) !== String(fieldValue(ballot, f)))).map((g) => g.id);
     return { write, review };
   }
   // Did a speech end after this draft? (the review then offers [Redo all]).
@@ -210,14 +221,14 @@
     return now.some((id) => !(review.through || []).includes(id));
   }
 
-  const ranksSet = (ballot) => SPEAKERS.filter((s) => !isEmptyValue(((ballot || {}).ranks || {})[s])).length;
+  const ranksSet = (ballot, fmt) => (fmt || F.POLICY).speakerIds.filter((s) => !isEmptyValue(((ballot || {}).ranks || {})[s])).length;
 
   // 4.8 Picking a rank another speaker has moves it: that speaker loses it. Returns the new ranks and the message.
-  function moveRank(ranks, speaker, rank) {
+  function moveRank(ranks, speaker, rank, fmt) {
     const out = Object.assign({}, ranks || {});
     const r = rank == null || rank === '' ? '' : String(rank);
     let moved = null;
-    if (r) for (const s of SPEAKERS) if (s !== speaker && String(out[s] ?? '') === r) { out[s] = ''; moved = { rank: r, from: s, to: speaker }; }
+    if (r) for (const s of (fmt || F.POLICY).speakerIds) if (s !== speaker && String(out[s] ?? '') === r) { out[s] = ''; moved = { rank: r, from: s, to: speaker }; }
     out[speaker] = r;
     return { ranks: out, moved, message: moved ? 'Rank ' + moved.rank + ' moved from ' + moved.from + ' to ' + moved.to + '.' : '' };
   }
@@ -231,41 +242,50 @@
   }
 
   // 4.12 A saved ballot: the spreadsheet row, plus one object at the end with what the row has no column for
-  // (the range and the comments). Old saved ballots have no object: they show with no range check.
+  // (the range, the comments and the format). Old saved ballots have no object: they show with no range check, and
+  // an entry with no format is a policy ballot.
   function savedBallotEntry(round, savedAt, range) {
     const b = round.ballot || {};
-    return ballotRow(round, savedAt).concat([{ ptsRange: ptsRange(range), affFb: b.affFb || '', negFb: b.negFb || '' }]);
+    return ballotRow(round, savedAt).concat([Object.assign({ ptsRange: ptsRange(range), affFb: b.affFb || '', negFb: b.negFb || '' }, F.formatFields(F.formatOf(round)))]);
   }
   const savedBallotRow = (entry) => (entry || []).slice(0, BALLOT_HEADER.length);
   function savedBallotView(entry) {
     const e = entry || [];
     const meta = e.length > BALLOT_HEADER.length && e[BALLOT_HEADER.length] && typeof e[BALLOT_HEADER.length] === 'object' ? e[BALLOT_HEADER.length] : null;
     const col = (name) => e[BALLOT_HEADER.indexOf(name)] ?? '';
+    const fields = meta && meta.format ? { format: meta.format, formatVersion: meta.formatVersion } : {};
+    const fmt = F.formatOf(fields);
+    // The four column groups, named as in the header ('1A' ... '2N'), in LOG_SLOTS order.
+    const groups = ['1A', '2A', '1N', '2N'];
     const pts = {}, ranks = {};
-    for (const s of SPEAKERS) { pts[s] = col(s + ' pts'); ranks[s] = col(s + ' rank'); }
+    LOG_SLOTS.forEach(([side, slot], i) => {
+      const sp = fmt.speakers.find((x) => x.side === side && x.slot === slot);
+      if (sp) { pts[sp.id] = col(groups[i] + ' pts'); ranks[sp.id] = col(groups[i] + ' rank'); }
+    });
     return {
       savedAt: col('Saved at'),
-      round: { tournament: col('Tournament'), roundName: col('Round'), judge: col('Judge'), topic: col('Topic'),
+      round: Object.assign({ tournament: col('Tournament'), roundName: col('Round'), judge: col('Judge'), topic: col('Topic'),
         aff: { team: col('Aff team'), d1: col('1A'), d2: col('2A') }, neg: { team: col('Neg team'), d1: col('1N'), d2: col('2N') },
-        ballot: { winner: String(col('Winner')).toLowerCase(), pts, ranks, rfd: col('RFD'), affFb: meta ? meta.affFb : '', negFb: meta ? meta.negFb : '' } },
+        ballot: { winner: String(col('Winner')).toLowerCase(), pts, ranks, rfd: col('RFD'), affFb: meta ? meta.affFb : '', negFb: meta ? meta.negFb : '' } }, fields),
       ptsRange: meta ? ptsRange(meta.ptsRange) : null,
     };
   }
 
   // 4.11 The four blocks a judge pastes into the tournament's ballot site.
-  const speakerName = (round, s) => (({ '1A': (round.aff || {}).d1, '2A': (round.aff || {}).d2, '1N': (round.neg || {}).d1, '2N': (round.neg || {}).d2 })[s]) || '';
   function decisionText(round) {
     const b = round.ballot || {};
+    const fmt = F.formatOf(round);
     const lines = [];
     if (b.winner === 'aff' || b.winner === 'neg') {
       const team = b.winner === 'aff' ? (round.aff || {}).team : (round.neg || {}).team;
       lines.push((b.winner === 'aff' ? 'Aff' : 'Neg') + (team ? ' (' + team + ')' : '') + ' wins.');
     }
-    for (const s of SPEAKERS) {
+    for (const sp of fmt.speakers) {
+      const s = sp.id;
       const p = (b.pts || {})[s], r = (b.ranks || {})[s];
       if (isEmptyValue(p) && isEmptyValue(r)) continue;
-      const nm = speakerName(round, s);
-      lines.push(s + (nm ? ' ' + nm : '') + ': ' + (isEmptyValue(p) ? 'no points' : p + ' points') + (isEmptyValue(r) ? '' : ', rank ' + r));
+      const nm = F.speakerName(round, sp);
+      lines.push(sp.label + (nm ? ' ' + nm : '') + ': ' + (isEmptyValue(p) ? 'no points' : p + ' points') + (isEmptyValue(r) ? '' : ', rank ' + r));
     }
     return lines.join('\n');
   }
@@ -285,25 +305,27 @@
     const o = opts || {};
     const r = round || {};
     const b = r.ballot || {};
+    const fmt = F.formatOf(r);
     const range = o.range === null ? null : ptsRange(o.range);
     const title = ['Ballot', r.roundName].filter(Boolean).join(' · ');
     const sections = [];
     sections.push({ kind: 'facts', items: [['Tournament', r.tournament || ''], ['Round', r.roundName || ''], ['Judge', r.judge || ''], ['Resolution', r.topic || '']].filter(([, v]) => v) });
     const team = b.winner === 'aff' ? (r.aff || {}).team : b.winner === 'neg' ? (r.neg || {}).team : '';
     sections.push({ kind: 'winner', title: 'Decision', text: b.winner === 'aff' || b.winner === 'neg' ? (b.winner === 'aff' ? 'Aff' : 'Neg') + (team ? ' (' + team + ')' : '') + ' wins' : 'No winner picked' });
-    sections.push({ kind: 'speakers', title: range ? 'Points (' + range.min + '–' + range.max + ') and ranks' : 'Points and ranks',
-      rows: SPEAKERS.map((s) => ({ speaker: s, side: s.endsWith('A') ? 'aff' : 'neg', name: speakerName(r, s), pts: (b.pts || {})[s] ?? '', rank: (b.ranks || {})[s] ?? '' })) });
+    const pointsTitle = (range ? 'Points (' + range.min + '–' + range.max + ')' : 'Points') + (fmt.ballot.speakerRanks ? ' and ranks' : '');
+    sections.push({ kind: 'speakers', title: pointsTitle, ranks: fmt.ballot.speakerRanks,
+      rows: fmt.speakers.map((sp) => ({ speaker: sp.label, side: sp.side, name: F.speakerName(r, sp), pts: (b.pts || {})[sp.id] ?? '', rank: (b.ranks || {})[sp.id] ?? '' })) });
     sections.push({ kind: 'text', title: 'Reason for decision', text: String(b.rfd || '') });
     sections.push({ kind: 'text', title: 'Aff comments' + ((r.aff || {}).team ? ' (' + r.aff.team + ')' : ''), side: 'aff', text: String(b.affFb || '') });
     sections.push({ kind: 'text', title: 'Neg comments' + ((r.neg || {}).team ? ' (' + r.neg.team + ')' : ''), side: 'neg', text: String(b.negFb || '') });
     if (o.flow) {
       for (const f of r.flows || []) {
-        const cols = FLOW_COLUMNS.map((c, i) => ({ label: c.label, side: c.side, text: String((f.cells || {})[i] || '') }));
+        const cols = fmt.flowColumns.map((c, i) => ({ label: c.label, side: c.side, text: String((f.cells || {})[i] || '') }));
         if (cols.some((c) => c.text.trim())) sections.push({ kind: 'flow', title: 'Flow: ' + f.name, cols });
       }
     }
     if (o.transcripts) {
-      for (const s of SPEECHES) {
+      for (const s of fmt.speeches) {
         const t = String((r.transcripts || {})[s.id] || '').trim();
         if (t) sections.push({ kind: 'text', title: 'Transcript: ' + s.label, side: s.side, text: t });
       }
@@ -316,25 +338,27 @@
     return { title, orientation: o.flow ? 'landscape' : (o.orientation === 'landscape' ? 'landscape' : 'portrait'), sections };
   }
 
-  // 4.14 Prep used by each team, from the round's prep fields.
+  // 4.14 Prep used on each side, from the round's prep fields. Keyed by side ('aff', 'neg'): each format so far has
+  // one prep clock per side, a team's clock (policy) or the one debater's clock (LD).
   function prepUsed(round) {
     const r = round || {};
     const total = Math.max(0, Math.round(Number(r.prepSeconds) || 0));
     const out = {};
-    for (const side of ['aff', 'neg']) {
-      const left = Number((r.prepLeft || {})[side]);
+    for (const c of F.prepClocks(F.formatOf(r))) {
+      const left = Number((r.prepLeft || {})[c.id]);
       const used = Number.isFinite(left) ? Math.max(0, Math.min(total, Math.round(total - left))) : 0;
-      out[side] = { used, total, text: (side === 'aff' ? 'Aff' : 'Neg') + ' used ' + formatClock(used) + ' of ' + formatClock(total) };
+      out[c.side] = { used, total, text: c.label + ' used ' + formatClock(used) + ' of ' + formatClock(total) };
     }
     out.any = out.aff.used > 0 || out.neg.used > 0;
     return out;
   }
   // 4.14 Key moments from the Round Map: only dropped and conceded arguments, in speech order.
-  function keyMoments(map) {
+  function keyMoments(map, fmt) {
+    const f = fmt || F.POLICY;
     const nodes = ((map && map.nodes) || []).filter((n) => n && (n.status === 'dropped' || n.status === 'conceded'));
-    const at = (s) => { const i = MAP_SPEECHES.indexOf(s); return i < 0 ? 99 : i; };
+    const at = (s) => { const i = f.flowSpeeches.indexOf(s); return i < 0 ? 99 : i; };
     return nodes.slice().sort((a, b) => at(a.speech) - at(b.speech))
-      .map((n) => ({ speech: n.speech, label: n.label, status: n.status, side: speechSide(n.speech), text: n.speech + ': ' + n.label + ' (' + n.status + ')' }));
+      .map((n) => ({ speech: n.speech, label: n.label, status: n.status, side: speechSide(n.speech, f), text: n.speech + ': ' + n.label + ' (' + n.status + ')' }));
   }
   // 4.13 The paired summary bar under the key issues.
   function issueTally(issues) {
@@ -363,7 +387,7 @@
   // 4.0 A saved Decide tab from before Slice 4: 'draft' opens the Ballot.
   const decideTab = (tab) => (tab === 'draft' ? 'ballot' : tab);
 
-  const api = { PTS_FIELDS, DRAFT_GROUPS, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot,
+  const api = { PTS_FIELDS, DRAFT_GROUPS, ptsFields, draftGroups, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot,
     roundHasContent, insightsReady, draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft,
     staleReviewCards, reviewInsertFields, applyReview, autoRefillPlan, speechEndedSince, ranksSet, moveRank,
     stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, decisionText, tournamentBlocks, printModel,

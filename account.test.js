@@ -110,7 +110,7 @@ test('judgingLocked: open before the first speech clock runs, locked after', () 
 // come from the round's choice, with null for "Just me", and a call must never be able to send another school.
 test('hostedAiBody: roundId and programId always come from the round', () => {
   const call = { callId: 'c1', format: 'policy-hs', programId: ID_B, roundId: 'other', state: { speech: '1AC' } };
-  assert.deepEqual(L.hostedAiBody({ id: 'r1', programId: ID_A }, call), { callId: 'c1', format: 'policy-hs', programId: ID_A, roundId: 'r1', state: { speech: '1AC' } });
+  assert.deepEqual(L.hostedAiBody({ id: 'r1', programId: ID_A }, call), { callId: 'c1', format: 'policy-hs', formatVersion: 1, programId: ID_A, roundId: 'r1', state: { speech: '1AC' } });
   assert.equal(L.hostedAiBody({ id: 'r1', programId: null }, call).programId, null, 'Just me');
   assert.equal(L.hostedAiBody({ id: 'r1' }, call).programId, null, 'a round from before this change');
   assert.equal(L.hostedAiBody({ id: 'r1', programId: 'bad id!' }, call).programId, null);

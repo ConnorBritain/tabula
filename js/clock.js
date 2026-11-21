@@ -8,10 +8,11 @@
 // R.cur is the speech on screen (the viewed one). R.run is the speech the clock times (spec 1.2).
 // R.run is saved with the round, and time comes from the wall clock, so the clock survives a reload,
 // a crash or a sleeping device (spec 1.1). Pause writes R.timeLeft.
-const sp = () => L.SPEECHES[R.cur];
-const speechIdx = (id) => L.SPEECHES.findIndex((s) => s.id === id);
-const runSp = () => (R.run && L.SPEECHES[speechIdx(R.run.id)]) || sp();
-const fullTime = (s) => s.minutes * 60;
+// The speeches come from the round's format (FMT, js/core.js).
+const sp = () => FMT().speeches[R.cur];
+const speechIdx = (id) => FMT().speeches.findIndex((s) => s.id === id);
+const runSp = () => (R.run && FMT().speeches[speechIdx(R.run.id)]) || sp();
+const fullTime = (s) => s.seconds;
 const leftFor = (s) => (R.timeLeft[s.id] ?? fullTime(s));
 let tick = null;
 // The clock fields are written as one unit with one time stamp (a second tab takes the newer unit).
@@ -23,7 +24,7 @@ function renderSpeeches() {
   const runId = R.run && R.run.id;
   markFlowColumns();
   renderClockViewSpeeches();
-  $('#speech-list').innerHTML = L.SPEECHES.map((s, i) => {
+  $('#speech-list').innerHTML = FMT().speeches.map((s, i) => {
     const isRun = s.id === runId;
     const done = R.timeLeft[s.id] != null && R.timeLeft[s.id] < fullTime(s);
     const hasTr = (R.transcripts[s.id] || '').trim() ? ' · has transcript' : '';
@@ -46,7 +47,7 @@ function renderClock() {
   // One clock, drawn into both places: the round bar and the narrow clock view (spec 5.6b).
   renderClockInto($('#clock'), shown);
   renderClockInto($('#cv-clock'), shown);
-  $('#cur-label').innerHTML = `<span class="${s.side}">${s.label}</span> <span class="muted">${s.speaker} · ${s.minutes} min</span>`;
+  $('#cur-label').innerHTML = `<span class="${s.side}">${s.label}</span> <span class="muted">${L.speakerOf(FMT(), s.speaker).label} · ${s.minutes} min</span>`;
   const verb = R.run ? 'Pause' : (leftFor(s) < fullTime(s) ? 'Resume' : 'Start');
   $('#t-start').textContent = verb;
   renderClockView(s, shown, verb);
@@ -72,21 +73,21 @@ function renderClockInto(el, shown) {
 // The narrow clock view (spec 5.6b): the speech line, the clock and its status word, the big Start / Pause / Resume
 // button, Previous / Next speech with their reasons at the ends, and the 4×3 speech grid. Cheap: text and attributes.
 function renderClockView(s, shown, verb) {
-  $('#cv-speech').textContent = L.speechLine(s.id);
+  $('#cv-speech').textContent = L.speechLine(s.id, FMT());
   $('#cv-status').textContent = L.clockStatus(Boolean(R.run), shown);
   $('#cv-start').textContent = verb;
   // "Pauses the 1NC" under the prep cards while a speech runs: a prep start pauses it.
-  const pauses = L.prepPausesLine(R.run && R.run.id);
+  const pauses = L.prepPausesLine(R.run && R.run.id, FMT());
   if ($('#cv-pauses').textContent !== pauses) $('#cv-pauses').textContent = pauses;
   for (const [id, dir] of [['#cv-prev', -1], ['#cv-next', 1]]) {
-    const st = L.stepSpeechState(R.cur, dir), b = $(id);
+    const st = L.stepSpeechState(R.cur, dir, FMT()), b = $(id);
     if (st.disabled) { b.setAttribute('aria-disabled', 'true'); b.dataset.tip = st.reason; }
     else { b.removeAttribute('aria-disabled'); delete b.dataset.tip; }
   }
 }
 function renderClockViewSpeeches() {
   const runId = R.run && R.run.id;
-  $('#cv-speech-list').innerHTML = L.SPEECHES.map((x, i) => {
+  $('#cv-speech-list').innerHTML = FMT().speeches.map((x, i) => {
     const isRun = x.id === runId;
     const name = L.shortSpeech(x.id);
     return `<button type="button" class="sp ${x.side} ${i === R.cur ? 'on' : ''}${isRun ? ' run' : ''}" data-i="${i}" aria-label="${x.label}${isRun ? ', running' : ''}"${i === R.cur ? ' aria-current="true"' : ''}>${name}</button>`;
@@ -144,16 +145,16 @@ $('#cv-start').addEventListener('click', toggleClock);
 // Reset and Next speech act on the running speech if one runs (pausing first returns the view to it); else on the viewed speech.
 function resetSpeechClock() { pauseSpeech(); delete R.timeLeft[sp().id]; saveClocks(); renderClock(); renderSpeeches(); }
 function stepSpeech(dir) {
-  const st = L.stepSpeechState(R.cur, dir);
+  const st = L.stepSpeechState(R.cur, dir, FMT());
   if (st.disabled) return false;
-  pauseSpeech(); selectSpeech(Math.max(0, Math.min(L.SPEECHES.length - 1, R.cur + dir)));
+  pauseSpeech(); selectSpeech(Math.max(0, Math.min(FMT().speeches.length - 1, R.cur + dir)));
   return true;
 }
 $('#t-reset').addEventListener('click', resetSpeechClock);
-$('#t-next').addEventListener('click', () => { pauseSpeech(); selectSpeech(Math.min(L.SPEECHES.length - 1, R.cur + 1)); });
+$('#t-next').addEventListener('click', () => { pauseSpeech(); selectSpeech(Math.min(FMT().speeches.length - 1, R.cur + 1)); });
 // The clock view's Previous / Next speech say why at the ends (aria-disabled keeps them focusable, so the tip is read).
-$('#cv-prev').addEventListener('click', () => { if (!stepSpeech(-1)) toast(L.stepSpeechState(R.cur, -1).reason + '.'); });
-$('#cv-next').addEventListener('click', () => { if (!stepSpeech(1)) toast(L.stepSpeechState(R.cur, 1).reason + '.'); });
+$('#cv-prev').addEventListener('click', () => { if (!stepSpeech(-1)) toast(L.stepSpeechState(R.cur, -1, FMT()).reason + '.'); });
+$('#cv-next').addEventListener('click', () => { if (!stepSpeech(1)) toast(L.stepSpeechState(R.cur, 1, FMT()).reason + '.'); });
 // The clock view's Reset gives an Undo toast (spec 5.6b): the speech gets its time back.
 $('#cv-reset').addEventListener('click', () => {
   // The speech it resets and the time it had: the running one (pausing returns the view to it), else the viewed one.
@@ -194,14 +195,19 @@ function beep() {
 }
 
 // ---------- prep ----------
-// R.prepRun = { side, endAt } is saved with the round, like the speech clock (spec 1.1b).
+// R.prepRun = { side, endAt } is saved with the round, like the speech clock (spec 1.1b). side is the prep clock's id
+// (L.prepClocks): a side for prep per team (policy), a debater for prep per debater (LD). R.prepLeft is keyed the
+// same way. Each format so far has one prep clock per side, so the clock on screen is picked by its side.
 let prepTick = null;
 function startPrepTick() { clearInterval(prepTick); prepTick = setInterval(renderPrep, 200); }
+const prepClockOn = (side) => L.prepClocks(FMT()).find((c) => c.side === side);
+const prepClockById = (id) => L.prepClocks(FMT()).find((c) => c.id === id);
 function renderPrep() {
   for (const side of ['aff', 'neg']) {
     const pr = R.prepRun;
-    const mine = pr && pr.side === side;
-    const left = mine ? (pr.endAt - Date.now()) / 1000 : R.prepLeft[side];
+    const id = prepClockOn(side).id;
+    const mine = pr && pr.side === id;
+    const left = mine ? (pr.endAt - Date.now()) / 1000 : R.prepLeft[id];
     // The round bar and the narrow clock view show the same prep clocks (spec 5.6b).
     for (const el of [$('#prep-' + side), $('#cv-prep-' + side)]) {
       el.textContent = L.formatClock(Math.max(0, Math.ceil(left)));
@@ -222,10 +228,11 @@ function stopPrep() {
   clearInterval(prepTick); prepTick = null; R.prepRun = null; saveClocks(); renderPrep();
 }
 function togglePrep(side) {
-  if (R.prepRun && R.prepRun.side === side) return stopPrep();
+  const id = prepClockOn(side).id;
+  if (R.prepRun && R.prepRun.side === id) return stopPrep();
   stopPrep(); pauseSpeech();
-  if (R.prepLeft[side] <= 0) return toast(side.toUpperCase() + ' has no prep left');
-  R.prepRun = { side, endAt: Date.now() + R.prepLeft[side] * 1000 };
+  if (R.prepLeft[id] <= 0) return toast(side.toUpperCase() + ' has no prep left');
+  R.prepRun = { side: id, endAt: Date.now() + R.prepLeft[id] * 1000 };
   saveClocks(); startPrepTick(); renderPrep();
 }
 document.querySelectorAll('[data-prep]').forEach((b) => b.addEventListener('click', () => togglePrep(b.dataset.prep)));
@@ -235,8 +242,8 @@ function stopAll() { pauseSpeech(); stopPrep(); }
 // Nothing pauses on unload any more: the saved endAt is the truth, and the clock keeps "running" while closed.
 function restoreClocksOnLoad() {
   const had = Boolean(R.run || R.prepRun), hadRec = Boolean(R.run && R.run.rec);
-  const runSpeech = R.run && L.SPEECHES.find((x) => x.id === R.run.id);
-  const { speech: rs, prep: rp } = L.restoreClocks(R.run, R.prepRun, Date.now(), R.prepSeconds, runSpeech ? fullTime(runSpeech) : undefined);
+  const runSpeech = R.run && L.speechOf(FMT(), R.run.id);
+  const { speech: rs, prep: rp } = L.restoreClocks(R.run, R.prepRun, Date.now(), R.prepSeconds, runSpeech ? fullTime(runSpeech) : undefined, FMT());
   const name = rs.id ? L.shortSpeech(rs.id) : '';
   if (rs.state === 'running') {
     R.run = Object.assign({}, R.run, { endAt: rs.endAt }, rs.reason === 'clock-moved' ? { startLeft: rs.left } : {});
@@ -254,7 +261,7 @@ function restoreClocksOnLoad() {
   }
   if (rp.state === 'running') { R.prepRun = { side: rp.side, endAt: rp.endAt }; startPrepTick(); }
   else {
-    if (rp.state === 'paused') { R.prepLeft[rp.side] = 0; toast((rp.side === 'aff' ? 'Aff' : 'Neg') + ' prep ran out while the page reloaded.'); }
+    if (rp.state === 'paused') { R.prepLeft[rp.side] = 0; toast(prepClockById(rp.side).label + ' prep ran out while the page reloaded.'); }
     R.prepRun = null;
   }
   if (had) saveClocks();

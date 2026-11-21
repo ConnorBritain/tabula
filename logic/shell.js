@@ -3,24 +3,27 @@
 (function (root) {
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
-  const { SPEECHES, formatClock } = part('round');
+  const F = part('format');
+  const { formatClock } = part('round');
   const { shortSpeech } = part('rules');
 
   // ---------- Slice 5: shell and reach (docs/design/SPEC.md §3.5) ----------
 
   const sideName = (side) => (side === 'aff' ? 'Aff' : 'Neg');
-  const speechOf = (id) => SPEECHES.find((s) => s.id === id) || null;
+  // fmt below: the round's format (policy-hs when not given).
+  const speechOf = (id, fmt) => F.speechOf(fmt || F.POLICY, id);
 
   // 5.2 The corner chip. It shows off Flow while a speech or prep clock runs (Q-1). st: { onFlow, run: { id, left }
-  // or null (the running speech, also while the judge views another one), prep: { side, left } or null }.
+  // or null (the running speech, also while the judge views another one), prep: { side, left } or null; side is the
+  // prep clock's side }, format: the round's format.
   // Returns null when hidden (on Flow, or nothing runs), else { text, tone: '' | 'caution' | 'error', side, kind, said }.
   // said is the one message that plays when the chip appears.
   function chipText(st) {
     const s = st || {};
     if (s.onFlow) return null;
-    if (s.run && speechOf(s.run.id)) {
+    if (s.run && speechOf(s.run.id, s.format)) {
       const name = shortSpeech(s.run.id), left = Math.ceil(Number(s.run.left));
-      const side = speechOf(s.run.id).side;
+      const side = speechOf(s.run.id, s.format).side;
       if (left <= 0) return { text: name + ' · ' + formatClock(-left) + ' over', tone: 'error', side, kind: 'speech', said: name + ' clock still running' };
       return { text: name + ' · ' + formatClock(left), tone: left <= 30 ? 'caution' : '', side, kind: 'speech', said: name + ' clock still running' };
     }
@@ -44,10 +47,13 @@
     return wasOnline === false ? 'Back online' : '';
   }
 
-  // 5.6b The narrow clock view. "1NC · Neg · 1N · 8 min".
-  function speechLine(id) {
-    const s = speechOf(id); if (!s) return '';
-    return shortSpeech(s.id) + ' · ' + sideName(s.side) + ' · ' + s.speaker + ' · ' + s.minutes + ' min';
+  // 5.6b The narrow clock view. "1NC · Neg · 1N · 8 min". With one debater per side (LD) the debater adds nothing:
+  // "NC · Neg · 7 min".
+  function speechLine(id, fmt) {
+    const f = fmt || F.POLICY;
+    const s = speechOf(id, f); if (!s) return '';
+    const who = F.speakersOn(f, s.side).length > 1 ? [s.speaker] : [];
+    return [shortSpeech(s.id), sideName(s.side), ...who, s.minutes + ' min'].join(' · ');
   }
   // The word under the big clock. Colour never carries it alone (colour rule 5).
   function clockStatus(running, left) {
@@ -55,12 +61,13 @@
     return running ? 'Running' : 'Paused';
   }
   // The prep cards' line while a speech runs: a prep start pauses it.
-  const prepPausesLine = (runId) => (runId && speechOf(runId) ? 'Pauses the ' + shortSpeech(runId) : '');
+  const prepPausesLine = (runId, fmt) => (runId && speechOf(runId, fmt) ? 'Pauses the ' + shortSpeech(runId) : '');
   // [Previous] and [Next speech] in the clock view say why they do nothing at the ends.
-  function stepSpeechState(cur, dir) {
+  function stepSpeechState(cur, dir, fmt) {
+    const speeches = (fmt || F.POLICY).speeches;
     const i = Number(cur) + dir;
-    if (i < 0) return { disabled: true, reason: 'Already at ' + SPEECHES[0].id };
-    if (i >= SPEECHES.length) return { disabled: true, reason: 'Already at ' + SPEECHES[SPEECHES.length - 1].id };
+    if (i < 0) return { disabled: true, reason: 'Already at ' + speeches[0].id };
+    if (i >= speeches.length) return { disabled: true, reason: 'Already at ' + speeches[speeches.length - 1].id };
     return { disabled: false, reason: '', to: i };
   }
 

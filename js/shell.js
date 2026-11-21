@@ -31,8 +31,8 @@ function renderChip() {
   const chip = $('#clock-chip');
   const onFlow = (PLACE_OF[R.tab] || 'setup') === 'flow';
   const run = R.run ? { id: R.run.id, left: (R.run.endAt - Date.now()) / 1000 } : null;
-  const prep = R.prepRun ? { side: R.prepRun.side, left: (R.prepRun.endAt - Date.now()) / 1000 } : null;
-  const st = L.chipText({ onFlow, run, prep });
+  const prep = R.prepRun ? { side: prepClockById(R.prepRun.side).side, left: (R.prepRun.endAt - Date.now()) / 1000 } : null;
+  const st = L.chipText({ onFlow, run, prep, format: FMT() });
   if (!st) {
     if (!chip.hidden) { chip.hidden = true; chipState.kind = ''; chipState.nameAt = 0; }
     return;
