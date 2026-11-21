@@ -151,7 +151,7 @@ async function addDocFiles(files, side, statusEl, speech) {
       const sp = L.docSpeech(doc, FMT());
       statusEl.textContent = 'Added ' + file.name + ' (' + L.DOC_SIDES[side] + (sp ? ', mapped to ' + sp : '') + ')';
       if (sp) {
-        if (S.liveFlow && aiReady()) scheduleFlow(sp, true);
+        if (S.liveFlow && ready()) scheduleFlow(sp, true);
         else if (can('aiFlow')) statusEl.textContent += showSetup() ? '. Connect AI and turn on Live AI flow to map it onto the flow.' : '. Turn on Live AI flow in Settings to map it onto the flow.';
       }
       docStore.put(doc).catch(() => toast(file.name + ' is kept for this page only. It will be gone after a refresh.'));

@@ -860,6 +860,7 @@
       <select id="judging-for" class="w-auto" data-judging aria-describedby="judging-help"></select>
       <p class="muted field-help" id="judging-help" data-judging-help></p>
     </div>
+    <p class="muted field-help" id="ai-limits" hidden></p>
     <div class="grid">
       <div><label>Tournament</label><input data-bind="tournament"></div>
       <div><label>Round</label><input data-bind="roundName" placeholder="Round 3"></div>
@@ -1304,6 +1305,7 @@
   <div class="rb-prep"><span class="aff">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
   <div class="rb-prep"><span class="neg">Neg prep</span><span class="t" id="prep-neg">8:00</span><button class="b small" data-prep="neg">Start</button></div>
   <span id="mini-rec" class="rb-ai" data-ai="any"></span>
+  <span id="ai-round" class="rb-ai" role="status" aria-live="polite" hidden><span id="ai-round-text"></span> <button class="b small" id="ai-resume" type="button" hidden>Turn AI back on</button></span>
 </footer>
 <div id="node-editor" class="overlay" role="dialog" aria-modal="true" aria-labelledby="ne-title" hidden>
   <div class="overlay-card narrow">
@@ -1407,6 +1409,8 @@
 <script src="logic/shell.js"></script>
 <script src="logic/account.js"></script>
 <script src="logic/flags.js"></script>
+<script src="logic/limits.js"></script>
+<script src="logic/hosted.js"></script>
 <script src="logic.js"></script>
 <script src="providers.js"></script>
 <script src="tour.js"></script>
@@ -1423,6 +1427,7 @@
 <script defer src="js/flow.js"></script>
 <script defer src="js/docs.js"></script>
 <script defer src="js/ai.js"></script>
+<script defer src="js/limits.js"></script>
 <script defer src="js/settings.js"></script>
 <script defer src="js/help.js"></script>
 <script defer src="js/insights.js"></script>

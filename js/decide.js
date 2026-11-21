@@ -58,7 +58,7 @@ const STATE_TEXT = {
   stopped: 'Stopped. Nothing on the ballot changed.',
 };
 function draftState() {
-  return L.draftPanelState({ busy: draftUi.busy, aiReady: aiReady(), offline: navigator.onLine === false, hasContent: L.roundHasContent(R, DOCS), picked: (draftUi.picks || defaultPicks()).size, error: draftUi.err, stopped: draftUi.stopped });
+  return L.draftPanelState({ busy: draftUi.busy, aiReady: ready(), offline: navigator.onLine === false, hasContent: L.roundHasContent(R, DOCS), picked: (draftUi.picks || defaultPicks()).size, error: draftUi.err, stopped: draftUi.stopped });
 }
 function renderDraftPanel() {
   renderDraftButton();
@@ -119,11 +119,14 @@ async function runDraft({ picks, redraft, text }) {
   Object.assign(draftUi, { busy: true, busyText: text || '', ctrl, err: '', stopped: false });
   renderDraftPanel();
   try {
+    // One request for both paths: buildBallotPrompt and L.hostedState read the same keys (ballotRequestLines).
+    const ask = { only: fields, redraft, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null };
     const data = await callAI({
       feature: 'ballotDraft',
       system: BALLOT_SYSTEM(),
-      prompt: L.buildBallotPrompt(R, DOCS, R.ballotInput || '', { only: fields, redraft, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null }),
+      prompt: L.buildBallotPrompt(R, DOCS, R.ballotInput || '', ask),
       schema: L.promptsFor(FMT()).ballotSchema, effort: 'high', reading: level, kind: 'ballot', signal: ctrl.signal,
+      hosted: { job: 'ballot', extra: Object.assign({ judgeInput: R.ballotInput || '' }, ask) },
     });
     if (resetting) return null;
     LV(level).ballotDraft = { data, at: Date.now(), through: L.speechesSoFar(R) };
@@ -284,14 +287,14 @@ function insertReview(all) {
 function scheduleBallotSoon() {
   clearTimeout(fillSoonTimer);
   fillSoonTimer = setTimeout(() => {
-    if (!can('ballotDraft') || !S.autoBallot || !aiReady() || resetting) return;
+    if (!can('ballotDraft') || !S.autoBallot || !ready() || resetting) return;
     if (navigator.onLine === false) { fillWaitsOnline = true; return; } // runs when online, if still on (spec 2.3, D2)
     runAutoRefill();
   }, 25000);
 }
 async function runAutoRefill() {
   if (!can('ballotDraft')) return;
-  if (!S.autoBallot || !aiReady() || draftUi.busy || R.ballotReview || navigator.onLine === false || !L.roundHasContent(R, DOCS)) return;
+  if (!S.autoBallot || !ready() || draftUi.busy || R.ballotReview || navigator.onLine === false || !L.roundHasContent(R, DOCS)) return;
   const picks = draftGroupsNow().map((g) => g.id);
   const data = await runDraft({ picks, text: 'Refilling after the speech…' });
   if (!data || R.ballotReview) return;

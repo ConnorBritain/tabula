@@ -2,7 +2,8 @@
 // The code lives in logic/, one file per job. This file joins the parts into the one API the page (window.PolicyLogic),
 // the local helper and the tests use. In the page, index.html loads the parts in this order: logic/caps.js (in <head>), the format
 // files (formats/*.js), logic/format.js, logic/round.js,
-// logic/audio.js, logic/flow.js, logic/files.js, logic/pairing.js, logic/rules.js, logic/decide.js, logic/prompts.js, logic/shell.js, logic/account.js, logic/flags.js, then this file.
+// logic/audio.js, logic/flow.js, logic/files.js, logic/pairing.js, logic/rules.js, logic/decide.js, logic/prompts.js, logic/shell.js, logic/account.js, logic/flags.js,
+// logic/limits.js, logic/hosted.js, then this file.
 // In Node, require('./logic.js') loads the parts itself. A part only uses parts that load before it.
 (function (root) {
   'use strict';
@@ -44,6 +45,8 @@
     showSetupFor, offTokens, visibleTourSteps, keyNoticeDue, KEY_NOTICE } = part('caps');
   const { PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
     activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody } = part('account');
+  const { limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal } = part('limits');
+  const { BUY_URL, accountUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
 
   const api = {
     SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS, PARADIGMS,
@@ -91,6 +94,9 @@
     parseRoundPaste, roundPasteChanges, swapSides,
     // Feature flags (logic/flags.js)
     FLAGS, FLAG_GROUP, flagOn,
+    // Hosted AI calls (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3) and their round limits (Terms §6.4)
+    limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
+    BUY_URL, accountUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PolicyLogic = api;

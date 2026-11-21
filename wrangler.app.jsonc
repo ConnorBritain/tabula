@@ -7,6 +7,11 @@
 // The route debate.tabulaspeech.com/* sends pages here. The tabula-cloud Worker's
 // route debate.tabulaspeech.com/api/v1/* is more specific, so the API stays there.
 // The proxied placeholder DNS record for debate.tabulaspeech.com stays as it is.
+//
+// Staging (tabula-cloud docs/DEPLOY.md "Staging site"): debate.tabulaspeech.dev, behind Cloudflare Access.
+// Deploy: npx wrangler deploy -c wrangler.app.jsonc --env staging
+// It is a custom domain, so the deploy makes its DNS record and certificate. tabula-cloud-staging's route
+// debate.tabulaspeech.dev/api/v1/* still wins for the API (a route beats a custom domain, as on tabulaspeech.com).
 {
   "name": "tabula-app",
   "account_id": "36bbd78435b2291e928a50731e703509",
@@ -21,5 +26,13 @@
     { "pattern": "debate.tabulaspeech.com/*", "zone_name": "tabulaspeech.com" }
   ],
   "workers_dev": false,
-  "preview_urls": false
+  "preview_urls": false,
+  "env": {
+    "staging": {
+      "name": "tabula-app-staging",
+      "routes": [{ "pattern": "debate.tabulaspeech.dev", "custom_domain": true }],
+      "workers_dev": false,
+      "preview_urls": false
+    }
+  }
 }
