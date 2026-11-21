@@ -442,3 +442,15 @@ test('the own-key ballot prompt keeps its parts in order after the split', () =>
   const order = [L.BALLOT_TASK.split('\n')[0], 'Speaker points must mean something', 'This tournament uses 20', 'THE JUDGE ALREADY SET THESE BY HAND', "THE JUDGE'S OWN INPUT", 'THE JUDGE WANTS NEW TEXT', 'REDO:', 'ROUND INFO'].map(at);
   assert.deepEqual(order, [...order].sort((a, b) => a - b));
 });
+
+// WHY: hosted AI calls build the round text with the same helpers as the own-key prompt. If those helpers fall back to
+// policy speeches and columns, the server judges a Lincoln-Douglas round from the wrong speeches and an empty flow.
+test('hostedState: a Lincoln-Douglas round sends its own speeches and flow columns', () => {
+  const r = { id: 'round-ld1', programId: PROG, format: 'ld', formatVersion: 1, topic: 'Resolved: justice requires X.',
+    transcripts: { AC: 'Value is justice.' }, flows: [{ name: 'Framework', cells: { 1: 'NC answers the value.' } }], aiFlows: [] };
+  const st = L.hostedState('ballot', r, [], { judgeInput: '' });
+  assert.match(st.transcript, /^--- AC \(AFF, Aff debater\) ---\nValue is justice\.$/);
+  assert.match(st.flow, /\[NC\]\nNC answers the value\./);
+  assert.doesNotMatch(st.transcript + st.flow, /1AC|1NC/);
+  assert.equal(L.hostedState('flow', r, [], { speech: 'AC' }).transcript, 'Value is justice.');
+});
