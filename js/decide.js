@@ -117,12 +117,13 @@ async function runDraft({ picks, redraft, text }) {
   Object.assign(draftUi, { busy: true, busyText: text || '', ctrl, err: '', stopped: false });
   renderDraftPanel();
   try {
+    const ask = { only: fields, redraft, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null };
     const data = await callAI({
       feature: 'ballotDraft',
       system: BALLOT_SYSTEM(),
-      prompt: L.buildBallotPrompt(R, DOCS, R.ballotInput || '', { only: fields, redraft, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null }),
+      prompt: L.buildBallotPrompt(R, DOCS, R.ballotInput || '', ask),
       schema: L.BALLOT_SCHEMA, effort: 'high', reading: level, kind: 'ballot', signal: ctrl.signal,
-      hosted: { job: 'ballot', extra: { judgeInput: R.ballotInput || '' } },
+      hosted: { job: 'ballot', extra: Object.assign({ judgeInput: R.ballotInput || '' }, ask) },
     });
     if (resetting) return null;
     LV(level).ballotDraft = { data, at: Date.now(), through: L.speechesSoFar(R) };

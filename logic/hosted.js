@@ -6,8 +6,8 @@
 (function (root) {
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
-  const { paradigmText } = part('round');
-  const { transcriptLines, judgeFlowLines, aiFlowSheets, flowSoFarLines } = part('prompts');
+  const { paradigmText, ptsRange } = part('round');
+  const { transcriptLines, judgeFlowLines, aiFlowSheets, flowSoFarLines, ballotRequestLines } = part('prompts');
   const { APP_FEATURES, canUse, payerOf } = part('caps');
   const { hostedAiBody } = part('account');
   const { parseRound } = part('limits');
@@ -47,8 +47,8 @@
   const text = (v) => String(v == null ? '' : v).trim();
   const block = (lines) => lines.join('\n');
 
-  // The judge's own words the round-wide jobs need: the resolution, the paradigm, extra notes and (ballot only) the
-  // judge's input for the draft. Tournament, school and student names are not needed and are not sent.
+  // The judge's own words the round-wide jobs need: the resolution, the paradigm and extra notes. The ballot adds its
+  // request (hand-set fields, the judge's input, a redo, Live Eval feedback) in hostedState. Tournament, school and student names are not needed and are not sent.
   function judgeNotes(round, extra) {
     const ai = round.ai || {};
     const e = extra || {};
@@ -56,7 +56,6 @@
     const paradigm = text(e.paradigm) || text(paradigmText(ai.paradigm, ai.customParadigm));
     if (paradigm) lines.push('Judge paradigm: ' + paradigm);
     if (text(ai.notes)) lines.push('Extra judge notes: ' + text(ai.notes));
-    if (text(e.judgeInput)) lines.push("The judge's own input (follow it where it conflicts): " + text(e.judgeInput));
     return block(lines);
   }
 
@@ -71,10 +70,17 @@
       const speech = text(extra && extra.speech);
       return { speech, transcript: text((r.transcripts || {})[speech]), flow: block(flowSoFarLines(r, speech)) };
     }
+    const e = extra || {};
     const flow = judgeFlowLines(r);
     const ai = aiFlowSheets(r);
     const flowText = [flow.length ? "JUDGE'S FLOW\n" + block(flow) : '', ai.length ? 'AI FLOW\n' + ai.join('\n') : ''].filter(Boolean).join('\n\n');
-    return { transcript: block(transcriptLines(r, docs)), flow: flowText, notes: judgeNotes(r, extra) };
+    let notes = judgeNotes(r, e);
+    if (job === 'ballot') notes = [notes, ...ballotRequestLines(r, e.judgeInput, e)].join('\n').trim();
+    const state = { transcript: block(transcriptLines(r, docs)), flow: flowText, notes };
+    // The server owns the guide text for each reading level and the points scale (tabula-cloud contracts/ai-replies-v1).
+    if (e.reading === 'expert' || e.reading === 'plain') state.reading = e.reading;
+    if (job === 'ballot' || job === 'eval') state.pointsRange = ptsRange(e.range || r.ptsRange);
+    return state;
   }
 
   // The fetch for one hosted call. The body is built by hostedAiBody, so the round id and the round's school always

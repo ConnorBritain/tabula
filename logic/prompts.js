@@ -228,7 +228,9 @@
 
   // Slice 4 (4.3) opts: only (the fields the judge picked; the AI still fills every field), redraft
   // ({ fields, previous } for [Redo this]), range (the points range) and liveEvalFeedback (the Live Eval feedback list).
-  function buildBallotPrompt(round, docs, judgeInput, opts) {
+  // The judge's part of a ballot draft request: fields set by hand, the judge's own input, the fields wanted, a redo
+  // and the Live Eval feedback. The own-key prompt and the hosted AI notes (logic/hosted.js) both use it.
+  function ballotRequestLines(round, judgeInput, opts) {
     const o = opts || {};
     const b = round.ballot || {};
     const touched = b.touched || {};
@@ -237,9 +239,7 @@
       const v = k ? (b[a] || {})[k] : b[f];
       return f + ' = ' + (typeof v === 'string' && v.length > 300 ? v.slice(0, 300) + '…' : v);
     });
-    const lines = [BALLOT_TASK, '', POINTS_GUIDE];
-    const range = ptsRange(o.range);
-    if (!isDefaultRange(range)) lines.push('', 'This tournament uses ' + range.min + '–' + range.max + '. Map the scale above onto that range.');
+    const lines = [];
     if (kept.length) lines.push('', 'THE JUDGE ALREADY SET THESE BY HAND. Keep them, and make the rest agree with them:', ...kept);
     if (judgeInput && judgeInput.trim()) lines.push('', "THE JUDGE'S OWN INPUT. Weigh it heavily; where it conflicts with your read, follow the judge:", judgeInput.trim());
     if (o.only && o.only.length) lines.push('', 'THE JUDGE WANTS NEW TEXT FOR: ' + o.only.map(fieldLabel).join(', ') + '. Still fill every field.');
@@ -249,6 +249,15 @@
     }
     const fb = feedbackLines(o.liveEvalFeedback);
     if (fb.length) lines.push('', 'LIVE EVAL FEEDBACK. Use it for the Aff and Neg comments:', ...fb);
+    return lines;
+  }
+
+  function buildBallotPrompt(round, docs, judgeInput, opts) {
+    const o = opts || {};
+    const lines = [BALLOT_TASK, '', POINTS_GUIDE];
+    const range = ptsRange(o.range);
+    if (!isDefaultRange(range)) lines.push('', 'This tournament uses ' + range.min + '–' + range.max + '. Map the scale above onto that range.');
+    lines.push(...ballotRequestLines(round, judgeInput, o));
     lines.push('', buildJudgePrompt(round, docs));
     return lines.join('\n');
   }
@@ -599,7 +608,7 @@
     buildLiveFlowPrompt, BALLOT_SCHEMA, BALLOT_TASK, buildBallotPrompt, applyBallotDraft, READING_LEVELS,
     readingGuide, nextSpeech, EVAL_SYSTEM, EVAL_SCHEMA, buildEvalPrompt, ANALYSIS_SYSTEM, MAP_SCHEMA, MAP_TASK,
     IMPACT_SCHEMA, IMPACT_TASK, LENS_SCHEMA, LENS_TASK, buildAnalysisPrompt, buildMermaid, layoutMap,
-    transcriptLines, judgeFlowLines, aiFlowSheets, flowSoFarLines };
+    transcriptLines, judgeFlowLines, aiFlowSheets, flowSoFarLines, ballotRequestLines };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).prompts = api;
 })(typeof window !== 'undefined' ? window : globalThis);

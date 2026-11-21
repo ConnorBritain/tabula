@@ -187,7 +187,7 @@ function hostedFail(info) {
 async function callHosted({ job, extra, signal }) {
   const anon = (v) => L.anonymize(v, R);
   const state = L.hostedState(job, R, DOCS, extra);
-  for (const k of Object.keys(state)) state[k] = anon(state[k]);
+  for (const k of Object.keys(state)) if (typeof state[k] === 'string') state[k] = anon(state[k]); // names only live in text
   // All of the round's text docs, the same text in the same order on every call (§3a: the provider caches them).
   const docs = P.docsAsText(anonDocs(DOCS), L.docTitle);
   if (docs) state.docs = docs;
@@ -255,7 +255,8 @@ async function callAI({ feature, system, prompt, note, schema, effort = 'medium'
   const eng = S.aiEngine;
   if (hosted && useHosted(feature)) {
     if (navigator.onLine === false) throw aiError({ online: false }, '');
-    try { return hostedResult(await callHosted({ job: hosted.job, extra: hosted.extra, signal }), schema); }
+    // The reading level goes as a key; the server owns its guide text.
+    try { return hostedResult(await callHosted({ job: hosted.job, extra: Object.assign({ reading }, hosted.extra), signal }), schema); }
     catch (err) {
       if (!(err.fallback && aiReady())) throw err;
       console.warn('Hosted AI is not available now (' + err.hosted + '); using the own key.');

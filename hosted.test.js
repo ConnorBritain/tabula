@@ -385,3 +385,50 @@ test('the Buy rounds link follows the site the app runs on', async () => {
   assert.deepEqual(w.opened, ['https://tabulaspeech.dev/account/']);
   assert.equal(L.hostedError(402, 'age_required', L.accountUrl('debate.tabulaspeech.dev')).link.url, 'https://tabulaspeech.dev/account/', 'Open account too');
 });
+
+// ---------- reading level and points range (tabula-cloud contracts/ai-replies-v1, note ai-json-replies.md) ----------
+
+// Why: the server writes in plain words only if the app sends the reading key, and scores points on the tournament's
+// scale only if it gets the range. Without them a plain-words judge gets expert text, and a 1-30 tournament gets
+// 25-30 points. The live flow needs neither, so sending them there would only add noise.
+test('hostedState sends the reading key and the points range only to the jobs that use them', () => {
+  const r = { ...round(), ptsRange: { min: 20, max: 30 } };
+  const ballot = L.hostedState('ballot', r, [], { reading: 'plain' });
+  assert.equal(ballot.reading, 'plain');
+  assert.deepEqual(ballot.pointsRange, { min: 20, max: 30 });
+  assert.deepEqual(L.hostedState('eval', r, [], { reading: 'expert' }).pointsRange, { min: 20, max: 30 });
+  assert.equal(L.hostedState('lens', r, [], { reading: 'plain' }).pointsRange, undefined);
+  assert.equal(L.hostedState('lens', r, [], { reading: 'plain' }).reading, 'plain');
+  assert.equal(L.hostedState('map', r, [], { reading: null }).reading, undefined, 'no level: the server uses expert');
+  assert.equal(L.hostedState('eval', r, [], { reading: 'READING LEVEL: plain ...' }).reading, undefined, 'never guide text');
+  const flow = L.hostedState('flow', r, [], { speech: '1AC', reading: 'plain' });
+  assert.deepEqual(Object.keys(flow).sort(), ['flow', 'speech', 'transcript']);
+  assert.deepEqual(L.hostedState('ballot', { ...r, ptsRange: { min: 30, max: 25 } }, [], {}).pointsRange, { min: 25, max: 30 }, 'a bad range: the default');
+});
+
+// Why: the ballot draft must keep what the judge set by hand and follow a redo or Live Eval feedback, as with an own
+// key. Without these notes the hosted draft overwrites the judge's own points and ignores "redo the RFD".
+test('the hosted ballot notes carry the hand-set fields, the judge input, a redo and Live Eval feedback', () => {
+  const r = { ...round(), ballot: { winner: 'aff', touched: { winner: true } } };
+  const notes = L.hostedState('ballot', r, [], {
+    judgeInput: 'Aff on the DA.', only: ['rfd'], redraft: { fields: ['rfd'], previous: { rfd: 'Old reason.' } },
+    liveEvalFeedback: [{ speaker: '1A', strength: 'Clear plan text.', fix: 'Slow down.' }],
+  }).notes;
+  assert.match(notes, /winner = aff/);
+  assert.match(notes, /Aff on the DA\./);
+  assert.match(notes, /REDO/);
+  assert.match(notes, /Old reason\./);
+  assert.equal(notes, L.hostedState('ballot', r, [], { judgeInput: 'Aff on the DA.', only: ['rfd'], redraft: { fields: ['rfd'], previous: { rfd: 'Old reason.' } }, liveEvalFeedback: [{ speaker: '1A', strength: 'Clear plan text.', fix: 'Slow down.' }] }).notes);
+  assert.ok(notes.includes(L.buildBallotPrompt(r, [], 'Aff on the DA.', { only: ['rfd'] }).split('\n').find((l) => l.startsWith('THE JUDGE WANTS NEW TEXT'))), 'the same words as the own-key prompt');
+});
+
+// Why: the page swaps names in the state before the call. If it also turned the points range into text, the server
+// would reject it and use 25-30; and the reading level the judge picked must reach the server from callAI.
+test('callAI sends the reading level and keeps the points range an object', async () => {
+  const w = world({ g: gate(record(ALL_SCHOOL, false)), answers: [sse([{ t: 'ok' }, { done: true }])] });
+  w.R.ptsRange = { min: 20, max: 30 };
+  await w.callAI({ ...EVAL_CALL, schema: null, reading: 'plain' });
+  const state = JSON.parse(w.calls[0].init.body).state;
+  assert.equal(state.reading, 'plain');
+  assert.deepEqual(state.pointsRange, { min: 20, max: 30 });
+});
