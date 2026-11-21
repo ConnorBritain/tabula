@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Timeless examples
 
-> **Plain version.** The topic in policy debate changes every year. But some arguments come back every year, in a new form. For example, a spending disadvantage (the plan costs money, so something else gets cut) can fit almost any topic. So can a states counterplan or a politics disadvantage. These pages explain each one in a general way, with a short flow (debate notes). Learn the shape once, and you will spot it in any round.
+> **Plain version.** The topic in policy debate changes every year, but some arguments come back every year, in a new form.
+>
+> - **Examples:** A spending disadvantage (the plan costs money, so something else gets cut) can fit almost any topic. So can a states counterplan or a politics disadvantage.
+> - **What these pages do:** They explain each one in a general way, with a short flow (debate notes).
+> - **How to use them:** Learn the shape once, and you will spot it in any round.
 
 ## What these pages are
 

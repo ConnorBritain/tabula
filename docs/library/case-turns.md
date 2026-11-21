@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Case turns and case defense
 
-> **Plain version.** When the negative argues directly against the affirmative's advantages, it has two kinds of tools. Case defense says the advantage is smaller than claimed, or will not happen. A case turn goes further: it says the plan makes the problem worse. Defense can shrink the affirmative's reasons to vote for it. A turn can give the judge a reason to vote against the plan. Good negative teams often use both.
+> **Plain version.** When the negative argues directly against the affirmative's advantages, it has two kinds of tools: case defense and case turns.
+>
+> - **Case defense:** It says the advantage is smaller than claimed, or will not happen. Defense can shrink the affirmative's reasons to vote for it.
+> - **Case turn:** It goes further: it says the plan makes the problem worse. A turn can give the judge a reason to vote against the plan.
+> - **Use both:** Good negative teams often use both.
 
 ## On-case arguments
 

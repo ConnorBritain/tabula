@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Links and link turns (L and L/T)
 
-> **Plain version.** The link is the part of a disadvantage that ties the plan to the problem. It answers the question, "What does the plan do that starts the harm?" A good link is about this plan, not the topic in general. The aff can answer "no link" (the plan does not do that) or give a "link turn" (the plan does the opposite). A link turn can make the disadvantage a reason to vote for the plan.
+> **Plain version.** The link is the part of a disadvantage that ties the plan to the problem.
+>
+> - **The question it answers:** "What does the plan do that starts the harm?" A good link is about this plan, not the topic in general.
+> - **How to answer it:** the aff can answer "no link" (the plan does not do that) or give a "link turn" (the plan does the opposite).
+> - **Why turns matter:** a link turn can make the disadvantage a reason to vote for the plan.
 
 ## What a link is
 

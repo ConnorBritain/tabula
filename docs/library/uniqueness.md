@@ -11,7 +11,10 @@ updated: 2026-11-20
 
 # Uniqueness (U)
 
-> **Plain version.** Uniqueness is the first part of a disadvantage. It says the bad thing is not happening now. That matters because a disadvantage must show the plan makes a difference. If the harm will happen anyway, the plan does not cause it, and the disadvantage is "non-unique." So the neg must prove the world is fine on this issue today, and the plan is what tips it over.
+> **Plain version.** Uniqueness is the first part of a disadvantage: it says the bad thing is not happening now.
+>
+> - **Why it matters:** A disadvantage must show the plan makes a difference. If the harm will happen anyway, the plan does not cause it, and the disadvantage is "non-unique."
+> - **What the neg must prove:** The world is fine on this issue today, and the plan is what tips it over.
 
 ## What uniqueness is
 

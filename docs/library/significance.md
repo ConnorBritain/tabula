@@ -11,7 +11,12 @@ updated: 2026-11-20
 
 # Significance
 
-> **Plain version.** Significance asks whether the problem, or the plan's fix, is big enough to matter. A plan that fixes a tiny problem may not be worth the change. The affirmative shows significance with numbers, such as how many people are hurt, or with how serious the harm is, such as loss of life or rights. Significance is one of the stock issues, the basic jobs of an affirmative case. Many judges treat it as part of harms and solvency, but traditional judges often check it on its own.
+> **Plain version.** Significance asks whether the problem, or the plan's fix, is big enough to matter.
+>
+> - **Why it matters:** A plan that fixes a tiny problem may not be worth the change.
+> - **How to show it:** The affirmative uses numbers, such as how many people are hurt, or shows how serious the harm is, such as loss of life or rights.
+> - **Where it fits:** Significance is one of the stock issues, the basic jobs of an affirmative case.
+> - **How judges decide:** Many judges treat it as part of harms and solvency. Traditional judges often check it on its own.
 
 ## What significance is
 

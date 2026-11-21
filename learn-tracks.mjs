@@ -201,10 +201,11 @@ function certificate(track, md) {
 // The list of all tracks (learn/tracks/).
 export function renderTrackList(tracks, states, href, md) {
   return `<h1>Guided tracks</h1>
-<blockquote class="plain"><p>A track is a short course. It is a list of library pages in order, with a quick check at the foot of each page. Your progress is saved only in your browser. There is no sign-up.</p></blockquote>
+<blockquote class="plain"><p>A track is a short course: library pages in order, with a quick check at the foot of each page.</p><ul><li><strong>Your progress:</strong> it is saved only in your browser. There is no sign-up.</li></ul></blockquote>
 <ul class="track-list">${tracks.map((t) => trackItem(t, states.get(t.id), href(t.id), md)).join('')}</ul>
 ${progressBox()}`;
 }
+
 
 // The "Guided tracks" box on the library home (TRACKS.md §3.4). `href(id)` links from the home page.
 export function renderHomeTracks(tracks, states, href, md) {

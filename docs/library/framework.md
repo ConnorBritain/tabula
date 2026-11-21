@@ -12,7 +12,11 @@ updated: 2026-11-20
 
 # Framework (FW)
 
-> **Plain version.** Framework is an argument about how the judge should decide the round. Before the judge can weigh arguments, the judge needs a rule for what counts. Framework supplies that rule. It comes up most when one team argues about the plan's results and the other team argues about ideas, words or debate itself. Each team says its way of deciding is fairer or teaches more, and the judge picks one.
+> **Plain version.** Framework is an argument about how the judge should decide the round.
+>
+> - **Why it is needed:** Before the judge can weigh arguments, the judge needs a rule for what counts. Framework supplies that rule.
+> - **When it comes up:** Most often when one team argues about the plan's results and the other team argues about ideas, words or debate itself.
+> - **How judges decide:** Each team says its way of deciding is fairer or teaches more, and the judge picks one.
 
 ## Two meanings of "framework"
 

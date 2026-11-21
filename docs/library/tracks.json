@@ -1,5 +1,5 @@
 {
-  "about": "Guided tracks (docs/library/TRACKS.md). One source for the tracks and the reading paths. A track is live only when every step has a page and a check with status: reviewed. pathName shows the step in the 'Next on your path' box.",
+  "about": "Guided tracks (docs/library/TRACKS.md). One source for the tracks and the reading paths. A track is live only when every step has a page and a check with status: reviewed. pathName shows the step in the 'Next on your path' box. A track with a \"home\" field is listed on that path's card on the library home page (the card's heading id).",
   "tracks": [
     {
       "id": "judge",
@@ -24,6 +24,42 @@
       "badge": true,
       "minutes": 240,
       "steps": ["debate-101", "speeches-and-times", "how-to-flow", "flow-shorthand", "affirmative-case", "stock-issues", "disadvantages", "answering-disadvantages", "counterplans", "permutations", "topicality", "cross-examination", "impact-calculus", "rebuttal-strategy"]
+    },
+    {
+      "id": "kritik",
+      "name": "Intro to the K",
+      "title": "Intro to the Kritik: A Guided Policy Debate Track",
+      "description": "A free, self-paced track on kritiks: the link, the alternative, the role of the ballot, framework and how to answer a K, with a quick check after each page.",
+      "promise": "You can explain and answer a basic kritik.",
+      "audience": "debater",
+      "badge": false,
+      "minutes": 75,
+      "home": "i-already-know-debate-pick-a-branch",
+      "steps": ["kritiks", "kritik-links", "kritik-alternative", "role-of-the-ballot", "framework-vs-kritik", "answering-kritiks", "example-cap-k"]
+    },
+    {
+      "id": "theory",
+      "name": "Theory basics",
+      "title": "Debate Theory Basics: A Guided Policy Debate Track",
+      "description": "A free, self-paced track on theory: the parts of a theory argument, fiat, conditionality and reasons to reject, with a quick check after each page.",
+      "promise": "You can read, run and answer a basic theory argument.",
+      "audience": "debater",
+      "badge": false,
+      "minutes": 60,
+      "home": "i-already-know-debate-pick-a-branch",
+      "steps": ["theory", "fiat", "conditionality", "reject-the-team", "common-theory", "example-condo-debate"]
+    },
+    {
+      "id": "judging",
+      "name": "Judging well",
+      "title": "Judging Well: A Guided Track for Experienced Debate Judges",
+      "description": "A free, self-paced track for judges past their first rounds: paradigms, the RFD, presumption, turns case, round conduct, feedback and writing a paradigm.",
+      "promise": "You can decide close rounds and explain them well.",
+      "audience": "judge",
+      "badge": true,
+      "minutes": 60,
+      "home": "i-already-know-debate-pick-a-branch",
+      "steps": ["judge-paradigms", "ballot-and-rfd", "presumption", "turns-case", "round-conduct", "giving-feedback", "writing-a-paradigm"]
     }
   ]
 }

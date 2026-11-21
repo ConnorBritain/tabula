@@ -11,7 +11,12 @@ updated: 2026-11-20
 
 # Impacts (I)
 
-> **Plain version.** An impact is the "so what" of an argument. It is the bad result at the end of a disadvantage, or the good result at the end of an advantage. Impacts can be large and unlikely, like a war, or small and very likely, like people losing a service. The other team can say the impact is smaller than claimed, or even that it is good. At the end, the judge compares the impacts each team is winning.
+> **Plain version.** An impact is the "so what" of an argument.
+>
+> - **Where it goes:** it is the bad result at the end of a disadvantage, or the good result at the end of an advantage.
+> - **Size and chance:** impacts can be large and unlikely, like a war, or small and very likely, like people losing a service.
+> - **How to answer it:** the other team can say the impact is smaller than claimed, or even that it is good.
+> - **How judges decide:** at the end, the judge compares the impacts each team is winning.
 
 ## What an impact is
 

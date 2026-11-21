@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Solvency deficits
 
-> **Plain version.** A counterplan is the negative's own plan, offered instead of the affirmative's. Most counterplans try to solve the same problem as the plan. A solvency deficit is the part of the problem the counterplan cannot solve. The affirmative points it out and says why it matters. The judge then weighs that missing part against the net benefit: the harm the counterplan avoids. If the missing part is bigger, the affirmative wins.
+> **Plain version.** A solvency deficit is the part of the problem that the negative's counterplan cannot solve.
+>
+> - **What a counterplan is:** A counterplan is the negative's own plan, offered instead of the affirmative's. Most counterplans try to solve the same problem as the plan.
+> - **How to use it:** The affirmative points out the missing part and says why it matters.
+> - **How judges decide:** The judge weighs that missing part against the net benefit: the harm the counterplan avoids. If the missing part is bigger, the affirmative wins.
 
 ## Why deficits matter
 

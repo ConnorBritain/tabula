@@ -58,8 +58,13 @@ a { color: var(--aff); text-underline-offset: 2px; }
 .rd-bar { height: 4px; border-radius: var(--r-pill); background: var(--border); overflow: hidden; margin: var(--s2) 0 6px; }
 .rd-fill { height: 100%; width: 0; background: var(--text-2); border-radius: var(--r-pill); }
 .rd-left { margin: 0 0 var(--s3); font-size: 13px; color: var(--text-3); }
-.rd-pill { position: fixed; right: var(--s4); bottom: var(--s4); z-index: var(--z-pop); display: flex; align-items: center; gap: 10px; max-width: min(340px, calc(100vw - 32px)); min-height: 48px; padding: 6px 16px 6px 6px; border-radius: var(--r-pill); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font: inherit; cursor: pointer; box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity .15s, transform .15s, visibility .15s; }
+.rd-pill { position: fixed; right: var(--s4); bottom: var(--s4); z-index: var(--z-pop); display: flex; align-items: center; gap: 10px; max-width: min(340px, calc(100vw - 32px)); min-height: 48px; padding: 6px 16px 6px 6px; border-radius: var(--r-pill); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity .15s, transform .15s, visibility .15s; }
 .rd-pill.rd-show, .rd-pill[aria-expanded="true"] { opacity: 1; visibility: visible; transform: none; }
+/* The whole bar is one target: children never take the tap, the hit area reaches 8px past the edge, and taps
+   are not delayed or zoomed (touch-action on the main .rd-pill rule). */
+.rd-pill > * { pointer-events: none; }
+.rd-pill::after { content: ""; position: absolute; inset: -8px; }
+.rd-icon { display: grid; place-items: center; margin-left: auto; color: var(--text-2); }
 .rd-pct { display: grid; place-items: center; min-width: 36px; height: 36px; border-radius: var(--r-pill); background: var(--sunk); font-size: 12px; font-weight: var(--fw-4); font-variant-numeric: tabular-nums; }
 .rd-label { display: grid; text-align: left; min-width: 0; line-height: 1.3; }
 .rd-sec { font-size: 14px; font-weight: var(--fw-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -73,6 +78,8 @@ a { color: var(--aff); text-underline-offset: 2px; }
 .rd-list a { display: block; padding: 10px var(--s2); border-radius: var(--r-lg); color: var(--text-2); text-decoration: none; }
 .rd-list a:hover { background: var(--sunk); }
 @media (max-width: 520px) {
+  /* Phones: a full-width bar, lifted clear of the browser's bottom edge (a tap there opens the browser bar). */
+  .rd-pill { left: var(--s3); right: var(--s3); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); max-width: none; min-height: 56px; padding-right: 14px; }
   .rd-panel { right: 0; left: 0; bottom: 0; width: auto; max-height: 75vh; border-radius: var(--r-xl) var(--r-xl) 0 0; padding-bottom: calc(var(--s4) + env(safe-area-inset-bottom)); }
 }
 @media (min-width: 1100px) { .rd-pill, .rd-panel { display: none; } .has-reader .site-foot { padding-bottom: 48px; } }
@@ -102,9 +109,20 @@ code { font-family: var(--font-mono); font-size: 0.88em; background: var(--sunk)
 /* Quotes: a plain bordered panel. No coloured side stripe (a common "AI look"; see the AI-slop check in PLAN.md §1). */
 blockquote { margin: 0 0 20px; padding: 16px 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
 blockquote p:last-child { margin: 0; }
-/* The page summary ("Plain version" in the Markdown): a lead paragraph under the title, as docs sites do it.
-   Larger text and space below set it apart. No box, no tint, no label, no rule. */
-blockquote.plain { margin: 0 0 36px; padding: 0; background: none; border: 0; border-radius: 0; font-size: 20px; line-height: 1.55; color: var(--text-2); }
+/* The page summary ("Plain version" in the Markdown): a card under the title with a "The big idea" label, one
+   lead sentence, then a few short points (each can start with a bold label). It uses the site's blue (the link
+   colour) as a light tint with a blue label, so it stands out. The --aff tokens are reused on purpose as the
+   Library's link blue (as the link rule does); a neutral brand alias in assets/tokens.css is a follow-up. Body-size text, so it reads as
+   a summary, not a second headline. No coloured side stripe (no-stripes rule, PLAN.md §1). */
+blockquote.plain { margin: 0 0 36px; padding: 18px 22px 20px; background: var(--aff-tint); border: 1px solid var(--aff-edge); border-radius: var(--r-xl); font-size: 17px; line-height: 1.6; color: var(--text); }
+/* The label is set here, not in each page, so no page can miss it. */
+blockquote.plain::before { content: "The big idea"; display: block; margin: 0 0 8px; font-size: 12px; font-weight: var(--fw-5); color: var(--aff); text-transform: uppercase; letter-spacing: 0.1em; }
+blockquote.plain > p:first-of-type { font-size: 19px; line-height: 1.45; font-weight: var(--fw-4); letter-spacing: -0.01em; }
+blockquote.plain p { margin: 0 0 10px; }
+blockquote.plain p:last-child { margin: 0; }
+blockquote.plain ul { margin: 12px 0 0; padding-left: 20px; color: var(--text-2); }
+blockquote.plain li + li { margin-top: 8px; }
+blockquote.plain li strong { color: var(--text); }
 
 .table { overflow-x: auto; margin: 0 0 18px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
 table { border-collapse: collapse; width: 100%; font-size: 15px; }
@@ -114,6 +132,26 @@ tr:last-child td { border-bottom: 0; }
 
 pre.flow { overflow-x: auto; margin: 0 0 10px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; font: 13px/1.5 var(--font-mono); }
 pre.flow code { background: none; border: 0; padding: 0; font-size: inherit; }
+
+/* Library home: "Pick your path". A row of three choices that jump to their path, then one card per path. */
+.path-chooser { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--s3); margin: 0 0 var(--s5); }
+.path-pick { display: grid; gap: 4px; padding: 14px 16px; border-radius: var(--r-xl); border: 1px solid var(--border); background: var(--panel); color: var(--text); text-decoration: none; }
+.path-pick:hover { border-color: var(--aff-edge); background: var(--aff-tint); }
+.path-pick-name { font-weight: var(--fw-4); line-height: 1.3; }
+.path-pick-meta { font-size: 14px; color: var(--text-3); }
+.path-card { margin: 0 0 var(--s4); padding: 20px 22px; border-radius: var(--r-xl); border: 1px solid var(--border); background: var(--panel); }
+.path-card h3 { margin: 0; font-size: 21px; scroll-margin-top: 24px; }
+.path-when { margin: 2px 0 12px; font-size: 14px; color: var(--text-3); }
+.path-card ol, .path-card ul { margin-bottom: 0; }
+.path-card > :last-child { margin-bottom: 0; }
+/* With library.js the choices are tabs: the chosen one is tinted and only its path shows. The card's own heading
+   stays for screen readers but is hidden on screen, because the tab already names the path. */
+.has-path-tabs .path-chooser { margin-bottom: var(--s3); }
+.path-pick[aria-selected="true"] { border-color: var(--aff-edge); background: var(--aff-tint); }
+.path-pick[aria-selected="true"] .path-pick-name { color: var(--aff); }
+.has-path-tabs .path-card > h3, .has-path-tabs .path-card > .path-when { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.path-track { margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--border); font-size: 15px; color: var(--text-2); }
+.path-track a { font-weight: var(--fw-4); }
 
 /* End of page: one card ("Next on your path"), then a plain call to action. No stack of boxes. */
 .paths { margin: 56px 0 0; padding: 18px 20px; border-radius: var(--r-xl); background: var(--panel); border: 1px solid var(--border); }

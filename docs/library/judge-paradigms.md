@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Judge paradigms
 
-> **Plain version.** A paradigm is a judge's way of deciding a round. Some judges want the affirmative to prove a set of basic points. Some judges act like lawmakers who weigh costs and benefits. Some try to start with no views at all, and let the debaters set the rules. Many judges post a short paradigm online before a tournament. Debaters read it to learn what this judge cares about, and adjust their speeches to fit.
+> **Plain version.** A paradigm is a judge's way of deciding a round.
+>
+> - **How judges differ:** some want the affirmative to prove a set of basic points, and some act like lawmakers who weigh costs and benefits. Some try to start with no views at all, and let the debaters set the rules.
+> - **Where to find it:** many judges post a short paradigm online before a tournament.
+> - **How to use it:** debaters read it to learn what this judge cares about, and adjust their speeches to fit.
 
 ## Why paradigms exist
 

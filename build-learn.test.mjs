@@ -6,6 +6,7 @@ import { join, dirname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { buildSite, markdown, inline, relHref, nextSteps, isPageFile, parseFrontMatter, readingPaths, metaText, placeLead, OUT, SRC } from './build-learn.mjs';
 import { loadTracks } from './learn-tracks.mjs';
+import { renderPathCards } from './learn-home.mjs';
 const PATHS = readingPaths(loadTracks(SRC));
 
 const ROOT = dirname(new URL(import.meta.url).pathname);
@@ -188,6 +189,28 @@ test('the Plain version marker sets the summary style but is not shown on the pa
   assert.equal(blocks[0].kind, 'plain');
 });
 
+// WHY: a summary written as one long paragraph reads as a wall of text; the lead sentence plus short points must
+// render as a real list, or the summary falls back to the run-on block readers skip.
+test('a summary can be a lead sentence followed by a bullet list', () => {
+  const ctx = { slug: 'a', pages: new Map(), missing: new Set() };
+  const { html } = markdown('> **Plain version.** The lead.\n>\n> - **One:** first point.\n> - **Two:** second point,\n>   carried on.\n', ctx);
+  assert.equal(html, '<blockquote class="plain"><p>The lead.</p><ul><li><strong>One:</strong> first point.</li><li><strong>Two:</strong> second point, carried on.</li></ul></blockquote>');
+  assert.throws(() => markdown('> **Plain version.** L.\n>\n> - One.\n>   - Nested.\n', ctx), /nested lists are not supported/, 'a nested point would be silently flattened');
+});
+
+// WHY: without this gate, a page summary can quietly slide back into one long paragraph (or grow a fifth point) and
+// nothing fails; hurried readers then skip the one part written for them.
+test('every page summary is one short lead sentence plus at most four points', () => {
+  for (const [rel, html] of htmlPages) {
+    const box = /<blockquote class="plain">([\s\S]*?)<\/blockquote>/.exec(html);
+    if (!box) continue;
+    const m = /^<p>([\s\S]*?)<\/p>(?:<ul>((?:<li>[\s\S]*?<\/li>){1,4})<\/ul>)?$/.exec(box[1]);
+    assert.ok(m, `learn/${rel}: the summary must be one lead paragraph, then at most one list of 1 to 4 points`);
+    const words = m[1].replace(/<[^>]+>/g, '').split(/\s+/).filter(Boolean).length;
+    assert.ok(words <= 30, `learn/${rel}: the summary's lead is ${words} words (30 at most)`);
+  }
+});
+
 // WHY: search engines read the JSON-LD and the sitemap. If either is broken or missing a page, that page may not be found.
 test('JSON-LD parses, and the sitemap lists every page with a date', () => {
   const sitemap = site.files.get('sitemap.xml');
@@ -239,6 +262,56 @@ test('long pages carry the hooks the reading helper needs and load library.js', 
   assert.match(html, /<script src="\.\.\/library\.js"><\/script>\n<\/body>/);
   const js = readFileSync(join(SRC, 'library.js'), 'utf8');
   for (const hook of ["'nav.toc'", "'.page-main'", 'dataset.minutes', "'.toc-title'", "'a[data-app]'"]) assert.ok(js.includes(hook), `library.js no longer reads ${hook}`);
+});
+
+// WHY: a new judge or debater picks a path on the home page; if the choices blur into one long list, or a choice
+// points at a missing section, readers start in the wrong place or give up before the first page.
+test('the home page offers each path as a card, and the judge path links to its guided track', () => {
+  const home = site.files.get('index.html');
+  const picks = [...home.matchAll(/<a class="path-pick" href="#([^"]+)">/g)].map((m) => m[1]);
+  assert.ok(picks.length >= 3, 'fewer than three path choices');
+  for (const id of picks) assert.match(home, new RegExp(`<section class="path-card" aria-labelledby="${id}"><h3 id="${id}">`), `choice #${id} has no card`);
+  assert.match(home, /<section class="path-card" aria-labelledby="i-am-judging-soon[^"]*">[\s\S]*?<a href="tracks\/judge\/">Take it as a guided track<\/a>[\s\S]*?<\/section>/);
+  assert.match(home, /<span class="path-pick-meta">About 30 minutes · 6 pages<\/span>/, 'the judge choice should say how long and how many pages');
+  // CHANGED 2026-11-21 because the owner approved building the novice and three experienced tracks; the new-debater
+  // card now has a built track. The no-promise rule for unbuilt tracks is covered by the unit test below. Old check:
+  //   const debater = /<section class="path-card" aria-labelledby="i-am-a-new-debater[^"]*">[\s\S]*?<\/section>/.exec(home)[0];
+  //   assert.doesNotMatch(debater, /class="path-track"/, 'a path whose track is not built must not link to it or promise it');
+  const debater = /<section class="path-card" aria-labelledby="i-am-a-new-debater[^"]*">[\s\S]*?<\/section>/.exec(home)[0];
+  assert.match(debater, /<a href="tracks\/novice\/">Take it as a guided track<\/a>/);
+  const branch = /<section class="path-card" aria-labelledby="i-already-know-debate[^"]*">[\s\S]*?<\/section>/.exec(home)[0];
+  for (const id of ['kritik', 'theory', 'judging']) assert.match(branch, new RegExp(`<a href="tracks/${id}/">`), `the experienced card should list the ${id} track`);
+  assert.doesNotMatch(home, /coming/i, 'the home page must not promise unbuilt tracks');
+});
+
+// WHY: the home page's path cards are rebuilt from index.md; an intro line under "Pick your path" must not vanish, a
+// branch list must not claim a page count, and a broken heading must stop the build instead of losing a path.
+test('path cards keep intro text, count only numbered paths, and reject a malformed heading', () => {
+  const html = '<h2 id="pick-your-path">Pick your path</h2>\n<p>Intro.</p>\n<h3 id="a">New (about 5 minutes)</h3><ol><li><a href="x/">X</a></li><li><a href="y/">Y</a></li></ol>\n<h3 id="b">Old hand</h3><ul><li><a href="z/">Z</a></li></ul>\n<h2 id="next">Next</h2>';
+  const tracks = [{ id: 't', steps: ['x', 'y'] }, { id: 'u', steps: ['x'] }];
+  const out = renderPathCards(html, tracks, new Map([['t', { ready: true }], ['u', { ready: true }]]), (id) => id + '/');
+  assert.match(out, /<\/h2>\s*<p>Intro\.<\/p>\s*<nav class="path-chooser"/);
+  assert.match(out, /<span class="path-pick-meta">About 5 minutes · 2 pages<\/span>/);
+  assert.match(out, /<a class="path-pick" href="#b"><span class="path-pick-name">Old hand<\/span><span class="path-pick-meta"><\/span>/);
+  assert.equal((out.match(/Take it as a guided track/g) || []).length, 1, 'only the exact-match track links, once');
+  // Why: a link to a track that is not built sends a parent or student to a page that does not exist.
+  const notBuilt = renderPathCards(html, [{ id: 't', steps: ['x', 'y'] }], new Map([['t', { ready: false }]]), (id) => id + '/');
+  assert.doesNotMatch(notBuilt, /class="path-track"/, 'a track that is not built must not be linked or promised');
+  assert.match(out, /<a href="tracks\/t\/">Take it as a guided track/);
+  assert.throws(() => renderPathCards('<h2 id="pick-your-path">P</h2><h3 class="x">Bad</h3><h2 id="n">N</h2>', [], new Map(), String), /expected a "### " path heading/);
+  // Why: renaming a path heading would silently drop its tracks from the home page; the build must say so instead.
+  assert.throws(() => renderPathCards(html, [{ id: 'k', steps: ['z'], home: 'gone' }], new Map([['k', { ready: true }]]), String), /names home card "gone"/);
+});
+
+// WHY: the home page shows one path at a time through these hooks; if the builder's markup and library.js drift apart,
+// the tabs silently stop working and the page falls back to repeating every path name twice.
+test('the home page path choices carry the hooks the tab script needs (markup contract only; tab behavior is checked in a browser)', () => {
+  const home = site.files.get('index.html');
+  assert.match(home, /<nav class="path-chooser" aria-label="Choose a path"><a class="path-pick" href="#[^"]+">/);
+  assert.match(home, /<section class="path-card" aria-labelledby="[^"]+"><h3 id="[^"]+">/);
+  assert.match(home, /<script src="library\.js"><\/script>/);
+  const js = readFileSync(join(SRC, 'library.js'), 'utf8');
+  for (const hook of ["'.path-chooser'", "'a.path-pick'", "'.path-card'", "'has-path-tabs'"]) assert.ok(js.includes(hook), `library.js no longer reads ${hook}`);
 });
 
 // WHY: the top bar already names the site; a breadcrumb or meta line that repeats "Debate Library" or the section is
@@ -296,4 +369,13 @@ test('library pages and About use the one shared token file and keep no copied c
   }
   assert.match(about, /<link rel="stylesheet" href="assets\/tokens\.css">/);
   for (const [rel, html] of htmlPages) assert.match(html, /<link rel="stylesheet" href="(\.\.\/)+assets\/tokens\.css">/, `learn/${rel} links tokens.css`);
+});
+
+// WHY: the owner took his personal GitHub handle off the public sites (2026-11-21). If a Library page links it again, every reader and the marketing copy of the Library show it.
+test('library pages send mistake reports to the support email, not a personal GitHub page', () => {
+  for (const [rel, html] of htmlPages) {
+    assert.doesNotMatch(html, /github\.com\/ConnorBritain/, `learn/${rel} links the personal GitHub page`);
+  }
+  const home = site.files.get('index.html');
+  assert.match(home, /href="mailto:support@tabulaspeech\.com"/);
 });

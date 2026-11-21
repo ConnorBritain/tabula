@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Cross-examination (CX)
 
-> **Plain version.** After each of the first four speeches (the constructives), the other team asks questions for three minutes. This is cross-examination, or cross-ex. It is a chance to understand the other team's arguments, to pin down what they will defend, and to set up your next speech. Cross-ex is not a speech. An answer in cross-ex matters for the decision only if someone uses it in a speech. Judges do listen closely, and good cross-ex often decides how a round goes.
+> **Plain version.** Cross-examination, or cross-ex, is the three minutes of questions the other team asks after each of the first four speeches (the constructives).
+>
+> - **What it is for:** It is a chance to understand the other team's arguments, to pin down what they will defend, and to set up your next speech.
+> - **It is not a speech:** An answer in cross-ex matters for the decision only if someone uses it in a speech.
+> - **Why it still matters:** Judges do listen closely, and good cross-ex often decides how a round goes.
 
 ## What cross-ex is for
 

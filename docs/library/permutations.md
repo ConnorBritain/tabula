@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Permutations (perm)
 
-> **Plain version.** A counterplan is the negative's own plan. It is only a reason to vote negative if the judge cannot simply do both plans. A permutation, or perm, is how the affirmative tests this. The affirmative says, "Imagine doing the plan and the counterplan together." If doing both works and avoids the harm the negative points to, the counterplan does not compete. Then it is not a reason to reject the plan.
+> **Plain version.** A permutation, or perm, is how the affirmative tests whether the judge can simply do both the plan and the counterplan.
+>
+> - **Why it matters:** a counterplan is the negative's own plan. It is only a reason to vote negative if the judge cannot simply do both plans.
+> - **How it works:** the affirmative says, "Imagine doing the plan and the counterplan together."
+> - **If both work:** if doing both works and avoids the harm the negative points to, the counterplan does not compete. Then it is not a reason to reject the plan.
 
 ## What a perm is
 

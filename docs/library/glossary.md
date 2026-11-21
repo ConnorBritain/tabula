@@ -11,7 +11,10 @@ updated: 2026-11-20
 
 # Policy debate glossary
 
-> **Plain version.** Debate has a lot of special words. This page lists them in A to Z order, in plain words. Each entry makes sense on its own, so you can look up one word in the middle of a round. When a term has its own page, the entry links to it. If you are new, start with [Debate 101](debate-101.md), and come back here when you hear a word you do not know.
+> **Plain version.** Debate has a lot of special words, and this page lists them in A to Z order, in plain words.
+>
+> - **How to use it:** Each entry makes sense on its own, so you can look up one word in the middle of a round. When a term has its own page, the entry links to it.
+> - **If you are new:** Start with [Debate 101](debate-101.md), and come back here when you hear a word you do not know.
 
 Two words come up in almost every entry. The **aff** (affirmative) is the team for the plan. The **neg** (negative) is the team against it.
 

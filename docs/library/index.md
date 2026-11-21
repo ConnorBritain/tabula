@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # The Tabula Debate Library
 
-> **Plain version.** This is a free library about high school policy debate. It starts simple and goes deeper, one topic per page. Every page begins with a short plain summary, so you can stop there or keep going. Pick the path below that fits you. If you hit a word you do not know, check the [glossary](glossary.md).
+> **Plain version.** This is a free library about high school policy debate.
+>
+> - **How it works:** it starts simple and goes deeper, one topic per page. Every page begins with a short plain summary, so you can stop there or keep going.
+> - **Where to start:** pick the path below that fits you.
+> - **New words:** if you hit a word you do not know, check the [glossary](glossary.md).
 
 ## Pick your path
 
@@ -28,6 +32,8 @@ You do not need debate experience to judge well. You need to listen, take notes,
 
 ### I am a new debater (your first month)
 
+You have seen a practice round or two. Learn the core arguments in the order you will use them.
+
 1. [Debate 101](debate-101.md): what happens in a round.
 2. [Speeches, order and times](speeches-and-times.md): who speaks when, and for how long.
 3. [How to flow](how-to-flow.md), then [Flow shorthand](flow-shorthand.md): how to take notes.
@@ -42,6 +48,8 @@ You do not need debate experience to judge well. You need to listen, take notes,
 Also useful early: [Evidence and cards](evidence-and-cards.md).
 
 ### I already know debate (pick a branch)
+
+You know the speeches and the core arguments. Pick the area you want to sharpen.
 
 - **Theory:** [Theory](theory.md), [Fiat](fiat.md), [Conditionality](conditionality.md), [Reasons to reject](reject-the-team.md), [Common theory arguments](common-theory.md).
 - **Critical:** [Kritiks](kritiks.md), [The link](kritik-links.md), [The alternative](kritik-alternative.md), [Role of the ballot](role-of-the-ballot.md), [Framework](framework.md), [Framework vs a kritik](framework-vs-kritik.md), [Kritikal affirmatives](kritikal-affirmatives.md), [Common kritik families](common-kritiks.md), [Framework vs a K aff](framework-vs-k-aff.md).
@@ -80,4 +88,4 @@ Every page, grouped by topic. New readers can skip this list and use a path abov
 - **Timeless.** Examples are generic. They do not depend on this year's topic.
 - **Local rules differ.** Times, prep and point scales here are the common national format. Check your tournament's rules.
 - **Share it.** The text is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). You may copy it into a handout for your team, with credit.
-- **Found a mistake?** Open an issue on [the Tabula GitHub page](https://github.com/ConnorBritain/tabula/issues). Each page gets a review by an experienced coach before it goes live, and we fix errors fast.
+- **Found a mistake?** Email [support@tabulaspeech.com](mailto:support@tabulaspeech.com). Each page gets a review by an experienced coach before it goes live, and we fix errors fast.

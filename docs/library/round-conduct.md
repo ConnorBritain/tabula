@@ -11,7 +11,12 @@ updated: 2026-11-20
 
 # Round conduct, safety and evidence ethics
 
-> **Plain version.** Debaters argue hard, but they must treat each other with respect. If anyone in the round feels unsafe, the round can stop, and the judge should get tournament staff. Evidence must be honest: no made-up quotes, no changed words, and no claiming to read words that were skipped. If someone says the evidence is dishonest, follow your tournament's procedure. You do not have to handle a serious problem alone.
+> **Plain version.** Debaters argue hard, but they must treat each other with respect.
+>
+> - **If someone feels unsafe:** The round can stop, and the judge should get tournament staff.
+> - **Honest evidence:** Evidence must be honest. No made-up quotes, no changed words, and no claiming to read words that were skipped.
+> - **If evidence is challenged:** If someone says the evidence is dishonest, follow your tournament's procedure.
+> - **You are not alone:** You do not have to handle a serious problem alone.
 
 ## Respect in the round
 

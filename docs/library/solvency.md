@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Solvency
 
-> **Plain version.** Solvency means the plan works. The affirmative must show that its plan fixes the problem, or at least makes it smaller. It usually does this with evidence from an expert who supports the plan's idea. Solvency is one of the stock issues, the basic jobs of an affirmative case. If the plan does not work, there is no reason to vote for it, however bad the problem is.
+> **Plain version.** Solvency means the plan works: the affirmative must show its plan fixes the problem, or at least makes it smaller.
+>
+> - **How to show it:** The affirmative usually uses evidence from an expert who supports the plan's idea.
+> - **Where it fits:** Solvency is one of the stock issues, the basic jobs of an affirmative case.
+> - **Why it matters:** If the plan does not work, there is no reason to vote for it, however bad the problem is.
 
 ## What solvency is
 

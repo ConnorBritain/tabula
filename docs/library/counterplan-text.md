@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Counterplan text (CP text)
 
-> **Plain version.** A counterplan is the negative's own plan, offered instead of the affirmative's plan. The counterplan text is the exact sentence that says what it does. It names who acts and what they do. The negative reads it in its first speech and cannot rewrite it later. Most judges give the negative only what the text says, not extra steps added later.
+> **Plain version.** The counterplan text is the exact sentence that says what the counterplan does: who acts and what they do.
+>
+> - **What a counterplan is:** The negative's own plan, offered instead of the affirmative's plan.
+> - **When it is read:** The negative reads it in its first speech and cannot rewrite it later.
+> - **How judges read it:** Most judges give the negative only what the text says, not extra steps added later.
 
 ## What the text is
 

@@ -6,6 +6,7 @@
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { renderPathCards } from './learn-home.mjs';
 import { loadTracks, loadChecks, trackState, renderCheck, buildTrackPages, renderHomeTracks } from './learn-tracks.mjs';
 import { loadApproved, figureHtml, shareImage, placeFigures, PLAIN } from './learn-visuals.mjs';
 import { FORMATS } from './docs/library/visuals/slots.mjs';
@@ -95,6 +96,7 @@ export function inline(text, ctx) {
       return `<a href="${relHref(ctx.slug, local[1])}${local[2] || ''}">${label}</a>`;
     }
     if (/^https?:\/\//.test(href)) return `<a href="${href}" rel="noopener">${label}</a>`;
+    if (/^mailto:[^@\s]+@[a-z0-9.-]+$/i.test(href)) return `<a href="${href}">${label}</a>`;
     throw new Error(`${ctx.slug}: unsupported link target "${href}"`);
   });
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?![*\w])/g, '$1<em>$2</em>');
@@ -125,14 +127,24 @@ function heading(lines, i, ctx) {
   return { html: `<h${hashes.length} id="${id}">${html}</h${hashes.length}>`, next: i + 1 };
 }
 
-// A blank ">" line starts a new paragraph inside the quote.
+// A blank ">" line starts a new paragraph inside the quote. Lines that start with "- " form a bullet list, so a
+// summary can be one lead sentence plus a few short points instead of one long paragraph. This applies to every
+// quote on purpose (today only summaries use it). One level only: an indented bullet stops the build.
 function quote(lines, i, ctx) {
-  const paras = [[]];
+  const parts = [{ kind: 'p', lines: [] }];
+  const last = () => parts[parts.length - 1];
   for (; i < lines.length && lines[i].startsWith('>'); i++) {
     const t = lines[i].replace(/^>\s?/, '').trim();
-    if (t) paras[paras.length - 1].push(t); else if (paras[paras.length - 1].length) paras.push([]);
+    if (/^>\s{2,}[-*]\s/.test(lines[i])) throw new Error(`${ctx.slug}: nested lists are not supported in a quote (line ${i + 1}: ${lines[i].trim()})`);
+    const item = /^[-*]\s+(.*)$/.exec(t);
+    if (item) { if (last().kind !== 'ul') parts.push({ kind: 'ul', lines: [] }); last().lines.push(item[1]); }
+    else if (t && last().kind === 'ul' && /^>\s{3,}\S/.test(lines[i])) last().lines[last().lines.length - 1] += ' ' + t; // an indented line continues the point above
+    else if (t) { if (last().kind !== 'p') parts.push({ kind: 'p', lines: [] }); last().lines.push(t); }
+    else if (last().lines.length) parts.push({ kind: 'p', lines: [] });
   }
-  let html = paras.filter((p) => p.length).map((p) => `<p>${inline(p.join(' '), ctx)}</p>`).join('');
+  let html = parts.filter((x) => x.lines.length).map((x) => (x.kind === 'ul'
+    ? `<ul>${x.lines.map((l) => `<li>${inline(l, ctx)}</li>`).join('')}</ul>`
+    : `<p>${inline(x.lines.join(' '), ctx)}</p>`)).join('');
   const plain = PLAIN_LABEL.test(html);
   if (plain) html = html.replace(PLAIN_LABEL, '<p>');
   return { html: `<blockquote${plain ? ' class="plain"' : ''}>${html}</blockquote>`, next: i, kind: plain ? 'plain' : 'other' };
@@ -264,7 +276,7 @@ function siteFooter(lib) {
   <nav class="foot-nav" aria-label="Tabula sites"><a href="${SITE}/">Tabula Debate</a><a href="${lib}">Library</a><a href="${SITE}/coaches/">Coaches</a><a href="${SITE}/school-it/">School IT</a><a href="${FAMILY}/plans/">Plans</a><a href="${FAMILY}/trust/">Your data</a><a href="${FAMILY}/about/">About</a></nav>
   <p>All evidence cards and authors in examples are invented for teaching.</p>
   <p>From the <a href="${lib}">Tabula Debate Library</a>. Text licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>. © 2026 Pattern Engine LLC.</p>
-  <p>Found a mistake? <a href="https://github.com/ConnorBritain/tabula/issues" rel="noopener">Open an issue</a>.</p>
+  <p>Found a mistake? <a href="mailto:support@tabulaspeech.com">Email us</a>.</p>
 </div></footer>`;
 }
 
@@ -371,6 +383,7 @@ export function buildSite(dir = SRC) {
   const tracks = loadTracks(dir);
   const states = new Map(tracks.map((t) => [t.id, trackState(t, raw, checks)]));
   const extra = buildTrackPages(tracks, states, raw, { relHref, latest: (slugs) => latest(raw, slugs) }, MD);
+  raw.get('index').html = renderPathCards(raw.get('index').html, tracks, states, (id) => relHref('index', id));
   if (tracks.length) raw.get('index').html += '\n' + renderHomeTracks(tracks, states, (id) => relHref('index', id), MD);
   const all = new Map([...raw, ...extra]);
   const files = new Map();

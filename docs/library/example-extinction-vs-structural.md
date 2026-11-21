@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Extinction vs structural violence: a weighing debate
 
-> **Plain version.** Some rounds end with one team claiming a very large harm that may be unlikely, such as a war that could end human life, and the other team claiming a harm that is happening now, every day, to real people. The first is often called an extinction impact. The second is often called structural violence: harm built into how a society works. Each team argues that its harm should count more, and that the other team's estimate of size or chance is wrong. Neither kind wins by default. The judge decides based on the weighing the teams give.
+> **Plain version.** Some rounds end with one team claiming a very large harm that may be unlikely, and the other claiming a harm happening now.
+>
+> - **Two names:** The first is often called an extinction impact, such as a war that could end human life. The second is often called structural violence: harm built into how a society works, happening every day to real people.
+> - **What each team argues:** Its harm should count more, and the other team's estimate of size or chance is wrong.
+> - **How judges decide:** Neither kind wins by default. The judge decides based on the weighing the teams give.
 
 ## The two kinds of impact
 

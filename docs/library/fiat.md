@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Fiat
 
-> **Plain version.** Fiat is a shortcut. It lets the affirmative say, "Imagine the plan passes." Then the round is about whether the plan *should* pass, not whether it *would*. This keeps the debate on the good and bad of the idea. So "Congress would never vote for that" is not a fair answer to a plan. Fiat comes from the Latin for "let it be done."
+> **Plain version.** Fiat is a shortcut that lets the affirmative say, "Imagine the plan passes."
+>
+> - **Why it matters:** The round is about whether the plan *should* pass, not whether it *would*. This keeps the debate on the good and bad of the idea.
+> - **What it rules out:** "Congress would never vote for that" is not a fair answer to a plan.
+> - **Where the word comes from:** The Latin for "let it be done."
 
 ## Why fiat exists
 

@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Impact calculus
 
-> **Plain version.** Most rounds end with each team winning something. Then the judge has to compare. Is the good result of the plan bigger than the bad result the other team warns about? Impact calculus (weighing) is how debaters help the judge compare. They ask how big each harm is, how likely it is, how soon it happens, and whether it can be undone. The team that explains the comparison best often wins, even if the other team won more arguments.
+> **Plain version.** Impact calculus, or weighing, is how debaters help the judge compare what each team is winning.
+>
+> - **Why it is needed:** most rounds end with each team winning something. The judge must decide if the good result of the plan is bigger than the bad result the other team warns about.
+> - **What to compare:** how big each harm is, how likely it is, how soon it happens, and whether it can be undone.
+> - **Why it matters:** the team that explains the comparison best often wins, even if the other team won more arguments.
 
 ## Words on this page
 

@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Net benefits (NB)
 
-> **Plain version.** A counterplan is the negative's own plan, offered instead of the affirmative's. The net benefit is the reason the counterplan is better. Most often it is a harm that the plan causes and the counterplan avoids. The net benefit gives the judge a reason to prefer the counterplan. It also shows that doing both plans together is worse than the counterplan alone. Without a net benefit, most counterplans are not a reason to vote negative.
+> **Plain version.** The net benefit is the reason a counterplan, the negative's own plan offered instead of the affirmative's, is better.
+>
+> - **What it usually is:** most often it is a harm that the plan causes and the counterplan avoids.
+> - **What it does:** it gives the judge a reason to prefer the counterplan. It also shows that doing both plans together is worse than the counterplan alone.
+> - **Why it matters:** without a net benefit, most counterplans are not a reason to vote negative.
 
 ## The two jobs of a net benefit
 

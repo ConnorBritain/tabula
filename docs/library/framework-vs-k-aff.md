@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Framework against a kritikal affirmative (T-USFG)
 
-> **Plain version.** Some affirmative teams do not defend a government plan. These are often called kritikal affirmatives, or K affs. The negative often answers with framework: an argument that the aff should have defended government action that fits the topic. The neg says this makes the game fair and the debate better. The aff says the neg's rule leaves out important ideas and people, and that its own approach teaches more. The judge decides which model of debate is better, based on what the teams argued.
+> **Plain version.** Framework is the negative's common answer to a kritikal affirmative, or K aff: an affirmative that does not defend a government plan.
+>
+> - **The neg's case:** Framework argues the aff should have defended government action that fits the topic. The neg says this makes the game fair and the debate better.
+> - **The aff's case:** The neg's rule leaves out important ideas and people, and the aff's own approach teaches more.
+> - **How judges decide:** The judge decides which model of debate is better, based on what the teams argued.
 
 ## Names and shape
 

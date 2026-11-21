@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Turns case
 
-> **Plain version.** "Turns case" is a way to compare two arguments. It says: my harm would make your harm worse, or stop your plan from working. For example, the negative may say the plan causes a recession, and the recession would cut the very program the plan needs. If that is true, the negative wins its own harm and shrinks the affirmative's at the same time. "Outweighs and turns" means a team claims both: its harm is bigger, and it also makes the other harm worse.
+> **Plain version.** "Turns case" is a way to compare two arguments: my harm would make your harm worse, or stop your plan from working.
+>
+> - **An example:** The negative may say the plan causes a recession, and the recession would cut the very program the plan needs.
+> - **Why it is strong:** If that is true, the negative wins its own harm and shrinks the affirmative's at the same time.
+> - **"Outweighs and turns":** This means a team claims both: its harm is bigger, and it also makes the other harm worse.
 
 ## What turns case means
 

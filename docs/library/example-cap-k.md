@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # The capitalism kritik (cap K)
 
-> **Plain version.** The capitalism kritik, or cap K, says the plan relies on market thinking: the idea that profit and growth are the way to fix problems. It can apply to many plans, so teams run it often. The negative argues that this thinking causes the very harms the plan tries to fix, such as inequality. It offers an alternative: a different way to organize economic life, or a rejection of market thinking. The affirmative often answers that the plan still helps people now, that the alternative cannot work, or that markets do more good than harm.
+> **Plain version.** The capitalism kritik, or cap K, says the plan relies on market thinking: the idea that profit and growth are the way to fix problems.
+>
+> - **Why it is common:** It can apply to many plans, so teams run it often.
+> - **The negative's argument:** This thinking causes the very harms the plan tries to fix, such as inequality. It offers an alternative: a different way to organize economic life, or a rejection of market thinking.
+> - **How the aff answers:** The affirmative often answers that the plan still helps people now, that the alternative cannot work, or that markets do more good than harm.
 
 ## The setup
 

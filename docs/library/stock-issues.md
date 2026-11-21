@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Stock issues
 
-> **Plain version.** The stock issues are a checklist for the affirmative. To win, the affirmative must show five things. There is a real problem (harms). The problem will not fix itself (inherency). The plan fixes it (solvency). The problem is big enough to matter (significance). And the plan fits the topic (topicality). Some judges decide the whole round on this checklist: if the negative wins any one item, the negative wins.
+> **Plain version.** The stock issues are a checklist of five things the affirmative must show to win.
+>
+> - **The problem:** There is a real problem (harms), it will not fix itself (inherency), and it is big enough to matter (significance).
+> - **The plan:** The plan fixes the problem (solvency), and the plan fits the topic (topicality).
+> - **How some judges decide:** Some judges decide the whole round on this checklist. If the negative wins any one item, the negative wins.
 
 ## The five stock issues
 

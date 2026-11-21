@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # The economy DA
 
-> **Plain version.** The economy disadvantage says the plan hurts the economy. The plan might raise costs for businesses, add new rules, or make people unsure about the future. That slows growth. The negative then argues that a weaker economy leads to real harm, such as lost jobs, poverty, or even conflict between countries. The affirmative usually answers that the plan is too small to matter, that it helps the economy, or that the economy is strong enough to recover.
+> **Plain version.** The economy disadvantage says the plan hurts the economy.
+>
+> - **How it hurts:** The plan might raise costs for businesses, add new rules, or make people unsure about the future. That slows growth.
+> - **The harm:** The negative argues that a weaker economy leads to real harm, such as lost jobs, poverty, or even conflict between countries.
+> - **The aff usually answers:** the plan is too small to matter, it helps the economy, or the economy is strong enough to recover.
 
 ## The generic shape
 

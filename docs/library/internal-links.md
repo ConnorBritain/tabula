@@ -11,7 +11,10 @@ updated: 2026-11-20
 
 # Internal links (IL)
 
-> **Plain version.** An internal link is a step in the middle of an argument. It explains how the first thing leads to the last thing. For example: "The plan costs money" leads to "other programs get cut," which leads to "students lose help." The middle step is the internal link. Every step is a place where the argument can break, so a long chain of weak steps is less likely to happen.
+> **Plain version.** An internal link is a step in the middle of an argument that explains how the first thing leads to the last thing.
+>
+> - **An example:** "The plan costs money" leads to "other programs get cut," which leads to "students lose help." The middle step is the internal link.
+> - **Why it matters:** every step is a place where the argument can break. So a long chain of weak steps is less likely to happen.
 
 ## What an internal link is
 

@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Judging your first round
 
-> **Plain version.** You do not need debate experience to judge a fair round. Your job is to listen, take notes, and decide which team made the better case, based only on what they said. Do not add your own opinions about the topic. Students are trained to explain things to judges like you. Many tournaments rely on parent and community judges, and those judges are welcome and needed.
+> **Plain version.** You do not need debate experience to judge a fair round.
+>
+> - **Your job:** Listen, take notes, and decide which team made the better case, based only on what they said. Do not add your own opinions about the topic.
+> - **Students will help:** Students are trained to explain things to judges like you.
+> - **You are needed:** Many tournaments rely on parent and community judges, and those judges are welcome and needed.
 
 ## The round in one minute
 

@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Speaker points
 
-> **Plain version.** Speaker points are a score the judge gives each debater, apart from who wins. Most leagues use a scale near 25 to 30, with tenths allowed, such as 28.4. Higher is better. Points reward clear speaking, smart choices, good cross-ex (question time) and respect for others. Points help break ties in the standings (the team rankings) and decide speaker awards, so being fair and consistent matters.
+> **Plain version.** Speaker points are a score the judge gives each debater, apart from who wins.
+>
+> - **The scale:** Most leagues use a scale near 25 to 30, with tenths allowed, such as 28.4. Higher is better.
+> - **What earns points:** Points reward clear speaking, smart choices, good cross-ex (question time) and respect for others.
+> - **Why fairness matters:** Points help break ties in the standings (the team rankings) and decide speaker awards. So being fair and consistent matters.
 
 ## How the scale works
 

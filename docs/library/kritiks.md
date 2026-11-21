@@ -12,7 +12,12 @@ updated: 2026-11-20
 
 # Kritiks (K)
 
-> **Plain version.** Most negative arguments ask, "Is the plan a good idea?" A kritik, or K, asks a different question: "Are the ideas behind the plan a good way to think?" It says the affirmative relies on a harmful way of seeing the world. It shows what that way of thinking leads to, and it offers a different approach. The word comes from the German word for "critique." A kritik can be about the plan, about the affirmative's reasons, or about the words it used.
+> **Plain version.** A kritik, or K, asks a different question from most negative arguments: "Are the ideas behind the plan a good way to think?"
+>
+> - **How it differs:** most negative arguments ask, "Is the plan a good idea?"
+> - **What it argues:** the affirmative relies on a harmful way of seeing the world. The K shows what that way of thinking leads to, and it offers a different approach.
+> - **What it can target:** the plan, the affirmative's reasons, or the words it used.
+> - **The name:** the word comes from the German word for "critique."
 
 ## What a kritik does
 

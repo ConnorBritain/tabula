@@ -11,7 +11,12 @@ updated: 2026-11-20
 
 # Interpretation and violation (topicality)
 
-> **Plain version.** Topicality, or T, is the negative's argument that the plan does not fit the resolution, the topic sentence for the season. Every T argument starts with two parts. The interpretation says what one word or phrase in the resolution means. The violation says how the plan falls outside that meaning. If either part is weak, the whole T argument is weak, no matter how good the rest of it is.
+> **Plain version.** Every topicality (T) argument starts with two parts, the interpretation and the violation, and a weak part makes the whole argument weak.
+>
+> - **What T is:** Topicality, or T, is the negative's argument that the plan does not fit the resolution, the topic sentence for the season.
+> - **Interpretation:** This part says what one word or phrase in the resolution means.
+> - **Violation:** This part says how the plan falls outside that meaning.
+> - **Why both matter:** If either part is weak, the whole T argument is weak, no matter how good the rest of it is.
 
 ## Where these two parts fit
 

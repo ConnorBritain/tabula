@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Flow shorthand and symbols
 
-> **Plain version.** Debate is too fast to write every word. Flow shorthand is a set of short symbols and letters for common ideas. With shorthand, you can write a whole argument in a few marks. There is no one official list. Most debaters use the common symbols below and add their own. The key rule is to stay the same: use the same symbol for the same idea every round.
+> **Plain version.** Flow shorthand is a set of short symbols and letters for common ideas, so you can write a whole argument in a few marks.
+>
+> - **Why use it:** Debate is too fast to write every word.
+> - **No official list:** There is no one official list. Most debaters use the common symbols below and add their own.
+> - **The key rule:** Stay the same: use the same symbol for the same idea every round.
 
 ## How to use this list
 

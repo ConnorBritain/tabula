@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Framework vs a K aff: a timeless example
 
-> **Plain version.** This page walks through one common kind of round. The affirmative does not defend a government plan. Instead, it argues for a better way to study the topic. The negative says the aff should have defended a plan, and that a shared topic makes debate fair and useful. The aff says the neg's rule leaves out its ideas and its people. Each speech narrows the debate, until the judge must decide which model of debate is better.
+> **Plain version.** This page walks through one common kind of round: the aff argues for a better way to study the topic, not a government plan.
+>
+> - **The neg's case:** The aff should have defended a plan. A shared topic makes debate fair and useful.
+> - **The aff's case:** The neg's rule leaves out its ideas and its people.
+> - **How it ends:** Each speech narrows the debate, until the judge must decide which model of debate is better.
 
 ## The setup
 

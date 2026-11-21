@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # T "substantial" and "its" limits
 
-> **Plain version.** Many resolutions ask the government to "substantially" change something. That word sets a size limit: the plan must do enough to count. The negative argues that a small plan, such as a test program in a few cities, is too small to be topical. Other resolutions use a word like "its," which says the thing being changed must belong to the government. The negative argues that a plan that changes someone else's program does not fit. These arguments come back almost every year, whatever the topic.
+> **Plain version.** Some words in a resolution, like "substantially" and "its," limit which plans count, and the negative argues the plan does not fit.
+>
+> - **"Substantially":** Many resolutions use this word. It sets a size limit: the plan must do enough to count, so the negative argues a small plan, such as a test program in a few cities, is too small to be topical.
+> - **"Its":** This word says the thing being changed must belong to the government. The negative argues that a plan that changes someone else's program does not fit.
+> - **When it comes up:** Almost every year, whatever the topic.
 
 ## The made-up resolution
 

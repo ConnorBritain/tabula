@@ -11,7 +11,12 @@ updated: 2026-11-20
 
 # Role of the ballot (ROB) and role of the judge
 
-> **Plain version.** At the end of every round, the judge fills out a ballot that names one team as the winner. A role of the ballot, or ROB, is an argument about what that vote should reward. One team might say the ballot goes to the team with the better policy. The other might say it goes to the team that best challenges a harmful idea. A related argument, the role of the judge, says what kind of decision-maker the judge should be. These claims come up most in kritik and framework debates.
+> **Plain version.** A role of the ballot, or ROB, is an argument about what the judge's vote should reward.
+>
+> - **What the ballot is:** At the end of every round, the judge fills out a ballot that names one team as the winner.
+> - **How teams use it:** One team might say the ballot goes to the team with the better policy. The other might say it goes to the team that best challenges a harmful idea.
+> - **Role of the judge:** A related argument says what kind of decision-maker the judge should be.
+> - **Where it comes up:** These claims come up most in kritik and framework debates.
 
 ## What a ROB claim says
 

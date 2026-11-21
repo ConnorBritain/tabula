@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Topicality standards
 
-> **Plain version.** Standards are reasons. They say why one meaning of a word in the resolution makes for better debates than another meaning. The negative uses standards to defend its interpretation. The affirmative uses them to defend its counter-interpretation. Five standards are common: limits, ground, precision, predictability and education. The judge compares the standards each side wins, and that shows which interpretation is better.
+> **Plain version.** Standards are reasons why one meaning of a word in the resolution makes for better debates than another meaning.
+>
+> - **Who uses them:** The negative uses standards to defend its interpretation. The affirmative uses them to defend its counter-interpretation.
+> - **Common standards:** Five standards are common: limits, ground, precision, predictability and education.
+> - **How judges decide:** The judge compares the standards each side wins, and that shows which interpretation is better.
 
 ## What standards do
 

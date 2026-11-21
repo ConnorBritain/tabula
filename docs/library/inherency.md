@@ -11,7 +11,11 @@ updated: 2026-11-20
 
 # Inherency
 
-> **Plain version.** Inherency says the problem will not fix itself. Something in the world now keeps it going: a law, a gap in a program, or people who do not want to act. If the problem is already being fixed, the plan adds nothing, so there is no reason to vote for it. Inherency is one of the stock issues, the basic jobs of an affirmative case. The negative's usual attack is "the status quo already solves."
+> **Plain version.** Inherency says the problem will not fix itself.
+>
+> - **What keeps it going:** something in the world now: a law, a gap in a program, or people who do not want to act.
+> - **Why it matters:** if the problem is already being fixed, the plan adds nothing, so there is no reason to vote for it. Inherency is one of the stock issues, the basic jobs of an affirmative case.
+> - **How to answer it:** the negative's usual attack is "the status quo already solves."
 
 ## What inherency means
 

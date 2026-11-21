@@ -11,7 +11,10 @@ updated: 2026-11-20
 
 # Common counterplan shapes
 
-> **Plain version.** A counterplan, or CP, is the negative's own plan, offered instead of the affirmative's plan. The topic changes every year, but a few kinds of counterplan come back every year. Some change who acts. Some take a different action. Some change how the plan is passed. Some do almost all of the plan but leave out one part. Each kind has its usual answers, and each raises its own fairness questions.
+> **Plain version.** A counterplan, or CP, is the negative's own plan instead of the affirmative's; the topic changes yearly, but a few kinds keep coming back.
+>
+> - **The common kinds:** Some change who acts. Some take a different action. Some change how the plan is passed. Some do almost all of the plan but leave out one part.
+> - **What to expect:** Each kind has its usual answers, and each raises its own fairness questions.
 
 ## The basics, in brief
 
