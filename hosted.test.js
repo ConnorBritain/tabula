@@ -104,7 +104,7 @@ test('readSse and sseStep: events split across chunks, the done frame, and the e
     buf = got.rest;
     for (const ev of got.events) acc = L.sseStep(acc, ev);
   }
-  assert.deepEqual(acc, { text: 'Hello', done: true, error: '' });
+  assert.deepEqual(acc, { text: 'Hello', done: true, error: '', round: null });
   let bad = L.sseStep({}, { t: 'part' });
   bad = L.sseStep(bad, { error: 'provider_error' });
   assert.equal(bad.done, false);
@@ -155,8 +155,9 @@ function pageFn(name) {
   }
   return (AI_SRC.slice(at - 6, at) === 'async ' ? 'async ' : '') + AI_SRC.slice(at, i + 1);
 }
-const PAGE = ['STOPPED', 'anonDocs', 'providerName', 'useHosted', 'newCallId'].map(constLine).join('\n') + '\n'
-  + ['withStop', 'aiError', 'asAIError', 'hostedFail', 'callHosted', 'hostedResult', 'callAI'].map(pageFn).join('\n');
+const PAGE = 'let hostedLimits = null, hostedResume = false, rendered = 0;\nfunction renderHostedRound() { rendered++; }\n'
+  + ['STOPPED', 'anonDocs', 'providerName', 'useHosted', 'newCallId', 'hostedNow'].map(constLine).join('\n') + '\n'
+  + ['withStop', 'aiError', 'asAIError', 'hostedFail', 'setHostedRound', 'callHosted', 'hostedResult', 'callAI'].map(pageFn).join('\n');
 
 const sse = (frames) => {
   const bytes = new TextEncoder().encode(frames.map((f) => 'data: ' + JSON.stringify(f) + '\n\n').join(''));
@@ -176,10 +177,10 @@ function world({ g, ownKey = false, answers }) {
     return answers.shift();
   };
   const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console',
-    PAGE + '\nreturn callAI;');
-  const callAI = make(L, P, S, R, [], g, (f) => L.canUse(g, f), () => ownKey, () => L.NO_AI, fetch,
+    PAGE + '\nreturn [callAI, () => hostedLimits, (v) => { hostedLimits = v; }];');
+  const [callAI, limits, setLimits] = make(L, P, S, R, [], g, (f) => L.canUse(g, f), () => ownKey, () => L.NO_AI, fetch,
     (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} });
-  return { callAI, calls, toasts, opened, R, cleared: () => cleared };
+  return { callAI, calls, toasts, opened, R, cleared: () => cleared, limits, setLimits };
 }
 const EVAL_CALL = { feature: 'liveEval', system: 'sys', prompt: 'p', schema: L.EVAL_SCHEMA, hosted: { job: 'eval' } };
 
@@ -273,4 +274,85 @@ test('every AI feature passes its hosted job to callAI', () => {
   const calls = [...src.matchAll(/callAI\(\{[\s\S]*?\}\);/g)].map((m) => m[0]);
   assert.ok(calls.length >= 4);
   for (const c of calls) assert.match(c, /hosted: \{ job: /, c.slice(0, 80));
+});
+
+// ---------- round limits (Terms §6.4: "The app shows the current limits") ----------
+const ROUND = (o) => L.parseRound(Object.assign({ state: 'active', firstSpeechAt: 1, endsAt: null, idleAt: null, freeReason: null, draftsLeft: { ballot: true, decision: true } }, o));
+
+// Why: the Terms promise the app shows the current limits, and the limits may change. Numbers baked into the app would
+// show old limits after a change; a missing route must show nothing rather than made-up limits.
+test('limitsLines shows exactly the limits the server sent, and nothing without an answer', () => {
+  const a = L.parseLimits({ v: 1, now: 1000, limits: { timeLimitMin: 90, idleMin: 10, coverRounds: 2 }, round: null }, 400);
+  assert.equal(a.skew, 600);
+  const text = L.limitsLines(a.limits).join(' ');
+  assert.match(text, /up to 1 hour 30 minutes from the first recorded speech/);
+  assert.match(text, /after 10 minutes with no new speech/);
+  assert.match(text, /up to 2 more rounds/);
+  assert.match(text, /clock, flow and ballot keep working/);
+  assert.equal(L.parseLimits({ error: 'not_found' }, 1), null);
+  assert.equal(L.parseLimits({ v: 1, limits: {} }, 1), null);
+  assert.deepEqual(L.limitsLines(null), []);
+});
+
+// Why: a guard. The limits live in server config (round budget spec). A stopgap number written into the app would be
+// shown as "the current limit" even after the owner changes it.
+test('the app source has no limit values of its own', () => {
+  const src = ['js/ai.js', 'logic/hosted.js', 'index.html'].map((f) => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
+  for (const re of [/3 hours/, /20 minutes/, /\b180\b/, /ROUND_IDLE|ROUND_TIME_LIMIT|ABSORB_CAP/]) assert.doesNotMatch(src, re);
+});
+
+// Why: the judge must see where the round stands (Terms §6.4): time left, a pause they can lift with one tap, or a
+// reached limit with the free tools named. A wrong state hides the resume tap or claims AI is on when it is not.
+test('roundLine: time left, paused with a tap, limit reached, ended', () => {
+  const now = 1_000_000;
+  assert.deepEqual(L.roundLine(ROUND({ endsAt: now + 125 * 60000 }), now), { text: 'AI: 2 hours 5 minutes left this round', resume: false });
+  assert.equal(L.roundLine(ROUND({ state: 'open' }), now), null, 'before the first speech: nothing');
+  assert.deepEqual(L.roundLine(ROUND({ endsAt: now + 3600e3, idleAt: now - 1 }), now), { text: 'AI paused: no new speech for a while', resume: true }, 'a pause shows when it starts');
+  assert.match(L.roundLine(ROUND({ endsAt: now - 1 }), now).text, /AI limit reached/, 'the time limit shows when it passes');
+  assert.match(L.roundLine(ROUND({ state: 'free' }), now).text, /Clock, flow and ballot keep working\. The ballot draft still runs once\./);
+  assert.doesNotMatch(L.roundLine(ROUND({ state: 'free', draftsLeft: { ballot: false, decision: false } }), now).text, /still runs once/);
+  assert.match(L.roundLine(ROUND({ state: 'closed' }), now).text, /AI has ended for this round/);
+});
+
+// Why: after a limit only the ballot draft may run, once (Terms §6.4). Sending other calls wastes requests the server
+// refuses; blocking the ballot draft breaks a promise in the Terms.
+test('roundBlocks: a pause blocks all AI; after a limit only the ballot draft runs, once', () => {
+  const now = 5;
+  assert.equal(L.roundBlocks('flow', ROUND({}), now), '');
+  assert.equal(L.roundBlocks('flow', null, now), '', 'no limits answer: the server decides');
+  assert.equal(L.roundBlocks('ballot', ROUND({ state: 'idle' }), now), 'round_idle');
+  assert.equal(L.roundBlocks('eval', ROUND({ state: 'free' }), now), 'free_mode');
+  assert.equal(L.roundBlocks('ballot', ROUND({ state: 'free' }), now), '');
+  assert.equal(L.roundBlocks('ballot', ROUND({ state: 'free', draftsLeft: { ballot: false, decision: false } }), now), 'free_mode');
+  assert.equal(L.roundBlocks('ballot', ROUND({ state: 'closed' }), now), '');
+  const e = L.hostedError(409, 'round_idle');
+  assert.deepEqual([e.kind, e.roundState, e.fallback], ['roundIdle', 'idle', true]);
+  assert.deepEqual([L.hostedError(409, 'free_mode').roundState, L.hostedError(409, 'round_closed').roundState], ['free', 'closed']);
+  assert.equal(L.hostedError(402, 'extras_spent').kind, 'extrasSpent', 'not "out of rounds"');
+  assert.equal(L.hostedError(402, 'extras_spent').link, null);
+});
+
+// Why: the server lifts an idle pause only when the call says the judge tapped. Without the flag the tap does nothing;
+// with it on every call, the idle limit never pauses anything.
+test('hostedRequest sends resume only when the judge tapped', () => {
+  const r = round();
+  assert.equal(JSON.parse(L.hostedRequest(r, 'flow', {}, 'call-0005eeee').init.body).resume, undefined);
+  assert.equal(JSON.parse(L.hostedRequest(r, 'flow', {}, 'call-0006ffff', true).init.body).resume, true);
+});
+
+// Why: the bar must follow the server: the round state on the last frame updates it, an idle refusal shows the pause,
+// and while paused the app sends nothing more until the tap.
+test('callAI keeps the round state from the server and stops asking while paused', async () => {
+  const g = gate(record(ALL_SCHOOL, false));
+  const w = world({ g, answers: [sse([{ t: 'ok' }, { done: true, round: { state: 'active', endsAt: Date.now() + 3600e3, draftsLeft: {} } }]), refusal(409, 'round_idle')] });
+  await w.callAI({ ...EVAL_CALL, schema: null });
+  assert.equal(w.limits().round.state, 'active');
+  await assert.rejects(w.callAI({ ...EVAL_CALL, schema: null }), (err) => err.message === L.HOSTED_TEXT.roundIdle);
+  assert.equal(w.limits().round.state, 'idle');
+  await assert.rejects(w.callAI({ ...EVAL_CALL, schema: null }), (err) => err.message === L.HOSTED_TEXT.roundIdle);
+  assert.equal(w.calls.length, 2, 'no request while paused');
+  const free = world({ g, answers: [sse([{ t: 'draft' }, { done: true }])] });
+  free.setLimits({ limits: {}, skew: 0, round: ROUND({ state: 'free' }) });
+  await assert.rejects(free.callAI({ ...EVAL_CALL, schema: null }), (err) => err.message === L.HOSTED_TEXT.freeMode);
+  assert.equal(await free.callAI({ feature: 'ballotDraft', system: 's', prompt: 'p', schema: null, hosted: { job: 'ballot', extra: {} } }), 'draft', 'the ballot draft still runs once');
 });

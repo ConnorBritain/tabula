@@ -51,6 +51,7 @@ function applyCapabilities() {
   if (R.tab === 'flow') renderFlow();
   if (R.tab === 'eval' && !can('liveEval')) showTab('ballot');
   maybeKeyNotice(capsRecord && capsRecord.subject.programId); // js/settings.js
+  refreshLimits(); // the round's AI limits, when hosted (js/ai.js)
 }
 // The gate may change now only before the round's first speech (the same lock as "Judging for").
 function capsBoundary() { if (!L.judgingLocked(R)) applyCapabilities(); }

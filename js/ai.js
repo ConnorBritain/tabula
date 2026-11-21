@@ -182,6 +182,48 @@ function hostedFail(info) {
   }
   return Object.assign(new Error(info.text), { kind: 'hosted', hosted: info.kind, retryable: info.retryable, fallback: info.fallback, status: info.status });
 }
+// ---------- round limits (Terms §6.4: "The app shows the current limits") ----------
+// The server sends the limits and the round's AI state (L.parseLimits); nothing here is a fixed number. The Round card
+// shows the limits; the bottom bar shows the round's state (time left, paused with a tap to resume, limit reached).
+let hostedLimits = null; // { limits, round, skew } from the server, or null
+let hostedResume = false; // the judge tapped "Turn AI back on": the next hosted call lifts the idle pause
+const hostedNow = () => Date.now() + (hostedLimits ? hostedLimits.skew : 0);
+function setHostedRound(round) {
+  if (!round) return;
+  hostedLimits = Object.assign({ limits: {}, skew: 0 }, hostedLimits, { round });
+  renderHostedRound();
+}
+// At a round boundary (js/caps.js applyCapabilities): read the limits for this round. No hosted access: show nothing.
+async function refreshLimits() {
+  if (!L.hostedAny(capsGate)) { hostedLimits = null; renderHostedRound(); return; }
+  const req = L.limitsRequest(R.id);
+  try {
+    const res = await fetch(req.url, { ...req.init, signal: AbortSignal.timeout(8000) });
+    const got = res.ok ? L.parseLimits(await res.json().catch(() => null), Date.now()) : null;
+    if (got) hostedLimits = got;
+  } catch {} // offline or no route yet: keep what we have
+  renderHostedRound();
+}
+function renderHostedRound() {
+  const on = Boolean(hostedLimits) && L.hostedAny(capsGate);
+  const lines = on ? L.limitsLines(hostedLimits.limits) : [];
+  const box = document.getElementById('ai-limits');
+  if (box) { box.hidden = !lines.length; box.textContent = lines.join(' '); }
+  const line = on ? L.roundLine(hostedLimits.round, hostedNow()) : null;
+  const bar = document.getElementById('ai-round');
+  if (bar) { bar.hidden = !line; document.getElementById('ai-round-text').textContent = line ? line.text : ''; }
+  const btn = document.getElementById('ai-resume');
+  if (btn) btn.hidden = !(line && line.resume);
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest || !e.target.closest('#ai-resume') || !hostedLimits || !hostedLimits.round) return;
+  hostedResume = true;
+  const idle = (hostedLimits.limits.idleMin || 0) * 60000;
+  setHostedRound(Object.assign({}, hostedLimits.round, { state: 'active', idleAt: idle ? hostedNow() + idle : null }));
+  toast('AI is on again for this round.');
+});
+setInterval(renderHostedRound, 30000); // time left counts down; a pause shows when it starts
+
 // One hosted call. job: an L.HOSTED_TASKS key; extra: what that job needs from the caller (L.hostedState).
 // Returns the answer text. The judge's Stop (signal) cancels the stream, and the server charges only what it sent.
 async function callHosted({ job, extra, signal }) {
@@ -191,7 +233,10 @@ async function callHosted({ job, extra, signal }) {
   // All of the round's text docs, the same text in the same order on every call (§3a: the provider caches them).
   const docs = P.docsAsText(anonDocs(DOCS), L.docTitle);
   if (docs) state.docs = docs;
-  const req = L.hostedRequest(R, job, state, newCallId());
+  // A limit already reached: no request (Terms §6.4: the round goes on with the free tools).
+  const blocked = L.roundBlocks(job, hostedLimits && hostedLimits.round, hostedNow());
+  if (blocked) throw hostedFail(Object.assign(L.hostedError(409, blocked), { status: 409 }));
+  const req = L.hostedRequest(R, job, state, newCallId(), hostedResume);
   let res;
   try { res = await fetch(req.url, { ...req.init, signal: withStop(signal, 240000) }); }
   catch (err) {
@@ -201,8 +246,14 @@ async function callHosted({ job, extra, signal }) {
   }
   if (!res.ok) {
     const j = await res.json().catch(() => ({}));
-    throw hostedFail(Object.assign(L.hostedError(res.status, j && j.error), { status: res.status }));
+    const info = L.hostedError(res.status, j && j.error);
+    const round = L.parseRound(j && j.round);
+    if (round) setHostedRound(round);
+    else if (info.roundState && hostedLimits && hostedLimits.round) setHostedRound(Object.assign({}, hostedLimits.round, { state: info.roundState }));
+    else if (info.roundState) setHostedRound({ state: info.roundState, firstSpeechAt: null, endsAt: null, idleAt: null, freeReason: null, draftsLeft: { ballot: false, decision: false } });
+    throw hostedFail(Object.assign(info, { status: res.status }));
   }
+  hostedResume = false; // the server took the tap
   let acc = L.sseStep({}, {});
   try {
     const reader = res.body.getReader();
@@ -222,6 +273,7 @@ async function callHosted({ job, extra, signal }) {
   }
   // A stream that ends without "done" gave no full answer. The balance shows at the next capability check (§3a).
   if (!acc.done) throw hostedFail(Object.assign(L.hostedError(0, acc.error || 'stream'), { status: 0 }));
+  setHostedRound(acc.round);
   return acc.text;
 }
 // The answer as the caller wants it: JSON for a schema, else text; names put back.
