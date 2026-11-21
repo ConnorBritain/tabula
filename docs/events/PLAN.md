@@ -114,6 +114,11 @@ Each has at most 2 options and my pick. **Q2, Q5, Q6 and Q7 touch legal or busin
 - B. Classic scripts with one namespace per module (`window.TabulaCore.clock`). Smallest change from today, but globals stay and the coupling is harder to test.
 - **Decided 2026-11-20 (owner): A.** The lift touches these files anyway; doing it once with modules avoids a second migration.
 
+**Q11. Middle school Prose and Poetry (7:00; high school is 5:00).** The v1 event fields have no level field.
+- A. v1 is high school only. Middle school judges use the Custom rules to set 7:00 for the room.
+- B. Add `pro-ms` and `poe-ms` files at 7:00 (19 events).
+- **Decided 2026-11-21 (owner): A.**
+
 **Follow-ups outside this folder (this session may not edit them):**
 - `tabula-cloud/docs/PLAN.md`: the cloud session must add the Speech Events round rule (commit trigger, day-window, the time-limit exception) once Q2 is answered.
 - `docs/design/AI-POLICY.md` §2a: add `coachSummary`, and widen or split `practiceAI`, before P4.

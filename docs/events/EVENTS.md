@@ -77,6 +77,8 @@ All: 30 s grace, then no rank 1 (except where noted). Supplemental prelims use o
 | Pro Con Challenge | PCC | Public address | Two 3–5 min speeches, 10:30 total | Uses a debate topic or Congress bill | Read from a script | Both sides argued | P3 (two runs in one entry; the rules call 10:30 hard yet also attach grace: unclear) |
 | Extemp Debate | XDB | Debate (1 v 1) | 2-min speeches, 1-min CX | 30 min before | Notes allowed | Win or loss; no comments | **No** (it is a debate; fits Tabula Debate formats later) |
 
+**Middle school Prose and Poetry (decided 2026-11-21, owner):** v1 ships the high school limits only. The `pro` and `poe` files are 5:00. A middle school judge picks the Custom rules and sets the 7:00 limit for that room. Separate middle school files wait until a level field or an MS pack is needed.
+
 Note: NSDA no longer lists separate "consolation" events in the 2026-27 manual. HS Declamation is gone from NSDA (it lives in the MS manual, CHSSA, OSDA, NCFL).
 
 ## 5. State and league events
