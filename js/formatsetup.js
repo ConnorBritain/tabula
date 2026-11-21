@@ -40,6 +40,12 @@ function renderFormatSetup() {
   $('#prep-min').value = Math.round(R.prepSeconds / 60);
   renderPrepPresets();
   $('#times-note').textContent = fmt.timesNote + ' Tabula remembers your choice for new rounds.';
+  // Hints in shared boxes follow the format, so an LD round does not show policy words ("federal government", "plan").
+  const copy = L.formatCopy(fmt);
+  document.querySelector('[data-bind="topic"]').placeholder = copy.topicHint;
+  $('#ballot-input').placeholder = copy.ballotExample;
+  $('#ne-label').placeholder = copy.argExample;
+  $('#pal-empty').textContent = 'No match. Try "sheet", "prep" or a speech like "' + fmt.flowSpeeches[2] + '".';
 }
 renderFormatSetup();
 (() => {

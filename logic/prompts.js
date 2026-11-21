@@ -154,7 +154,7 @@
     'You flow a ' + fmt.ai.kind + ' debate for a judge, live, from a speech-to-text transcript.',
     'Flow only the CURRENT speech. Earlier speeches are already flowed and given for context.',
     'For each sheet, write the same arguments at three levels of detail:',
-    '- brief: the big picture only. One short line per position or main answer (e.g. "Perm do both", "No link — plan is cheap"). No authors.',
+    '- brief: the big picture only. One short line per position or main answer (e.g. ' + F.formatCopy(fmt).flowBriefExamples + '). No authors.',
     '- standard: normal flow shorthand. One line per argument, numbered, short tag, author + year if a card is read.',
     '- detailed: one entry per argument, numbered: the tag, author + year, then the warrant (why it is true, the key evidence) in one or two lines, and which earlier argument it answers.',
     'All three levels must cover the same arguments in the same order; only the depth changes.',
@@ -295,14 +295,25 @@
 
   // ---------- reading level ----------
   // The same analysis, written for two readers. Only the wording changes, never the verdict.
-  const READING_LEVELS = {
-    expert: { label: 'Expert', guide: 'READING LEVEL: expert. Write for an experienced college policy judge. Precise, technical debate vocabulary and shorthand are fine.' },
-    plain: { label: 'Plain', guide: 'READING LEVEL: plain (Feynman style). Write so a first-year high school debater and their parent can follow it on one read. '
-      + 'Use short sentences and everyday words. When you must use a debate term, explain it in a few plain words the first time '
-      + '(for example: "the link, meaning why the plan causes the problem"). Prefer one concrete example over abstract wording. '
-      + 'Talk to debaters directly and kindly in feedback ("you", not "the 1A"). Keep the same substance, verdict and points; only the wording gets simpler.' },
-  };
-  function readingGuide(level) { return (READING_LEVELS[level] || READING_LEVELS.expert).guide; }
+  // The judge, the example term and the seat named in feedback come from the round's format (F.formatCopy, the first
+  // debater's tag), so an LD round is not told about "the plan" or "the 1A". Policy gets the words it always had.
+  const LEVELS = {};
+  function readingLevels(fmt) {
+    const f = fmt || F.POLICY;
+    const c = F.formatCopy(f);
+    return LEVELS[f.key] ??= Object.freeze({
+      expert: Object.freeze({ label: 'Expert', guide: 'READING LEVEL: expert. Write for an experienced ' + c.readingJudge + '. Precise, technical debate vocabulary and shorthand are fine.' }),
+      plain: Object.freeze({ label: 'Plain', guide: 'READING LEVEL: plain (Feynman style). Write so a first-year high school debater and their parent can follow it on one read. '
+        + 'Use short sentences and everyday words. When you must use a debate term, explain it in a few plain words the first time '
+        + '(for example: "' + c.readingExample + '"). Prefer one concrete example over abstract wording. '
+        + 'Talk to debaters directly and kindly in feedback ("you", not "the ' + F.speakerTag(f.speakers[0]) + '"). Keep the same substance, verdict and points; only the wording gets simpler.' }),
+    });
+  }
+  // Deprecated alias: the policy reading levels under their old name (old callers and tests). Page code calls
+  // readingGuide(level, FMT()).
+  const READING_LEVELS = readingLevels(F.POLICY);
+  // fmt: the round's format (policy-hs when not given). An unknown level is expert.
+  function readingGuide(level, fmt) { const lv = readingLevels(fmt); return (lv[level] || lv.expert).guide; }
 
   // ---------- live evaluation (mid-round) ----------
 
@@ -627,7 +638,8 @@
       ballotTask: ballotTask(f),
     });
   }
-  // The policy prompts under their old names (old callers and tests).
+  // Deprecated aliases: the policy prompts under their old names (old callers and tests). Page code reads
+  // promptsFor(FMT()); formats.test.js checks that it never uses these names.
   const P = promptsFor(F.POLICY);
   const POINTS_GUIDE = P.pointsGuide, JUDGE_SYSTEM = P.judgeSystem, LIVE_FLOW_SYSTEM = P.liveFlowSystem,
     BALLOT_SCHEMA = P.ballotSchema, BALLOT_TASK = P.ballotTask, EVAL_SYSTEM = P.evalSystem, EVAL_SCHEMA = P.evalSchema,
@@ -635,7 +647,7 @@
 
   const api = { buildJudgePrompt, POINTS_GUIDE, JUDGE_SYSTEM, parseFeedback, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM,
     buildLiveFlowPrompt, BALLOT_SCHEMA, BALLOT_TASK, buildBallotPrompt, applyBallotDraft, READING_LEVELS,
-    readingGuide, nextSpeech, EVAL_SYSTEM, EVAL_SCHEMA, buildEvalPrompt, ANALYSIS_SYSTEM, MAP_SCHEMA, MAP_TASK,
+    readingLevels, readingGuide, nextSpeech, EVAL_SYSTEM, EVAL_SCHEMA, buildEvalPrompt, ANALYSIS_SYSTEM, MAP_SCHEMA, MAP_TASK,
     IMPACT_SCHEMA, IMPACT_TASK, LENS_SCHEMA, LENS_TASK, buildAnalysisPrompt, buildMermaid, layoutMap, promptsFor };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).prompts = api;

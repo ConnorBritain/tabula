@@ -159,7 +159,7 @@ $('#dp-prompt').addEventListener('click', async () => {
   const fields = draftGroupsNow().filter((g) => (draftUi.picks || defaultPicks()).has(g.id)).flatMap((g) => g.fields);
   const textDocs = DOCS.filter((d) => d.kind !== 'pdf').map((d) => '=== ' + L.docTitle(d, FMT()) + ' ===\n' + d.data).join('\n\n');
   const pdfs = DOCS.filter((d) => d.kind === 'pdf').map((d) => d.name);
-  const text = L.anonymize(BALLOT_SYSTEM() + '\n\n' + L.readingGuide(lvl()) + '\n\n' + (textDocs ? textDocs + '\n\n' + L.DOC_NOTE + '\n\n' : '')
+  const text = L.anonymize(BALLOT_SYSTEM() + '\n\n' + L.readingGuide(lvl(), FMT()) + '\n\n' + (textDocs ? textDocs + '\n\n' + L.DOC_NOTE + '\n\n' : '')
     + L.buildBallotPrompt(R, DOCS, R.ballotInput || '', { only: fields, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null }), R);
   const ok = await copy(text);
   toast(ok ? (pdfs.length ? 'Prompt copied. Attach these PDFs by hand: ' + pdfs.join(', ') : 'Prompt copied. Paste it into any AI chat.') : 'Copy did not work in this browser.');
@@ -633,9 +633,11 @@ addEventListener('afterprint', () => removePrintSheet());
 function renderLog() {
   const log = store.get(LOG, []);
   if (!log.length) { $('#log-table').innerHTML = '<tr><td class="muted">No saved ballots yet. Save one from Decide → Ballot.</td></tr>'; return; }
-  const cols = L.LOG_COLUMNS;
-  $('#log-table').innerHTML = '<tr>' + cols.map((i) => `<th>${L.BALLOT_HEADER[i]}</th>`).join('') + '<th><span class="sr-only">Actions</span></th></tr>'
-    + log.map((r, n) => '<tr>' + cols.map((i) => `<td>${escapeHtml(r[i] ?? '')}</td>`).join('')
+  // Columns named by each ballot's format ('1A pts', 'Aff pts'); the rows are in log order, so n is the log index.
+  const table = L.historyTable(log);
+  const cols = L.historyColumns(table);
+  $('#log-table').innerHTML = '<tr>' + cols.map((i) => `<th>${escapeHtml(table.header[i])}</th>`).join('') + '<th><span class="sr-only">Actions</span></th></tr>'
+    + table.rows.map((r, n) => '<tr>' + cols.map((i) => `<td>${escapeHtml(r[i] ?? '')}</td>`).join('')
       + `<td class="log-acts"><button class="b small" type="button" data-print-log="${n}" aria-label="Print the saved ballot from ${escapeHtml(r[0] || 'an unknown date')}">Print</button><button class="iconbtn" type="button" data-del="${n}" aria-label="Delete saved ballot from ${escapeHtml(r[0] || 'an unknown date')}">×</button></td></tr>`).join('');
 }
 $('#log-table').addEventListener('click', (e) => {
@@ -647,6 +649,7 @@ $('#log-table').addEventListener('click', (e) => {
   store.set(LOG, list); renderLog();
   undoToast('Saved ballot deleted.', 'delete saved ballot', () => { store.set(LOG, L.restoreAt(store.get(LOG, []), undo.index, undo.item)); renderLog(); }, 'Saved ballot restored.');
 });
-// The spreadsheet exports live here (spec 4.1 [A]); each saved ballot gives its row without the extra data at the end.
-$('#log-tsv').addEventListener('click', () => copyToast(L.toTSV([L.BALLOT_HEADER, ...store.get(LOG, []).map(L.savedBallotRow)])));
-$('#log-csv').addEventListener('click', () => download('policy_ballots.csv', L.toCSV([L.BALLOT_HEADER, ...store.get(LOG, []).map(L.savedBallotRow)])));
+// The spreadsheet exports live here (spec 4.1 [A]): one flat table with a Format column (L.historyTable says why).
+const historyRows = () => { const t = L.historyTable(store.get(LOG, [])); return [t.header, ...t.rows]; };
+$('#log-tsv').addEventListener('click', () => copyToast(L.toTSV(historyRows())));
+$('#log-csv').addEventListener('click', () => download('tabula_ballots.csv', L.toCSV(historyRows())));

@@ -24,6 +24,7 @@
       { id: 'negFb', label: 'Neg comments', fields: ['negFb'] },
     ];
   };
+  // Deprecated aliases (policy, old callers and tests): page code calls ptsFields(FMT()) and draftGroups(FMT()).
   const PTS_FIELDS = ptsFields(F.POLICY);
   const DRAFT_GROUPS = draftGroups(F.POLICY);
   const FIELD_LABELS = { winner: 'the winner', rfd: 'the reason for decision', affFb: 'the Aff comments', negFb: 'the Neg comments' };
@@ -271,6 +272,48 @@
     };
   }
 
+  // The History export (Download CSV, Copy for Google Sheets) and the History table: { header, rows, formats }, one row
+  // per saved ballot, in log order. The saved entries keep their old layout (above); this only shapes what a coach sees.
+  // The speaker columns are named by each ballot's own format ('1A pts' in policy, 'Aff pts' in LD), and a Format
+  // column names the format. A mixed history stays one flat table, because one table is what a spreadsheet can sort
+  // and filter: it has the columns of every format in it, side by side under each side's team, and a row fills only its
+  // own format's columns. A policy-only history gives the old columns in the old places, with Format added at the end,
+  // so a coach's existing sheet still lines up.
+  // The columns that are the same in every format, read straight from the saved row.
+  const ROUND_COLS = ['Saved at', 'Tournament', 'Round', 'Judge', 'Topic', 'Aff team', 'Neg team', 'Winner', 'Winning team', 'RFD'];
+  function historyTable(log) {
+    const entries = (log || []).map((e) => e || []);
+    const views = entries.map(savedBallotView);
+    const fmtOf = views.map((v) => F.formatOf(v.round));
+    const order = (f) => F.FORMAT_FILES.indexOf(f.id + '.v' + f.version);
+    const formats = [...new Map(fmtOf.map((f) => [f.key, f])).values()].sort((a, b) => order(a) - order(b));
+    // A speaker's columns: the name, the points, and the rank when the format has ranks. Same name, same column.
+    const speakerCols = (f, sp) => [sp.label, sp.label + ' pts'].concat(f.ballot.speakerRanks ? [sp.label + ' rank'] : []);
+    const sideCols = (side) => [...new Set(formats.flatMap((f) => F.speakersOn(f, side).flatMap((sp) => speakerCols(f, sp))))];
+    const header = ['Saved at', 'Tournament', 'Round', 'Judge', 'Topic', 'Aff team', ...sideCols('aff'), 'Neg team', ...sideCols('neg'),
+      'Winner', 'Winning team', 'RFD', 'Format'];
+    const rows = entries.map((e, i) => {
+      const v = views[i], f = fmtOf[i], b = v.round.ballot;
+      const cells = {};
+      for (const name of ROUND_COLS) cells[name] = e[BALLOT_HEADER.indexOf(name)];
+      for (const sp of f.speakers) {
+        const [n, p, r] = speakerCols(f, sp);
+        cells[n] = F.speakerName(v.round, sp); cells[p] = b.pts[sp.id];
+        if (r) cells[r] = b.ranks[sp.id];
+      }
+      cells.Format = f.name;
+      return header.map((name) => cells[name] ?? '');
+    });
+    return { header, rows, formats };
+  }
+  // The History table's columns (indexes into historyTable's header): who and when, the winner, every points column,
+  // and the format when the history mixes formats.
+  function historyColumns(table) {
+    const names = ['Saved at', 'Round', 'Aff team', 'Neg team', 'Winner', ...table.header.filter((h) => h.endsWith(' pts'))]
+      .concat(table.formats.length > 1 ? ['Format'] : []);
+    return names.map((n) => table.header.indexOf(n));
+  }
+
   // 4.11 The four blocks a judge pastes into the tournament's ballot site.
   function decisionText(round) {
     const b = round.ballot || {};
@@ -390,7 +433,7 @@
   const api = { PTS_FIELDS, DRAFT_GROUPS, ptsFields, draftGroups, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot,
     roundHasContent, insightsReady, draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft,
     staleReviewCards, reviewInsertFields, applyReview, autoRefillPlan, speechEndedSince, ranksSet, moveRank,
-    stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, decisionText, tournamentBlocks, printModel,
+    stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, historyTable, historyColumns, decisionText, tournamentBlocks, printModel,
     prepUsed, keyMoments, issueTally, andList, outOfDateText, runVerb, readingFor, decideTab };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).decide = api;

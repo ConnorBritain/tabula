@@ -8,7 +8,7 @@
   const F = part('format');
   const POLICY = F.POLICY;
 
-  // The policy format's lists under their old names. They now come from formats/policy-hs.v1.js; code that knows the
+  // Deprecated aliases: the policy format's lists under their old names. They now come from formats/policy-hs.v1.js; code that knows the
   // round reads its own format instead (F.formatOf(round)). Old callers and tests still use these names.
   const SPEECHES = POLICY.speeches;
   const FLOW_COLUMNS = POLICY.flowColumns;
@@ -45,6 +45,7 @@
     const m = short.match(SHEET_KEY);
     return m ? SHEET_PAGES[m[1]] : null;
   }
+  // Deprecated aliases (policy), like SPEECHES above.
   const DEFAULT_PREP_SECONDS = POLICY.prep.seconds;
   const SPEAKERS = POLICY.speakerIds;
 
@@ -116,6 +117,8 @@
       .join('\n');
   }
 
+  // The layout of a saved ballot in History (the stored entry; savedBallotEntry). It stays as it is, so every saved
+  // ballot still opens. It is not what a coach sees: the table and the exports use historyTable (logic/decide.js).
   const BALLOT_HEADER = [
     'Saved at', 'Tournament', 'Round', 'Judge', 'Topic',
     'Aff team', '1A', '1A pts', '1A rank', '2A', '2A pts', '2A rank',
@@ -213,6 +216,7 @@
     return (m ? m[1] : text || '').trim();
   }
 
+  // Deprecated alias: the History table's columns before formats (policy only). The page uses historyColumns.
   // Columns shown in the Log table, picked by header name, not position.
   const LOG_COLUMNS = ['Saved at', 'Round', 'Aff team', 'Neg team', 'Winner', '1A pts', '2A pts', '1N pts', '2N pts']
     .map((name) => BALLOT_HEADER.indexOf(name));
@@ -223,7 +227,7 @@
     const ranks = f.ballot.speakerRanks ? f.speakerIds.map((s) => 'ranks.' + s) : [];
     return ['winner', ...f.speakerIds.map((s) => 'pts.' + s), ...ranks, 'rfd', 'affFb', 'negFb'];
   }
-  const BALLOT_FIELDS = ballotFields(POLICY);
+  const BALLOT_FIELDS = ballotFields(POLICY); // deprecated alias (policy): page code calls ballotFields(FMT())
   // Speeches that have happened: they have a transcript, used clock time, or AI flow notes. In the round's format.
   function speechesSoFar(round) {
     const r = round || {};
@@ -236,7 +240,7 @@
     }).map((s) => s.id);
   }
 
-  const MAP_SPEECHES = POLICY.flowSpeeches;
+  const MAP_SPEECHES = POLICY.flowSpeeches; // deprecated alias (policy): page code reads FMT().flowSpeeches
   // 4.7 (Q10) The speaker points range is a Round setup setting. 25–30 when nothing is set.
   const DEFAULT_PTS_RANGE = { min: 25, max: 30 };
   function ptsRange(r) {
