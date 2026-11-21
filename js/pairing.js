@@ -12,7 +12,7 @@ let pasteChanges = [];
 function renderPasteFound() {
   const text = pasteBox.value;
   const parsed = L.parseRoundPaste(text, FMT());
-  pasteChanges = L.roundPasteChanges(R, parsed, FMT());
+  pasteChanges = L.roundPasteChanges(R, parsed, FMT(), { details: flagOn('roundDetails') });
   pasteFill.setAttribute('aria-disabled', String(!pasteChanges.length));
   pasteFound.textContent = '';
   if (!text.trim()) return;
@@ -49,7 +49,7 @@ pasteFill.addEventListener('click', () => {
   const ticked = new Set([...pasteFound.querySelectorAll('input[type="checkbox"]:checked')].map((b) => b.dataset.path));
   const picked = pasteChanges.filter((c) => ticked.has(c.path));
   if (!picked.length) { pasteBox.focus(); return; }
-  const before = { tournament: R.tournament, roundName: R.roundName, judge: R.judge, aff: { ...R.aff }, neg: { ...R.neg } };
+  const before = { tournament: R.tournament, roundName: R.roundName, judge: R.judge, room: R.room, start: R.start, flight: R.flight, aff: { ...R.aff }, neg: { ...R.neg } };
   const n = picked.length;
   for (const c of picked) setPath(R, c.path, c.value);
   afterPasteChange();

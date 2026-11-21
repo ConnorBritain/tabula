@@ -2,7 +2,7 @@
 // The code lives in logic/, one file per job. This file joins the parts into the one API the page (window.PolicyLogic),
 // the local helper and the tests use. In the page, index.html loads the parts in this order: logic/caps.js (in <head>), the format
 // files (formats/*.js), logic/format.js, logic/round.js,
-// logic/audio.js, logic/flow.js, logic/files.js, logic/pairing.js, logic/rules.js, logic/decide.js, logic/prompts.js, logic/shell.js, logic/account.js, then this file.
+// logic/audio.js, logic/flow.js, logic/files.js, logic/pairing.js, logic/rules.js, logic/decide.js, logic/prompts.js, logic/shell.js, logic/account.js, logic/flags.js, then this file.
 // In Node, require('./logic.js') loads the parts itself. A part only uses parts that load before it.
 (function (root) {
   'use strict';
@@ -21,6 +21,7 @@
     parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty,
     buildRoundFile, parseRoundFile, roundFileName, docTitle, buildDocBlocks, buildUserContent } = part('files');
   const { parseRoundPaste, roundPasteChanges, swapSides } = part('pairing');
+  const { FLAGS, FLAG_GROUP, flagOn } = part('flags');
   const { OVER_LIMIT, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer,
     shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere, NO_AI,
     hasHostedPlan, shouldShowWelcome, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt,
@@ -88,6 +89,8 @@
     draftGroups, promptsFor, readingLevels,
     // Round import by paste (docs/research/TABROOM.md, Option D)
     parseRoundPaste, roundPasteChanges, swapSides,
+    // Feature flags (logic/flags.js)
+    FLAGS, FLAG_GROUP, flagOn,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PolicyLogic = api;

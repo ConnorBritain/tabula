@@ -548,13 +548,14 @@ function focusBallotProblem() {
 const copyDlg = modalDialog($('#copy-sheet'), $('#copy-card'), { name: 'copy', rank: 85 });
 let copyBlocks = [];
 function openCopySheet() {
-  copyBlocks = L.tournamentBlocks(R);
+  copyBlocks = L.tournamentBlocks(R, { tips: flagOn('copyTips') });
   const n = L.checkBallot(R.ballot, { range: ptsRangeNow(), format: FMT() }).length;
   $('#copy-warn').hidden = !n;
   $('#copy-warn').textContent = n ? 'This ballot has ' + n + (n === 1 ? ' problem' : ' problems') + '. Fix them first, or copy anyway.' : '';
   $('#copy-blocks').innerHTML = copyBlocks.map((b) => `<section class="copy-block" aria-labelledby="cb-h-${b.id}">
-    <div class="copy-head"><h3 id="cb-h-${b.id}">${escapeHtml(b.label)}</h3>${b.text ? `<button class="b small" type="button" data-copy-block="${b.id}" aria-label="Copy ${escapeHtml(b.label)}">Copy</button>` : ''}</div>
+    <div class="copy-head"><h3 id="cb-h-${b.id}">${escapeHtml(b.label)}${b.text && b.words !== undefined ? ` <span class="muted copy-words">${b.words} ${b.words === 1 ? 'word' : 'words'}</span>` : ''}</h3>${b.text ? `<button class="b small" type="button" data-copy-block="${b.id}" aria-label="Copy ${escapeHtml(b.label)}">Copy</button>` : ''}</div>
     ${b.text ? `<textarea class="copy-text" id="cb-t-${b.id}" readonly rows="${Math.min(8, Math.max(2, b.text.split('\n').length + Math.floor(b.text.length / 70)))}" aria-labelledby="cb-h-${b.id}">${escapeHtml(b.text)}</textarea>
+    ${b.note ? `<p class="field-help copy-note">${escapeHtml(b.note)}</p>` : ''}
     <p class="copy-fail" id="cb-f-${b.id}" hidden>Press Ctrl+C (⌘C on Mac) to copy.</p>` : '<p class="muted">Nothing written yet</p>'}
   </section>`).join('');
   copyDlg.open($('#copy-blocks [data-copy-block]') || $('#copy-done'));

@@ -600,6 +600,10 @@
   .copy-block { margin-top: var(--s3); }
   .copy-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); margin-bottom: var(--s1); }
   .copy-head h3 { margin: 0; font-size: var(--fs-2); font-weight: var(--fw-4); }
+  .copy-words { font-size: var(--fs-1); }
+  .copy-note { margin: var(--s1) 0 0; }
+  /* Feature flags (logic/flags.js): a flagged part starts hidden; js/core.js shows it when its flag is on. */
+  [data-flag][hidden] { display: none; }
   .copy-text { font-size: var(--fs-2); resize: vertical; }
   .copy-fail { margin: var(--s1) 0 0; color: var(--caution); font-size: var(--fs-2); font-weight: var(--fw-3); }
   .copy-fail[hidden] { display: none; }
@@ -861,8 +865,13 @@
       <div><label>Round</label><input data-bind="roundName" placeholder="Round 3"></div>
       <div><label>Judge</label><input data-bind="judge"></div>
     </div>
+    <div class="grid mt-3" data-flag="roundDetails" hidden>
+      <div><label>Room</label><input data-bind="room"></div>
+      <div><label>Start time</label><input data-bind="start" placeholder="9:00 AM"></div>
+      <div><label>Flight</label><input data-bind="flight" placeholder="A"></div>
+    </div>
     <div class="mt-3"><label>Resolution</label><input data-bind="topic" placeholder="Resolved: The United States federal government should…"></div>
-    <details class="mt-3 noprint" id="paste-round">
+    <details class="mt-3 noprint" id="paste-round" data-flag="pasteRound" hidden>
       <summary class="muted">Paste the round from the tournament site</summary>
       <p class="muted field-help" id="paste-round-help">On the tournament site, select your round on your judge page or in the pairings, copy it, and paste it here. Tabula reads the text in this browser. It does not connect to the tournament site.</p>
       <textarea id="paste-round-text" class="mt-2" rows="5" aria-label="Round text from the tournament site" aria-describedby="paste-round-help" spellcheck="false" placeholder="Round 3&#10;Aff: Lincoln AB  Alex Smith &amp; Bo Jones&#10;Neg: Westfield CD  Cam Lee &amp; Dee Park"></textarea>
@@ -1397,6 +1406,7 @@
 <script src="logic/prompts.js"></script>
 <script src="logic/shell.js"></script>
 <script src="logic/account.js"></script>
+<script src="logic/flags.js"></script>
 <script src="logic.js"></script>
 <script src="providers.js"></script>
 <script src="tour.js"></script>

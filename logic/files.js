@@ -120,6 +120,7 @@
     const round = Object.assign({}, safe, {
       id: newId,
       tournament: str(r.tournament), roundName: str(r.roundName), judge: str(r.judge), topic: str(r.topic),
+      room: str(r.room), start: str(r.start), flight: str(r.flight),
       aff: team(r.aff), neg: team(r.neg),
       transcripts: Object.fromEntries(Object.entries(obj(r.transcripts)).filter(([, v]) => typeof v === 'string')),
       flows: r.flows.filter((s) => s && typeof s.name === 'string').map((s) => ({ name: s.name, cells: obj(s.cells) })),

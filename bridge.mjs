@@ -23,7 +23,7 @@ const FILES = { '/': 'index.html', '/index.html': 'index.html', '/logic.js': 'lo
 for (const f of ['tabula-mark-black.webp', 'tabula-mark-white.webp', 'tabula-wordmark-black.webp', 'tabula-wordmark-white.webp', 'tabula-mark-black.png', 'tabula-mark-white.png', 'tabula-icon-64.png', 'fonts/InterTight-latin.woff2', 'fonts/InterTight-Italic-latin.woff2', 'tokens.css', 'theme-boot.js', 'brand.js', 'caps-boot.js']) FILES['/assets/' + f] = 'assets/' + f;
 // The page code and the pure logic are split by job into js/ and logic/ (the files index.html loads in order).
 for (const f of ['core', 'formatsetup', 'pairing', 'caps', 'clock', 'recording', 'flow', 'docs', 'ai', 'settings', 'help', 'insights', 'decide', 'shell', 'palette', 'study', 'judging', 'account']) FILES['/js/' + f + '.js'] = 'js/' + f + '.js';
-for (const f of ['format', 'round', 'audio', 'flow', 'files', 'pairing', 'rules', 'decide', 'prompts', 'shell', 'account', 'caps']) FILES['/logic/' + f + '.js'] = 'logic/' + f + '.js';
+for (const f of ['format', 'round', 'audio', 'flow', 'files', 'pairing', 'rules', 'decide', 'prompts', 'shell', 'account', 'flags', 'caps']) FILES['/logic/' + f + '.js'] = 'logic/' + f + '.js';
 for (const f of ['policy-hs.v1', 'ld.v1']) FILES['/formats/' + f + '.js'] = 'formats/' + f + '.js';
 for (const f of ['mammoth-1.6.0.browser.min.js', 'mermaid-10.9.1.min.js', 'anthropic-sdk-0.137.0.bundle.mjs']) FILES['/vendor/' + f] = 'vendor/' + f;
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.webp': 'image/webp', '.png': 'image/png', '.woff2': 'font/woff2', '.css': 'text/css; charset=utf-8', '.xml': 'application/xml; charset=utf-8' };

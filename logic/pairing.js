@@ -99,13 +99,14 @@
       const row = cells(lines[i + 1]);
       if (row.length <= Math.max(a, n)) continue;
       const col = (re) => { const k = head.findIndex((c) => re.test(c)); return k >= 0 && row[k] ? row[k] : ''; };
-      return { aff: row[a], neg: row[n], round: col(/^round$/i), judge: col(/^judges?$/i), rows: [i, i + 1] };
+      return { aff: row[a], neg: row[n], round: col(/^round$/i), judge: col(/^judges?$/i), room: col(/^room$/i), flight: col(/^flight$/i), rows: [i, i + 1] };
     }
     return null;
   }
 
   // text: what the judge pasted. fmt: the round's format (how many names a side has).
-  // Returns { tournament, roundName, judge, aff: { team, d1, d2 }, neg: { team, d1, d2 }, sidesKnown, flip } with ''
+  // Returns { tournament, roundName, judge, room, start, flight, aff: { team, d1, d2 }, neg: { team, d1, d2 }, sidesKnown,
+  // flip } with ''
   // for what the text does not say. sidesKnown is false when the text names two entries but not which side is which
   // (a "Team A vs Team B" line): the first one is read as Aff, and the judge should check.
   function parseRoundPaste(text, fmt) {
@@ -113,7 +114,7 @@
     const slotsOf = (side) => F.speakersOn(f, side).map((s) => s.slot);
     const raw = String(text || '').slice(0, PASTE_MAX).replace(/\r\n?/g, '\n').replace(/ /g, ' ');
     const lines = raw.split('\n').map((l) => l.replace(/\s+$/, '')).filter((l) => l.trim());
-    const out = { tournament: '', roundName: '', judge: '', aff: emptySide(), neg: emptySide(), sidesKnown: false, flip: /\b(flip|coin (?:toss|flip))\b/i.test(raw) };
+    const out = { tournament: '', roundName: '', judge: '', room: '', start: '', flight: '', aff: emptySide(), neg: emptySide(), sidesKnown: false, flip: /\b(flip|coin (?:toss|flip))\b/i.test(raw) };
     const done = new Set();
     const setSide = (key, entry) => { if (!out[key].team && !out[key].d1) out[key] = entry; };
 
@@ -124,6 +125,8 @@
       out.sidesKnown = true;
       if (table.round) out.roundName = clean(table.round);
       if (table.judge) out.judge = clean(table.judge);
+      if (table.room) out.room = clean(table.room);
+      if (table.flight) out.flight = clean(table.flight);
       table.rows.forEach((r) => done.add(r));
     }
 
@@ -136,6 +139,9 @@
         if (key === 'tournament' && val) out.tournament ||= val;
         else if (key === 'round' && val) out.roundName ||= val;
         else if (key === 'judge' && val) out.judge ||= val;
+        else if (key === 'room' && val) out.room ||= val;
+        else if ((key === 'start' || key === 'time') && val) out.start ||= val;
+        else if (key === 'flight' && val) out.flight ||= val;
         done.add(i);
         return;
       }
@@ -180,8 +186,9 @@
   }
 
   // The round fields the paste would fill, as [{ path, label, value, old }]. Only fields the paste found; old is the
-  // value in the round now ('' when empty), so the page can say what gets replaced.
-  function roundPasteChanges(round, parsed, fmt) {
+  // value in the round now ('' when empty), so the page can say what gets replaced. opts.details: also room, start
+  // time and flight (the page passes its roundDetails flag; with the flag off the round card has no boxes for them).
+  function roundPasteChanges(round, parsed, fmt, opts) {
     const f = fmt || F.formatOf(round || {});
     const r = round || {};
     const rows = [
@@ -189,6 +196,7 @@
       ['roundName', 'Round', parsed.roundName, r.roundName],
       ['judge', 'Judge', parsed.judge, r.judge],
     ];
+    if (opts && opts.details) rows.push(['room', 'Room', parsed.room, r.room], ['start', 'Start time', parsed.start, r.start], ['flight', 'Flight', parsed.flight, r.flight]);
     for (const side of ['aff', 'neg']) {
       const word = f.sides[side].label;
       rows.push([side + '.team', word + ' team code', parsed[side].team, (r[side] || {}).team]);

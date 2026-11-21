@@ -215,3 +215,28 @@ test('the paste preview gives each found field a tick box, and Fill uses only ti
   assert.match(src, /pasteChanges\.filter\(\(c\) => ticked\.has\(c\.path\)\)/);
   assert.match(src, /for \(const c of picked\) setPath\(R, c\.path, c\.value\)/);
 });
+
+// Why: the judge page lists room, start time and flight. If the paste missed them, the judge would retype them; if it
+// filled them with the flag off, it would write fields that have no box on the Round card.
+test('roundPasteChanges: room, start time and flight only with details on (judge page sample)', () => {
+  const p = L.parseRoundPaste(read('fixtures/pairing/judge-page.txt'), POLICY);
+  assert.equal(p.room, '204');
+  assert.equal(p.start, '9:00 AM');
+  assert.equal(p.flight, 'A');
+  const on = L.roundPasteChanges({ room: '101' }, p, POLICY, { details: true });
+  assert.deepEqual(on.find((c) => c.path === 'room'), { path: 'room', label: 'Room', value: '204', old: '101' });
+  assert.ok(on.some((c) => c.path === 'start' && c.label === 'Start time'));
+  assert.ok(on.some((c) => c.path === 'flight' && c.value === 'A'));
+  const off = L.roundPasteChanges({}, p, POLICY);
+  assert.ok(!off.some((c) => ['room', 'start', 'flight'].includes(c.path)));
+  assert.ok(off.some((c) => c.path === 'aff.team'), 'the rest of the paste still fills with details off');
+});
+
+// Why: the posted pairings put room and flight in columns. Read wrong, the judge goes to the wrong room or flight.
+test('parseRoundPaste: room and flight from a pairings table (pairings sample)', () => {
+  const p = L.parseRoundPaste(read('fixtures/pairing/pairings-table.txt'), POLICY);
+  assert.equal(p.room, '117');
+  assert.equal(p.flight, 'B');
+  assert.equal(p.aff.team, 'Lincoln AB');
+  assert.equal(p.neg.team, 'Westfield CD');
+});

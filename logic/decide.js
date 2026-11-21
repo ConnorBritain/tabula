@@ -5,7 +5,7 @@
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
   const F = part('format');
-  const { formatClock, BALLOT_HEADER, LOG_SLOTS, ballotRow, num, ballotFields, speechesSoFar, ptsRange } = part('round');
+  const { formatClock, BALLOT_HEADER, LOG_SLOTS, ballotRow, num, ballotFields, speechesSoFar, ptsRange, isLowPointWin } = part('round');
   const { speechSide } = part('files');
 
   // ---------- Slice 4: Decide and ballot (docs/design/SPEC.md §3.4) ----------
@@ -343,14 +343,23 @@
     }
     return lines.join('\n');
   }
-  function tournamentBlocks(round) {
+  // Words in a text, for tournament word minimums. "Don't" and "cross-ex" count as one word each.
+  const wordCount = (text) => (String(text || '').match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) || []).length;
+  // opts.tips (the page's copyTips flag): each text block also has its word count (tournaments can set word minimums),
+  // and on a low-point win the decision gets a note, because the tournament ballot asks the judge to tick a box for it.
+  function tournamentBlocks(round, opts) {
     const b = (round && round.ballot) || {};
-    return [
+    const blocks = [
       { id: 'decision', label: 'Decision', text: decisionText(round || {}) },
       { id: 'rfd', label: 'Reason for decision', text: String(b.rfd || '').trim() },
       { id: 'affFb', label: 'Aff comments', text: String(b.affFb || '').trim() },
       { id: 'negFb', label: 'Neg comments', text: String(b.negFb || '').trim() },
     ];
+    if (!(opts && opts.tips)) return blocks;
+    const lowPoint = isLowPointWin(b, F.formatOf(round || {}));
+    return blocks.map((x) => (x.id === 'decision'
+      ? (lowPoint ? { ...x, note: 'Low-point win: on the tournament ballot, tick the low-point win box.' } : x)
+      : { ...x, words: wordCount(x.text) }));
   }
 
   // 4.10 What the print sheet holds. Long text prints in full (the sheet is built from data, not the boxes on screen).
