@@ -123,8 +123,13 @@ function renderEval() {
   const bar = `<div class="tally" role="img" aria-label="${e(tally.text)}"><div class="tally-bar" aria-hidden="true">`
     + [['aff', tally.aff], ['even', tally.even], ['neg', tally.neg]].filter(([, n]) => n).map(([k, n]) => `<span class="tally-${k}" data-w="${Math.round((n / total) * 100)}"></span>`).join('')
     + `</div><p class="tally-text">${e(tally.text)}</p></div>`;
+  // A feedback row names a debater by the format's speaker id ('1A', 'Aff'); side, label and name come from the format.
+  const fbSp = (id) => L.speakerOf(FMT(), id);
+  const fbSide = (id) => (fbSp(id) || {}).side || 'neg';
+  const fbLabel = (id) => (fbSp(id) ? fbSp(id).label : String(id || ''));
+  const fbName = (id) => (fbSp(id) ? L.speakerName(R, fbSp(id)) : '');
   const fb = (ev.feedback || []).map((f) => `<div class="card fb-card">
-      <div class="row fb-head"><strong class="${String(f.speaker || '').endsWith('A') ? 'aff' : 'neg'}">${e(f.speaker)} ${e(nameOf(f.speaker) !== f.speaker ? '· ' + nameOf(f.speaker) : '')}</strong><span class="muted">Points so far: ${e(f.points)}</span></div>
+      <div class="row fb-head"><strong class="${fbSide(f.speaker)}">${e(fbLabel(f.speaker))} ${e(fbName(f.speaker) ? '· ' + fbName(f.speaker) : '')}</strong><span class="muted">Points so far: ${e(f.points)}</span></div>
       <p class="fb-line">${e(f.so_far)}</p>
       <p class="fb-line"><span class="fb-label">Did well:</span> ${e(f.strength)}</p>
       <p class="fb-line"><span class="fb-label">To work on:</span> ${e(f.fix)}</p></div>`).join('');
@@ -277,7 +282,7 @@ function mapSheetHtml(data) {
   const lay = L.layoutMap(data, L.speechesSoFar(R), FMT());
   if (!lay.rows.length) return '<p class="muted">No arguments yet. Click "+ Argument" to start, or Draw to let the AI map the round.</p>';
   const cols = lay.columns;
-  const sideOf = (sp) => (/A[CR]$/.test(sp) ? 'aff' : 'neg');
+  const sideOf = (sp) => (L.speechOf(FMT(), sp) || {}).side || 'neg';
   const card = (c) => {
     if (c.ghost) return `<div class="mcard ghost">${e(c.label)}</div>`;
     const chip = c.status === 'dropped' ? '<span class="chip drop">Dropped</span>'

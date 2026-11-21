@@ -31,6 +31,23 @@ test('every published format version file still exists and is loaded', () => {
   }
 });
 
+// Why: logic/format.js loads only the files in FORMAT_FILES. A published file missing there would load in the page
+// (index.html) but not in Node or the server's copy, so the two would disagree about which formats exist.
+test('FORMAT_FILES lists exactly the published versions, and every pickable format is one of them', () => {
+  assert.deepEqual(L.FORMAT_FILES, PUBLISHED);
+  for (const id of L.FORMAT_IDS) assert.ok(L.getFormat(id), id + ' is pickable but has no format file');
+});
+
+// Why: the screen shows one prep clock per side and finds it by side (js/clock.js prepClockOn). A format with two
+// clocks on one side would silently hide the second clock, so such a format needs new screen code first.
+test('every format has exactly one prep clock per side', () => {
+  for (const f of PUBLISHED) {
+    const [id, v] = f.split('.v');
+    const clocks = L.prepClocks(L.getFormat(id, Number(v)));
+    assert.deepEqual(clocks.map((c) => c.side).sort(), ['aff', 'neg'], f);
+  }
+});
+
 // Why: a format file on disk that is not in the published list could be edited or deleted with no test noticing.
 test('every format file on disk is in the published list, under its own id and version', () => {
   const onDisk = fs.readdirSync(path.join(__dirname, 'formats')).filter((f) => f.endsWith('.js') && !f.endsWith('.test.js')).map((f) => f.slice(0, -3));
@@ -281,6 +298,16 @@ test('LD: speeches, columns, docs and the clock view lines', () => {
   const lay = L.layoutMap({ nodes: [{ id: 'a', speech: 'AC', label: 'V' }, { id: 'b', speech: 'NC', label: 'C', status: 'dropped' }], edges: [{ from: 'b', to: 'a', kind: 'answers' }] }, ['AC', 'NC'], LD);
   assert.deepEqual(lay.columns, ['AC', 'NC']);
   assert.deepEqual(lay.rows[0].cells.NC.map((c) => c.side), ['neg']);
+});
+
+// Why: a page part that calls a helper no part declares throws when it runs, so that view breaks for every judge.
+// nameOf was removed from js/decide.js; the Live Eval feedback must not still call it, and its colour must come from
+// the format (an LD 'Aff' id does not end in 'A').
+test('Live Eval feedback reads the debater from the format', () => {
+  const app = readSource('app.js');
+  assert.doesNotMatch(app, /\bnameOf\(/);
+  assert.doesNotMatch(app, /endsWith\('A'\)/);
+  assert.match(app, /const fbSide = \(id\) => \(fbSp\(id\) \|\| \{\}\)\.side/);
 });
 
 // Why: the Round setup screen is where a judge picks LD. Without the pick, the id it reads, and the boxes it relabels,
