@@ -272,8 +272,8 @@
     };
   }
 
-  // The History export (Download CSV, Copy for Google Sheets) and the History table: { header, rows, formats }, one row
-  // per saved ballot, in log order. The saved entries keep their old layout (above); this only shapes what a coach sees.
+  // The History export (Download CSV, Copy for Google Sheets) and the History table: { header, rows, formats,
+  // unknownFormats }, one row per saved ballot, in log order (unknownFormats: a row is in a format this copy lacks). The saved entries keep their old layout (above); this only shapes what a coach sees.
   // The speaker columns are named by each ballot's own format ('1A pts' in policy, 'Aff pts' in LD), and a Format
   // column names the format. A mixed history stays one flat table, because one table is what a spreadsheet can sort
   // and filter: it has the columns of every format in it, side by side under each side's team, and a row fills only its
@@ -285,6 +285,10 @@
     const entries = (log || []).map((e) => e || []);
     const views = entries.map(savedBallotView);
     const fmtOf = views.map((v) => F.formatOf(v.round));
+    // A ballot saved by a newer Tabula, in a format this copy does not have. formatOf falls back to policy, so the row
+    // reads its points from the saved policy columns, but its Format cell names what it really is ('id vN').
+    const unknown = views.map((v) => !F.formatKnown(v.round));
+    const unknownLabel = (round) => String(round.format) + (round.formatVersion == null ? '' : ' v' + round.formatVersion);
     const order = (f) => F.FORMAT_FILES.indexOf(f.id + '.v' + f.version);
     const formats = [...new Map(fmtOf.map((f) => [f.key, f])).values()].sort((a, b) => order(a) - order(b));
     // A speaker's columns: the name, the points, and the rank when the format has ranks. Same name, same column.
@@ -301,16 +305,16 @@
         cells[n] = F.speakerName(v.round, sp); cells[p] = b.pts[sp.id];
         if (r) cells[r] = b.ranks[sp.id];
       }
-      cells.Format = f.name;
+      cells.Format = unknown[i] ? unknownLabel(v.round) : f.name;
       return header.map((name) => cells[name] ?? '');
     });
-    return { header, rows, formats };
+    return { header, rows, formats, unknownFormats: unknown.some(Boolean) };
   }
   // The History table's columns (indexes into historyTable's header): who and when, the winner, every points column,
-  // and the format when the history mixes formats.
+  // and the format when the history mixes formats or holds a format this copy does not know.
   function historyColumns(table) {
     const names = ['Saved at', 'Round', 'Aff team', 'Neg team', 'Winner', ...table.header.filter((h) => h.endsWith(' pts'))]
-      .concat(table.formats.length > 1 ? ['Format'] : []);
+      .concat(table.formats.length > 1 || table.unknownFormats ? ['Format'] : []);
     return names.map((n) => table.header.indexOf(n));
   }
 
