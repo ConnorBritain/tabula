@@ -47,14 +47,14 @@
     setup: {
       title: 'Round',
       steps: [
-        { place: 'setup', target: '#round-card', title: 'Round details', body: 'The tournament, round, judge and resolution. They show on the ballot and in Ballots.' },
+        { place: 'setup', target: '#round-card', title: 'Round details', body: 'The tournament, round, judge and resolution. They show on the ballot and in History.' },
         { place: 'setup', target: '#docs-card', title: 'Round documents', body: 'Add speech docs and pick which speech each one belongs to. The AI maps them onto that speech on the flow.' },
         { place: 'setup', target: '#writing-card', title: 'How the AI writes', body: 'Expert writes like a college judge. Plain uses short sentences and everyday words, for students and parents. The decision stays the same.' },
         { place: 'setup', target: '#times-card', title: 'Times and points', body: 'Prep time for each team, and the speaker points range your tournament uses. Most leagues use 25–30.' },
       ],
     },
     log: {
-      title: 'Ballots',
+      title: 'History',
       steps: [
         { place: 'log', target: '#tab-log .card', title: 'Saved ballots', body: 'Every ballot you save is here. Copy them all into a spreadsheet, or download a CSV.' },
         { place: 'log', target: '#backup-card', title: 'Back up your work', body: 'Everything lives in this browser only. Download a backup now and then, and restore it on any computer.' },

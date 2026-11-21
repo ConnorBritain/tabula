@@ -1,8 +1,8 @@
 // Decide and ballot: the Draft with AI panel, the review, auto refill, backup and restore, the ballot,
-// Save to Ballots, copy, print, and the Ballots log. The draft code and the ballot code load together (the draft code
+// Save to History, copy, print, and the History log. The draft code and the ballot code load together (the draft code
 // can save at load, and a save redraws the ballot status); backup and restore sat between them, so they stay here.
 // Known debt (architecture review, Slice 5): at about 640 lines this part is too big. Split off backup and restore and
-// the Ballots log in a later pass, once their load-time links to the draft and ballot code are cut.
+// the History log in a later pass, once their load-time links to the draft and ballot code are cut.
 // One part of the page code (see app.js for the load order). The parts are classic scripts that share one global
 // scope, so a part can use what any part declares; code that runs at load only uses parts that load before it.
 'use strict';
@@ -221,7 +221,7 @@ function renderReview() {
       ${cardBody(c)}
       <div class="rv-card-foot">${cardChoice(c)}<button class="b small" type="button" data-rv-redo="${c.id}" aria-describedby="rv-cost"${busy ? ' disabled' : ''}>Redo this</button></div>
     </section>`).join('')}
-    <p class="muted rv-cost" id="rv-cost">Redo is one AI call.</p>
+    <p class="muted rv-cost" id="rv-cost">Redo uses AI.</p>
     <div class="rv-foot"><button class="b primary" type="button" id="rv-insert" aria-keyshortcuts="Meta+Enter Control+Enter">Insert selected</button><button class="b" type="button" id="rv-accept">Accept all</button><button class="b" type="button" id="rv-discard">Discard draft</button>${busy ? '<button class="b" type="button" id="rv-stop">Stop</button>' : ''}</div>`;
   if (keepFocus) {
     const [k, id, v] = keepFocus.split(':');
@@ -494,7 +494,7 @@ function renderSaveStatus() {
   el.classList.toggle('is-error', Boolean(lastSave.err));
 }
 
-// ----- Save to Ballots (spec 4.12) -----
+// ----- Save to History (spec 4.12) -----
 function storeLog(list) { try { localStorage.setItem(LOG, JSON.stringify(list)); return ''; } catch (err) { return L.storageErrorKind(err); } }
 $('#b-save').addEventListener('click', async () => {
   const issues = L.checkBallot(R.ballot, { range: ptsRangeNow() });
@@ -510,14 +510,14 @@ $('#b-save').addEventListener('click', async () => {
   const log = store.get(LOG, []);
   const entry = L.savedBallotEntry(R, new Date().toLocaleString(), ptsRangeNow());
   const last = log[log.length - 1];
-  if (last && JSON.stringify(last.slice(1)) === JSON.stringify(entry.slice(1))) return toast('Already in Ballots.');
+  if (last && JSON.stringify(last.slice(1)) === JSON.stringify(entry.slice(1))) return toast('Already in History.');
   log.push(entry);
   const err = storeLog(log);
   if (err === 'full') return toast("Not saved: this browser's storage is full. Delete old saved ballots, or use Print / PDF to keep a copy.", { kind: 'error' });
   if (err) return toast('Not saved: this browser is blocking storage. Use Print / PDF to keep a copy.', { kind: 'error' });
   // Offer a backup when there is none from the last 2 hours (spec 2.4 #16).
-  if (!S.lastBackupAt || Date.now() - S.lastBackupAt > 2 * 3600 * 1000) toast('Saved to Ballots. Your data lives only in this browser.', { action: { label: 'Download backup', run: () => downloadBackup(false) } });
-  else toast('Saved to Ballots.');
+  if (!S.lastBackupAt || Date.now() - S.lastBackupAt > 2 * 3600 * 1000) toast('Saved to History. Your data lives only in this browser.', { action: { label: 'Download backup', run: () => downloadBackup(false) } });
+  else toast('Saved to History.');
 });
 // The first ballot field with a problem: the winner, then points, then ranks, then the RFD.
 function focusBallotProblem() {
@@ -564,7 +564,7 @@ $('#copy-blocks').addEventListener('click', async (e) => {
 // ----- Print / PDF (spec 4.10, Q20) -----
 // The dialog builds #print-sheet from L.printModel, so long text prints in full, and removes it after printing.
 const printDlg = modalDialog($('#print-dialog'), $('#print-card'), { name: 'print', rank: 85 });
-let printSaved = null; // a saved ballot from Ballots, or null for the round on screen
+let printSaved = null; // a saved ballot from History, or null for the round on screen
 function openPrintDialog(saved) {
   if (typeof window.print !== 'function') return toast('Printing is not available in this browser. Use Copy for the tournament ballot instead.', { kind: 'error' });
   printSaved = saved || null;
@@ -616,7 +616,7 @@ $('#print-go').addEventListener('click', () => {
 addEventListener('beforeprint', () => { if (!$('#print-sheet')) buildPrintSheet(currentPrintModel({})); });
 addEventListener('afterprint', () => removePrintSheet());
 
-// ---------- log (Ballots) ----------
+// ---------- log (History) ----------
 function renderLog() {
   const log = store.get(LOG, []);
   if (!log.length) { $('#log-table').innerHTML = '<tr><td class="muted">No saved ballots yet. Save one from Decide → Ballot.</td></tr>'; return; }

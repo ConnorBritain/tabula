@@ -161,7 +161,7 @@ function flowStatusHtml() {
   if (!aiReady()) return noAiHtml();
   if (navigator.onLine === false) return '<span class="is-quiet">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + L.aiErrorText('offline')) + '</span>';
   if (lastFlowErr) return '<span class="is-error">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + lastFlowErr) + '</span>';
-  if (!S.liveFlow) return '<span class="is-quiet">Live AI flow is off. Each update is a paid AI call. <button class="linkish" type="button" data-tab-go="ai">Turn it on in Settings</button></span>';
+  if (!S.liveFlow) return '<span class="is-quiet">Live AI flow is off. When on, it uses AI while a speech runs. <button class="linkish" type="button" data-tab-go="ai">Turn it on in Settings</button></span>';
   return '';
 }
 // Keep the status line and "updated" time fresh without redrawing the flow.
@@ -181,7 +181,7 @@ function mapDocsNow() {
   // Skip a speech Claude is already working on, so one click never sends it twice.
   const started = speeches.filter((sp) => sp !== flowRunningId && scheduleFlow(sp, true));
   const running = speeches.includes(flowRunningId) ? ' (' + flowRunningId + ' is already in progress)' : '';
-  toast(started.length ? 'Mapping docs onto ' + started.join(', ') + running + '. One AI call per speech, one at a time.' : 'Nothing new to map' + running + '.');
+  toast(started.length ? 'Mapping docs onto ' + started.join(', ') + running + '. The AI maps one speech at a time.' : 'Nothing new to map' + running + '.');
 }
 function renderAIFlow() {
   const sheets = R.aiFlows || [];

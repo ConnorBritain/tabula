@@ -37,7 +37,7 @@ test('5.3 the ? menu: the items in order, two separators, no hint paragraph', ()
   for (const k of ["'ArrowDown'", "'ArrowUp'", "'Home'", "'End'", "'Tab'"]) assert.ok(APP.includes("e.key === " + k), 'menu key ' + k);
 });
 
-// Why: the round bar off Flow takes 76 px from Decide and Ballots (Q-1); the chip replaces it there.
+// Why: the round bar off Flow takes 76 px from Decide and History (Q-1); the chip replaces it there.
 test('5.2 the round bar shows only on Flow, scoped by body[data-place]', () => {
   assert.match(STYLE, /body:not\(\[data-place="flow"\]\) \.roundbar \{ display: none; \}/);
   assert.match(APP, /document\.body\.dataset\.place = place;/);

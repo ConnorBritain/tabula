@@ -323,6 +323,8 @@
   }
   function syncDescs() {
     descQueued = false;
+    // A tip that is open follows its data-tip too (the recording status tip counts seconds while it is open).
+    if (lt.el && !label.hidden && lt.el.dataset.tip && label.textContent !== lt.el.dataset.tip) label.textContent = lt.el.dataset.tip;
     for (const [el, span] of descOf) if (!el.isConnected || !el.dataset.tip || !L.tipAddsWords(nameOf(el), el.dataset.tip)) {
       if (el.isConnected) setDescribedBy(el, span.id, false);
       span.remove(); descOf.delete(el);

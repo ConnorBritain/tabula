@@ -8,12 +8,15 @@ let evalBusy = false, evalAgain = false, evalErr = '', evalSoonTimer = null;
 // Auto updates wait 20 s after the last flow pass, so mapping several docs at once costs one eval, not one each.
 // Offline, the automatic update waits and runs when the internet is back, but only if Live Eval is still on (D2).
 let evalWaitsOnline = false;
+// Insights and the Live Eval tab show this one line until the round has something to read (L.insightsReady).
+const INS_WAIT = 'Insights start after the first speech.';
 function scheduleEvalSoon() {
   clearTimeout(evalSoonTimer);
   evalSoonTimer = setTimeout(() => { if (!S.autoEval) return; if (navigator.onLine === false) { evalWaitsOnline = true; return; } scheduleEval(); }, 20000);
 }
+// No Live Eval before the round has something to read (L.insightsReady): not from a button, not from the auto path.
 function scheduleEval() {
-  if (!aiReady() || resetting) return;
+  if (!aiReady() || resetting || !L.insightsReady(R, DOCS)) return;
   if (evalBusy) { evalAgain = true; return; }
   runEval();
 }
@@ -41,27 +44,29 @@ function renderEvalStatus() {
   const ev = LV().liveEval;
   const go = $('#eval-go');
   go.textContent = L.runVerb(Boolean(ev));
-  const empty = !L.roundHasContent(R, DOCS);
+  const empty = !L.insightsReady(R, DOCS);
   go.disabled = evalBusy || !aiReady() || empty;
   tone(el);
   if (evalBusy) el.innerHTML = busyHtml('Updating… usually 20–60 seconds');
   else if (!aiReady()) el.innerHTML = noAiHtml('', 'Connect AI');
-  else if (empty && !ev) el.innerHTML = '<span class="is-quiet">Nothing to read yet. Start the 1AC first.</span>';
+  else if (empty && !ev) el.innerHTML = '<span class="is-quiet">' + INS_WAIT + '</span>';
   else if (evalErr) { tone(el, errColor(evalErr)); el.textContent = L.AI_ERROR_PREFIX.eval + ' ' + evalErr; }
   else el.textContent = '';
   const stale = ev ? L.outOfDateText(ev.through, R) : '';
   $('#eval-meta').innerHTML = ev ? escapeHtml('Last updated ' + agoText(ev.at) + ', through ' + ((ev.through || []).length ? ev.through[ev.through.length - 1] : 'no speeches') + '.')
     + (stale ? ' <span class="pill is-caution">' + escapeHtml(stale) + '</span>' : '') : '';
 }
-setInterval(() => { if (R.tab === 'eval') renderEvalStatus(); }, 5000);
+setInterval(() => { if (R.tab === 'eval') renderEvalStatus(); syncInsightsReady(); }, 5000);
 const sideClass = (x) => (x === 'aff' ? 'aff' : x === 'neg' ? 'neg' : '');
 const sideLabel = (x) => ({ aff: 'Aff', neg: 'Neg', even: 'Even', unclear: 'Unclear', 'toss-up': 'Toss-up' }[x] || x);
 // The small Live Eval summary in the Flow workspace (V9). With no AI the pane is folded to its edge, so it stays empty.
 // States: empty ("No read of the round yet."), loading ("Updating…"), error (the aiErrorText line and Try again),
-// offline (the offline line; Update is off and the line says why).
+// offline (the offline line; Update is off and the line says why). Before the round has something to read
+// (L.insightsReady), one quiet line and no Update button.
 function renderInsights() {
   const box = document.getElementById('insights-body'); if (!box) return;
   if (!aiReady()) { box.textContent = ''; return; }
+  if (!L.insightsReady(R, DOCS)) { box.innerHTML = '<p class="muted ins-msg" id="ins-wait">' + INS_WAIT + '</p>'; return; }
   const e = escapeHtml;
   const entry = LV().liveEval, ev = entry && entry.data;
   const offline = navigator.onLine === false;
@@ -72,7 +77,7 @@ function renderInsights() {
   const why = evalBusy || offline ? ' aria-describedby="ins-msg"' : '';
   const action = evalErr && !evalBusy && !offline
     ? '<button class="b small" id="ins-update">Try again</button>'
-    : `<button class="b small" id="ins-update"${evalBusy || offline ? ' disabled' : ''}${why}>${ev ? 'Update' : 'Update (one AI call)'}</button>`;
+    : `<button class="b small" id="ins-update"${evalBusy || offline ? ' disabled' : ''}${why}>Update with AI</button>`;
   const open = '<button class="b small" data-tab-go="eval">Open Live Eval</button>';
   const status = msg ? `<p class="ins-msg" id="ins-msg">${msg}</p>` : '';
   if (!ev) {
@@ -86,6 +91,15 @@ function renderInsights() {
     <h3 class="ins-h">Listen for next</h3>
     <ul class="ins-list">${(ev.watch_for || []).slice(0, 4).map((w) => '<li>' + e(w) + '</li>').join('')}</ul>
     ${status}<div class="row mt-3">${action}${open}</div>`;
+}
+// Re-render Insights only when the round has just become ready to read (or stopped being ready): the waiting line
+// (#ins-wait) shows exactly while L.insightsReady is false. startSpeech calls this at once; the 5 s tick below
+// catches the rest (flow text typed, a doc mapped, another tab's clock).
+function syncInsightsReady() {
+  const box = document.getElementById('insights-body');
+  if (!box || !aiReady()) return;
+  if (L.insightsReady(R, DOCS) === !box.querySelector('#ins-wait')) return;
+  renderInsights();
 }
 addEventListener('online', () => renderInsights());
 addEventListener('offline', () => renderInsights());

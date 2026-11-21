@@ -106,12 +106,14 @@ test('the old vendor error strings are gone', () => {
   assert.ok(!app.includes('function friendlyError'), 'friendlyError was replaced by the one classifier');
 });
 
-// Why: judges and the tour call saved ballots "Ballots" (Q12); a nav that still says "Library" clashes with the Debate library under ?.
-test('PLACES says Ballots, not Library, and the nav landmark is "Main"', () => {
+// Why: the saved-ballots place needs a name that clashes with nothing; "Library" clashed with the Debate library under ?, and "Ballots" clashed with Decide → Ballot (Q12).
+// CHANGED 2026-11-20 because the owner said "1: Rename to History". Old title: 'PLACES says Ballots, not Library, and the nav landmark is "Main"'.
+test('PLACES says History, not Library or Ballots, and the nav landmark is "Main"', () => {
   const app = read('app.js');
   const places = /const PLACES = (\[[^\n]*\]);/.exec(app);
   assert.ok(places, 'PLACES is defined on one line');
-  assert.match(places[1], /\['log', 'Ballots'\]/);
+  // CHANGED 2026-11-20 because the owner said "1: Rename to History". Old check: assert.match(places[1], /\['log', 'Ballots'\]/);
+  assert.match(places[1], /\['log', 'History'\]/);
   assert.ok(!places[1].includes('Library'));
   assert.match(read('index.html'), /<nav id="nav" aria-label="Main">/);
   assert.ok(!app.includes("setAttribute('aria-label', 'Sections')"), 'the JS label "Sections" is gone');
@@ -177,4 +179,20 @@ test('no font size under 13 px in the page, the app, the shared UI or the tokens
     const small = sizes(read(f)).filter(([, px]) => px < 13).map(([t]) => t);
     assert.deepEqual(small, [], f + ' has text under 13 px');
   }
+});
+
+// Why: if "Ballots" comes back as a place name, the nav again has "Ballot" under Decide and "Ballots" beside it, and judges
+// open the wrong one (owner, 2026-11-20: "1: Rename to History").
+test('no app UI file shows "Ballots" as a place name; the place is History', () => {
+  const hits = [];
+  for (const f of ['app.js', 'keys.js', 'tour.js']) {
+    for (const str of jsStrings(read(f))) if (/\bBallots\b/.test(str)) hits.push(f + ': ' + str.slice(0, 80));
+  }
+  for (const f of ['index.html', 'about.html']) {
+    const text = read(f).replace(/<!--[\s\S]*?-->/g, '');
+    for (const m of text.matchAll(/[^<>\n]*\bBallots\b[^<>\n]*/g)) hits.push(f + ': ' + m[0].trim().slice(0, 80));
+  }
+  assert.deepEqual(hits, [], 'old place name "Ballots" found. The place is History. If a line only starts with the plain word, reword it ("Saved ballots ...").');
+  assert.match(read('tour.js'), /title: 'History'/);
+  assert.match(read('index.html'), /aria-label="Save to History"/);
 });

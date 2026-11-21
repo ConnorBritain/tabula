@@ -36,7 +36,7 @@ Paste any key into **AI + Keys → Connect AI**. The app recognizes the provider
 - **Analysis**: Paradigm Lens (with your pasted Tabroom paradigm), Impact Calculus, Round Map (a flow sheet you can edit and draw by hand; AI redraws keep your work).
 - **AI + Keys**: connections, settings, decision draft.
 - **Ballot**: AI ballot filler (never overwrites fields you typed; "Tell the AI" box), points, ranks, RFD, Tabroom comment boxes.
-- **Log**: saved ballots, copy for Google Sheets.
+- **History**: saved ballots, copy for Google Sheets.
 
 Data stays in this browser. AI calls go to the provider you chose.
 

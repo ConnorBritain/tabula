@@ -11,7 +11,7 @@
     parseDecision, parseRfd, PARADIGM_LABELS, paradigmText, hashText, lensKey, MAP_SPEECHES, BALLOT_FIELDS,
     speechesSoFar, DEFAULT_PTS_RANGE, ptsRange, rangeError } = part('round');
   const { TRANSCRIBE_HINT, buildTranscribePrompt, appendChunk, AUDIO_MODES, micConstraints, levelInfo,
-    micTestVerdict, stallWarning, encodeWav, rms, mergeOverlap } = part('audio');
+    micTestVerdict, stallWarning, recStatus, REC_PROBLEM_WORD, encodeWav, rms, mergeOverlap } = part('audio');
   const { speechColumn, FLOW_LEVELS, partText, aiFlowCell, flowCellText, editIsBehind, mergeMap, applyLiveFlow,
     FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged } = part('flow');
   const { buildBackup, parseBackup, backupSummary, DOC_SIDES, DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech,
@@ -24,7 +24,7 @@
     undoSheetDelete, autoEvalDefault, liveFlowDefault, d2Reset, needsD2Note, escTop, toastPlan, TOAST_MAX,
     askFirstFocus, trapNext, insightsMode, resolveTheme, TIP_DELAY_MS, SHEET_TIP_DELAY_MS, tipDelay, tipPlace,
     flowMarks, tipAddsWords, pressStep, ESC_FOCUS_QUIET_MS, tipOnFocus } = part('rules');
-  const { PTS_FIELDS, DRAFT_GROUPS, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot, roundHasContent,
+  const { PTS_FIELDS, DRAFT_GROUPS, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot, roundHasContent, insightsReady,
     draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft, staleReviewCards,
     reviewInsertFields, applyReview, autoRefillPlan, speechEndedSince, ranksSet, moveRank, stepPoints,
     savedBallotEntry, savedBallotRow, savedBallotView, decisionText, tournamentBlocks, printModel, prepUsed,
@@ -43,7 +43,7 @@
     BALLOT_HEADER, JUDGE_SYSTEM, POINTS_GUIDE,
     LOG_COLUMNS,
     formatClock, sheetSafe, csvCell, toCSV, toTSV, ballotRow, checkBallot, parseDecision, parseRfd, parseFeedback, buildJudgePrompt,
-    TRANSCRIBE_HINT, buildTranscribePrompt, appendChunk, AUDIO_MODES, micConstraints, levelInfo, micTestVerdict, stallWarning, encodeWav, rms, mergeOverlap,
+    TRANSCRIBE_HINT, buildTranscribePrompt, appendChunk, AUDIO_MODES, micConstraints, levelInfo, micTestVerdict, stallWarning, recStatus, REC_PROBLEM_WORD, encodeWav, rms, mergeOverlap,
     PARADIGM_LABELS, paradigmText, hashText, lensKey,
     ANALYSIS_SYSTEM, MAP_SPEECHES, MAP_SCHEMA, MAP_TASK, IMPACT_SCHEMA, IMPACT_TASK, LENS_SCHEMA, LENS_TASK, buildAnalysisPrompt, buildMermaid, layoutMap,
     buildBackup, parseBackup, backupSummary,
@@ -62,7 +62,7 @@
     insightsMode, resolveTheme, TIP_DELAY_MS, SHEET_TIP_DELAY_MS, tipDelay, tipPlace, flowMarks, tipAddsWords, pressStep, ESC_FOCUS_QUIET_MS, tipOnFocus,
     // Slice 4: Decide and ballot
     DEFAULT_PTS_RANGE, ptsRange, rangeError, PTS_FIELDS, DRAFT_GROUPS, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot,
-    roundHasContent, draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft, staleReviewCards, reviewInsertFields, applyReview, autoRefillPlan,
+    roundHasContent, insightsReady, draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft, staleReviewCards, reviewInsertFields, applyReview, autoRefillPlan,
     speechEndedSince, ranksSet, moveRank, stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, decisionText, tournamentBlocks, printModel,
     prepUsed, keyMoments, issueTally, andList, outOfDateText, runVerb, readingFor, decideTab,
     // Slice 4, Option B (Q-8): flow mark shading

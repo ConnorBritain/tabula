@@ -109,8 +109,33 @@
       : 'No new text for 30+ s. Move the laptop closer to the speaker, or check the mic in Settings.';
   }
 
+  // The recording status next to Transcribe (CHANGED 2026-11-20, owner: the long line "trails off next to
+  // transcribe ... Can it just say 'Ready'"). One ladder gives the short word, its tone and the full sentence, so the
+  // word and its tip can never disagree. The word shows; the full sentence is the word's tip and is read out.
+  // o: { problem (text), problemKind ('no-key' | 'mic-blocked' | 'mic-lost' | 'offline' | other), held (text),
+  //   degraded, catchingUp, finishing, retryInMs, mins (e.g. "2.5 min"), backlog, on, wanted, engine, stall (text),
+  //   ago (seconds since the last text, or null) }.
+  // A word that needs the judge to act names the fix ("Mic blocked", "Key needed"); its tone is error.
+  const REC_PROBLEM_WORD = { 'no-key': 'Key needed', 'mic-blocked': 'Mic blocked', 'mic-lost': 'Mic lost', offline: 'Offline' };
+  function recStatus(o) {
+    const x = o || {};
+    const kept = ' of audio waiting, kept on this device only';
+    if (x.problem) return { word: REC_PROBLEM_WORD[x.problemKind] || 'Not transcribing', tone: 'error', full: 'Not transcribing: ' + x.problem };
+    if (x.held) return { word: 'Upload paused', tone: 'error',
+      full: 'Paused: ' + String(x.held).replace(/\.+$/, '') + '. ' + (x.backlog ? x.mins + ' of audio is kept on this device until it is fixed.' : '') };
+    if (x.degraded) return { word: 'Retrying', tone: 'caution',
+      full: 'Connection trouble: recording safely. ' + x.mins + kept + (x.retryInMs ? '. Trying again in ' + Math.ceil(x.retryInMs / 1000) + ' s.' : '.') };
+    if (x.catchingUp) return { word: 'Catching up', tone: 'caution', full: 'Catching up: ' + x.mins + kept + '.' };
+    if (x.finishing) return { word: 'Finishing', tone: 'quiet', full: 'Finishing the transcript: ' + x.mins + kept + '.' };
+    if (!x.on) return { word: 'Off', tone: 'quiet', full: 'Transcribe is off. Tick the box to record.' };
+    if (!x.wanted) return { word: 'Ready', tone: 'quiet', full: 'Ready. Recording starts when the speech clock starts.' };
+    if (x.stall) return { word: 'Check mic', tone: 'caution', full: 'Recording (' + x.engine + '). ' + x.stall };
+    return { word: 'Recording', tone: 'ok',
+      full: 'Recording (' + x.engine + ')' + (x.ago != null ? ' \u00b7 last text ' + x.ago + ' s ago' : ' \u00b7 waiting for first text\u2026') };
+  }
+
   const api = { TRANSCRIBE_HINT, buildTranscribePrompt, appendChunk, encodeWav, rms, mergeOverlap, AUDIO_MODES,
-    micConstraints, levelInfo, micTestVerdict, stallWarning };
+    micConstraints, levelInfo, micTestVerdict, stallWarning, recStatus, REC_PROBLEM_WORD };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).audio = api;
 })(typeof window !== 'undefined' ? window : globalThis);

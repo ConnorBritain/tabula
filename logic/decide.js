@@ -66,6 +66,14 @@
     if ((r.flows || []).some((f) => Object.values(f.cells || {}).some((c) => String(c || '').trim()))) return true;
     return (r.aiFlows || []).some((sh) => Object.keys(sh.parts || {}).length > 0);
   }
+  // Insights and Live Eval have something to read (CHANGED 2026-11-20, owner: "how can you drive updates when the round
+  // hasn't been started or set up?"). The round is started, and a speech clock has run, or there is flow text, a
+  // transcript, a mapped doc or an AI flow part. Before that, no Update button shows and no Live Eval runs.
+  function insightsReady(round, docs) {
+    const r = round || {};
+    if (!r.started) return false;
+    return Boolean(r.run) || speechesSoFar(r).length > 0 || roundHasContent(r, docs);
+  }
   // Which state the draft panel shows (4.3 table). busy wins, then the reasons Draft cannot run.
   function draftPanelState(o) {
     const x = o || {};
@@ -356,7 +364,7 @@
   const decideTab = (tab) => (tab === 'draft' ? 'ballot' : tab);
 
   const api = { PTS_FIELDS, DRAFT_GROUPS, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot,
-    roundHasContent, draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft,
+    roundHasContent, insightsReady, draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft,
     staleReviewCards, reviewInsertFields, applyReview, autoRefillPlan, speechEndedSince, ranksSet, moveRank,
     stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, decisionText, tournamentBlocks, printModel,
     prepUsed, keyMoments, issueTally, andList, outOfDateText, runVerb, readingFor, decideTab };

@@ -119,7 +119,7 @@ function startSpeech() {
   recStoppedByReload = false;
   saveClocks(); startTick(); renderClock(); renderSpeeches();
   if ($('#rec-on').checked) wantRec();
-  renderRecStrip();
+  renderRecStrip(); syncInsightsReady(); // the round now has something to read
 }
 function pauseSpeech() {
   if (!R.run) return;

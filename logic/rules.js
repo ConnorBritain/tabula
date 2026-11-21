@@ -165,7 +165,7 @@
     refused: 'The AI would not answer this request. Decide by hand, or change the input and try again.',
     cutOff: "The AI's reply was cut off. Try again.",
     helperDown: 'The helper on this computer is not running. In the Tabula folder, run node bridge.mjs, then try again.',
-    other: 'The AI call failed{status}. Try again. If it keeps failing, test the key in Settings.',
+    other: 'The AI did not answer{status}. Try again. If it keeps failing, test the key in Settings.', // CHANGED 2026-11-20: was "The AI call failed" (owner: no "call" jargon)
   };
   function aiErrorText(kind, opts) {
     const o = opts || {};

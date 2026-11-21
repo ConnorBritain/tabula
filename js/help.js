@@ -170,11 +170,11 @@ async function maybeD2Note() {
   S.d2NoteShown = true; saveSettings();
   const v = await ask({
     title: 'Live updates are off',
-    body: ['Live Eval and Live AI flow can update during the round. They are off, because each update is a paid AI call.', 'Turn Live Eval on in Decide → Live Eval. Turn Live AI flow on in Settings.'],
+    body: ['Live Eval and Live AI flow can update during the round. Each update uses AI, so they stay off until you turn them on.', 'Turn Live Eval on in Decide → Live Eval. Turn Live AI flow on in Settings.'],
     buttons: [{ label: 'Keep them off', value: 'off', kind: 'plain' }, { label: 'Turn on Live AI flow', value: 'flow', kind: 'plain' }, { label: 'Turn on Live Eval', value: 'eval', kind: 'plain' }],
     cancelValue: 'off', focus: 'off',
   });
-  if (v === 'eval') { S.autoEval = true; $('#auto-eval').checked = true; saveSettings(); toast('Live Eval now updates after each speech. Each update is one AI call.'); }
-  if (v === 'flow') { S.liveFlow = true; $('#live-flow').checked = true; saveSettings(); setRecNote(''); toast('Live AI flow is on. It makes one AI call about every 30 s during a speech.'); }
+  if (v === 'eval') { S.autoEval = true; $('#auto-eval').checked = true; saveSettings(); toast('Live Eval now updates with AI after each speech.'); }
+  if (v === 'flow') { S.liveFlow = true; $('#live-flow').checked = true; saveSettings(); setRecNote(''); toast('Live AI flow is on. It uses AI while a speech runs.'); }
 }
 setRecNote('');

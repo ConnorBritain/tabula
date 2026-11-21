@@ -916,7 +916,7 @@
   </div>
   <p class="muted cv-pauses" id="cv-pauses"></p>
   <div class="speeches cv-speeches" id="cv-speech-list" role="group" aria-label="Speeches"></div>
-  <div class="cv-rec"><label class="row check-row"><input type="checkbox" id="cv-rec-on"> Transcribe</label><span class="muted" id="cv-rec-status"></span></div>
+  <div class="cv-rec"><label class="row check-row"><input type="checkbox" id="cv-rec-on"> Transcribe</label><span class="muted" id="cv-rec-status" tabindex="0"></span></div>
   <p class="muted cv-note">Flowing needs a bigger screen. Use a tablet in landscape or a laptop to flow. Your clock and ballot work here.</p>
 </section>
 
@@ -972,8 +972,8 @@
     <div class="row card-head">
       <h2>Live Eval</h2>
       <div class="row">
-        <label class="row check-row"><input type="checkbox" id="auto-eval"> Update after each speech <span class="muted">(one AI call each)</span></label>
-        <button class="b primary" id="eval-go" aria-describedby="eval-cost eval-status">Run</button><span class="muted" id="eval-cost">One AI call</span>
+        <label class="row check-row"><input type="checkbox" id="auto-eval"> Update after each speech <span class="muted">(uses AI)</span></label>
+        <button class="b primary" id="eval-go" aria-describedby="eval-cost eval-status">Run</button><span class="muted" id="eval-cost">Uses AI</span>
       </div>
     </div>
     <p class="muted help-line">A read of the round so far, from the transcripts, flows and docs. It is advice for you, not a decision. <span id="eval-meta"></span></p>
@@ -1104,7 +1104,7 @@
         </select>
       </div>
       <div><label for="chunk-sec">Clip length for transcription</label><input type="number" id="chunk-sec" min="4" max="30" step="1" aria-describedby="chunk-sec-help"><p class="muted field-help" id="chunk-sec-help">Seconds, 4–30</p></div>
-      <div><label>&nbsp;</label><label class="row check-row"><input type="checkbox" id="live-flow"> Live AI flow during speeches <span class="muted">(one AI call about every 30 s)</span></label></div>
+      <div><label>&nbsp;</label><label class="row check-row"><input type="checkbox" id="live-flow"> Live AI flow during speeches <span class="muted">(uses AI while a speech runs)</span></label></div>
     </div>
   </div>
   <div class="card" id="account-card" hidden>
@@ -1170,10 +1170,10 @@
         <label class="row check-row"><input type="checkbox" id="dp-feedback"> Use Live Eval feedback for the comments</label>
         <label for="ballot-input" class="mt-3">Tell the AI (optional)</label>
         <textarea id="ballot-input" data-bind="ballotInput" rows="3" placeholder="Example: I'm voting aff on the perm. 2N was the best speaker. Be kind to the 1A." aria-keyshortcuts="Meta+Enter Control+Enter"></textarea>
-        <div class="row mt-2"><button class="b primary" id="dp-go" type="button" aria-describedby="dp-cost">Draft</button><span class="muted" id="dp-cost">One AI call</span></div>
+        <div class="row mt-2"><button class="b primary" id="dp-go" type="button" aria-describedby="dp-cost">Draft</button><span class="muted" id="dp-cost">Uses AI</span></div>
         <p id="dp-status" class="status-line" role="status" aria-live="polite"></p>
         <div class="dp-links"><button class="linkish" id="dp-prompt" type="button">Copy the prompt instead</button><button class="linkish" id="dp-undo" type="button" hidden>Undo the last insert</button></div>
-        <label class="row check-row mt-3"><input type="checkbox" id="auto-ballot"> Refill after each speech <span class="muted">(one AI call each)</span></label>
+        <label class="row check-row mt-3"><input type="checkbox" id="auto-ballot"> Refill after each speech <span class="muted">(uses AI)</span></label>
         <details id="dp-why" class="mt-3"><summary>Why the AI chose this</summary><div id="dp-why-body" class="muted dp-why"></div></details>
       </div>
       <div id="dp-review" hidden></div>
@@ -1182,7 +1182,7 @@
   <div class="ballot-bar noprint" role="toolbar" aria-label="Ballot actions">
     <button class="b primary" id="print-btn" type="button" aria-label="Print or save the ballot as PDF">Print / PDF</button>
     <button class="b" id="copy-btn" type="button"><span class="wide-only">Copy for the tournament ballot</span><span class="narrow-only">Copy for tournament<span class="sr-only"> ballot</span></span></button>
-    <button class="b" id="b-save" type="button" aria-label="Save to Ballots"><span class="wide-only">Save to Ballots</span><span class="narrow-only" aria-hidden="true">Save</span></button>
+    <button class="b" id="b-save" type="button" aria-label="Save to History"><span class="wide-only">Save to History</span><span class="narrow-only" aria-hidden="true">Save</span></button>
     <span class="bar-status" id="save-status"></span>
   </div>
 </section>
@@ -1256,7 +1256,7 @@
   <div class="rb-rec">
     <label class="row"><input type="checkbox" id="rec-on"> Transcribe</label>
     <span id="rb-meter" class="meter" role="img" aria-label="Mic level" hidden><i></i></span>
-    <span id="rec-status" class="rb-status" role="status" aria-live="polite"></span>
+    <span id="rec-status" class="rb-status" role="status" aria-live="polite" tabindex="0"></span>
     <button class="b small" id="discard-audio" hidden>Discard waiting audio</button>
   </div>
   <div class="rb-prep"><span class="aff">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
@@ -1327,7 +1327,7 @@
         <label class="row check-row"><input type="checkbox" id="print-tr"> Include transcripts</label>
         <label class="row check-row"><input type="checkbox" id="print-ai"> Include AI notes (Live Eval and analysis)</label>
       </div>
-      <p class="muted field-help" id="print-saved-note" hidden>A saved ballot prints the ballot only. Its flow and transcripts are not kept in Ballots.</p>
+      <p class="muted field-help" id="print-saved-note" hidden>A saved ballot prints the ballot only. Its flow and transcripts are not kept in History.</p>
     </fieldset>
     <fieldset class="dlg-set mt-3">
       <legend>Page</legend>

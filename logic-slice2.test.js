@@ -87,8 +87,11 @@ test('aiErrorText: each kind has its own text, and {provider} is filled in', () 
   assert.equal(new Set(kinds.map((k) => L.aiErrorText(k))).size, kinds.length);
   assert.equal(L.aiErrorText('keyRejected', { provider: 'Grok' }), 'The Grok key was rejected. Paste it again in Settings, or make a new key.');
   assert.match(L.aiErrorText('noReply'), /^No reply from the AI provider\./);
-  assert.equal(L.aiErrorText('other', { status: 500 }), 'The AI call failed (error 500). Try again. If it keeps failing, test the key in Settings.');
-  assert.equal(L.aiErrorText('other'), 'The AI call failed. Try again. If it keeps failing, test the key in Settings.');
+  // CHANGED 2026-11-20 because the owner asked for plain AI words ("people won't know what a "Call" is"). Old check:
+  // assert.equal(L.aiErrorText('other', { status: 500 }), 'The AI call failed (error 500). Try again. If it keeps failing, test the key in Settings.');
+  // assert.equal(L.aiErrorText('other'), 'The AI call failed. Try again. If it keeps failing, test the key in Settings.');
+  assert.equal(L.aiErrorText('other', { status: 500 }), 'The AI did not answer (error 500). Try again. If it keeps failing, test the key in Settings.');
+  assert.equal(L.aiErrorText('other'), 'The AI did not answer. Try again. If it keeps failing, test the key in Settings.');
   assert.equal(L.aiErrorText('no-such-kind'), L.aiErrorText('other'));
 });
 

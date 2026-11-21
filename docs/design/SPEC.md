@@ -33,7 +33,7 @@
    - A recording notice and a steady "Recording" strip are added (Q19). Tests check that audio is deleted after its text returns.
 3. **Copy and dialogs (Slice 2).**
    - A lighter welcome, for free users only (Q11). Paid-plan states for every AI surface are defined, for "do later".
-   - Old place names are fixed, and the nav says "Ballots" (Q12).
+   - Old place names are fixed, and the nav says "History" (Q12; CHANGED 2026-11-20, owner said "1: Rename to History". Old name: "Ballots").
    - Errors say "offline" instead of blaming the key.
    - All 17 native browser pop-ups go. They become one in-app dialog or an Undo toast.
    - Keys are not remembered by default (D1). No paid AI call runs by itself (D2). This now includes Live AI flow.
@@ -195,7 +195,7 @@ The tooltip behaviour (old S0.6) moves to Slice 3, with the V11 look.
   - "The 2AC clock went 10 minutes over. It is paused at -9:59."
   - "The device clock changed. The 2AC clock is set back to its full time. Check it before you continue."
   - Blocked: "This browser is not saving. A refresh will lose the clock and your flow. To keep a copy, go to Round and use Save round file (.tab)."
-  - Full: "This browser's storage for Tabula is full, so new changes are not saved. Delete old saved ballots in Ballots, or go to Round and use Save round file (.tab)."
+  - Full: "This browser's storage for Tabula is full, so new changes are not saved. Delete old saved ballots in History, or go to Round and use Save round file (.tab)."
   - "Tabula is open in another tab. Use one tab per round. The newest change wins."
   - "Aff prep ran out while the page reloaded." / "Neg prep ran out while the page reloaded."
 - **Files.** app.js:16-18, 40-44, 183-231, 265-285, 2384-2388; new `storage` and `visibilitychange` listeners; `logic.js` gets `restoreRun`, `restorePrep`, `restoreClocks` and `storageErrorKind`, added in the Slice 1 block of the `api` list (logic.js:1203; see §3.7 rule).
@@ -381,7 +381,7 @@ The tooltip behaviour (old S0.6) moves to Slice 3, with the V11 look.
   - Browser checks:
     - on fresh storage, the clock runs while the notice is open;
     - "Don't record" path: no clip is ever stored;
-    - the strip shows on Round, Decide, Ballots and Settings;
+    - the strip shows on Round, Decide, History and Settings;
     - "Stop recording" turns the OS mic indicator off (manual step M1);
     - after a reload, the "Resume recording" state shows;
     - offline with each engine shows the matching strip text;
@@ -427,7 +427,7 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
     - Tab never leaves the dialog.
 
 #### 2.2 Fix stale place names
-- **Rule.** Place names are exactly **Flow, Round, Decide, Ballots, Settings**. Sub-places use an arrow: "Decide → Analysis".
+- **Rule.** Place names are exactly **Flow, Round, Decide, History, Settings** (CHANGED 2026-11-20, owner said "1: Rename to History". Old name: Ballots). Sub-places use an arrow: "Decide → Analysis".
 - Every site at app.js:366, 806-851, 1227, 1295, 1853, 1919, 1947, 1973, 2216; index.html:599; tour.js:50 gets new text (the slice's table holds the exact strings).
 - One constant: `NO_AI = "No AI is connected. Connect one in Settings."` It is used at every site. This supersedes the Slice 4 wording.
 - "No AI" lines turn `--text-3`, not red. Where a line names Settings, it gets an "Open Settings" text button [A].
@@ -457,7 +457,7 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
   - refused: "The AI would not answer this request. Decide by hand, or change the input and try again."
   - cutOff: "The AI's reply was cut off. Try again."
   - helperDown: "The helper on this computer is not running. Start it with: node bridge.mjs"
-  - other: "The AI call failed (error {status}). Try again. If it keeps failing, test the key in Settings."
+  - other: "The AI did not answer (error {status}). Try again. If it keeps failing, test the key in Settings." (CHANGED 2026-11-20, owner: "people won't know what a "Call" is, nor that it's AI driven." Old text: "The AI call failed (error {status}). …")
 - Each feature adds a prefix: "AI flow:", "Live Eval:", "Analysis:", "Ballot draft:", "Transcript:". This text replaces every other error string, including the Slice 4 "Could not reach the AI…" and the V9 offline line.
 - Raw provider text goes to `console.warn` only.
 - **Offline.** Automatic AI calls pause. When the `online` event fires, they resume, but only for features the judge turned on (D2). A button click shows the offline text and makes no call.
@@ -476,7 +476,7 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
 |---|---|---|
 | 1 | 127 | Undo toast: "Prep set to {m} min for each team." |
 | 2 | 154 | ask(): "Open {file name}?" / "It replaces the round on screen. Tabula downloads the current round first, so you keep a copy." / Cancel · **Open round** |
-| 3 | 174 | ask(), danger: "Start a new round?" / "This clears the flow, clocks, docs and any audio not yet transcribed. Saved ballots stay in Ballots." / Cancel · **Clear and start new**. The palette (5.4) uses the same dialog. |
+| 3 | 174 | ask(), danger: "Start a new round?" / "This clears the flow, clocks, docs and any audio not yet transcribed. Saved ballots stay in History." / Cancel · **Clear and start new**. The palette (5.4) uses the same dialog. |
 | 4 | 601 | ask(), danger: "Delete the waiting audio?" / "{n} of audio is not transcribed yet. If you delete it, those words never reach the transcript." / Keep it · **Delete audio** |
 | 5, 6 | 860, 861 | ask() with an input: "New sheet" / "Sheet name" / "For example: DA, Cap K, T" / max 40 characters / blank → "Type a name." / Cancel · **Add sheet**. Rename: "Rename sheet" / Cancel · **Save**. If inline naming (B4) ships first, use that instead. |
 | 7 | 862 | Undo toast: "Sheet "{name}" deleted." With one sheet left, Delete is disabled with the tooltip "A round needs at least one sheet." |
@@ -487,7 +487,7 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
 | 12 | 2235 | For now: Undo toast "The AI may now change fields you typed." **Slice 4 (4.2) then replaces it with a per-field tag.** |
 | 13 + 14 | 2265, 2271 | One ask(), danger: "Restore the backup from {when}?" with the list "Round: {round}", "Saved ballots: {n}", "Documents: {n}", and the keys line (see 2.6). Over 60 MB it adds "This file is large ({n} MB), so it may take a while." Body: "This replaces everything in this browser. Tabula downloads a copy of your current data first." / Cancel · **Restore** |
 | 15 | 2351 | ask(): "Save with 1 problem?" / "Save with {n} problems?", listing the `checkBallot` messages / **Fix it** (kind `primary`, so it gets first focus; it focuses the first field with a problem) · Save anyway (kind `plain`). There is no danger button. |
-| 16 | 2361 | Action toast: "Saved to Ballots. Your data lives only in this browser." [Download backup] |
+| 16 | 2361 | Action toast: "Saved to History. Your data lives only in this browser." [Download backup] |
 | 17 | 2376 | Undo toast: "Saved ballot deleted." The row Delete becomes a small icon button: "Delete saved ballot from {date}". |
 
 - **Why 9, 11 and 12 are interim.** Q14 puts copy and dialogs before Decide. So Slice 2 removes the native pop-ups now, and Slice 4 deletes these three dialogs when the panel lands.
@@ -500,13 +500,13 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
   - Browser check: no dialog opens on top of another dialog.
   - Keyboard check for every `ask()`.
 
-#### 2.5 The nav says "Ballots" (Q12)
-- `PLACES` gets `['log','Ballots']`. The internal id `log` and the storage key `policyJudge.log.v1` stay, because old backups and the tour depend on them.
-- "Save to log" becomes "Save to Ballots". "Saved to log" becomes "Saved to Ballots". tour.js:56 becomes `title:'Ballots'`.
+#### 2.5 The nav says "History" (Q12)
+- `PLACES` gets `['log','History']` (CHANGED 2026-11-20, owner said "1: Rename to History". Old value: `['log','Ballots']`. "Ballots" beside Decide → Ballot read as the same place). The internal id `log` and the storage key `policyJudge.log.v1` stay, because old backups and the tour depend on them.
+- "Save to log" becomes "Save to History". "Saved to log" becomes "Saved to History". The tour step title becomes `title:'History'`. The palette keeps the search words "log", "history" and "ballots".
 - The nav landmark is `<nav aria-label="Main">`. Remove the JS label "Sections" (app.js:86).
 - Empty state: "No saved ballots yet. Save one from Decide → Ballot." [A]
 - **Checks**
-  - Static test: `PLACES` has 'Ballots' and not 'Library'.
+  - Static test: `PLACES` has 'History' and not 'Library'. A second static test fails if "Ballots" shows as a place name in index.html, about.html, js/*.js, keys.js or tour.js.
   - The existing tour and backup tests pass unchanged.
 
 #### 2.6 Keys are not remembered by default (D1)
@@ -536,7 +536,7 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
 #### 2.7 No paid AI call runs by itself (D2)
 - `S.autoEval === true` is the only way auto Live Eval runs. Today `S.autoEval !== false` (app.js:1922) treats a missing value as on. Auto ballot fill stays off.
 - **Live AI flow also starts off** [A, Q-4]. Today `liveFlow: true` is the default (app.js:291), and it calls the AI every 30 s during a transcribed speech with no click for each call. Consent to record is not consent to paid calls. `S.liveFlow === true` becomes the only way it runs.
-- **One-time note**, the first time AI becomes ready: "Live Eval and Live AI flow can update during the round. They are off, because each update is a paid AI call. Turn Live Eval on in Decide → Live Eval. Turn Live AI flow on in Settings." [Turn on Live Eval] [Turn on Live AI flow]. It shows once.
+- **One-time note**, the first time AI becomes ready: "Live Eval and Live AI flow can update during the round. Each update uses AI, so they stay off until you turn them on. Turn Live Eval on in Decide → Live Eval. Turn Live AI flow on in Settings." [Turn on Live Eval] [Turn on Live AI flow]. It shows once. (CHANGED 2026-11-20, owner: "people won't know what a "Call" is, nor that it's AI driven." Old text: "They are off, because each update is a paid AI call.")
 - What happens to current users is open question **Q-2** in Part 5.
 - `logic.js` gets `autoEvalDefault` and `liveFlowDefault`.
 - **Checks**
@@ -607,7 +607,8 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - `open`: the 270 px flat pane.
 
   States inside `open`:
-  - empty: "No read of the round yet." with [Update (one AI call)];
+  - waiting: before the round has something to read (`L.insightsReady`: the round is started, and a speech clock has run or there is flow text, a transcript or a mapped doc), only the quiet line "Insights start after the first speech." No Update button, and no Live Eval runs, from a click or the auto path. (CHANGED 2026-11-20, owner: "how can you drive updates when the round hasn't been started or set up?")
+  - empty: "No read of the round yet." with [Update with AI]; (CHANGED 2026-11-20, owner: "people won't know what a "Call" is, nor that it's AI driven." Old text: "[Update (one AI call)]")
   - loading: "Updating…";
   - error: the `aiErrorText` with [Try again];
   - offline: the offline text, with Update disabled.
@@ -636,9 +637,9 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - **Below 1280 px** (iPad, 1024 px) [A]: the panel opens as a flat overlay from the right, `min(400px,100vw−32px)` wide, layer `--z-pop`, with a 1 px `--border-ctl` edge. The ballot does not reflow under it. Esc or [Close] closes it.
   - **Narrow layout:** the panel is a full-screen sheet with [Done].
   - Order: title row with [Draft with AI] → Winner → points and ranks → RFD → Aff and Neg comments → ballot check.
-  - A sticky action bar sits at `bottom: var(--rb-h)`, layer `--z-bar`, `role="toolbar"`. Its buttons, in order: **Print / PDF** (primary) · **Copy for the tournament ballot** · **Save to Ballots**.
+  - A sticky action bar sits at `bottom: var(--rb-h)`, layer `--z-bar`, `role="toolbar"`. Its buttons, in order: **Print / PDF** (primary) · **Copy for the tournament ballot** · **Save to History**.
   - Save status: "Saved in this browser · {time}" / "Not saved: this browser is blocking storage" / "Not saved: this browser's storage is full".
-  - The one-row CSV and Sheets exports move to Ballots [A].
+  - The one-row CSV and Sheets exports move to History [A].
   - Ctrl/⌘+P opens the 4.10 dialog.
   - **Check:** at the laptop (1366×650) and iPad (1180×730) viewports, Winner, all 4 speaker rows and the top of the RFD box show with no scroll.
 - **4.2 "Yours" fields.** Each field group has one state, from `fieldState()`: `empty`, `ai` (in the new `R.ballot.aiFilled` set) or `yours` (in `R.ballot.touched`). An edit moves the field to `yours`.
@@ -653,7 +654,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
     2. the picker "What should the AI draft?", with Winner · Points and ranks · Reason for decision · Aff comments · Neg comments (empty and AI fields are checked; yours are unchecked);
     3. "Use Live Eval feedback for the comments";
     4. "Tell the AI (optional)";
-    5. [Draft] with the hint "One AI call";
+    5. [Draft] with the hint "Uses AI"; (CHANGED 2026-11-20, owner: "people won't know what a "Call" is, nor that it's AI driven." Old text: "One AI call")
     6. the link "Copy the prompt instead";
     7. "Refill after each speech" (off, D2);
     8. a fold, "Why the AI chose this".
@@ -677,12 +678,12 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - an empty or AI field: "Insert this", checked;
   - a "Yours" field: a word diff using `<del>` and `<ins>` with hidden "removed:" and "added:" prefixes, and the choice "Keep mine" (selected) / "Use AI text";
   - winner and points: a compact before → after table.
-  - Each card has [Redo this], at one AI call.
+  - Each card has [Redo this]. The review says "Redo uses AI." (CHANGED 2026-11-20, owner: "people won't know what a "Call" is, nor that it's AI driven." Old text: "at one AI call")
   - Footer: "Insert selected", "Discard draft", and "Accept all" (it never flips "Keep mine").
   - An AI point outside the range is never inserted: "The AI gave {n}, which is outside {min}–{max}. Set this one by hand."
   - **The ballot changes while a review waits:**
     - the judge edits a field: its card shows "Changed since the draft", its diff is rebuilt against the new text, and its choice resets to "Keep mine";
-    - a new speech ends: the review header shows "A speech ended after this draft." with [Redo all] (one AI call);
+    - a new speech ends: the review header shows "A speech ended after this draft." with [Redo all] (it uses AI);
     - auto refill (4.6) does not run while a review waits.
   - A waiting review survives a reload, and the button then reads "Draft ready".
   - In the narrow layout, one card at a time: "3 of 5: Neg comments".
@@ -720,7 +721,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - Help line: "To get a PDF, choose "Save as PDF" in the print window."
   - It builds `#print-sheet` from `printModel()`, so long text prints in full, and removes it after printing.
   - Error toast: "Printing is not available in this browser. Use Copy for the tournament ballot instead."
-  - Saved ballots in Ballots use the same dialog.
+  - Saved ballots in History use the same dialog.
 - **4.11 Copy for the tournament ballot (Q20, second).** A sheet with 4 blocks from `tournamentBlocks()`: Decision, Reason for decision, Aff comments, Neg comments.
   - Each block has a Copy button that turns into "✓ Copied" for 2 s, and a polite message "{Block} copied."
   - An empty block shows "Nothing written yet".
@@ -728,11 +729,11 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - Hint: "Paste each block into the matching box on your tournament's ballot site."
   - Warning: "This ballot has {n} problems. Fix them first, or copy anyway."
   - `copy()` returns true or false. Callers give the feedback.
-- **4.12 Save to Ballots.** Problems use dialog #15 from 2.4. Saved: the #16 toast. Repeat: "Already in Ballots." Blocked storage: "Not saved: this browser is blocking storage. Use Print / PDF to keep a copy." Full storage: "Not saved: this browser's storage is full. Delete old saved ballots, or use Print / PDF to keep a copy."
+- **4.12 Save to History.** Problems use dialog #15 from 2.4. Saved: the #16 toast. Repeat: "Already in History." Blocked storage: "Not saved: this browser is blocking storage. Use Print / PDF to keep a copy." Full storage: "Not saved: this browser's storage is full. Delete old saved ballots, or use Print / PDF to keep a copy."
 - **4.13 Live Eval look.**
   - Verbs: **Run** when nothing is saved, **Update** when something is.
   - "Update after each speech" is off (D2).
-  - States use classes, not inline colour. Empty round: "Nothing to read yet. Start the 1AC first." No AI: `NO_AI` with [Connect AI]. Out of date: "Out of date: 1AR and 2NR happened since."
+  - States use classes, not inline colour. Empty round (`L.insightsReady` is false): "Insights start after the first speech.", the same line as Insights, and Run is off. (CHANGED 2026-11-20, owner: "how can you drive updates when the round hasn't been started or set up?" Old text: "Nothing to read yet. Start the 1AC first.") No AI: `NO_AI` with [Connect AI]. Out of date: "Out of date: 1AR and 2NR happened since."
   - A paired summary bar: "Aff ahead on 3 · Even 1 · Neg ahead on 2", with `role="img"`.
   - Labels "Did well:" and "To work on:". No red "Fix:".
   - "Copy feedback to ballot" becomes "Use this feedback on the ballot". It opens the panel with the feedback option checked.
@@ -746,7 +747,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
 
 ### 3.5 Slice 5: shell and reach
 
-- **5.1 Top bar.** From left to right: brand (it links to Flow; change `data-tab-link="setup"`) · nav "Flow · Round · Decide · Ballots" · spacer · corner chip · offline note · ? · gear. Below this row, the 1.6 recording strip row stays.
+- **5.1 Top bar.** From left to right: brand (it links to Flow; change `data-tab-link="setup"`) · nav "Flow · Round · Decide · History" · spacer · corner chip · offline note · ? · gear. Below this row, the 1.6 recording strip row stays.
   - The gear keeps `aria-label="Settings"`, the tooltip "Settings", and no `title`.
   - One row, 52 px. `flex-wrap` stays only in the narrow layout.
   - The offline note says "Offline", with the tip "No internet. Timers, flow and ballot still work. AI waits until you are back online." It is `role="status"` and says "Back online" when the network returns.
@@ -778,12 +779,12 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - Search placeholder: "Search commands, sheets and speeches". Footer: "↑↓ to move · ↵ to run · Esc to close". No match: "No match. Try "sheet", "prep" or a speech like "2AC"."
   - Esc first clears the search, then closes the palette. Focus and the caret go back to where they were.
   - Groups, with exact labels:
-    - **Go to:** Go to Flow, Go to Round setup, Go to Live Eval, Go to Analysis, Go to Ballot, Go to Ballots, Go to Settings, Open Debate library, Open About Tabula Debate (CHANGED 2026-11-20, owner request for the product name. Old label: "Open About Tabula").
+    - **Go to:** Go to Flow, Go to Round setup, Go to Live Eval, Go to Analysis, Go to Ballot, Go to History, Go to Settings, Open Debate library, Open About Tabula Debate (CHANGED 2026-11-20, owner request for the product name. Old label: "Open About Tabula").
     - **Clock and speeches:** Start or pause clock, Next speech, Previous speech, Go to speech: 1AC…2AR (CX rows as "CX of 1A"), Reset speech clock, Start/Stop Aff prep, Start/Stop Neg prep ("· pauses the 2AC" when a speech runs), Show/Hide transcript.
     - **Sheets:** Go to sheet: {name}, Next sheet, Previous sheet, New sheet, Rename, Duplicate and Delete sheet: {current}, Switch to My flow / AI flow.
     - **Panes:** Show/Hide speeches pane, Show/Hide insights, Focus mode.
     - **Round:** New round (dialog #3), Save round file (.tab), Open round file.
-    - **Ballot:** Draft with AI (it only opens the panel; no AI call), Print or save as PDF, Copy for the tournament ballot, Save to Ballots.
+    - **Ballot:** Draft with AI (it only opens the panel; no AI call), Print or save as PDF, Copy for the tournament ballot, Save to History.
     - **Undo:** "Undo: {what}", shown only while an Undo toast shows. This is the keyboard path to Undo.
     - **Help:** Keyboard shortcuts, Take the full tour, Tour this page.
   - A Flow command run from another place first goes to Flow (note "· goes to Flow").
@@ -927,8 +928,9 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
 
 ### 4.5 Copy rules
 - Use plain short sentences.
-- Place names: Flow, Round, Decide, Ballots, Settings.
-- The verb pair is Run / Update. The cost hint is "One AI call".
+- Place names: Flow, Round, Decide, History, Settings.
+- The verb pair is Run / Update. The AI hint is "Uses AI" (or "(uses AI)" after a checkbox; "(uses AI while a speech runs)" for Live AI flow). Users see rounds, not calls, so no hint counts calls. (CHANGED 2026-11-20, owner: "people won't know what a "Call" is, nor that it's AI driven." Old text: "The cost hint is "One AI call".")
+- The status next to Transcribe in the round bar is one short word (`L.recStatus`, one ladder for the word, its tone and the full sentence): Ready, Recording, Off, Upload paused, Retrying, Catching up, Finishing, Check mic, Mic blocked, Mic lost, Offline, Key needed, Not transcribing. Clips held after an error say "Upload paused", not "Paused", so the word does not read like the paused clock. The full sentence is its tip and is read by screen readers. Both status spans take keyboard focus (`tabindex="0"`). (CHANGED 2026-11-20, owner: the long line "trails off next to transcribe ... Can it just say "Ready"".)
 - No model or company names in copy. The only exception is `{provider}`, which names the provider of the judge's own key. The provider picker in Settings reads its names from providers.js and is the only other place names appear. A static test holds the banned list (6.1).
 - Errors come only from `aiErrorText`.
 - Copy never relies on colour alone.
@@ -938,7 +940,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
 
 ## 5. Open questions for you (12)
 
-- **Q-1. Round bar off Flow.** Should the round bar hide on Round, Decide, Ballots and Settings, with the corner chip shown instead?
+- **Q-1. Round bar off Flow.** Should the round bar hide on Round, Decide, History and Settings, with the corner chip shown instead?
   - ★ Yes. It frees 76 px.
   - The cost: off Flow, prep is one click further away (or in the palette).
 - **Q-2. Current users and the D2 defaults.** Many saved `autoEval` and `liveFlow` values of `true` came from the old defaults, not from a choice.
@@ -992,7 +994,7 @@ Smaller [A] choices stay marked inline and go ahead unless you flag them. Exampl
 | logic-slice4.test.js (new) | `fieldState`, the touched/aiFilled move, `roundHasContent`, `buildBallotPrompt` (redraft, range, feedback), `applyBallotDraft` (only, range), `wordDiff`, `reviewFromDraft`, `staleReviewCards`, snapshot deep copy, `checkBallot` (range, out-of-range points, missing ranks), `moveRank`, `printModel`, `tournamentBlocks`, `prepUsed`, `keyMoments` |
 | keys.test.js (new) | `clockKeyAction` (11 cases); registry: every entry has a label, a group and both key sets; no key clash in a scope; no reserved key (4.1); `event.key` matching with Shift and AltGr; palette ↔ registry links; `matchKey` with single-key off; `searchCommands` ("2ac", "timer", "log", "", "zzz"); disabled rules ("Delete sheet" with one sheet, "Next speech" at 2AR); `chipText`; `studyResult` |
 | tokens.test.js (new) | Dark values exist; all contrast pairs in Part 2 pass |
-| copy-dialogs.test.mjs (new, static) | No match for `\b(window\.)?(confirm|prompt|alert)\s*\(`; no stale place names; no "I understand", "Recommended." or "Claude declined"; `PLACES` says Ballots; one `NO_AI` string; no `title="` in index.html except on `<iframe>` and SVG `<title>`; no `font-size` under 13 px; **vendor names:** none of a fixed list (Anthropic, Claude, OpenAI, ChatGPT, GPT, Codex, Google, Gemini, Groq, Mistral, Deepgram, AssemblyAI, Whisper, Tabroom, plus every provider name in providers.js) in app.js, tour.js or index.html text, except inside providers.js and the Settings provider picker |
+| copy-dialogs.test.mjs (new, static) | No match for `\b(window\.)?(confirm|prompt|alert)\s*\(`; no stale place names; no "I understand", "Recommended." or "Claude declined"; `PLACES` says History; one `NO_AI` string; no `title="` in index.html except on `<iframe>` and SVG `<title>`; no `font-size` under 13 px; **vendor names:** none of a fixed list (Anthropic, Claude, OpenAI, ChatGPT, GPT, Codex, Google, Gemini, Groq, Mistral, Deepgram, AssemblyAI, Whisper, Tabroom, plus every provider name in providers.js) in app.js, tour.js or index.html text, except inside providers.js and the Settings provider picker |
 | inline-style.test.mjs (new, static) | Ratchet: inline `style=""` count in index.html ≤ 93 and in app.js ≤ 46 |
 | tour.test.js | No step targets a removed element (`#tab-draft`, the left-pane transcript, `#reading-card`) |
 
@@ -1001,7 +1003,7 @@ The existing tests that must pass unchanged: logic.test.js:29-55, 119-121, 383-3
 ### 6.2 Browser checks
 - **Tool** (if Q-11 is ★): Playwright drives Chromium and WebKit at the viewports in "How to read it". It uses `page.emulateMedia()` for `colorScheme`, `forcedColors` and `reducedMotion`. Axe runs through `@axe-core/playwright`.
 - **Pass rules for each kind of check:**
-  - Axe: zero violations for the WCAG 2.2 A and AA rules on Flow, Round, Ballot, Ballots and Settings.
+  - Axe: zero violations for the WCAG 2.2 A and AA rules on Flow, Round, Ballot, History and Settings.
   - No flash: the first-paint background of `<html>` equals `--canvas` for the chosen theme.
   - 200% zoom (viewport 683×325 at device scale 2): no sideways page scroll, and no text container has `scrollWidth > clientWidth`.
   - No sideways scroll: `document.documentElement.scrollWidth <= innerWidth`.

@@ -15,7 +15,7 @@ Answers to the grill-me questions in `UX-RESEARCH.md` §6. The spec and the buil
 | Q9 | AI ballot features | **One "Draft with AI" panel inside the Ballot.** Decision draft is no longer its own tab. |
 | Q10 | Speaker points range | **A setting in Round setup**, default 25–30. |
 | Q11 | First-time screen | **A lighter welcome screen, for free (bring-your-own-key) users only.** Paid-plan users skip it: hosted AI with credits just works, with no keys or model choices. All welcome copy, including the skip page, becomes short, clean and plain. |
-| Q12 | Top-nav name for saved ballots | **"Ballots".** "Debate library" stays under ?. |
+| Q12 | Top-nav name for saved ballots | **"History".** "Debate library" stays under ?. (CHANGED 2026-11-20, see "Nav rename (2026-11-20)" below. Old decision: "Ballots".) |
 | Q13 | Command palette | **Yes, Cmd+K**, listed under ? as "Search and commands". |
 | Q15 | Expert / Plain switch | **Moves to Settings and Round setup.** Out of the top bar. |
 | Q3 | Theme | **Light / Dark / System choice in Settings**, System by default. |
@@ -41,3 +41,10 @@ Answers to the grill-me questions in `UX-RESEARCH.md` §6. The spec and the buil
 ## Spec answers (2026-11-20)
 
 See `SPEC.md` §7 for the 12 spec answers (round bar off Flow, old defaults off once, key kept per tab, Live AI flow off, Record focused first, mono grid, 16 px grid on touch, narrow layout under 820 px, manual browser checks, 60 s first-run target).
+
+## Nav rename (2026-11-20)
+
+- **The top-nav place "Ballots" is now "History".** Of two options (rename to History, or remove the tab), the owner chose: "1: Rename to History". The owner's reason, verbatim:
+  > "Ballot" being under "Decide" and "Ballots" being past ballots is really confusing from a nav perspective.
+- "Ballot" under Decide stays as it is. The internal id `log` and every storage key stay, so old backups and saved data still load.
+- The button is "Save to History". The palette still finds the place with "log", "history" and "ballots".

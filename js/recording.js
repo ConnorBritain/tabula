@@ -17,27 +17,41 @@ let mic = null, clipRec = null, clipTimer = null;
 // recStoppedByReload = the clock came back running after a reload, but the mic did not (browsers need a click).
 let recLive = false, recStoppedByReload = false, recNoticeOpen = false;
 
-// A big, plain status line under the clock, so a judge always knows if audio is being captured.
-let recProblem = '', lastTextAt = 0;
+// The status next to Transcribe: one short word, so it never trails off (L.recStatus is the one ladder for the word,
+// its tone and the full sentence). The full sentence is the word's tip (data-tip; ui.js ties it to the word with
+// aria-describedby). Both status spans have tabindex="0" in index.html, so keyboard users reach the tip.
+// recProblemKind names the problem for the word ('no-key', 'mic-blocked', 'mic-lost', 'offline'); set it with recProblem.
+let recProblem = '', recProblemKind = '', lastTextAt = 0;
+const recStall = () => L.stallWarning({ startedAt: recStartedAt, lastTextAt, now: Date.now(), mode: S.audioMode });
+// Paint one status span. In the error tone the full sentence is also inside the span (sr-only), so the live region
+// reads it out without focus: "Mic blocked. Not transcribing: the microphone is blocked…". The span is only rebuilt
+// when the word or that sentence changes, so the live region does not speak every second.
+function paintRecStatus(el, st) {
+  tone(el, st.tone);
+  const said = st.tone === 'error' ? st.full : '';
+  if (el.dataset.word !== st.word || el.dataset.said !== said) {
+    el.dataset.word = st.word; el.dataset.said = said;
+    el.textContent = st.word;
+    if (said) { const sr = document.createElement('span'); sr.className = 'sr-only'; sr.textContent = '. ' + said; el.append(sr); }
+  }
+  if (el.dataset.tip !== st.full) el.dataset.tip = st.full;
+}
 function setRecStatus() {
   const el = $('#rec-status');
   if (!el) return;
-  queueMicrotask(syncClockViewRec); // the narrow clock view shows the same box and line (spec 5.6b)
-  if (recProblem) { tone(el, 'error'); el.textContent = 'Not transcribing: ' + recProblem; return; }
-  // Clips waiting for a better connection: say so plainly, and that the audio stays on this device.
   const q = CQ.state();
-  if (q.held) { tone(el, 'error'); el.textContent = 'Paused: ' + q.held.replace(/\.+$/, '') + '. ' + (q.backlog ? clipMinutes(q) + ' of audio is kept on this device until it is fixed.' : ''); return; }
-  if (q.degraded) { tone(el, 'caution'); el.textContent = 'Connection trouble: recording safely. ' + clipMinutes(q) + ' of audio waiting, kept on this device only' + (q.retryInMs ? '. Trying again in ' + Math.ceil(q.retryInMs / 1000) + ' s.' : '.'); return; }
-  if (q.catchingUp) { tone(el, 'caution'); el.textContent = 'Catching up: ' + clipMinutes(q) + ' of audio waiting, kept on this device only.'; return; }
-  if (!recWanted && q.backlog) { tone(el, 'quiet'); el.textContent = 'Finishing the transcript: ' + clipMinutes(q) + ' of audio waiting, kept on this device only.'; return; }
-  if (!$('#rec-on').checked) { tone(el, 'quiet'); el.textContent = 'Transcribe is off. Tick the box to record.'; return; }
-  if (!recWanted) { tone(el, 'quiet'); el.textContent = 'Ready. Recording starts when the speech clock starts.'; return; }
-  const ago = lastTextAt ? Math.round((Date.now() - lastTextAt) / 1000) : null;
-  const engine = activeEngine === 'browser' ? 'browser' : P.PROVIDERS[activeEngine].short;
-  const stall = L.stallWarning({ startedAt: recStartedAt, lastTextAt, now: Date.now(), mode: S.audioMode });
-  if (stall) { tone(el, 'caution'); el.textContent = 'Recording (' + engine + '). ' + stall; return; }
-  tone(el, 'ok');
-  el.textContent = 'Recording (' + engine + ')' + (ago != null ? ' · last text ' + ago + ' s ago' : ' · waiting for first text…');
+  const stall = recWanted ? recStall() : '';
+  const st = L.recStatus({ problem: recProblem, problemKind: recProblemKind, held: q.held, degraded: q.degraded,
+    catchingUp: q.catchingUp, finishing: !recWanted && Boolean(q.backlog), retryInMs: q.retryInMs, backlog: q.backlog,
+    mins: clipMinutes(q), on: $('#rec-on').checked, wanted: recWanted, stall,
+    engine: activeEngine === 'browser' ? 'browser' : P.PROVIDERS[activeEngine].short,
+    ago: lastTextAt ? Math.round((Date.now() - lastTextAt) / 1000) : null });
+  paintRecStatus(el, st);
+  // The narrow clock view shows the same box and word (spec 5.6b).
+  const box = $('#cv-rec-on'), line = $('#cv-rec-status');
+  if (box.checked !== $('#rec-on').checked) box.checked = $('#rec-on').checked;
+  paintRecStatus(line, st);
+  line.className = el.className.replace('rb-status', 'cv-rec-line');
 }
 setInterval(() => { setRecStatus(); renderRecStrip(); }, 1000);
 // Remember the Transcribe box across refreshes (it was resetting to off).
@@ -51,12 +65,6 @@ $('#rec-on').addEventListener('change', (e) => {
 });
 
 // The narrow clock view's Transcribe box is a mirror of the round bar's one: one setting, one status line.
-function syncClockViewRec() {
-  const box = $('#cv-rec-on'), src = $('#rec-status'), line = $('#cv-rec-status');
-  if (box.checked !== $('#rec-on').checked) box.checked = $('#rec-on').checked;
-  if (line.textContent !== src.textContent) line.textContent = src.textContent;
-  line.className = src.className.replace('rb-status', 'cv-rec-line');
-}
 $('#cv-rec-on').addEventListener('change', (e) => {
   $('#rec-on').checked = e.target.checked;
   $('#rec-on').dispatchEvent(new Event('change'));
@@ -176,7 +184,7 @@ function startRec() {
   // The chosen engine has no key (for example after a refresh)? Use the free browser engine instead of failing silently.
   if (activeEngine !== 'browser' && !keys[activeEngine]) {
     if (SR) { toast('No ' + P.PROVIDERS[activeEngine].short + ' key, so using the free browser transcription.'); activeEngine = 'browser'; }
-    else { recWanted = false; recProblem = 'the ' + P.PROVIDERS[activeEngine].short + ' key is not connected in this tab. Connect it in Settings.'; renderRecBadge(); setRecStatus(); return; }
+    else { recWanted = false; recProblem = 'the ' + P.PROVIDERS[activeEngine].short + ' key is not connected in this tab. Connect it in Settings.'; recProblemKind = 'no-key'; renderRecBadge(); setRecStatus(); return; }
   }
   if (activeEngine !== 'browser') startOpenAIRec(); else startBrowserRec();
   if (activeEngine === 'browser' && !navigator.onLine) toast(OFFLINE_SR, { kind: 'error', key: 'offline-sr' });
@@ -234,8 +242,8 @@ function startBrowserRec() {
   };
   rec.onstart = () => markRecLive();
   rec.onerror = (ev) => {
-    if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') { recWanted = false; recLive = false; recProblem = 'the microphone is blocked. Click the mic icon in the address bar and allow it.'; setRecStatus(); renderRecStrip(); toast(MIC_BLOCKED, { kind: 'error', key: 'mic' }); }
-    else if (ev.error === 'network') { recProblem = 'browser transcription needs internet.'; setRecStatus(); }
+    if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') { recWanted = false; recLive = false; recProblem = 'the microphone is blocked. Click the mic icon in the address bar and allow it.'; recProblemKind = 'mic-blocked'; setRecStatus(); renderRecStrip(); toast(MIC_BLOCKED, { kind: 'error', key: 'mic' }); }
+    else if (ev.error === 'network') { recProblem = 'browser transcription needs internet.'; recProblemKind = 'offline'; setRecStatus(); }
   };
   rec.onend = () => { if (recWanted) { try { rec.start(); } catch {} } else renderRecBadge(); };
   try { rec.start(); } catch {}
@@ -261,7 +269,7 @@ async function startOpenAIRec() {
     got = mic || await openMic();
   } catch (err) {
     recWanted = false; recLive = false; renderRecBadge();
-    recProblem = 'the microphone is blocked or busy (' + (err && err.name || 'error') + '). Click the mic icon in the address bar and allow it.';
+    recProblem = 'the microphone is blocked or busy (' + (err && err.name || 'error') + '). Click the mic icon in the address bar and allow it.'; recProblemKind = 'mic-blocked';
     setRecStatus(); renderRecStrip();
     if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) toast(MIC_BLOCKED, { kind: 'error', key: 'mic' });
     return;
@@ -273,7 +281,7 @@ async function startOpenAIRec() {
   mic = got;
   markRecLive();
   const track = mic.getAudioTracks()[0];
-  if (track) track.onended = () => { meterShow(false); if (recWanted) { recProblem = 'the microphone was disconnected. Pause and start the clock again.'; setRecStatus(); } };
+  if (track) track.onended = () => { meterShow(false); if (recWanted) { recProblem = 'the microphone was disconnected. Pause and start the clock again.'; recProblemKind = 'mic-lost'; setRecStatus(); } };
   if (window.AudioWorkletNode) {
     try { await startStream(recSpeechId, gen); return; }
     catch (err) { console.warn('Gap-free recording failed, using clips instead:', err); }
@@ -409,7 +417,7 @@ const CQ = window.ClipQueue.createClipQueue({
   drop(rec, err) {
     trError = true;
     setRecNote(L.AI_ERROR_PREFIX.transcript + ' ' + err.message);
-    recProblem = err.message;
+    recProblem = err.message; recProblemKind = 'service';
     setRecStatus();
     scheduleFlow(rec.speechId, rec.isFinal);
   },

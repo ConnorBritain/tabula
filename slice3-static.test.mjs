@@ -147,7 +147,7 @@ test('one tip module: no .hover-tip or .tip-pop left', () => {
 });
 
 // Why: a state class on #workspace that is also another element's class pulls that element's rules onto the whole
-// workspace; with no AI the Flow grid then draws on Round, Decide, Ballots and Settings and breaks the phone width.
+// workspace; with no AI the Flow grid then draws on Round, Decide, History and Settings and breaks the phone width.
 test('the classes app.js toggles on #workspace are not the class of any element in the page', () => {
   const toggled = [...APP.matchAll(/\bws\.classList\.toggle\('([\w-]+)'/g)].map((m) => m[1]);
   assert.ok(toggled.includes('ins-folded'), 'the Insights fold class is toggled on the workspace');

@@ -291,11 +291,12 @@ test('palette and registry links: every row key exists, and every palette entry 
 test('COMMANDS: the groups and exact labels of spec 5.4', () => {
   const labels = rowsFor({ undo: 'Undo: delete sheet DA' }).map((r) => r.label);
   // CHANGED 2026-11-20 because the owner asked for the product name to show; the palette now matches the ? menu item "About Tabula Debate". Old check: 'Open About Tabula' in this list.
-  for (const l of ['Go to Flow', 'Go to Round setup', 'Go to Live Eval', 'Go to Analysis', 'Go to Ballot', 'Go to Ballots', 'Go to Settings', 'Open Debate library', 'Open About Tabula Debate',
+  // CHANGED 2026-11-20 because the owner said "1: Rename to History". Old check: 'Go to Ballots' and 'Save to Ballots' in this list.
+  for (const l of ['Go to Flow', 'Go to Round setup', 'Go to Live Eval', 'Go to Analysis', 'Go to Ballot', 'Go to History', 'Go to Settings', 'Open Debate library', 'Open About Tabula Debate',
     'Start or pause clock', 'Next speech', 'Previous speech', 'Go to speech: 1AC', 'Go to speech: CX of 1A', 'Go to speech: 2AR', 'Reset speech clock', 'Start Aff prep', 'Start Neg prep', 'Show transcript',
     'Go to sheet: Case', 'Go to sheet: DA', 'Next sheet', 'Previous sheet', 'New sheet', 'Rename sheet: Case', 'Duplicate sheet: Case', 'Delete sheet: Case', 'Switch to AI flow',
     'Hide speeches pane', 'Hide insights', 'Focus mode', 'New round', 'Save round file (.tab)', 'Open round file',
-    'Draft with AI', 'Print or save as PDF', 'Copy for the tournament ballot', 'Save to Ballots', 'Undo: delete sheet DA',
+    'Draft with AI', 'Print or save as PDF', 'Copy for the tournament ballot', 'Save to History', 'Undo: delete sheet DA',
     'Keyboard shortcuts', 'Take the full tour', 'Tour this page']) assert.ok(labels.includes(l), 'missing: ' + l);
   assert.equal(labels.filter((l) => l.startsWith('Go to speech: ')).length, 12);
   // Theme and reading level are not in the palette.
@@ -323,7 +324,8 @@ test('disabled rules: Next speech at 2AR, Previous at 1AC, Delete sheet with one
   assert.equal(row(rowsFor(), 'Delete sheet: Case').disabled, false);
   assert.equal(row(rowsFor({ online: false }), 'Draft with AI').note, '· needs internet');
   assert.equal(row(rowsFor({ online: false }), 'Draft with AI').disabled, true);
-  assert.equal(row(rowsFor({ online: false }), 'Save to Ballots').disabled, false, 'only AI rows need the internet');
+  // CHANGED 2026-11-20 because the owner said "1: Rename to History". Old check: row(..., 'Save to Ballots').disabled is false.
+  assert.equal(row(rowsFor({ online: false }), 'Save to History').disabled, false, 'only AI rows need the internet');
   assert.equal(row(rowsFor({ insights: 'edge-connect', speechesShown: true }), 'Show insights').disabled, true, '] does nothing with no AI');
 });
 
@@ -350,7 +352,8 @@ test('searchCommands: "2ac", "timer", "log", "" and "zzz"', () => {
   const rows = rowsFor();
   assert.equal(K.searchCommands('2ac', rows)[0].label, 'Go to speech: 2AC');
   assert.equal(K.searchCommands('timer', rows)[0].label, 'Start or pause clock');
-  assert.equal(K.searchCommands('log', rows)[0].label, 'Go to Ballots');
+  // CHANGED 2026-11-20 because the owner said "1: Rename to History". Old check: assert.equal(K.searchCommands('log', rows)[0].label, 'Go to Ballots');
+  assert.equal(K.searchCommands('log', rows)[0].label, 'Go to History');
   assert.deepEqual(K.searchCommands('', rows), rows);
   assert.deepEqual(K.searchCommands('zzz', rows), []);
 });
@@ -406,4 +409,11 @@ test('studyResult: "Study: 0:47 to start", null until both marks exist', () => {
   assert.equal(L5.studyResult({ firstView: 0, firstStart: 61500 }).pass, false);
   assert.equal(L5.studyResult({ firstView: 1000 }), null);
   assert.equal(L5.studyResult(null), null);
+});
+
+// Why: judges who learned "Ballots" or "history" must still reach the saved ballots in two keys after the rename to History.
+test('searchCommands: "history" and the old word "ballots" both find Go to History', () => {
+  const rows = rowsFor();
+  assert.equal(K.searchCommands('history', rows)[0].label, 'Go to History');
+  assert.ok(K.searchCommands('ballots', rows).some((r) => r.label === 'Go to History'), '"ballots" finds Go to History');
 });

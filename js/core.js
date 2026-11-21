@@ -32,7 +32,7 @@ function storageFailed(err) {
   if (storageWarned === kind) return;
   storageWarned = kind;
   toast(kind === 'full'
-    ? "This browser's storage for Tabula is full, so new changes are not saved. Delete old saved ballots in Ballots, or go to Round and use Save round file (.tab)."
+    ? "This browser's storage for Tabula is full, so new changes are not saved. Delete old saved ballots in History, or go to Round and use Save round file (.tab)."
     : 'This browser is not saving. A refresh will lose the clock and your flow. To keep a copy, go to Round and use Save round file (.tab).', { kind: 'error', key: 'storage' });
 }
 
@@ -125,8 +125,8 @@ const safeName = (s) => (s || 'round').replace(/[^\w-]+/g, '_');
 
 // ---------- tabs ----------
 // Four places plus Settings. Each place shows one or more of the old sections.
-// The internal id 'log' stays (old backups and the tour use it); the nav says Ballots (spec 2.5, Q12).
-const PLACES = [['flow', 'Flow'], ['setup', 'Round'], ['decide', 'Decide'], ['log', 'Ballots']];
+// The internal id 'log' stays (old backups and the tour use it); the nav says History (spec 2.5; the owner renamed it from Ballots on 2026-11-20).
+const PLACES = [['flow', 'Flow'], ['setup', 'Round'], ['decide', 'Decide'], ['log', 'History']];
 // Decide has three tabs (spec 4.0): Live Eval, Analysis, Ballot. An old saved 'draft' tab opens the Ballot (L.decideTab).
 const PLACE_OF = { setup: 'setup', timer: 'flow', flow: 'flow', eval: 'decide', analysis: 'decide', ballot: 'decide', log: 'log', ai: 'ai' };
 function showTab(id) {
@@ -355,7 +355,7 @@ $('#round-open').addEventListener('change', async (e) => {
 $('#new-round').addEventListener('click', async () => {
   const ok = await ask({
     title: 'Start a new round?',
-    body: 'This clears the flow, clocks, docs and any audio not yet transcribed. Saved ballots stay in Ballots.',
+    body: 'This clears the flow, clocks, docs and any audio not yet transcribed. Saved ballots stay in History.',
     buttons: [{ label: 'Cancel', value: false, kind: 'plain' }, { label: 'Clear and start new', value: true, kind: 'danger' }], cancelValue: false,
   });
   if (!ok) return;
