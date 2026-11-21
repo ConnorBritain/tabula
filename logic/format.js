@@ -24,10 +24,8 @@
       speakerIds: f.speakers.map((s) => s.id),
     }));
   }
-  function deepFreeze(o) {
-    for (const v of Object.values(o)) if (v && typeof v === 'object' && !Object.isFrozen(v)) deepFreeze(v);
-    return Object.freeze(o);
-  }
+  // deepFreeze is shared code in core/defs.js (an ES module). The page runs it before this file; Node requires it.
+  const { deepFreeze } = isNode ? require('../core/defs.js') : root.TabulaCore.defs;
 
   const BY_KEY = {};
   for (const f of loaded) BY_KEY[f.id + '@' + f.version] = prepare(f);

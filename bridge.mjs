@@ -25,6 +25,8 @@ for (const f of ['tabula-mark-black.webp', 'tabula-mark-white.webp', 'tabula-wor
 for (const f of ['core', 'formatsetup', 'caps', 'clock', 'recording', 'flow', 'docs', 'ai', 'settings', 'help', 'insights', 'decide', 'shell', 'palette', 'study', 'judging', 'account']) FILES['/js/' + f + '.js'] = 'js/' + f + '.js';
 for (const f of ['format', 'round', 'audio', 'flow', 'files', 'rules', 'decide', 'prompts', 'shell', 'account', 'caps']) FILES['/logic/' + f + '.js'] = 'logic/' + f + '.js';
 for (const f of ['policy-hs.v1', 'ld.v1']) FILES['/formats/' + f + '.js'] = 'formats/' + f + '.js';
+// Shared ES modules (docs/events/LANDING.md §3). index.html loads them with type="module".
+for (const f of ['defs']) FILES['/core/' + f + '.js'] = 'core/' + f + '.js';
 for (const f of ['mammoth-1.6.0.browser.min.js', 'mermaid-10.9.1.min.js', 'anthropic-sdk-0.137.0.bundle.mjs']) FILES['/vendor/' + f] = 'vendor/' + f;
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.webp': 'image/webp', '.png': 'image/png', '.woff2': 'font/woff2', '.css': 'text/css; charset=utf-8', '.xml': 'application/xml; charset=utf-8' };
 // The Debate Library (built by build-learn.mjs) is a folder of static pages, so it is served by path, not from FILES.

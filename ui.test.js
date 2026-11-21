@@ -70,7 +70,7 @@ test('trapNext: Tab and Shift+Tab wrap inside the dialog; focus outside goes to 
 // the page stops at the first toast.
 test('index.html loads ui.js after logic.js and before app.js, and the local helper serves it', () => {
   const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-  const at = (f) => html.indexOf('<script src="' + f + '"');
+  const at = (f) => html.search(new RegExp('<script\\b[^>]*\\bsrc="' + f.replace('.', '\\.') + '"'));
   assert.ok(at('ui.js') > at('logic.js') && at('logic.js') >= 0, 'ui.js after logic.js');
   assert.ok(at('ui.js') < html.indexOf('src="app.js"'), 'ui.js before app.js');
   assert.ok(/'\/ui\.js': 'ui\.js'/.test(fs.readFileSync(path.join(__dirname, 'bridge.mjs'), 'utf8')), 'bridge FILES lists /ui.js');
