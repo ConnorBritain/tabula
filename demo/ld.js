@@ -6,6 +6,7 @@
   'use strict';
   const round = {
     format: 'ld',
+    param: 'ld', // ?demo=ld opens this round
     round: {
       tournament: 'Sample Round (demo)',
       roundName: 'Round 2',

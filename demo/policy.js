@@ -6,6 +6,7 @@
   'use strict';
   const round = {
     format: 'policy-hs',
+    param: 'policy', // ?demo=policy opens this round; it is also the round for ?demo alone (the first file)
     round: {
       tournament: 'Sample Round (demo)',
       roundName: 'Round 3',

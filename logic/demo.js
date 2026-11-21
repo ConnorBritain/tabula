@@ -17,14 +17,18 @@
     buy: 'Buy a round',
   });
 
-  // The ?demo= value that opens the demo for a format (assets/demo-boot.js reads it back): 'ld' for LD, else 'policy'.
-  const demoParam = (formatId) => (formatId === 'ld' ? 'ld' : 'policy');
+  // The sample round a ?demo= value opens, from the loaded demo files (list): the file that names that value, else the
+  // first file (so ?demo alone, or an unknown value, still shows a demo). No files: null.
+  function demoSample(list, param) {
+    const all = (list || []).filter(Boolean);
+    return all.find((s) => s.param === param) || all[0] || null;
+  }
 
-  // The sample round for a format id, from the loaded demo files (list), or null.
-  function demoSample(list, formatId) { return (list || []).find((s) => s && s.format === formatId) || null; }
-
-  // Each speech in the sample that the format flows (has a flow column), in order.
-  const flowedSpeeches = (sample) => (sample.speeches || []).map((s) => s.id);
+  // Which nudge buttons show: both only on the last step, and "Buy a round" only while its flag (demoBuy) is on.
+  function demoCtaButtons(o) {
+    const x = o || {};
+    return { plans: Boolean(x.last), buy: Boolean(x.last && x.buyOn) };
+  }
 
   // What the demo page starts with: the round (merged into a fresh round by js/core.js) and the settings.
   // id starts with "demo-" so nothing could ever mistake it for a real round.
@@ -48,7 +52,7 @@
   // The first two speeches play live (the transcript types in, then the AI flows it); the rest of the round is filled
   // at once; then Live Eval, the ballot draft, the decision, and the nudge.
   function demoSteps(sample, fmt) {
-    const ids = flowedSpeeches(sample);
+    const ids = (sample.speeches || []).map((s) => s.id); // the sample has only the speeches the format flows
     const name = (id) => (fmt.speeches.find((s) => s.id === id) || { label: id }).label;
     const steps = [{
       id: 'intro', place: 'setup', title: 'A sample round',
@@ -101,7 +105,7 @@
     return sp ? sp.transcript : '';
   }
 
-  const api = { DEMO_CTA, demoParam, demoSample, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript };
+  const api = { DEMO_CTA, demoSample, demoCtaButtons, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).demo = api;
 })(typeof window !== 'undefined' ? window : globalThis);

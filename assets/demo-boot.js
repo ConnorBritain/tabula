@@ -13,13 +13,13 @@
 (function (root) {
   'use strict';
 
-  // The format a demo URL asks for: ?demo or ?demo=policy -> 'policy-hs'; ?demo=ld -> 'ld'. Not a demo: null.
-  function demoFormatId(search) {
+  // The ?demo= value of a URL, lower case ('' for ?demo alone), or null when the URL is not a demo. Which sample round
+  // a value opens is data: each demo/*.js file names its own value (logic/demo.js demoSample).
+  function demoParamOf(search) {
     const q = new URLSearchParams(String(search || ''));
     if (!q.has('demo')) return null;
     const v = String(q.get('demo') || '').trim().toLowerCase();
-    if (v === 'off' || v === '0' || v === 'false') return null;
-    return v === 'ld' ? 'ld' : 'policy-hs';
+    return v === 'off' || v === '0' || v === 'false' ? null : v;
   }
 
   // A Storage in memory with the same methods as localStorage. Values are kept as strings, as the browser does.
@@ -66,13 +66,13 @@
     return true;
   }
 
-  const api = { demoFormatId, memoryStorage, sandbox };
+  const api = { demoParamOf, memoryStorage, sandbox };
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
-  const format = demoFormatId(root.location && root.location.search);
+  const param = demoParamOf(root.location && root.location.search);
   let demo = null;
-  if (format && sandbox(root)) {
-    demo = Object.freeze({ format });
-    root.document.documentElement.setAttribute('data-demo', format);
+  if (param != null && sandbox(root)) {
+    demo = Object.freeze({ param });
+    root.document.documentElement.setAttribute('data-demo', param || 'on');
   }
   Object.defineProperty(root, 'TabulaDemo', { value: demo, configurable: false, writable: false });
 })(typeof window !== 'undefined' ? window : globalThis);

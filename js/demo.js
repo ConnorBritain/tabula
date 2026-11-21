@@ -4,11 +4,17 @@
 // swapped storage and network for this page load, so the demo never touches the judge's real data and makes no calls.
 // This part loads first of the page parts: it puts the sample round into the (in-memory) storage before js/core.js
 // reads it. Its other code runs later, once the page has started (DOMContentLoaded).
+// It drives other parts through their globals, so a rename there breaks the demo (the browser check, not node, sees it):
+// core (R, save, showTab, FMT, flagOn, measureRoundBar, $), clock (selectSpeech, speechIdx, sp), flow (scheduleFlow,
+// flowBusy, flowPending, renderFlow, renderTranscript, setTranscriptView, showDrawer), ai (LV, STOPPED), insights
+// (evalBusy), decide (draftUi, openDraftPanel, closeDraftPanel).
+// Live transcription (js/recording.js) calls its provider without callAI; in the demo it never runs (the player writes
+// the transcript), and the sandbox blocks both the mic and the network anyway.
 // One part of the page code (see app.js for the load order). The parts are classic scripts that share one global
 // scope, so a part can use what any part declares; code that runs at load only uses parts that load before it.
 'use strict';
 
-const demoSample = window.TabulaDemo ? window.PolicyLogic.demoSample(window.TabulaDemoRounds, window.TabulaDemo.format) : null;
+const demoSample = window.TabulaDemo ? window.PolicyLogic.demoSample(window.TabulaDemoRounds, window.TabulaDemo.param) : null;
 // The page is the demo: the sandbox is on and the sample round for its format is here.
 const demoOn = Boolean(demoSample);
 if (demoOn) {
@@ -28,7 +34,7 @@ const DEMO_NOT_HERE = 'This part is not in the demo. Try it in your own round.';
 function demoAnswer({ hosted, signal }) {
   return new Promise((resolve, reject) => {
     const reply = L.demoReply(demoSample, hosted && hosted.job, hosted && hosted.extra);
-    const t = setTimeout(() => (reply ? resolve(reply) : reject(Object.assign(new Error(DEMO_NOT_HERE), { kind: 'demo' }))), DEMO_AI_MS);
+    const t = setTimeout(() => (reply ? resolve(reply) : reject(new Error(DEMO_NOT_HERE))), DEMO_AI_MS);
     if (signal) signal.addEventListener('abort', () => { clearTimeout(t); reject(STOPPED()); }, { once: true });
   });
 }
@@ -126,8 +132,9 @@ function renderDemoBar() {
   next.hidden = last;
   next.disabled = demoUi.busy;
   next.textContent = demoUi.busy ? 'Playing…' : 'Next';
-  $('#demo-plans').hidden = !last;
-  $('#demo-buy').hidden = !(last && flagOn('demoBuy'));
+  const cta = L.demoCtaButtons({ last, buyOn: flagOn('demoBuy') });
+  $('#demo-plans').hidden = !cta.plans;
+  $('#demo-buy').hidden = !cta.buy;
   $('#demo-bar').classList.toggle('demo-end', last);
 }
 

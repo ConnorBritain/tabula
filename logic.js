@@ -47,7 +47,7 @@
     activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody } = part('account');
   const { limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal } = part('limits');
   const { BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
-  const { DEMO_CTA, demoParam, demoSample, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript } = part('demo');
+  const { DEMO_CTA, demoSample, demoCtaButtons, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript } = part('demo');
 
   const api = {
     SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS, PARADIGMS,
@@ -99,7 +99,7 @@
     limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
     BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError,
     // The staged demo of the AI features (?demo=policy or ?demo=ld; js/demo.js, demo/*.js)
-    DEMO_CTA, demoParam, demoSample, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript,
+    DEMO_CTA, demoSample, demoCtaButtons, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PolicyLogic = api;

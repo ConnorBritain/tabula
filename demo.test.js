@@ -30,12 +30,14 @@ function schemaErrors(schema, v, at = '$') {
 // Why: the demo URL picks the round. If ?demo=ld opened the Policy round, LD judges would see the wrong format; if a
 // normal URL counted as a demo, a judge's real app would start on empty memory storage and seem to lose their round.
 test('the demo URL picks the format, and a normal URL is never a demo', () => {
-  assert.equal(BOOT.demoFormatId('?demo=policy'), 'policy-hs');
-  assert.equal(BOOT.demoFormatId('?demo'), 'policy-hs');
-  assert.equal(BOOT.demoFormatId('?demo=LD'), 'ld');
-  assert.equal(BOOT.demoFormatId('?demo=anything'), 'policy-hs');
-  for (const s of ['', '?', '?flags=x', '?demo=off', '?demo=0']) assert.equal(BOOT.demoFormatId(s), null, s);
-  for (const f of L.FORMAT_IDS) assert.equal(BOOT.demoFormatId('?demo=' + L.demoParam(f)), f, 'demoParam and the boot agree for ' + f);
+  const opens = (search) => { const p = BOOT.demoParamOf(search); return p == null ? null : L.demoSample(SAMPLES, p).format; };
+  assert.equal(opens('?demo=policy'), 'policy-hs');
+  assert.equal(opens('?demo'), 'policy-hs');
+  assert.equal(opens('?demo=LD'), 'ld');
+  assert.equal(opens('?demo=anything'), 'policy-hs');
+  for (const s of ['', '?', '?flags=x', '?demo=off', '?demo=0']) assert.equal(BOOT.demoParamOf(s), null, s);
+  assert.deepEqual(SAMPLES.map((s) => s.format).sort(), [...L.FORMAT_IDS].sort(), 'every format has a sample round');
+  assert.equal(L.demoSample([], 'ld'), null);
 });
 
 // A page window to sandbox: a real-looking storage that records every write, and listeners we can fire.
@@ -199,8 +201,47 @@ test('the nudge opens the Plans page, and the buy button is behind a flag that i
   assert.equal(L.flagOn('demoBuy', { search: '?flags=demoBuy:on', local: false }), false, 'the website cannot turn it on');
   assert.equal(L.plansUrl('debate.tabulaspeech.com'), 'https://tabulaspeech.com/plans/');
   assert.equal(L.plansUrl('debate.tabulaspeech.dev'), 'https://tabulaspeech.dev/plans/');
-  assert.match(read('js/demo.js'), /\$\('#demo-buy'\)\.hidden = !\(last && flagOn\('demoBuy'\)\)/);
+  assert.deepEqual(L.demoCtaButtons({ last: true, buyOn: L.flagOn('demoBuy', {}) }), { plans: true, buy: false }, 'the end card, as shipped');
+  assert.deepEqual(L.demoCtaButtons({ last: true, buyOn: true }), { plans: true, buy: true });
+  assert.deepEqual(L.demoCtaButtons({ last: false, buyOn: true }), { plans: false, buy: false }, 'only on the last step');
   assert.match(read('js/demo.js'), /\$\('#demo-plans'\)\.href = L\.plansUrl\(location\.hostname\)/);
+});
+
+// One function's source whose parameters may hold braces (callAI destructures its argument): the body starts at ') {'.
+function bodySource(text, head) {
+  const at = text.indexOf(head);
+  let i = text.indexOf(') {', at) + 2, depth = 0;
+  for (; i < text.length; i++) { if (text[i] === '{') depth++; else if (text[i] === '}' && --depth === 0) break; }
+  return text.slice(at, i + 1);
+}
+// callAI from js/ai.js with demoAnswer from js/demo.js, and a fetch that fails the test if anything calls it.
+function demoCallAI({ demoOn, sample }) {
+  const calls = [];
+  const fetch = (url) => { calls.push(url); throw new Error('network called: ' + url); };
+  const STOPPED = () => Object.assign(new Error('Stopped.'), { kind: 'stopped' });
+  const make = new Function('L', 'demoSample', 'demoOn', 'can', 'useHosted', 'aiReady', 'noAiText', 'fetch', 'STOPPED', 'S', 'DOCS', 'navigator', 'callHosted', 'hostedResult',
+    'const DEMO_AI_MS = 0, DEMO_NOT_HERE = "not in the demo";\n' + bodySource(read('js/demo.js'), 'function demoAnswer(') + '\n' + bodySource(read('js/ai.js'), 'async function callAI(') + '\nreturn callAI;');
+  const callAI = make(L, sample, demoOn, () => true, () => true, () => true, () => 'no AI', fetch, STOPPED, { aiEngine: 'anthropic' }, [], { onLine: true },
+    async () => fetch('/api/v1/ai/eval.live'), (text) => text); // hosted access: the path a signed-in judge would take
+  return { callAI, calls };
+}
+
+// Why: the core promise of the demo. Even on a device with hosted access and an own key, every AI feature must get the
+// saved answer and nothing may reach a provider or the Tabula server (which would spend a real judge's rounds).
+test('in the demo, callAI gives the saved answers and never touches the network', async () => {
+  const sample = SAMPLES[0];
+  const w = demoCallAI({ demoOn: true, sample });
+  const flow = await w.callAI({ feature: 'aiFlow', hosted: { job: 'flow', extra: { speech: '1AC' } } });
+  assert.equal(flow.sheets[0].sheet, 'Case');
+  assert.equal((await w.callAI({ feature: 'liveEval', hosted: { job: 'eval' } })).leaning.side, 'aff');
+  assert.equal((await w.callAI({ feature: 'ballotDraft', hosted: { job: 'ballot' } })).winner, 'aff');
+  await assert.rejects(w.callAI({ feature: 'analysis', hosted: { job: 'lens' } }), /not in the demo/);
+  const ctrl = new AbortController(); ctrl.abort();
+  await assert.rejects(w.callAI({ feature: 'ballotDraft', hosted: { job: 'ballot' }, signal: ctrl.signal }), /Stopped/);
+  assert.deepEqual(w.calls, []);
+  const real = demoCallAI({ demoOn: false, sample });
+  await assert.rejects(real.callAI({ feature: 'liveEval', hosted: { job: 'eval' } }));
+  assert.ok(real.calls.length > 0, 'outside the demo the same callAI does go to the network (the stub is live)');
 });
 
 // Why: in the demo the AI must be the saved answers, before any path that could reach a provider or the server.
