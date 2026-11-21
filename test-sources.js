@@ -11,10 +11,14 @@ const scriptSrcs = () => [...read('index.html').matchAll(/<script\b[^>]*\bsrc="(
 const APP_FILES = [...scriptSrcs().filter((s) => s.startsWith('js/')), 'app.js'];
 const LOGIC_FILES = [...scriptSrcs().filter((s) => s.startsWith('logic/')), 'logic.js'];
 
-// readSource('app.js') -> all page code; readSource('logic.js') -> all pure logic; any other file -> that file.
+// readSource('app.js') -> all page code; readSource('logic.js') -> all pure logic; readSource('ui.js') -> core/ui.js and
+// ui.js; any other file -> that file.
 function readSource(f) {
   if (f === 'app.js') return APP_FILES.map(read).join('\n');
   if (f === 'logic.js') return LOGIC_FILES.map(read).join('\n');
+  // ui.js builds the toast, ask() and modalDialog from core/ui.js (step C3), so a check on ui.js reads both.
+  // A new test that means one file only should read that file directly.
+  if (f === 'ui.js') return ['core/ui.js', 'ui.js'].map(read).join('\n');
   return read(f);
 }
 

@@ -6,6 +6,8 @@
   const F = part('format');
   const { speechColumn } = part('flow');
   const { KEYS_ENTRY, OLD_KEY_ENTRIES } = part('files');
+  // The shared UI rules (core/ui.js, an ES module): the page runs it before this file; Node requires it.
+  const { escTop, TOAST_MAX, toastPlan, askFirstFocus, trapNext, toastMs, askInputState } = typeof module !== 'undefined' && module.exports ? require('../core/ui.js') : root.TabulaCore.ui;
 
   // ---------- Slice 1: round safety (docs/design/SPEC.md §3.1) ----------
   // A running clock stops by itself at -9:59 (599 s over), on screen and after a reload.
@@ -79,14 +81,6 @@
     if (!runningId || !viewedId || viewedId === runningId) return null;
     const v = shortSpeech(viewedId), r = shortSpeech(runningId);
     return { text: 'Viewing ' + v + ' · ' + r + ' running', back: 'Back to ' + r, sr: 'Viewing ' + v + '. ' + r + ' is still running.' };
-  }
-
-  // 1.4 How long a toast stays (ms). 0 means it stays until it is closed.
-  function toastMs(text, kind, hasAction) {
-    if (kind === 'error') return 0;
-    if (hasAction) return 10000;
-    const n = String(text || '').length;
-    return Math.min(10000, Math.max(4000, 1000 + 60 * n));
   }
 
   // 1.5 How the speeches pane works at this window width (spec 1.5 table).
@@ -191,16 +185,6 @@
     return l;
   }
 
-  // The text box in ask() (spec 4.2): is the typed text good enough for the primary button?
-  // opts: { required (default true), maxLength, emptyError }. Returns { ok, text, error }.
-  function askInputState(raw, opts) {
-    const o = opts || {};
-    let text = String(raw == null ? '' : raw).trim();
-    if (o.maxLength > 0) text = text.slice(0, o.maxLength);
-    if (o.required !== false && !text) return { ok: false, text, error: o.emptyError || 'Type something first.' };
-    return { ok: true, text, error: '' };
-  }
-
   // Keys are not remembered by default (spec 2.6, D1). A saved choice wins. With no saved choice, a judge who
   // already has stored keys keeps them (they came from the old default), so no current user loses a key.
   function resolveRememberKeys(saved, hasStoredKeys) {
@@ -256,46 +240,6 @@
   function needsD2Note(o) {
     const s = o || {};
     return Boolean(s.aiReady) && !s.shown && !s.clockRunning;
-  }
-
-  // ---------- Slice 0: shared UI rules (spec 4.2, 4.3, S0.4). ui.js does the DOM; these decide. ----------
-  // The Esc stack: the index of the open layer with the highest rank, or -1. layers: [{ rank, open }].
-  // On a tie the layer added first wins. Esc closes only that one layer.
-  function escTop(layers) {
-    let top = -1;
-    (layers || []).forEach((l, i) => { if (l && l.open && (top < 0 || l.rank > layers[top].rank)) top = i; });
-    return top;
-  }
-  // What a new toast does to the list. list: [{ key, msg, action }] oldest first; t: { key, msg, action }.
-  // Returns { reuse: index or -1, close: [indexes to close, in order] }.
-  // Rules (spec 4.3): the same key or text restarts that toast; only one toast with an action (Undo) at a time;
-  // at most 3 toasts, so the oldest goes first.
-  const TOAST_MAX = 3;
-  function toastPlan(list, t) {
-    const l = list || [];
-    const reuse = l.findIndex((x) => (t.key && x.key === t.key) || x.msg === t.msg);
-    if (reuse >= 0) return { reuse, close: [] };
-    const close = [];
-    if (t.action) l.forEach((x, i) => { if (x.action) close.push(i); });
-    let left = l.length - close.length;
-    for (let i = 0; i < l.length && left >= TOAST_MAX; i++) if (!close.includes(i)) { close.push(i); left--; }
-    return { reuse: -1, close: close.sort((a, b) => a - b) };
-  }
-  // The dialog button that gets focus first. buttons: [{ value, kind }]; opts: { focus, hasFocus, cancelValue }.
-  // An asked-for button wins; else the safe (cancel) button in a dialog with a danger button; else the primary one; else the first.
-  function askFirstFocus(buttons, opts) {
-    const b = buttons || [], o = opts || {};
-    const idx = (pred) => b.findIndex(pred);
-    let i = o.hasFocus ? idx((x) => x.value === o.focus) : -1;
-    if (i < 0 && b.some((x) => x.kind === 'danger')) i = idx((x) => x.value === o.cancelValue);
-    if (i < 0) i = idx((x) => x.kind === 'primary');
-    return i < 0 ? 0 : i;
-  }
-  // The focus trap: the button Tab (or Shift+Tab) goes to. Focus outside the list goes to the first (or last).
-  function trapNext(i, n, back) {
-    if (!(n > 0)) return -1;
-    if (i < 0) return back ? n - 1 : 0;
-    return (i + (back ? -1 : 1) + n) % n;
   }
 
   // ---------- Slice 3: visual system and Flow look ----------

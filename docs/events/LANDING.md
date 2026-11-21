@@ -70,7 +70,7 @@ C0's done-when names the chosen bridge. This is an engineering call inside the o
 | **C13** | `core/ai.js`: providers, hosted client, key store; anonymizer passed in | `providers.js`; `js/ai.js` `callAI` and key store | Debate AI tests pass; no debate round shape inside |
 | Later | `core/recording.js` | `js/recording.js`, `clipqueue.js` | Practice only (PLAN.md P4) |
 
-**Done so far:** C0 (`db966d8`), C1 (`8efa054`: `core/defs.js` registry) and C2 (`core/store.js`: storage limited to its key prefixes, backup files with an `app` check, file download; debate uses `policyJudge.` and `tabula.`).
+**Done so far:** C0 (`db966d8`: folder, word test, bridge), C1 (`8efa054`: `core/defs.js` registry), C2 (`5b4f914`: `core/store.js`, storage limited to its key prefixes, backup files with an `app` check, file download; debate uses `policyJudge.` and `tabula.`) and C3 (`core/ui.js`: toast, ask, Esc stack, announcer, modalDialog and their pure rules; debate passes its `BEHIND` list in; the tips with `#flow-tabs` stay in debate's `ui.js`; the dialog and toast DOM behavior is checked in the browser, not by a Node test).
 
 **Minimal chains** (what each first events step waits for):
 

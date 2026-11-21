@@ -1,6 +1,6 @@
 // Run with: node --test
 // The shared UI rules behind ui.js (spec Slice 0: 4.2 dialog, 4.3 toasts, S0.4 Esc stack). The rules are pure
-// functions in logic.js; ui.js only does the DOM work.
+// functions in core/ui.js, re-exported by logic.js; core/ui.js createUI() and ui.js do the DOM work.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -78,7 +78,8 @@ test('index.html loads ui.js after logic.js and before app.js, and the local hel
 
 // Why: a radio group with one Tab stop per option makes a keyboard judge Tab through every choice in the print dialog; the platform rule is one stop, arrows inside.
 test('modalDialog: a radio group is one Tab stop in the focus trap', () => {
-  const ui = fs.readFileSync(path.join(__dirname, 'ui.js'), 'utf8');
+  // modalDialog moved into createUI() in core/ui.js (step C3).
+  const ui = fs.readFileSync(path.join(__dirname, 'core', 'ui.js'), 'utf8');
   const start = ui.indexOf('function modalDialog(');
   const body = ui.slice(start, ui.indexOf('\n  }\n', start));
   assert.match(body, /const oneStop = /, 'the trap has a radio-group rule');
