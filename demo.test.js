@@ -254,3 +254,18 @@ test('callAI answers from the demo before any hosted or own-key call', () => {
   for (const later of ['useHosted(', 'aiReady()', 'fetch(']) assert.ok(demoAt < body.indexOf(later), 'the demo check comes before ' + later);
   for (const f of ['js/demo.js', 'logic/demo.js', 'demo/policy.js', 'demo/ld.js']) assert.doesNotMatch(read(f), /\bfetch\(|https?:\/\//, f + ' makes no calls');
 });
+
+// Why: the Help menu is how a judge already in the app finds the demo. It must open in a new tab (so their real round
+// stays open), open the demo for their round's format, and go away where the school's AI policy removes all AI.
+test('the Help menu link opens the demo for the round\'s format in a new tab, and hides when AI is removed', () => {
+  const html = read('index.html');
+  const a = /<a role="menuitem" id="demo-link"[^>]*>/.exec(html)[0];
+  assert.match(a, /target="_blank"/);
+  assert.match(a, /rel="noopener"/);
+  assert.match(a, /data-ai="any"/);
+  assert.equal(L.demoParamFor(SAMPLES, 'ld'), 'ld');
+  assert.equal(L.demoParamFor(SAMPLES, 'policy-hs'), 'policy');
+  assert.equal(L.demoParamFor(SAMPLES, 'unknown'), 'policy', 'a format with no sample opens the first demo');
+  for (const f of L.FORMAT_IDS) assert.equal(L.demoSample(SAMPLES, L.demoParamFor(SAMPLES, f)).format, f, 'the link and the demo agree for ' + f);
+  assert.match(read('js/demo.js'), /a\.href = '\?demo=' \+ L\.demoParamFor\(window\.TabulaDemoRounds, FMT\(\)\.id\)/);
+});

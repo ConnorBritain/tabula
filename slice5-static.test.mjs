@@ -29,7 +29,9 @@ test('5.3 the ? menu: the items in order, two separators, no hint paragraph', ()
   const items = [...menu.matchAll(/role="menuitem"[^>]*>([^<]+)/g)].map((m) => m[1].trim());
   // CHANGED 2026-11-20 because the owner asked for the product name to show. Old check:
   //   assert.deepEqual(items, ['Take the full tour', 'Tour this page', 'Search and commands', 'Keyboard shortcuts', 'Debate library', 'About Tabula']);
-  assert.deepEqual(items, ['Take the full tour', 'Tour this page', 'Search and commands', 'Keyboard shortcuts', 'Debate library', 'About Tabula Debate']);
+  // CHANGED 2026-11-21 because the owner asked for a Help menu link to the AI demo ("merge the demo and add the Help menu link"). Old check:
+  //   assert.deepEqual(items, ['Take the full tour', 'Tour this page', 'Search and commands', 'Keyboard shortcuts', 'Debate library', 'About Tabula Debate']);
+  assert.deepEqual(items, ['Take the full tour', 'Tour this page', 'Watch the AI demo', 'Search and commands', 'Keyboard shortcuts', 'Debate library', 'About Tabula Debate']);
   assert.equal((menu.match(/<hr class="help-sep">/g) || []).length, 2);
   assert.doesNotMatch(menu, /<p\b/);
   assert.match(APP, /openPalette\(\$\('#help-btn'\)\)/, 'Search and commands opens the palette');

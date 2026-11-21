@@ -157,4 +157,11 @@ function demoBoot() {
   measureRoundBar();
   demoGo(0);
 }
+// The Help menu's "Watch the AI demo" opens the demo for this round's format in a new tab, so the real round stays open.
+// In the demo itself the item goes.
+function demoLinkBoot() {
+  const a = $('#demo-link'); if (!a) return;
+  if (demoOn) a.remove(); else a.href = '?demo=' + L.demoParamFor(window.TabulaDemoRounds, FMT().id);
+}
+document.addEventListener('DOMContentLoaded', demoLinkBoot);
 if (demoOn) document.addEventListener('DOMContentLoaded', demoBoot);

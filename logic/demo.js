@@ -24,6 +24,14 @@
     return all.find((s) => s.param === param) || all[0] || null;
   }
 
+  // The ?demo= value for a round in this format (the Help menu link): the param of that format's sample round, else
+  // the first file's. The format-to-value pairs live in the demo files, not here.
+  function demoParamFor(list, formatId) {
+    const all = (list || []).filter(Boolean);
+    const s = all.find((x) => x.format === formatId) || all[0];
+    return s ? s.param : '';
+  }
+
   // Which nudge buttons show: both only on the last step, and "Buy a round" only while its flag (demoBuy) is on.
   function demoCtaButtons(o) {
     const x = o || {};
@@ -105,7 +113,7 @@
     return sp ? sp.transcript : '';
   }
 
-  const api = { DEMO_CTA, demoSample, demoCtaButtons, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript };
+  const api = { DEMO_CTA, demoSample, demoParamFor, demoCtaButtons, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).demo = api;
 })(typeof window !== 'undefined' ? window : globalThis);

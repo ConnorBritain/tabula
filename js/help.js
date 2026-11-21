@@ -93,9 +93,10 @@ document.addEventListener('keydown', (e) => {
   }
 }, true);
 escLayer('tour', 100, () => Boolean(tourState), () => tourEnd(false)); // Esc ends the tour
-// The ? menu (spec 5.3): tours · Search and commands · Keyboard shortcuts · Debate library · About Tabula Debate.
+// The ? menu (spec 5.3): tours · Watch the AI demo · Search and commands · Keyboard shortcuts · Debate library · About Tabula Debate.
 // Real menu keys: ↑ and ↓ wrap, Home and End jump, Esc returns focus to ?, and Tab closes the menu.
-const helpItems = () => [...$('#help-menu').querySelectorAll('[role="menuitem"]')];
+// An item the AI gate hides (Watch the AI demo, data-ai="any") is skipped: it cannot take focus.
+const helpItems = () => [...$('#help-menu').querySelectorAll('[role="menuitem"]')].filter((el) => el.getClientRects().length > 0);
 function closeHelpMenu() { $('#help-menu').hidden = true; $('#help-btn').setAttribute('aria-expanded', 'false'); }
 function openHelpMenu(at) {
   $('#help-menu').hidden = false; $('#help-btn').setAttribute('aria-expanded', 'true');
