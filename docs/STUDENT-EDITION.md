@@ -410,7 +410,7 @@ Everything in §1 to §9 can run on the device. The connected roles cannot. They
 ### 10g. Fit with the Program plan
 
 - Coach features live in the **Program** plan (the paid plan for schools and clubs). No prices are in this public doc.
-- One exception (owner decision, 2026-11-19): a **free school space** for Debate Library tracks. It has only a join code, track assignments, "done or not done", and completion badges. The paid Program keeps drill assignments, the feedback inbox and hosted AI. See `docs/library/TRACKS.md` §6.
+- One exception (owner decision, 2026-11-19): a **free school space** for Debate Library tracks. It has only a join code, track assignments, "done or not done", completion badges, and the AI policy switches (amended 2026-11-20, `docs/design/AI-POLICY.md` §8: turning AI off is free). The paid Program keeps drill assignments, the feedback inbox and hosted AI. See `docs/library/TRACKS.md` §6.
 - **Free:** a student's own record on the device, and export. A judge choosing to send feedback is free.
 - **Program:** coach and team spaces, assignments, the feedback inbox on the server, and hosted AI for practice from a shared pool.
 - Keep a path for programs with no money (a discount or free seats for UDL and Title I programs), so connected roles do not become a rich-school feature.
