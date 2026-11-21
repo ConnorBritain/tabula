@@ -1,6 +1,6 @@
 # Tabula Speech Events: plan (draft 1)
 
-Status: **approved by the owner, 2026-11-20** ("Yes, all my picks": Q1–Q10 all option A). Q2, Q5, Q6 and Q7 still need a short lawyer check before P2 ships. No Speech Events code is built. Nothing in Cloudflare, Stripe or DNS changed. Plan committed in `1ef78f9`. Build order (owner, 2026-11-21): debate format refactor and LD first, then the safe Speech Events pieces (17 event data files with a schema test, and a clickable Room, Rank and Review prototype for a lay-judge test).
+Status: **approved by the owner, 2026-11-20** ("Yes, all my picks": Q1–Q10 all option A). Q2, Q5, Q6 and Q7 still need a short lawyer check before P2 ships. No Speech Events code is built. Nothing in Cloudflare, Stripe or DNS changed. Plan committed in `1ef78f9`. Build order (owner, 2026-11-21): debate format refactor and LD first, then the safe Speech Events pieces (17 event data files with a schema test, and a clickable Room, Rank and Review prototype for a lay-judge test). Q11 (2026-11-21, owner): A, v1 is high school only.
 
 Read in this order: this file, then [ARCHITECTURE.md](ARCHITECTURE.md), [EVENTS.md](EVENTS.md), [SHARED-VS-NEW.md](SHARED-VS-NEW.md), [DESIGN.md](DESIGN.md).
 
@@ -8,7 +8,7 @@ Read in this order: this file, then [ARCHITECTURE.md](ARCHITECTURE.md), [EVENTS.
 
 - **What:** a room tool for speech judges. Time each speaker, write comments, rank with no ties, copy to Tabroom or SpeechWire. Offline first. AI only cleans up the judge's own words, on request.
 - **Where:** `events.tabulaspeech.com`, same account and wallet as Tabula Debate.
-- **Events:** events are data files. v1 ships 19 events (NSDA main, NSDA supplemental speech, four middle school events) plus a Custom event form. State and league packs come next.
+- **Events:** events are data files. v1 ships 17 events (NSDA main, NSDA supplemental speech, two middle school events) plus a Custom event form. State and league packs come next.
 - **Shared with debate:** about 35–45% of the code (clock engine, storage, export, dialogs, toasts, keys, AI client, print and copy sheets, review-diff, tokens, the no-stripes test). Accounts, billing and AI policy are shared on the server.
 - **New:** the room and entry model, event and rules-profile files, grace and over-time state, time signals, in-room prep, the roster, the rank board, ratings, the comment sheet, student-facing critique help, review and copy cards, a paste parser.
 - **The real cost:** lifting a `core/` folder out of the debate app first, using the seams the debate format refactor makes for LD.
@@ -20,7 +20,7 @@ Read in this order: this file, then [ARCHITECTURE.md](ARCHITECTURE.md), [EVENTS.
 |---|---|---|---|
 | **P0. Decide** | Owner answers §5, including the module mechanism (Q10). Short legal read on Q2, Q5, Q6, Q7. | Answers written into this file. | — |
 | **P1. Shared core** | Debate format refactor (already planned for LD). Then, after PF ships, `core/` lifted from the seams: clock (pure + driver with hooks), storage with a prefix, backup, dialogs, toasts, keys registry, AI client, key store, print and copy sheets, review-diff, ranks and stepper for N entries, tokens without side colors. Recording waits for P4. `can()` / `ready()` in `core/policy.js`. | Debate passes every gate (`node --test`, `node check-publish.mjs`) and its browser checks, with no visible change. A static test proves `core/` uses no word from the banned list (ARCHITECTURE.md §8). | Debate format refactor |
-| **P2. v1 judge app** | `events/` on `events.tabulaspeech.com`. Screens 1–7 (ARCHITECTURE.md §5). 19 events + Custom. Presets: NSDA district, NSDA-style invitational, Custom. Two-stage review (ranks first, then comments). Print / PDF. Export / import. Service worker. Own-key "Clean up my comments". Hosted clean-up through the Worker (`events.cleanup`, `productLine: 'events'`). | 10 judges at one real tournament (from `docs/growth/FORENSICS.md` §6): a 6-entry room's ranks and comments at least 30% faster than paper, and 4 of 5 say they would use it again. All gates green. Axe and keyboard pass. 5-judge lay test. | P1; cloud: sign-in on the new host, the `events.cleanup` task, the Q2 round rule (new commit trigger) |
+| **P2. v1 judge app** | `events/` on `events.tabulaspeech.com`. Screens 1–7 (ARCHITECTURE.md §5). 17 events + Custom. Presets: NSDA district, NSDA-style invitational, Custom. Two-stage review (ranks first, then comments). Print / PDF. Export / import. Service worker. Own-key "Clean up my comments". Hosted clean-up through the Worker (`events.cleanup`, `productLine: 'events'`). | 10 judges at one real tournament (from `docs/growth/FORENSICS.md` §6): a 6-entry room's ranks and comments at least 30% faster than paper, and 4 of 5 say they would use it again. All gates green. Axe and keyboard pass. 5-judge lay test. | P1; cloud: sign-in on the new host, the `events.cleanup` task, the Q2 round rule (new commit trigger) |
 | **P3. Leagues** | League packs as data: CHSSA, TFA, UIL, IHSA, KSHSAA, MSHSL, OSDA, MIFA, IHSSA, NCFL, NCFCA, Stoa. New: minimum time, extemp cross-ex run, Pro Con Challenge (two runs), rating-only ballots, top-N ranks with unique percentages, rubric grids. Shareable rules profile link from a coach. | Each pack reviewed against its 2026-27 rulebook; a schema test per file. | P2 |
 | **P4. Practice and coach** | Practice timer for teams; recording and transcripts with consent (practice only); time-use report; ballot box (paste past comments, see by student and event); coach summary (AI, policy key `coachSummary`); extemp practice questions. | Coach beta with 3 programs. | P2; program accounts (cloud plan steps 1–4) |
 | **P5. Congress** | Scoring grid (1–6 and 1–8 scales), PO hours, top-8 helper, session timer. | 3 Congress scorers at one tournament. | P2 |
@@ -31,7 +31,7 @@ Read in this order: this file, then [ARCHITECTURE.md](ARCHITECTURE.md), [EVENTS.
 **In v1:**
 
 1. Rooms list, room setup (paste or type codes), room screen, speaker view (off by default), rank board, review and copy, settings.
-2. Events: OO, INF, USX, IX, DI, HI, DUO, POI, COM, PRO, POE, EXP, IMP, STO, OSW, DEC (MS), MX (MS), MS PRO (7:00), MS POE (7:00), and Custom.
+2. Events: OO, INF, USX, IX, DI, HI, DUO, POI, COM, PRO, POE, EXP, IMP, STO, OSW, DEC (MS), MX (MS), and Custom.
 3. Timer with grace, sticky over-grace flag, signal chips, ±10 s and set time, in-room prep for impromptu.
 4. Ranks 1–N, no ties, the NSDA "no rank 1 past grace" rule, the over-time flag for tab-room leagues.
 5. Ratings: none, points range (with optional no-ties and rank-agreement rules), or a word scale in the tournament's order.

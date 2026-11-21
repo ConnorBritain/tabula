@@ -10,7 +10,7 @@ Full research with every source key: shared notes folder, `speech-events/events-
 
 - **Events are data, not code.** Almost every event is "one or two performers, one timer, one ranked ballot". What changes is the time limit, the grace rule, the material rule and the checks. Each of those is a field in an event file ([ARCHITECTURE.md](ARCHITECTURE.md) §6.1).
 - **So the v1 cut is about primitives, not events.** v1 ships every event that fits the core primitives. Events that need a new primitive wait.
-- **v1 (19 events + Custom):** the 8 NSDA main events, 7 NSDA supplemental speech events, NSDA middle school Declamation, Mixed Extemp, Prose (7:00) and Poetry (7:00) as their own event files, and a **Custom event** form for any local event. (Middle school Prose and Poetry were added 2026-11-21.)
+- **v1 (17 events + Custom):** the 8 NSDA main events, 7 NSDA supplemental speech events, NSDA middle school Declamation and Mixed Extemp, and a **Custom event** form for any local event.
 - **Phase P3 (see PLAN.md):** state and league packs (California CHSSA, Texas UIL and TFA, Illinois, Kansas, Minnesota, Ohio, Michigan, Iowa, NCFL, NCFCA, Stoa) as preset files, plus extemp cross-ex, Pro Con Challenge, and rating-only ballots.
 - **Later or never:** Radio (audio-only window), large-group events, Discussion, Extemp Debate (it is a debate), Congress (phase P5, its own grid).
 
@@ -66,8 +66,8 @@ All: 30 s grace, then no rank 1 (except where noted). Supplemental prelims use o
 | Event | Short | Category | Limit | Prep | Material | Checks | v1 |
 |---|---|---|---|---|---|---|---|
 | Extemp Commentary | COM | Limited prep | 5:00 | Draw 3, 20 min, outside the room | No notes; delivered seated | Seated delivery | **Yes** |
-| Prose | PRO (MS: MS PRO) | Interp | 5:00 (MS: 7:00, own file) | None | Manuscript in a folder | No plays; title and author | **Yes** |
-| Poetry | POE (MS: MS POE) | Interp | 5:00 (MS: 7:00, own file) | None | Manuscript | Title and author | **Yes** |
+| Prose | PRO | Interp | 5:00 (MS: 7:00) | None | Manuscript in a folder | No plays; title and author | **Yes** |
+| Poetry | POE | Interp | 5:00 (MS: 7:00) | None | Manuscript | Title and author | **Yes** |
 | Expository | EXP | Public address | 5:00 | None | Memorized; no cards or aids | No reused OO or INF material | **Yes** |
 | Impromptu | IMP | Limited prep | **7:00 total, prep and speech together** | Draw 3, keep 1, **in the room** | No notes | Others wait outside | **Yes** (needs the in-room prep phase, primitive N6) |
 | Storytelling | STO | Interp | 5:00 | None | Told from memory | One published story; a still chair allowed | **Yes** |
