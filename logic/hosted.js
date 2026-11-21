@@ -10,6 +10,7 @@
   const { transcriptLines, judgeFlowLines, aiFlowSheets, flowSoFarLines } = part('prompts');
   const { APP_FEATURES, canUse, payerOf } = part('caps');
   const { hostedAiBody } = part('account');
+  const { parseRound } = part('limits');
 
   // Where a judge buys rounds (the buy page lives on the account site).
   const BUY_URL = 'https://tabulaspeech.com/account/';
@@ -102,7 +103,7 @@
   // Adds one event to the answer so far. The answer is finished when done or error is set.
   function sseStep(acc, ev) {
     // The `charged` field of the done frame is not used: the balance shows at the next capability check (§3a).
-    // `round` (the round's AI limits state, parseRound) may come on the done frame.
+    // `round` (the round's AI limits state, logic/limits.js parseRound) may come on the done frame.
     const a = Object.assign({ text: '', done: false, error: '', round: null }, acc);
     if (a.done || a.error) return a;
     if (typeof ev.t === 'string') a.text += ev.t;
@@ -166,82 +167,7 @@
     return out('noAnswer', { retryable: true });
   }
 
-  // ---------- round limits (Terms §6.4: "The app shows the current limits") ----------
-  // The server owns the values (config, not code). GET /api/v1/ai/round/limits answers
-  // { v: 1, now, limits: { timeLimitMin, idleMin, coverRounds }, round: null | round state }.
-  function limitsRequest(roundId) {
-    const q = typeof roundId === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(roundId) ? '?roundId=' + encodeURIComponent(roundId) : '';
-    return { url: '/api/v1/ai/round/limits' + q, init: { credentials: 'same-origin', cache: 'no-store', headers: { accept: 'application/json' } } };
-  }
-  const posNum = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null);
-  const ROUND_STATES = ['open', 'active', 'idle', 'free', 'closed'];
-  // A round's AI state, or null. Times are the server's clock (ms).
-  function parseRound(r) {
-    if (!r || typeof r !== 'object' || !ROUND_STATES.includes(r.state)) return null;
-    const d = r.draftsLeft && typeof r.draftsLeft === 'object' ? r.draftsLeft : {};
-    return {
-      state: r.state, firstSpeechAt: posNum(r.firstSpeechAt), endsAt: posNum(r.endsAt), idleAt: posNum(r.idleAt),
-      freeReason: r.freeReason === 'time' || r.freeReason === 'cover' ? r.freeReason : null,
-      draftsLeft: { ballot: d.ballot === true, decision: d.decision === true },
-    };
-  }
-  // The limits answer, or null. skew: server clock minus this device's clock, so times left are right on a wrong clock.
-  function parseLimits(j, deviceNow) {
-    if (!j || typeof j !== 'object' || j.v !== 1 || !j.limits || typeof j.limits !== 'object') return null;
-    const l = j.limits;
-    const limits = { timeLimitMin: posNum(l.timeLimitMin), idleMin: posNum(l.idleMin), coverRounds: posNum(l.coverRounds) };
-    if (!limits.timeLimitMin && !limits.idleMin && !limits.coverRounds) return null;
-    return { limits, round: parseRound(j.round), skew: posNum(j.now) && posNum(deviceNow) ? j.now - deviceNow : 0 };
-  }
-
-  const plural = (n, one) => n + ' ' + one + (n === 1 ? '' : 's');
-  // Minutes in short words: "2 hours", "1 hour 30 minutes", "45 minutes".
-  function minutesText(min) {
-    const m = Math.max(0, Math.round(min));
-    const h = Math.floor(m / 60), r = m % 60;
-    if (!h) return plural(r, 'minute');
-    return plural(h, 'hour') + (r ? ' ' + plural(r, 'minute') : '');
-  }
-  // The current limits as plain lines, for the Round card. Only the limits the server sent.
-  function limitsLines(limits) {
-    const l = limits || {};
-    const lines = [];
-    if (l.timeLimitMin) lines.push('Tabula AI runs for up to ' + minutesText(l.timeLimitMin) + ' from the first recorded speech.');
-    if (l.idleMin) lines.push('It pauses after ' + minutesText(l.idleMin) + ' with no new speech and nothing from you. One tap turns it back on.');
-    if (l.coverRounds) lines.push('If a long round needs more AI than one round holds, we cover up to ' + plural(l.coverRounds, 'more round') + ' of it.');
-    if (lines.length) lines.push('After a limit, the clock, flow and ballot keep working, and the ballot draft still runs once. A limit never charges you.');
-    return lines;
-  }
-
-  // The round's AI state as this device sees it now (now = device time + skew). A pause or the time limit that has
-  // passed since the server last spoke shows at once; the server makes the same call on the next request.
-  function roundNow(round, now) {
-    if (!round) return null;
-    if (round.state === 'active' && round.endsAt && now >= round.endsAt) return Object.assign({}, round, { state: 'free', freeReason: 'time' });
-    if (round.state === 'active' && round.idleAt && now >= round.idleAt) return Object.assign({}, round, { state: 'idle' });
-    return round;
-  }
-  // The line in the bottom bar. { text, resume (show "Turn AI back on") } or null (nothing to show).
-  function roundLine(round, now) {
-    const r = roundNow(round, now);
-    if (!r || r.state === 'open') return null;
-    if (r.state === 'active') return r.endsAt ? { text: 'AI: ' + minutesText((r.endsAt - now) / 60000) + ' left this round', resume: false } : null;
-    if (r.state === 'idle') return { text: 'AI paused: no new speech for a while', resume: true };
-    const drafts = r.draftsLeft.ballot || r.draftsLeft.decision ? ' The ballot draft still runs once.' : '';
-    if (r.state === 'free') return { text: 'AI limit reached for this round. Clock, flow and ballot keep working.' + drafts, resume: false };
-    return { text: 'AI has ended for this round. Clock, flow and ballot keep working.', resume: false };
-  }
-  // May this job call hosted AI in the round's state? An idle pause blocks all (until the tap); after a limit only the
-  // ballot draft runs, once. Returns the hostedError kind code that blocks it, or '' (go ahead).
-  function roundBlocks(job, round, now) {
-    const r = roundNow(round, now);
-    if (!r) return '';
-    if (r.state === 'idle') return 'round_idle';
-    if (r.state === 'free' || r.state === 'closed') return job === 'ballot' && r.draftsLeft.ballot ? '' : (r.state === 'free' ? 'free_mode' : 'round_closed');
-    return '';
-  }
-
-  const api = { BUY_URL, limitsRequest, parseRound, parseLimits, minutesText, limitsLines, roundNow, roundLine, roundBlocks, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError };
+  const api = { BUY_URL, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).hosted = api;
 })(typeof window !== 'undefined' ? window : globalThis);

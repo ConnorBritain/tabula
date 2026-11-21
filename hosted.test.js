@@ -7,7 +7,7 @@ const path = require('node:path');
 const L = require('./logic.js');
 const P = require('./providers.js');
 
-const AI_SRC = fs.readFileSync(path.join(__dirname, 'js/ai.js'), 'utf8');
+const AI_SRC = ['js/ai.js', 'js/limits.js'].map((f) => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
 const PROG = 'prog_lincoln01';
 
 // A capability record (CONTRACTS §2, v2) for a round judged for PROG. hosted: the account's own credits.
@@ -297,7 +297,7 @@ test('limitsLines shows exactly the limits the server sent, and nothing without 
 // Why: a guard. The limits live in server config (round budget spec). A stopgap number written into the app would be
 // shown as "the current limit" even after the owner changes it.
 test('the app source has no limit values of its own', () => {
-  const src = ['js/ai.js', 'logic/hosted.js', 'index.html'].map((f) => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
+  const src = ['js/ai.js', 'js/limits.js', 'logic/hosted.js', 'logic/limits.js', 'index.html'].map((f) => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
   for (const re of [/3 hours/, /20 minutes/, /\b180\b/, /ROUND_IDLE|ROUND_TIME_LIMIT|ABSORB_CAP/]) assert.doesNotMatch(src, re);
 });
 
@@ -308,7 +308,7 @@ test('roundLine: time left, paused with a tap, limit reached, ended', () => {
   assert.deepEqual(L.roundLine(ROUND({ endsAt: now + 125 * 60000 }), now), { text: 'AI: 2 hours 5 minutes left this round', resume: false });
   assert.equal(L.roundLine(ROUND({ state: 'open' }), now), null, 'before the first speech: nothing');
   assert.deepEqual(L.roundLine(ROUND({ endsAt: now + 3600e3, idleAt: now - 1 }), now), { text: 'AI paused: no new speech for a while', resume: true }, 'a pause shows when it starts');
-  assert.match(L.roundLine(ROUND({ endsAt: now - 1 }), now).text, /AI limit reached/, 'the time limit shows when it passes');
+  assert.match(L.roundLine(ROUND({ endsAt: now - 1 }), now).text, /AI time is up for this round/, 'the time limit shows when it passes');
   assert.match(L.roundLine(ROUND({ state: 'free' }), now).text, /Clock, flow and ballot keep working\. The ballot draft still runs once\./);
   assert.doesNotMatch(L.roundLine(ROUND({ state: 'free', draftsLeft: { ballot: false, decision: false } }), now).text, /still runs once/);
   assert.match(L.roundLine(ROUND({ state: 'closed' }), now).text, /AI has ended for this round/);
@@ -355,4 +355,19 @@ test('callAI keeps the round state from the server and stops asking while paused
   free.setLimits({ limits: {}, skew: 0, round: ROUND({ state: 'free' }) });
   await assert.rejects(free.callAI({ ...EVAL_CALL, schema: null }), (err) => err.message === L.HOSTED_TEXT.freeMode);
   assert.equal(await free.callAI({ feature: 'ballotDraft', system: 's', prompt: 'p', schema: null, hosted: { job: 'ballot', extra: {} } }), 'draft', 'the ballot draft still runs once');
+});
+
+// Why: the resume tap must lift only the pause. If it hid a reached limit, the judge would be told AI is back when the
+// server will refuse; if it kept a predicted pause, the tap would do nothing on screen.
+test('resumedRound clears only a pause; roundAfterRefusal follows the server', () => {
+  const now = 10;
+  const paused = L.resumedRound(ROUND({ endsAt: now + 3600e3, idleAt: now - 1 }));
+  assert.match(L.roundLine(paused, now).text, /left this round/, 'a pause shown from idleAt is lifted');
+  assert.equal(L.resumedRound(ROUND({ state: 'idle' })).state, 'active');
+  assert.equal(L.resumedRound(ROUND({ state: 'free' })).state, 'free', 'a reached limit stays');
+  assert.equal(L.roundBlocks('flow', ROUND({ endsAt: now + 3600e3, idleAt: now - 1 })), '', 'a predicted pause still asks the server');
+  assert.equal(L.roundAfterRefusal(ROUND({ endsAt: 99 }), 'free', { round: { state: 'closed', draftsLeft: { ballot: true } } }).state, 'closed', 'the server round wins');
+  assert.deepEqual([L.roundAfterRefusal(ROUND({ endsAt: 99 }), 'idle', {}).state, L.roundAfterRefusal(ROUND({ endsAt: 99 }), 'idle', {}).endsAt], ['idle', 99]);
+  assert.equal(L.roundAfterRefusal(null, '', {}), null);
+  assert.match(L.roundLine(ROUND({ state: 'free', freeReason: 'cover' }), now).text, /used all the AI we cover\. The live AI flow, Live Eval and Analysis are off\./);
 });
