@@ -487,13 +487,13 @@ function transcribeRequest(eng, key, model, blob, ext, audio, prevText) {
     const fd = new FormData();
     fd.append('file', blob, 'clip.' + ext);
     fd.append('model', model);
-    if (eng === 'openai') { fd.append('language', 'en'); fd.append('prompt', L.buildTranscribePrompt(prevText)); }
+    if (eng === 'openai') { fd.append('language', 'en'); fd.append('prompt', L.buildTranscribePrompt(prevText, FMT())); }
     url = eng === 'openai' ? 'https://api.openai.com/v1/audio/transcriptions' : 'https://api.x.ai/v1/stt';
     init = { method: 'POST', headers: { Authorization: 'Bearer ' + key }, body: fd };
   } else {
     const body = {
       contents: [{ role: 'user', parts: [
-        { text: 'Transcribe this audio clip from a high school policy debate word for word. Return only the spoken words, with no notes. If it is silent, return nothing. ' + L.buildTranscribePrompt(prevText) },
+        { text: 'Transcribe this audio clip from a ' + FMT().ai.kind + ' debate word for word. Return only the spoken words, with no notes. If it is silent, return nothing. ' + L.buildTranscribePrompt(prevText, FMT()) },
         { inline_data: { mime_type: 'audio/' + (ext === 'mp4' ? 'mp4' : ext), data: audio } },
       ] }],
     };

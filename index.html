@@ -114,7 +114,7 @@
   /* The Flow grid (V6, V7, Q1, Q2): the one raised card. Mono text, one line height in every column, so rows line up.
      13 px, 14 px when the grid is 840 px wide or more, and 16 px on touch devices so iPad Safari does not zoom (Q-9). */
   #tab-flow { container: flow / inline-size; }
-  .flow { --fs-grid: var(--fs-1); display: grid; grid-template-columns: repeat(7, minmax(var(--col-min), 1fr)); grid-template-rows: auto 1fr; gap: 0; overflow-x: auto; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
+  .flow { --fs-grid: var(--fs-1); display: grid; grid-template-columns: repeat(var(--flow-cols, 7), minmax(var(--col-min), 1fr)); grid-template-rows: auto 1fr; gap: 0; overflow-x: auto; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
   @container flow (min-width: 840px) { .flow { --fs-grid: var(--fs-2); } }
   @media (pointer: coarse) { .flow { --fs-grid: var(--fs-3); } }
   /* Each column spans the two grid rows on a subgrid, so every header is as tall as the tallest one (a wrapped title,
@@ -326,6 +326,7 @@
   .judging-row { margin: 0 0 var(--s3); }
   .judging-row[hidden] { display: none; }
   .judging-row select { max-width: 100%; }
+  .format-row { margin: 0 0 var(--s3); }
   .start-panel .start-judging { margin: var(--s4) 0 0; }
   .start-panel .start-judging p { margin: var(--s1) 0 0; }
   label.b { display: inline-flex; align-items: center; margin: 0; cursor: pointer; color: var(--text); font-size: var(--fs-2); font-weight: var(--fw-3); }
@@ -845,6 +846,11 @@
 <section class="tab" id="tab-setup">
   <div class="card" id="round-card">
     <h2>Round</h2>
+    <div class="format-row">
+      <label for="format-pick">Format</label>
+      <select id="format-pick" class="w-auto" aria-describedby="format-help"></select>
+      <p class="muted field-help" id="format-help">A round keeps its format. Picking another one starts a new round.</p>
+    </div>
     <div class="judging-row" data-judging-row hidden>
       <label for="judging-for">Judging for</label>
       <select id="judging-for" class="w-auto" data-judging aria-describedby="judging-help"></select>
@@ -892,12 +898,12 @@
   <div class="card" id="times-card">
     <h2>Times and points</h2>
     <div class="grid">
-      <div><label for="prep-min">Prep per team (minutes)</label>
+      <div><label for="prep-min" id="prep-min-label">Prep per team (minutes)</label>
         <div class="row nowrap"><input type="number" min="0" max="20" step="1" id="prep-min" style="width:5.5em">
           <div class="seg" role="group" aria-label="Prep presets"><button data-prep-min="4">4</button><button data-prep-min="5">5</button><button data-prep-min="8">8</button><button data-prep-min="10">10</button></div></div>
       </div>
     </div>
-    <p class="muted">NSDA uses 8-3-5 speeches and 8 minutes prep. Many local leagues use 4 or 5. Tabula remembers your choice for new rounds.</p>
+    <p class="muted" id="times-note">NSDA uses 8-3-5 speeches and 8 minutes prep. Many local leagues use 4 or 5. Tabula remembers your choice for new rounds.</p>
     <fieldset class="range-pick mt-3" aria-describedby="range-help">
       <legend>Speaker points range</legend>
       <div class="row">
@@ -1368,6 +1374,9 @@
   </div>
 </div>
 
+<script src="formats/policy-hs.v1.js"></script>
+<script src="formats/ld.v1.js"></script>
+<script src="logic/format.js"></script>
 <script src="logic/round.js"></script>
 <script src="logic/audio.js"></script>
 <script src="logic/flow.js"></script>

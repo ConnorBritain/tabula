@@ -14,11 +14,11 @@ const palOpen = () => !$('#palette').hidden;
 function paletteContext() {
   return {
     place: PLACE_OF[R.tab] || 'setup', cur: R.cur, running: Boolean(R.run), runId: R.run ? R.run.id : '',
-    prep: R.prepRun ? R.prepRun.side : '', drawerOpen: !$('#tr-drawer').hidden, flowView: R.flowView,
+    prep: R.prepRun ? prepClockById(R.prepRun.side).side : '', drawerOpen: !$('#tr-drawer').hidden, flowView: R.flowView,
     sheets: R.flows.map((f) => f.name), sheetIdx: R.flowIdx,
     speechesShown: isOverlay() ? leftOpen : !S.hideLeft, insights: insightsMode(), narrow: narrowNow(),
     online: navigator.onLine !== false, undo: (pendingUndo() || {}).name || '', aiAllowed: aiCommandsAllowed(), can: gateHas,
-    speeches: L.SPEECHES.map((s) => ({ id: s.id, label: s.label })),
+    speeches: FMT().speeches.map((s) => ({ id: s.id, label: s.label })),
   };
 }
 // opener: where focus goes back to (the ? button when opened from the menu). ⌘K while open closes it.

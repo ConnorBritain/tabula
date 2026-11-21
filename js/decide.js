@@ -10,9 +10,11 @@
 // ---------- Draft with AI: the panel, the review, Stop and Undo (spec 4.3–4.6, Q9) ----------
 // The panel opens from its button (or the palette, Slice 5). A draft writes nothing at first: it becomes a review
 // (R.ballotReview, kept across a reload), and only "Insert selected" or "Accept all" changes the ballot.
-const BALLOT_SYSTEM = () => L.JUDGE_SYSTEM.split('\n\nReply in this exact structure')[0] + '\n\n' + L.POINTS_GUIDE;
+// The prompts, field groups and debaters come from the round's format (FMT, js/core.js).
+const BALLOT_SYSTEM = () => { const P = L.promptsFor(FMT()); return P.judgeSystem.split('\n\nReply in this exact structure')[0] + '\n\n' + P.pointsGuide; };
 const ptsRangeNow = () => L.ptsRange(R.ptsRange);
-const groupById = (id) => L.DRAFT_GROUPS.find((g) => g.id === id);
+const draftGroupsNow = () => L.draftGroups(FMT());
+const groupById = (id) => draftGroupsNow().find((g) => g.id === id);
 const draftUi = { open: false, picks: null, feedback: false, busy: false, busyText: '', ctrl: null, err: '', stopped: false, idx: 0 };
 let fillSoonTimer = null, fillWaitsOnline = false;
 const wideBallot = matchMedia('(min-width: 1280px)'), narrowBallot = matchMedia('(max-width: 819.98px)');
@@ -20,7 +22,7 @@ const evalFeedback = () => (LV().liveEval && LV().liveEval.data && LV().liveEval
 // ai.notes from the old Decision draft tab moves into the note box once (spec 4.3). ai.evidence stays in the prompt.
 if (R.ai && (R.ai.notes || '').trim()) { R.ballotInput = ((R.ballotInput || '').trim() ? R.ballotInput.trim() + '\n' : '') + R.ai.notes.trim(); R.ai.notes = ''; save(); }
 
-function defaultPicks() { return new Set(L.DRAFT_GROUPS.filter((g) => L.fieldState(R.ballot, g.fields) !== 'yours').map((g) => g.id)); }
+function defaultPicks() { return new Set(draftGroupsNow().filter((g) => L.fieldState(R.ballot, g.fields) !== 'yours').map((g) => g.id)); }
 function openDraftPanel(opener) {
   if (!draftUi.open) draftUi.picks = defaultPicks();
   draftUi.open = true; draftUi.opener = opener || $('#draft-open');
@@ -71,7 +73,7 @@ function renderDraftPanel() {
   const box = $('#dp-picks');
   const keep = box.querySelector('legend').outerHTML;
   const focusId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.pick : null;
-  box.innerHTML = keep + L.DRAFT_GROUPS.map((g) => {
+  box.innerHTML = keep + draftGroupsNow().map((g) => {
     const yours = L.fieldState(R.ballot, g.fields) === 'yours';
     return `<label class="row check-row"><input type="checkbox" data-pick="${g.id}"${picks.has(g.id) ? ' checked' : ''}> ${escapeHtml(g.label)}${yours ? ' <span class="muted">(yours)</span>' : ''}</label>`;
   }).join('');
@@ -121,7 +123,7 @@ async function runDraft({ picks, redraft, text }) {
       feature: 'ballotDraft',
       system: BALLOT_SYSTEM(),
       prompt: L.buildBallotPrompt(R, DOCS, R.ballotInput || '', { only: fields, redraft, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null }),
-      schema: L.BALLOT_SCHEMA, effort: 'high', reading: level, kind: 'ballot', signal: ctrl.signal,
+      schema: L.promptsFor(FMT()).ballotSchema, effort: 'high', reading: level, kind: 'ballot', signal: ctrl.signal,
     });
     if (resetting) return null;
     LV(level).ballotDraft = { data, at: Date.now(), through: L.speechesSoFar(R) };
@@ -138,10 +140,10 @@ async function runDraft({ picks, redraft, text }) {
 async function startDraft() {
   if (draftUi.busy) { draftUi.ctrl && draftUi.ctrl.abort(); return; } // the button is [Stop] while a call runs
   if (draftState() !== 'ready' && draftState() !== 'error' && draftState() !== 'stopped') return;
-  const picks = L.DRAFT_GROUPS.map((g) => g.id).filter((id) => (draftUi.picks || defaultPicks()).has(id));
+  const picks = draftGroupsNow().map((g) => g.id).filter((id) => (draftUi.picks || defaultPicks()).has(id));
   const data = await runDraft({ picks });
   if (!data) return;
-  R.ballotReview = L.reviewFromDraft(R.ballot, data, { picks, range: ptsRangeNow(), through: L.speechesSoFar(R), at: Date.now() });
+  R.ballotReview = L.reviewFromDraft(R.ballot, data, { picks, range: ptsRangeNow(), through: L.speechesSoFar(R), at: Date.now(), format: FMT() });
   draftUi.idx = 0; save(); renderDraftPanel();
   const h = $('#rv-title'); if (h && draftUi.open) h.focus();
 }
@@ -154,8 +156,8 @@ $('#draft-panel').addEventListener('keydown', (e) => {
   else if (e.target.id === 'ballot-input') { e.preventDefault(); startDraft(); }
 });
 $('#dp-prompt').addEventListener('click', async () => {
-  const fields = L.DRAFT_GROUPS.filter((g) => (draftUi.picks || defaultPicks()).has(g.id)).flatMap((g) => g.fields);
-  const textDocs = DOCS.filter((d) => d.kind !== 'pdf').map((d) => '=== ' + L.docTitle(d) + ' ===\n' + d.data).join('\n\n');
+  const fields = draftGroupsNow().filter((g) => (draftUi.picks || defaultPicks()).has(g.id)).flatMap((g) => g.fields);
+  const textDocs = DOCS.filter((d) => d.kind !== 'pdf').map((d) => '=== ' + L.docTitle(d, FMT()) + ' ===\n' + d.data).join('\n\n');
   const pdfs = DOCS.filter((d) => d.kind === 'pdf').map((d) => d.name);
   const text = L.anonymize(BALLOT_SYSTEM() + '\n\n' + L.readingGuide(lvl()) + '\n\n' + (textDocs ? textDocs + '\n\n' + L.DOC_NOTE + '\n\n' : '')
     + L.buildBallotPrompt(R, DOCS, R.ballotInput || '', { only: fields, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null }), R);
@@ -181,13 +183,14 @@ function cardBody(c) {
   const e = escapeHtml;
   if (c.id === 'winner') return `<table class="rv-table"><thead><tr><th scope="col">Now</th><th scope="col">AI</th></tr></thead><tbody><tr><td>${winText(c.base.winner)}</td><td>${winText(c.after.winner)}</td></tr></tbody></table>`;
   if (c.id === 'pts') {
-    const rows = L.SPEAKERS.map((s) => {
+    const rows = FMT().speakers.map((sp) => {
+      const s = sp.id;
       const now = [c.base['pts.' + s], c.base['ranks.' + s] ? 'rank ' + c.base['ranks.' + s] : ''].filter((x) => x !== '' && x != null).join(', ') || '–';
       const ai = [c.after['pts.' + s], c.after['ranks.' + s] ? 'rank ' + c.after['ranks.' + s] : ''].filter((x) => x !== '' && x != null).join(', ') || '–';
-      return `<tr><th scope="row" class="${s.endsWith('A') ? 'aff' : 'neg'}">${s}</th><td>${e(now)}</td><td>${e(ai)}</td></tr>`;
+      return `<tr><th scope="row" class="${sp.side}">${sp.label}</th><td>${e(now)}</td><td>${e(ai)}</td></tr>`;
     }).join('');
     const r = R.ballotReview.range;
-    const bad = (c.outOfRange || []).map((x) => `<p class="is-caution rv-note">${x.speaker}: The AI gave ${x.value}, which is outside ${r.min}–${r.max}. Set this one by hand.</p>`).join('');
+    const bad = (c.outOfRange || []).map((x) => `<p class="is-caution rv-note">${L.speakerOf(FMT(), x.speaker).label}: The AI gave ${x.value}, which is outside ${r.min}–${r.max}. Set this one by hand.</p>`).join('');
     return `<table class="rv-table"><thead><tr><th scope="col">Speaker</th><th scope="col">Now</th><th scope="col">AI</th></tr></thead><tbody>${rows}</tbody></table>${bad}`;
   }
   if (c.state === 'yours' && c.diff) return `<div class="rv-text rv-diff">${diffHtml(c.diff)}</div>`;
@@ -252,7 +255,7 @@ $('#dp-review').addEventListener('click', async (e) => {
   if (t.id === 'rv-redo-all') {
     const picks = R.ballotReview.picks;
     const data = await runDraft({ picks, text: 'Drafting again… usually 20–60 seconds' });
-    if (data) { R.ballotReview = L.reviewFromDraft(R.ballot, data, { picks, range: ptsRangeNow(), through: L.speechesSoFar(R), at: Date.now() }); save(); renderDraftPanel(); }
+    if (data) { R.ballotReview = L.reviewFromDraft(R.ballot, data, { picks, range: ptsRangeNow(), through: L.speechesSoFar(R), at: Date.now(), format: FMT() }); save(); renderDraftPanel(); }
     return;
   }
   const redo = t.dataset.rvRedo;
@@ -260,7 +263,7 @@ $('#dp-review').addEventListener('click', async (e) => {
     const old = R.ballotReview.cards.find((x) => x.id === redo);
     const data = await runDraft({ picks: [redo], redraft: { fields: old.fields.filter((f) => !f.startsWith('ranks.')), previous: old.id === 'pts' ? {} : { [redo]: old.after[redo] } }, text: 'Redrafting ' + old.label.toLowerCase() + '…' });
     if (!data || !R.ballotReview) return;
-    const fresh = L.reviewFromDraft(R.ballot, data, { picks: [redo], range: ptsRangeNow() }).cards[0];
+    const fresh = L.reviewFromDraft(R.ballot, data, { picks: [redo], range: ptsRangeNow(), format: FMT() }).cards[0];
     R.ballotReview.cards = R.ballotReview.cards.map((x) => (x.id === redo ? fresh : x));
     save(); renderDraftPanel();
     const b = $(`[data-rv-redo="${redo}"]`); if (b) b.focus();
@@ -289,19 +292,19 @@ function scheduleBallotSoon() {
 async function runAutoRefill() {
   if (!can('ballotDraft')) return;
   if (!S.autoBallot || !aiReady() || draftUi.busy || R.ballotReview || navigator.onLine === false || !L.roundHasContent(R, DOCS)) return;
-  const picks = L.DRAFT_GROUPS.map((g) => g.id);
+  const picks = draftGroupsNow().map((g) => g.id);
   const data = await runDraft({ picks, text: 'Refilling after the speech…' });
   if (!data || R.ballotReview) return;
-  const plan = L.autoRefillPlan(R.ballot, data, ptsRangeNow());
+  const plan = L.autoRefillPlan(R.ballot, data, ptsRangeNow(), FMT());
   if (plan.write.length) {
     const before = L.ballotSnapshot(R.ballot);
-    R.ballot = L.applyBallotDraft(R.ballot, data, { only: plan.write, range: ptsRangeNow(), mark: 'ai' });
+    R.ballot = L.applyBallotDraft(R.ballot, data, { only: plan.write, range: ptsRangeNow(), mark: 'ai', format: FMT() });
     R.ballotUndo = before;
     const groups = new Set(plan.write.map((f) => (f.includes('.') ? 'row.' + f.split('.')[1] : f)));
     insertedToast(groups.size);
   }
   if (plan.review.length) {
-    R.ballotReview = L.reviewFromDraft(R.ballot, data, { picks: plan.review, range: ptsRangeNow(), through: L.speechesSoFar(R), at: Date.now() });
+    R.ballotReview = L.reviewFromDraft(R.ballot, data, { picks: plan.review, range: ptsRangeNow(), through: L.speechesSoFar(R), at: Date.now(), format: FMT() });
     toast('The AI would change text it wrote before. Review it in Draft with AI.');
   }
   save(); if (R.tab === 'ballot') renderBallot(); else renderDraftButton();
@@ -394,13 +397,14 @@ $('#restore-file').addEventListener('change', async (e) => {
 });
 
 // ---------- ballot (spec 4.1, 4.2, 4.7, 4.8, 4.12, and the narrow ballot 4.15 / 5.6c) ----------
-const nameOf = (s) => ({ '1A': R.aff.d1, '2A': R.aff.d2, '1N': R.neg.d1, '2N': R.neg.d2 }[s]) || s;
+const ranksOn = () => FMT().ballot.speakerRanks;
 const LOCK_SVG = '<svg class="lock" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
-// One tag per field group: the winner, each speaker row (points and rank), the RFD and each team's comments.
-const TAG_GROUPS = Object.assign({ winner: ['winner'], rfd: ['rfd'], affFb: ['affFb'], negFb: ['negFb'] }, Object.fromEntries(L.SPEAKERS.map((s) => ['row.' + s, ['pts.' + s, 'ranks.' + s]])));
+// One tag per field group: the winner, each speaker row (points, and rank when the format has ranks), the RFD and
+// each team's comments.
+const tagGroups = () => Object.assign({ winner: ['winner'], rfd: ['rfd'], affFb: ['affFb'], negFb: ['negFb'] }, Object.fromEntries(FMT().speakerIds.map((s) => ['row.' + s, ranksOn() ? ['pts.' + s, 'ranks.' + s] : ['pts.' + s]])));
 function tagHtml(key) {
-  const st = L.fieldState(R.ballot, TAG_GROUPS[key]);
-  if (st === 'yours') return `<button type="button" class="b-tag-btn" data-unlock="${key}" aria-label="Yours: ${escapeHtml(L.fieldLabel(key))}. Unlock it for the AI" data-tip="The AI will not change this. Click to let it.">${LOCK_SVG}Yours</button>`;
+  const st = L.fieldState(R.ballot, tagGroups()[key]);
+  if (st === 'yours') return `<button type="button" class="b-tag-btn" data-unlock="${key}" aria-label="Yours: ${escapeHtml(L.fieldLabel(key, FMT()))}. Unlock it for the AI" data-tip="The AI will not change this. Click to let it.">${LOCK_SVG}Yours</button>`;
   if (st === 'ai') return '<span class="b-tag-ai">AI draft</span>';
   return '';
 }
@@ -411,13 +415,13 @@ function renderBallotTags() {
 // "Yours" is a button: it unlocks the field at once, with an Undo toast and no dialog (spec 4.2).
 document.addEventListener('click', (e) => {
   const b = e.target.closest && e.target.closest('[data-unlock]'); if (!b) return;
-  const key = b.dataset.unlock, fields = TAG_GROUPS[key];
+  const key = b.dataset.unlock, fields = tagGroups()[key];
   const before = { touched: Object.assign({}, R.ballot.touched), aiFilled: Object.assign({}, R.ballot.aiFilled) };
   R.ballot = L.markFields(R.ballot, fields, 'free'); save(); renderBallotTags();
   const to = key === 'winner' ? document.querySelector('input[name="winner"]:checked') || document.querySelector('input[name="winner"]')
     : key.startsWith('row.') ? document.querySelector(`[data-bind="ballot.pts.${key.slice(4)}"]`) : document.querySelector(`[data-bind="ballot.${key}"]`);
   if (to) to.focus();
-  undoToast('The AI may now change ' + L.fieldLabel(key) + '.', 'unlock ' + L.fieldLabel(key), () => { Object.assign(R.ballot, before); save(); renderBallotTags(); }, 'It is yours again.');
+  undoToast('The AI may now change ' + L.fieldLabel(key, FMT()) + '.', 'unlock ' + L.fieldLabel(key, FMT()), () => { Object.assign(R.ballot, before); save(); renderBallotTags(); }, 'It is yours again.');
 });
 
 function renderBallot() {
@@ -429,14 +433,18 @@ function renderBallot() {
   $('#fb-neg-code').textContent = R.neg.team ? '(' + R.neg.team + ')' : '';
   document.querySelectorAll('input[name="winner"]').forEach((x) => { x.checked = x.value === R.ballot.winner; });
   $('#pts-head').textContent = 'Points (' + r.min + '–' + r.max + ')';
-  $('#pts-body').innerHTML = L.SPEAKERS.map((s) => {
-    const side = s.endsWith('A') ? 'aff' : 'neg';
-    const nm = nameOf(s) !== s ? nameOf(s) : '';
+  // The rank columns show only when the format has speaker ranks (policy 1–4; LD has none).
+  const ids = FMT().speakerIds, ranks = ranksOn();
+  document.querySelectorAll('.pts-table .rank-h').forEach((th, i) => { th.hidden = !ranks || i >= ids.length; });
+  $('#pts-body').innerHTML = FMT().speakers.map((sp) => {
+    const s = sp.id, side = sp.side, lab = sp.label;
+    const nm = L.speakerName(R, sp);
+    const rankCells = ranks ? ids.map((_, i) => `<td class="rank-cell"><input type="radio" name="rank-${s}" value="${i + 1}" data-rank="${s}" aria-label="${lab}, rank ${i + 1}"></td>`).join('')
+      + `<td class="rank-sel-cell"><label class="sr-only" for="rank-sel-${s}">${lab} rank</label><select id="rank-sel-${s}" data-rank-sel="${s}"><option value="">Rank</option>${ids.map((_, i) => `<option value="${i + 1}">${i + 1}${i ? '' : ' (best)'}</option>`).join('')}</select></td>` : '';
     return `<tr data-speaker="${s}">
-    <th scope="row" class="sp-cell ${side}"><strong>${s}</strong>${nm ? ' <span class="muted">' + escapeHtml(nm) + '</span>' : ''}</th>
-    <td class="pts-cell"><div class="stepper"><button type="button" class="step" data-step="-1" data-sp="${s}" aria-label="Lower ${s} points by 0.1">−</button><input type="number" inputmode="decimal" min="${r.min}" max="${r.max}" step="0.1" data-bind="ballot.pts.${s}" aria-label="${s} points"><button type="button" class="step" data-step="1" data-sp="${s}" aria-label="Raise ${s} points by 0.1">+</button></div></td>
-    ${[1, 2, 3, 4].map((k) => `<td class="rank-cell"><input type="radio" name="rank-${s}" value="${k}" data-rank="${s}" aria-label="${s}, rank ${k}"></td>`).join('')}
-    <td class="rank-sel-cell"><label class="sr-only" for="rank-sel-${s}">${s} rank</label><select id="rank-sel-${s}" data-rank-sel="${s}"><option value="">Rank</option><option value="1">1 (best)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></td>
+    <th scope="row" class="sp-cell ${side}"><strong>${lab}</strong>${nm ? ' <span class="muted">' + escapeHtml(nm) + '</span>' : ''}</th>
+    <td class="pts-cell"><div class="stepper"><button type="button" class="step" data-step="-1" data-sp="${s}" aria-label="Lower ${lab} points by 0.1">−</button><input type="number" inputmode="decimal" min="${r.min}" max="${r.max}" step="0.1" data-bind="ballot.pts.${s}" aria-label="${lab} points"><button type="button" class="step" data-step="1" data-sp="${s}" aria-label="Raise ${lab} points by 0.1">+</button></div></td>
+    ${rankCells}
     <td class="tag-cell"><span class="b-tag" data-tag="row.${s}"></span></td>
   </tr>`;
   }).join('');
@@ -449,7 +457,7 @@ function syncRanks() {
 }
 // Picking a rank another speaker has moves it, with a message (spec 4.8). The radio grid and the narrow select share it.
 function applyRank(speaker, value) {
-  const m = L.moveRank(R.ballot.ranks, speaker, value);
+  const m = L.moveRank(R.ballot.ranks, speaker, value, FMT());
   R.ballot.ranks = m.ranks;
   markTouched('ranks.' + speaker); save(); syncRanks(); renderBallotCheck();
   if (m.message) toast(m.message, { key: 'rank-moved' });
@@ -472,17 +480,19 @@ document.addEventListener('click', (e) => {
 let checkAt = 0, checkTimer = null;
 function renderBallotCheck(now) {
   const p = R.ballot.pts || {};
-  const sum = (a, b) => (p[a] !== undefined && p[a] !== '' && p[b] !== undefined && p[b] !== '' ? (Number(p[a]) + Number(p[b])).toFixed(1) : '–');
-  $('#sum-aff').textContent = 'Aff ' + sum('1A', '2A');
-  $('#sum-neg').textContent = 'Neg ' + sum('1N', '2N');
-  $('#ranks-set').textContent = 'Ranks: ' + L.ranksSet(R.ballot) + ' of 4 set.';
+  const given = (id) => p[id] !== undefined && p[id] !== '';
+  // A side's total: every debater on that side has points, else a dash.
+  const sum = (side) => { const ids = L.speakersOn(FMT(), side).map((x) => x.id); return ids.every(given) ? ids.reduce((t, id) => t + Number(p[id]), 0).toFixed(1) : '–'; };
+  $('#sum-aff').textContent = 'Aff ' + sum('aff');
+  $('#sum-neg').textContent = 'Neg ' + sum('neg');
+  $('#ranks-set').textContent = ranksOn() ? 'Ranks: ' + L.ranksSet(R.ballot, FMT()) + ' of ' + FMT().speakerIds.length + ' set.' : '';
   const wait = 1000 - (Date.now() - checkAt);
   if (now === true || wait <= 0) return drawBallotCheck();
   if (!checkTimer) checkTimer = setTimeout(drawBallotCheck, wait);
 }
 function drawBallotCheck() {
   clearTimeout(checkTimer); checkTimer = null; checkAt = Date.now();
-  const issues = L.checkBallot(R.ballot, { range: ptsRangeNow() });
+  const issues = L.checkBallot(R.ballot, { range: ptsRangeNow(), format: FMT() });
   const html = issues.length
     ? `<div class="warn"><strong>Check before you submit:</strong><ul>${issues.map((i) => '<li>' + escapeHtml(i) + '</li>').join('')}</ul></div>`
     : '<p class="good">Ballot looks complete.</p>';
@@ -500,7 +510,7 @@ function renderSaveStatus() {
 // ----- Save to History (spec 4.12) -----
 function storeLog(list) { try { localStorage.setItem(LOG, JSON.stringify(list)); return ''; } catch (err) { return L.storageErrorKind(err); } }
 $('#b-save').addEventListener('click', async () => {
-  const issues = L.checkBallot(R.ballot, { range: ptsRangeNow() });
+  const issues = L.checkBallot(R.ballot, { range: ptsRangeNow(), format: FMT() });
   if (issues.length) {
     // "Fix it" gets first focus and goes to the first field with a problem; there is no danger button (spec 2.4 #15).
     const v = await ask({
@@ -528,8 +538,8 @@ function focusBallotProblem() {
   const bad = (v) => v === undefined || v === '' || Number(v) < rg.min || Number(v) > rg.max;
   const narrow = narrowBallot.matches;
   const el = !b.winner ? document.querySelector('input[name="winner"]')
-    : document.querySelector(L.SPEAKERS.map((s) => (bad(p[s]) ? `[data-bind="ballot.pts.${s}"]` : '')).filter(Boolean)[0] || 'x-none')
-    || document.querySelector(L.SPEAKERS.map((s) => (!r[s] ? (narrow ? `[data-rank-sel="${s}"]` : `[data-rank="${s}"]`) : '')).filter(Boolean)[0] || 'x-none')
+    : document.querySelector(FMT().speakerIds.map((s) => (bad(p[s]) ? `[data-bind="ballot.pts.${s}"]` : '')).filter(Boolean)[0] || 'x-none')
+    || document.querySelector(FMT().speakerIds.map((s) => (ranksOn() && !r[s] ? (narrow ? `[data-rank-sel="${s}"]` : `[data-rank="${s}"]`) : '')).filter(Boolean)[0] || 'x-none')
     || document.querySelector('[data-bind="ballot.rfd"]');
   if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); }
 }
@@ -539,7 +549,7 @@ const copyDlg = modalDialog($('#copy-sheet'), $('#copy-card'), { name: 'copy', r
 let copyBlocks = [];
 function openCopySheet() {
   copyBlocks = L.tournamentBlocks(R);
-  const n = L.checkBallot(R.ballot, { range: ptsRangeNow() }).length;
+  const n = L.checkBallot(R.ballot, { range: ptsRangeNow(), format: FMT() }).length;
   $('#copy-warn').hidden = !n;
   $('#copy-warn').textContent = n ? 'This ballot has ' + n + (n === 1 ? ' problem' : ' problems') + '. Fix them first, or copy anyway.' : '';
   $('#copy-blocks').innerHTML = copyBlocks.map((b) => `<section class="copy-block" aria-labelledby="cb-h-${b.id}">
@@ -585,7 +595,7 @@ function currentPrintModel(opts) {
   const o = opts || {};
   const lens = R.analysis.lens[L.lensKey(R.ai.paradigm || 'policymaker', myParadigm()) + (lvl() === 'expert' ? '' : '|' + lvl())];
   const imp = LV().impacts && LV().impacts.data;
-  const km = L.keyMoments(R.analysis.map && R.analysis.map.data).map((k) => k.text).join('\n');
+  const km = L.keyMoments(R.analysis.map && R.analysis.map.data, FMT()).map((k) => k.text).join('\n');
   return L.printModel(R, { ...o, range: ptsRangeNow(), liveEval: LV().liveEval && LV().liveEval.data,
     analysis: [['Paradigm Lens', lens && lens.data ? lens.data.rfd : ''], ['Impact Calculus', imp ? [imp.weighing_done, imp.comparison].filter(Boolean).join('\n\n') : ''], ['Key moments', km]] });
 }
@@ -597,7 +607,7 @@ function buildPrintSheet(model) {
   el.innerHTML = `<h1>${e(model.title)}</h1>` + model.sections.map((s) => {
     if (s.kind === 'facts') return s.items.length ? '<dl class="ps-facts">' + s.items.map(([k, v]) => `<div><dt>${e(k)}</dt><dd>${e(v)}</dd></div>`).join('') + '</dl>' : '';
     if (s.kind === 'winner') return `<h2>${e(s.title)}</h2><p class="ps-win">${e(s.text)}</p>`;
-    if (s.kind === 'speakers') return `<h2>${e(s.title)}</h2><table><thead><tr><th>Speaker</th><th>Name</th><th>Points</th><th>Rank</th></tr></thead><tbody>${s.rows.map((r) => `<tr><td class="${r.side}">${r.speaker}</td><td>${e(r.name)}</td><td>${e(r.pts)}</td><td>${e(r.rank)}</td></tr>`).join('')}</tbody></table>`;
+    if (s.kind === 'speakers') return `<h2>${e(s.title)}</h2><table><thead><tr><th>Speaker</th><th>Name</th><th>Points</th>${s.ranks ? '<th>Rank</th>' : ''}</tr></thead><tbody>${s.rows.map((r) => `<tr><td class="${r.side}">${r.speaker}</td><td>${e(r.name)}</td><td>${e(r.pts)}</td>${s.ranks ? `<td>${e(r.rank)}</td>` : ''}</tr>`).join('')}</tbody></table>`;
     if (s.kind === 'flow') return `<h2>${e(s.title)}</h2><table class="ps-flow"><thead><tr>${s.cols.map((c) => `<th class="${c.side}">${e(c.label)}</th>`).join('')}</tr></thead><tbody><tr>${s.cols.map((c) => `<td class="${c.side}">${e(c.text)}</td>`).join('')}</tr></tbody></table>`;
     return `<h2 class="${s.side || ''}">${e(s.title)}</h2><div class="ps-text">${e(s.text) || '<span class="muted">Nothing written.</span>'}</div>`;
   }).join('');

@@ -4,19 +4,29 @@
 (function (root) {
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
-  const { SPEECHES, FLOW_COLUMNS, paradigmText, BALLOT_FIELDS, speechesSoFar, MAP_SPEECHES, ptsRange, isDefaultRange } = part('round');
+  const F = part('format');
+  const { paradigmText, ballotFields, speechesSoFar, ptsRange, isDefaultRange } = part('round');
   const { speechColumn, aiFlowCell, flowCellText } = part('flow');
   const { docSpeech } = part('files');
-  const { fieldLabel, markFields, feedbackLines, outOfRangePoints, draftValue } = part('decide');
+  const { fieldLabel, markFields, feedbackLines, outOfRangePoints, draftValue, andList } = part('decide');
+
+  // Every prompt below is keyed by format: it reads the round's format (F.formatOf(round)) or takes one, and the
+  // format-only words come from the format file's "ai" block. Text sent to the hosted AI carries only the format id
+  // and version (see hostedAiBody); the server builds the same text from its generated copy of the format files.
+  const tags = (fmt) => fmt.speakers.map(F.speakerTag);
 
   function buildJudgePrompt(round, docs, opts) {
     const lines = [];
     const ai = round.ai || {};
+    const fmt = F.formatOf(round);
     lines.push('ROUND INFO');
     lines.push('Tournament: ' + (round.tournament || '-') + ' | Round: ' + (round.roundName || '-'));
     lines.push('Resolution: ' + (round.topic || '-'));
-    // Students are named only by position (1A, 2A, 1N, 2N). Names never go to an AI provider.
-    lines.push('Aff: speakers 1A and 2A. Neg: speakers 1N and 2N.');
+    // Students are named only by position (1A, 2A, 1N, 2N in policy; "Aff debater" in LD). Names never go to an AI provider.
+    lines.push(['aff', 'neg'].map((side) => {
+      const on = F.speakersOn(fmt, side).map(F.speakerTag);
+      return fmt.sides[side].label + ': ' + (on.length > 1 ? 'speakers ' + andList(on) : 'one debater, the ' + on[0]) + '.';
+    }).join(' '));
     lines.push('');
     lines.push('JUDGE PARADIGM');
     lines.push(opts && opts.paradigm ? opts.paradigm : paradigmText(ai.paradigm, ai.customParadigm));
@@ -24,16 +34,16 @@
     lines.push('');
     lines.push('TRANSCRIPTS (machine speech-to-text; expect errors and gaps)');
     let any = false;
-    for (const sp of SPEECHES) {
+    for (const sp of fmt.speeches) {
       const t = (round.transcripts || {})[sp.id];
-      const head = '--- ' + sp.label + ' (' + sp.side.toUpperCase() + ', ' + sp.speaker + ') ---';
+      const head = '--- ' + sp.label + ' (' + sp.side.toUpperCase() + ', ' + F.speakerTag(F.speakerOf(fmt, sp.speaker)) + ') ---';
       if (t && t.trim()) {
         any = true;
         lines.push(head);
         lines.push(t.trim());
       } else {
         // No transcript, but a speech doc: debaters usually read their doc, so the doc is the speech.
-        const mine = (docs || []).filter((d) => docSpeech(d) === sp.id).map((d) => d.name);
+        const mine = (docs || []).filter((d) => docSpeech(d, fmt) === sp.id).map((d) => d.name);
         if (mine.length) {
           any = true;
           lines.push(head);
@@ -46,7 +56,7 @@
     lines.push("JUDGE'S FLOW (the human judge's own notes; trust these over the transcript when they conflict)");
     let anyFlow = false;
     for (const f of round.flows || []) {
-      const cols = FLOW_COLUMNS.map((c, i) => [c.label, (f.cells || {})[i]]).filter(([, v]) => v && v.trim());
+      const cols = fmt.flowColumns.map((c, i) => [c.label, (f.cells || {})[i]]).filter(([, v]) => v && v.trim());
       if (!cols.length) continue;
       anyFlow = true;
       lines.push('### Sheet: ' + f.name);
@@ -54,7 +64,7 @@
     }
     if (!anyFlow) lines.push('(empty)');
     const aiSheets = (round.aiFlows || []).map((sh) => {
-      const cols = FLOW_COLUMNS.map((c, i) => [c.label + (sh.edits && sh.edits[i] ? ' (edited by the judge)' : ''), flowCellText(sh, i, 'detailed')]).filter(([, v]) => v);
+      const cols = fmt.flowColumns.map((c, i) => [c.label + (sh.edits && sh.edits[i] ? ' (edited by the judge)' : ''), flowCellText(sh, i, 'detailed', fmt)]).filter(([, v]) => v);
       return cols.length ? '### Sheet: ' + sh.name + '\n' + cols.map(([l, v]) => '[' + l + ']\n' + v).join('\n') : '';
     }).filter(Boolean);
     if (aiSheets.length) {
@@ -70,19 +80,21 @@
     return lines.join('\n');
   }
 
-  // Points that cluster within a few tenths tell debaters nothing. This scale spreads them.
-  const POINTS_GUIDE = 'Speaker points must mean something, so use the full range: '
+  // Points that cluster within a few tenths tell debaters nothing. This scale spreads them; how far apart comes from
+  // the format (four debaters in policy, two in LD).
+  const pointsGuide = (fmt) => 'Speaker points must mean something, so use the full range: '
     + '29.5-30.0 outstanding (a top speaker at a big tournament); 29.0-29.4 excellent; 28.5-28.9 strong; '
     + '28.0-28.4 solid, about average; 27.5-27.9 below average; 27.0-27.4 weak; 26.0-26.9 serious problems; '
     + 'below 26 only for rudeness or not giving a speech. '
-    + 'Spread the four debaters by how well each one did: separate speakers who were not equally good by at least 0.3-0.5, '
-    + 'and in most rounds the best and worst speaker should be 1.0 or more apart. Never put everyone within a few tenths.';
+    + fmt.ai.pointsSpread;
+  // "a high school policy (CX) debate".
+  const debateName = (fmt) => 'a ' + fmt.ai.kind + ' (' + fmt.ai.abbr + ') debate';
 
-  const JUDGE_SYSTEM = [
-    'You help a human judge decide a high school policy (CX) debate round.',
+  const judgeSystem = (fmt) => [
+    'You help a human judge decide ' + debateName(fmt) + ' round.',
     'The human makes the final call. Your job is a clear, fair draft.',
     'Judge only the arguments in the round, under the given paradigm.',
-    'Track each argument from first speech to last. Note drops. New arguments in the 2NR or 2AR do not count; the 1AR may answer new arguments from the block.',
+    'Track each argument from first speech to last. Note drops. ' + fmt.ai.rules,
     'Say where the transcript is unclear instead of guessing.',
     '',
     'Reply in this exact structure, in plain text with short headings:',
@@ -91,22 +103,25 @@
     'RFD: 4–8 sentences a coach can read on a ballot. Name the arguments that decided it.',
     'KEY CLASH: one line per main argument: who won it and why.',
     'DROPS: arguments one side conceded.',
-    'FEEDBACK: one short paragraph for each debater (1A, 2A, 1N, 2N): one strength, one thing to fix.',
-    'SUGGESTED POINTS: 1A, 2A, 1N, 2N, each with a 3-6 word reason (the judge sets the final points).',
+    'FEEDBACK: one short paragraph for each debater (' + tags(fmt).join(', ') + '): one strength, one thing to fix.',
+    'SUGGESTED POINTS: ' + tags(fmt).join(', ') + ', each with a 3-6 word reason (the judge sets the final points).',
     '',
-    POINTS_GUIDE,
+    pointsGuide(fmt),
   ].join('\n');
 
   // Splits the AI draft's FEEDBACK section into Aff (1A, 2A) and Neg (1N, 2N) comments,
-  // to paste into the per-team boxes on Tabroom.
-  function parseFeedback(text) {
+  // to paste into the per-team boxes on Tabroom. fmt: policy-hs when not given.
+  function parseFeedback(text, fmt) {
+    const f = fmt || F.POLICY;
+    const sideOfTag = new Map(f.speakers.map((sp) => [F.speakerTag(sp).toLowerCase(), sp.side]));
+    const whoRe = new RegExp('^\\s*[-*•]?\\s*\\**\\s*(' + tags(f).map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b', 'i');
     const m = /FEEDBACK:\s*([\s\S]*?)(?:\n\s*SUGGESTED POINTS:|$)/i.exec(text || '');
     const out = { aff: [], neg: [] };
     if (!m) return { aff: '', neg: '' };
     let cur = null;
     for (const line of m[1].split('\n')) {
-      const who = /^\s*[-*•]?\s*\**\s*(1A|2A|1N|2N)\b/i.exec(line);
-      if (who) cur = who[1].toUpperCase().endsWith('A') ? 'aff' : 'neg';
+      const who = whoRe.exec(line);
+      if (who) cur = sideOfTag.get(who[1].toLowerCase());
       if (cur && line.trim()) out[cur].push(line.trim());
     }
     return { aff: out.aff.join('\n'), neg: out.neg.join('\n') };
@@ -135,8 +150,8 @@
     additionalProperties: false,
   };
 
-  const LIVE_FLOW_SYSTEM = [
-    'You flow a high school policy debate for a judge, live, from a speech-to-text transcript.',
+  const liveFlowSystem = (fmt) => [
+    'You flow a ' + fmt.ai.kind + ' debate for a judge, live, from a speech-to-text transcript.',
     'Flow only the CURRENT speech. Earlier speeches are already flowed and given for context.',
     'For each sheet, write the same arguments at three levels of detail:',
     '- brief: the big picture only. One short line per position or main answer (e.g. "Perm do both", "No link — plan is cheap"). No authors.',
@@ -144,7 +159,7 @@
     '- detailed: one entry per argument, numbered: the tag, author + year, then the warrant (why it is true, the key evidence) in one or two lines, and which earlier argument it answers.',
     'All three levels must cover the same arguments in the same order; only the depth changes.',
     'Put each argument on the sheet it answers. Use an existing sheet name exactly when the argument answers that sheet.',
-    'Put the 1AC on a sheet named "Case". A new off-case position gets a new sheet named like "DA - Econ", "CP - States", "K - Cap" or "T - Substantial".',
+    fmt.ai.flowSheets,
     'Return every sheet this speech has touched so far, with the FULL notes for this speech on that sheet (they replace earlier notes for this speech).',
     'The transcript has errors and the speech may be unfinished. Mark unclear parts with "??".',
     'If documents are listed for the CURRENT speech and there is no transcript, treat the documents as the speech (debaters usually read their doc): flow every argument and card in them, in order, and end each line with " [doc]".',
@@ -153,8 +168,10 @@
   ].join('\n');
 
   function buildLiveFlowPrompt(round, speechId, docs) {
-    const col = speechColumn(speechId);
-    const sp = SPEECHES.find((s) => s.id === speechId);
+    const fmt = F.formatOf(round);
+    const FLOW_COLUMNS = fmt.flowColumns;
+    const col = speechColumn(speechId, fmt);
+    const sp = F.speechOf(fmt, speechId);
     const lines = [];
     lines.push('Resolution: ' + (round.topic || '-'));
     lines.push('');
@@ -166,7 +183,7 @@
         const parts = Object.assign({}, sheet.parts);
         delete parts[speechId];
         const edited = sheet.edits && sheet.edits[c] && c !== col;
-        const text = edited ? sheet.edits[c].text + ' (edited by the judge; trust this)' : aiFlowCell({ parts }, c, 'standard');
+        const text = edited ? sheet.edits[c].text + ' (edited by the judge; trust this)' : aiFlowCell({ parts }, c, 'standard', fmt);
         if (text) cols.push('[' + FLOW_COLUMNS[c].label + ']\n' + text);
       }
       if (!cols.length) continue;
@@ -177,7 +194,7 @@
     if (!any) lines.push('(nothing yet)');
     lines.push('');
     lines.push('CURRENT SPEECH: ' + speechId + ' (' + (sp ? sp.side.toUpperCase() : '?') + ') → flow column "' + (col == null ? '?' : FLOW_COLUMNS[col].label) + '"');
-    const mine = (docs || []).filter((d) => docSpeech(d) === speechId).map((d) => d.name);
+    const mine = (docs || []).filter((d) => docSpeech(d, fmt) === speechId).map((d) => d.name);
     lines.push('DOCUMENTS FOR THIS SPEECH: ' + (mine.length ? mine.join(', ') : '(none)'));
     lines.push('TRANSCRIPT SO FAR:');
     lines.push(((round.transcripts || {})[speechId] || '').trim() || '(empty)');
@@ -186,53 +203,63 @@
 
   // ---------- ballot filler ----------
   const PT = { type: 'number' };
-  const RK = { type: 'integer', enum: [1, 2, 3, 4] };
-  const BALLOT_SCHEMA = {
-    type: 'object',
-    properties: {
+  // The ballot the AI fills, for the format's debaters. Ranks only when the format has speaker ranks.
+  function ballotSchema(fmt) {
+    const ids = fmt.speakerIds;
+    const RK = { type: 'integer', enum: ids.map((_, i) => i + 1) };
+    const per = (t) => ({ type: 'object', properties: Object.fromEntries(ids.map((s) => [s, t])), required: ids.slice(), additionalProperties: false });
+    const properties = {
       winner: { type: 'string', enum: ['aff', 'neg'] },
       confidence: { type: 'string', enum: ['low', 'medium', 'high'] },
-      points: { type: 'object', properties: { '1A': PT, '2A': PT, '1N': PT, '2N': PT }, required: ['1A', '2A', '1N', '2N'], additionalProperties: false },
-      ranks: { type: 'object', properties: { '1A': RK, '2A': RK, '1N': RK, '2N': RK }, required: ['1A', '2A', '1N', '2N'], additionalProperties: false },
+      points: per(PT),
+      ...(fmt.ballot.speakerRanks ? { ranks: per(RK) } : {}),
       rfd: { type: 'string' },
       aff_comments: { type: 'string' },
       neg_comments: { type: 'string' },
       points_reasoning: { type: 'string' },
-    },
-    required: ['winner', 'confidence', 'points', 'ranks', 'rfd', 'aff_comments', 'neg_comments', 'points_reasoning'],
-    additionalProperties: false,
-  };
+    };
+    return { type: 'object', properties, required: Object.keys(properties), additionalProperties: false };
+  }
 
-  const BALLOT_TASK = [
-    'Fill in the ballot for this round as of now.',
-    '- winner and confidence.',
-    '- points for 1A, 2A, 1N, 2N (one decimal place) and ranks 1-4 (1 = best). Ranks must use 1, 2, 3 and 4 once each and must agree with the points (higher points, better rank).',
-    '- rfd: the reason for decision for everyone in the round, 4-8 sentences, naming the arguments that decided it.',
-    '- aff_comments / neg_comments: comments for each team, one short paragraph per debater with one strength and one thing to fix.',
-    '- points_reasoning: one line per debater on why they got those points.',
-    'If the round is unfinished, fill it as if it ended now and say so in the RFD.',
-  ].join('\n');
+  function ballotTask(fmt) {
+    const ids = fmt.speakerIds;
+    const n = ids.map((_, i) => i + 1);
+    const pointsLine = fmt.ballot.speakerRanks
+      ? '- points for ' + ids.join(', ') + ' (one decimal place) and ranks 1-' + n.length + ' (1 = best). Ranks must use ' + n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1] + ' once each and must agree with the points (higher points, better rank).'
+      : '- points for ' + ids.join(', ') + ' (one decimal place).';
+    return [
+      'Fill in the ballot for this round as of now.',
+      '- winner and confidence.',
+      pointsLine,
+      '- rfd: the reason for decision for everyone in the round, 4-8 sentences, naming the arguments that decided it.',
+      '- aff_comments / neg_comments: comments for each team, one short paragraph per debater with one strength and one thing to fix.',
+      '- points_reasoning: one line per debater on why they got those points.',
+      'If the round is unfinished, fill it as if it ended now and say so in the RFD.',
+    ].join('\n');
+  }
 
   // Slice 4 (4.3) opts: only (the fields the judge picked; the AI still fills every field), redraft
   // ({ fields, previous } for [Redo this]), range (the points range) and liveEvalFeedback (the Live Eval feedback list).
   function buildBallotPrompt(round, docs, judgeInput, opts) {
     const o = opts || {};
+    const fmt = F.formatOf(round);
     const b = round.ballot || {};
     const touched = b.touched || {};
-    const kept = BALLOT_FIELDS.filter((f) => touched[f]).map((f) => {
+    const kept = ballotFields(fmt).filter((f) => touched[f]).map((f) => {
       const [a, k] = f.split('.');
       const v = k ? (b[a] || {})[k] : b[f];
       return f + ' = ' + (typeof v === 'string' && v.length > 300 ? v.slice(0, 300) + '…' : v);
     });
-    const lines = [BALLOT_TASK, '', POINTS_GUIDE];
+    const lines = [ballotTask(fmt), '', pointsGuide(fmt)];
     const range = ptsRange(o.range);
     if (!isDefaultRange(range)) lines.push('', 'This tournament uses ' + range.min + '–' + range.max + '. Map the scale above onto that range.');
     if (kept.length) lines.push('', 'THE JUDGE ALREADY SET THESE BY HAND. Keep them, and make the rest agree with them:', ...kept);
     if (judgeInput && judgeInput.trim()) lines.push('', "THE JUDGE'S OWN INPUT. Weigh it heavily; where it conflicts with your read, follow the judge:", judgeInput.trim());
-    if (o.only && o.only.length) lines.push('', 'THE JUDGE WANTS NEW TEXT FOR: ' + o.only.map(fieldLabel).join(', ') + '. Still fill every field.');
+    const label = (f) => fieldLabel(f, fmt);
+    if (o.only && o.only.length) lines.push('', 'THE JUDGE WANTS NEW TEXT FOR: ' + o.only.map(label).join(', ') + '. Still fill every field.');
     if (o.redraft && o.redraft.fields && o.redraft.fields.length) {
-      lines.push('', 'REDO: the judge asked for a different version of ' + o.redraft.fields.map(fieldLabel).join(', ') + '.');
-      for (const [f, v] of Object.entries(o.redraft.previous || {})) if (v != null && String(v).trim()) lines.push('Your last version of ' + fieldLabel(f) + ': ' + String(v).slice(0, 600));
+      lines.push('', 'REDO: the judge asked for a different version of ' + o.redraft.fields.map(label).join(', ') + '.');
+      for (const [f, v] of Object.entries(o.redraft.previous || {})) if (v != null && String(v).trim()) lines.push('Your last version of ' + label(f) + ': ' + String(v).slice(0, 600));
     }
     const fb = feedbackLines(o.liveEvalFeedback);
     if (fb.length) lines.push('', 'LIVE EVAL FEEDBACK. Use it for the Aff and Neg comments:', ...fb);
@@ -244,16 +271,16 @@
   // With override (the judge asked for it, e.g. "Redo with my input"), it may change hand-set fields too.
   // Slice 4 (4.4, 4.6) opts.only: write exactly these fields (the judge chose them in the review, so a "yours" field
   // in the list is written). opts.range: AI points outside it are never written. opts.mark: 'yours' (an insert) or
-  // 'ai' (an auto refill) for the fields written.
+  // 'ai' (an auto refill) for the fields written. opts.format: the round's format (policy-hs when not given).
   function applyBallotDraft(ballot, draft, opts) {
     const o = opts || {};
     let b = JSON.parse(JSON.stringify(ballot || {}));
     const touched = o.only ? {} : o.override ? {} : b.touched || {};
     b.pts ??= {}; b.ranks ??= {};
-    const bad = new Set(o.range ? outOfRangePoints(draft, o.range).map((x) => 'pts.' + x.speaker) : []);
+    const bad = new Set(o.range ? outOfRangePoints(draft, o.range, o.format).map((x) => 'pts.' + x.speaker) : []);
     const allow = o.only ? new Set(o.only) : null;
     const written = [];
-    for (const field of BALLOT_FIELDS) {
+    for (const field of ballotFields(o.format)) {
       if (allow && !allow.has(field)) continue;
       if (touched[field] || bad.has(field)) continue;
       const value = draftValue(draft, field);
@@ -280,24 +307,25 @@
   // ---------- live evaluation (mid-round) ----------
 
   function nextSpeech(round) {
+    const speeches = F.formatOf(round).speeches;
     const done = speechesSoFar(round);
-    if (!done.length) return SPEECHES[0].id;
-    const last = SPEECHES.findIndex((s) => s.id === done[done.length - 1]);
-    return last + 1 < SPEECHES.length ? SPEECHES[last + 1].id : null;
+    if (!done.length) return speeches[0].id;
+    const last = speeches.findIndex((s) => s.id === done[done.length - 1]);
+    return last + 1 < speeches.length ? speeches[last + 1].id : null;
   }
 
-  const EVAL_SYSTEM = [
-    'You help a human judge follow a high school policy (CX) debate WHILE it is happening.',
+  const evalSystem = (fmt) => [
+    'You help a human judge follow ' + debateName(fmt) + ' WHILE it is happening.',
     'The round may be unfinished. Judge only what has been said so far, under the given paradigm, and say what could still change.',
-    'Remember the norms: the 2NR and 2AR cannot make new arguments; dropped arguments are conceded; the block (2NC + 1NR) splits the neg\'s positions.',
+    fmt.ai.evalNorms,
     'Transcripts are machine speech-to-text with errors. A speech with no transcript but a speech doc: treat the doc as what was said. In the AI flow, [doc] lines come from the speech doc; [doc?] lines are in the doc but were not heard.',
     'Be concrete: name the arguments, cards and speeches. Keep each item short enough to read in a few seconds.',
   ].join('\n');
 
-  const EVAL_SPEAKER = {
+  const evalSpeaker = (fmt) => ({
     type: 'object',
     properties: {
-      speaker: { type: 'string', enum: ['1A', '2A', '1N', '2N'] },
+      speaker: { type: 'string', enum: fmt.speakerIds.slice() },
       so_far: { type: 'string' },
       strength: { type: 'string' },
       fix: { type: 'string' },
@@ -305,9 +333,9 @@
     },
     required: ['speaker', 'so_far', 'strength', 'fix', 'points'],
     additionalProperties: false,
-  };
+  });
 
-  const EVAL_SCHEMA = {
+  const evalSchema = (fmt) => ({
     type: 'object',
     properties: {
       leaning: {
@@ -337,13 +365,14 @@
       watch_for: { type: 'array', items: { type: 'string' } },
       aff_needs: { type: 'string' },
       neg_needs: { type: 'string' },
-      feedback: { type: 'array', items: EVAL_SPEAKER },
+      feedback: { type: 'array', items: evalSpeaker(fmt) },
     },
     required: ['leaning', 'summary', 'key_issues', 'watch_for', 'aff_needs', 'neg_needs', 'feedback'],
     additionalProperties: false,
-  };
+  });
 
   function buildEvalPrompt(round, docs) {
+    const fmt = F.formatOf(round);
     const done = speechesSoFar(round);
     const next = nextSpeech(round);
     const lines = [];
@@ -356,20 +385,20 @@
     lines.push('- key_issues: the 3-6 arguments that matter most; who is ahead on each; one line on why.');
     lines.push('- watch_for: 3-6 specific things the judge should listen for in the coming speeches (drops, new arguments, extensions, weighing).');
     lines.push('- aff_needs / neg_needs: what each side must do in its remaining speeches to win.');
-    lines.push('- feedback: one entry per debater (1A, 2A, 1N, 2N) on their speeches so far: what they did, one strength, one fix, and points so far (or "not yet" if they have not spoken).');
-    lines.push(POINTS_GUIDE);
+    lines.push('- feedback: one entry per debater (' + fmt.speakerIds.join(', ') + ') on their speeches so far: what they did, one strength, one fix, and points so far (or "not yet" if they have not spoken).');
+    lines.push(pointsGuide(fmt));
     lines.push('');
     lines.push(buildJudgePrompt(round, docs));
     return lines.join('\n');
   }
 
   // ---------- analysis: round map, impact calculus, paradigm lens ----------
-  const ANALYSIS_SYSTEM = [
-    'You analyse a high school policy (CX) debate for a human judge, from transcripts, flows and speech docs. The round may be unfinished.',
+  const analysisSystem = (fmt) => [
+    'You analyse ' + debateName(fmt) + ' for a human judge, from transcripts, flows and speech docs. The round may be unfinished.',
     'Use only what is in the round. Transcripts are machine speech-to-text with errors. With no transcript, a speech doc stands in for the speech.',
     'Be concrete and short: name arguments, cards and speeches.',
   ].join('\n');
-  const MAP_SCHEMA = {
+  const mapSchema = (fmt) => ({
     type: 'object',
     properties: {
       nodes: {
@@ -378,7 +407,7 @@
           type: 'object',
           properties: {
             id: { type: 'string' },
-            speech: { type: 'string', enum: MAP_SPEECHES },
+            speech: { type: 'string', enum: fmt.flowSpeeches.slice() },
             label: { type: 'string' },
             status: { type: 'string', enum: ['answered', 'extended', 'dropped', 'conceded', 'open'] },
           },
@@ -402,7 +431,7 @@
     },
     required: ['nodes', 'edges'],
     additionalProperties: false,
-  };
+  });
 
   const MAP_TASK = [
     'Map the argument flow of the round as a graph.',
@@ -476,7 +505,10 @@
   }
 
   // Builds Mermaid code from the map ourselves, so model text can never break or inject into the diagram.
-  function buildMermaid(map) {
+  // fmt: the round's format (policy-hs when not given).
+  function buildMermaid(map, fmt) {
+    const f = fmt || F.POLICY;
+    const MAP_SPEECHES = f.flowSpeeches;
     const nodes = (map && map.nodes) || [];
     const edges = (map && map.edges) || [];
     const safeId = (id) => 'n_' + String(id).replace(/[^A-Za-z0-9_]/g, '_');
@@ -484,7 +516,7 @@
       const clean = String(t || '').replace(/[\r\n]+/g, ' ').replace(/["`]/g, "'").replace(/[<>{}\[\]|#;]/g, ' ').replace(/\s+/g, ' ').trim();
       return clean.length > 60 ? clean.slice(0, 57) + '...' : clean;
     };
-    const sideOf = (sp) => (/A[CR]$/.test(sp) ? 'aff' : 'neg');
+    const sideOf = (sp) => (F.speechOf(f, sp) || {}).side || 'neg';
     const known = new Set();
     // Original id -> diagram id. Ids that clean up to the same text ("a-b", "a.b") get a suffix, so no node is lost.
     const idMap = new Map();
@@ -531,13 +563,15 @@
   // Lays the map out like a flow sheet: one column per speech, one row per argument thread.
   // A thread is an argument plus everything that answers, turns or extends it, followed back to its root.
   // A dropped argument gets a "No answer" ghost in the next speech of the other side, if that speech has happened.
-  function layoutMap(map, doneSpeeches) {
+  function layoutMap(map, doneSpeeches, fmt) {
+    const f = fmt || F.POLICY;
+    const MAP_SPEECHES = f.flowSpeeches;
     const nodes = ((map && map.nodes) || []).filter((n) => n && MAP_SPEECHES.includes(n.speech));
     const edges = (map && map.edges) || [];
     const byId = new Map();
     for (const n of nodes) if (!byId.has(String(n.id))) byId.set(String(n.id), n);
     const order = (sp) => MAP_SPEECHES.indexOf(sp);
-    const sideOf = (sp) => (/A[CR]$/.test(sp) ? 'aff' : 'neg');
+    const sideOf = (sp) => (F.speechOf(f, sp) || {}).side || 'neg';
     const KINDS = ['answers', 'turns', 'extends', 'concedes'];
     const parent = new Map(); // node id -> { to, kind }
     for (const e of edges) {
@@ -582,10 +616,27 @@
     return { columns: used, rows: [...rows.values()] };
   }
 
+  // The format-keyed parts of every AI request for one format: what callAI needs besides the round. Made once per
+  // format version and kept, so a schema compared by identity (the map) stays the same object.
+  const PROMPTS = {};
+  function promptsFor(fmt) {
+    const f = fmt || F.POLICY;
+    return PROMPTS[f.key] ??= Object.freeze({
+      judgeSystem: judgeSystem(f), pointsGuide: pointsGuide(f), liveFlowSystem: liveFlowSystem(f), evalSystem: evalSystem(f),
+      evalSchema: evalSchema(f), analysisSystem: analysisSystem(f), mapSchema: mapSchema(f), ballotSchema: ballotSchema(f),
+      ballotTask: ballotTask(f),
+    });
+  }
+  // The policy prompts under their old names (old callers and tests).
+  const P = promptsFor(F.POLICY);
+  const POINTS_GUIDE = P.pointsGuide, JUDGE_SYSTEM = P.judgeSystem, LIVE_FLOW_SYSTEM = P.liveFlowSystem,
+    BALLOT_SCHEMA = P.ballotSchema, BALLOT_TASK = P.ballotTask, EVAL_SYSTEM = P.evalSystem, EVAL_SCHEMA = P.evalSchema,
+    ANALYSIS_SYSTEM = P.analysisSystem, MAP_SCHEMA = P.mapSchema;
+
   const api = { buildJudgePrompt, POINTS_GUIDE, JUDGE_SYSTEM, parseFeedback, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM,
     buildLiveFlowPrompt, BALLOT_SCHEMA, BALLOT_TASK, buildBallotPrompt, applyBallotDraft, READING_LEVELS,
     readingGuide, nextSpeech, EVAL_SYSTEM, EVAL_SCHEMA, buildEvalPrompt, ANALYSIS_SYSTEM, MAP_SCHEMA, MAP_TASK,
-    IMPACT_SCHEMA, IMPACT_TASK, LENS_SCHEMA, LENS_TASK, buildAnalysisPrompt, buildMermaid, layoutMap };
+    IMPACT_SCHEMA, IMPACT_TASK, LENS_SCHEMA, LENS_TASK, buildAnalysisPrompt, buildMermaid, layoutMap, promptsFor };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).prompts = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -25,7 +25,7 @@ async function runEval() {
   const level = lvl();
   evalBusy = true; evalErr = ''; renderEvalStatus();
   try {
-    const data = await callAI({ feature: 'liveEval', system: L.EVAL_SYSTEM, prompt: L.buildEvalPrompt(R, DOCS), schema: L.EVAL_SCHEMA, effort: 'medium', reading: level });
+    const data = await callAI({ feature: 'liveEval', system: L.promptsFor(FMT()).evalSystem, prompt: L.buildEvalPrompt(R, DOCS), schema: L.promptsFor(FMT()).evalSchema, effort: 'medium', reading: level });
     if (resetting) return;
     LV(level).liveEval = { data, at: Date.now(), through: L.speechesSoFar(R) };
     save();
@@ -170,7 +170,7 @@ const busy = { lens: false, impacts: false, map: false };
 const errs = { lens: '', impacts: '', map: '' };
 
 async function askClaude(task, schema, opts) {
-  return callAI({ feature: 'analysis', system: L.ANALYSIS_SYSTEM, prompt: L.buildAnalysisPrompt(R, DOCS, task, opts), schema, effort: 'medium', reading: schema === L.MAP_SCHEMA ? null : lvl() });
+  return callAI({ feature: 'analysis', system: L.promptsFor(FMT()).analysisSystem, prompt: L.buildAnalysisPrompt(R, DOCS, task, opts), schema, effort: 'medium', reading: schema === L.promptsFor(FMT()).mapSchema ? null : lvl() });
 }
 async function runTool(name, task, schema, opts, store) {
   if (!can('analysis')) return;
@@ -219,7 +219,7 @@ function renderGlance() {
   const e = escapeHtml;
   const p = L.prepUsed(R);
   $('#glance-prep').innerHTML = p.any ? `<p class="glance-line"><span class="aff">${e(p.aff.text)}</span></p><p class="glance-line"><span class="neg">${e(p.neg.text)}</span></p>` : '<p class="muted glance-line">No prep used yet.</p>';
-  const km = L.keyMoments(R.analysis.map && R.analysis.map.data);
+  const km = L.keyMoments(R.analysis.map && R.analysis.map.data, FMT());
   $('#glance-moments').innerHTML = km.length
     ? '<ul class="plain-list">' + km.map((k) => `<li><span class="${sideClass(k.side)}">${e(k.speech)}</span> ${e(k.label)} <span class="chip ${k.status === 'dropped' ? 'drop' : 'con'}">${k.status === 'dropped' ? 'Dropped' : 'Conceded'}</span></li>`).join('') + '</ul>'
     : '<p class="muted glance-line">' + (R.analysis.map && R.analysis.map.data && R.analysis.map.data.nodes.length ? 'No dropped or conceded arguments on the Round Map.' : 'Key moments show here after you run the Round Map.') + '</p>';
@@ -274,7 +274,7 @@ function renderAnalysis() {
 const KIND_MARK = { answers: '↩ answers', turns: '↻ turns', extends: '→ extends', concedes: '= concedes' };
 function mapSheetHtml(data) {
   const e = escapeHtml;
-  const lay = L.layoutMap(data, L.speechesSoFar(R));
+  const lay = L.layoutMap(data, L.speechesSoFar(R), FMT());
   if (!lay.rows.length) return '<p class="muted">No arguments yet. Click "+ Argument" to start, or Draw to let the AI map the round.</p>';
   const cols = lay.columns;
   const sideOf = (sp) => (/A[CR]$/.test(sp) ? 'aff' : 'neg');
@@ -316,13 +316,13 @@ $('#lens-go').addEventListener('click', () => {
   runTool('lens', L.LENS_TASK, L.LENS_SCHEMA, { paradigm: L.paradigmText(key, myParadigm()) }, (v) => { R.analysis.lens[k] = v; });
 });
 $('#impact-go').addEventListener('click', () => { const box = LV(); runTool('impacts', L.IMPACT_TASK, L.IMPACT_SCHEMA, null, (v) => { box.impacts = v; }); });
-$('#map-go').addEventListener('click', () => runTool('map', L.MAP_TASK, L.MAP_SCHEMA, null, (v) => {
+$('#map-go').addEventListener('click', () => runTool('map', L.MAP_TASK, L.promptsFor(FMT()).mapSchema, null, (v) => {
   // Keep everything the judge drew or edited by hand.
   R.analysis.map = { ...v, data: L.mergeMap(R.analysis.map && R.analysis.map.data, v.data) };
 }));
 $('#map-copy').addEventListener('click', () => {
   if (!R.analysis.map) return toast('Draw the map first.');
-  copyToast(L.buildMermaid(R.analysis.map.data));
+  copyToast(L.buildMermaid(R.analysis.map.data, FMT()));
 });
 
 // Mermaid is loaded only when a map is drawn (pinned version, integrity-checked).
@@ -349,7 +349,7 @@ window.TabulaTheme.onChange(() => {
   if (R.analysis && R.analysis.map && R.analysis.map.data) drawMap(R.analysis.map.data);
 });
 async function drawMap(data) {
-  const code = L.buildMermaid(data);
+  const code = L.buildMermaid(data, FMT());
   if (code === lastMapCode && $('#map-out').querySelector('svg')) return; // already drawn
   lastMapCode = code;
   const seq = ++mapSeq;
@@ -373,14 +373,15 @@ function mapDataEnsure() {
 function openNodeEditor(opts) {
   const data = mapDataEnsure();
   const node = opts.id ? data.nodes.find((n) => String(n.id) === String(opts.id)) : null;
-  // Default speech for a new card: the one given, else the latest speech so far that has a flow column, else 1AC.
+  // Default speech for a new card: the one given, else the latest speech so far that has a flow column, else the
+  // format's first (1AC, AC).
   let speech = node ? node.speech : opts.speech;
-  if (!speech) speech = L.speechesSoFar(R).filter((x) => L.MAP_SPEECHES.includes(x)).pop() || '1AC';
+  if (!speech) speech = L.speechesSoFar(R).filter((x) => FMT().flowSpeeches.includes(x)).pop() || FMT().flowSpeeches[0];
   const out = node ? data.edges.find((x) => String(x.from) === String(node.id)) : null;
   neState = { id: node ? node.id : null };
   $('#ne-title').textContent = node ? 'Edit argument' : 'New argument';
   $('#ne-label').value = node ? node.label : '';
-  $('#ne-speech').innerHTML = L.MAP_SPEECHES.map((x) => `<option${x === speech ? ' selected' : ''}>${x}</option>`).join('');
+  $('#ne-speech').innerHTML = FMT().flowSpeeches.map((x) => `<option${x === speech ? ' selected' : ''}>${x}</option>`).join('');
   $('#ne-status').value = node ? node.status : 'open';
   $('#ne-kind').value = out ? out.kind : 'answers';
   const others = data.nodes.filter((n) => !node || String(n.id) !== String(node.id));
@@ -434,11 +435,11 @@ $('#map-out').addEventListener('click', (e) => {
   if (add) {
     // A new card in a row answers the latest card in an earlier speech on that row.
     const data = mapDataEnsure();
-    const lay = L.layoutMap(data, L.speechesSoFar(R));
+    const lay = L.layoutMap(data, L.speechesSoFar(R), FMT());
     const row = lay.rows.find((r) => r.root === add.dataset.addRow);
     const sp = add.dataset.addSpeech;
     let target = '';
-    if (row) for (const col of lay.columns) { if (L.MAP_SPEECHES.indexOf(col) >= L.MAP_SPEECHES.indexOf(sp)) break; const c = (row.cells[col] || []).filter((x) => !x.ghost); if (c.length) target = c[c.length - 1].id; }
+    if (row) for (const col of lay.columns) { if (FMT().flowSpeeches.indexOf(col) >= FMT().flowSpeeches.indexOf(sp)) break; const c = (row.cells[col] || []).filter((x) => !x.ghost); if (c.length) target = c[c.length - 1].id; }
     openNodeEditor({ speech: sp, target });
   }
 });

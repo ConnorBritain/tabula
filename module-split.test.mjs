@@ -58,7 +58,9 @@ test('loading the logic files as the page does gives the same API as require("./
   const win = {};
   win.window = win;
   vm.createContext(win);
-  for (const f of LOGIC_FILES) vm.runInContext(read(f), win, { filename: f });
+  // The page loads the format files (data the logic parts read) before the logic parts.
+  const formatFiles = scripts.map((x) => x.src).filter((src) => src.startsWith('formats/'));
+  for (const f of [...formatFiles, ...LOGIC_FILES]) vm.runInContext(read(f), win, { filename: f });
   const viaRequire = require('./logic.js');
   assert.deepEqual(Object.keys(win.PolicyLogic), Object.keys(viaRequire));
   for (const k of Object.keys(viaRequire)) {

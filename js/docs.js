@@ -107,17 +107,17 @@ async function readDoc(file) {
 const MAX_DOC_BYTES = 15 * 1024 * 1024;
 const MAX_TEXT_CHARS = 400000;
 function docBytes(d) { return d.kind === 'pdf' ? Math.round(d.data.length * 0.75) : d.data.length; }
-const FLOW_SPEECHES = ['1AC', '1NC', '2AC', '2NC', '1NR', '1AR', '2NR', '2AR'];
+// A doc can belong to any flowed speech of the round's format (FMT, js/core.js).
 function speechPicker(d) {
-  const cur = L.docSpeech(d);
+  const cur = L.docSpeech(d, FMT());
   return `<select data-doc-speech="${d.id}" class="w-auto" aria-label="Speech for ${escapeHtml(d.name || 'this doc')}" data-tip="Which speech this doc belongs to. It is mapped onto that speech's flow column.">`
     + `<option value=""${cur === '' ? ' selected' : ''}>Context only</option>`
-    + FLOW_SPEECHES.map((sp) => `<option${sp === cur ? ' selected' : ''}>${sp}</option>`).join('') + '</select>';
+    + FMT().flowSpeeches.map((sp) => `<option${sp === cur ? ' selected' : ''}>${sp}</option>`).join('') + '</select>';
 }
 // Re-flow a speech after its docs change. If nothing is left to flow it from, clear its AI notes.
 function reflowForDocs(speechId) {
   if (!speechId || !can('aiFlow')) return;
-  const hasSource = (R.transcripts[speechId] || '').trim() || DOCS.some((d) => L.docSpeech(d) === speechId);
+  const hasSource = (R.transcripts[speechId] || '').trim() || DOCS.some((d) => L.docSpeech(d, FMT()) === speechId);
   if (hasSource) scheduleFlow(speechId, true);
   else { R.aiFlows = L.applyLiveFlow(R.aiFlows, speechId, { sheets: [] }); save(); if (R.tab === 'flow') renderFlow(); }
 }
@@ -140,13 +140,15 @@ async function addDocFiles(files, side, statusEl, speech) {
       const { kind, data } = await readDoc(file);
       if (!data.trim()) throw new Error('no text found');
       const doc = { id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())), roundId: R.id, name: file.name, side, kind, data, addedAt: Date.now() };
-      if (speech !== undefined) doc.speech = speech;
+      // The speech is set on every new doc (the format's default when none was picked), so a doc never depends on
+      // which format's default rule reads it later.
+      doc.speech = speech !== undefined ? speech : L.docSpeech({ side }, FMT());
       if (DOCS.reduce((n, d) => n + docBytes(d), 0) + docBytes(doc) > MAX_DOC_BYTES) throw new Error('too big. Keep all docs under 15 MB');
       const textChars = DOCS.concat([doc]).filter((d) => d.kind !== 'pdf').reduce((n, d) => n + d.data.length, 0);
       if (textChars > MAX_TEXT_CHARS) throw new Error('too much text. Keep Word/text docs under about 400,000 characters in total');
       DOCS.push(doc); added.push(doc);
       renderDocs();
-      const sp = L.docSpeech(doc);
+      const sp = L.docSpeech(doc, FMT());
       statusEl.textContent = 'Added ' + file.name + ' (' + L.DOC_SIDES[side] + (sp ? ', mapped to ' + sp : '') + ')';
       if (sp) {
         if (S.liveFlow && aiReady()) scheduleFlow(sp, true);
@@ -169,7 +171,7 @@ const SD = { files: [], seen: new Set(), fresh: new Set(), loaded: false, timer:
 const sdState = () => (R.speechDrop ??= { code: '', imported: {} });
 // A file is known by its slot and its name together, so a reused slot never looks already added.
 const sdKey = (f) => f.i + ':' + f.name;
-const sdSpeeches = [['', 'Context only']].concat(L.MAP_SPEECHES.map((id) => [id, id]));
+const sdSpeeches = () => [['', 'Context only']].concat(FMT().flowSpeeches.map((id) => [id, id]));
 const SD_BOX = `<h3 class="sd-h">From SpeechDrop</h3>
 <div class="sd-box">
   <div class="row sd-row"><input class="sd-code" placeholder="SpeechDrop code or link" aria-label="SpeechDrop room code" autocomplete="off" spellcheck="false"><button class="b sd-get">Get files</button></div>
@@ -180,7 +182,7 @@ const SD_BOX = `<h3 class="sd-h">From SpeechDrop</h3>
 // On the website there is no helper to ask SpeechDrop, so the boxes stay hidden there.
 document.querySelectorAll('.sd-mount').forEach((m) => { m.hidden = !LOCAL_ORIGIN; if (LOCAL_ORIGIN) m.innerHTML = SD_BOX; });
 function sdStatus(msg) { document.querySelectorAll('.sd-status').forEach((el) => { el.textContent = msg; }); }
-function sdPick(i) { return (SD.picks[i] ??= { checked: false, speech: L.guessSpeech((SD.files.find((f) => f.i === i) || {}).name) }); }
+function sdPick(i) { return (SD.picks[i] ??= { checked: false, speech: L.guessSpeech((SD.files.find((f) => f.i === i) || {}).name, FMT()) }); }
 function renderSdList() {
   const st = sdState();
   document.querySelectorAll('.sd-box').forEach((box) => {
@@ -190,7 +192,7 @@ function renderSdList() {
       const done = st.imported[sdKey(f)], p = sdPick(f.i);
       return `<label class="sd-file${done ? ' sd-done' : ''}"><input type="checkbox" data-sd-i="${f.i}"${p.checked && !done ? ' checked' : ''}${done ? ' disabled' : ''}>
         <span class="sd-name" data-tip="${escapeHtml(f.name)}">${escapeHtml(f.name)}${done ? ' · added' : SD.fresh.has(sdKey(f)) ? '<span class="sd-new">new</span>' : ''}</span>
-        <select data-sd-speech="${f.i}" aria-label="Speech for ${escapeHtml(f.name)}"${done ? ' disabled' : ''}>${sdSpeeches.map(([v, t]) => `<option value="${v}"${v === p.speech ? ' selected' : ''}>${t}</option>`).join('')}</select></label>`;
+        <select data-sd-speech="${f.i}" aria-label="Speech for ${escapeHtml(f.name)}"${done ? ' disabled' : ''}>${sdSpeeches().map(([v, t]) => `<option value="${v}"${v === p.speech ? ' selected' : ''}>${t}</option>`).join('')}</select></label>`;
     }).join('') + '<div class="sd-actions"><button class="b primary sd-add">Add selected</button><span class="muted">Checks for new files every 30 s.</span></div>';
   });
 }
@@ -241,7 +243,7 @@ async function sdAdd() {
       sdStatus('Getting ' + f.name + '…');
       try {
         const file = new File([await (await sdApi(encodeURIComponent(code) + '/file/' + f.i, 90000)).blob()], f.name);
-        const added = await addDocFiles([file], L.speechSide(speech), status, speech);
+        const added = await addDocFiles([file], L.speechSide(speech, FMT()), status, speech);
         if (added.length && sdState().code === code) { st.imported[sdKey(f)] = true; SD.fresh.delete(sdKey(f)); save(); }
       } catch (err) { sdStatus(f.name + ': ' + err.message); }
     }
@@ -288,7 +290,7 @@ document.querySelectorAll('.doc-quick').forEach((inp) => inp.addEventListener('c
 function timerSpeechFor(bar, side) {
   if (!bar.closest('#tab-timer')) return undefined;
   const cur = runSp(); // the speech the clock times, not one the judge is only looking back at
-  return cur.side === side && L.speechColumn(cur.id) != null ? cur.id : undefined;
+  return cur.side === side && L.speechColumn(cur.id, FMT()) != null ? cur.id : undefined;
 }
 // Drag and drop: the side comes from the picker on the tab you are on.
 document.addEventListener('dragover', (e) => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
@@ -305,7 +307,7 @@ document.addEventListener('drop', (e) => {
 $('#doc-list').addEventListener('change', (e) => {
   const id = e.target.dataset.docSpeech; if (!id) return;
   const d = DOCS.find((x) => x.id === id); if (!d) return;
-  const old = L.docSpeech(d);
+  const old = L.docSpeech(d, FMT());
   d.speech = e.target.value;
   docStore.put(d).catch(() => {});
   renderDocs();
@@ -318,7 +320,7 @@ $('#doc-list').addEventListener('click', async (e) => {
   DOCS = DOCS.filter((d) => d.id !== id);
   try { await docStore.del(id); } catch {}
   renderDocs();
-  if (gone) reflowForDocs(L.docSpeech(gone));
+  if (gone) reflowForDocs(L.docSpeech(gone, FMT()));
 });
 docStore.open().then(async () => {
   const all = (await docStore.tx('readonly', (st) => st.getAll())) || [];

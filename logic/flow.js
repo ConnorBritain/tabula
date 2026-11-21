@@ -3,11 +3,13 @@
 (function (root) {
   'use strict';
 
+  const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
+  const F = part('format');
+
   // ---------- live AI flow (Claude) ----------
-  // Which flow column a speech writes to. CX is not flowed.
-  const SPEECH_TO_COLUMN = { '1AC': 0, '1NC': 1, '2AC': 2, '2NC': 3, '1NR': 3, '1AR': 4, '2NR': 5, '2AR': 6 };
-  function speechColumn(speechId) {
-    return Object.prototype.hasOwnProperty.call(SPEECH_TO_COLUMN, speechId) ? SPEECH_TO_COLUMN[speechId] : null;
+  // Which flow column a speech writes to, in the given format (policy-hs when not given). CX is not flowed.
+  function speechColumn(speechId, fmt) {
+    return F.columnOf(fmt || F.POLICY, speechId);
   }
 
   // Detail levels for the AI flow. One Claude call writes all three, so switching is instant.
@@ -23,8 +25,8 @@
   }
 
   // AI sheets store notes per speech, so the 1NR never overwrites the 2NC in the shared block column.
-  function aiFlowCell(sheet, col, level) {
-    const ids = Object.keys(SPEECH_TO_COLUMN).filter((id) => SPEECH_TO_COLUMN[id] === col);
+  function aiFlowCell(sheet, col, level, fmt) {
+    const ids = (fmt || F.POLICY).speeches.filter((s) => s.column === col).map((s) => s.id);
     const filled = ids.filter((id) => partText(sheet.parts && sheet.parts[id], level));
     if (filled.length === 1) return partText(sheet.parts[filled[0]], level);
     return filled.map((id) => id + ':\n' + partText(sheet.parts[id], level)).join('\n\n');
@@ -51,15 +53,15 @@
   }
 
   // What a flow cell shows: the judge's own edit if there is one, otherwise the AI's notes.
-  function flowCellText(sheet, col, level) {
+  function flowCellText(sheet, col, level, fmt) {
     const ed = sheet && sheet.edits && sheet.edits[col];
-    return ed ? String(ed.text || '') : aiFlowCell(sheet, col, level);
+    return ed ? String(ed.text || '') : aiFlowCell(sheet, col, level, fmt);
   }
 
   // An edited cell is "behind" when the AI has written something new under it since the judge edited it.
-  function editIsBehind(sheet, col) {
+  function editIsBehind(sheet, col, fmt) {
     const ed = sheet && sheet.edits && sheet.edits[col];
-    return Boolean(ed) && aiFlowCell(sheet, col, 'standard') !== (ed.base || '');
+    return Boolean(ed) && aiFlowCell(sheet, col, 'standard', fmt) !== (ed.base || '');
   }
 
   // Keeps the judge's map work when the AI redraws the map: nodes and links the judge made or edited stay;

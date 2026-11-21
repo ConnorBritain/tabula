@@ -4,6 +4,8 @@
 // One part of logic.js (pure logic, no DOM). logic.js joins the parts into one API; index.html loads the parts first.
 (function (root) {
   'use strict';
+  const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
+  const F = part('format');
 
   const PROFILE_URL = '/api/v1/me/profile';
   // The server's limit for the paradigm (tabula-cloud src/profile.ts MAX_PARADIGM).
@@ -84,8 +86,10 @@
 
   // The body of a hosted AI call (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3): the call's own fields, with the round
   // id and the round's program always from the round, so no call can send a different school.
+  // format and formatVersion also come from the round, never from the call: the server builds the rules text from its
+  // own copy of that format version (ARCHITECTURE.md §9), so the client never sends rules text.
   function hostedAiBody(round, call) {
-    return Object.assign({}, call, { roundId: round.id, programId: judgingId(round.programId) });
+    return Object.assign({}, call, { roundId: round.id, programId: judgingId(round.programId) }, F.formatFields(F.formatOf(round)));
   }
   const judgingId = (id) => (typeof id === 'string' && PROGRAM_ID.test(id) ? id : null);
 

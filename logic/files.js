@@ -4,7 +4,8 @@
 (function (root) {
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
-  const { SPEECHES, num } = part('round');
+  const F = part('format');
+  const { num } = part('round');
 
   // ---------- SpeechDrop (speechdrop.net) ----------
   // Debaters share speech docs in a SpeechDrop room. The judge types the room code; Tabula lists the files.
@@ -20,22 +21,29 @@
       .map((e, i) => (e && typeof e.name === 'string' ? { i, name: e.name, ctime: Number(e.ctime) || 0 } : null))
       .filter(Boolean);
   }
-  // A guess at which speech a file belongs to, from its name ("Lake AB 1NC v2.docx" -> 1NC). '' = context only.
-  function guessSpeech(fileName) {
+  // A guess at which flowed speech a file belongs to, from its name ("Lake AB 1NC v2.docx" -> 1NC), in the given
+  // format (policy-hs when not given). A leading digit may have a space after it ("1 NC"). '' = context only.
+  function guessSpeech(fileName, fmt) {
     const n = String(fileName || '').replace(/\.[a-z0-9]+$/i, '');
-    const m = n.match(/(?:^|[^A-Za-z0-9])([12])\s?(AC|NC|NR|AR)(?=$|[^A-Za-z])/i);
-    if (m) return m[1] + m[2].toUpperCase();
-    if (/\bblock\b/i.test(n)) return '2NC';
+    const f = fmt || F.POLICY;
+    const flowed = f.speeches.filter((s) => s.column != null);
+    const reEsc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    for (const s of flowed) {
+      const pat = reEsc(s.id).replace(/^(\d)/, '$1\\s?');
+      if (new RegExp('(?:^|[^A-Za-z0-9])' + pat + '(?=$|[^A-Za-z])', 'i').test(n)) return s.id;
+    }
+    for (const s of flowed) for (const a of s.aliases || []) if (new RegExp('\\b' + reEsc(a) + '\\b', 'i').test(n)) return s.id;
     return '';
   }
   // The side a speech belongs to (for the doc's Aff/Neg tag).
-  const speechSide = (speechId) => ((SPEECHES.find((s) => s.id === speechId) || {}).side || 'other');
+  const speechSide = (speechId, fmt) => ((F.speechOf(fmt || F.POLICY, speechId) || {}).side || 'other');
 
   // ---------- names out of AI prompts ----------
   // Debaters are minors. Their names and team codes are swapped for positions before any text goes to an AI,
   // and swapped back in the AI's reply, so the judge still reads names on screen.
   function nameSwaps(round) {
     const r = round || {};
+    const fmt = F.formatOf(r);
     const out = [];
     const add = (name, tag) => {
       const n = String(name || '').trim();
@@ -44,7 +52,8 @@
       const parts = n.split(/\s+/);
       if (parts.length > 1) for (const p of parts) if (p.length >= 3) out.push([p, tag]); // "Ann Lee" -> also "Ann", "Lee"
     };
-    add(r.aff && r.aff.d1, '1A'); add(r.aff && r.aff.d2, '2A'); add(r.neg && r.neg.d1, '1N'); add(r.neg && r.neg.d2, '2N');
+    // Each debater's name becomes the format's tag for that seat (1A ... 2N in policy, "Aff debater" in LD).
+    for (const sp of fmt.speakers) add(F.speakerName(r, sp), F.speakerTag(sp));
     add(r.aff && r.aff.team, 'the Aff team'); add(r.neg && r.neg.team, 'the Neg team');
     return out.sort((a, b) => b[0].length - a[0].length);
   }
@@ -58,7 +67,8 @@
   // Puts names back in a reply (any mix of objects, lists and text). Keys stay as they are ('1A' points keys).
   function deanonymize(value, round) {
     const r = round || {};
-    const back = [['the Aff team', r.aff && r.aff.team], ['the Neg team', r.neg && r.neg.team], ['1A', r.aff && r.aff.d1], ['2A', r.aff && r.aff.d2], ['1N', r.neg && r.neg.d1], ['2N', r.neg && r.neg.d2]]
+    const seats = F.formatOf(r).speakers.map((sp) => [F.speakerTag(sp), F.speakerName(r, sp)]);
+    const back = [['the Aff team', r.aff && r.aff.team], ['the Neg team', r.neg && r.neg.team], ...seats]
       .filter(([, n]) => String(n || '').trim()).map(([tag, n]) => [tag, String(n).trim()]);
     // A replacer function, so a name with "$" in it is inserted as written.
     const fix = (t) => back.reduce((s, [tag, name]) => s.replace(new RegExp('(^|[^\\p{L}\\p{N}])' + reEsc(tag) + '(?=$|[^\\p{L}\\p{N}])', 'gu'), (m, pre) => pre + name), t);
@@ -118,7 +128,10 @@
       ballot: Object.assign({ winner: '', pts: {}, ranks: {}, rfd: '' }, obj(r.ballot)),
     });
     for (const k of ['prepSeconds', 'cur', 'flowIdx']) if (num(r[k]) == null) delete round[k];
-    if (r.prepLeft != null && (num(obj(r.prepLeft).aff) == null || num(obj(r.prepLeft).neg) == null)) delete round.prepLeft;
+    // The round's format must be one this app has; a missing one is an old policy round.
+    if (!F.formatKnown(r)) throw new Error('this round file uses a debate format this copy of Tabula does not have. Reload the app first');
+    const clocks = F.prepClocks(F.formatOf(r)).map((c) => c.id);
+    if (r.prepLeft != null && clocks.some((id) => num(obj(r.prepLeft)[id]) == null)) delete round.prepLeft;
     const docs = cleanDocs(f.docs).map((d) => Object.assign({}, d, { id: newId + ':' + d.id, roundId: newId }));
     return { round, docs, savedAt: f.savedAt || '' };
   }
@@ -177,43 +190,45 @@
     + 'When a speech has a transcript, the transcript wins; a card in the doc that the transcript does not show may have been skipped, and it does not count unless the judge\'s own flow shows it. '
     + 'AI flow lines marked [doc] come from the speech doc; [doc?] (used only when a transcript exists) means it is in the doc but was not heard in the transcript, so do not score a [doc?] line unless the judge\'s own flow shows that argument.';
 
-  // Which speech a doc belongs to. If the judge has not picked one: Aff docs go to the 1AC, Neg docs to the 1NC.
-  function docSpeech(doc) {
+  // Which speech a doc belongs to. If the judge has not picked one: an Aff doc goes to the format's first Aff speech
+  // (the 1AC, the AC), a Neg doc to its first Neg speech (the 1NC, the NC). fmt: policy-hs when not given.
+  function docSpeech(doc, fmt) {
     if (doc && doc.speech !== undefined) return doc.speech;
-    return doc && doc.side === 'aff' ? '1AC' : doc && doc.side === 'neg' ? '1NC' : '';
+    const first = (side) => ((fmt || F.POLICY).speeches.find((s) => s.side === side && s.column != null) || {}).id || '';
+    return doc && (doc.side === 'aff' || doc.side === 'neg') ? first(doc.side) : '';
   }
   // The docs one speech needs (the live flow sends only these, to keep each 30-second pass cheap).
-  function docsForSpeech(docs, speechId) {
-    return (docs || []).filter((d) => docSpeech(d) === speechId);
+  function docsForSpeech(docs, speechId, fmt) {
+    return (docs || []).filter((d) => docSpeech(d, fmt) === speechId);
   }
 
   const DOC_FLOW_NOTE = 'Speech documents from the debaters are attached above. Each is listed with the speech it belongs to. '
     + 'If the current speech has no transcript, the speech doc IS the speech: flow all of it and mark those lines [doc]. Use the docs also to get card tags and authors right.';
 
-  function docTitle(doc) {
-    const sp = docSpeech(doc);
+  function docTitle(doc, fmt) {
+    const sp = docSpeech(doc, fmt);
     return (DOC_SIDES[doc.side] || 'OTHER') + ' doc' + (sp ? ' for ' + sp : '') + ': ' + doc.name;
   }
 
   // Turns stored docs into Claude content blocks. PDFs go as native document blocks;
   // Word and text files go as text. The last block gets a cache mark so repeat calls
   // during the round reuse the docs instead of paying for them again.
-  function buildDocBlocks(docs) {
+  function buildDocBlocks(docs, fmt) {
     const blocks = [];
     for (const d of docs || []) {
       if (!d || !d.data) continue;
       if (d.kind === 'pdf') {
-        blocks.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.data }, title: docTitle(d) });
+        blocks.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.data }, title: docTitle(d, fmt) });
       } else {
-        blocks.push({ type: 'text', text: '=== ' + docTitle(d) + ' ===\n' + d.data });
+        blocks.push({ type: 'text', text: '=== ' + docTitle(d, fmt) + ' ===\n' + d.data });
       }
     }
     if (blocks.length) blocks[blocks.length - 1] = Object.assign({}, blocks[blocks.length - 1], { cache_control: { type: 'ephemeral' } });
     return blocks;
   }
 
-  function buildUserContent(docs, promptText, note) {
-    const blocks = buildDocBlocks(docs);
+  function buildUserContent(docs, promptText, note, fmt) {
+    const blocks = buildDocBlocks(docs, fmt);
     if (!blocks.length) return promptText;
     return blocks.concat([{ type: 'text', text: (note || DOC_NOTE) + '\n\n' + promptText }]);
   }

@@ -13,7 +13,7 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 export const ALLOW = [
   '_headers', 'index.html', 'about.html',
   'app.js', 'logic.js', 'providers.js', 'keys.js', 'clipqueue.js', 'tap.js', 'tour.js', 'ui.js',
-  'js', 'logic', 'assets', 'vendor', 'learn',
+  'js', 'logic', 'formats', 'assets', 'vendor', 'learn',
 ];
 
 // Never ship these, even inside an allowed folder.

@@ -12,11 +12,11 @@ let flowBusy = false, lastFlowAt = 0, flowTimer = null, lastFlowErr = '';
 const flowPending = new Map(); // speechId -> force
 const FLOW_EVERY_MS = 30000;
 function hasFlowSource(speechId) {
-  return Boolean((R.transcripts[speechId] || '').trim()) || DOCS.some((d) => L.docSpeech(d) === speechId);
+  return Boolean((R.transcripts[speechId] || '').trim()) || DOCS.some((d) => L.docSpeech(d, FMT()) === speechId);
 }
 function scheduleFlow(speechId, force) {
   if (!can('aiFlow')) return false;
-  if (resetting || !S.liveFlow || L.speechColumn(speechId) == null || !aiReady()) return false;
+  if (resetting || !S.liveFlow || L.speechColumn(speechId, FMT()) == null || !aiReady()) return false;
   if (!hasFlowSource(speechId)) return false;
   flowPending.set(speechId, Boolean(flowPending.get(speechId) || force));
   pumpFlow();
@@ -37,7 +37,9 @@ let flowRunningId = null;
 async function runFlow(speechId, forced) {
   flowBusy = true; flowRunningId = speechId; lastFlowAt = Date.now(); renderRecBadge();
   try {
-    const data = await callAI({ feature: 'aiFlow', system: L.LIVE_FLOW_SYSTEM, prompt: L.buildLiveFlowPrompt(R, speechId, DOCS), note: L.DOC_FLOW_NOTE, schema: L.LIVE_FLOW_SCHEMA, effort: 'low', kind: 'flow', docs: L.docsForSpeech(DOCS, speechId) });
+    const data = await callAI({ feature: 'aiFlow', system: L.promptsFor(FMT()).liveFlowSystem, prompt: L.buildLiveFlowPrompt(R, speechId, DOCS), note: L.DOC_FLOW_NOTE, schema: L.LIVE_FLOW_SCHEMA, effort: 'low', kind: 'flow', docs: L.docsForSpeech(DOCS, speechId) });
+    // (No format needed above: addDocFiles sets each new doc's speech, so only docs from before formats, all policy,
+    // use the default speech rule.)
     if (resetting) return;
     // The docs for this speech may have been removed while Claude was working. Then drop the result.
     if (!hasFlowSource(speechId)) return;
@@ -121,15 +123,18 @@ function renderFlow() {
     // With one sheet left, Delete stays focusable but says why it does nothing (spec 2.4 #7).
     + (R.flows.length < 2 ? `<button data-act="del" aria-disabled="true" aria-describedby="one-sheet-why" data-tip="${ONE_SHEET}">Delete</button><span class="sr-only" id="one-sheet-why">${ONE_SHEET}</span>` : '<button data-act="del">Delete</button>')
     + sheetLearnLink(f && f.name);
-  $('#flow').innerHTML = L.FLOW_COLUMNS.map((c, i) => `<div class="col ${c.side}"><h3><span>${c.label}</span><span class="col-mark"></span></h3><div class="flow-cell"><div class="flow-hl" aria-hidden="true"></div><textarea data-col="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(f.name)}">${escapeHtml((f.cells || {})[i] || '')}</textarea></div></div>`).join('');
+  setFlowCols();
+  $('#flow').innerHTML = FMT().flowColumns.map((c, i) => `<div class="col ${c.side}"><h3><span>${c.label}</span><span class="col-mark"></span></h3><div class="flow-cell"><div class="flow-hl" aria-hidden="true"></div><textarea data-col="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(f.name)}">${escapeHtml((f.cells || {})[i] || '')}</textarea></div></div>`).join('');
   markFlowColumns();
   paintAllFlowMarks();
 }
 // The running speech's column gets a 2 px outline on all four sides and a filled "Now" pill; a different column
 // the judge is looking at gets an outline "Viewing" pill (V7, spec 1.2). No bar (docs/design/NO-STRIPES.md).
 // Only classes and labels change, so the caret stays put.
+// The grid has one column per flow column of the round's format (7 in policy, 5 in LD).
+function setFlowCols() { $('#flow').style.setProperty('--flow-cols', FMT().flowColumns.length); }
 function markFlowColumns() {
-  const m = L.flowMarks(R.run ? R.run.id : null, sp().id);
+  const m = L.flowMarks(R.run ? R.run.id : null, sp().id, FMT());
   document.querySelectorAll('#flow .col').forEach((col, i) => {
     col.classList.toggle('is-current', i === m.current);
     const mark = col.querySelector('.col-mark');
@@ -178,7 +183,7 @@ function mapDocsNow() {
   if (!can('aiFlow')) return;
   if (!aiReady()) return toast(noAiText());
   if (!S.liveFlow) { S.liveFlow = true; saveSettings(); $('#live-flow').checked = true; toast('Turned Live AI flow on.'); }
-  const speeches = [...new Set(DOCS.map((d) => L.docSpeech(d)).filter((sp) => sp && L.speechColumn(sp) != null))];
+  const speeches = [...new Set(DOCS.map((d) => L.docSpeech(d, FMT())).filter((sp) => sp && L.speechColumn(sp, FMT()) != null))];
   if (!speeches.length) return toast(DOCS.length ? 'Your docs are all set to "Context only". Pick a speech for each doc in Round.' : 'No docs yet. Add them in Round or in the Flow workspace.');
   lastFlowErr = '';
   // Skip a speech Claude is already working on, so one click never sends it twice.
@@ -199,13 +204,14 @@ function renderAIFlow() {
   const sh = sheets[aiIdx];
   // Every cell can be edited. An edited cell keeps the judge's text; if the AI writes something newer
   // underneath, a small bar offers "Use AI" or "Keep mine".
+  setFlowCols();
   $('#flow').innerHTML = sh
-    ? L.FLOW_COLUMNS.map((c, i) => {
+    ? FMT().flowColumns.map((c, i) => {
       const ed = sh.edits && sh.edits[i];
-      const behind = L.editIsBehind(sh, i);
+      const behind = L.editIsBehind(sh, i, FMT());
       return `<div class="col ${c.side}"><h3><span>${c.label}</span>${ed ? '<span class="chip con" data-tip="You edited this cell. AI updates will not overwrite it.">Edited</span>' : ''}<span class="col-mark"></span></h3>`
         + (behind ? `<div class="aibar">AI has a newer version. <button data-ai-use="${i}">Use AI</button><button data-ai-keep="${i}">Keep mine</button></div>` : ed ? `<div class="aibar quiet"><button data-ai-use="${i}">Undo my edit</button></div>` : '')
-        + `<div class="flow-cell"><div class="flow-hl" aria-hidden="true"></div><textarea data-aicol="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(sh.name)}">${escapeHtml(L.flowCellText(sh, i, level))}</textarea></div></div>`;
+        + `<div class="flow-cell"><div class="flow-hl" aria-hidden="true"></div><textarea data-aicol="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(sh.name)}">${escapeHtml(L.flowCellText(sh, i, level, FMT()))}</textarea></div></div>`;
     }).join('')
     : '<p class="muted flow-empty">No AI flow yet. Click "Map docs to flow now" to flow your docs, or tick "Transcribe" in the round bar and start a speech. Needs AI connected and Live AI flow on (in Settings).</p>';
   markFlowColumns();
@@ -299,7 +305,7 @@ $('#flow').addEventListener('input', (e) => {
   if (aicol != null) {
     const sh = (R.aiFlows || [])[aiIdx]; if (!sh) return;
     const wasEdited = Boolean(sh.edits && sh.edits[aicol]);
-    (sh.edits ??= {})[aicol] = { text: e.target.value, base: (sh.edits[aicol] && sh.edits[aicol].base) ?? L.aiFlowCell(sh, Number(aicol), 'standard') };
+    (sh.edits ??= {})[aicol] = { text: e.target.value, base: (sh.edits[aicol] && sh.edits[aicol].base) ?? L.aiFlowCell(sh, Number(aicol), 'standard', FMT()) };
     save();
     if (!wasEdited) { const h = e.target.closest('.col').querySelector('h3'); if (h && !h.querySelector('.chip')) h.querySelector('.col-mark').insertAdjacentHTML('beforebegin', '<span class="chip con" data-tip="You edited this cell. AI updates will not overwrite it.">Edited</span>'); }
     return;
@@ -311,7 +317,7 @@ $('#flow').addEventListener('click', (e) => {
   const use = e.target.dataset.aiUse, keep = e.target.dataset.aiKeep;
   const sh = (R.aiFlows || [])[aiIdx]; if (!sh || (use == null && keep == null)) return;
   if (use != null) delete sh.edits[use];
-  if (keep != null) sh.edits[keep].base = L.aiFlowCell(sh, Number(keep), 'standard');
+  if (keep != null) sh.edits[keep].base = L.aiFlowCell(sh, Number(keep), 'standard', FMT());
   save(); renderFlow();
 });
 // Do not redraw the AI flow under the judge's cursor; redraw when they leave the cell instead.
