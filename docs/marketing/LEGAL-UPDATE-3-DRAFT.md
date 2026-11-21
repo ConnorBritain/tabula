@@ -337,3 +337,11 @@ After these, remove `trial_days` and `trial_rounds` from the site config (`build
 | Q2 | Terms §7 and Refunds §2 keep their section numbers and the `#trial` anchor, so links still work. OK? | Keep |
 | Q3 | Parent permission for users 13 to 17? | **Answered (owner, 2026-11-21):** legal minimum only. Teens sign up on their own. Ask a parent only where a law requires it. |
 | Q4 | Under 13: the draft keeps the live rule (no Accounts under 13). An option for later: allow under 13 only through a school Program, with school consent under COPPA. That helps middle-school debate, but Hosted AI records children's voices, so the lawyer must check it first. | Keep the live rule |
+
+# Lawyer result
+
+| Date | Point | Result |
+|---|---|---|
+| 2026-11-21 | Whole draft | Approved (owner's report: "yes, the lawyer approved it too"). |
+| 2026-11-21 | L6, ages to buy | Confirmed (owner's report: "Lawyer agrees with your reading"): Alabama 19, Mississippi 21, Nebraska 19; 18 elsewhere. |
+| 2026-11-21 | Under 13 at sign-up | Confirmed (same report): delete the data and keep no email hash on the server; a browser-side marker stops retries in the same browser. Privacy §12 needs no change. |
