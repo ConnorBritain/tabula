@@ -272,8 +272,16 @@
     };
   }
 
+  // The name of a round's format for a coach: 'Lincoln-Douglas (LD)', or 'id vN' for a format this copy does not have
+  // (a ballot saved by a newer Tabula), so it is never passed off as the policy fallback.
+  function formatLabel(round) {
+    const r = round || {};
+    if (F.formatKnown(r)) return F.formatOf(r).name;
+    return String(r.format) + (r.formatVersion == null ? '' : ' v' + r.formatVersion);
+  }
   // The History export (Download CSV, Copy for Google Sheets) and the History table: { header, rows, formats,
-  // unknownFormats }, one row per saved ballot, in log order (unknownFormats: a row is in a format this copy lacks). The saved entries keep their old layout (above); this only shapes what a coach sees.
+  // unknownFormats }, one row per saved ballot, in log order (unknownFormats: a row is in a format this copy lacks).
+  // The saved entries keep their old layout (above); this only shapes what a coach sees.
   // The speaker columns are named by each ballot's own format ('1A pts' in policy, 'Aff pts' in LD), and a Format
   // column names the format. A mixed history stays one flat table, because one table is what a spreadsheet can sort
   // and filter: it has the columns of every format in it, side by side under each side's team, and a row fills only its
@@ -286,9 +294,8 @@
     const views = entries.map(savedBallotView);
     const fmtOf = views.map((v) => F.formatOf(v.round));
     // A ballot saved by a newer Tabula, in a format this copy does not have. formatOf falls back to policy, so the row
-    // reads its points from the saved policy columns, but its Format cell names what it really is ('id vN').
+    // reads its points from the saved policy columns, but its Format cell names what it really is (formatLabel).
     const unknown = views.map((v) => !F.formatKnown(v.round));
-    const unknownLabel = (round) => String(round.format) + (round.formatVersion == null ? '' : ' v' + round.formatVersion);
     const order = (f) => F.FORMAT_FILES.indexOf(f.id + '.v' + f.version);
     const formats = [...new Map(fmtOf.map((f) => [f.key, f])).values()].sort((a, b) => order(a) - order(b));
     // A speaker's columns: the name, the points, and the rank when the format has ranks. Same name, same column.
@@ -305,7 +312,7 @@
         cells[n] = F.speakerName(v.round, sp); cells[p] = b.pts[sp.id];
         if (r) cells[r] = b.ranks[sp.id];
       }
-      cells.Format = unknown[i] ? unknownLabel(v.round) : f.name;
+      cells.Format = formatLabel(v.round);
       return header.map((name) => cells[name] ?? '');
     });
     return { header, rows, formats, unknownFormats: unknown.some(Boolean) };
@@ -356,7 +363,9 @@
     const range = o.range === null ? null : ptsRange(o.range);
     const title = ['Ballot', r.roundName].filter(Boolean).join(' · ');
     const sections = [];
-    sections.push({ kind: 'facts', items: [['Tournament', r.tournament || ''], ['Round', r.roundName || ''], ['Judge', r.judge || ''], ['Resolution', r.topic || '']].filter(([, v]) => v) });
+    // A format this copy does not have prints as policy (the fallback), so the sheet says so instead of passing it off.
+    const unknownFmt = F.formatKnown(r) ? '' : formatLabel(r) + ': not in this copy of Tabula. Points show in policy speaker places, as saved.';
+    sections.push({ kind: 'facts', items: [['Tournament', r.tournament || ''], ['Round', r.roundName || ''], ['Judge', r.judge || ''], ['Resolution', r.topic || ''], ['Format', unknownFmt]].filter(([, v]) => v) });
     const team = b.winner === 'aff' ? (r.aff || {}).team : b.winner === 'neg' ? (r.neg || {}).team : '';
     sections.push({ kind: 'winner', title: 'Decision', text: b.winner === 'aff' || b.winner === 'neg' ? (b.winner === 'aff' ? 'Aff' : 'Neg') + (team ? ' (' + team + ')' : '') + ' wins' : 'No winner picked' });
     const pointsTitle = (range ? 'Points (' + range.min + '–' + range.max + ')' : 'Points') + (fmt.ballot.speakerRanks ? ' and ranks' : '');

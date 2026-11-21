@@ -72,6 +72,21 @@ test('History export: a ballot in an unknown format is labeled by its id and ver
   assert.equal(L.historyTable([noVersion]).rows[0][t.header.indexOf('Format')], 'pf', 'no version: the id alone');
 });
 
+// Why: a saved ballot in a format this copy does not have prints through the policy fallback. Without a note, the
+// paper ballot shows 1A/2A/1N/2N rows as if it were a policy round, and a coach or tab room trusts the wrong labels.
+test('Print: a saved ballot in an unknown format says so on the sheet; a known format adds no note', () => {
+  const e = L.savedBallotEntry(policyRound, 'later', range);
+  Object.assign(e[L.BALLOT_HEADER.length], { format: 'pf', formatVersion: 2 });
+  const facts = (round) => L.printModel(round, { range }).sections.find((s) => s.kind === 'facts').items;
+  const note = facts(L.savedBallotView(e).round).find(([k]) => k === 'Format');
+  assert.ok(note, 'the sheet has a Format line');
+  assert.equal(note[1], 'pf v2: not in this copy of Tabula. Points show in policy speaker places, as saved.');
+  Object.assign(e[L.BALLOT_HEADER.length], { formatVersion: undefined });
+  assert.match(facts(L.savedBallotView(e).round).find(([k]) => k === 'Format')[1], /^pf: not in this copy/, 'no version: the id alone');
+  assert.equal(facts(L.savedBallotView(L.savedBallotEntry(ldRound, 'a', range)).round).find(([k]) => k === 'Format'), undefined);
+  assert.equal(facts(policyRound).find(([k]) => k === 'Format'), undefined);
+});
+
 // ---------- study mode ----------
 
 // Why: study mode times the first view to the first Start for the five-judge test. In an LD round there is no 1AC, so
