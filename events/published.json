@@ -17,7 +17,9 @@
     "sto.v1.json",
     "osw.v1.json",
     "dec.v1.json",
-    "mx.v1.json"
+    "mx.v1.json",
+    "mspro.v1.json",
+    "mspoe.v1.json"
   ],
   "profiles": [
     "nsda-district.v1.json",

@@ -17,7 +17,7 @@ const CHECK_IDS = new Set(readCheckList().map((c) => c.id));
 const EVENT_KEYS = ['id', 'version', 'name', 'short', 'category', 'performers', 'timing', 'material', 'checks', 'prompts', 'tags', 'source'];
 const TIMING_KEYS = ['limit', 'inRoomPrep', 'sharedClock'];
 const PROFILE_KEYS = ['id', 'version', 'name', 'rating', 'ratingNoTies', 'rankRatingRule', 'overtime', 'biasNote', 'source'];
-const V1_EVENTS = ['oo', 'inf', 'usx', 'ix', 'di', 'hi', 'duo', 'poi', 'com', 'pro', 'poe', 'exp', 'imp', 'sto', 'osw', 'dec', 'mx'];
+const V1_EVENTS = ['oo', 'inf', 'usx', 'ix', 'di', 'hi', 'duo', 'poi', 'com', 'pro', 'poe', 'exp', 'imp', 'sto', 'osw', 'dec', 'mx', 'mspro', 'mspoe'];
 const nonEmpty = (s) => typeof s === 'string' && s.trim().length > 0;
 
 // Why: the app reads these fields with no guard; a missing or extra field means a room screen that breaks or a field that silently does nothing.
@@ -61,8 +61,8 @@ test('ids are unique: events, short codes, profiles, and tags inside each event'
   }
 });
 
-// Why: the plan promises these 17 events in v1; a lost file means a judge cannot open that event at all.
-test('the 17 v1 events are all present', () => {
+// Why: the plan promises these 19 events in v1 (17 at first; middle school Prose and Poetry added 2026-11-21); a lost file means a judge cannot open that event at all.
+test('the 19 v1 events are all present', () => {
   assert.deepEqual(DEFS.map(({ d }) => d.id).filter((id, i, a) => a.indexOf(id) === i).sort(), [...V1_EVENTS].sort());
 });
 
@@ -136,4 +136,13 @@ test('the bias note is our own short neutral line', () => {
 // Why: the prototype reads a generated copy of these files; if it drifts, the lay-judge test runs on rules that are not the shipped ones.
 test('the prototype data file is up to date with the data files', () => {
   assert.equal(readFileSync(at('prototype/data.js'), 'utf8'), dataSource(), 'run: node events/prototype/build-data.mjs');
+});
+
+// Why: middle school Prose and Poetry run 7:00, not the high school 5:00; the wrong limit marks every middle school speaker over time and blocks rank 1.
+test('middle school Prose and Poetry run 7:00, high school Prose and Poetry run 5:00', () => {
+  const lim = (id) => DEFS.find(({ d }) => d.id === id).d.timing.limit;
+  assert.equal(lim('mspro'), 420);
+  assert.equal(lim('mspoe'), 420);
+  assert.equal(lim('pro'), 300);
+  assert.equal(lim('poe'), 300);
 });

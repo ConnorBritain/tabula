@@ -962,6 +962,121 @@ window.TABULA_EVENTS_DATA = {
     }
    ],
    "source": "NSDA Middle School Unified Manual, 2026-27 season. Summarized in our own words; no rule text copied."
+  },
+  {
+   "id": "mspro",
+   "version": 1,
+   "name": "Prose (Middle School)",
+   "short": "MS PRO",
+   "category": "interp",
+   "performers": 1,
+   "timing": {
+    "limit": 420,
+    "inRoomPrep": false,
+    "sharedClock": false
+   },
+   "material": "manuscript",
+   "checks": [
+    "manuscript",
+    "titleAuthor",
+    "noAiText"
+   ],
+   "prompts": [
+    "Were the narrator and characters clear?",
+    "Did the cutting tell a full story?",
+    "Was the script used well?"
+   ],
+   "tags": [
+    {
+     "id": "narration",
+     "label": "Narration",
+     "strength": "Your narrator voice guided me through the story.",
+     "toWork": "Make the narrator voice clearer and different from the characters."
+    },
+    {
+     "id": "characters",
+     "label": "Characters",
+     "strength": "Each character was clear and different.",
+     "toWork": "Make each character more different in voice and body."
+    },
+    {
+     "id": "cut",
+     "label": "Cutting",
+     "strength": "Your cutting told a complete story.",
+     "toWork": "Make the cutting tell a clearer, complete story."
+    },
+    {
+     "id": "binder",
+     "label": "Script use",
+     "strength": "You used the script with skill and control.",
+     "toWork": "Handle the script more smoothly so it does not distract."
+    },
+    {
+     "id": "intro",
+     "label": "Intro",
+     "strength": "Your intro set up the piece well and named the title and author.",
+     "toWork": "Use the intro to set up the piece and name the title and author."
+    }
+   ],
+   "source": "NSDA Middle School Unified Manual, 2026-27 season (Prose and Poetry run 7:00 in middle school). Summarized in our own words; no rule text copied."
+  },
+  {
+   "id": "mspoe",
+   "version": 1,
+   "name": "Poetry (Middle School)",
+   "short": "MS POE",
+   "category": "interp",
+   "performers": 1,
+   "timing": {
+    "limit": 420,
+    "inRoomPrep": false,
+    "sharedClock": false
+   },
+   "material": "manuscript",
+   "checks": [
+    "manuscript",
+    "titleAuthor",
+    "noAiText"
+   ],
+   "prompts": [
+    "Did the images come alive?",
+    "Did the pacing give lines room?",
+    "Did the voice fit the mood?",
+    "Was the script used well?"
+   ],
+   "tags": [
+    {
+     "id": "imagery",
+     "label": "Imagery",
+     "strength": "The images in the poem came alive.",
+     "toWork": "Slow down on the key images so we can picture them."
+    },
+    {
+     "id": "pacing",
+     "label": "Pacing",
+     "strength": "Your pacing gave key moments room to land.",
+     "toWork": "Slow down at key moments so they have room to land."
+    },
+    {
+     "id": "voice",
+     "label": "Voice",
+     "strength": "Your voice fit the mood of the piece.",
+     "toWork": "Match your voice more closely to the mood of each moment."
+    },
+    {
+     "id": "binder",
+     "label": "Script use",
+     "strength": "You used the script with skill and control.",
+     "toWork": "Handle the script more smoothly so it does not distract."
+    },
+    {
+     "id": "intro",
+     "label": "Intro",
+     "strength": "Your intro set up the piece well and named the title and author.",
+     "toWork": "Use the intro to set up the piece and name the title and author."
+    }
+   ],
+   "source": "NSDA Middle School Unified Manual, 2026-27 season (Prose and Poetry run 7:00 in middle school). Summarized in our own words; no rule text copied."
   }
  ],
  "profiles": [
