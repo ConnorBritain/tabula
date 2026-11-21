@@ -16,20 +16,21 @@
   // The round format the server knows (tabula-cloud src/ai/tasks.ts KNOWN_FORMATS). A new version needs the server first.
   const FORMAT = 'policy-hs', FORMAT_VERSION = 1;
 
-  // Each app job and the server task it calls, with the feature the server checks for it.
+  // Each app job and the server task it calls.
   const HOSTED_TASKS = {
-    flow: { task: 'flow.update', feature: 'aiFlow' },
-    eval: { task: 'eval.live', feature: 'liveEval' },
-    lens: { task: 'analysis.lens', feature: 'analysis' },
-    impacts: { task: 'analysis.impact', feature: 'analysis' },
-    map: { task: 'analysis.map', feature: 'analysis' },
-    ballot: { task: 'ballot.fill', feature: 'ballotDraft' },
+    flow: { task: 'flow.update' }, eval: { task: 'eval.live' }, lens: { task: 'analysis.lens' },
+    impacts: { task: 'analysis.impact' }, map: { task: 'analysis.map' }, ballot: { task: 'ballot.fill' },
   };
 
-  // Hosted AI runs feature f in this round: the round's record allows f, and the account has hosted access
+  // Hosted AI can run feature f in this round: the round's record allows f, and the account has hosted access
   // (its own credits) or the school pays for f. No record ("Just me" signed out, or old caches): never hosted.
   function hostedOn(gate, f) {
     return Boolean(gate && gate.mode === 'record' && canUse(gate, f) && (gate.hosted === true || payerOf(gate, f) === 'program'));
+  }
+  // Hosted AI does run f: hostedOn, and the judge has not chosen an own key for a feature they pay for themselves.
+  // keyReady: an own key or subscription helper is connected. A school that pays always wins (it pays, not the judge).
+  function useHosted(gate, f, keyReady) {
+    return hostedOn(gate, f) && !(keyReady && payerOf(gate, f) !== 'program');
   }
   // Some app feature runs hosted: the device is ready for AI without a key.
   function hostedAny(gate) { return APP_FEATURES.some((f) => hostedOn(gate, f)); }
@@ -99,16 +100,18 @@
   }
   // Adds one event to the answer so far. The answer is finished when done or error is set.
   function sseStep(acc, ev) {
-    const a = Object.assign({ text: '', done: false, charged: 0, error: '' }, acc);
+    // The `charged` field of the done frame is not used: the balance shows at the next capability check (§3a).
+    const a = Object.assign({ text: '', done: false, error: '' }, acc);
     if (a.done || a.error) return a;
     if (typeof ev.t === 'string') a.text += ev.t;
     if (ev.error) a.error = String(ev.error);
-    else if (ev.done === true) { a.done = true; a.charged = Number(ev.charged) || 0; }
+    else if (ev.done === true) a.done = true;
     return a;
   }
 
   // The words for each hosted problem. Plain words; no error codes.
   const HOSTED_TEXT = {
+    quiet: '', // policyOff or a duplicate call: nothing is shown
     signedOut: 'You are signed out of Tabula, so your rounds cannot be used. Sign in again in Settings.',
     noCredits: 'You are out of rounds. Buy more to use AI again. The clock, flow and ballot still work.',
     planRequired: 'This account has no rounds yet. Buy rounds to use AI. The clock, flow and ballot still work.',
@@ -135,7 +138,7 @@
     const buy = { label: 'Buy rounds', url: BUY_URL };
     const s = Number(status) || 0;
     const c = String(code || '');
-    if (c === 'policyOff' || c === 'duplicate_call') return out('quiet', { quiet: true, text: '' }); // policy off: stop quietly; duplicate: the first answer stands
+    if (c === 'policyOff' || c === 'duplicate_call') return out('quiet', { quiet: true }); // policy off: stop quietly; duplicate: the first answer stands
     if (s === 401) return out('signedOut', { signOut: true, fallback: true });
     if (s === 402) {
       if (c === 'round_cap') return out('roundCap');
@@ -152,7 +155,7 @@
     return out('noAnswer', { retryable: true });
   }
 
-  const api = { BUY_URL, HOSTED_TASKS, HOSTED_TEXT, hostedOn, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError };
+  const api = { BUY_URL, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).hosted = api;
 })(typeof window !== 'undefined' ? window : globalThis);

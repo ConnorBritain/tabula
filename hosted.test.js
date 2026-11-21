@@ -21,6 +21,7 @@ function record(features, hosted) {
 }
 const gate = (rec, programId = PROG) => L.gateFor({ record: rec, now: Date.now(), programId, profile: null });
 const ALL_SELF = { aiFlow: { payer: 'self' }, liveEval: { payer: 'self' }, analysis: { payer: 'self' }, ballotDraft: { payer: 'self' } };
+const ALL_SCHOOL = { aiFlow: { payer: 'program' }, liveEval: { payer: 'program' }, analysis: { payer: 'program' }, ballotDraft: { payer: 'program' } };
 
 // A round with real student, team and tournament names. None of them may reach the server.
 function round() {
@@ -103,7 +104,7 @@ test('readSse and sseStep: events split across chunks, the done frame, and the e
     buf = got.rest;
     for (const ev of got.events) acc = L.sseStep(acc, ev);
   }
-  assert.deepEqual(acc, { text: 'Hello', done: true, charged: 3000, error: '' });
+  assert.deepEqual(acc, { text: 'Hello', done: true, error: '' });
   let bad = L.sseStep({}, { t: 'part' });
   bad = L.sseStep(bad, { error: 'provider_error' });
   assert.equal(bad.done, false);
@@ -154,7 +155,7 @@ function pageFn(name) {
   }
   return (AI_SRC.slice(at - 6, at) === 'async ' ? 'async ' : '') + AI_SRC.slice(at, i + 1);
 }
-const PAGE = ['STOPPED', 'anonDocs', 'providerName', 'hostedOn', 'newCallId'].map(constLine).join('\n') + '\n'
+const PAGE = ['STOPPED', 'anonDocs', 'providerName', 'useHosted', 'newCallId'].map(constLine).join('\n') + '\n'
   + ['withStop', 'aiError', 'asAIError', 'hostedFail', 'callHosted', 'hostedResult', 'callAI'].map(pageFn).join('\n');
 
 const sse = (frames) => {
@@ -207,7 +208,7 @@ test('callAI with hosted access calls the server, sends no names, and returns th
 // Why: a judge out of rounds must see plain words and a way to buy more, and must not be switched to a paid key in
 // silence. Without the link, a judge who bought nothing yet has no path to the buy page from the round.
 test('callAI out of credits: a plain error and a Buy rounds link to the account page', async () => {
-  const w = world({ g: gate(record(ALL_SELF, true)), ownKey: true, answers: [refusal(402, 'no_credits')] });
+  const w = world({ g: gate(record(ALL_SCHOOL, true)), ownKey: true, answers: [refusal(402, 'no_credits')] });
   await assert.rejects(w.callAI(EVAL_CALL), (err) => err.message === L.HOSTED_TEXT.noCredits && err.hosted === 'noCredits');
   assert.equal(w.calls.length, 1, 'no fallback call to the own key');
   assert.equal(w.toasts.length, 1);
@@ -219,7 +220,7 @@ test('callAI out of credits: a plain error and a Buy rounds link to the account 
 // Why: when the session ends, the app must act signed out (AI-POLICY §6d): forget the record, and keep working with the
 // judge's own key if there is one, instead of failing every AI call for the rest of the round.
 test('callAI signed out: forgets the record and uses the own key when there is one', async () => {
-  const w = world({ g: gate(record(ALL_SELF, true)), ownKey: true, answers: [refusal(401, 'signed_out')] });
+  const w = world({ g: gate(record(ALL_SCHOOL, false)), ownKey: true, answers: [refusal(401, 'signed_out')] });
   const out = await w.callAI({ ...EVAL_CALL, schema: null });
   assert.equal(out, 'own key answer');
   assert.equal(w.cleared(), 1);
@@ -233,7 +234,7 @@ test('callAI signed out: forgets the record and uses the own key when there is o
 test('callAI: policyOff stops quietly; billing_hold, slow_down and stream errors give plain words', async () => {
   const g = gate(record(ALL_SELF, true));
   await assert.rejects(world({ g, answers: [refusal(403, 'policyOff')] }).callAI(EVAL_CALL), (err) => err.kind === 'stopped');
-  const hold = world({ g, ownKey: true, answers: [refusal(403, 'billing_hold')] });
+  const hold = world({ g: gate(record(ALL_SCHOOL, false)), ownKey: true, answers: [refusal(403, 'billing_hold')] });
   assert.equal(await hold.callAI({ ...EVAL_CALL, schema: null }), 'own key answer');
   await assert.rejects(world({ g, answers: [refusal(403, 'billing_hold')] }).callAI(EVAL_CALL), (err) => err.message === L.HOSTED_TEXT.billingHold);
   await assert.rejects(world({ g, answers: [refusal(429, 'slow_down')] }).callAI(EVAL_CALL), (err) => err.message === L.HOSTED_TEXT.slowDown && err.retryable);
@@ -251,6 +252,18 @@ test('callAI without hosted access uses the own key and never calls the server',
     assert.equal(await w.callAI({ ...EVAL_CALL, schema: null }), 'own key answer');
     assert.deepEqual(w.calls.map((c) => c.url), ['/api/ai']);
   }
+});
+
+// Why: "own key stays as it is when chosen" (task brief). A judge who connected their own key and pays for AI
+// themselves must not have credits spent behind their back; a school that pays still runs hosted, since it pays.
+test('callAI: an own key the judge connected wins over their own credits, not over a school that pays', async () => {
+  const mine = world({ g: gate(record(ALL_SELF, true)), ownKey: true, answers: [] });
+  assert.equal(await mine.callAI({ ...EVAL_CALL, schema: null }), 'own key answer');
+  assert.deepEqual(mine.calls.map((c) => c.url), ['/api/ai'], 'no credits spent');
+  assert.equal(L.useHosted(gate(record(ALL_SELF, true)), 'liveEval', false), true, 'no key: own credits are used');
+  const school = world({ g: gate(record(ALL_SCHOOL, false)), ownKey: true, answers: [sse([{ t: 'school answer' }, { done: true }])] });
+  assert.equal(await school.callAI({ ...EVAL_CALL, schema: null }), 'school answer');
+  assert.deepEqual(school.calls.map((c) => c.url), ['/api/v1/ai/eval.live']);
 });
 
 // Why: every AI feature must say which hosted job it is. A caller with no hosted job would ignore the judge's credits
