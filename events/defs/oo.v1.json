@@ -1,0 +1,61 @@
+{
+  "id": "oo",
+  "version": 1,
+  "name": "Original Oratory",
+  "short": "OO",
+  "category": "publicAddress",
+  "performers": 1,
+  "timing": {
+    "limit": 600,
+    "inRoomPrep": false,
+    "sharedClock": false
+  },
+  "material": "memorized",
+  "checks": [
+    "memorized",
+    "noProps",
+    "noVisualAids",
+    "quoteLimit",
+    "noAiText"
+  ],
+  "prompts": [
+    "Was the main point clear?",
+    "Was the speech easy to follow?",
+    "Did examples back up the points?",
+    "Did it make you care?",
+    "How was the delivery?"
+  ],
+  "tags": [
+    {
+      "id": "thesis",
+      "label": "Thesis",
+      "strength": "Your main point was clear from the start.",
+      "toWork": "Make your main point clear in one sentence early on."
+    },
+    {
+      "id": "structure",
+      "label": "Structure",
+      "strength": "Your speech was easy to follow from point to point.",
+      "toWork": "Make each part of the speech easier to follow, with clear steps."
+    },
+    {
+      "id": "evidence",
+      "label": "Evidence",
+      "strength": "Your examples and facts backed up your points well.",
+      "toWork": "Add stronger examples or facts to back up your points."
+    },
+    {
+      "id": "appeal",
+      "label": "Appeal",
+      "strength": "You made me care about this topic.",
+      "toWork": "Help the audience see why this topic matters to them."
+    },
+    {
+      "id": "delivery",
+      "label": "Delivery",
+      "strength": "Your voice and pace were easy to listen to.",
+      "toWork": "Vary your voice and pace so key lines stand out."
+    }
+  ],
+  "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season. Summarized in our own words; no rule text copied."
+}

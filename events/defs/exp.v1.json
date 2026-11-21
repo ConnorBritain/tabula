@@ -1,0 +1,52 @@
+{
+  "id": "exp",
+  "version": 1,
+  "name": "Expository",
+  "short": "EXP",
+  "category": "publicAddress",
+  "performers": 1,
+  "timing": {
+    "limit": 300,
+    "inRoomPrep": false,
+    "sharedClock": false
+  },
+  "material": "memorized",
+  "checks": [
+    "memorized",
+    "noProps",
+    "noAiText"
+  ],
+  "prompts": [
+    "Was the topic clear and interesting?",
+    "Was it easy to understand?",
+    "Was it well organized?",
+    "How was the delivery?"
+  ],
+  "tags": [
+    {
+      "id": "topic",
+      "label": "Topic",
+      "strength": "You picked a topic that kept my interest.",
+      "toWork": "Narrow the topic so you can go deeper in the time."
+    },
+    {
+      "id": "clarity",
+      "label": "Clarity",
+      "strength": "You explained the topic in a way that was easy to understand.",
+      "toWork": "Explain the hard parts of the topic in simpler steps."
+    },
+    {
+      "id": "organization",
+      "label": "Organization",
+      "strength": "Your points came in a clear order.",
+      "toWork": "Put your points in a clearer order, with a short preview."
+    },
+    {
+      "id": "delivery",
+      "label": "Delivery",
+      "strength": "Your voice and pace were easy to listen to.",
+      "toWork": "Vary your voice and pace so key lines stand out."
+    }
+  ],
+  "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season. Summarized in our own words; no rule text copied."
+}

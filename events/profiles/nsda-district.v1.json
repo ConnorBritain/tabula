@@ -1,0 +1,14 @@
+{
+  "id": "nsda-district",
+  "version": 1,
+  "name": "NSDA district rules",
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season. Summarized in our own words; no rule text copied."
+}

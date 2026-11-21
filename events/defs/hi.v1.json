@@ -1,0 +1,59 @@
+{
+  "id": "hi",
+  "version": 1,
+  "name": "Humorous Interpretation",
+  "short": "HI",
+  "category": "interp",
+  "performers": 1,
+  "timing": {
+    "limit": 600,
+    "inRoomPrep": false,
+    "sharedClock": false
+  },
+  "material": "memorized",
+  "checks": [
+    "memorized",
+    "titleAuthor",
+    "noProps",
+    "noAiText"
+  ],
+  "prompts": [
+    "Were the characters clear?",
+    "Did the jokes land?",
+    "Were the switches clean?",
+    "Did the cutting tell a full story?"
+  ],
+  "tags": [
+    {
+      "id": "characters",
+      "label": "Characters",
+      "strength": "Each character was clear and different.",
+      "toWork": "Make each character more different in voice and body."
+    },
+    {
+      "id": "timing",
+      "label": "Comic timing",
+      "strength": "Your comic timing landed the jokes.",
+      "toWork": "Give the jokes a beat to land before moving on."
+    },
+    {
+      "id": "pops",
+      "label": "Pops",
+      "strength": "Your character switches were quick and clean.",
+      "toWork": "Make the switches between characters cleaner and quicker."
+    },
+    {
+      "id": "cut",
+      "label": "Cutting",
+      "strength": "Your cutting told a complete story.",
+      "toWork": "Make the cutting tell a clearer, complete story."
+    },
+    {
+      "id": "intro",
+      "label": "Intro",
+      "strength": "Your intro set up the piece well and named the title and author.",
+      "toWork": "Use the intro to set up the piece and name the title and author."
+    }
+  ],
+  "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season. Summarized in our own words; no rule text copied."
+}

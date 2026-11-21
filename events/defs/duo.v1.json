@@ -1,0 +1,60 @@
+{
+  "id": "duo",
+  "version": 1,
+  "name": "Duo Interpretation",
+  "short": "DUO",
+  "category": "interp",
+  "performers": 2,
+  "timing": {
+    "limit": 600,
+    "inRoomPrep": false,
+    "sharedClock": false
+  },
+  "material": "memorized",
+  "checks": [
+    "memorized",
+    "titleAuthor",
+    "noProps",
+    "offStageFocus",
+    "noAiText"
+  ],
+  "prompts": [
+    "Did the two work as a team?",
+    "Was the focus off-stage?",
+    "Were the characters clear?",
+    "Were the parts balanced?"
+  ],
+  "tags": [
+    {
+      "id": "partnership",
+      "label": "Partnership",
+      "strength": "You two worked as a true team.",
+      "toWork": "React to each other more, so it feels like one performance."
+    },
+    {
+      "id": "focus",
+      "label": "Focus",
+      "strength": "Your off-stage focus was clean and steady.",
+      "toWork": "Keep your focus steady and off-stage during the piece."
+    },
+    {
+      "id": "characters",
+      "label": "Characters",
+      "strength": "Each character was clear and different.",
+      "toWork": "Make each character more different in voice and body."
+    },
+    {
+      "id": "cut",
+      "label": "Cutting",
+      "strength": "Your cutting told a complete story.",
+      "toWork": "Make the cutting tell a clearer, complete story."
+    },
+    {
+      "id": "intro",
+      "label": "Intro",
+      "strength": "Your intro set up the piece well and named the title and author.",
+      "toWork": "Use the intro to set up the piece and name the title and author."
+    }
+  ],
+  "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season. Summarized in our own words; no rule text copied."
+}

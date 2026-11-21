@@ -1,0 +1,58 @@
+{
+  "id": "com",
+  "version": 1,
+  "name": "Extemporaneous Commentary",
+  "short": "COM",
+  "category": "limitedPrep",
+  "performers": 1,
+  "timing": {
+    "limit": 300,
+    "inRoomPrep": false,
+    "sharedClock": false
+  },
+  "material": "noNotes",
+  "checks": [
+    "noNotes",
+    "answeredQuestion",
+    "seated"
+  ],
+  "prompts": [
+    "Did the speaker answer the exact question?",
+    "Was the analysis deep?",
+    "Were sources named?",
+    "Was the seated delivery engaging?"
+  ],
+  "tags": [
+    {
+      "id": "answered",
+      "label": "Answered the question",
+      "strength": "You answered the exact question you drew.",
+      "toWork": "Answer the exact question you drew, and say the answer early."
+    },
+    {
+      "id": "analysis",
+      "label": "Analysis",
+      "strength": "Your analysis went past the headlines.",
+      "toWork": "Explain why each point is true, not only what happened."
+    },
+    {
+      "id": "sources",
+      "label": "Sources",
+      "strength": "You named your sources clearly.",
+      "toWork": "Name your sources out loud so we know where facts come from."
+    },
+    {
+      "id": "organization",
+      "label": "Organization",
+      "strength": "Your points came in a clear order.",
+      "toWork": "Put your points in a clearer order, with a short preview."
+    },
+    {
+      "id": "seatedDelivery",
+      "label": "Seated delivery",
+      "strength": "You stayed engaging while seated.",
+      "toWork": "Use your face and voice more, since you are seated."
+    }
+  ],
+  "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season. Summarized in our own words; no rule text copied."
+}

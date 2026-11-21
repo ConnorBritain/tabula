@@ -1,0 +1,59 @@
+{
+  "id": "di",
+  "version": 1,
+  "name": "Dramatic Interpretation",
+  "short": "DI",
+  "category": "interp",
+  "performers": 1,
+  "timing": {
+    "limit": 600,
+    "inRoomPrep": false,
+    "sharedClock": false
+  },
+  "material": "memorized",
+  "checks": [
+    "memorized",
+    "titleAuthor",
+    "noProps",
+    "noAiText"
+  ],
+  "prompts": [
+    "Were the characters clear?",
+    "Did the emotions feel real?",
+    "Did the cutting tell a full story?",
+    "Did the intro set it up?"
+  ],
+  "tags": [
+    {
+      "id": "characters",
+      "label": "Characters",
+      "strength": "Each character was clear and different.",
+      "toWork": "Make each character more different in voice and body."
+    },
+    {
+      "id": "emotion",
+      "label": "Emotional truth",
+      "strength": "The emotions felt real and earned.",
+      "toWork": "Let the big emotional moments build so they feel earned."
+    },
+    {
+      "id": "cut",
+      "label": "Cutting",
+      "strength": "Your cutting told a complete story.",
+      "toWork": "Make the cutting tell a clearer, complete story."
+    },
+    {
+      "id": "blocking",
+      "label": "Blocking",
+      "strength": "Your movement helped tell the story.",
+      "toWork": "Make your movement clearer and more purposeful."
+    },
+    {
+      "id": "intro",
+      "label": "Intro",
+      "strength": "Your intro set up the piece well and named the title and author.",
+      "toWork": "Use the intro to set up the piece and name the title and author."
+    }
+  ],
+  "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season. Summarized in our own words; no rule text copied."
+}

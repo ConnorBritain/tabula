@@ -1,0 +1,27 @@
+{
+  "note": "Every event and profile file ever published. Add a line when you publish a file. Never remove one: old rooms open with the rules they were judged under.",
+  "defs": [
+    "oo.v1.json",
+    "inf.v1.json",
+    "usx.v1.json",
+    "ix.v1.json",
+    "di.v1.json",
+    "hi.v1.json",
+    "duo.v1.json",
+    "poi.v1.json",
+    "com.v1.json",
+    "pro.v1.json",
+    "poe.v1.json",
+    "exp.v1.json",
+    "imp.v1.json",
+    "sto.v1.json",
+    "osw.v1.json",
+    "dec.v1.json",
+    "mx.v1.json"
+  ],
+  "profiles": [
+    "nsda-district.v1.json",
+    "nsda-invitational.v1.json",
+    "custom.v1.json"
+  ]
+}
