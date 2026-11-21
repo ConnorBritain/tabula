@@ -288,7 +288,7 @@ addEventListener('storage', (e) => {
 });
 
 // ---------- settings (kept across rounds) ----------
-const SETTINGS = 'policyJudge.settings.v1', OAKEY = 'policyJudge.openaiKey';
+const SETTINGS = L.STORE_KEYS.settings, OAKEY = 'policyJudge.openaiKey';
 const S = Object.assign({ engine: 'openai', chunkSec: 8 }, store.get(SETTINGS, {}));
 delete S.model; // an old, unused transcription default
 const saveSettings = () => (restoring ? false : store.set(SETTINGS, S));

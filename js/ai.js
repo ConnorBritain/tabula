@@ -252,6 +252,7 @@ function hostedResult(text, schema) {
 async function callAI({ feature, system, prompt, note, schema, effort = 'medium', reading, kind = 'routine', docs = DOCS, signal, hosted }) {
   if (!can(feature)) throw STOPPED();
   if (signal && signal.aborted) throw STOPPED();
+  if (demoOn) return demoAnswer({ hosted, signal }); // the staged demo: a saved answer, never a provider or the server (js/demo.js)
   const eng = S.aiEngine;
   if (hosted && useHosted(feature)) {
     if (navigator.onLine === false) throw aiError({ online: false }, '');

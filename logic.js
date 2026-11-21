@@ -3,7 +3,7 @@
 // the local helper and the tests use. In the page, index.html loads the parts in this order: logic/caps.js (in <head>), the format
 // files (formats/*.js), logic/format.js, logic/round.js,
 // logic/audio.js, logic/flow.js, logic/files.js, logic/pairing.js, logic/rules.js, logic/decide.js, logic/prompts.js, logic/shell.js, logic/account.js, logic/flags.js,
-// logic/limits.js, logic/hosted.js, then this file.
+// logic/limits.js, logic/hosted.js, logic/demo.js, then this file.
 // In Node, require('./logic.js') loads the parts itself. A part only uses parts that load before it.
 (function (root) {
   'use strict';
@@ -46,7 +46,8 @@
   const { PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
     activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody } = part('account');
   const { limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal } = part('limits');
-  const { BUY_URL, accountUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
+  const { BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
+  const { DEMO_CTA, demoParam, demoSample, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript } = part('demo');
 
   const api = {
     SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS, PARADIGMS,
@@ -96,7 +97,9 @@
     FLAGS, FLAG_GROUP, flagOn,
     // Hosted AI calls (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3) and their round limits (Terms §6.4)
     limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
-    BUY_URL, accountUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError,
+    BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError,
+    // The staged demo of the AI features (?demo=policy or ?demo=ld; js/demo.js, demo/*.js)
+    DEMO_CTA, demoParam, demoSample, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PolicyLogic = api;
