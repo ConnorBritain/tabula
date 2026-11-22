@@ -172,12 +172,19 @@ export function docsAsText(docs, title) {
   return parts.join('\n\n');
 }
 
-// Builds a request for OpenAI, Google or xAI. Anthropic uses its own SDK in the page.
-// schema = JSON Schema for a JSON reply, or null for plain text.
+// Builds a request for OpenAI, Google, xAI or OpenRouter, and a plain-text request for Anthropic (an app with no SDK
+// in the page; debate uses the Anthropic SDK instead). schema = JSON Schema for a JSON reply, or null for plain text.
 export function buildAIRequest(provider, o) {
   const { key, model, system, prompt, docs, schema, title, note } = o;
   const maxTokens = o.maxTokens || DEFAULT_OUTPUT_CAP;
   const head = (note && (docs || []).length ? note + '\n\n' : '');
+  if (provider === 'anthropic') {
+    // Text only (PDFs are listed, not read). The schema goes in the words, as for Google; extractJson reads the reply.
+    const docText = docsAsText(docs, title);
+    const text = (docText ? docText + '\n\n' : '') + head + prompt + (schema ? '\n\nReply with only a JSON object that matches this JSON Schema:\n' + JSON.stringify(schema) : '');
+    const body = { model, max_tokens: maxTokens, system, messages: [{ role: 'user', content: text }] };
+    return { url: 'https://api.anthropic.com/v1/messages', init: { method: 'POST', headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true', 'Content-Type': 'application/json' }, body: JSON.stringify(body) } };
+  }
   if (provider === 'openai') {
     const content = [];
     for (const d of docs || []) {
@@ -233,6 +240,11 @@ export function parseAIResponse(provider, json) {
     if (ch.finish_reason === 'length') throw new Error('the reply was cut off');
     if (ch.message && ch.message.refusal) throw new Error('the AI declined this request');
     return (ch.message && ch.message.content) || '';
+  }
+  if (provider === 'anthropic') {
+    if (j.stop_reason === 'max_tokens') throw new Error('the reply was cut off');
+    if (j.stop_reason === 'refusal') throw new Error('the AI declined this request');
+    return (j.content || []).filter((b) => b && b.type === 'text').map((b) => b.text || '').join('');
   }
   if (provider === 'google') {
     const c = (j.candidates || [])[0];

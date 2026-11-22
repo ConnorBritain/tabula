@@ -3,17 +3,20 @@
 // any text leaves the device, the request and reply, and the review the judge must accept. No DOM, no fetch: the
 // Review screen calls these and does the network call itself.
 //
-// Flow: cleanupPath(...) says if the button shows -> cleanupMessages(room, event, ids) scrubs and builds the prompt ->
-// the app sends it (cleanupRequest for OpenAI, Google, xAI, OpenRouter; the app's own SDK call for Anthropic) ->
+// Flow: cleanupPath(...) says if the button shows -> cleanupMessages(room, event, ids, mode) scrubs and builds the
+// prompt -> the app sends it (cleanupRequest, for every provider) ->
 // readCleanupReply / draftsFromText put codes and names back -> cleanupReview(entries, drafts) makes one card per
-// performer -> the judge flips a card to 'insert' (setChoice) -> applyCleanup writes only those cards.
+// performer -> the judge flips a card to 'insert' (setChoice) -> applyCleanup writes only those cards (acceptCleanup
+// does it for one card of a saved room).
 //
 // The policy gate is a head file (core/policy.js), so it is read from globalThis.TabulaCore.policy at call time.
 
 import { reviewCard, staleCards, applyReview } from '../../core/review.js';
 import { buildAIRequest, parseAIResponse, extractJson } from '../../core/ai.js';
 import { CLEANUP_PROMPT, CLEANUP_SCHEMA } from '../prompts/cleanup.v1.js';
+import { SPELLING_PROMPT } from '../prompts/spelling.v1.js';
 import { ballotComment } from './comments.js';
+import { setComment } from './ballot.js';
 
 // The AI policy key for this button (ARCHITECTURE.md §7: `ballotDraft`, reused; AI-POLICY.md §2a), and the hosted
 // task name the Worker meters (PLAN.md P2; used by E14). A task name is not a feature key: the gate only knows keys.
@@ -144,9 +147,14 @@ export function leaks(text, swaps) {
 
 // ---------- request and reply ----------
 
-// The scrubbed prompt for some entries of a room. Returns { system, prompt, schema, swaps, sent } where sent lists
+// The two modes (DESIGN.md §4.9): 'full' (Full clean-up, the default) and 'spelling' (Spelling only).
+export const MODES = Object.freeze({ full: CLEANUP_PROMPT, spelling: SPELLING_PROMPT });
+
+// The scrubbed prompt for some entries of a room. Returns { system, prompt, schema, swaps, sent, mode } where sent lists
 // { id, speaker } in order. No code, name, title or author is in system or prompt. Throws if one is (a bug guard).
-export function cleanupMessages(room, event, ids) {
+export function cleanupMessages(room, event, ids, mode = 'full') {
+  const P = MODES[mode];
+  if (!P) throw new Error('unknown clean-up mode ' + mode);
   const swaps = scrubMap(room);
   const list = cleanableEntries(room, ids);
   const sent = list.map((e) => ({ id: e.id, speaker: speakerTag(room, e.id) }));
@@ -157,13 +165,12 @@ export function cleanupMessages(room, event, ids) {
   const eventName = scrub((event && event.name) || 'Speech', swaps);
   // The guard looks at the judge's text and the event name only: the fixed prompt words are ours, not personal.
   if (leaks(eventName + '\n' + blocks.join('\n'), swaps).length) throw new Error('a code or name was left in the clean-up text');
-  const prompt = CLEANUP_PROMPT.intro.replace('{event}', () => eventName) + '\n\n' + blocks.join('\n\n');
-  const system = CLEANUP_PROMPT.system;
-  return { system, prompt, schema: CLEANUP_SCHEMA, swaps, sent };
+  const prompt = P.intro.replace('{event}', () => eventName) + '\n\n' + blocks.join('\n\n');
+  return { system: P.system, prompt, schema: CLEANUP_SCHEMA, swaps, sent, mode };
 }
 
-// The fetch request for the judge's own key (OpenAI, Google, xAI, OpenRouter). Anthropic goes through the app's SDK
-// call with msg.system, msg.prompt and msg.schema. o: { key, model, maxTokens }.
+// The fetch request for the judge's own key (any provider in core/ai.js; Anthropic too, by a plain fetch, because the
+// events page loads no SDK). o: { key, model, maxTokens }.
 export function cleanupRequest(provider, msg, o) {
   return buildAIRequest(provider, { key: o.key, model: o.model, maxTokens: o.maxTokens, system: msg.system, prompt: msg.prompt, schema: msg.schema, docs: [] });
 }
@@ -231,7 +238,20 @@ export function applyCleanup(entries, review) {
   return { entries: next, changed };
 }
 
+// "Use this" on one card of a saved room: the card's clean text becomes the entry's comment (applyCleanup, so a comment
+// that changed since the card was made is never overwritten). It goes in through ballot.js setComment, so the copy mark
+// goes and a "done" room must be copied again, and the comment is marked 'judgeEditedAi'. Returns { room, changed }:
+// changed is false (and room is the same object) when nothing was written.
+export function acceptCleanup(room, review, id, now) {
+  const { entries, changed } = applyCleanup(room.entries, setChoice(review, id, 'insert'));
+  if (!changed.includes(id)) return { room, changed: false };
+  const text = entries.find((e) => e.id === id).comment;
+  const r = setComment(room, id, text, now);
+  r.entries = r.entries.map((e) => (e.id === id ? Object.assign({}, e, { commentSource: 'judgeEditedAi' }) : e));
+  return { room: r, changed: true };
+}
+
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).cleanup = Object.freeze({ FEATURE, TASK, levelOf, hostedAllowed,
   cleanupPath, showCleanupButton, sourceText, cleanableEntries, scrubMap, speakerTag, scrub, restore, leaks,
   cleanupMessages, cleanupRequest, draftsFromText, readCleanupReply, cleanupGroups, cleanupRecord, cleanupReview,
-  refreshReview, setChoice, applyCleanup });
+  refreshReview, setChoice, applyCleanup, acceptCleanup, MODES });

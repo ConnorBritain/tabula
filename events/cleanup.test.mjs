@@ -234,3 +234,40 @@ test('the module sets globalThis.TabulaEvents.cleanup', () => {
   assert.equal(globalThis.TabulaEvents.cleanup.cleanupPath, C.cleanupPath);
   assert.ok(Object.isFrozen(globalThis.TabulaEvents.cleanup));
 });
+
+// Why: DESIGN §4.9 gives the judge "Spelling only"; if that mode sent the Full clean-up prompt, a judge who asked for
+// typo fixes would get rewritten comments, and the scrub must hold in both modes.
+test('Spelling only uses its own prompt, with the same scrub and reply shape', () => {
+  const full = C.cleanupMessages(room(), EVENT, 'e1');
+  const sp = C.cleanupMessages(room(), EVENT, 'e1', 'spelling');
+  assert.equal(full.mode, 'full');
+  assert.equal(sp.mode, 'spelling');
+  assert.notEqual(sp.system, full.system);
+  assert.match(sp.system, /Change as little as you can/);
+  assert.match(sp.system, /Never add a judgment, never rank, rate or compare students/);
+  assert.deepEqual(sp.schema, full.schema);
+  assert.equal(sp.prompt.split('\n\n').slice(1).join('\n\n'), full.prompt.split('\n\n').slice(1).join('\n\n'), 'the same scrubbed comments');
+  assert.doesNotMatch(sp.prompt, /maria|A12|Lopez/i);
+  assert.throws(() => C.cleanupMessages(room(), EVENT, 'e1', 'shout'), /unknown clean-up mode/);
+});
+
+// Why: "Use this" changes the words on a minor's ballot; it must reset the copy mark (or the judge would think the new
+// text was already pasted), and it must never overwrite a comment the judge changed while the AI worked.
+test('acceptCleanup writes one card, clears the copy mark, reopens a done room, and skips a changed comment', () => {
+  const r = Object.assign(room(), { state: 'done', copiedAt: 5 });
+  r.entries[0].commentCopiedAt = 4;
+  const sent = C.cleanableEntries(r, ['e1']);
+  const review = C.cleanupReview(sent, { e1: 'Maria, your ending felt rushed.' });
+  const out = C.acceptCleanup(r, review, 'e1', 99);
+  assert.equal(out.changed, true);
+  const e = out.room.entries[0];
+  assert.deepEqual([e.comment, e.commentSource, e.commentCopiedAt], ['Maria, your ending felt rushed.', 'judgeEditedAi', null]);
+  assert.deepEqual([out.room.state, out.room.copiedAt, out.room.updatedAt], ['review', null, 99]);
+  assert.equal(r.entries[0].comment, room().entries[0].comment, 'the old room is not changed');
+  const edited = Object.assign(room(), { entries: room().entries.map((x) => (x.id === 'e1' ? Object.assign({}, x, { comment: 'my newer words' }) : x)) });
+  const skip = C.acceptCleanup(edited, review, 'e1', 99);
+  assert.equal(skip.changed, false);
+  assert.equal(skip.room, edited, 'nothing written');
+  const empty = C.cleanupReview(sent, {});
+  assert.equal(C.acceptCleanup(r, empty, 'e1', 99).changed, false, 'a card with no AI text writes nothing');
+});

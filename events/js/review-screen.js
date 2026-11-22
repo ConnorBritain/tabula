@@ -1,13 +1,15 @@
 // Speech Events step E8: the Review and copy screen (ARCHITECTURE.md §5 screen 6; DESIGN.md §4.4, §4.7; N11, N12).
 // Stage 1 "Ranks to submit": the ranks and ratings, one Copy ranks button (the tab room wants these first).
 // Stage 2: one card per entry with its comment and its own Copy comment button, then the reason for rank. Copy all
-// (one block) and Print / PDF (core/sheets.js print sheet). The rules are in ballot.js.
+// (one block) and Print / PDF (core/sheets.js print sheet). The rules are in ballot.js. Step E13 adds "Clean up" on each
+// card (cleanup-view.js), built only when the AI gate allows it.
 // The builders at the top are pure (Node tests call them); createReviewScreen does the DOM.
 import { escapeHtml as esc, showPrintSheet, removePrintSheet } from '../../core/sheets.js';
 import { ranksBlock, ranksProblems, cards, checklist, statusText, markCopied, setComment, setReasonReview, copyAllText, printModel } from './ballot.js';
 import { findRoom } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf } from './timer.js';
+import { createCleanup } from './cleanup-view.js';
 
 const done = (ok, label) => `<li class="${ok ? 'is-ok' : ''}"><span aria-hidden="true">${ok ? '✓' : '○'}</span> ${esc(label)}${ok ? '' : ' <span class="sr-only">(not yet)</span>'}</li>`;
 
@@ -25,21 +27,23 @@ export function ranksStageHtml(room) {
     ${table}${block}</section>`;
 }
 
-// One comment card as HTML text. editing: the card shows its edit box.
-export function cardHtml(c, editing) {
+// One comment card as HTML text. editing: the card shows its edit box. ai: { button, panel } for clean-up (E13), or
+// nothing (AI off: no button and no empty space).
+export function cardHtml(c, editing, ai) {
+  const a = ai || { button: '', panel: '' };
   const body = editing
     ? `<label class="sr-only" for="edit-${c.id}">Comment for ${esc(c.code)}</label><textarea id="edit-${c.id}" class="card-edit" data-vfield="comment" data-id="${c.id}" rows="6">${esc(c.comment)}</textarea>`
     : `<div class="card-text">${c.comment ? esc(c.comment) : '<span class="muted">No comment yet.</span>'}</div>`;
   return `<li class="card" data-card="${c.id}">
     <div class="card-head"><span class="code">${esc(c.code)}</span><span class="muted">${c.rank ? 'Rank ' + esc(c.rank) : 'No rank'}${c.rating ? ' · Rating ' + esc(c.rating) : ''}</span>
-      <button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : 'Edit'}</button></div>
-    ${body}
+      ${a.button}<button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : 'Edit'}</button></div>
+    ${body}${a.panel}
     <ul class="critique" aria-label="Comment check for ${esc(c.code)}">${c.critique.map((k) => done(k.ok, k.label)).join('')}</ul>
     ${c.comment.trim() ? `<button class="b${c.copied ? '' : ' primary'}" type="button" data-vact="copy" data-what="${c.id}" data-key="copy-${c.id}">${c.copied ? '✓ Copied' : 'Copy comment'}</button>` : ''}
   </li>`;
 }
 
-// Stage 2 and the tools as HTML text. view: { order, editing }.
+// Stage 2 and the tools as HTML text. view: { order, editing, ai (optional: (card, editing) -> { button, panel }) }.
 export function commentsStageHtml(room, view) {
   const list = cards(room, view.order);
   const reason = String(room.reasonForRank || '');
@@ -48,7 +52,7 @@ export function commentsStageHtml(room, view) {
     <div class="order-toggle" role="group" aria-label="Card order">
       <button class="b small${view.order === 'speaking' ? ' on' : ''}" type="button" data-vact="order" data-order="speaking" data-key="order-speaking" aria-pressed="${view.order === 'speaking'}">Speaking order</button>
       <button class="b small${view.order === 'rank' ? ' on' : ''}" type="button" data-vact="order" data-order="rank" data-key="order-rank" aria-pressed="${view.order === 'rank'}">Rank order</button></div>
-    <ol class="cards">${list.map((c) => cardHtml(c, view.editing === c.id)).join('')}</ol>
+    <ol class="cards">${list.map((c) => cardHtml(c, view.editing === c.id, view.ai && view.ai(c, view.editing === c.id))).join('')}</ol>
     <div class="card reason-card"><div class="card-head"><span>Reason for rank</span>
       <button class="b small quiet" type="button" data-vact="edit" data-id="reason" data-key="edit-reason" aria-expanded="${reasonEditing}">${reasonEditing ? 'Done' : 'Edit'}</button></div>
       ${reasonEditing ? `<label class="sr-only" for="edit-reason-box">Reason for rank</label><textarea id="edit-reason-box" class="card-edit" data-vfield="reason" rows="4">${esc(reason)}</textarea>` : `<div class="card-text">${reason.trim() ? esc(reason) : '<span class="muted">No reason for rank yet.</span>'}</div>`}
@@ -88,13 +92,16 @@ export function createReviewScreen(env) {
   const room = () => findRoom(env.rooms(), roomId);
   const event = (r) => env.data.events.get(r.eventId, r.eventVersion);
   const save = (r) => { env.saveRoom(r); return r; };
+  // "Clean up my comments" (E13). Only with env.ai: a page with no AI part has no clean-up at all.
+  const cleanup = env.ai ? createCleanup(env, { roomId: () => roomId, event: (r) => event(r), draw: (k) => draw(k) }) : null;
+  const viewNow = () => Object.assign({}, view, { ai: cleanup ? (c, editing) => cleanup.view(c, editing) : null });
 
   function draw(focusKey) {
     const r = room();
     if (!r) return;
     $('#review-top').innerHTML = summaryHtml(r);
     $('#review-ranks').innerHTML = ranksStageHtml(r);
-    $('#review-comments').innerHTML = commentsStageHtml(r, view);
+    $('#review-comments').innerHTML = commentsStageHtml(r, viewNow());
     // An element with that id first (the edit box), else the control with that data-key.
     if (focusKey) { const el = document.getElementById(focusKey) || $(`[data-key="${CSS.escape(focusKey)}"]`); if (el) el.focus(); }
   }
@@ -119,11 +126,13 @@ export function createReviewScreen(env) {
     const b = ev.target.closest('[data-vact]');
     if (!b) return;
     const act = b.dataset.vact;
+    if (act.startsWith('clean')) return cleanup && cleanup.click(act, b);
     if (act === 'copy') return copy(b.dataset.what);
     if (act === 'order') { view.order = b.dataset.order; return draw('order-' + view.order); }
     if (act === 'edit') {
       const id = b.dataset.id;
       view.editing = view.editing === id ? null : id;
+      if (cleanup && view.editing) cleanup.closeFor(id);
       // Open: the focus goes into the edit box. Done: back to the Edit button (data-key edit-<id>).
       draw(view.editing === 'reason' ? 'edit-reason-box' : 'edit-' + id);
       return;
@@ -153,7 +162,7 @@ export function createReviewScreen(env) {
     const old = f === 'reason' ? env.el.querySelector('.reason-card') : env.el.querySelector(`[data-card="${CSS.escape(id)}"]`);
     if (!old) return;
     const fresh = document.createElement('template');
-    fresh.innerHTML = f === 'reason' ? commentsStageHtml(room(), view) : cardHtml(cards(room(), view.order).find((c) => c.id === id), true);
+    fresh.innerHTML = f === 'reason' ? commentsStageHtml(room(), viewNow()) : cardHtml(cards(room(), view.order).find((c) => c.id === id), true);
     const src = f === 'reason' ? fresh.content.querySelector('.reason-card') : fresh.content.firstElementChild;
     for (const sel of ['.critique', '[data-vact="copy"]']) {
       const a = old.querySelector(sel), b = src.querySelector(sel);
@@ -169,6 +178,7 @@ export function createReviewScreen(env) {
       const r = findRoom(env.rooms(), id);
       if (!r) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
       roomId = id; view = { order: 'speaking', editing: null };
+      if (cleanup) cleanup.reset();
       const ev = event(r);
       env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/rank/${encodeURIComponent(id)}">‹ Rank</a>
           <h1 id="screen-title" tabindex="-1">Review · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
@@ -184,6 +194,7 @@ export function createReviewScreen(env) {
       env.el.removeEventListener('input', onInput);
       window.removeEventListener('afterprint', afterPrint);
       removePrintSheet();
+      if (cleanup) cleanup.reset();
       roomId = null;
     },
   };
