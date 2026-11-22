@@ -165,6 +165,17 @@ test('callHosted asks before the fetch, and callAI passes the feature', () => {
   assert.ok(ai.includes('await callHosted({ job: hosted.job, extra: Object.assign({}, hosted.extra, { reading }), signal, feature })'));
 });
 
+// Why: moving the round code once dropped the "Turn AI back on" handler; an idle-paused round could not be resumed.
+test('the Turn AI back on button still has its handler, and it reads this round\'s state', () => {
+  const src = read('js/limits.js');
+  const at = src.indexOf("e.target.closest('#ai-resume')");
+  assert.ok(at > 0);
+  const block = src.slice(src.lastIndexOf("document.addEventListener('click'", at), src.indexOf('});', at));
+  assert.match(block, /const r = thisRound\(\);/);
+  assert.match(block, /hostedResume = true;/);
+  assert.match(block, /setHostedRound\(L\.resumedRound\(r\)\);/);
+});
+
 // Why: a judge who never opened Settings must get "Ask me first", the safe default for their money.
 test('the setting defaults to Ask me first, and Settings has both choices', () => {
   assert.match(read('js/settings.js'), /S\.aiRoundMode = L\.roundMode\(S\.aiRoundMode\);/);

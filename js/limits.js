@@ -45,5 +45,12 @@ function renderHostedRound() {
   const turnOn = document.getElementById('ai-consent-on');
   if (turnOn) turnOn.hidden = !(line && line.turnOn);
 }
+document.addEventListener('click', (e) => {
+  const r = thisRound();
+  if (!e.target.closest || !e.target.closest('#ai-resume') || !r) return;
+  hostedResume = true; // the next hosted call asks the server to lift the pause
+  setHostedRound(L.resumedRound(r));
+  toast('Turning AI back on. It starts with the next update.');
+});
 
 setInterval(() => { if (hostedLimits) renderHostedRound(); }, 30000); // time left counts down; a pause shows when it starts
