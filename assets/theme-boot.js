@@ -5,7 +5,10 @@
 // The same rule is L.resolveTheme in logic.js; tokens.test.js checks that the two agree.
 (function (root) {
   'use strict';
-  var KEY = 'policyJudge.settings.v1';
+  // The app's settings key: debate's by default; another app names its own with data-settings on this script tag
+  // (Speech Events: tabulaEvents.settings.v1).
+  var me = root.document && root.document.currentScript;
+  var KEY = (me && me.getAttribute('data-settings')) || 'policyJudge.settings.v1';
   function resolve(setting, prefersDark) {
     if (setting === 'light' || setting === 'dark') return setting;
     return prefersDark ? 'dark' : 'light';

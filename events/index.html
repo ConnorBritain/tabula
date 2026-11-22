@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Tabula Speech Events</title>
+<!-- Tabula Speech Events (docs/events/LANDING.md §4.1, step E1): the page shell. It runs on the shared core/ ES modules
+     and its own events/js/ modules. Not public yet: it runs on a preview host until v1 is ready. -->
+<script src="../assets/theme-boot.js" data-settings="tabulaEvents.settings.v1"></script>
+<link rel="stylesheet" href="../core/tokens.css">
+<link rel="stylesheet" href="../core/ui.css">
+<link rel="stylesheet" href="app.css">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the main content</a>
+<header class="bar">
+  <span class="brand">Tabula Speech Events</span>
+</header>
+<main id="main" tabindex="-1">
+  <section id="rooms" aria-labelledby="rooms-title">
+    <h1 id="rooms-title">Rooms</h1>
+    <p class="muted" id="rooms-status" role="status">Loading the events…</p>
+    <div id="rooms-list"></div>
+  </section>
+</main>
+<div class="toasts" id="toasts"></div>
+<div class="sr-only" id="toasts-polite" role="status" aria-live="polite"></div>
+<div class="sr-only" id="toasts-alert" role="alert" aria-live="assertive"></div>
+<div class="sr-only" id="sr-status" role="status" aria-live="polite"></div>
+<div id="ask" class="overlay" hidden>
+  <div class="overlay-card" id="ask-card" role="dialog" aria-modal="true" aria-labelledby="ask-title" aria-describedby="ask-body">
+    <h2 id="ask-title"></h2>
+    <button class="iconbtn ask-x" id="ask-x" type="button" aria-label="Close">×</button>
+    <div class="ask-body" id="ask-body"></div>
+    <div class="ask-field" id="ask-field" hidden>
+      <label for="ask-input" id="ask-label"></label>
+      <input id="ask-input" type="text" autocomplete="off" aria-describedby="ask-err">
+      <p class="ask-err" id="ask-err" aria-live="polite"></p>
+    </div>
+    <p class="muted ask-foot" id="ask-foot"></p>
+    <div class="ask-btns" id="ask-btns"></div>
+  </div>
+</div>
+</body>
+</html>

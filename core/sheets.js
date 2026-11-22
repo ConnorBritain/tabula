@@ -3,7 +3,8 @@
 // builders return HTML text, so Node tests can compare it exactly; showPrintSheet and removePrintSheet do the DOM.
 // Generic words only (core-words.test.mjs). Loaded as described in core/defs.js.
 
-const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// Exported for app code that builds HTML text (Speech Events lists; step E1).
+export const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const e = escapeHtml;
 const cls = (c) => (c === undefined ? '' : ` class="${c}"`);
 
@@ -54,5 +55,5 @@ export function removePrintSheet() {
   document.body.classList.remove('printing');
 }
 
-(globalThis.TabulaCore = globalThis.TabulaCore || {}).sheets = Object.freeze({ copyBlocksHtml, printSheetHtml, printSheetClass,
+(globalThis.TabulaCore = globalThis.TabulaCore || {}).sheets = Object.freeze({ escapeHtml, copyBlocksHtml, printSheetHtml, printSheetClass,
   showPrintSheet, removePrintSheet });

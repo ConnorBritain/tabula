@@ -133,6 +133,29 @@ test('theme-boot.js draws the same theme as L.resolveTheme, before the page pain
   }
 });
 
+// Why: Speech Events loads the same theme script with its own settings key; if it read debate's key instead, a judge's
+// theme choice in one app would flip the other, and a debate key would be read by the second app.
+test('theme-boot.js reads the settings key named by data-settings on its script tag, and only follows that key', () => {
+  const attrs = {}, asked = [];
+  let onStorage = null;
+  const store = { 'tabulaEvents.settings.v1': JSON.stringify({ theme: 'light' }), 'policyJudge.settings.v1': JSON.stringify({ theme: 'dark' }) };
+  const win = {
+    localStorage: { getItem: (k) => { asked.push(k); return store[k] ?? null; } },
+    matchMedia: () => ({ matches: true, addEventListener() {} }),
+    addEventListener: (type, fn) => { if (type === 'storage') onStorage = fn; },
+    document: { currentScript: { getAttribute: (k) => (k === 'data-settings' ? 'tabulaEvents.settings.v1' : null) }, documentElement: { getAttribute: (k) => attrs[k] ?? null, setAttribute: (k, v) => { attrs[k] = v; } } },
+  };
+  win.window = win;
+  vm.runInNewContext(read('assets/theme-boot.js'), win);
+  assert.equal(attrs['data-theme'], 'light');
+  assert.deepEqual([...new Set(asked)], ['tabulaEvents.settings.v1']);
+  store['tabulaEvents.settings.v1'] = JSON.stringify({ theme: 'dark' });
+  onStorage({ key: 'policyJudge.settings.v1' });
+  assert.equal(attrs['data-theme'], 'light', 'a change to the other app\'s key is ignored');
+  onStorage({ key: 'tabulaEvents.settings.v1' });
+  assert.equal(attrs['data-theme'], 'dark');
+});
+
 // Why: a broken saved setting (old or hand-edited storage) must fall back to System, not crash the page before it draws.
 test('theme-boot.js survives unreadable storage', () => {
   const attrs = {};

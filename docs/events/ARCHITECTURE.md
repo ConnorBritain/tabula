@@ -90,7 +90,7 @@ Phase P4 adds **Practice** (coach and student timer, recording, transcript, time
 
 ## 6. Data
 
-All room data is stored on the device (IndexedDB through the shared storage module). The server stores none of it. The one exception in transit is the text of a hosted clean-up call (§6.4), which is processed and not stored.
+All room data is stored on the device: in v1 in this browser's local storage through `core/store.js`, under the `tabulaEvents.*` keys (about 5 MB, plenty for rooms of text); IndexedDB waits for practice audio clips in P4. The server stores none of it. The one exception in transit is the text of a hosted clean-up call (§6.4), which is processed and not stored.
 
 ### 6.1 Event definitions (data files, shipped with the app)
 
@@ -211,7 +211,7 @@ Same public AGPL repo. No build step.
 ```
 core/        shared by debate, events and (later) student. Generic words only (see the test below).
   clock.js        engine: runs, pause, resume, refresh-safe restore
-  storage.js      IndexedDB wrapper, export and import files
+  store.js        storage kept to an app's key prefix, backup files (built as core/store.js in C2; IndexedDB waits for P4 clips)
   ui.js           ask() dialog, toasts with Undo, tooltips
   keys.js         keyboard registry, palette entries
   providers.js    AI providers, own-key client

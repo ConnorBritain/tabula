@@ -1,0 +1,21 @@
+/* Tabula Speech Events page styles (step E1). The tokens come from core/tokens.css and the button, toast and dialog
+   styles from core/ui.css; this file only uses them.
+   No coloured side stripes (no-stripes.test.mjs covers this file). */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--canvas); color: var(--text); font-family: var(--font-sans); font-size: var(--fs-3); line-height: var(--lh-read); }
+h1, h2 { font-family: var(--font-display); line-height: var(--lh-ui); margin: 0 0 var(--s3); }
+h1 { font-size: var(--fs-5); }
+h2 { font-size: var(--fs-4); }
+.muted { color: var(--text-3); }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.bar { display: flex; align-items: center; gap: var(--s3); min-height: 52px; padding: 0 var(--s4); background: var(--panel); border-bottom: 1px solid var(--border); }
+.brand { font-family: var(--font-display); font-weight: var(--fw-4); }
+main { max-width: 760px; margin: 0 auto; padding: var(--s5) var(--s4); }
+main:focus { outline: none; }
+.room-day { margin-top: var(--s5); }
+.room-day h2 { font-size: var(--fs-3); color: var(--text-2); }
+.room-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); }
+.room-list li { display: flex; gap: var(--s3); align-items: baseline; padding: var(--s3) var(--s4); border-top: 1px solid var(--border); }
+.room-list li:first-child { border-top: 0; }
+.room-name { font-weight: var(--fw-3); }
+.room-meta { color: var(--text-3); font-size: var(--fs-2); margin-left: auto; }
