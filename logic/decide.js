@@ -3,10 +3,11 @@
 // One part of logic.js (pure logic, no DOM). logic.js joins the parts into one API; index.html loads the parts first.
 (function (root) {
   'use strict';
-  // Shared rank moves and points (core/ranks.js, core/points.js, ES modules): the page runs them before this file; Node
+  // Shared rank moves, points and review (core/ranks.js, core/points.js, core/review.js, ES modules): the page runs them before this file; Node
   // requires them.
   const CORE_RANKS = typeof module !== 'undefined' && module.exports ? require('../core/ranks.js') : root.TabulaCore.ranks;
   const CORE_POINTS = typeof module !== 'undefined' && module.exports ? require('../core/points.js') : root.TabulaCore.points;
+  const CORE_REVIEW = typeof module !== 'undefined' && module.exports ? require('../core/review.js') : root.TabulaCore.review;
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
   const F = part('format');
   const { formatClock, BALLOT_HEADER, LOG_SLOTS, ballotRow, num, ballotFields, speechesSoFar, ptsRange, isLowPointWin } = part('round');
@@ -41,36 +42,11 @@
     if (a === 'row') return name + (fm.ballot.speakerRanks ? ' points and rank' : ' points');
     return name + (a === 'pts' ? ' points' : ' rank');
   }
-  function fieldValue(ballot, f) {
-    const b = ballot || {};
-    const [a, k] = String(f).split('.');
-    return k ? (b[a] || {})[k] : b[a];
-  }
-  const isEmptyValue = (v) => v == null || String(v).trim() === '';
-  // One state per field: 'yours' (the judge typed it; the AI will not change it), 'empty', or 'ai' (an AI draft, or
-  // a value the AI may change). For a list of fields: yours if any is yours, else ai if any has a value, else empty.
-  function fieldState(ballot, fields) {
-    const b = ballot || {};
-    const list = [].concat(fields);
-    const one = (f) => ((b.touched || {})[f] ? 'yours' : isEmptyValue(fieldValue(b, f)) ? 'empty' : 'ai');
-    const states = list.map(one);
-    if (states.includes('yours')) return 'yours';
-    return states.includes('ai') ? 'ai' : 'empty';
-  }
-  // Moves fields between the two sets. kind: 'yours' (an edit or an insert), 'ai' (an auto refill), 'free' (unlock).
-  // Returns a new ballot; the old one is not changed.
-  function markFields(ballot, fields, kind) {
-    const b = ballotSnapshot(ballot);
-    b.touched = Object.assign({}, b.touched); b.aiFilled = Object.assign({}, b.aiFilled);
-    for (const f of [].concat(fields)) {
-      if (kind === 'yours') { b.touched[f] = true; delete b.aiFilled[f]; }
-      else if (kind === 'ai') { b.aiFilled[f] = true; delete b.touched[f]; }
-      else delete b.touched[f];
-    }
-    return b;
-  }
+  // The field states, the review cards, the word diff and the insert are shared code (core/review.js, step C12); the
+  // ballot is the record. Debate adds its groups, its draft fields and the points range.
+  const { fieldValue, isEmptyValue, fieldState, markFields, wordDiff } = CORE_REVIEW;
   // A deep copy of the ballot for Undo; later edits never reach the copy.
-  function ballotSnapshot(ballot) { return JSON.parse(JSON.stringify(ballot || {})); }
+  const ballotSnapshot = CORE_REVIEW.snapshot;
 
   // 4.3 Is there anything to draft from? At least one speech, flow note or doc.
   function roundHasContent(round, docs) {
@@ -119,39 +95,13 @@
     if (a === 'ranks') { const n = (d.ranks || {})[k]; return n != null ? String(n) : undefined; }
     return { winner: d.winner, rfd: d.rfd, affFb: d.aff_comments, negFb: d.neg_comments }[a];
   }
-  // 4.4 A word diff for a "Yours" card: same / del / ins runs. Whitespace stays with its word.
-  function wordDiff(a, b) {
-    const ta = String(a || '').match(/\S+\s*|\s+/g) || [], tb = String(b || '').match(/\S+\s*|\s+/g) || [];
-    const n = ta.length, m = tb.length;
-    const norm = (t) => t.trim();
-    const out = [];
-    const push = (op, text) => { const last = out[out.length - 1]; if (last && last.op === op) last.text += text; else out.push({ op, text }); };
-    // Very long texts: no word-by-word diff (it would be slow); show the old text removed and the new one added.
-    if (n * m > 4000000) { if (n) push('del', ta.join('')); if (m) push('ins', tb.join('')); return out; }
-    const dp = Array.from({ length: n + 1 }, () => new Uint32Array(m + 1));
-    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) dp[i][j] = norm(ta[i]) === norm(tb[j]) ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
-    let i = 0, j = 0;
-    while (i < n && j < m) {
-      if (norm(ta[i]) === norm(tb[j])) { push('same', tb[j]); i++; j++; }
-      else if (dp[i + 1][j] >= dp[i][j + 1]) push('del', ta[i++]);
-      else push('ins', tb[j++]);
-    }
-    while (i < n) push('del', ta[i++]);
-    while (j < m) push('ins', tb[j++]);
-    return out;
-  }
-
   // 4.4 The review: one card per picked group. A "yours" card starts on "Keep mine"; others start on "Insert this".
   // Each card remembers the ballot values it was made against (base), so an edit during the review shows.
+  // The long-text groups (one field each, named like the group): a "yours" card on one of them gets a word diff.
+  const isTextGroup = (g) => ['rfd', 'affFb', 'negFb'].includes(g.id);
   function reviewCard(ballot, draft, group, range, fmt) {
-    const state = fieldState(ballot, group.fields);
-    const base = Object.fromEntries(group.fields.map((f) => [f, fieldValue(ballot, f) ?? '']));
-    const after = Object.fromEntries(group.fields.map((f) => [f, draftValue(draft, f) ?? '']));
-    // A card with no AI text has nothing to insert, so it does not start ticked ("empty": the panel shows no choice).
-    const empty = group.fields.every((f) => isEmptyValue(after[f]));
-    const card = { id: group.id, label: group.label, fields: group.fields.slice(), state, base, after, choice: state === 'yours' || empty ? 'keep' : 'insert', changed: false, empty };
+    const card = CORE_REVIEW.reviewCard(ballot, group, { draftValue: (f) => draftValue(draft, f), isText: isTextGroup });
     if (group.id === 'pts') card.outOfRange = outOfRangePoints(draft, range, fmt);
-    if (['rfd', 'affFb', 'negFb'].includes(group.id) && state === 'yours') card.diff = wordDiff(base[group.id], after[group.id]);
     return card;
   }
   // opts.format: the round's format (policy-hs when not given).
@@ -165,51 +115,19 @@
   }
   // A field the judge changed while the review waits: the card says "Changed since the draft", gets a fresh diff
   // against the new text, and goes back to "Keep mine" (the judge's newer text wins until they choose).
-  function staleReviewCards(review, ballot) {
-    if (!review) return review;
-    const cards = review.cards.map((c) => {
-      const now = Object.fromEntries(c.fields.map((f) => [f, fieldValue(ballot, f) ?? '']));
-      const moved = c.fields.some((f) => String(now[f]) !== String(c.base[f]));
-      if (!moved) return c;
-      const n = Object.assign({}, c, { base: now, changed: true, state: 'yours', choice: 'keep' });
-      if (['rfd', 'affFb', 'negFb'].includes(c.id)) n.diff = wordDiff(now[c.id], c.after[c.id]);
-      return n;
-    });
-    return Object.assign({}, review, { cards });
-  }
-  // Does an insert take this card? all = "Accept all": every card that is not on "Keep mine".
-  const reviewTakes = (c, all) => c.choice !== 'keep' && (all || c.choice !== 'skip');
-  // The fields an insert writes.
-  function reviewInsertFields(review, all) {
-    return ((review && review.cards) || []).filter((c) => reviewTakes(c, all)).flatMap((c) => c.fields);
-  }
+  const staleReviewCards = (review, ballot) => CORE_REVIEW.staleCards(review, ballot, isTextGroup);
+  // The fields an insert writes (all = "Accept all": every card that is not on "Keep mine").
+  const reviewInsertFields = CORE_REVIEW.insertFields;
   // 4.4 Insert from the review: the chosen cards' AI text goes into the ballot and becomes "yours". AI points outside
   // the range are skipped. all = "Accept all" (never flips "Keep mine"). Returns { ballot, fields, count } (count = cards).
   // "Review never overwrites Yours" is checked here too, not only by staleReviewCards: a field whose text changed
   // since the card was made, or that became "yours" after a card that was not, is skipped. Only a card that was
   // already "yours" and that the judge set to "Use AI text" may replace the judge's text.
   function applyReview(ballot, review, all) {
-    let b = ballotSnapshot(ballot);
-    b.pts ??= {}; b.ranks ??= {};
-    const fields = [];
-    let count = 0;
-    for (const c of (review && review.cards) || []) {
-      if (!reviewTakes(c, all)) continue;
-      const bad = new Set((c.outOfRange || []).map((x) => 'pts.' + x.speaker));
-      let wrote = false;
-      for (const f of c.fields) {
-        const v = c.after[f];
-        if (bad.has(f) || isEmptyValue(v)) continue;
-        if (String(fieldValue(ballot, f) ?? '') !== String((c.base || {})[f] ?? '')) continue; // changed since the card
-        if (c.state !== 'yours' && fieldState(ballot, f) === 'yours') continue; // became "yours" after the card
-        const [a, k] = f.split('.');
-        if (k) b[a][k] = v; else b[a] = v;
-        fields.push(f); wrote = true;
-      }
-      if (wrote) count++;
-    }
-    b = markFields(b, fields, 'yours');
-    return { ballot: b, fields, count };
+    const b = ballotSnapshot(ballot);
+    b.pts ??= {}; b.ranks ??= {}; // keeps the ballot shape when no card writes
+    const res = CORE_REVIEW.applyReview(b, review, all, (c) => new Set((c.outOfRange || []).map((x) => 'pts.' + x.speaker)));
+    return { ballot: res.record, fields: res.fields, count: res.count };
   }
   // 4.6 Auto refill: empty fields are written at once (as AI text); an AI field with a value the draft would change
   // goes to review; a "yours" field is never touched. Returns { write: [fields], review: [group ids] }.
