@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { createDriver } from '../core/clock.js';
 import {
   maxUsed, graceOf, clockText, parseClock, usedAt, timerFace, startLeft, stoppedTiming, adjustTiming, setUsedTiming,
-  clearedTiming, resetTiming, restoreTiming, signalPoints, crossedSignal,
+  clearedTiming, resetTiming, restoreTiming, restoreRoom, signalPoints, crossedSignal,
 } from './js/timer.js';
 import { timerHtml, rowTimeHtml } from './js/timer-view.js';
 import { keymap } from './js/keys.js';
@@ -25,7 +25,7 @@ test('a reload mid-speech resumes the right time from the saved run', () => {
   let now = T0;
   const d = createDriver({ get: () => saved, set: (r) => { saved = r; }, now: () => now, timers });
   const t = Object.assign(fresh(), { usedMs: 60_000 }); // one minute used before a pause
-  d.start({ kind: 'speech' }, startLeft(t, L));
+  d.start({ kind: 'speech' }, startLeft(t, now, L));
   const stored = JSON.parse(JSON.stringify(Object.assign({}, t, { run: saved }))); // what localStorage keeps
   now = T0 + 95_000; // the page reloads 1:35 later
   const back = restoreTiming(stored, now, L, G);
@@ -117,14 +117,15 @@ test('typed times: m:ss and plain minutes; anything else is refused', () => {
   assert.equal(parseClock('4:30'), 270);
   assert.equal(parseClock(' 4 '), 240);
   assert.equal(parseClock('0:05'), 5);
-  for (const bad of ['4:60', 'abc', '', '1:2:3', '-1']) assert.equal(parseClock(bad), null, bad);
+  for (const bad of ['4:60', '4:5', 'abc', '', '1:2:3', '-1']) assert.equal(parseClock(bad), null, bad);
   assert.equal(clockText(587), '9:47');
   assert.equal(graceOf({ profile: { overtime: { grace: 15 } } }), 15);
   assert.equal(graceOf({ profile: {} }), 30, 'the default grace (ARCHITECTURE.md §6.2)');
 });
 
-// Why: the card must say the stage in words and offer the corrections; a no-show must have no clock to start, and
-// Space must reach the clock only when no button or box has focus.
+// Why: a judge must read the stage in words and find the corrections on the card; a no-show with a Start button
+// could be timed by mistake, and a Space press that both pressed a focused button and toggled the clock would start
+// and stop the speaker's time at once.
 test('the timer card shows words, the flag with its clear button, and the controls', () => {
   const over = setUsedTiming(fresh(), 345, T0, L, G);
   const face = timerFace(entry(over, 'done'), L, G, T0);
@@ -140,4 +141,34 @@ test('the timer card shows words, the flag with its clear button, and the contro
   const space = { code: 'Space', key: ' ', meta: false, ctrl: false, alt: false, shift: false };
   assert.equal(keymap.keyAction(space, { scopes: ['room'], focus: 'none' }), 'startStop');
   assert.equal(keymap.keyAction(space, { scopes: ['room'], focus: 'control' }), null, 'Space presses a focused button instead');
+});
+
+// Why: a stop must keep the time the face showed; rounding up at the stop would add a second the judge never saw and
+// could set the over-grace flag (which blocks rank 1 under NSDA) after the fact.
+test('a stop rounds down like the face: 30.6 s past the limit is still inside a 30 s grace', () => {
+  const s = stoppedTiming(fresh(), runFrom(T0, 100), -30.6, L, G, T0 + 130_600);
+  assert.equal(s.usedMs, 330_000);
+  assert.equal(s.overGrace, false);
+  assert.equal(s.overLimit, true);
+  assert.equal(clearedTiming(Object.assign({}, s, { overGrace: true }), T0, L, G).overLimit, true, 'Clear over grace leaves the over-limit record');
+});
+
+// Why: a reload must bring back the one running speech and never two clocks at once; two running clocks would time
+// two speakers against one limit and leave the roster wrong.
+test('a room reload keeps the latest running clock and stops any other, with a note', () => {
+  const now = T0 + 10_000;
+  const room = { entries: [
+    { id: 'a', code: 'A12', status: 'speaking', timing: Object.assign(fresh(), { run: runFrom(T0, 300) }) },
+    { id: 'b', code: 'B07', status: 'speaking', timing: Object.assign(fresh(), { run: runFrom(T0 + 5000, 300) }) },
+    { id: 'c', code: 'C33', status: 'done', timing: Object.assign(fresh(), { usedMs: 61_000 }) },
+  ] };
+  const res = restoreRoom(room, now, L, G);
+  assert.equal(res.runId, 'b', 'the clock started last keeps running');
+  assert.equal(usedAt(res.room.entries[1].timing, now, L), 5);
+  assert.deepEqual([res.room.entries[0].timing.run, res.room.entries[0].timing.usedMs, res.room.entries[0].status], [null, 10_000, 'done']);
+  assert.equal(res.room.entries[2], room.entries[2], 'a stopped entry is untouched');
+  assert.equal(res.notes.length, 1);
+  assert.match(res.notes[0], /Two clocks/);
+  const calm = restoreRoom({ entries: [room.entries[2]] }, now, L, G);
+  assert.deepEqual([calm.runId, calm.notes], [null, []]);
 });

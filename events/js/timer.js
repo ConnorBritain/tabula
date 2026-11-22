@@ -12,6 +12,7 @@
 //             works the flags out again from the time on the clock) or with "Reset time".
 // All times on screen are whole seconds (core/clock.js timeStage asks for whole seconds).
 import { leftAt, restoreTimer, timeStage, stickyOver, OVER_LIMIT } from '../../core/clock.js';
+import { updateEntry } from './room.js';
 
 // The most time a speech can show: the limit plus 9:59 over (core/clock.js OVER_LIMIT).
 export const maxUsed = (limit) => limit - OVER_LIMIT;
@@ -24,14 +25,16 @@ export function graceOf(room) {
   return Number.isFinite(g) && g >= 0 ? g : 30;
 }
 
-// m:ss for a number of whole seconds (no sign).
+// m:ss for a number of whole seconds (no sign). Debate's formatter (L.formatClock in js/logic.js) is a classic script
+// outside core/, so the events app keeps this small one.
 export function clockText(sec) {
   const s = Math.max(0, Math.floor(Math.abs(sec)));
   return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 }
-// A time the judge types: "4:30", "4" (minutes) or "0:45". Returns seconds, or null when it is not a time.
+// A time the judge types: "4:30", "4" (minutes) or "0:45" (two digits after the colon, so "4:5" is not read as
+// 4:05). Returns seconds, or null when it is not a time.
 export function parseClock(text) {
-  const m = /^\s*(\d{1,2})(?::([0-5]?\d))?\s*$/.exec(String(text == null ? '' : text));
+  const m = /^\s*(\d{1,2})(?::([0-5]\d))?\s*$/.exec(String(text == null ? '' : text));
   if (!m) return null;
   return m[2] == null ? Number(m[1]) * 60 : Number(m[1]) * 60 + Number(m[2]);
 }
@@ -72,11 +75,12 @@ export function timerFace(entry, limit, grace, now) {
 }
 
 // The seconds left to start a run with (the driver's start(fields, left)).
-export const startLeft = (timing, limit) => limit - usedAt(timing, 0, limit);
+export const startLeft = (timing, now, limit) => limit - usedAt(timing, now, limit);
 
 // The timing after a run stops with `left` seconds left (core/clock.js createDriver onStop gives it).
 export function stoppedTiming(timing, run, left, limit, grace, now) {
-  const used = Math.min(maxUsed(limit), Math.max(0, Math.round(limit - left)));
+  // Rounded down, as the face shows it while it runs: a stop never adds a second (or a flag) the face did not show.
+  const used = Math.min(maxUsed(limit), Math.max(0, Math.floor(limit - left)));
   const startedAt = run && Number.isFinite(run.endAt) && Number.isFinite(run.startLeft) ? Math.round(run.endAt - run.startLeft * 1000) : now;
   const flags = flagsFor(timing, used, limit, grace);
   return Object.assign({}, timing, { run: null, usedMs: used * 1000, runs: (timing.runs || []).concat([{ kind: 'speech', startedAt, stoppedAt: now }]) }, flags);
@@ -100,11 +104,12 @@ export function setUsedTiming(timing, sec, now, limit, grace) {
   return Object.assign({}, timing, { usedMs: used * 1000 }, flags);
 }
 
-// "Clear over grace": the judge says the time was wrong. The flags are worked out again from the time on the clock
-// now, so a speech that really is over grace keeps its flag.
+// "Clear over grace": the judge says the time was wrong. The over-grace flag is worked out again from the time on
+// the clock now, so a speech that really is over grace keeps it. Only over grace is cleared (DESIGN.md §4.2); the
+// over-limit record stays until "Reset time".
 export function clearedTiming(timing, now, limit, grace) {
   const used = usedAt(timing, now, limit);
-  return Object.assign({}, timing, flagsFor({}, used, limit, grace));
+  return Object.assign({}, timing, { overGrace: flagsFor({}, used, limit, grace).overGrace });
 }
 // "Reset time": back to no time and no flags (a run must be stopped first).
 export const resetTiming = (timing) => Object.assign({}, timing, { run: null, runs: [], usedMs: 0, overLimit: false, overGrace: false });
@@ -120,6 +125,24 @@ export function restoreTiming(timing, now, limit, grace) {
   if (r.state === 'paused') return { timing: stoppedTiming(timing, run, r.left, limit, grace, now), note: 'A clock ran past 9:59 over the limit, so it stopped there.' };
   if (r.reason === 'clock-moved') return { timing: Object.assign({}, timing, { run: Object.assign({}, run, { endAt: r.endAt }) }), note: "This device's clock changed, so the running speech started again from where it began. Check the time." };
   return { timing, note: '' };
+}
+
+// A room after a reload: each saved run comes back (restoreTiming). Only one clock may run in a room, so when a
+// damaged save holds more than one, the one started last keeps running and the others stop at their time now.
+// limitOf(room) and grace are the room's. Returns { room, runId (the running entry, or null), notes: [sentences] }.
+export function restoreRoom(room, now, limit, grace) {
+  const notes = [];
+  let runId = null;
+  let r = room;
+  const running = room.entries.filter((e) => e.timing && e.timing.run).sort((a, b) => b.timing.run.endAt - a.timing.run.endAt);
+  running.forEach((e, i) => {
+    const res = i === 0 ? restoreTiming(e.timing, now, limit, grace)
+      : { timing: stoppedTiming(e.timing, e.timing.run, limit - usedAt(e.timing, now, limit), limit, grace, now), note: 'Two clocks were running, so one was stopped. Check the times.' };
+    if (res.note && !notes.includes(res.note)) notes.push(res.note);
+    r = updateEntry(r, e.id, (x) => Object.assign({}, x, { timing: res.timing, status: res.timing.run ? 'speaking' : 'done' }), now);
+    if (i === 0 && res.timing.run) runId = e.id;
+  });
+  return { room: r, runId, notes };
 }
 
 // The signal points (N5), as seconds left: whole minutes from 5 down (those inside the limit), 30 s, 0 (time) and the
@@ -144,5 +167,5 @@ export function crossedSignal(prevLeft, left, points) {
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).timer = Object.freeze({
   maxUsed, limitOf, graceOf, clockText, parseClock, usedAt, flagsFor, timerFace, startLeft, stoppedTiming, adjustTiming,
-  setUsedTiming, clearedTiming, resetTiming, restoreTiming, signalPoints, crossedSignal,
+  setUsedTiming, clearedTiming, resetTiming, restoreTiming, restoreRoom, signalPoints, crossedSignal,
 });

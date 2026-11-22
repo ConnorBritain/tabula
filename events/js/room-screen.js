@@ -90,11 +90,17 @@ export function createRoomScreen(env, parts) {
     const r = room();
     if (!r) return;
     const e = entryOf(r, r.current);
-    $('#stage').innerHTML = e ? `<div class="stage-head"><h2 class="stage-code" id="stage-code">${esc(e.code)}</h2>${e.name ? `<span class="muted">${esc(e.name)}</span>` : ''}${statusPill(e)}</div>`
+    // Keep the focus (and a text box's cursor) on the same control through the redraw, by its id.
+    const stage = $('#stage');
+    const had = stage.contains(document.activeElement) && document.activeElement.id ? document.activeElement : null;
+    const keep = had && { id: had.id, a: had.selectionStart, b: had.selectionEnd };
+    stage.innerHTML = e ? `<div class="stage-head"><h2 class="stage-code" id="stage-code">${esc(e.code)}</h2>${e.name ? `<span class="muted">${esc(e.name)}</span>` : ''}${statusPill(e)}</div>`
       + views.map((v) => (v.stageHtml ? v.stageHtml(r, e) : '')).join('')
       + `<div class="stage-foot"><button class="b" type="button" data-act="next" data-key="next">Next speaker</button></div>`
       : '<p class="muted">Add an entry to start.</p>';
     for (const v of views) if (v.mounted) v.mounted(ctx);
+    const back = keep && document.getElementById(keep.id);
+    if (back && stage.contains(back)) { back.focus(); if (typeof keep.a === 'number' && back.setSelectionRange) back.setSelectionRange(keep.a, keep.b); }
   }
   function draw() { drawRoster(); drawStage(); }
 
