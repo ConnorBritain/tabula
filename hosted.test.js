@@ -155,8 +155,8 @@ function pageFn(name) {
   }
   return (AI_SRC.slice(at - 6, at) === 'async ' ? 'async ' : '') + AI_SRC.slice(at, i + 1);
 }
-const PAGE = 'let hostedLimits = null, hostedResume = false, rendered = 0;\nfunction renderHostedRound() { rendered++; }\nfunction refreshLimits() {}\n'
-  + ['STOPPED', 'anonDocs', 'providerName', 'useHosted', 'newCallId', 'hostedNow'].map(constLine).join('\n') + '\n'
+const PAGE = 'let hostedLimits = null, hostedResume = false, rendered = 0;\nfunction renderHostedRound() { rendered++; }\nfunction refreshLimits() {}\nfunction renderRoundsLeft() {}\n'
+  + ['STOPPED', 'anonDocs', 'providerName', 'useHosted', 'newCallId', 'hostedNow', 'thisRound'].map(constLine).join('\n') + '\n'
   + ['withStop', 'aiError', 'asAIError', 'hostedFail', 'setHostedRound', 'callHosted', 'hostedResult', 'callAI'].map(pageFn).join('\n');
 
 const sse = (frames) => {
@@ -166,7 +166,7 @@ const sse = (frames) => {
 const refusal = (status, error) => ({ ok: false, status, json: async () => ({ error }), body: null });
 
 // A page world: the gate, an optional own key (the subscription helper path), a fetch stub, and the toasts shown.
-function world({ g, ownKey = false, answers, host }) {
+function world({ g, ownKey = false, answers, host, consent = true }) {
   const calls = [], toasts = [], opened = [];
   let cleared = 0;
   const S = { aiEngine: ownKey ? 'claude-cli' : '', helper: { 'claude-cli': ownKey } };
@@ -180,7 +180,7 @@ function world({ g, ownKey = false, answers, host }) {
   const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console', 'location', 'demoOn', 'roundConsent',
     PAGE + '\nreturn [callAI, () => hostedLimits, (v) => { hostedLimits = v; }];');
   const [callAI, limits, setLimits] = make(L, P, S, R, [], g, (f) => L.canUse(g, f), () => ownKey, () => L.NO_AI, fetch,
-    (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} }, { host: host || 'debate.tabulaspeech.com' }, false, async () => true); // the round question: answered yes (consent tests: round-consent.test.js)
+    (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} }, { host: host || 'debate.tabulaspeech.com' }, false, async () => consent); // the round question's answer (default yes; consent tests: round-consent.test.js)
   return { callAI, calls, toasts, opened, R, cleared: () => cleared, limits, setLimits };
 }
 const EVAL_CALL = { feature: 'liveEval', system: 'sys', prompt: 'p', schema: L.EVAL_SCHEMA, hosted: { job: 'eval' } };
@@ -356,6 +356,13 @@ test('callAI keeps the round state from the server and stops asking while paused
   free.setLimits({ limits: {}, skew: 0, round: ROUND({ state: 'free' }) });
   await assert.rejects(free.callAI({ ...EVAL_CALL, schema: null }), (err) => err.message === L.HOSTED_TEXT.freeMode);
   assert.equal(await free.callAI({ feature: 'ballotDraft', system: 's', prompt: 'p', schema: null, hosted: { job: 'ballot', extra: {} } }), 'draft', 'the ballot draft still runs once');
+});
+
+// Why: after "Not this round" the request must never leave the device, or the server would reserve the round anyway.
+test('callAI with the round question answered no sends no request and stops quietly', async () => {
+  const w = world({ g: gate(record(ALL_SELF, true)), answers: [sse([{ t: 'x' }, { done: true }])], consent: false });
+  await assert.rejects(w.callAI({ ...EVAL_CALL, schema: null }), (err) => err.kind === 'stopped');
+  assert.equal(w.calls.length, 0);
 });
 
 // Why: the resume tap must lift only the pause. If it hid a reached limit, the judge would be told AI is back when the

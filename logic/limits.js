@@ -103,14 +103,15 @@
   }
 
   // ---------- using a round: ask first or automatic (docs/design/AI-ROUND-CONSENT.md) ----------
-  const ROUND_MODES = ['ask', 'auto'];
-  const roundMode = (m) => (ROUND_MODES.includes(m) ? m : 'ask'); // "Ask me first" is the default
+  const roundMode = (m) => (m === 'auto' ? 'auto' : 'ask'); // "Ask me first" is the default
   // Before a hosted call: 'go' (send it), 'ask' (ask the judge first) or 'off' (the judge said "Not this round").
-  // selfPaid: the judge's own rounds pay for this feature (a school that pays never asks). consent: the round's answer
-  // ('yes' | 'no' | undefined). Once the server's round is past 'open', the round is used: never ask.
-  function consentStep({ mode, selfPaid, round, consent } = {}) {
+  // selfPaid: the judge's own rounds pay for this feature (a school that pays never asks). round: the server's state for
+  // THIS round, or null. consent: the round's answer ('yes' | 'no' | undefined). Once the server's round is past
+  // 'open', the round is used: never ask. roundsLeft 0: no question; the server refuses with the Buy rounds message.
+  function consentStep({ mode, selfPaid, round, consent, roundsLeft } = {}) {
     if (!selfPaid) return 'go';
     if (round && round.state !== 'open') return 'go';
+    if (roundsLeftOf(roundsLeft) === 0) return 'go';
     if (consent === 'yes') return 'go';
     if (consent === 'no') return 'off';
     return roundMode(mode) === 'auto' ? 'go' : 'ask';
@@ -119,8 +120,7 @@
   // The question's words. With a known balance it says what is left after (the "new balance" cue).
   function consentAsk(roundsLeft) {
     const n = roundsLeftOf(roundsLeft);
-    const use = n === null ? 'This round uses 1 of your rounds.' : n === 0 ? 'You have no rounds left.'
-      : n === 1 ? 'This round uses your last round.' : 'This round uses 1 of your ' + roundsWord(n) + '. You will have ' + (n - 1) + ' left.';
+    const use = n === null ? 'This round uses 1 of your rounds.' : n === 1 ? 'This round uses your last round.' : 'This round uses 1 of your ' + roundsWord(n) + '. You will have ' + (n - 1) + ' left.';
     return { title: 'Use 1 round of AI?', body: [use, 'The clock, flow and ballot are free either way.'] };
   }
   // The top bar pill: "5 rounds left", "1 round left", "No rounds left", or '' (unknown: nothing shows).
@@ -135,7 +135,7 @@
   }
 
   const api = { limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
-    ROUND_MODES, roundMode, consentStep, consentAsk, roundsLeftText, consentLine };
+    roundMode, consentStep, consentAsk, roundsLeftText, consentLine };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).limits = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -45,6 +45,24 @@ test('consentAsk: says what the round uses and what is left after', () => {
   assert.equal(L.consentAsk(2).body[0], 'This round uses 1 of your 2 rounds. You will have 1 left.');
   assert.equal(L.consentAsk(1).body[0], 'This round uses your last round.');
   assert.equal(L.consentAsk(null).body[0], 'This round uses 1 of your rounds.', 'unknown balance: no number');
+  assert.equal(L.consentStep({ mode: 'ask', selfPaid: true, roundsLeft: 0 }), 'go', 'no rounds left: no dead-end question');
+});
+
+// Why: the page holds the server state of the round it last read; if a new round (or a failed read) let an old
+// round's "active" stand, an "Ask me first" judge would spend a round with no question.
+test('roundConsent: another round\'s server state never skips the question', async () => {
+  const w = world({ mode: 'ask', round: ROUND('active'), roundId: 'old-round' });
+  assert.equal(await w.roundConsent('aiFlow'), true);
+  assert.equal(w.asked.length, 1);
+});
+
+// Why: an answer given after the round changed must not land on the new round.
+test('askRoundConsent drops an answer when the round changed while the question was open', async () => {
+  const w = world({ mode: 'ask' });
+  const p = w.roundConsent('aiFlow');
+  w.env.R.id = 'r2';
+  assert.equal(await p, false);
+  assert.equal(w.env.R.aiConsent, undefined);
 });
 
 // Why: a pill that says 0 when the meter could not be read would send a paid judge to buy rounds they have.
@@ -67,7 +85,10 @@ test('consentLine: "AI is off for this round." with a Turn on AI button, only af
 });
 
 // Why: rounds left and the question are about the judge's own money; a school-paid judge must not see either.
-test('selfPaidHosted: true only when a hosted feature is paid from the judge\'s own rounds', () => {
+test('selfPays and selfPaidHosted: true only when a hosted feature is paid from the judge\'s own rounds', () => {
+  assert.equal(L.selfPays(gate(record(ALL_SELF, true)), 'aiFlow'), true);
+  assert.equal(L.selfPays(gate(record({ ...ALL_SELF, aiFlow: { payer: 'program' } }, true)), 'aiFlow'), false, 'mixed: the school pays for this one');
+  assert.equal(L.selfPays(gate(record(ALL_SELF, false)), 'aiFlow'), false, 'not hosted: own key');
   assert.equal(L.selfPaidHosted(gate(record(ALL_SELF, true))), true);
   assert.equal(L.selfPaidHosted(gate(record(ALL_SCHOOL, false))), false);
   assert.equal(L.selfPaidHosted(gate(record(ALL_SELF, false))), false, 'free account: own key, no rounds');
@@ -75,16 +96,21 @@ test('selfPaidHosted: true only when a hosted feature is paid from the judge\'s 
 });
 
 // ---------- the page: roundConsent (js/limits.js), run with stubs ----------
-function world({ mode, roundsLeft = 5, round = null, answer = 'yes', payerOf = () => 'self' } = {}) {
+// A page world for js/consent.js. roundId: the round the server state belongs to (default: this round).
+function world({ mode, roundsLeft = 5, round = null, roundId = 'r1', answer = 'yes', features = ALL_SELF } = {}) {
   const out = { asked: [], toasts: [], saved: 0 };
+  const R = { id: 'r1' };
+  const hostedLimits = { limits: {}, skew: 0, round, roundId, roundsLeft };
   const env = {
-    L, S: { aiRoundMode: mode }, R: {}, hostedLimits: { limits: {}, skew: 0, round, roundsLeft },
-    payer: payerOf, save: () => { out.saved++; }, saveSettings: () => {}, renderHostedRound: () => {}, renderRoundsLeft: () => {},
+    L, S: { aiRoundMode: mode }, R, hostedLimits, capsGate: gate(record(features, true)),
+    thisRound: () => (hostedLimits.roundId === R.id ? hostedLimits.round : null),
+    save: () => { out.saved++; }, saveSettings: () => {}, renderHostedRound: () => {}, renderRoundsLeft: () => {},
     toast: (m, o) => out.toasts.push({ m, o }),
     ask: (q) => { out.asked.push(q); return new Promise((done) => setImmediate(() => done(answer))); },
   };
-  const src = read('js/limits.js');
-  const code = 'let consentWait = null;\n' + 'async ' + fnSource(src, 'roundConsent') + '\nasync ' + fnSource(src, 'askRoundConsent') + '\nreturn roundConsent;';
+  const src = read('js/consent.js');
+  const code = 'let consentWait = null;\n' + ['roundConsent', 'askRoundConsent'].map((n) => 'async ' + fnSource(src, n)).join('\n')
+    + '\n' + ['offerAutomatic', 'setAutomatic'].map((n) => fnSource(src, n)).join('\n') + '\nreturn roundConsent;';
   out.roundConsent = new Function(...Object.keys(env), code)(...Object.values(env));
   out.env = env;
   return out;
@@ -118,9 +144,10 @@ test('roundConsent: Not this round blocks every call in the round without asking
   assert.equal(w.toasts.length, 0);
 });
 
-// Why: judges who chose automatic, school-paid judges, and rounds already in use must never see the question.
+// Why: judges who chose automatic, school-paid judges, rounds already in use, and judges with no rounds left (the
+// server's Buy rounds refusal says it) must never see the question.
 test('roundConsent: no question when automatic, when a school pays, or when the round is in use', async () => {
-  for (const w of [world({ mode: 'auto' }), world({ mode: 'ask', payerOf: () => 'program' }), world({ mode: 'ask', round: ROUND('active') })]) {
+  for (const w of [world({ mode: 'auto' }), world({ mode: 'ask', features: ALL_SCHOOL }), world({ mode: 'ask', round: ROUND('active') }), world({ mode: 'ask', roundsLeft: 0 })]) {
     assert.equal(await w.roundConsent('aiFlow'), true);
     assert.equal(w.asked.length, 0);
   }
@@ -141,6 +168,7 @@ test('callHosted asks before the fetch, and callAI passes the feature', () => {
 // Why: a judge who never opened Settings must get "Ask me first", the safe default for their money.
 test('the setting defaults to Ask me first, and Settings has both choices', () => {
   assert.match(read('js/settings.js'), /S\.aiRoundMode = L\.roundMode\(S\.aiRoundMode\);/);
+  assert.match(read('js/core.js'), /aiConsent: null \}\); \/\/ a saved file never brings/, 'an opened file never brings a yes');
   const html = read('index.html');
   assert.match(html, /name="round-mode" value="ask"> <span><strong>Ask me first<\/strong>/);
   assert.match(html, /name="round-mode" value="auto"> <span><strong>Use AI automatically<\/strong>/);

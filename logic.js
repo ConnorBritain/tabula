@@ -46,8 +46,8 @@
   const { PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
     activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody } = part('account');
   const { limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
-    ROUND_MODES, roundMode, consentStep, consentAsk, roundsLeftText, consentLine } = part('limits');
-  const { BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPaidHosted, hasHostedPlan, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
+    roundMode, consentStep, consentAsk, roundsLeftText, consentLine } = part('limits');
+  const { BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPays, selfPaidHosted, hasHostedPlan, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
   const { DEMO_CTA, demoSample, demoParamFor, demoCtaButtons, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript } = part('demo');
 
   const api = {
@@ -98,8 +98,8 @@
     FLAGS, FLAG_GROUP, flagOn,
     // Hosted AI calls (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3) and their round limits (Terms §6.4)
     limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
-    ROUND_MODES, roundMode, consentStep, consentAsk, roundsLeftText, consentLine,
-    BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPaidHosted, hostedState, hostedRequest, readSse, sseStep, hostedError,
+    roundMode, consentStep, consentAsk, roundsLeftText, consentLine,
+    BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPays, selfPaidHosted, hostedState, hostedRequest, readSse, sseStep, hostedError,
     // The staged demo of the AI features (?demo=policy or ?demo=ld; js/demo.js, demo/*.js)
     DEMO_CTA, demoSample, demoParamFor, demoCtaButtons, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript,
   };
