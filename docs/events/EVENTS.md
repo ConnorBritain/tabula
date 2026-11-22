@@ -132,7 +132,7 @@ AFA National Speech Tournament and NFA: prepared events run 10:00, interp holds 
 
 ## 6. Congress (phase P5, right after v1)
 
-Congressional Debate is not an individual speech event in shape. It needs its own grid (primitive N14 in [SHARED-VS-NEW.md](SHARED-VS-NEW.md)). NSDA uses two point scales in the same manual: 1–6 per speech (event rules) and 1–8 per speech plus 4–8 per hour of presiding (district rules). Each scorer ranks a top 8. See `docs/growth/FORENSICS.md` §2 and the ballot research §6.
+Congressional Debate is not an individual speech event in shape. It needs its own grid (primitive N14 in [SHARED-VS-NEW.md](SHARED-VS-NEW.md)). Scorers give points for each speech: 1–8 at NSDA districts and Last Chance, 3–9 at Nationals. The presiding officer gets a score for each full hour (the district PO scale, 1–8 or 4–8, is still open). The 1–6 figure in the manual is merit points, a different conversion, not the scorer scale (corrected 2026-11-22; see [CONGRESS.md](CONGRESS.md) §5). Each scorer ranks a top 8. See `docs/growth/FORENSICS.md` §2 and the ballot research §6.
 
 ## 7. Rule checks the app knows (v1 list)
 
