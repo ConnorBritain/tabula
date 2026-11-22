@@ -32,6 +32,16 @@ test('the school column does not end up in the name', () => {
   assert.equal(parse('1. 104 Ava Moreno, Ridgeview HS').entries[0].name, 'Ava Moreno');
 });
 
+// Why: a table copied without its header row still has a school cell; if it stayed in the name, schools would show on the roster and could go to hosted AI.
+test('a table row with no header row keeps only the name cell', () => {
+  const r = parse('1\t1024\tAva Moreno\tRidgeview HS\n2  2208  Maya Okafor & Theo Lindqvist  Harbor City HS\n3\t1033\tSofia Arnaud\tRidgeview HS\t(late add)');
+  assert.deepEqual(codes(r), ['1024', '2208', '1033']);
+  assert.equal(r.entries[0].name, 'Ava Moreno');
+  assert.deepEqual(r.entries[1].names, ['Maya Okafor', 'Theo Lindqvist']);
+  assert.equal(r.entries[2].name, 'Sofia Arnaud');
+  assert.equal(r.entries[2].late, true);
+});
+
 // Why: the text's speaker numbers are the speaking order; if the parser kept row order instead, the judge would call speakers in the wrong order.
 test('speaker numbers out of row order set the speaking order', () => {
   const r = parse(fixture('tabroom-out-of-order.txt'));

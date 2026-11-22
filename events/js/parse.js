@@ -13,6 +13,8 @@
 //
 // How it loads: the page loads this file with type="module"; Node tests import it. The last line also puts the
 // functions on globalThis.TabulaEvents.parse, the same pattern core/*.js uses for globalThis.TabulaCore.
+// It replaces the toy parser in events/prototype/proto.js (same key, check and decided shapes); the prototype is
+// throwaway test code and keeps its own copy.
 
 // An entry code: digits with up to 4 letters before them and 1 letter after ("1024", "A12", "AB-104", "12B").
 const CODE = /^(?=[A-Za-z0-9-]*\d)[A-Za-z]{0,4}-?\d{1,5}[A-Za-z]?$/;
@@ -67,9 +69,11 @@ function headerMap(line) {
   return 'code' in map ? map : null;
 }
 
-// The name part after the code: drop separators, a school in brackets or after a comma or " - ".
+// The name part after the code: drop separators, and a school in brackets, after a comma or " - ", or in a later cell.
 function namePart(rest) {
+  // A table row with no header row: the name is the first cell; the cells after it (the school) are dropped.
   let s = rest.replace(/^\s*[-–—:|]\s*/, '').trim();
+  s = s.split(/\t| {2,}/)[0];
   s = s.replace(/\s*\([^)]*\)\s*$/, '');
   s = s.split(/\s*,\s*|\s+[-–—|]\s+/)[0];
   return s.trim();
@@ -152,57 +156,70 @@ function readRow(cells, map) {
 // }
 // key is `${lineNo}:${line}`: it stays the same while the judge edits other lines.
 export function parseRoom(text, { events = [], decided = {} } = {}) {
-  const entries = []; const check = []; const skipped = [];
+  const out = { entries: [], check: [], skipped: [], round: null, event: null };
   const seen = new Set();
-  let round = null; let event = null; let map = null;
+  let map = null;
   const lines = String(text == null ? '' : text).split(/\r\n|\r|\n/);
-  const add = (base, code, x, late) => {
-    if (seen.has(code)) { check.push({ ...base, why: code + ' is already in the list.', guess: '' }); return; }
-    seen.add(code);
-    const name = x.name || '';
-    entries.push({ ...base, code, name, names: splitNames(name), title: x.title || '', late, order: x.order ?? null });
-  };
   lines.forEach((raw, i) => {
     const line = clean(raw).trim();
     if (!line) return;
     const lineNo = i + 1;
     const base = { key: lineNo + ':' + line, line, lineNo };
     const answer = Object.prototype.hasOwnProperty.call(decided, base.key) ? decided[base.key] : null;
-    if (answer === 'skip') { skipped.push(base); return; }
+    if (answer === 'skip') { out.skipped.push(base); return; }
     const late = LATE_TAG.test(line) || LATE_LEAD.test(line);
     const body = line.replace(LATE_TAG, ' ').replace(LATE_LEAD, '').trim();
-    if (typeof answer === 'string' && answer.trim()) {
-      // The judge typed the code: the rest of the line, less the order and the code, is the name.
-      const code = normCode(answer.trim());
-      const { order, s } = stripOrder(body);
-      add(base, code, { name: namePart(tokens(s).filter((t) => normCode(t) !== code).join(' ')), order }, late);
-      return;
-    }
+    if (typeof answer === 'string' && answer.trim()) { addEntry(out, seen, base, readAnswer(body, answer), late); return; }
     const header = headerMap(line);
-    if (header) { map = header; skipped.push(base); return; }
+    if (header) { map = header; out.skipped.push(base); return; }
     const cells = map && cellsOf(body);
     const r = cells && cells.length >= 2 ? readRow(cells, map) : readLine(body);
-    // A heading: it opens with a heading word, or it is not an entry and names a round or an event.
-    const evt = r.code || r.list ? null : findEvent(line, events);
-    const rnd = r.code || r.list ? null : findRound(line);
-    if (HEADING.test(line) || evt || rnd) {
-      round = round || findRound(line);
-      event = event || evt || findEvent(line, events);
-      skipped.push(base);
-      return;
-    }
-    if (r.list) { r.list.forEach((code, j) => add({ ...base, key: base.key + '#' + j }, code, { order: null }, late)); return; }
+    if (readHeading(out, line, r, events)) { out.skipped.push(base); return; }
+    if (r.list) { r.list.forEach((code, j) => addEntry(out, seen, { ...base, key: base.key + '#' + j }, { code, order: null }, late)); return; }
     // A line with no code above the first entry is the page title (the tournament name and so on).
-    if (!r.code && !r.guess && !entries.length && !check.length) { skipped.push(base); return; }
-    if (!r.code) { check.push({ ...base, why: r.why, guess: r.guess }); return; }
-    add(base, r.code, r, late);
+    if (!r.code && !r.guess && !out.entries.length && !out.check.length) { out.skipped.push(base); return; }
+    if (!r.code) { out.check.push({ ...base, why: r.why, guess: r.guess }); return; }
+    addEntry(out, seen, base, r, late);
   });
-  // Speaking order: the numbers in the text when every entry has one and none repeats; else the text's order.
+  out.entries = speakingOrder(out.entries);
+  return out;
+}
+
+// The judge typed the code for a "Check these" line: the rest of the line, less the order and the code, is the name.
+function readAnswer(body, answer) {
+  const code = normCode(answer.trim());
+  const { order, s } = stripOrder(body);
+  return { code, name: namePart(tokens(s).filter((t) => normCode(t) !== code).join(' ')), order };
+}
+
+// A heading: it opens with a heading word, or it is not an entry and names a round or an event.
+// Records the first round and event it finds on out. Returns true for a heading.
+function readHeading(out, line, r, events) {
+  const entry = r.code || r.list;
+  const evt = entry ? null : findEvent(line, events);
+  const rnd = entry ? null : findRound(line);
+  if (!HEADING.test(line) && !evt && !rnd) return false;
+  out.round = out.round || findRound(line);
+  out.event = out.event || evt || findEvent(line, events);
+  return true;
+}
+
+// Add one entry, or send it to "Check these" when its code is already in the list.
+function addEntry(out, seen, base, x, late) {
+  if (seen.has(x.code)) { out.check.push({ ...base, why: x.code + ' is already in the list.', guess: '' }); return; }
+  seen.add(x.code);
+  const name = x.name || '';
+  out.entries.push({ ...base, code: x.code, name, names: splitNames(name), title: x.title || '', late, order: x.order ?? null });
+}
+
+// Speaking order: the numbers in the text when every entry has one and none repeats; else the text's order.
+// Sets order to 1..N.
+function speakingOrder(entries) {
   const nums = entries.map((e) => e.order);
   const useNums = nums.length > 0 && nums.every((n) => n != null) && new Set(nums).size === nums.length;
   const ordered = useNums ? entries.slice().sort((a, b) => a.order - b.order) : entries;
   ordered.forEach((e, i) => { e.order = i + 1; });
-  return { entries: ordered, check, skipped, round, event };
+  return ordered;
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).parse = Object.freeze({ parseRoom });
