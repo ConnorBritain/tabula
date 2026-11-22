@@ -160,8 +160,19 @@
     return { from, oldTo: ea, newTo: eb };
   }
 
+  // The AI flow before its first update. The AI names its own sheets, so none exists yet; the view still shows the
+  // format's columns, with empty bodies, so it looks like a flow. The note says how it fills in. How to connect AI or
+  // turn Live AI flow on is the status line's job (it knows who needs a key), so the note never says it.
+  const AI_FLOW_EMPTY = 'No AI flow yet. It fills in here while a speech runs with "Transcribe" on. To flow your docs now, click "Map docs to flow now".';
+  // columns: the format's flow columns ({ label, side }). Returns the grid's HTML: one empty column per speech.
+  // Same column shell as the two sheet views in js/flow.js (markFlowColumns needs .col-mark): change all three.
+  function emptyFlowHtml(columns) {
+    return (columns || []).map((c) => '<div class="col ' + (c.side === 'neg' ? 'neg' : 'aff') + '"><h3><span>' + fmHtml(String(c.label || ''))
+      + '</span><span class="col-mark"></span></h3><div class="flow-cell flow-cell-empty"></div></div>').join('');
+  }
+
   const api = { speechColumn, FLOW_LEVELS, partText, aiFlowCell, applyLiveFlow, flowCellText, editIsBehind, mergeMap,
-    FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged };
+    FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged, AI_FLOW_EMPTY, emptyFlowHtml };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).flow = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -113,6 +113,7 @@
   .flowtabs .sheet-learn { margin-left: auto; display: inline-flex; align-items: center; min-height: var(--h-sm); padding: 0 var(--s3); border-radius: var(--r-md); border: 1px solid var(--border-ctl); color: var(--text-2); font-size: var(--fs-2); text-decoration: none; }
   .flowtabs .sheet-learn:hover { background: var(--sunk); }
   #ai-flow-status { flex-basis: 100%; font-weight: var(--fw-3); margin-top: var(--s1); }
+  .ai-flow-empty { flex-basis: 100%; margin: var(--s1) 0 0; }
   /* The Flow grid (V6, V7, Q1, Q2): the one raised card. Mono text, one line height in every column, so rows line up.
      13 px, 14 px when the grid is 840 px wide or more, and 16 px on touch devices so iPad Safari does not zoom (Q-9). */
   #tab-flow { container: flow / inline-size; }
@@ -137,6 +138,7 @@
   .col-mark:empty { display: none; }
   .flow textarea { display: block; min-height: 64vh; border: 0; border-radius: 0; background: transparent; padding: var(--s2) var(--s3); font: var(--fs-grid)/var(--lh-grid) var(--font-mono); }
   .flow textarea:focus-visible { outline-offset: -2px; }
+  .flow .flow-cell-empty { min-height: 64vh; } /* the AI flow before its first update: empty columns, same height as a sheet */
   .flow .col.aff textarea { color: var(--aff); } .flow .col.neg textarea { color: var(--neg); }
   /* Option B (Q-8) mark layer: a see-through mirror behind each flow textarea with the same box, font and wrapping.
      Both reserve the same scrollbar gutter, so their text widths match. Only the mark shades show; the typed mark
@@ -152,7 +154,6 @@
   .flow-hl .fm-extend { background: var(--border); }
   .flow-hl .fm-turn { box-shadow: inset 0 0 0 1px var(--border-ctl); }
   .flow-hl .fm-weigh { outline: 1px dotted var(--border-ctl); outline-offset: -1px; }
-  .flow-empty { grid-column: 1 / -1; padding: var(--s4); margin: 0; }
   /* Tables, ballot, eval (14 px) */
   table { width: 100%; border-collapse: collapse; font-size: var(--fs-2); }
   th { text-align: left; font-size: var(--fs-1); font-weight: var(--fw-3); color: var(--text-2); padding: var(--s2); border-bottom: 1px solid var(--border-ctl); }

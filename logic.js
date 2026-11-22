@@ -17,7 +17,7 @@
   const { TRANSCRIBE_HINT, buildTranscribePrompt, isHintEcho, appendChunk, AUDIO_MODES, micConstraints, levelInfo,
     micTestVerdict, stallWarning, recStatus, REC_PROBLEM_WORD, encodeWav, rms, mergeOverlap } = part('audio');
   const { speechColumn, FLOW_LEVELS, partText, aiFlowCell, flowCellText, editIsBehind, mergeMap, applyLiveFlow,
-    FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged } = part('flow');
+    FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged, AI_FLOW_EMPTY, emptyFlowHtml } = part('flow');
   const { buildBackup, parseBackup, backupSummary, DOC_SIDES, DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech,
     parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty,
     buildRoundFile, parseRoundFile, roundFileName, docTitle, buildDocBlocks, buildUserContent } = part('files');
@@ -77,7 +77,7 @@
     speechEndedSince, ranksSet, moveRank, stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, historyTable, historyColumns, decisionText, tournamentBlocks, printModel, printSheet,
     prepUsed, keyMoments, issueTally, andList, outOfDateText, runVerb, readingFor, decideTab,
     // Slice 4, Option B (Q-8): flow mark shading
-    FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged,
+    FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged, AI_FLOW_EMPTY, emptyFlowHtml,
     // Slice 5: shell and reach
     chipText, chipTip, CHIP_NAME_MS, chipNameDue, NET_TIP, netNote, speechLine, clockStatus, prepPausesLine,
     stepSpeechState, studyOn, studyMark, studyResult,
