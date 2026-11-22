@@ -34,6 +34,9 @@ const SOURCES = {
   'events/prototype/index.html': readSource('events/prototype/index.html'),
   'events/prototype/proto.css': readSource('events/prototype/proto.css'),
   'events/prototype/proto.js': readSource('events/prototype/proto.js'),
+  // Added in step E1: the Speech Events page and its styles.
+  'events/index.html': readSource('events/index.html'),
+  'events/app.css': readSource('events/app.css'),
   // Added in step C4 (docs/events/LANDING.md §3): every file in core/, shared by both apps.
   ...Object.fromEntries(readdirSync(new URL('core/', import.meta.url)).filter((f) => /\.(js|css)$/.test(f) && !/\.test\./.test(f)).map((f) => ['core/' + f, readSource('core/' + f)])),
 };
