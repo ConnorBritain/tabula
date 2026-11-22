@@ -46,8 +46,8 @@ export function commentsStageHtml(room, view) {
   const reasonEditing = view.editing === 'reason';
   return `<section class="review-stage" aria-labelledby="stage2"><h2 id="stage2" tabindex="-1">2. Comments</h2>
     <div class="order-toggle" role="group" aria-label="Card order">
-      <button class="b small${view.order === 'speaking' ? ' on' : ''}" type="button" data-vact="order" data-order="speaking" aria-pressed="${view.order === 'speaking'}">Speaking order</button>
-      <button class="b small${view.order === 'rank' ? ' on' : ''}" type="button" data-vact="order" data-order="rank" aria-pressed="${view.order === 'rank'}">Rank order</button></div>
+      <button class="b small${view.order === 'speaking' ? ' on' : ''}" type="button" data-vact="order" data-order="speaking" data-key="order-speaking" aria-pressed="${view.order === 'speaking'}">Speaking order</button>
+      <button class="b small${view.order === 'rank' ? ' on' : ''}" type="button" data-vact="order" data-order="rank" data-key="order-rank" aria-pressed="${view.order === 'rank'}">Rank order</button></div>
     <ol class="cards">${list.map((c) => cardHtml(c, view.editing === c.id)).join('')}</ol>
     <div class="card reason-card"><div class="card-head"><span>Reason for rank</span>
       <button class="b small quiet" type="button" data-vact="edit" data-id="reason" data-key="edit-reason" aria-expanded="${reasonEditing}">${reasonEditing ? 'Done' : 'Edit'}</button></div>
@@ -64,6 +64,8 @@ export function summaryHtml(room) {
       <button class="b" type="button" data-vact="print" data-key="print">Print / PDF</button></div></div>`;
 }
 
+// core/sheets.js copyBlocksHtml is not used here: its blocks have one generic Copy button and a read-only box, while
+// DESIGN.md §4.7 asks for cards with Edit, a "Copied" state and the critique list.
 // Copy text to the clipboard. Returns true when it worked. A browser that refuses the clipboard API gets the older
 // select-and-copy way; if that fails too, the caller tells the judge to press Ctrl+C.
 async function copyText(text) {
@@ -100,7 +102,10 @@ export function createReviewScreen(env) {
   async function copy(what) {
     const r = room();
     let text = '';
-    if (what === 'ranks') text = ranksBlock(r).text;
+    if (what === 'ranks') {
+      if (ranksProblems(r).length) { draw(); return; } // the board changed since the screen was drawn
+      text = ranksBlock(r).text;
+    }
     else if (what === 'reason') text = String(r.reasonForRank || '').trim();
     else { const c = cards(r, 'speaking').find((x) => x.id === what); text = c ? c.comment : ''; }
     if (!text) return;
@@ -115,11 +120,12 @@ export function createReviewScreen(env) {
     if (!b) return;
     const act = b.dataset.vact;
     if (act === 'copy') return copy(b.dataset.what);
-    if (act === 'order') { view.order = b.dataset.order; return draw('stage2'); }
+    if (act === 'order') { view.order = b.dataset.order; return draw('order-' + view.order); }
     if (act === 'edit') {
       const id = b.dataset.id;
       view.editing = view.editing === id ? null : id;
-      draw(view.editing ? (id === 'reason' ? 'edit-reason-box' : 'edit-' + id) : 'edit-' + id);
+      // Open: the focus goes into the edit box. Done: back to the Edit button (data-key edit-<id>).
+      draw(view.editing === 'reason' ? 'edit-reason-box' : 'edit-' + id);
       return;
     }
     if (act === 'copyall') {
@@ -142,6 +148,17 @@ export function createReviewScreen(env) {
     if (!f || !r) return;
     save(f === 'reason' ? setReasonReview(r, ev.target.value, env.now()) : setComment(r, ev.target.dataset.id, ev.target.value, env.now()));
     $('#review-top').innerHTML = summaryHtml(room());
+    // The card's check list and Copy button change in place (the copy mark is gone now); the edit box keeps focus.
+    const id = f === 'reason' ? 'reason' : ev.target.dataset.id;
+    const old = f === 'reason' ? env.el.querySelector('.reason-card') : env.el.querySelector(`[data-card="${CSS.escape(id)}"]`);
+    if (!old) return;
+    const fresh = document.createElement('template');
+    fresh.innerHTML = f === 'reason' ? commentsStageHtml(room(), view) : cardHtml(cards(room(), view.order).find((c) => c.id === id), true);
+    const src = f === 'reason' ? fresh.content.querySelector('.reason-card') : fresh.content.firstElementChild;
+    for (const sel of ['.critique', '[data-vact="copy"]']) {
+      const a = old.querySelector(sel), b = src.querySelector(sel);
+      if (a && b) a.replaceWith(b); else if (a) a.remove(); else if (b) old.append(b);
+    }
   }
 
   const afterPrint = () => removePrintSheet();
@@ -152,7 +169,6 @@ export function createReviewScreen(env) {
       const r = findRoom(env.rooms(), id);
       if (!r) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
       roomId = id; view = { order: 'speaking', editing: null };
-      if (r.state === 'judging' || r.state === 'ranking') save(Object.assign({}, r, { state: 'review', updatedAt: env.now() }));
       const ev = event(r);
       env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/rank/${encodeURIComponent(id)}">‹ Rank</a>
           <h1 id="screen-title" tabindex="-1">Review · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>

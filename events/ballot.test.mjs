@@ -92,6 +92,8 @@ test('copy marks: ranks first, then every comment and the reason; an edit means 
   const edited = setComment(r, idOf(r, 'B07'), 'B07: new words.', 13);
   assert.equal(edited.state, 'review');
   assert.equal(cards(edited, 'speaking')[1].copied, false, 'the changed comment must be copied again');
+  assert.match(cardHtml(cards(edited, 'speaking')[1], true), />Copy comment</, 'the card offers the copy again while the box is open');
+  assert.doesNotMatch(cardHtml(cards(edited, 'speaking')[1], true), /✓ Copied/);
   assert.equal(edited.entries.find((e) => e.code === 'B07').commentSource, 'judge');
   assert.equal(setReasonReview(r, 'New reason.', 14).reasonCopiedAt, null);
   // A speaker with no comment keeps the room open.

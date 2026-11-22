@@ -10,11 +10,11 @@
 import { ballotComment } from './comments.js';
 import { present, entryOf } from './room.js';
 import { orderOf, ratingScale, checkBoard } from './rank.js';
-import { boardCtx, ranksOf, ratingsOf } from './board.js';
+import { boardCtx, ranksOf, ratingsOf, isOverGrace } from './board.js';
 import { clockText } from './timer.js';
 
 // "Over time" on the ranks line: the sticky over-grace flag (inside grace is still on time, ARCHITECTURE.md §6.2).
-export const overTime = (e) => Boolean(e.timing && e.timing.overGrace);
+export const overTime = isOverGrace;
 const ratingText = (e) => (e.rating == null || e.rating === '' ? '' : String(e.rating));
 
 // The entries in the order a card list shows them: 'speaking' (the order online ballots list them) or 'rank'.

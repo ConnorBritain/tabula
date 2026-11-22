@@ -8,6 +8,8 @@ import { startRanks } from './rank.js';
 import { present } from './room.js';
 
 const asText = (v) => (v == null ? '' : String(v));
+// The sticky over-grace flag the timer stores (step E5): the one test for "went over grace" (the board and the ballot).
+export const isOverGrace = (e) => Boolean(e && e.timing && e.timing.overGrace);
 
 // The ctx rank.js asks for: ids in speaking order, the room's frozen profile, the sticky over-grace flags (E5) and the
 // codes for messages.
@@ -16,7 +18,7 @@ export function boardCtx(room) {
   return {
     ids: list.map((e) => e.id),
     profile: room.profile,
-    overGrace: Object.fromEntries(list.filter((e) => e.timing && e.timing.overGrace).map((e) => [e.id, true])),
+    overGrace: Object.fromEntries(list.filter(isOverGrace).map((e) => [e.id, true])),
     labels: Object.fromEntries(list.map((e) => [e.id, e.code])),
   };
 }
@@ -79,4 +81,4 @@ export function stepRating(value, dir, scale) {
   return k(Math.min(scale.max, Math.max(scale.min, next)));
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).board = Object.freeze({ boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks, stepRating });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).board = Object.freeze({ isOverGrace, boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks, stepRating });
