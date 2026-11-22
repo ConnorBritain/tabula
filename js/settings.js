@@ -186,6 +186,7 @@ document.addEventListener('click', (e) => {
 // ---------- audio settings ----------
 // Existing users were on Zoom-style settings, so they keep them; new users start "in the room".
 S.audioMode ??= S.setupDone ? 'zoom' : 'room';
+S.aiRoundMode = L.roundMode(S.aiRoundMode); // using a round: 'ask' (the default) or 'auto' (docs/design/AI-ROUND-CONSENT.md)
 function renderAudio() {
   document.querySelectorAll('[data-audio]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.audio === S.audioMode)));
   $('#audio-mode-help').textContent = S.audioMode === 'zoom'

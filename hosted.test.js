@@ -155,7 +155,7 @@ function pageFn(name) {
   }
   return (AI_SRC.slice(at - 6, at) === 'async ' ? 'async ' : '') + AI_SRC.slice(at, i + 1);
 }
-const PAGE = 'let hostedLimits = null, hostedResume = false, rendered = 0;\nfunction renderHostedRound() { rendered++; }\n'
+const PAGE = 'let hostedLimits = null, hostedResume = false, rendered = 0;\nfunction renderHostedRound() { rendered++; }\nfunction refreshLimits() {}\n'
   + ['STOPPED', 'anonDocs', 'providerName', 'useHosted', 'newCallId', 'hostedNow'].map(constLine).join('\n') + '\n'
   + ['withStop', 'aiError', 'asAIError', 'hostedFail', 'setHostedRound', 'callHosted', 'hostedResult', 'callAI'].map(pageFn).join('\n');
 
@@ -177,10 +177,10 @@ function world({ g, ownKey = false, answers, host }) {
     return answers.shift();
   };
   // demoOn: the page is not the staged demo (js/demo.js), so callAI takes its real path.
-  const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console', 'location', 'demoOn',
+  const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console', 'location', 'demoOn', 'roundConsent',
     PAGE + '\nreturn [callAI, () => hostedLimits, (v) => { hostedLimits = v; }];');
   const [callAI, limits, setLimits] = make(L, P, S, R, [], g, (f) => L.canUse(g, f), () => ownKey, () => L.NO_AI, fetch,
-    (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} }, { host: host || 'debate.tabulaspeech.com' }, false);
+    (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} }, { host: host || 'debate.tabulaspeech.com' }, false, async () => true); // the round question: answered yes (consent tests: round-consent.test.js)
   return { callAI, calls, toasts, opened, R, cleared: () => cleared, limits, setLimits };
 }
 const EVAL_CALL = { feature: 'liveEval', system: 'sys', prompt: 'p', schema: L.EVAL_SCHEMA, hosted: { job: 'eval' } };

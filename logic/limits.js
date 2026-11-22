@@ -30,8 +30,11 @@
     const l = j.limits;
     const limits = { timeLimitMin: posNum(l.timeLimitMin), idleMin: posNum(l.idleMin), coverRounds: posNum(l.coverRounds) };
     if (!limits.timeLimitMin && !limits.idleMin && !limits.coverRounds) return null;
-    return { limits, round: parseRound(j.round), skew: posNum(j.now) && posNum(deviceNow) ? j.now - deviceNow : 0 };
+    return { limits, round: parseRound(j.round), skew: posNum(j.now) && posNum(deviceNow) ? j.now - deviceNow : 0, roundsLeft: roundsLeftOf(j.roundsLeft) };
   }
+  // The person's own rounds left (tabula-cloud adds roundsLeft to the limits answer), or null when unknown. Unknown
+  // shows no number, never 0 (docs/design/AI-ROUND-CONSENT.md §3).
+  function roundsLeftOf(n) { return Number.isInteger(n) && n >= 0 ? n : null; }
 
   const plural = (n, one) => n + ' ' + one + (n === 1 ? '' : 's');
   // Minutes in short words: "2 hours", "1 hour 30 minutes", "45 minutes".
@@ -99,7 +102,40 @@
     return Object.assign(prev ? Object.assign({}, prev) : { endsAt: null, idleAt: null, freeReason: null, draftsLeft: { ballot: false } }, { state: roundState });
   }
 
-  const api = { limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal };
+  // ---------- using a round: ask first or automatic (docs/design/AI-ROUND-CONSENT.md) ----------
+  const ROUND_MODES = ['ask', 'auto'];
+  const roundMode = (m) => (ROUND_MODES.includes(m) ? m : 'ask'); // "Ask me first" is the default
+  // Before a hosted call: 'go' (send it), 'ask' (ask the judge first) or 'off' (the judge said "Not this round").
+  // selfPaid: the judge's own rounds pay for this feature (a school that pays never asks). consent: the round's answer
+  // ('yes' | 'no' | undefined). Once the server's round is past 'open', the round is used: never ask.
+  function consentStep({ mode, selfPaid, round, consent } = {}) {
+    if (!selfPaid) return 'go';
+    if (round && round.state !== 'open') return 'go';
+    if (consent === 'yes') return 'go';
+    if (consent === 'no') return 'off';
+    return roundMode(mode) === 'auto' ? 'go' : 'ask';
+  }
+  const roundsWord = (n) => n + ' round' + (n === 1 ? '' : 's');
+  // The question's words. With a known balance it says what is left after (the "new balance" cue).
+  function consentAsk(roundsLeft) {
+    const n = roundsLeftOf(roundsLeft);
+    const use = n === null ? 'This round uses 1 of your rounds.' : n === 0 ? 'You have no rounds left.'
+      : n === 1 ? 'This round uses your last round.' : 'This round uses 1 of your ' + roundsWord(n) + '. You will have ' + (n - 1) + ' left.';
+    return { title: 'Use 1 round of AI?', body: [use, 'The clock, flow and ballot are free either way.'] };
+  }
+  // The top bar pill: "5 rounds left", "1 round left", "No rounds left", or '' (unknown: nothing shows).
+  function roundsLeftText(roundsLeft) {
+    const n = roundsLeftOf(roundsLeft);
+    return n === null ? '' : n === 0 ? 'No rounds left' : roundsWord(n) + ' left';
+  }
+  // The bottom bar line after "Not this round", or null. Only before the round's AI started.
+  function consentLine({ selfPaid, round, consent } = {}) {
+    if (!selfPaid || consent !== 'no' || (round && round.state !== 'open')) return null;
+    return { text: 'AI is off for this round.', turnOn: true };
+  }
+
+  const api = { limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
+    ROUND_MODES, roundMode, consentStep, consentAsk, roundsLeftText, consentLine };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).limits = api;
 })(typeof window !== 'undefined' ? window : globalThis);
