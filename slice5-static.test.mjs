@@ -101,7 +101,8 @@ test('5.7 study mode: off unless ?study=1, local marks only, hooked into startSp
   const study = readFileSync(new URL('js/study.js', import.meta.url), 'utf8');
   assert.match(study, /L\.studyOn\(location\.search\)/);
   assert.doesNotMatch(study, /fetch\(|XMLHttpRequest|sendBeacon|WebSocket/);
-  assert.match(APP, /studyStart\(s\.id\)/);
+  // Since step C7 the speech start hook (speechStarted, run by the shared clock driver) calls it with the run's id.
+  assert.match(APP, /function speechStarted\(run\) \{\s+studyStart\(run\.id\);/);
 });
 
 // Why: a COMMANDS row with no runner shows in the palette but does nothing when a judge picks it (architecture review, Slice 5).

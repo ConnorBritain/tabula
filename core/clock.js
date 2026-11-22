@@ -1,7 +1,7 @@
 // Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C6): the clock math, with no
 // DOM and no timers. A run is one clock that counts down: { kind, endAt, startLeft? }. The app owns what a run is
 // for (which speech, which side's prep) and passes in its length. Generic words only (core-words.test.mjs). Loaded as
-// described in core/defs.js. The start, stop and tick driver is step C7.
+// described in core/defs.js. createDriver (step C7, at the end) starts, stops and ticks one clock.
 
 // A run never counts below -9:59 (599 s over), on screen and after a reload.
 export const OVER_LIMIT = -599;
@@ -73,5 +73,47 @@ export function beepDecision(left, beeped) {
   return left > -5 ? 'beep' : 'skip';
 }
 
+// ---------- the driver (step C7): start, stop and tick one clock ----------
+// The app keeps the run where it saves it (get and set read and write it), so a reload or a second tab sees the same
+// run. The driver owns only the tick timer and the order of the steps.
+// opts:
+//   get(): the run now, or null.       set(run | null): store the run (the app saves it).
+//   kind: 'speech' (the run keeps startLeft and may go to OVER_LIMIT) or 'prep' (stops at 0). The kind lives on the
+//   driver, not on the run; restoreTimer is told the kind the same way (opts.kind).
+//   onStart(run): after a run starts and the tick runs.  onStop(run, left): after it stops, with the seconds left.
+//   onTick(): every tickMs (200 ms by default) while a run is stored.  now(): the wall clock (Date.now).
+//   timers: { setInterval, clearInterval } (globalThis; tests pass fakes).
+export function createDriver(opts) {
+  const given = {}; // an undefined hook keeps the default
+  for (const k of Object.keys(opts || {})) if (opts[k] !== undefined) given[k] = opts[k];
+  const o = Object.assign({ kind: 'speech', tickMs: 200, onStart() {}, onStop() {}, onTick() {}, now: () => Date.now(), timers: globalThis }, given);
+  if (typeof o.get !== 'function' || typeof o.set !== 'function') throw new Error('createDriver needs get and set');
+  if (o.kind !== 'speech' && o.kind !== 'prep') throw new Error('createDriver kind must be speech or prep');
+  const floor = o.kind === 'prep' ? 0 : OVER_LIMIT;
+  let timer = null;
+  const tickOn = () => { o.timers.clearInterval(timer); timer = o.timers.setInterval(() => o.onTick(), o.tickMs); };
+  const tickOff = () => { o.timers.clearInterval(timer); timer = null; };
+  return Object.freeze({
+    // Start a run with this many seconds left. fields: the app's own run fields (an id, a side, flags).
+    start(fields, left) {
+      const now = o.now();
+      const run = Object.assign({}, fields, { endAt: now + left * 1000 }, o.kind === 'prep' ? {} : { startLeft: left });
+      o.set(run); tickOn(); o.onStart(run);
+      return run;
+    },
+    // Stop the run. Returns the seconds left (never below the floor), or null when none runs.
+    stop() {
+      const run = o.get();
+      if (!run) return null;
+      const left = leftAt(run.endAt, o.now(), floor);
+      o.set(null); tickOff(); o.onStop(run, left);
+      return left;
+    },
+    // Make the tick match the stored run, with no hooks: after a reload restored it, or another tab changed it.
+    follow() { if (o.get()) tickOn(); else tickOff(); },
+    ticking: () => timer !== null,
+  });
+}
+
 (globalThis.TabulaCore = globalThis.TabulaCore || {}).clock = Object.freeze({ OVER_LIMIT, runKind, leftAt, restoreTimer, prepWins,
-  timeStage, stickyOver, sharedLeft, beepDecision });
+  timeStage, stickyOver, sharedLeft, beepDecision, createDriver });

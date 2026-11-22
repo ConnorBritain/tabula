@@ -1,5 +1,6 @@
 // Clocks: the speech timer, prep, the clocks after a reload or sleep, a second tab on the same round,
-// and the settings object (S).
+// and the settings object (S). Starting, stopping and the tick are the shared driver in core/clock.js (step C7);
+// this file keeps debate's runs in R and says what happens around them (hooks).
 // One part of the page code (see app.js for the load order). The parts are classic scripts that share one global
 // scope, so a part can use what any part declares; code that runs at load only uses parts that load before it.
 'use strict';
@@ -14,11 +15,13 @@ const speechIdx = (id) => FMT().speeches.findIndex((s) => s.id === id);
 const runSp = () => (R.run && FMT().speeches[speechIdx(R.run.id)]) || sp();
 const fullTime = (s) => s.seconds;
 const leftFor = (s) => (R.timeLeft[s.id] ?? fullTime(s));
-let tick = null;
 // The clock fields are written as one unit with one time stamp (a second tab takes the newer unit).
 function saveClocks() { R.savedAt = Date.now(); save(); }
-function startTick() { clearInterval(tick); tick = setInterval(renderClock, 200); }
-function stopTick() { clearInterval(tick); tick = null; }
+// The speech clock: R.run is the run. The hooks are debate's: study mode, recording, the AI flow and Insights.
+const SPEECH_CLOCK = window.TabulaCore.clock.createDriver({
+  kind: 'speech', get: () => R.run, set: (run) => { R.run = run; }, onTick: () => renderClock(),
+  onStart: (run) => speechStarted(run), onStop: (run, left) => speechStopped(run, left),
+});
 
 function renderSpeeches() {
   const runId = R.run && R.run.id;
@@ -115,18 +118,21 @@ function startSpeech() {
   if (!R.started) { R.started = true; save(); renderStart(); }
   const s = sp();
   const left = leftFor(s);
-  R.run = { id: s.id, endAt: Date.now() + left * 1000, startLeft: left, beeped: left <= 0, rec: false };
-  studyStart(s.id); // study mode (5.7): the first Start of the first speech, by any method; does nothing unless ?study=1
+  SPEECH_CLOCK.start({ id: s.id, beeped: left <= 0, rec: false }, left);
+}
+// The start hook: R.run is set and the tick runs.
+function speechStarted(run) {
+  studyStart(run.id); // study mode (5.7): the first Start of the first speech, by any method; does nothing unless ?study=1
   recStoppedByReload = false;
-  saveClocks(); startTick(); renderClock(); renderSpeeches();
+  saveClocks(); renderClock(); renderSpeeches();
   if ($('#rec-on').checked) wantRec();
   renderRecStrip(); syncInsightsReady(); // the round now has something to read
 }
-function pauseSpeech() {
-  if (!R.run) return;
-  const s = runSp();
-  R.timeLeft[s.id] = L.leftAt(R.run.endAt, Date.now());
-  R.run = null; stopTick();
+function pauseSpeech() { SPEECH_CLOCK.stop(); }
+// The stop hook: R.run is cleared and the tick stopped. left: the seconds the speech has left.
+function speechStopped(run, left) {
+  const s = FMT().speeches[speechIdx(run.id)] || sp();
+  R.timeLeft[s.id] = left;
   R.cur = speechIdx(s.id); // Q-5: pausing while viewing returns the view to the running speech
   saveClocks();
   const wasBrowserRec = recWanted && activeEngine === 'browser';
@@ -198,8 +204,12 @@ function beep() {
 // R.prepRun = { side, endAt } is saved with the round, like the speech clock (spec 1.1b). side is the prep clock's id
 // (L.prepClocks): a side for prep per team (policy), a debater for prep per debater (LD). R.prepLeft is keyed the
 // same way. Each format so far has one prep clock per side, so the clock on screen is picked by its side.
-let prepTick = null;
-function startPrepTick() { clearInterval(prepTick); prepTick = setInterval(renderPrep, 200); }
+// The prep clock: R.prepRun is the run. It stops at 0.
+const PREP_CLOCK = window.TabulaCore.clock.createDriver({
+  kind: 'prep', get: () => R.prepRun, set: (run) => { R.prepRun = run; }, onTick: () => renderPrep(),
+  onStart: () => { saveClocks(); renderPrep(); },
+  onStop: (run, left) => { R.prepLeft[run.side] = left; saveClocks(); renderPrep(); },
+});
 const prepClockOn = (side) => L.prepClocks(FMT()).find((c) => c.side === side);
 const prepClockById = (id) => L.prepClocks(FMT()).find((c) => c.id === id);
 function renderPrep() {
@@ -222,18 +232,13 @@ function renderPrep() {
   }
   renderChip();
 }
-function stopPrep() {
-  if (!R.prepRun) return;
-  R.prepLeft[R.prepRun.side] = Math.max(0, (R.prepRun.endAt - Date.now()) / 1000);
-  clearInterval(prepTick); prepTick = null; R.prepRun = null; saveClocks(); renderPrep();
-}
+function stopPrep() { PREP_CLOCK.stop(); }
 function togglePrep(side) {
   const id = prepClockOn(side).id;
   if (R.prepRun && R.prepRun.side === id) return stopPrep();
   stopPrep(); pauseSpeech();
   if (R.prepLeft[id] <= 0) return toast(side.toUpperCase() + ' has no prep left');
-  R.prepRun = { side: id, endAt: Date.now() + R.prepLeft[id] * 1000 };
-  saveClocks(); startPrepTick(); renderPrep();
+  PREP_CLOCK.start({ side: id }, R.prepLeft[id]);
 }
 document.querySelectorAll('[data-prep]').forEach((b) => b.addEventListener('click', () => togglePrep(b.dataset.prep)));
 function stopAll() { pauseSpeech(); stopPrep(); }
@@ -247,7 +252,7 @@ function restoreClocksOnLoad() {
   const name = rs.id ? L.shortSpeech(rs.id) : '';
   if (rs.state === 'running') {
     R.run = Object.assign({}, R.run, { endAt: rs.endAt }, rs.reason === 'clock-moved' ? { startLeft: rs.left } : {});
-    startTick();
+    SPEECH_CLOCK.follow();
     if (rs.reason === 'clock-moved') toast('The device clock changed. The ' + name + ' clock is set back to its full time. Check it before you continue.', { kind: 'error', key: 'clock' });
     else toast('The ' + name + ' clock kept running while the page reloaded.', { key: 'clock' });
     // The mic does not restart by itself (browsers need a click first); the strip offers "Resume recording".
@@ -259,7 +264,7 @@ function restoreClocksOnLoad() {
     }
     R.run = null;
   }
-  if (rp.state === 'running') { R.prepRun = { side: rp.side, endAt: rp.endAt }; startPrepTick(); }
+  if (rp.state === 'running') { R.prepRun = { side: rp.side, endAt: rp.endAt }; PREP_CLOCK.follow(); }
   else {
     if (rp.state === 'paused') { R.prepLeft[rp.side] = 0; toast(prepClockById(rp.side).label + ' prep ran out while the page reloaded.'); }
     R.prepRun = null;
@@ -275,8 +280,7 @@ addEventListener('storage', (e) => {
   if (!inc || inc.id !== R.id || !L.clockUnitIsNewer(R, inc)) return;
   R.run = inc.run || null; R.prepRun = inc.prepRun || null;
   R.timeLeft = inc.timeLeft || {}; R.prepLeft = inc.prepLeft || R.prepLeft; R.savedAt = inc.savedAt;
-  if (R.run) startTick(); else stopTick();
-  if (R.prepRun) startPrepTick(); else { clearInterval(prepTick); prepTick = null; }
+  SPEECH_CLOCK.follow(); PREP_CLOCK.follow();
   // This tab's mic belonged to a clock that no longer runs here.
   if (recWanted && (!R.run || R.run.id !== recSpeechId)) stopRec();
   renderClock(); renderPrep(); renderSpeeches(); renderRecStrip();
