@@ -126,7 +126,7 @@ The Library lives on `tabuladebate.com`. It has no account and cannot read the s
 `ready()` is today's `aiReady()` (app.js, about line 1633). `can()` is new and comes first: `ready(f)` is only asked when `can(f)` is true.
 
 **One source of truth.** The resolved feature set (§2d) is the only input. The existing gates become views of it, so they cannot drift:
-- `L.hasHostedPlan()` (a stub today, SPEC §2.8) reads the plan field of the same record.
+- `L.hasHostedPlan(gate)` (logic/hosted.js, SPEC §2.8) reads the same record: hosted access, or a school that pays.
 - `aiSetup` (§2a) is derived from it, not stored.
 - Pure functions get the answer as a parameter, never read globals: for example `L.insightsMode({allowed: can('liveEval'), aiReady, hideRight})`.
 

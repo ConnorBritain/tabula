@@ -455,3 +455,18 @@ test('hostedState: a Lincoln-Douglas round sends its own speeches and flow colum
   assert.doesNotMatch(st.transcript + st.flow, /1AC|1NC/);
   assert.equal(L.hostedState('flow', r, [], { speech: 'AC' }).transcript, 'Value is justice.');
 });
+
+// Why: under the new Terms (§3, 2026-11-21) a teen may use hosted AI once a date of birth is on the account, and a state
+// may later need a parent's consent. If the app read either refusal as "buy rounds", a teen would be pushed to pay for
+// something they cannot buy, and an account with no date of birth would never be sent to the page that asks for it.
+test('the age refusals send the judge to the account page or explain the parent rule, never to buying', () => {
+  const page = L.accountUrl('debate.tabulaspeech.com');
+  const age = L.hostedError(402, 'age_required', page);
+  assert.equal(age.kind, 'ageRequired');
+  assert.match(age.text, /date of birth/);
+  assert.deepEqual([age.link.label, age.fallback], ['Open account', true]);
+  const parent = L.hostedError(402, 'parent_consent_required', page);
+  assert.equal(parent.kind, 'parentConsent');
+  assert.match(parent.text, /parent or guardian/);
+  assert.deepEqual([parent.link, parent.fallback], [null, true]);
+});

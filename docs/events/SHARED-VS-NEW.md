@@ -34,7 +34,7 @@ Source: a read-only audit of the debate code on 2026-11-20 (file and line number
 | **Print / PDF** | Yes, the sheet | `openPrintDialog` (:568), `buildPrintSheet` (:589) | Feed it a new events print model. |
 | **Accounts and sign-in** | Yes, server side | `tabula-cloud` Worker | Add `events.tabulaspeech.com` to the return-URL list (already planned). |
 | **Rounds billing** | Yes, server side | `tabula-cloud` meter and ledger | New task names (`events.cleanup`). A rule for what one "round" is in Speech Events (PLAN.md Q2). `productLine: 'events'` on each debit. |
-| **AI policy** | Yes, design reused; code not built yet | Stubs only: `aiCommandsAllowed()` (`palette.js` :10), `hasHostedPlan()` (`logic/rules.js` :127), `aiReady` (`ai.js` :66) | Build `can()` / `ready()` once, in `core/policy.js`, for both apps (`docs/design/AI-POLICY.md` §7 step 1). |
+| **AI policy** | Yes, design reused; code not built yet | Stubs only: `aiCommandsAllowed()` (`palette.js` :10), `hasHostedPlan(gate)` (now real, `logic/hosted.js`), `aiReady` (`ai.js` :66) | Build `can()` / `ready()` once, in `core/policy.js`, for both apps (`docs/design/AI-POLICY.md` §7 step 1). |
 | **AI provider client and key store** | Yes | `providers.js` (as is), `js/ai.js` `callAI` (:167), key store (:41–66) | Inject the anonymizer (today it reads `R.aff` / `R.neg`, :154). |
 | **Design tokens** | Yes | `assets/tokens.css` (124) | Move `--aff` / `--neg` out to the debate CSS. Add events data tokens (DESIGN.md §3). |
 | **The no-stripes rule** | Yes, as a test | `no-stripes.test.mjs` (244), `test-sources.js` | Add `events/` files to the sources list. |

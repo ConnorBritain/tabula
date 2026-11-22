@@ -45,6 +45,9 @@
   }
   // Some app feature runs hosted: the device is ready for AI without a key.
   function hostedAny(gate) { return APP_FEATURES.some((f) => hostedOn(gate, f)); }
+  // The judge has a hosted plan for this round: the record says hosted access, or the school pays for some feature.
+  // Such a judge needs no key, so the first-time key welcome never shows (spec 2.1, Q11). No gate: no plan.
+  function hasHostedPlan(gate) { return Boolean(gate && gate.mode === 'record' && (gate.hosted === true || hostedAny(gate))); }
 
   const text = (v) => String(v == null ? '' : v).trim();
   const block = (lines) => lines.join('\n');
@@ -122,7 +125,8 @@
     planRequired: 'This account has no rounds yet. Buy rounds to use AI. The clock, flow and ballot still work.',
     dayCap: 'You reached the daily AI limit. The round goes on without AI.',
     roundCap: 'This round reached its AI limit. The round goes on without AI.',
-    ageRequired: 'Confirm your age on your Tabula account page to use AI.',
+    ageRequired: 'Add your date of birth on your Tabula account page to use AI. The clock, flow and ballot still work.',
+    parentConsent: 'Where you live, a parent or guardian must agree before you use Tabula AI. The clock, flow and ballot still work.',
     billingHold: 'Billing is on hold for this account, so Tabula AI is paused. Your own key still works.',
     notAllowed: 'AI is not allowed for this round.',
     slowDown: 'Too many AI requests at once. Wait a moment and try again.',
@@ -160,7 +164,9 @@
       if (c === 'round_cap') return out('roundCap');
       if (c === 'day_cap') return out('dayCap');
       if (c === 'plan_required') return out('planRequired', { fallback: true, link: buy });
+      // Age rules (tabula-cloud src/age.ts, Terms §3): age_required = no date of birth yet.
       if (c === 'age_required') return out('ageRequired', { fallback: true, link: { label: 'Open account', url: page } });
+      if (c === 'parent_consent_required') return out('parentConsent', { fallback: true });
       return out('noCredits', { link: buy });
     }
     if (s === 403) return c === 'billing_hold' ? out('billingHold', { fallback: true }) : out('notAllowed');
@@ -171,7 +177,7 @@
     return out('noAnswer', { retryable: true });
   }
 
-  const api = { BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError };
+  const api = { BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hasHostedPlan, hostedState, hostedRequest, readSse, sseStep, hostedError };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).hosted = api;
 })(typeof window !== 'undefined' ? window : globalThis);
