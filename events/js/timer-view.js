@@ -8,7 +8,7 @@ import {
   limitOf, graceOf, clockText, parseClock, usedAt, timerFace, startLeft, stoppedTiming, adjustTiming, setUsedTiming,
   clearedTiming, resetTiming, restoreRoom, signalPoints, crossedSignal,
 } from './timer.js';
-import { entryOf, updateEntry } from './room.js';
+import { entryOf, updateEntry, roomEvent } from './room.js';
 
 // The timer card for one entry as HTML text. face: timerFace(...). The stage shows as a fill of the whole card plus a
 // word (DESIGN.md §3); colour never carries the meaning alone.
@@ -50,7 +50,7 @@ export function createTimerView() {
   let lock = null;
   const env = () => ctx.env;
   const room = () => ctx.room();
-  const limit = () => limitOf(env().data.events.get(room().eventId, room().eventVersion));
+  const limit = () => limitOf(roomEvent(env().data.events, room()));
   const grace = () => graceOf(room());
   const $ = (s) => env().el.querySelector(s);
 

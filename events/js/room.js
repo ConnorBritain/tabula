@@ -6,8 +6,14 @@
 // one it was given unchanged, so a screen can keep the old room for Undo checks and tests can compare both.
 // The entries array is always in speaking order, and entry.order is always its place, 1 to N.
 
-// The events this landing turns on (F1a, public address: LANDING.md §4.1 E4). F1b, F2, F3 and Custom come in E9–E12.
-export const ENABLED_EVENTS = Object.freeze(['oo', 'inf', 'exp', 'osw']);
+import { entryName } from './piece.js';
+
+// The events turned on so far: F1a, public address (LANDING.md §4.1 E4) and F1b, interp (E9). F2 and F3 come in E10
+// and E11. The Custom event (E12) is not a file in events/defs/: the room carries its own (CUSTOM_EVENT below).
+export const ENABLED_EVENTS = Object.freeze(['oo', 'inf', 'di', 'hi', 'duo', 'poi', 'pro', 'poe', 'exp', 'sto', 'osw', 'dec']); // published.json order
+// The event id of a room the judge set up with the Custom event form (step E12, custom.js). Such a room keeps the
+// whole event it was set up with in room.customEvent, because no published file holds its limit.
+export const CUSTOM_EVENT = 'custom';
 // The rules profile a new room starts with (the NSDA district preset).
 export const DEFAULT_PROFILE = 'nsda-district';
 // A room holds 1 to 8 entries (ARCHITECTURE.md §1: one judge, one room, 4 to 8 speakers; MODELS.md §3: 1..8).
@@ -31,12 +37,14 @@ export function newId(prefix) {
   return (prefix || '') + [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// One new entry. code: already checked with codeError.
-export function makeEntry(code, name, id) {
+// One new entry. code: already checked with codeError. piece: optional { title, author } (step E9; device only).
+export function makeEntry(code, name, id, piece) {
   return {
     id: id || newId('e'),
     code: normCode(code),
     name: String(name || '').trim(),
+    title: String((piece && piece.title) || '').trim(),
+    author: String((piece && piece.author) || '').trim(),
     order: 0,
     status: 'waiting',
     timing: { run: null, runs: [], usedMs: 0, overLimit: false, overGrace: false },
@@ -62,7 +70,9 @@ export function codeError(code, room, exceptId) {
 // A new room in the setup state. opts:
 //   event, profile: the event file and rules profile objects (from the registries). The room keeps the event's id and
 //     version, and a full copy of the profile, so later edits never change it (ARCHITECTURE.md §6.3, MODELS.md §3).
-//   entries: [{ code, name }] in speaking order (from the paste parser or typed).
+//     A Custom event (id CUSTOM_EVENT, from custom.js) is copied whole into room.customEvent.
+//   entries: [{ code, name, names, title }] in speaking order (from the paste parser or typed). A pair event (Duo)
+//     joins the two names into one entry's name (piece.js entryName).
 //   tournament, round, flight: optional text.   now: the time.   makeId: an id maker (newId by default).
 export function createRoom(opts) {
   const o = opts || {};
@@ -77,9 +87,9 @@ export function createRoom(opts) {
     const code = normCode(x.code);
     if (!code || seen.has(code)) continue;
     seen.add(code);
-    entries.push(makeEntry(code, x.name, mk('e')));
+    entries.push(makeEntry(code, entryName(x, o.event), mk('e'), { title: x.title, author: x.author }));
   }
-  return {
+  const room = {
     id: mk('r'),
     createdAt: o.now,
     updatedAt: o.now,
@@ -95,11 +105,21 @@ export function createRoom(opts) {
     entries: renumber(entries),
     reasonForRank: '',
   };
+  if (o.event.id === CUSTOM_EVENT) room.customEvent = clone(o.event);
+  return room;
+}
+
+// The event a room was set up with: its own Custom event, else the published file of the id and version it froze.
+// events: the events registry (core/defs.js). null when the registry does not hold it.
+export function roomEvent(events, room) {
+  if (!room) return null;
+  if (room.customEvent) return room.customEvent;
+  return events ? events.get(room.eventId, room.eventVersion) : null;
 }
 
 // Why a room cannot start yet, in plain words, or '' when it can. parsed: the paste parser's result.
 export function setupError(parsed, eventId) {
-  if (!ENABLED_EVENTS.includes(eventId)) return 'Pick the event.';
+  if (eventId !== CUSTOM_EVENT && !ENABLED_EVENTS.includes(eventId)) return 'Pick the event.';
   const n = (parsed && parsed.entries || []).length;
   const c = (parsed && parsed.check || []).length;
   if (c) return 'Sort out the ' + (c === 1 ? 'line' : c + ' lines') + ' under "Check these" first.';
@@ -246,7 +266,7 @@ export function upsertRoom(rooms, room) {
 export const findRoom = (rooms, id) => (Array.isArray(rooms) ? rooms : []).find((r) => r && r.id === id) || null;
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).room = Object.freeze({
-  ENABLED_EVENTS, DEFAULT_PROFILE, MAX_ENTRIES, STATUS_LABEL, normCode, newId, makeEntry, codeError, createRoom, setupError,
+  ENABLED_EVENTS, CUSTOM_EVENT, DEFAULT_PROFILE, MAX_ENTRIES, STATUS_LABEL, normCode, newId, makeEntry, codeError, createRoom, roomEvent, setupError,
   entryOf, indexOf, present, updateEntry, selectEntry, entryAtNumber, nextWaiting, moveEntry, markNoShow, clearNoShow,
   addEntry, removeEntry, restoreEntry, rosterAction, upsertRoom, findRoom,
 });

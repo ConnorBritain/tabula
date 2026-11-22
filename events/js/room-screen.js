@@ -4,7 +4,7 @@
 // Each roster row has a menu: Move up, Move down, Move to end (late arrivals), Mark no show and Remove, each with Undo.
 // Number keys 1–8 pick an entry. The builders at the top are pure (Node tests call them); createRoomScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
-import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present } from './room.js';
+import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { pickNumber } from './keys.js';
 
@@ -57,7 +57,7 @@ export function rosterHtml(room, menuFor, extra) {
 //   rowExtra(room, entry) -> HTML after a roster row's name     stageHtml(room, entry) -> HTML in the main pane
 //   mounted(ctx) after the main pane is drawn                    show(ctx) / hide(ctx) when the screen opens / closes
 //   run(action, ctx) -> true when it ran a shortcut              stopFor(id) stops that entry's running clock
-// ctx: { env, room(), save(room), draw(), drawStage() } (drawStage redraws the main pane only).
+// ctx: { env, room(), save(room), draw(), drawStage(), drawRoster() } (drawStage and drawRoster redraw one pane only).
 export function createRoomScreen(env, parts) {
   const views = parts || [];
   let roomId = null;
@@ -65,7 +65,7 @@ export function createRoomScreen(env, parts) {
   let rosterOpen = false;
   const $ = (s) => env.el.querySelector(s);
   const room = () => findRoom(env.rooms(), roomId);
-  const event = (r) => env.data.events.get(r.eventId, r.eventVersion);
+  const event = (r) => roomEvent(env.data.events, r);
 
   function save(next) { env.saveRoom(next); return next; }
 
@@ -94,7 +94,7 @@ export function createRoomScreen(env, parts) {
     const stage = $('#stage');
     const had = stage.contains(document.activeElement) && document.activeElement.id ? document.activeElement : null;
     const keep = had && { id: had.id, a: had.selectionStart, b: had.selectionEnd };
-    stage.innerHTML = e ? `<div class="stage-head"><h2 class="stage-code" id="stage-code">${esc(e.code)}</h2>${e.name ? `<span class="muted">${esc(e.name)}</span>` : ''}${statusPill(e)}</div>`
+    stage.innerHTML = e ? `<div class="stage-head"><h2 class="stage-code" id="stage-code">${esc(e.code)}</h2><span class="muted stage-name" id="stage-name">${esc(e.name || '')}</span>${statusPill(e)}</div>`
       + views.map((v) => (v.stageHtml ? v.stageHtml(r, e) : '')).join('')
       + `<div class="stage-foot"><button class="b" type="button" data-act="next" data-key="next">Next speaker</button></div>`
       : '<p class="muted">Add an entry to start.</p>';
@@ -153,7 +153,7 @@ export function createRoomScreen(env, parts) {
     if (b && env.el.contains(b)) act(b.dataset.act, b.dataset.id);
   }
 
-  const ctx = { env, room, save, draw, drawStage };
+  const ctx = { env, room, save, draw, drawStage, drawRoster };
   const menuOpen = () => roomId !== null && menuFor !== null;
   env.ui.escLayer('row-menu', 40, menuOpen, () => {
     const id = menuFor; menuFor = null; drawRoster();

@@ -3,7 +3,7 @@
 // nothing. The rules are in comments.js. The builder at the top is pure (Node tests call it).
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { KINDS, KIND_TITLE, tagKey, checkLabel, tapChip, toggleCheck, applyInput } from './comments.js';
-import { entryOf, updateEntry } from './room.js';
+import { entryOf, updateEntry, roomEvent } from './room.js';
 
 // One chip and one rule check as HTML text (the sheet draws them, and a tap redraws just that button).
 export const chipHtml = (t, kind, on) => `<button class="chip${on ? ' on' : ''}" type="button" data-cact="chip" data-kind="${kind}" data-tag="${esc(t.id)}" aria-pressed="${on}" title="${esc(t[kind])}">${esc(t.label)}</button>`;
@@ -15,7 +15,8 @@ function swap(old, html) { const t = document.createElement('template'); t.inner
 export function sheetHtml(room, entry, event) {
   if (entry.status === 'noShow') return '';
   const tags = (event && event.tags) || [];
-  const chips = KINDS.map((kind) => `<div class="chip-group" role="group" aria-labelledby="chips-${kind}">
+  // A Custom event (step E12) has no chips: no empty "Strengths" and "To work on" rows.
+  const chips = !tags.length ? '' : KINDS.map((kind) => `<div class="chip-group" role="group" aria-labelledby="chips-${kind}">
       <p class="chip-title" id="chips-${kind}">${KIND_TITLE[kind]}</p>
       <div class="chips">${tags.map((t) => chipHtml(t, kind, (entry.tags || []).includes(tagKey(kind, t.id)))).join('')}</div></div>`).join('');
   const checks = ((event && event.checks) || []).map((c) => checkHtml(c, (entry.checks || {})[c] === 'flag')).join('');
@@ -38,7 +39,7 @@ export function createCommentView() {
   let ctx = null;
   const env = () => ctx.env;
   const room = () => ctx.room();
-  const event = (r) => env().data.events.get(r.eventId, r.eventVersion);
+  const event = (r) => roomEvent(env().data.events, r);
   const $ = (s) => env().el.querySelector(s);
   const change = (id, fn) => { const r = room(); if (r) ctx.save(updateEntry(r, id, fn, env().now())); };
 
