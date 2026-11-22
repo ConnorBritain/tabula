@@ -186,7 +186,7 @@
       else if (!noRange && (p < o.minPts || p > o.maxPts)) out.push(label(s) + ' has ' + p + ', outside ' + o.minPts + '–' + o.maxPts + '.');
     }
     if (fmt.ballot.speakerRanks) for (const s of ids) if (ranks[s] == null || String(ranks[s]).trim() === '') out.push('Give ' + label(s) + ' a rank.');
-    if (isLowPointWin(b, fmt)) out.push('Low-point win: the ' + (b.winner === 'aff' ? 'Aff' : 'Neg') + ' wins with fewer points. Check that you meant this.');
+    if (isLowPointWin(b, fmt)) out.push('Low-point win: the ' + fmt.sides[b.winner === 'aff' ? 'aff' : 'neg'].label + ' wins with fewer points. Check that you meant this.');
     const rankVals = ids.map((s) => num(ranks[s])).filter((n) => !Number.isNaN(n));
     if (fmt.ballot.speakerRanks && rankVals.length === ids.length) {
       const sorted = rankVals.slice().sort((a, b) => a - b);

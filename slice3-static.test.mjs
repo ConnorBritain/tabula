@@ -104,8 +104,12 @@ test('reduced motion and forced colours are handled', () => {
   // 3 px top border). Old check:
   //   assert.match(fc, /\.aff[^{]*\{ border-top: 3px solid CanvasText; \}/);
   //   assert.match(fc, /\.neg[^{]*\{ border-top: 3px dashed CanvasText; \}/);
-  assert.match(fc, /\.aff::after[^{]*\{ content: "Aff"; \}/);
-  assert.match(fc, /\.neg::after[^{]*\{ content: "Neg"; \}/);
+  // CHANGED 2026-11-22 because PF names its sides Pro and Con: the word comes from the round's format
+  // (js/formatsetup.js sets --aff-word and --neg-word), with "Aff" and "Neg" as the fallback. Old check:
+  //   assert.match(fc, /\.aff::after[^{]*\{ content: "Aff"; \}/);
+  //   assert.match(fc, /\.neg::after[^{]*\{ content: "Neg"; \}/);
+  assert.match(fc, /\.aff::after[^{]*\{ content: var\(--aff-word, "Aff"\); \}/);
+  assert.match(fc, /\.neg::after[^{]*\{ content: var\(--neg-word, "Neg"\); \}/);
   assert.match(fc, /is-current \{ outline: 2px solid Highlight/);
 });
 
@@ -137,7 +141,8 @@ test('the Insights edge has its Connect AI link and its Insights button', () => 
 // Why: V11 copy: the Transcript button and the speech tiles say what they do and which side each speech is.
 test('tip copy for the Transcript button and the speech tiles', () => {
   assert.match(HTML, /id="tr-toggle"[^>]*data-tip="Show or hide the transcript"/);
-  assert.match(APP, /data-tip="\$\{s\.label\} · \$\{s\.side === 'aff' \? 'Aff' : 'Neg'\}\$\{hasTr\}"/);
+  // The side word comes from the round's format ('Aff' in policy and LD, 'Pro' in PF, 'Both' for a crossfire row).
+  assert.match(APP, /data-tip="\$\{s\.label\} · \$\{L\.sideLabel\(FMT\(\), s\.side\)\}\$\{hasTr\}"/);
   assert.match(APP, /' · has transcript'/);
 });
 

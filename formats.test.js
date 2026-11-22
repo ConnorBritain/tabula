@@ -14,7 +14,7 @@ const POLICY = L.getFormat('policy-hs', 1);
 // ---------- the files ----------
 
 // Every format version ever published. Add a line when a version ships; never remove one.
-const PUBLISHED = ['policy-hs.v1', 'ld.v1'];
+const PUBLISHED = ['policy-hs.v1', 'ld.v1', 'pf.v1'];
 
 // Why: a saved round renders with the format version it was judged under. A deleted version file would make every
 // old round in that version open as policy, with the wrong speeches, columns and ballot.
@@ -65,6 +65,8 @@ test('the app build ships the formats folder', () => {
 
 // ---------- the schema (built from policy-hs and ld only) ----------
 const TOP = ['id', 'version', 'name', 'level', 'sides', 'speakers', 'speeches', 'flowColumns', 'defaultSheets', 'prep', 'ballot', 'timesNote', 'ai'];
+// Fields only some formats have. order: 'coinFlip' (PF) names teams, not sides; a file without it is in fixed order.
+const OPTIONAL = ['order'];
 const AI = ['kind', 'abbr', 'transcribeHint', 'rules', 'evalNorms', 'flowSheets', 'pointsSpread'];
 const str = (v) => typeof v === 'string' && v.trim().length > 0;
 
@@ -73,7 +75,8 @@ const str = (v) => typeof v === 'string' && v.trim().length > 0;
 test('every format file follows the schema', () => {
   for (const f of PUBLISHED) {
     const x = require('./formats/' + f + '.js');
-    assert.deepEqual(Object.keys(x).sort(), TOP.slice().sort(), f + ': top-level fields');
+    assert.deepEqual(Object.keys(x).filter((k) => !OPTIONAL.includes(k)).sort(), TOP.slice().sort(), f + ': top-level fields');
+    assert.ok(x.order === undefined || x.order === 'coinFlip', f + ': order');
     assert.ok(str(x.id) && Number.isInteger(x.version) && x.version >= 1 && str(x.name) && x.level === 'hs', f + ': identity');
     assert.deepEqual(Object.keys(x.sides), ['aff', 'neg'], f + ': sides');
     for (const s of Object.values(x.sides)) assert.ok(str(s.label) && str(s.name), f + ': side labels');
@@ -85,19 +88,28 @@ test('every format file follows the schema', () => {
     }
     const ids = x.speeches.map((s) => s.id);
     assert.equal(new Set(ids).size, ids.length, f + ': speech ids unique');
-    for (const s of x.speeches) {
+    // A coin-flip file names teams; its speeches are checked as seated for each first side (the order a round uses).
+    const views = x.order === 'coinFlip' ? ['aff', 'neg'].map((side) => L.formatOf({ format: x.id, formatVersion: x.version, firstSide: side })) : [x];
+    for (const v of views) for (const s of v.speeches) {
       assert.ok(str(s.id) && str(s.label) && Number.isInteger(s.seconds) && s.seconds > 0, f + ': speech ' + s.id);
-      assert.ok(['speech', 'cx'].includes(s.kind), f + ': ' + s.id + ' kind');
+      assert.ok(['speech', 'cx', 'crossfire'].includes(s.kind), f + ': ' + s.id + ' kind');
+      if (s.kind === 'crossfire') {
+        assert.ok(Array.isArray(s.speakers) && s.speakers.length >= 2 && s.speakers.every((id) => speakerIds.includes(id)), f + ': ' + s.id + ' lists real debaters');
+        assert.equal(s.column, null, f + ': crossfire is not flowed');
+        continue;
+      }
+      assert.doesNotMatch(s.label, /\{side\}/, f + ': ' + s.id + ' label has no unfilled {side}');
+      if (x.order === 'coinFlip') assert.ok(['first', 'second'].includes(s.team) && ['d1', 'd2'].includes(s.slot), f + ': ' + s.id + ' names its team and name box');
       const sp = x.speakers.find((t) => t.id === s.speaker);
       assert.ok(sp, f + ': ' + s.id + ' names a speaker that does not exist');
       assert.equal(sp.side, s.side, f + ': ' + s.id + ' is on its speaker\'s side');
       if (s.kind === 'cx') assert.equal(s.column, null, f + ': CX is not flowed');
       else {
-        assert.ok(Number.isInteger(s.column) && s.column >= 0 && s.column < x.flowColumns.length, f + ': ' + s.id + ' maps to a flow column');
-        assert.equal(x.flowColumns[s.column].side, s.side, f + ': ' + s.id + ' fills a column of its own side');
+        assert.ok(Number.isInteger(s.column) && s.column >= 0 && s.column < v.flowColumns.length, f + ': ' + s.id + ' maps to a flow column');
+        assert.equal(v.flowColumns[s.column].side, s.side, f + ': ' + s.id + ' fills a column of its own side');
       }
     }
-    x.flowColumns.forEach((c, i) => {
+    for (const v of views) v.flowColumns.forEach((c, i) => {
       assert.ok(str(c.label) && ['aff', 'neg'].includes(c.side), f + ': column ' + i);
       assert.ok(x.speeches.some((s) => s.column === i), f + ': column ' + c.label + ' has a speech');
     });
@@ -150,7 +162,7 @@ test('a round with no format is policy-hs version 1', () => {
 test('a round file with an unknown format or version is refused; a known one keeps its format', () => {
   const file = (round) => JSON.stringify({ app: 'tabula', kind: 'tabula-round', version: 1, round: Object.assign({ transcripts: {}, flows: [] }, round), docs: [] });
   assert.equal(L.formatKnown({ format: 'ld', formatVersion: 99 }), false);
-  assert.equal(L.formatKnown({ format: 'pf' }), false);
+  assert.equal(L.formatKnown({ format: 'parli' }), false);
   assert.throws(() => L.parseRoundFile(file({ format: 'ld', formatVersion: 99 }), 'n'), /Reload the app/);
   assert.throws(() => L.parseRoundFile(file({ format: 'parli', formatVersion: 1 }), 'n'), /Reload the app/);
   const ok = L.parseRoundFile(file({ format: 'ld', formatVersion: 1, prepSeconds: 240, prepLeft: { Aff: 200, Neg: 240 } }), 'n').round;
@@ -182,7 +194,7 @@ test('hosted AI calls send the round\'s format and version, never rules text', (
 test('the ?format= link picks only a known format', () => {
   assert.equal(L.formatFromSearch('?format=ld'), 'ld');
   assert.equal(L.formatFromSearch('?study=1&format=policy-hs'), 'policy-hs');
-  assert.equal(L.formatFromSearch('?format=pf'), '');
+  assert.equal(L.formatFromSearch('?format=parli'), '');
   assert.equal(L.formatFromSearch(''), '');
   assert.match(readSource('app.js'), /L\.formatFromSearch\(location\.search\)/);
 });

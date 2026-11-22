@@ -9,7 +9,8 @@
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./logic/' + name + '.js') : root.PolicyLogicParts[name]);
   const { FORMAT_FILES, FORMAT_IDS, DEFAULT_FORMAT_ID, OLD_ROUND, getFormat, formatOf, formatKnown, formatFields,
-    formatFromSearch, speechOf, columnOf, speakerOf, speakersOn, speakerTag, speakerName, prepClocks, fullPrep, formatCopy } = part('format');
+    formatFromSearch, speechOf, columnOf, speakerOf, speechSpeakers, sideLabel, isCoinFlip, speakersOn, speakerTag, speakerName,
+    prepClocks, fullPrep, formatCopy } = part('format');
   const { SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS,
     PARADIGMS, BALLOT_HEADER, LOG_COLUMNS, formatClock, sheetSafe, csvCell, toCSV, toTSV, ballotRow, checkBallot,
     parseDecision, parseRfd, PARADIGM_LABELS, paradigmText, hashText, lensKey, MAP_SPEECHES, BALLOT_FIELDS,
@@ -19,7 +20,7 @@
   const { speechColumn, FLOW_LEVELS, partText, aiFlowCell, flowCellText, editIsBehind, mergeMap, applyLiveFlow,
     FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged } = part('flow');
   const { buildBackup, parseBackup, backupSummary, DOC_SIDES, DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech,
-    parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty,
+    parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, orderInUse,
     buildRoundFile, parseRoundFile, roundFileName, docTitle, buildDocBlocks, buildUserContent } = part('files');
   const { parseRoundPaste, roundPasteChanges, swapSides } = part('pairing');
   const { FLAGS, FLAG_GROUP, flagOn } = part('flags');
@@ -60,7 +61,7 @@
     buildBackup, parseBackup, backupSummary,
     READING_LEVELS, readingGuide, BALLOT_SCHEMA, BALLOT_TASK, BALLOT_FIELDS, buildBallotPrompt, applyBallotDraft,
     speechesSoFar, nextSpeech, EVAL_SYSTEM, EVAL_SCHEMA, buildEvalPrompt,
-    DOC_SIDES, DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech, parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, buildRoundFile, parseRoundFile, roundFileName, docTitle, buildDocBlocks, buildUserContent,
+    DOC_SIDES, DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech, parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, orderInUse, buildRoundFile, parseRoundFile, roundFileName, docTitle, buildDocBlocks, buildUserContent,
     speechColumn, FLOW_LEVELS, partText, aiFlowCell, flowCellText, editIsBehind, mergeMap, applyLiveFlow, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM, buildLiveFlowPrompt,
     // Slice 1: round safety
     OVER_LIMIT, leftAt, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer, shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere,
@@ -89,7 +90,8 @@
     showSetupFor, offTokens, visibleTourSteps, keyNoticeDue, KEY_NOTICE,
     // Formats as data (ARCHITECTURE.md §9): the format files, a round's format, and the format-keyed lists and prompts
     FORMAT_FILES, FORMAT_IDS, DEFAULT_FORMAT_ID, OLD_ROUND, getFormat, formatOf, formatKnown, formatFields, formatFromSearch,
-    speechOf, columnOf, speakerOf, speakersOn, speakerTag, speakerName, prepClocks, fullPrep, formatCopy, ballotFields, ptsFields,
+    speechOf, columnOf, speakerOf, speechSpeakers, sideLabel, isCoinFlip, speakersOn, speakerTag, speakerName,
+    prepClocks, fullPrep, formatCopy, ballotFields, ptsFields,
     draftGroups, promptsFor, readingLevels,
     // Round import by paste (docs/research/TABROOM.md, Option D)
     parseRoundPaste, roundPasteChanges, swapSides,

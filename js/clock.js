@@ -33,7 +33,7 @@ function renderSpeeches() {
     const hasTr = (R.transcripts[s.id] || '').trim() ? ' · has transcript' : '';
     const short = L.shortSpeech(s.id);
     const info = isRun ? '<small class="sp-run">Running</small>' : '<small>' + (done ? L.formatClock(Math.ceil(leftFor(s))) + ' left' : s.minutes + ' min') + '</small>';
-    return `<button class="sp ${s.side} ${i === R.cur ? 'on' : ''}${isRun ? ' run' : ''}" data-i="${i}" data-tip="${s.label} · ${s.side === 'aff' ? 'Aff' : 'Neg'}${hasTr}"${isRun ? ` aria-label="${s.label}, running"` : ''}${i === R.cur ? ' aria-current="true"' : ''}>${short}${hasTr ? '<i class="sp-dot" aria-label="has transcript"></i>' : ''}${info}</button>`;
+    return `<button class="sp ${s.side} ${i === R.cur ? 'on' : ''}${isRun ? ' run' : ''}" data-i="${i}" data-tip="${s.label} · ${L.sideLabel(FMT(), s.side)}${hasTr}"${isRun ? ` aria-label="${s.label}, running"` : ''}${i === R.cur ? ' aria-current="true"' : ''}>${short}${hasTr ? '<i class="sp-dot" aria-label="has transcript"></i>' : ''}${info}</button>`;
   }).join('');
 }
 function renderClock() {
@@ -50,7 +50,7 @@ function renderClock() {
   // One clock, drawn into both places: the round bar and the narrow clock view (spec 5.6b).
   renderClockInto($('#clock'), shown);
   renderClockInto($('#cv-clock'), shown);
-  $('#cur-label').innerHTML = `<span class="${s.side}">${s.label}</span> <span class="muted">${L.speakerOf(FMT(), s.speaker).label} · ${s.minutes} min</span>`;
+  $('#cur-label').innerHTML = `<span class="${s.side}">${s.label}</span> <span class="muted">${L.speechSpeakers(FMT(), s).map((x) => x.label).join(' & ')} · ${s.minutes} min</span>`;
   const verb = R.run ? 'Pause' : (leftFor(s) < fullTime(s) ? 'Resume' : 'Start');
   $('#t-start').textContent = verb;
   renderClockView(s, shown, verb);
@@ -223,7 +223,7 @@ function renderPrep() {
       el.textContent = L.formatClock(Math.max(0, Math.ceil(left)));
       tone(el, left <= 0 ? 'error' : '');
     }
-    const name = side === 'aff' ? 'Aff' : 'Neg';
+    const name = L.sideLabel(FMT(), side);
     document.querySelectorAll(`[data-prep="${side}"]`).forEach((b) => {
       b.textContent = mine ? 'Stop' : 'Start';
       if (b.closest('#clock-view')) b.setAttribute('aria-label', (mine ? 'Stop ' : 'Start ') + name + ' prep');
@@ -237,7 +237,7 @@ function togglePrep(side) {
   const id = prepClockOn(side).id;
   if (R.prepRun && R.prepRun.side === id) return stopPrep();
   stopPrep(); pauseSpeech();
-  if (R.prepLeft[id] <= 0) return toast(side.toUpperCase() + ' has no prep left');
+  if (R.prepLeft[id] <= 0) return toast(L.sideLabel(FMT(), side).toUpperCase() + ' has no prep left');
   PREP_CLOCK.start({ side: id }, R.prepLeft[id]);
 }
 document.querySelectorAll('[data-prep]').forEach((b) => b.addEventListener('click', () => togglePrep(b.dataset.prep)));

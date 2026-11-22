@@ -60,7 +60,7 @@ function renderEvalStatus() {
 }
 setInterval(() => { if (R.tab === 'eval') renderEvalStatus(); syncInsightsReady(); }, 5000);
 const sideClass = (x) => (x === 'aff' ? 'aff' : x === 'neg' ? 'neg' : '');
-const sideLabel = (x) => ({ aff: 'Aff', neg: 'Neg', even: 'Even', unclear: 'Unclear', 'toss-up': 'Toss-up' }[x] || x);
+const sideLabel = (x) => ({ aff: L.sideLabel(FMT(), 'aff'), neg: L.sideLabel(FMT(), 'neg'), even: 'Even', unclear: 'Unclear', 'toss-up': 'Toss-up' }[x] || x);
 // The small Live Eval summary in the Flow workspace (V9). With no AI the pane is folded to its edge, so it stays empty.
 // States: empty ("No read of the round yet."), loading ("Updating…"), error (the aiErrorText line and Try again),
 // offline (the offline line; Update is off and the line says why). Before the round has something to read
@@ -118,7 +118,7 @@ function renderEval() {
   const lean = ev.leaning || {};
   const team = lean.side === 'aff' ? R.aff.team : lean.side === 'neg' ? R.neg.team : '';
   const issues = ev.key_issues || [];
-  const tally = L.issueTally(issues);
+  const tally = L.issueTally(issues, FMT());
   const total = Math.max(1, tally.aff + tally.even + tally.neg);
   // The paired bar: Aff on the left, Even in the middle, Neg on the right. The words carry the meaning, not the colours.
   const bar = `<div class="tally" role="img" aria-label="${e(tally.text)}"><div class="tally-bar" aria-hidden="true">`

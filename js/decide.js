@@ -181,7 +181,7 @@ function insertedToast(n) {
 
 // ----- the review (spec 4.4) -----
 const diffHtml = (diff) => diff.map((d) => d.op === 'del' ? `<del><span class="sr-only">removed: </span>${escapeHtml(d.text)}</del>` : d.op === 'ins' ? `<ins><span class="sr-only">added: </span>${escapeHtml(d.text)}</ins>` : escapeHtml(d.text)).join('');
-const winText = (w) => (w === 'aff' ? 'Aff' : w === 'neg' ? 'Neg' : '–');
+const winText = (w) => (w === 'aff' || w === 'neg' ? L.sideLabel(FMT(), w) : '–');
 function cardBody(c) {
   const e = escapeHtml;
   if (c.id === 'winner') return `<table class="rv-table"><thead><tr><th scope="col">Now</th><th scope="col">AI</th></tr></thead><tbody><tr><td>${winText(c.base.winner)}</td><td>${winText(c.after.winner)}</td></tr></tbody></table>`;
@@ -481,8 +481,8 @@ function renderBallotCheck(now) {
   const given = (id) => p[id] !== undefined && p[id] !== '';
   // A side's total: every debater on that side has points, else a dash.
   const sum = (side) => { const ids = L.speakersOn(FMT(), side).map((x) => x.id); return ids.every(given) ? ids.reduce((t, id) => t + Number(p[id]), 0).toFixed(1) : '–'; };
-  $('#sum-aff').textContent = 'Aff ' + sum('aff');
-  $('#sum-neg').textContent = 'Neg ' + sum('neg');
+  $('#sum-aff').textContent = L.sideLabel(FMT(), 'aff') + ' ' + sum('aff');
+  $('#sum-neg').textContent = L.sideLabel(FMT(), 'neg') + ' ' + sum('neg');
   $('#ranks-set').textContent = ranksOn() ? 'Ranks: ' + L.ranksSet(R.ballot, FMT()) + ' of ' + FMT().speakerIds.length + ' set.' : '';
   const wait = 1000 - (Date.now() - checkAt);
   if (now === true || wait <= 0) return drawBallotCheck();

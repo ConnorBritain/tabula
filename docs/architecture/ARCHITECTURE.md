@@ -254,10 +254,10 @@ Format order: LD, then PF (owner decision). College policy comes almost free wit
 |---|---|
 | `id`, `version`, `name`, `level` | Identity. `version` rises on any change. |
 | `sides` | Labels and colors (Aff/Neg, Pro/Con, Gov/Opp) |
-| `speeches` | id, label, side, seconds, speaker, `kind` (`speech`, `cx`, `crossfire`, `grandCrossfire`, `poiAllowed`), flow column |
+| `speeches` | id, label, side, seconds, speaker, `kind` (`speech`, `cx`, `crossfire`; later `poiAllowed`), flow column. A grand crossfire is a `crossfire` row with four `speakers`. |
 | `flowColumns`, `defaultSheets` | The flow grid and first sheets |
 | `prep` | seconds and mode (`perTeam`, `perDebater`, `sharedPool`, `beforeRound`) |
-| `order` | `fixed` or `coinFlip` |
+| `order` | absent (fixed) or `coinFlip` (built: see below) |
 | `ballot` | `winLoss` or `rank4`; points min, max, step; speaker ranks yes or no; wording |
 | `evidence` | `cards`, `paraphraseAllowed` or `none`; doc share on or off |
 | `ai` | transcribe hint, judge rules text, "no new arguments in" list |
@@ -272,7 +272,11 @@ Format order: LD, then PF (owner decision). College policy comes almost free wit
 - **Records and credit debits also carry `productLine`** (`debate` or `events`), so reports can split use by line (BRAND.md §5).
 - **Hosted AI:** the client sends `format` and `formatVersion`, never rules text. The server's copy of each `ai` block is **generated from the same format files at deploy**, so the two cannot drift. An unknown version gets a "Reload the app" error. Prompt templates are keyed by task and format.
 - **A schema test** checks every format file: required fields, speech IDs unique, each flowed speech maps to a column, the times add up.
-- **New code still needed** (FORMATS.md §4): coin-flip order and crossfire rows (PF), per-debater prep (LD), POI tally (parli), rank ballots, and four teams (BP, large).
+- **Built so far:** per-debater prep (LD, `prep.mode: 'perDebater'`), and for PF (`formats/pf.v1.js`):
+  - **Coin-flip order.** The file says `order: 'coinFlip'`. Each speech and flow column names its `team` (`first` or `second`), not its side, and each speech names its debater by name box (`slot`). Labels may hold `{side}` ("{side} Constructive"). The round stores the side that speaks first as `round.firstSide` (`aff` or `neg`; missing or bad = `aff`), and `formatFields` writes it with `format` and `formatVersion`, so round files, saved ballots and hosted AI bodies carry it. `formatOf(round)` returns the format seated for that order (`logic/format.js` `seat`): each speech gets its side, debater and label, so all other code reads a normal format. Speech ids keep their places across orders. Round setup has a "Speaks first" pick; once speech work exists (`orderInUse`), a change asks first. A file with no `order` is fixed order and is never seated.
+  - **Crossfire rows.** `kind: 'crossfire'` with `speakers` (two, or all four for grand crossfire) and `column: null`. The row's side is worked out from its debaters: one side, or `both` (no side colour, the word "Both"). `speechSpeakers(fmt, speech)` gives a row's debaters for the clock line and the AI transcript heading.
+  - **Side words.** Screen text that names a side reads the format's `sides` labels (`sideLabel`; `data-side-word` and `data-side-name` in index.html), so PF says Pro and Con. Policy and LD are unchanged; `fixtures/format-baseline.json` and `formats-pf.test.js` check that.
+- **New code still needed** (FORMATS.md §4): POI tally (parli), other rank ballots and point scales, and four teams (BP, large). Hosted AI for LD and PF needs the server's format list and its generated `ai` copy first (and PF bodies carry `firstSide`).
 - **Per-format cost:** shorter rounds use fewer credits. See `SCALING.md` §3.3.
 
 ## 10. Tabula Speech Events

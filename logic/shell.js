@@ -9,7 +9,8 @@
 
   // ---------- Slice 5: shell and reach (docs/design/SPEC.md §3.5) ----------
 
-  const sideName = (side) => (side === 'aff' ? 'Aff' : 'Neg');
+  // The side's word on screen ('Aff', 'Pro'; 'Both' for a crossfire row). fmt: policy-hs when not given.
+  const sideName = (side, fmt) => F.sideLabel(fmt || F.POLICY, side);
   // fmt below: the round's format (policy-hs when not given).
   const speechOf = (id, fmt) => F.speechOf(fmt || F.POLICY, id);
 
@@ -29,7 +30,7 @@
     }
     if (s.prep && (s.prep.side === 'aff' || s.prep.side === 'neg')) {
       const left = Math.max(0, Math.ceil(Number(s.prep.left)));
-      return { text: sideName(s.prep.side) + ' prep · ' + formatClock(left), tone: left <= 30 ? 'caution' : '', side: s.prep.side, kind: 'prep', said: sideName(s.prep.side) + ' prep clock still running' };
+      return { text: sideName(s.prep.side, s.format) + ' prep · ' + formatClock(left), tone: left <= 30 ? 'caution' : '', side: s.prep.side, kind: 'prep', said: sideName(s.prep.side, s.format) + ' prep clock still running' };
     }
     return null;
   }
@@ -53,7 +54,7 @@
     const f = fmt || F.POLICY;
     const s = speechOf(id, f); if (!s) return '';
     const who = F.speakersOn(f, s.side).length > 1 ? [s.speaker] : [];
-    return [shortSpeech(s.id), sideName(s.side), ...who, s.minutes + ' min'].join(' · ');
+    return [shortSpeech(s.id), sideName(s.side, f), ...who, s.minutes + ' min'].join(' · ');
   }
   // The word under the big clock. Colour never carries it alone (colour rule 5).
   function clockStatus(running, left) {
