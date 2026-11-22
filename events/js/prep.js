@@ -17,6 +17,8 @@ import { usedAt, stoppedTiming, restoreRoom, resetTiming, clockText, timerFace }
 import { updateEntry } from './room.js';
 
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+// The note when a damaged save held more than one running clock (the same words as timer.js restoreRoom).
+const TWO_CLOCKS = 'Two clocks were running, so one was stopped. Check the times.';
 
 // Does this event time prep in the room on one shared limit? (v1: Impromptu. A separate prep cap, timing.prepMax, is a
 // later primitive: MODELS.md §4.3.)
@@ -101,7 +103,7 @@ export function restoreSharedRoom(room, now, limit, grace) {
   preps.forEach((e, i) => {
     const run = e.timing.prepRun;
     let timing;
-    if (i > 0) { timing = stoppedPrep(e.timing, run, leftAt(run.endAt, now, 0), limit, now); note('Two clocks were running, so one was stopped. Check the times.'); }
+    if (i > 0) { timing = stoppedPrep(e.timing, run, leftAt(run.endAt, now, 0), limit, now); note(TWO_CLOCKS); }
     else {
       const res = restoreTimer(run, now, { kind: 'prep', length: Number.isFinite(run.startLeft) ? run.startLeft : limit });
       if (res.state === 'none') { timing = Object.assign({}, e.timing, { prepRun: null }); note('A saved prep clock could not be read, so it was stopped. Check the time.'); }
@@ -117,13 +119,9 @@ export function restoreSharedRoom(room, now, limit, grace) {
     const e = r.entries.find((x) => x.id === runId);
     const lim = speechLimit(e.timing, now, limit);
     r = updateEntry(r, runId, (x) => Object.assign({}, x, { status: 'done', timing: stoppedTiming(x.timing, x.timing.run, lim - usedAt(x.timing, now, lim), lim, grace, now) }), now);
-    note('Two clocks were running, so one was stopped. Check the times.');
+    note(TWO_CLOCKS);
     runId = null;
   }
   return { room: r, runId, prepId, notes };
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).prep = Object.freeze({
-  hasSharedPrep, prepUsedAt, speechLimit, totalUsedAt, prepPhase, prepStartLeft, stoppedPrep, adjustPrep, resetAll, sharedFace,
-  restoreSharedRoom,
-});

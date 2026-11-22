@@ -14,6 +14,8 @@ export const QUESTION_MAX = 300;
 
 // Does this event have a drawn question? Limited-prep events with prep outside the room (USX, IX, COM, MX). Impromptu
 // (prep in the room, F3) draws a topic, which MODELS.md §4.3 leaves for later.
+// On purpose by category: any later limited-prep event with prep outside the room (a league extemp pack) gets the
+// field too, as MODELS.md §4.2 lists those events under F2.
 export const asksQuestion = (event) => Boolean(event && event.category === 'limitedPrep' && !(event.timing && event.timing.inRoomPrep));
 
 // The question to show: one line, trimmed. A missing field reads as ''.
@@ -30,4 +32,3 @@ export function setQuestion(room, value, now) {
   return Object.assign({}, room, { updatedAt: now, entries: room.entries.map((x) => (x.id === cur ? Object.assign({}, x, { question: text }) : x)) });
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).question = Object.freeze({ QUESTION_MAX, asksQuestion, questionOf, setQuestion });

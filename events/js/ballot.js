@@ -121,7 +121,8 @@ export function printModel(room, event, limit) {
   const head = [{ text: 'Code' }, { text: 'Rank' }].concat(rated ? [{ text: 'Rating' }] : [], [{ text: 'Time' }, { text: 'Over time' }]);
   const tableRows = rows.map((r) => {
     const e = entryOf(room, r.id);
-    // The time used; on a prep event (step E11) prep and speech together, against the shared limit.
+    // The time used; on a prep event (step E11) prep and speech together, against the shared limit. Like the speech
+    // time here since E8, it is the stopped time (a print has no clock); prep.js totalUsedAt is the live total.
     const used = Math.round((((e.timing && e.timing.usedMs) || 0) + ((e.timing && e.timing.prepMs) || 0)) / 1000);
     return [{ text: r.code }, { text: r.rank || '–' }].concat(rated ? [{ text: r.rating || '–' }] : [], [{ text: used ? clockText(used) : '–' }, { text: r.overTime ? 'Yes' : 'No' }]);
   });

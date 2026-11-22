@@ -234,3 +234,19 @@ test('restoreRoom still takes one limit for the whole room, and a function per e
   assert.deepEqual(fn, one);
   assert.equal(one.runId, a);
 });
+
+// Why: a judge who fixes prep with −10 s or +10 s and then reloads must get the corrected prep back; if the saved run's
+// startLeft were stale, the reload would read the change as a moved device clock and restart prep from the wrong time.
+test('restore after a correction to a running prep keeps the corrected time, with no clock-moved note', () => {
+  for (const delta of [-10, 10]) {
+    const state = { room: impRoom(), now: T0 };
+    const id = state.room.entries[0].id;
+    const c = clocks(state, id);
+    c.startPrep(); c.wait(30);
+    state.room = updateEntry(state.room, id, (e) => Object.assign({}, e, { timing: adjustPrep(e.timing, delta, state.now, L) }), state.now);
+    const res = restoreSharedRoom(JSON.parse(JSON.stringify(state.room)), state.now + 20000, L, 30);
+    assert.deepEqual(res.notes, [], 'delta ' + delta);
+    assert.equal(res.prepId, id);
+    assert.equal(prepUsedAt(entryOf(res.room, id).timing, state.now + 20000, L), 50 + delta, 'delta ' + delta);
+  }
+});
