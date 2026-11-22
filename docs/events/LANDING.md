@@ -119,6 +119,14 @@ F1a goes first. It needs the fewest parts, so it proves the whole line (set up â
 | **E13** | AI clean-up with the judge's own key | all | C11â€“C13 | With AI off the button is gone, not greyed; the judge must accept the word diff |
 | **E14** | Hosted AI clean-up (`events.cleanup`) | all | E13; cloud task and round rule (PLAN.md Q2) | Hosted path tests; scrubbing of codes and typed names |
 
+**E2 release rule (how the service worker names and replaces a release):**
+
+- **Name:** a content hash. `node events/build-sw.mjs` finds every file the page loads (the `<script>`/`<link>` tags in `events/index.html`, each static import, each CSS `url()`, and the files `events/js/data.js`'s loader reads) and writes `events/sw-files.js`: the list plus the first 16 hex digits of a SHA-256 over each path and its bytes. `events/sw.test.mjs` fails while that file is out of date, so run the build after any change to a file the page loads.
+- **One release = one cache:** `tabula-events-<hash>`. Any changed byte changes the hash, so `sw-files.js` changes, so the browser installs a new worker. Install fetches every file past the HTTP cache (`cache: 'reload'`); one failure fails the install and the old release stays. Then the new worker takes over at once (`skipWaiting`), and activate deletes every older `tabula-events-*` cache (no other cache). The page is always served from one release, never a mix.
+- **Scope and limits:** `events/sw.js` controls `events/` only, never the debate app. It answers only listed same-origin GET files; `/api/`, other hosts, POST and unlisted files go to the network, and nothing is added to the cache at run time. Page rule: load every module at boot (static imports only, no `import()`), and fetch only through the event loader; the test checks both.
+- **Registration:** `events/js/offline.js` (`registerOffline`, with `updateViaCache: 'none'`), called once from `events/js/app.js`.
+- **Deploy note:** the host must serve `events/sw.js` and `events/sw-files.js` with the rest of `events/`. A later deploy step that rewrites paths must keep `core/` and `assets/` one level above `events/`, as the list's `../` paths expect.
+
 After E14, v1 is complete. PLAN.md P2's "done when" applies: 10 judges at one real tournament, all gates green, axe and keyboard pass.
 
 E9 to E12 are independent once E8 is in. They touch different files, so they can land in any order or in parallel sessions.

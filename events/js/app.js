@@ -7,10 +7,12 @@ import { createUI } from '../../core/ui.js';
 import { createEventsStore, ROOMS_KEY } from './store.js';
 import { loadEventData } from './data.js';
 import { groupRoomsByDay, roomsHtml } from './rooms.js';
+import { registerOffline } from './offline.js';
 
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
 const store = createEventsStore(ui);
+registerOffline();
 
 // Read one file under events/. A reply that is not JSON (for example a host's HTML error page) names the file.
 async function readJson(path) {
