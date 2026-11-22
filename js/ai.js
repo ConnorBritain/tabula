@@ -182,7 +182,7 @@ function hostedFail(info) {
 }
 // One hosted call. job: an L.HOSTED_TASKS key; extra: what that job needs from the caller (L.hostedState).
 // Returns the answer text. The judge's Stop (signal) cancels the stream, and the server charges only what it sent.
-async function callHosted({ job, extra, signal }) {
+async function callHosted({ job, extra, signal, feature }) {
   const anon = (v) => L.anonymize(v, R);
   const state = L.hostedState(job, R, DOCS, extra);
   for (const k of Object.keys(state)) if (typeof state[k] === 'string') state[k] = anon(state[k]); // names only live in text
@@ -192,6 +192,8 @@ async function callHosted({ job, extra, signal }) {
   // A limit already reached: no request (Terms §6.4: the round goes on with the free tools).
   const blocked = L.roundBlocks(job, hostedLimits && hostedLimits.round);
   if (blocked) throw hostedFail(Object.assign(L.hostedError(409, blocked), { status: 409 }));
+  // "Ask me first": the judge's yes before the round's first AI call; "Not this round" sends nothing (js/limits.js).
+  if (!(await roundConsent(feature))) throw STOPPED();
   const req = L.hostedRequest(R, job, state, newCallId(), hostedResume);
   let res;
   try { res = await fetch(req.url, { ...req.init, signal: withStop(signal, 240000) }); }
@@ -255,7 +257,7 @@ async function callAI({ feature, system, prompt, note, schema, effort = 'medium'
   if (hosted && useHosted(feature)) {
     if (navigator.onLine === false) throw aiError({ online: false }, '');
     // The reading level goes as a key; the server owns its guide text.
-    try { return hostedResult(await callHosted({ job: hosted.job, extra: Object.assign({}, hosted.extra, { reading }), signal }), schema); }
+    try { return hostedResult(await callHosted({ job: hosted.job, extra: Object.assign({}, hosted.extra, { reading }), signal, feature }), schema); }
     catch (err) {
       if (!(err.fallback && aiReady())) throw err;
       console.warn('Hosted AI is not available now (' + err.hosted + '); using the own key.');

@@ -18,7 +18,7 @@
   const { TRANSCRIBE_HINT, buildTranscribePrompt, isHintEcho, appendChunk, AUDIO_MODES, micConstraints, levelInfo,
     micTestVerdict, stallWarning, recStatus, REC_PROBLEM_WORD, encodeWav, rms, mergeOverlap } = part('audio');
   const { speechColumn, FLOW_LEVELS, partText, aiFlowCell, flowCellText, editIsBehind, mergeMap, applyLiveFlow,
-    FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged } = part('flow');
+    FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged, AI_FLOW_EMPTY, emptyFlowHtml } = part('flow');
   const { buildBackup, parseBackup, backupSummary, DOC_SIDES, DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech,
     parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, orderInUse,
     buildRoundFile, parseRoundFile, roundFileName, docTitle, buildDocBlocks, buildUserContent } = part('files');
@@ -46,8 +46,9 @@
     showSetupFor, offTokens, visibleTourSteps, keyNoticeDue, KEY_NOTICE } = part('caps');
   const { PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
     activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody } = part('account');
-  const { limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal } = part('limits');
-  const { BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hasHostedPlan, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
+  const { limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
+    roundMode, consentStep, consentAsk, roundsLeftText, consentLine } = part('limits');
+  const { BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPays, selfPaidHosted, hasHostedPlan, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
   const { DEMO_CTA, demoSample, demoParamFor, demoCtaButtons, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript } = part('demo');
 
   const api = {
@@ -78,7 +79,7 @@
     speechEndedSince, ranksSet, moveRank, stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, historyTable, historyColumns, decisionText, tournamentBlocks, printModel, printSheet,
     prepUsed, keyMoments, issueTally, andList, outOfDateText, runVerb, readingFor, decideTab,
     // Slice 4, Option B (Q-8): flow mark shading
-    FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged,
+    FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged, AI_FLOW_EMPTY, emptyFlowHtml,
     // Slice 5: shell and reach
     chipText, chipTip, CHIP_NAME_MS, chipNameDue, NET_TIP, netNote, speechLine, clockStatus, prepPausesLine,
     stepSpeechState, studyOn, studyMark, studyResult,
@@ -99,7 +100,8 @@
     FLAGS, FLAG_GROUP, flagOn,
     // Hosted AI calls (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3) and their round limits (Terms §6.4)
     limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
-    BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError,
+    roundMode, consentStep, consentAsk, roundsLeftText, consentLine,
+    BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPays, selfPaidHosted, hostedState, hostedRequest, readSse, sseStep, hostedError,
     // The staged demo of the AI features (?demo=policy or ?demo=ld; js/demo.js, demo/*.js)
     DEMO_CTA, demoSample, demoParamFor, demoCtaButtons, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript,
   };

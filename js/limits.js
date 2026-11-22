@@ -7,40 +7,50 @@
 
 // The server sends the limits and the round's AI state (L.parseLimits); nothing here is a fixed number. The Round card
 // shows the limits; the bottom bar shows the round's state (time left, paused with a tap to resume, limit reached).
-let hostedLimits = null; // { limits, round, skew } from the server, or null
+let hostedLimits = null; // { limits, round, roundId, skew, roundsLeft } from the server, or null
+// The server's state for THIS round (R.id), or null: an old round's state never stands for a new one.
+const thisRound = () => (hostedLimits && hostedLimits.roundId === R.id ? hostedLimits.round : null);
 let hostedResume = false; // the judge tapped "Turn AI back on": the next hosted call lifts the idle pause
 const hostedNow = () => Date.now() + (hostedLimits ? hostedLimits.skew : 0);
 function setHostedRound(round) {
   if (!round) return;
-  hostedLimits = Object.assign({ limits: {}, skew: 0 }, hostedLimits, { round });
-  renderHostedRound();
+  const was = thisRound();
+  hostedLimits = Object.assign({ limits: {}, skew: 0, roundsLeft: null }, hostedLimits, { round, roundId: R.id });
+  renderHostedRound(); renderRoundsLeft();
+  // The round's AI just started (the server used the round): read the new rounds left.
+  if (round.state === 'active' && (!was || was.state === 'open')) refreshLimits();
 }
 // At a round boundary (js/caps.js applyCapabilities): read the limits for this round. No hosted access: show nothing.
 async function refreshLimits() {
-  if (!L.hostedAny(capsGate)) { hostedLimits = null; renderHostedRound(); return; }
+  if (!L.hostedAny(capsGate)) { hostedLimits = null; renderHostedRound(); renderRoundsLeft(); return; }
   const req = L.limitsRequest(R.id);
   try {
     const res = await fetch(req.url, { ...req.init, signal: AbortSignal.timeout(8000) });
     const got = res.ok ? L.parseLimits(await res.json().catch(() => null), Date.now()) : null;
-    if (got) hostedLimits = got;
-  } catch {} // offline or no route yet: keep what we have
-  renderHostedRound();
+    if (got) hostedLimits = Object.assign(got, { roundId: R.id });
+  } catch {} // offline or no route yet: keep what we have (thisRound() still ignores another round's state)
+  renderHostedRound(); renderRoundsLeft();
 }
 function renderHostedRound() {
   const on = Boolean(hostedLimits) && L.hostedAny(capsGate);
   const lines = on ? L.limitsLines(hostedLimits.limits) : [];
   const box = document.getElementById('ai-limits');
   if (box) { box.hidden = !lines.length; box.textContent = lines.join(' '); }
-  const line = on ? L.roundLine(hostedLimits.round, hostedNow()) : null;
+  const round = thisRound();
+  const line = (on ? L.roundLine(round, hostedNow()) : null) || L.consentLine({ selfPaid: L.selfPaidHosted(capsGate), round, consent: R.aiConsent });
   const bar = document.getElementById('ai-round');
   if (bar) { bar.hidden = !line; document.getElementById('ai-round-text').textContent = line ? line.text : ''; }
   const btn = document.getElementById('ai-resume');
   if (btn) btn.hidden = !(line && line.resume);
+  const turnOn = document.getElementById('ai-consent-on');
+  if (turnOn) turnOn.hidden = !(line && line.turnOn);
 }
 document.addEventListener('click', (e) => {
-  if (!e.target.closest || !e.target.closest('#ai-resume') || !hostedLimits || !hostedLimits.round) return;
+  const r = thisRound();
+  if (!e.target.closest || !e.target.closest('#ai-resume') || !r) return;
   hostedResume = true; // the next hosted call asks the server to lift the pause
-  setHostedRound(L.resumedRound(hostedLimits.round));
+  setHostedRound(L.resumedRound(r));
   toast('Turning AI back on. It starts with the next update.');
 });
+
 setInterval(() => { if (hostedLimits) renderHostedRound(); }, 30000); // time left counts down; a pause shows when it starts

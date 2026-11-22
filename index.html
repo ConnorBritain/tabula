@@ -113,6 +113,7 @@
   .flowtabs .sheet-learn { margin-left: auto; display: inline-flex; align-items: center; min-height: var(--h-sm); padding: 0 var(--s3); border-radius: var(--r-md); border: 1px solid var(--border-ctl); color: var(--text-2); font-size: var(--fs-2); text-decoration: none; }
   .flowtabs .sheet-learn:hover { background: var(--sunk); }
   #ai-flow-status { flex-basis: 100%; font-weight: var(--fw-3); margin-top: var(--s1); }
+  .ai-flow-empty { flex-basis: 100%; margin: var(--s1) 0 0; }
   /* The Flow grid (V6, V7, Q1, Q2): the one raised card. Mono text, one line height in every column, so rows line up.
      13 px, 14 px when the grid is 840 px wide or more, and 16 px on touch devices so iPad Safari does not zoom (Q-9). */
   #tab-flow { container: flow / inline-size; }
@@ -137,6 +138,7 @@
   .col-mark:empty { display: none; }
   .flow textarea { display: block; min-height: 64vh; border: 0; border-radius: 0; background: transparent; padding: var(--s2) var(--s3); font: var(--fs-grid)/var(--lh-grid) var(--font-mono); }
   .flow textarea:focus-visible { outline-offset: -2px; }
+  .flow .flow-cell-empty { min-height: 64vh; } /* the AI flow before its first update: empty columns, same height as a sheet */
   .flow .col.aff textarea { color: var(--aff); } .flow .col.neg textarea { color: var(--neg); }
   /* Option B (Q-8) mark layer: a see-through mirror behind each flow textarea with the same box, font and wrapping.
      Both reserve the same scrollbar gutter, so their text widths match. Only the mark shades show; the typed mark
@@ -152,7 +154,6 @@
   .flow-hl .fm-extend { background: var(--border); }
   .flow-hl .fm-turn { box-shadow: inset 0 0 0 1px var(--border-ctl); }
   .flow-hl .fm-weigh { outline: 1px dotted var(--border-ctl); outline-offset: -1px; }
-  .flow-empty { grid-column: 1 / -1; padding: var(--s4); margin: 0; }
   /* Tables, ballot, eval (14 px) */
   table { width: 100%; border-collapse: collapse; font-size: var(--fs-2); }
   th { text-align: left; font-size: var(--fs-1); font-weight: var(--fw-3); color: var(--text-2); padding: var(--s2); border-bottom: 1px solid var(--border-ctl); }
@@ -404,6 +405,10 @@
   .theme-pick { border: 0; margin: 0; padding: 0; min-width: 0; }
   .theme-pick legend { padding: 0; margin-bottom: var(--s1); font-size: var(--fs-2); font-weight: var(--fw-2); color: var(--text-2); }
   .theme-pick .row { gap: var(--s4); }
+  .round-mode .check-row { align-items: flex-start; margin-top: var(--s2); }
+  .round-mode .check-row .field-help { display: block; }
+  .rounds-big { margin: 0 0 var(--s3); font-size: var(--fs-4); font-weight: var(--fw-3); font-variant-numeric: tabular-nums; }
+  .rounds-big a { margin-left: var(--s2); font-size: var(--fs-2); font-weight: var(--fw-2); }
   .meter { display: inline-block; width: 64px; height: 8px; border-radius: var(--r-pill); background: var(--border); overflow: hidden; vertical-align: middle; flex: none; }
   .meter.big { width: 140px; height: 10px; }
   .meter[hidden] { display: none; }
@@ -669,6 +674,8 @@
   .clock-chip { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--h-md); padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); font-variant-numeric: tabular-nums; white-space: nowrap; cursor: pointer; flex: none; }
   .clock-chip:hover { background: var(--sunk); border-color: var(--text-2); }
   .clock-chip[hidden] { display: none; }
+  /* Rounds left (docs/design/AI-ROUND-CONSENT.md §3): the same pill as the clock chip, quiet text. */
+  .rounds-pill { font-weight: var(--fw-2); color: var(--text-2); }
   /* Last 30 s and over time (spec 5.2). These must come after .clock-chip, which sets color and would win over the global .is-caution / .is-error. */
   .clock-chip.is-caution { color: var(--caution); } .clock-chip.is-error { color: var(--error); }
   .chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); flex: none; }
@@ -840,6 +847,7 @@
   <span class="spacer"></span>
   <button class="clock-chip" id="clock-chip" type="button" hidden><span class="chip-dot" aria-hidden="true"></span><span id="clock-chip-text" aria-hidden="true"></span></button>
   <span class="net-note" id="net-note" role="status"></span>
+  <button class="clock-chip rounds-pill" id="rounds-pill" type="button" hidden></button>
   <div class="help-wrap">
     <button class="iconbtn" id="help-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="help-menu" aria-label="Help and tours" data-tip="Help and tours">?</button>
     <div class="help-menu" id="help-menu" role="menu" aria-label="Help" hidden>
@@ -1190,6 +1198,16 @@
       <div data-ai="aiFlow"><label>&nbsp;</label><label class="row check-row"><input type="checkbox" id="live-flow"> Live AI flow during speeches <span class="muted">(uses AI while a speech runs)</span></label></div>
     </div>
   </div>
+  <div class="card" id="ai-rounds-card" hidden>
+    <h2>AI rounds</h2>
+    <p class="rounds-big"><span id="rounds-left-num"></span> <a id="rounds-buy" target="_blank" rel="noopener">Buy rounds</a></p>
+    <fieldset class="theme-pick round-mode" aria-describedby="round-mode-help">
+      <legend>When a round starts</legend>
+      <label class="row check-row"><input type="radio" name="round-mode" value="ask"> <span><strong>Ask me first</strong><span class="muted field-help">Before AI runs in a round, Tabula asks you. Nothing is used until you say yes.</span></span></label>
+      <label class="row check-row"><input type="radio" name="round-mode" value="auto"> <span><strong>Use AI automatically</strong><span class="muted field-help">Your AI settings run on their own. Each round with AI uses 1 round.</span></span></label>
+    </fieldset>
+    <p class="muted field-help" id="round-mode-help">The clock, flow and ballot are always free.</p>
+  </div>
   <div class="card" id="account-card" hidden>
     <h2>Your paradigm</h2>
     <p class="muted" id="acct-who"></p>
@@ -1345,7 +1363,7 @@
   <div class="rb-prep"><span class="aff" data-side-word="aff" data-side-after=" prep">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
   <div class="rb-prep"><span class="neg" data-side-word="neg" data-side-after=" prep">Neg prep</span><span class="t" id="prep-neg">8:00</span><button class="b small" data-prep="neg">Start</button></div>
   <span id="mini-rec" class="rb-ai" data-ai="any"></span>
-  <span id="ai-round" class="rb-ai" role="status" aria-live="polite" hidden><span id="ai-round-text"></span> <button class="b small" id="ai-resume" type="button" hidden>Turn AI back on</button></span>
+  <span id="ai-round" class="rb-ai" role="status" aria-live="polite" hidden><span id="ai-round-text"></span> <button class="b small" id="ai-resume" type="button" hidden>Turn AI back on</button><button class="b small" id="ai-consent-on" type="button" hidden>Turn on AI</button></span>
 </footer>
 <div id="node-editor" class="overlay" role="dialog" aria-modal="true" aria-labelledby="ne-title" hidden>
   <div class="overlay-card narrow">
@@ -1484,6 +1502,7 @@
 <script defer src="js/docs.js"></script>
 <script defer src="js/ai.js"></script>
 <script defer src="js/limits.js"></script>
+<script defer src="js/consent.js"></script>
 <script defer src="js/settings.js"></script>
 <script defer src="js/help.js"></script>
 <script defer src="js/insights.js"></script>
