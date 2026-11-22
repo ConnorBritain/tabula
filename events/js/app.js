@@ -17,10 +17,12 @@ import { createTimerView } from './timer-view.js';
 import { createCommentView } from './comment-view.js';
 import { createRankScreen } from './rank-screen.js';
 import { createReviewScreen } from './review-screen.js';
+import { registerOffline } from './offline.js';
 
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
 const store = createEventsStore(ui);
+registerOffline();
 
 // Read one file under events/. A reply that is not JSON (for example a host's HTML error page) names the file.
 async function readJson(path) {
