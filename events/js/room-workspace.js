@@ -16,6 +16,8 @@
 //   validate(round)                           the lines that stop the ranks from being copied ([] = none)
 //   summary(round)                            { status, done, total, next } for a home card and History
 //   rankModel(round), reviewModel(round)      the data the Rank and Review screens draw
+// In S1 nothing in the page calls newRound, validate, summary, rankModel or reviewModel: the shipped screens still
+// read the room themselves. Their shapes are first drafts for S2 and later; check them before building on them.
 import { createRoom, present, nextWaiting } from './room.js';
 import { STATE_LABEL } from './rooms.js';
 import { boardCtx, ranksOf, ratingsOf } from './board.js';

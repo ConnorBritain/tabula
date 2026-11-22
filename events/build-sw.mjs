@@ -7,7 +7,8 @@
 //   - every CSS file: each url(...) and @import;
 //   - the event data: events/js/data.js's own loader (loadEventData), run with a reader that notes each file it asks for;
 //   - every workspace module in the round-type router's registry (events/js/workspaces.js WORKSPACES), and what each
-//     one imports, so a round still opens offline when a workspace is loaded on demand (EXPERIENCE.md §9).
+//     one imports. Today workspaces.js also imports them statically, so the main crawl finds them too; this seed keeps
+//     them cached once a workspace loads on demand (EXPERIENCE.md §9).
 // The release name is a content hash of that list (each path and its bytes). A change to any cached byte changes the
 // hash, so sw-files.js changes, so the browser installs a new worker and replaces the whole cache at once.
 // events/sw.test.mjs fails while sw-files.js is out of date.

@@ -49,7 +49,8 @@ test('every room family loads the room workspace, and it has each §2.3 contract
 });
 
 // Why: a workspace module missing from the service worker list fails cold at a school with no wifi: the judge opens
-// a round and gets nothing (EXPERIENCE.md §9).
+// a round and gets nothing (EXPERIENCE.md §9). While workspaces.js imports its modules statically, the main crawl also
+// finds them; this test starts to matter on its own once a workspace loads on demand.
 test('every registry module is in the service worker list (events/sw-files.js)', () => {
   const ctx = vm.createContext({ self: {} });
   vm.runInContext(read('sw-files.js'), ctx);
