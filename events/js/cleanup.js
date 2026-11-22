@@ -13,6 +13,7 @@
 import { reviewCard, staleCards, applyReview } from '../../core/review.js';
 import { buildAIRequest, parseAIResponse, extractJson } from '../../core/ai.js';
 import { CLEANUP_PROMPT, CLEANUP_SCHEMA } from '../prompts/cleanup.v1.js';
+import { ballotComment } from './comments.js';
 
 // The AI policy key for this button (ARCHITECTURE.md §7: `ballotDraft`, reused; AI-POLICY.md §2a), and the hosted
 // task name the Worker meters (PLAN.md P2; used by E14). A task name is not a feature key: the gate only knows keys.
@@ -63,12 +64,9 @@ export const showCleanupButton = (o) => cleanupPath(o) !== 'none';
 // ---------- what text is cleaned ----------
 
 // The judge's own words for one entry: the comment if there is one, else the notes. Rule-check flags and their notes
-// are never sent (LANDING.md E6: a flag never reaches the student comment unless the judge writes it).
-export function sourceText(entry) {
-  const e = entry || {};
-  const c = String(e.comment || '');
-  return c.trim() ? c : String(e.notes || '');
-}
+// are never sent (LANDING.md E6: a flag never reaches the student comment unless the judge writes it). Since E6 this
+// is the one ballot-text rule in comments.js (same behavior as the first version here), under this file's name.
+export const sourceText = ballotComment;
 // The entries a clean-up may send: chosen ids (or all), not a no-show, with some text.
 export function cleanableEntries(room, ids) {
   const want = ids ? new Set([].concat(ids)) : null;

@@ -2,8 +2,14 @@
 // createRoomScreen as a view, under the timer card. Every keystroke saves (no Save button), so a reload loses
 // nothing. The rules are in comments.js. The builder at the top is pure (Node tests call it).
 import { escapeHtml as esc } from '../../core/sheets.js';
-import { KINDS, KIND_TITLE, tagKey, checkLabel, tapChip, toggleCheck, setNotes, setPrivateNote } from './comments.js';
+import { KINDS, KIND_TITLE, tagKey, checkLabel, tapChip, toggleCheck, applyInput } from './comments.js';
 import { entryOf, updateEntry } from './room.js';
+
+// One chip and one rule check as HTML text (the sheet draws them, and a tap redraws just that button).
+export const chipHtml = (t, kind, on) => `<button class="chip${on ? ' on' : ''}" type="button" data-cact="chip" data-kind="${kind}" data-tag="${esc(t.id)}" aria-pressed="${on}" title="${esc(t[kind])}">${esc(t.label)}</button>`;
+export const checkHtml = (c, flag) => `<button class="chk${flag ? ' flag' : ''}" type="button" data-cact="check" data-check="${esc(c)}" aria-pressed="${flag}"><span>${esc(checkLabel(c))}</span><span class="pill${flag ? ' err' : ' outline'}">${flag ? 'Flag' : 'OK'}</span></button>`;
+// Put a new button in place of the old one and keep the focus on it.
+function swap(old, html) { const t = document.createElement('template'); t.innerHTML = html; const n = t.content.firstElementChild; old.replaceWith(n); n.focus(); }
 
 // The comment sheet for one entry as HTML text. event: the room's event file (tags, checks and prompts).
 export function sheetHtml(room, entry, event) {
@@ -11,8 +17,8 @@ export function sheetHtml(room, entry, event) {
   const tags = (event && event.tags) || [];
   const chips = KINDS.map((kind) => `<div class="chip-group" role="group" aria-labelledby="chips-${kind}">
       <p class="chip-title" id="chips-${kind}">${KIND_TITLE[kind]}</p>
-      <div class="chips">${tags.map((t) => { const on = (entry.tags || []).includes(tagKey(kind, t.id)); return `<button class="chip${on ? ' on' : ''}" type="button" data-cact="chip" data-kind="${kind}" data-tag="${esc(t.id)}" aria-pressed="${on}" title="${esc(t[kind])}">${esc(t.label)}</button>`; }).join('')}</div></div>`).join('');
-  const checks = ((event && event.checks) || []).map((c) => { const flag = (entry.checks || {})[c] === 'flag'; return `<button class="chk${flag ? ' flag' : ''}" type="button" data-cact="check" data-check="${esc(c)}" aria-pressed="${flag}"><span>${esc(checkLabel(c))}</span><span class="pill${flag ? ' err' : ' outline'}">${flag ? 'Flag' : 'OK'}</span></button>`; }).join('');
+      <div class="chips">${tags.map((t) => chipHtml(t, kind, (entry.tags || []).includes(tagKey(kind, t.id)))).join('')}</div></div>`).join('');
+  const checks = ((event && event.checks) || []).map((c) => checkHtml(c, (entry.checks || {})[c] === 'flag')).join('');
   const prompts = ((event && event.prompts) || []).map((p) => `<li>${esc(p)}</li>`).join('');
   return `<div class="sheet" id="sheet">
     ${chips}
@@ -39,9 +45,7 @@ export function createCommentView() {
   function onInput(ev) {
     const f = ev.target.dataset && ev.target.dataset.cfield;
     const r = room();
-    if (!f || !r) return;
-    if (f === 'reason') { ctx.save(Object.assign({}, r, { reasonForRank: ev.target.value, updatedAt: env().now() })); return; }
-    change(r.current, (e) => (f === 'notes' ? setNotes(e, ev.target.value) : setPrivateNote(e, ev.target.value)));
+    if (f && r) ctx.save(applyInput(r, f, ev.target.value, env().now()));
   }
 
   function onClick(ev) {
@@ -51,7 +55,8 @@ export function createCommentView() {
     const e = entryOf(r, r.current);
     if (!e) return;
     if (b.dataset.cact === 'chip') {
-      const tag = (event(r).tags || []).find((t) => t.id === b.dataset.tag);
+      const ev0 = event(r);
+      const tag = ((ev0 && ev0.tags) || []).find((t) => t.id === b.dataset.tag);
       if (!tag) return;
       const box = $('#notes');
       // The cursor of the notes box, or its end when the box was not used yet.
@@ -59,15 +64,14 @@ export function createCommentView() {
       const res = tapChip(e, tag, b.dataset.kind, at);
       change(e.id, () => res.entry);
       if (box) { box.value = res.entry.notes; box.dataset.cursor = String(res.cursor); }
-      b.classList.toggle('on', res.on); b.setAttribute('aria-pressed', String(res.on));
+      swap(b, chipHtml(tag, b.dataset.kind, res.on));
       return;
     }
     if (b.dataset.cact === 'check') {
       const next = toggleCheck(e, b.dataset.check);
       change(e.id, () => next);
       const flag = next.checks[b.dataset.check] === 'flag';
-      b.classList.toggle('flag', flag); b.setAttribute('aria-pressed', String(flag));
-      const pill = b.querySelector('.pill'); pill.textContent = flag ? 'Flag' : 'OK'; pill.className = 'pill ' + (flag ? 'err' : 'outline');
+      swap(b, checkHtml(b.dataset.check, flag));
       const priv = $('#private-note'); if (priv) priv.value = next.privateNote;
       env().ui.announce(checkLabel(b.dataset.check) + (flag ? ': flagged, in your private note.' : ': OK.'));
     }
@@ -82,7 +86,7 @@ export function createCommentView() {
       if (!box) return;
       box.addEventListener('input', onInput);
       box.addEventListener('click', onClick);
-      for (const t of ['keyup', 'mouseup', 'select', 'blur']) box.addEventListener(t, keepCursor, true);
+      for (const t of ['keyup', 'mouseup', 'touchend', 'select', 'input', 'blur']) box.addEventListener(t, keepCursor, true);
     },
     show(c) { ctx = c; },
   };

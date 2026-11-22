@@ -33,8 +33,14 @@ export const KINDS = Object.freeze(['strength', 'toWork']);
 export const KIND_TITLE = Object.freeze({ strength: 'Strengths', toWork: 'To work on' });
 export const tagKey = (kind, tagId) => kind + ':' + tagId;
 
-// The text that goes on the ballot for one entry.
-export const ballotComment = (entry) => (entry && typeof entry.comment === 'string' ? entry.comment : (entry && entry.notes) || '');
+// The text that goes on the ballot for one entry: the comment when it has words, else the notes. One rule for the
+// whole app: the Review screen, the copy text and the AI clean-up (cleanup.js sourceText) all read it. A blank
+// comment falls back to the notes, so an emptied Review box never sends an empty ballot by accident.
+export function ballotComment(entry) {
+  const e = entry || {};
+  const c = String(e.comment || '');
+  return c.trim() ? c : String(e.notes || '');
+}
 
 // Put a sentence into text at the cursor, as its own sentence: a space before it when the text before does not end
 // in a space or a line break, and a space after it when text follows. Returns { text, cursor } (cursor after it).
@@ -73,24 +79,38 @@ export function tapChip(entry, tag, kind, cursor) {
   return { entry: Object.assign({}, entry, { tags: tags.concat([key]), notes: ins.text }), cursor: ins.cursor, on: true };
 }
 
-// A rule check tap: OK → Flag adds the flag line to the private note; Flag → OK takes that line out again.
+// A rule check tap: OK → Flag adds the flag line to the private note; Flag → OK takes that one line out again.
+// Every other line the judge typed (blank lines too) stays as it was.
 export function toggleCheck(entry, checkId) {
   const checks = Object.assign({}, entry.checks || {});
   const line = flagLine(checkId);
-  const lines = String(entry.privateNote || '').split('\n').filter((l) => l !== '');
+  const text = String(entry.privateNote || '');
+  const lines = text === '' ? [] : text.split('\n');
   if (checks[checkId] === 'flag') {
     delete checks[checkId];
-    return Object.assign({}, entry, { checks, privateNote: lines.filter((l) => l !== line).join('\n') });
+    const i = lines.lastIndexOf(line);
+    if (i >= 0) lines.splice(i, 1);
+    return Object.assign({}, entry, { checks, privateNote: lines.join('\n') });
   }
   checks[checkId] = 'flag';
-  return Object.assign({}, entry, { checks, privateNote: lines.concat(lines.includes(line) ? [] : [line]).join('\n') });
+  if (!lines.includes(line)) lines.push(line);
+  return Object.assign({}, entry, { checks, privateNote: lines.join('\n') });
 }
 
 // The judge's typing (autosave on every change; no Save button, DESIGN.md §4.3).
 export const setNotes = (entry, text) => Object.assign({}, entry, { notes: String(text) });
 export const setPrivateNote = (entry, text) => Object.assign({}, entry, { privateNote: String(text) });
+export const setReason = (room, text, now) => Object.assign({}, room, { reasonForRank: String(text), updatedAt: now });
+
+// One keystroke in the sheet, as the room to save. field: 'notes' | 'private' (the current entry) or 'reason' (the
+// room). Unknown fields change nothing.
+export function applyInput(room, field, value, now) {
+  if (field === 'reason') return setReason(room, value, now);
+  if (field !== 'notes' && field !== 'private') return room;
+  return Object.assign({}, room, { updatedAt: now, entries: room.entries.map((e) => (e.id !== room.current ? e : field === 'notes' ? setNotes(e, value) : setPrivateNote(e, value))) });
+}
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).comments = Object.freeze({
   CHECK_LABELS, checkLabel, flagLine, KINDS, KIND_TITLE, tagKey, ballotComment, insertSentence, removeSentence, tapChip,
-  toggleCheck, setNotes, setPrivateNote,
+  toggleCheck, setNotes, setPrivateNote, setReason, applyInput,
 });

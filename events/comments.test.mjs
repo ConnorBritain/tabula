@@ -7,7 +7,9 @@ import { loadEventData } from './js/data.js';
 import { createRoom, updateEntry } from './js/room.js';
 import {
   CHECK_LABELS, checkLabel, flagLine, ballotComment, insertSentence, removeSentence, tapChip, toggleCheck, setNotes, setPrivateNote,
+  applyInput,
 } from './js/comments.js';
+import { sourceText } from './js/cleanup.js';
 import { sheetHtml } from './js/comment-view.js';
 import { createEventsStore, ROOMS_KEY } from './js/store.js';
 
@@ -30,10 +32,15 @@ test('a flag goes in the private note and never reaches the ballot comment unles
   e = toggleCheck(e, 'noAiText');
   assert.ok(!e.privateNote.includes(flagLine('noAiText')), 'Flag → OK takes the line back out');
   assert.equal(e.checks.noAiText, undefined);
+  const withBlank = toggleCheck(setPrivateNote(room1().entries[0], 'line one\n\nline three'), 'memorized');
+  assert.equal(toggleCheck(withBlank, 'memorized').privateNote, 'line one\n\nline three', 'a check tap leaves the judge\'s own lines, blank ones too');
   const typed = setNotes(e, 'I could not tell if this was memorized.');
   assert.equal(ballotComment(typed), 'I could not tell if this was memorized.', 'what the judge writes is what goes');
   assert.equal(ballotComment(Object.assign({}, typed, { comment: 'Edited on review.' })), 'Edited on review.', 'the Review edit wins');
-  assert.equal(ballotComment(Object.assign({}, typed, { comment: '' })), '', 'an emptied Review comment stays empty');
+  // CHANGED in the E6 review fix: one ballot-text rule for the app (cleanup.js sourceText). Old line:
+  //   assert.equal(ballotComment(Object.assign({}, typed, { comment: '' })), '', 'an emptied Review comment stays empty');
+  assert.equal(ballotComment(Object.assign({}, typed, { comment: '  ' })), typed.notes, 'a blank Review comment falls back to the notes');
+  assert.equal(sourceText, ballotComment, 'the AI clean-up reads the same rule');
 });
 
 // Why: the comment sheet autosaves with no Save button (DESIGN.md §4.3); if a keystroke did not reach storage, a
@@ -53,7 +60,15 @@ test('notes, the private note and the reason for rank survive a reload through t
   assert.equal(back.entries[0].notes, 'Clear thesis.');
   assert.equal(back.entries[0].privateNote, 'blue jacket');
   assert.equal(back.reasonForRank, 'A12 had the clearest structure.');
-  assert.match(read('js/comment-view.js'), /addEventListener\('input', onInput\)/, 'the sheet saves on every input event');
+  // The keystroke path the sheet runs on every input event (comment-view.js onInput saves what applyInput returns).
+  let typed = applyInput(r, 'notes', 'Clear thesis. Good pace.', 3);
+  typed = applyInput(typed, 'private', 'blue jacket, 3rd', 4);
+  typed = applyInput(typed, 'reason', 'Structure decided it.', 5);
+  s1.set(ROOMS_KEY, [typed]);
+  const again = createEventsStore(ui, box).get(ROOMS_KEY, [])[0];
+  assert.deepEqual([again.entries[0].notes, again.entries[0].privateNote, again.reasonForRank], ['Clear thesis. Good pace.', 'blue jacket, 3rd', 'Structure decided it.']);
+  assert.equal(again.entries[1].notes, '', 'only the current speaker\'s notes change');
+  assert.equal(applyInput(typed, 'nope', 'x', 6), typed, 'an unknown field changes nothing');
 });
 
 // Why: a chip must add an editable sentence where the judge is typing, and a second tap must take back only a
