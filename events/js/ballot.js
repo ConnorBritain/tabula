@@ -13,6 +13,7 @@ import { orderOf, ratingScale, checkBoard } from './rank.js';
 import { boardCtx, ranksOf, ratingsOf, isOverGrace } from './board.js';
 import { clockText } from './timer.js';
 import { pieceLine } from './piece.js';
+import { questionOf } from './question.js';
 
 // "Over time" on the ranks line: the sticky over-grace flag (inside grace is still on time, ARCHITECTURE.md §6.2).
 export const overTime = isOverGrace;
@@ -49,12 +50,13 @@ export function critique(text) {
   ];
 }
 
-// Stage 2: one card per entry. Returns [{ id, code, name, piece, rank, rating, comment, copied, critique }].
+// Stage 2: one card per entry. Returns [{ id, code, name, piece, rank, rating, comment, copied, critique, question }].
 // name: the entry's name ("First & Second" for a Duo, step E9); piece: "“Title” by Author" ('' when not typed).
+// question: the drawn question (step E10, extemp events), '' when there is none. It is not part of the comment.
 export function cards(room, order) {
   return entriesIn(room, order).map((e) => {
     const comment = ballotComment(e);
-    return { id: e.id, code: e.code, name: e.name || '', piece: pieceLine(e), rank: String(e.rank || ''), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment) };
+    return { id: e.id, code: e.code, name: e.name || '', piece: pieceLine(e), rank: String(e.rank || ''), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment), question: questionOf(e) };
   });
 }
 
@@ -109,7 +111,7 @@ export function setReasonReview(room, text, now) {
 export function copyAllText(room, event) {
   const head = [event ? event.name : 'Custom event', room.round, room.tournament].filter(Boolean).join(' · ');
   const parts = [head, '', 'Ranks', ranksBlock(room).text];
-  for (const c of cards(room, 'speaking')) parts.push('', c.code + (c.rank ? ' (rank ' + c.rank + ')' : ''), c.comment || '(no comment)');
+  for (const c of cards(room, 'speaking')) parts.push('', c.code + (c.rank ? ' (rank ' + c.rank + ')' : ''), ...(c.question ? ['Question: ' + c.question] : []), c.comment || '(no comment)');
   if (String(room.reasonForRank || '').trim()) parts.push('', 'Reason for rank', room.reasonForRank.trim());
   return parts.join('\n');
 }
@@ -121,7 +123,9 @@ export function printModel(room, event, limit) {
   const head = [{ text: 'Code' }, { text: 'Rank' }].concat(rated ? [{ text: 'Rating' }] : [], [{ text: 'Time' }, { text: 'Over time' }]);
   const tableRows = rows.map((r) => {
     const e = entryOf(room, r.id);
-    const used = Math.round(((e.timing && e.timing.usedMs) || 0) / 1000);
+    // The time used; on a prep event (step E11) prep and speech together, against the shared limit. Like the speech
+    // time here since E8, it is the stopped time (a print has no clock); prep.js totalUsedAt is the live total.
+    const used = Math.round((((e.timing && e.timing.usedMs) || 0) + ((e.timing && e.timing.prepMs) || 0)) / 1000);
     return [{ text: r.code }, { text: r.rank || '–' }].concat(rated ? [{ text: r.rating || '–' }] : [], [{ text: used ? clockText(used) : '–' }, { text: r.overTime ? 'Yes' : 'No' }]);
   });
   const facts = [['Event', event ? event.name : 'Custom event'], ['Round', room.round], ['Flight', room.flight], ['Tournament', room.tournament], ['Time limit', limit ? clockText(limit) : ''], ['Rules', room.profile && room.profile.name]].filter(([, v]) => v);
@@ -129,7 +133,7 @@ export function printModel(room, event, limit) {
     title: 'Ballot · ' + [event ? event.short : 'Custom', room.round].filter(Boolean).join(' · '),
     landscape: false,
     sections: [{ kind: 'facts', items: facts }, { kind: 'table', title: 'Ranks', head, rows: tableRows }]
-      .concat(cards(room, 'speaking').map((c) => ({ kind: 'text', title: [c.code + (c.rank ? ' · rank ' + c.rank : ''), c.piece].filter(Boolean).join(' · '), cls: 'ps-entry', text: c.comment })))
+      .concat(cards(room, 'speaking').map((c) => ({ kind: 'text', title: [c.code + (c.rank ? ' · rank ' + c.rank : ''), c.piece].filter(Boolean).join(' · '), cls: 'ps-entry', text: (c.question ? 'Question: ' + c.question + '\n\n' : '') + c.comment })))
       .concat([{ kind: 'text', title: 'Reason for rank', cls: 'ps-reason', text: room.reasonForRank || '' }]),
   };
 }
