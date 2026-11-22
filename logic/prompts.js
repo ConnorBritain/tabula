@@ -24,7 +24,7 @@
     const lines = [];
     for (const sp of f.speeches) {
       const t = (round.transcripts || {})[sp.id];
-      const head = '--- ' + sp.label + ' (' + sp.side.toUpperCase() + ', ' + F.speakerTag(F.speakerOf(f, sp.speaker)) + ') ---';
+      const head = '--- ' + sp.label + ' (' + sp.side.toUpperCase() + ', ' + F.speechSpeakers(f, sp).map(F.speakerTag).join(' & ') + ') ---';
       if (t && t.trim()) lines.push(head, t.trim());
       else {
         const mine = (docs || []).filter((d) => docSpeech(d, f) === sp.id).map((d) => d.name);

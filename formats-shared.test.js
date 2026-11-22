@@ -61,28 +61,28 @@ test('History export: a mixed history is one table; each row fills only its own 
 // And with the Format column hidden, a policy + unknown history would hide the true label on the History page.
 test('History export: a ballot in an unknown format is labeled by its id and version, and the page shows Format', () => {
   const e = L.savedBallotEntry(policyRound, 'later', range);
-  Object.assign(e[L.BALLOT_HEADER.length], { format: 'pf', formatVersion: 2 });
+  Object.assign(e[L.BALLOT_HEADER.length], { format: 'parli', formatVersion: 2 });
   const t = L.historyTable([L.savedBallotEntry(policyRound, 'a', range), e]);
   const col = (r, n) => t.rows[r][t.header.indexOf(n)];
   assert.equal(col(0, 'Format'), 'Policy (CX)');
-  assert.equal(col(1, 'Format'), 'pf v2');
+  assert.equal(col(1, 'Format'), 'parli v2');
   assert.ok(L.historyColumns(t).map((i) => t.header[i]).includes('Format'), 'the History page shows the Format column');
   const noVersion = L.savedBallotEntry(policyRound, 'later', range);
-  Object.assign(noVersion[L.BALLOT_HEADER.length], { format: 'pf', formatVersion: undefined });
-  assert.equal(L.historyTable([noVersion]).rows[0][t.header.indexOf('Format')], 'pf', 'no version: the id alone');
+  Object.assign(noVersion[L.BALLOT_HEADER.length], { format: 'parli', formatVersion: undefined });
+  assert.equal(L.historyTable([noVersion]).rows[0][t.header.indexOf('Format')], 'parli', 'no version: the id alone');
 });
 
 // Why: a saved ballot in a format this copy does not have prints through the policy fallback. Without a note, the
 // paper ballot shows 1A/2A/1N/2N rows as if it were a policy round, and a coach or tab room trusts the wrong labels.
 test('Print: a saved ballot in an unknown format says so on the sheet; a known format adds no note', () => {
   const e = L.savedBallotEntry(policyRound, 'later', range);
-  Object.assign(e[L.BALLOT_HEADER.length], { format: 'pf', formatVersion: 2 });
+  Object.assign(e[L.BALLOT_HEADER.length], { format: 'parli', formatVersion: 2 });
   const facts = (round) => L.printModel(round, { range }).sections.find((s) => s.kind === 'facts').items;
   const note = facts(L.savedBallotView(e).round).find(([k]) => k === 'Format');
   assert.ok(note, 'the sheet has a Format line');
-  assert.equal(note[1], 'pf v2: not in this copy of Tabula. Points show in policy speaker places, as saved.');
+  assert.equal(note[1], 'parli v2: not in this copy of Tabula. Points show in policy speaker places, as saved.');
   Object.assign(e[L.BALLOT_HEADER.length], { formatVersion: undefined });
-  assert.match(facts(L.savedBallotView(e).round).find(([k]) => k === 'Format')[1], /^pf: not in this copy/, 'no version: the id alone');
+  assert.match(facts(L.savedBallotView(e).round).find(([k]) => k === 'Format')[1], /^parli: not in this copy/, 'no version: the id alone');
   assert.equal(facts(L.savedBallotView(L.savedBallotEntry(ldRound, 'a', range)).round).find(([k]) => k === 'Format'), undefined);
   assert.equal(facts(policyRound).find(([k]) => k === 'Format'), undefined);
 });
@@ -113,7 +113,7 @@ test('the hints in shared boxes follow the format; policy keeps its old hints', 
     assert.ok(ld[k] && !POLICY_WORDS.test(ld[k]), 'LD ' + k + ': ' + ld[k]);
   }
   assert.equal(L.formatCopy(POLICY).topicHint, 'Resolved: The United States federal government should…');
-  const pf = Object.assign({}, LD, { id: 'pf', ai: Object.assign({}, LD.ai, { abbr: 'PF' }), speakers: [{ id: '1P', label: '1st Pro', side: 'aff', slot: 'd1' }] });
+  const pf = Object.assign({}, LD, { id: 'parli', ai: Object.assign({}, LD.ai, { abbr: 'PF' }), speakers: [{ id: '1P', label: '1st Pro', side: 'aff', slot: 'd1' }] });
   assert.match(L.formatCopy(pf).ballotExample, /Be kind to the 1st Pro\./, 'a format with no wording gets plain hints from its own data');
   const setup = readSource('js/formatsetup.js');
   for (const box of ["document.querySelector('[data-bind=\"topic\"]').placeholder = copy.topicHint", "$('#ballot-input').placeholder = copy.ballotExample",

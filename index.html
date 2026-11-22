@@ -791,8 +791,8 @@
   /* Windows high contrast (V12): the side tints are gone, so the side shows as the word "Aff" or "Neg" in a small
      pill (no stripes), and the current column gets the system highlight. */
   @media (forced-colors: active) {
-    .flow .col.aff h3::after, .mapsheet .mh.aff::after, .sp.aff::after, .mcard.aff::after { content: "Aff"; }
-    .flow .col.neg h3::after, .mapsheet .mh.neg::after, .sp.neg::after, .mcard.neg::after { content: "Neg"; }
+    .flow .col.aff h3::after, .mapsheet .mh.aff::after, .sp.aff::after, .mcard.aff::after { content: var(--aff-word, "Aff"); }
+    .flow .col.neg h3::after, .mapsheet .mh.neg::after, .sp.neg::after, .mcard.neg::after { content: var(--neg-word, "Neg"); }
     .flow .col h3::after, .mapsheet .mh::after, .sp::after, .mcard::after { display: inline-block; margin-inline-start: var(--s1); padding: 0 var(--s1); border: 1px solid CanvasText; border-radius: var(--r-pill); font-size: var(--fs-1); font-weight: var(--fw-3); line-height: var(--lh-ui); }
     .flow .col.is-current { outline: 2px solid Highlight; outline-offset: -2px; }
     .flow .col.is-current::after { outline-color: Highlight; }
@@ -890,6 +890,11 @@
       <select id="format-pick" class="w-auto" aria-describedby="format-help"></select>
       <p class="muted field-help" id="format-help">A round keeps its format. Picking another one starts a new round.</p>
     </div>
+    <div class="format-row" id="first-side-row" hidden>
+      <label for="first-side">Speaks first</label>
+      <select id="first-side" class="w-auto" aria-describedby="first-side-help"><option value="aff">Aff</option><option value="neg">Neg</option></select>
+      <p class="muted field-help" id="first-side-help">After the coin flip, pick the side that gives the first speech. The speech order and flow columns follow it.</p>
+    </div>
     <div class="judging-row" data-judging-row hidden>
       <label for="judging-for">Judging for</label>
       <select id="judging-for" class="w-auto" data-judging aria-describedby="judging-help"></select>
@@ -914,19 +919,19 @@
       <div id="paste-round-found" class="mt-2" aria-live="polite"></div>
       <div class="row mt-2">
         <button class="b primary" id="paste-round-fill" type="button" aria-disabled="true">Fill the round</button>
-        <button class="b" id="paste-round-swap" type="button">Swap Aff and Neg</button>
+        <button class="b" id="paste-round-swap" type="button">Swap <span data-side-word="aff">Aff</span> and <span data-side-word="neg">Neg</span></button>
       </div>
     </details>
   </div>
   <div class="grid">
-    <div class="card"><h2 class="aff">Affirmative</h2>
+    <div class="card"><h2 class="aff" data-side-name="aff">Affirmative</h2>
       <label>Team code</label><input data-bind="aff.team">
       <div class="grid mt-2">
         <div><label>1A</label><input data-bind="aff.d1"></div>
         <div><label>2A</label><input data-bind="aff.d2"></div>
       </div>
     </div>
-    <div class="card"><h2 class="neg">Negative</h2>
+    <div class="card"><h2 class="neg" data-side-name="neg">Negative</h2>
       <label>Team code</label><input data-bind="neg.team">
       <div class="grid mt-2">
         <div><label>1N</label><input data-bind="neg.d1"></div>
@@ -943,7 +948,7 @@
     <h2>Round documents</h2>
     <p class="muted">Add speech docs or case files (PDF, Word .docx, or text). Pick the speech each doc belongs to. <span data-ai="aiFlow">The AI reads them for the live flow and the decision: it maps each doc onto that speech's flow column right away, and fills gaps in the transcript from it (marked [doc]).</span> Docs stay in this browser until you start a new round.</p>
     <div class="row">
-      <select id="doc-side" class="w-auto" aria-label="Doc side"><option value="aff">Aff doc</option><option value="neg">Neg doc</option><option value="other">Other</option></select>
+      <select id="doc-side" class="w-auto" aria-label="Doc side"><option value="aff" data-side-word="aff" data-side-after=" doc">Aff doc</option><option value="neg" data-side-word="neg" data-side-after=" doc">Neg doc</option><option value="other">Other</option></select>
       <input type="file" id="doc-file" class="w-auto" multiple accept=".pdf,.docx,.txt,.md,application/pdf" aria-label="Add round documents">
       <span class="muted" id="doc-status"></span>
     </div>
@@ -989,8 +994,8 @@
     <button class="b" id="cv-reset" type="button">Reset</button>
   </div>
   <div class="cv-preps">
-    <div class="cv-prep"><h2 class="aff">Aff prep</h2><p class="cv-prep-t" id="cv-prep-aff">8:00</p><button class="b" type="button" data-prep="aff" aria-label="Start Aff prep">Start</button></div>
-    <div class="cv-prep"><h2 class="neg">Neg prep</h2><p class="cv-prep-t" id="cv-prep-neg">8:00</p><button class="b" type="button" data-prep="neg" aria-label="Start Neg prep">Start</button></div>
+    <div class="cv-prep"><h2 class="aff" data-side-word="aff" data-side-after=" prep">Aff prep</h2><p class="cv-prep-t" id="cv-prep-aff">8:00</p><button class="b" type="button" data-prep="aff" aria-label="Start Aff prep">Start</button></div>
+    <div class="cv-prep"><h2 class="neg" data-side-word="neg" data-side-after=" prep">Neg prep</h2><p class="cv-prep-t" id="cv-prep-neg">8:00</p><button class="b" type="button" data-prep="neg" aria-label="Start Neg prep">Start</button></div>
   </div>
   <p class="muted cv-pauses" id="cv-pauses"></p>
   <div class="speeches cv-speeches" id="cv-speech-list" role="group" aria-label="Speeches"></div>
@@ -1005,7 +1010,7 @@
   <details class="pane-docs" open>
     <summary>Speech docs: <span class="doc-count">none</span></summary>
     <div class="row docbar">
-      <select class="doc-quick-side w-auto" aria-label="Doc side"><option value="aff">Aff doc</option><option value="neg">Neg doc</option><option value="other">Other</option></select>
+      <select class="doc-quick-side w-auto" aria-label="Doc side"><option value="aff" data-side-word="aff" data-side-after=" doc">Aff doc</option><option value="neg" data-side-word="neg" data-side-after=" doc">Neg doc</option><option value="other">Other</option></select>
       <input type="file" class="doc-quick w-auto" multiple accept=".pdf,.docx,.txt,.md,application/pdf" aria-label="Add speech docs">
       <span class="muted doc-quick-status">Or drop files anywhere on the page.</span>
     </div>
@@ -1032,7 +1037,7 @@
   <input type="file" id="round-open" accept=".tab,application/json" hidden>
   <div class="flowbar"><button class="b small" id="speeches-btn" type="button" aria-expanded="false" aria-controls="tab-timer" hidden>Speeches</button><div class="flowtabs" id="flow-tabs"></div>
     <span class="tip-wrap"><button class="tip" type="button" aria-label="About the flow columns" aria-expanded="false" aria-controls="flow-legend">?</button>
-      <span class="tip-box" id="flow-legend" role="tooltip" hidden>Aff columns are blue and Neg columns are red; each column header names its speech. Keep each argument on the same line across columns so the clash lines up. "Now" marks the speech the clock is timing. Some typed marks get a light shade: * or "dropped", "conc", "ext", "turn" or L/T, and O/W.</span></span></div>
+      <span class="tip-box" id="flow-legend" role="tooltip" hidden><span data-side-word="aff">Aff</span> columns are blue and <span data-side-word="neg">Neg</span> columns are red; each column header names its speech. Keep each argument on the same line across columns so the clash lines up. "Now" marks the speech the clock is timing. Some typed marks get a light shade: * or "dropped", "conc", "ext", "turn" or L/T, and O/W.</span></span></div>
   <div class="flow" id="flow"></div>
 </section>
 <aside class="pane pane-right" id="insights" aria-label="Insights" data-mode="open" data-ai="liveEval">
@@ -1224,8 +1229,8 @@
         <p class="muted ballot-note" data-ai="ballotDraft">Anything you type is yours. The AI will not change it.</p>
         <fieldset class="b-winner">
           <legend class="b-legend">Winner <span class="b-tag" data-tag="winner"></span></legend>
-          <label class="win-card aff"><input type="radio" name="winner" value="aff"> <span class="aff">Aff wins</span> <span id="w-aff" class="muted"></span></label>
-          <label class="win-card neg"><input type="radio" name="winner" value="neg"> <span class="neg">Neg wins</span> <span id="w-neg" class="muted"></span></label>
+          <label class="win-card aff"><input type="radio" name="winner" value="aff"> <span class="aff" data-side-word="aff" data-side-after=" wins">Aff wins</span> <span id="w-aff" class="muted"></span></label>
+          <label class="win-card neg"><input type="radio" name="winner" value="neg"> <span class="neg" data-side-word="neg" data-side-after=" wins">Neg wins</span> <span id="w-neg" class="muted"></span></label>
         </fieldset>
         <table class="pts-table">
           <thead><tr><th scope="col">Speaker</th><th scope="col" id="pts-head">Points (25–30)</th><th scope="col" class="rank-h">1 (best)</th><th scope="col" class="rank-h">2</th><th scope="col" class="rank-h">3</th><th scope="col" class="rank-h">4</th><th scope="col"><span class="sr-only">Who set it</span></th></tr></thead>
@@ -1234,8 +1239,8 @@
         <p class="muted b-totals">Team totals: <span class="aff" id="sum-aff">–</span> · <span class="neg" id="sum-neg">–</span> <span class="ranks-set" id="ranks-set"></span></p>
         <div class="b-field"><div class="b-label"><label for="b-rfd">Reason for decision (RFD), goes to everyone</label><span class="b-tag" data-tag="rfd"></span></div><textarea id="b-rfd" data-bind="ballot.rfd" rows="6"></textarea></div>
         <div class="b-comments">
-          <div class="b-field"><div class="b-label"><label for="b-affFb" class="aff">Aff team comments <span id="fb-aff-code"></span></label><span class="b-tag" data-tag="affFb"></span></div><textarea id="b-affFb" data-bind="ballot.affFb" rows="5"></textarea></div>
-          <div class="b-field"><div class="b-label"><label for="b-negFb" class="neg">Neg team comments <span id="fb-neg-code"></span></label><span class="b-tag" data-tag="negFb"></span></div><textarea id="b-negFb" data-bind="ballot.negFb" rows="5"></textarea></div>
+          <div class="b-field"><div class="b-label"><label for="b-affFb" class="aff"><span data-side-word="aff" data-side-after=" team comments">Aff team comments</span> <span id="fb-aff-code"></span></label><span class="b-tag" data-tag="affFb"></span></div><textarea id="b-affFb" data-bind="ballot.affFb" rows="5"></textarea></div>
+          <div class="b-field"><div class="b-label"><label for="b-negFb" class="neg"><span data-side-word="neg" data-side-after=" team comments">Neg team comments</span> <span id="fb-neg-code"></span></label><span class="b-tag" data-tag="negFb"></span></div><textarea id="b-negFb" data-bind="ballot.negFb" rows="5"></textarea></div>
         </div>
         <div id="ballot-check" class="ballot-check" role="status"></div>
       </div>
@@ -1337,8 +1342,8 @@
     <span id="rec-status" class="rb-status" role="status" aria-live="polite" tabindex="0"></span>
     <button class="b small" id="discard-audio" hidden>Discard waiting audio</button>
   </div>
-  <div class="rb-prep"><span class="aff">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
-  <div class="rb-prep"><span class="neg">Neg prep</span><span class="t" id="prep-neg">8:00</span><button class="b small" data-prep="neg">Start</button></div>
+  <div class="rb-prep"><span class="aff" data-side-word="aff" data-side-after=" prep">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
+  <div class="rb-prep"><span class="neg" data-side-word="neg" data-side-after=" prep">Neg prep</span><span class="t" id="prep-neg">8:00</span><button class="b small" data-prep="neg">Start</button></div>
   <span id="mini-rec" class="rb-ai" data-ai="any"></span>
   <span id="ai-round" class="rb-ai" role="status" aria-live="polite" hidden><span id="ai-round-text"></span> <button class="b small" id="ai-resume" type="button" hidden>Turn AI back on</button></span>
 </footer>
@@ -1442,8 +1447,10 @@
 <script type="module" src="core/ai.js"></script>
 <script defer src="formats/policy-hs.v1.js"></script>
 <script defer src="formats/ld.v1.js"></script>
+<script defer src="formats/pf.v1.js"></script>
 <script defer src="demo/policy.js"></script>
 <script defer src="demo/ld.js"></script>
+<script defer src="demo/pf.js"></script>
 <script defer src="logic/format.js"></script>
 <script defer src="logic/round.js"></script>
 <script defer src="logic/audio.js"></script>

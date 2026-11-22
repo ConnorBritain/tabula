@@ -97,6 +97,17 @@
     if (r.ballot && r.ballot.winner) return false;
     return true;
   }
+  // The round already has speech work tied to the speaking order: a transcript, flow notes, an AI flow, or a speech
+  // clock used or running. Changing who speaks first (a coin-flip format) would move that work to the other side.
+  // Names and ballot points belong to a side, not to a place in the order, so they do not count.
+  function orderInUse(r) {
+    if (!r) return false;
+    if (r.run) return true;
+    if (Object.values(r.transcripts || {}).some((t) => String(t || '').trim())) return true;
+    if ((r.aiFlows || []).length) return true;
+    if ((r.flows || []).some((f) => Object.values(f.cells || {}).some((c) => String(c || '').trim()))) return true;
+    return Object.keys(r.timeLeft || {}).length > 0;
+  }
   function buildRoundFile(round, docs, savedAt) {
     return { app: 'tabula', kind: ROUND_FILE_KIND, version: 1, savedAt: savedAt || new Date().toISOString(), round, docs: (docs || []).filter((d) => d && d.roundId === round.id) };
   }
@@ -224,7 +235,7 @@
     return blocks.concat([{ type: 'text', text: (note || DOC_NOTE) + '\n\n' + promptText }]);
   }
 
-  const api = { parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty,
+  const api = { parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, orderInUse,
     buildRoundFile, parseRoundFile, roundFileName, KEYS_ENTRY, OLD_KEY_ENTRIES, buildBackup, parseBackup,
     backupSummary, DOC_SIDES, DOC_NOTE, docSpeech, docsForSpeech, DOC_FLOW_NOTE, docTitle, buildDocBlocks,
     buildUserContent };

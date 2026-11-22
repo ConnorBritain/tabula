@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const L = require('./logic.js');
 const BOOT = require('./assets/demo-boot.js');
-const SAMPLES = [require('./demo/policy.js'), require('./demo/ld.js')];
+const SAMPLES = [require('./demo/policy.js'), require('./demo/ld.js'), require('./demo/pf.js')];
 const read = (f) => fs.readFileSync(path.join(__dirname, f), 'utf8');
 
 // A small JSON-schema check for the shapes logic/prompts.js gives the AI (object, array, string, number, integer, enum).
@@ -107,7 +107,7 @@ test('index.html loads the demo sandbox before every other script', () => {
   const srcs = [...read('index.html').matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((m) => m[1]);
   assert.equal(srcs[0], 'assets/demo-boot.js');
   const at = (s) => srcs.indexOf(s);
-  for (const f of ['demo/policy.js', 'demo/ld.js']) assert.ok(at(f) > -1 && at(f) < at('js/demo.js'), f + ' loads before js/demo.js');
+  for (const f of ['demo/policy.js', 'demo/ld.js', 'demo/pf.js']) assert.ok(at(f) > -1 && at(f) < at('js/demo.js'), f + ' loads before js/demo.js');
   assert.ok(at('js/demo.js') < at('js/core.js'), 'the sample round is in storage before js/core.js reads the round');
 });
 
@@ -252,7 +252,7 @@ test('callAI answers from the demo before any hosted or own-key call', () => {
   const demoAt = body.indexOf('if (demoOn) return demoAnswer(');
   assert.ok(demoAt > -1);
   for (const later of ['useHosted(', 'aiReady()', 'fetch(']) assert.ok(demoAt < body.indexOf(later), 'the demo check comes before ' + later);
-  for (const f of ['js/demo.js', 'logic/demo.js', 'demo/policy.js', 'demo/ld.js']) assert.doesNotMatch(read(f), /\bfetch\(|https?:\/\//, f + ' makes no calls');
+  for (const f of ['js/demo.js', 'logic/demo.js', 'demo/policy.js', 'demo/ld.js', 'demo/pf.js']) assert.doesNotMatch(read(f), /\bfetch\(|https?:\/\//, f + ' makes no calls');
 });
 
 // Why: the Help menu is how a judge already in the app finds the demo. It must open in a new tab (so their real round

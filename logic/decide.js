@@ -25,17 +25,19 @@
       { id: 'winner', label: 'Winner', fields: ['winner'] },
       { id: 'pts', label: f.ballot.speakerRanks ? 'Points and ranks' : 'Points', fields: ptsFields(f) },
       { id: 'rfd', label: 'Reason for decision', fields: ['rfd'] },
-      { id: 'affFb', label: 'Aff comments', fields: ['affFb'] },
-      { id: 'negFb', label: 'Neg comments', fields: ['negFb'] },
+      { id: 'affFb', label: f.sides.aff.label + ' comments', fields: ['affFb'] },
+      { id: 'negFb', label: f.sides.neg.label + ' comments', fields: ['negFb'] },
     ];
   };
   // Deprecated aliases (policy, old callers and tests): page code calls ptsFields(FMT()) and draftGroups(FMT()).
   const PTS_FIELDS = ptsFields(F.POLICY);
   const DRAFT_GROUPS = draftGroups(F.POLICY);
-  const FIELD_LABELS = { winner: 'the winner', rfd: 'the reason for decision', affFb: 'the Aff comments', negFb: 'the Neg comments' };
+  // The comment fields name the side by its label ('the Aff comments', 'the Pro comments').
+  const FIELD_LABELS = { winner: 'the winner', rfd: 'the reason for decision' };
   function fieldLabel(f, fmt) {
-    if (FIELD_LABELS[f]) return FIELD_LABELS[f];
     const fm = fmt || F.POLICY;
+    if (FIELD_LABELS[f]) return FIELD_LABELS[f];
+    if (f === 'affFb' || f === 'negFb') return 'the ' + fm.sides[f === 'affFb' ? 'aff' : 'neg'].label + ' comments';
     const [a, s] = String(f).split('.');
     const sp = F.speakerOf(fm, s);
     const name = sp ? sp.label : s;
@@ -168,7 +170,8 @@
     const e = entry || [];
     const meta = e.length > BALLOT_HEADER.length && e[BALLOT_HEADER.length] && typeof e[BALLOT_HEADER.length] === 'object' ? e[BALLOT_HEADER.length] : null;
     const col = (name) => e[BALLOT_HEADER.indexOf(name)] ?? '';
-    const fields = meta && meta.format ? { format: meta.format, formatVersion: meta.formatVersion } : {};
+    // A coin-flip round's entry also keeps who spoke first (formatFields), so it opens again in its own order.
+    const fields = meta && meta.format ? Object.assign({ format: meta.format, formatVersion: meta.formatVersion }, meta.firstSide ? { firstSide: meta.firstSide } : {}) : {};
     const fmt = F.formatOf(fields);
     // The four column groups, named as in the header ('1A' ... '2N'), in LOG_SLOTS order.
     const groups = ['1A', '2A', '1N', '2N'];
@@ -246,7 +249,7 @@
     const lines = [];
     if (b.winner === 'aff' || b.winner === 'neg') {
       const team = b.winner === 'aff' ? (round.aff || {}).team : (round.neg || {}).team;
-      lines.push((b.winner === 'aff' ? 'Aff' : 'Neg') + (team ? ' (' + team + ')' : '') + ' wins.');
+      lines.push(fmt.sides[b.winner].label + (team ? ' (' + team + ')' : '') + ' wins.');
     }
     for (const sp of fmt.speakers) {
       const s = sp.id;
@@ -263,11 +266,12 @@
   // and on a low-point win the decision gets a note, because the tournament ballot asks the judge to tick a box for it.
   function tournamentBlocks(round, opts) {
     const b = (round && round.ballot) || {};
+    const sides = F.formatOf(round || {}).sides;
     const blocks = [
       { id: 'decision', label: 'Decision', text: decisionText(round || {}) },
       { id: 'rfd', label: 'Reason for decision', text: String(b.rfd || '').trim() },
-      { id: 'affFb', label: 'Aff comments', text: String(b.affFb || '').trim() },
-      { id: 'negFb', label: 'Neg comments', text: String(b.negFb || '').trim() },
+      { id: 'affFb', label: sides.aff.label + ' comments', text: String(b.affFb || '').trim() },
+      { id: 'negFb', label: sides.neg.label + ' comments', text: String(b.negFb || '').trim() },
     ];
     if (!(opts && opts.tips)) return blocks;
     const lowPoint = isLowPointWin(b, F.formatOf(round || {}));
@@ -290,13 +294,13 @@
     const unknownFmt = F.formatKnown(r) ? '' : formatLabel(r) + ': not in this copy of Tabula. Points show in policy speaker places, as saved.';
     sections.push({ kind: 'facts', items: [['Tournament', r.tournament || ''], ['Round', r.roundName || ''], ['Judge', r.judge || ''], ['Resolution', r.topic || ''], ['Format', unknownFmt]].filter(([, v]) => v) });
     const team = b.winner === 'aff' ? (r.aff || {}).team : b.winner === 'neg' ? (r.neg || {}).team : '';
-    sections.push({ kind: 'winner', title: 'Decision', text: b.winner === 'aff' || b.winner === 'neg' ? (b.winner === 'aff' ? 'Aff' : 'Neg') + (team ? ' (' + team + ')' : '') + ' wins' : 'No winner picked' });
+    sections.push({ kind: 'winner', title: 'Decision', text: b.winner === 'aff' || b.winner === 'neg' ? fmt.sides[b.winner].label + (team ? ' (' + team + ')' : '') + ' wins' : 'No winner picked' });
     const pointsTitle = (range ? 'Points (' + range.min + '–' + range.max + ')' : 'Points') + (fmt.ballot.speakerRanks ? ' and ranks' : '');
     sections.push({ kind: 'speakers', title: pointsTitle, ranks: fmt.ballot.speakerRanks,
       rows: fmt.speakers.map((sp) => ({ speaker: sp.label, side: sp.side, name: F.speakerName(r, sp), pts: (b.pts || {})[sp.id] ?? '', rank: (b.ranks || {})[sp.id] ?? '' })) });
     sections.push({ kind: 'text', title: 'Reason for decision', text: String(b.rfd || '') });
-    sections.push({ kind: 'text', title: 'Aff comments' + ((r.aff || {}).team ? ' (' + r.aff.team + ')' : ''), side: 'aff', text: String(b.affFb || '') });
-    sections.push({ kind: 'text', title: 'Neg comments' + ((r.neg || {}).team ? ' (' + r.neg.team + ')' : ''), side: 'neg', text: String(b.negFb || '') });
+    sections.push({ kind: 'text', title: fmt.sides.aff.label + ' comments' + ((r.aff || {}).team ? ' (' + r.aff.team + ')' : ''), side: 'aff', text: String(b.affFb || '') });
+    sections.push({ kind: 'text', title: fmt.sides.neg.label + ' comments' + ((r.neg || {}).team ? ' (' + r.neg.team + ')' : ''), side: 'neg', text: String(b.negFb || '') });
     if (o.flow) {
       for (const f of r.flows || []) {
         const cols = fmt.flowColumns.map((c, i) => ({ label: c.label, side: c.side, text: String((f.cells || {})[i] || '') }));
@@ -355,11 +359,12 @@
     return nodes.slice().sort((a, b) => at(a.speech) - at(b.speech))
       .map((n) => ({ speech: n.speech, label: n.label, status: n.status, side: speechSide(n.speech, f), text: n.speech + ': ' + n.label + ' (' + n.status + ')' }));
   }
-  // 4.13 The paired summary bar under the key issues.
-  function issueTally(issues) {
+  // 4.13 The paired summary bar under the key issues. fmt names the sides (policy-hs when not given).
+  function issueTally(issues, fmt) {
+    const sides = (fmt || F.POLICY).sides;
     const t = { aff: 0, even: 0, neg: 0 };
     for (const k of issues || []) if (k && t[k.ahead] != null) t[k.ahead]++;
-    t.text = 'Aff ahead on ' + t.aff + ' · Even ' + t.even + ' · Neg ahead on ' + t.neg;
+    t.text = sides.aff.label + ' ahead on ' + t.aff + ' · Even ' + t.even + ' · ' + sides.neg.label + ' ahead on ' + t.neg;
     return t;
   }
   // "1AR", "1AR and 2NR", "1AC, 1NC and 2AC".

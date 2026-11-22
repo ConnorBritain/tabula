@@ -1,0 +1,1172 @@
+{
+ "policy-hs": {
+  "format": {
+   "id": "policy-hs",
+   "version": 1,
+   "name": "Policy (CX)",
+   "level": "hs",
+   "sides": {
+    "aff": {
+     "label": "Aff",
+     "name": "Affirmative"
+    },
+    "neg": {
+     "label": "Neg",
+     "name": "Negative"
+    }
+   },
+   "speakers": [
+    {
+     "id": "1A",
+     "label": "1A",
+     "side": "aff",
+     "slot": "d1"
+    },
+    {
+     "id": "2A",
+     "label": "2A",
+     "side": "aff",
+     "slot": "d2"
+    },
+    {
+     "id": "1N",
+     "label": "1N",
+     "side": "neg",
+     "slot": "d1"
+    },
+    {
+     "id": "2N",
+     "label": "2N",
+     "side": "neg",
+     "slot": "d2"
+    }
+   ],
+   "speeches": [
+    {
+     "id": "1AC",
+     "label": "1AC",
+     "side": "aff",
+     "seconds": 480,
+     "speaker": "1A",
+     "kind": "speech",
+     "column": 0,
+     "minutes": 8
+    },
+    {
+     "id": "CX-1A",
+     "label": "CX of 1A (2N asks)",
+     "side": "aff",
+     "seconds": 180,
+     "speaker": "1A",
+     "kind": "cx",
+     "column": null,
+     "minutes": 3
+    },
+    {
+     "id": "1NC",
+     "label": "1NC",
+     "side": "neg",
+     "seconds": 480,
+     "speaker": "1N",
+     "kind": "speech",
+     "column": 1,
+     "minutes": 8
+    },
+    {
+     "id": "CX-1N",
+     "label": "CX of 1N (1A asks)",
+     "side": "neg",
+     "seconds": 180,
+     "speaker": "1N",
+     "kind": "cx",
+     "column": null,
+     "minutes": 3
+    },
+    {
+     "id": "2AC",
+     "label": "2AC",
+     "side": "aff",
+     "seconds": 480,
+     "speaker": "2A",
+     "kind": "speech",
+     "column": 2,
+     "minutes": 8
+    },
+    {
+     "id": "CX-2A",
+     "label": "CX of 2A (1N asks)",
+     "side": "aff",
+     "seconds": 180,
+     "speaker": "2A",
+     "kind": "cx",
+     "column": null,
+     "minutes": 3
+    },
+    {
+     "id": "2NC",
+     "label": "2NC",
+     "side": "neg",
+     "seconds": 480,
+     "speaker": "2N",
+     "kind": "speech",
+     "column": 3,
+     "aliases": [
+      "block"
+     ],
+     "minutes": 8
+    },
+    {
+     "id": "CX-2N",
+     "label": "CX of 2N (2A asks)",
+     "side": "neg",
+     "seconds": 180,
+     "speaker": "2N",
+     "kind": "cx",
+     "column": null,
+     "minutes": 3
+    },
+    {
+     "id": "1NR",
+     "label": "1NR",
+     "side": "neg",
+     "seconds": 300,
+     "speaker": "1N",
+     "kind": "speech",
+     "column": 3,
+     "minutes": 5
+    },
+    {
+     "id": "1AR",
+     "label": "1AR",
+     "side": "aff",
+     "seconds": 300,
+     "speaker": "1A",
+     "kind": "speech",
+     "column": 4,
+     "minutes": 5
+    },
+    {
+     "id": "2NR",
+     "label": "2NR",
+     "side": "neg",
+     "seconds": 300,
+     "speaker": "2N",
+     "kind": "speech",
+     "column": 5,
+     "minutes": 5
+    },
+    {
+     "id": "2AR",
+     "label": "2AR",
+     "side": "aff",
+     "seconds": 300,
+     "speaker": "2A",
+     "kind": "speech",
+     "column": 6,
+     "minutes": 5
+    }
+   ],
+   "flowColumns": [
+    {
+     "label": "1AC",
+     "side": "aff"
+    },
+    {
+     "label": "1NC",
+     "side": "neg"
+    },
+    {
+     "label": "2AC",
+     "side": "aff"
+    },
+    {
+     "label": "Block (2NC / 1NR)",
+     "side": "neg"
+    },
+    {
+     "label": "1AR",
+     "side": "aff"
+    },
+    {
+     "label": "2NR",
+     "side": "neg"
+    },
+    {
+     "label": "2AR",
+     "side": "aff"
+    }
+   ],
+   "defaultSheets": [
+    "Case",
+    "T",
+    "DA 1",
+    "CP",
+    "K"
+   ],
+   "prep": {
+    "seconds": 480,
+    "mode": "perTeam"
+   },
+   "ballot": {
+    "points": {
+     "min": 25,
+     "max": 30
+    },
+    "speakerRanks": true
+   },
+   "timesNote": "NSDA uses 8-3-5 speeches and 8 minutes prep. Many local leagues use 4 or 5.",
+   "ai": {
+    "kind": "high school policy",
+    "abbr": "CX",
+    "transcribeHint": "High school policy debate. Terms: affirmative, negative, 1AC, 1NC, 2AC, 2NC, 1NR, 1AR, 2NR, 2AR, cross-ex, plan text, inherency, harms, solvency, advantage, topicality, T, interpretation, violation, counterplan, CP, disad, DA, uniqueness, link, internal link, impact, kritik, K, alternative, perm, framework, condo, extend, turn, card, tag, status quo, USFG.",
+    "rules": "New arguments in the 2NR or 2AR do not count; the 1AR may answer new arguments from the block.",
+    "evalNorms": "Remember the norms: the 2NR and 2AR cannot make new arguments; dropped arguments are conceded; the block (2NC + 1NR) splits the neg's positions.",
+    "flowSheets": "Put the 1AC on a sheet named \"Case\". A new off-case position gets a new sheet named like \"DA - Econ\", \"CP - States\", \"K - Cap\" or \"T - Substantial\".",
+    "pointsSpread": "Spread the four debaters by how well each one did: separate speakers who were not equally good by at least 0.3-0.5, and in most rounds the best and worst speaker should be 1.0 or more apart. Never put everyone within a few tenths."
+   },
+   "key": "policy-hs@1",
+   "flowSpeeches": [
+    "1AC",
+    "1NC",
+    "2AC",
+    "2NC",
+    "1NR",
+    "1AR",
+    "2NR",
+    "2AR"
+   ],
+   "speakerIds": [
+    "1A",
+    "2A",
+    "1N",
+    "2N"
+   ]
+  },
+  "formatFields": {
+   "format": "policy-hs",
+   "formatVersion": 1
+  },
+  "prepClocks": [
+   {
+    "id": "aff",
+    "side": "aff",
+    "label": "Aff"
+   },
+   {
+    "id": "neg",
+    "side": "neg",
+    "label": "Neg"
+   }
+  ],
+  "speechLines": [
+   "1AC · Aff · 1A · 8 min",
+   "CX 1A · Aff · 1A · 3 min",
+   "1NC · Neg · 1N · 8 min",
+   "CX 1N · Neg · 1N · 3 min",
+   "2AC · Aff · 2A · 8 min",
+   "CX 2A · Aff · 2A · 3 min",
+   "2NC · Neg · 2N · 8 min",
+   "CX 2N · Neg · 2N · 3 min",
+   "1NR · Neg · 1N · 5 min",
+   "1AR · Aff · 1A · 5 min",
+   "2NR · Neg · 2N · 5 min",
+   "2AR · Aff · 2A · 5 min"
+  ],
+  "chips": [
+   {
+    "text": "1AC · 0:20",
+    "tone": "caution",
+    "side": "aff",
+    "kind": "speech",
+    "said": "1AC clock still running"
+   },
+   {
+    "text": "CX 1A · 0:20",
+    "tone": "caution",
+    "side": "aff",
+    "kind": "speech",
+    "said": "CX 1A clock still running"
+   },
+   {
+    "text": "1NC · 0:20",
+    "tone": "caution",
+    "side": "neg",
+    "kind": "speech",
+    "said": "1NC clock still running"
+   },
+   {
+    "text": "CX 1N · 0:20",
+    "tone": "caution",
+    "side": "neg",
+    "kind": "speech",
+    "said": "CX 1N clock still running"
+   },
+   {
+    "text": "2AC · 0:20",
+    "tone": "caution",
+    "side": "aff",
+    "kind": "speech",
+    "said": "2AC clock still running"
+   },
+   {
+    "text": "CX 2A · 0:20",
+    "tone": "caution",
+    "side": "aff",
+    "kind": "speech",
+    "said": "CX 2A clock still running"
+   },
+   {
+    "text": "2NC · 0:20",
+    "tone": "caution",
+    "side": "neg",
+    "kind": "speech",
+    "said": "2NC clock still running"
+   },
+   {
+    "text": "CX 2N · 0:20",
+    "tone": "caution",
+    "side": "neg",
+    "kind": "speech",
+    "said": "CX 2N clock still running"
+   },
+   {
+    "text": "1NR · 0:20",
+    "tone": "caution",
+    "side": "neg",
+    "kind": "speech",
+    "said": "1NR clock still running"
+   },
+   {
+    "text": "1AR · 0:20",
+    "tone": "caution",
+    "side": "aff",
+    "kind": "speech",
+    "said": "1AR clock still running"
+   },
+   {
+    "text": "2NR · 0:20",
+    "tone": "caution",
+    "side": "neg",
+    "kind": "speech",
+    "said": "2NR clock still running"
+   },
+   {
+    "text": "2AR · 0:20",
+    "tone": "caution",
+    "side": "aff",
+    "kind": "speech",
+    "said": "2AR clock still running"
+   }
+  ],
+  "prepChips": [
+   {
+    "text": "Aff prep · 0:40",
+    "tone": "",
+    "side": "aff",
+    "kind": "prep",
+    "said": "Aff prep clock still running"
+   },
+   {
+    "text": "Neg prep · 0:40",
+    "tone": "",
+    "side": "neg",
+    "kind": "prep",
+    "said": "Neg prep clock still running"
+   }
+  ],
+  "steps": [
+   {
+    "disabled": true,
+    "reason": "Already at 1AC"
+   },
+   {
+    "disabled": true,
+    "reason": "Already at 2AR"
+   }
+  ],
+  "checkBallot": [
+   "Low-point win: the Aff wins with fewer points. Check that you meant this."
+  ],
+  "lowPoint": [
+   "Give 1A a rank.",
+   "Give 2A a rank.",
+   "Give 1N a rank.",
+   "Give 2N a rank.",
+   "Low-point win: the Aff wins with fewer points. Check that you meant this.",
+   "Write a reason for decision (RFD)."
+  ],
+  "ballotFields": [
+   "winner",
+   "pts.1A",
+   "pts.2A",
+   "pts.1N",
+   "pts.2N",
+   "ranks.1A",
+   "ranks.2A",
+   "ranks.1N",
+   "ranks.2N",
+   "rfd",
+   "affFb",
+   "negFb"
+  ],
+  "draftGroups": [
+   {
+    "id": "winner",
+    "label": "Winner",
+    "fields": [
+     "winner"
+    ]
+   },
+   {
+    "id": "pts",
+    "label": "Points and ranks",
+    "fields": [
+     "pts.1A",
+     "ranks.1A",
+     "pts.2A",
+     "ranks.2A",
+     "pts.1N",
+     "ranks.1N",
+     "pts.2N",
+     "ranks.2N"
+    ]
+   },
+   {
+    "id": "rfd",
+    "label": "Reason for decision",
+    "fields": [
+     "rfd"
+    ]
+   },
+   {
+    "id": "affFb",
+    "label": "Aff comments",
+    "fields": [
+     "affFb"
+    ]
+   },
+   {
+    "id": "negFb",
+    "label": "Neg comments",
+    "fields": [
+     "negFb"
+    ]
+   }
+  ],
+  "fieldLabels": [
+   "the winner",
+   "the reason for decision",
+   "the Aff comments",
+   "the Neg comments",
+   "1A points",
+   "2A points",
+   "1N points",
+   "2N points"
+  ],
+  "decision": "Aff (Lake AB) wins.\n1A Ann: 27 points, rank 4\n2A Bo: 28 points, rank 3\n1N Cy: 29 points, rank 1\n2N Di: 28.5 points, rank 2",
+  "blocks": [
+   {
+    "id": "decision",
+    "label": "Decision",
+    "text": "Aff (Lake AB) wins.\n1A Ann: 27 points, rank 4\n2A Bo: 28 points, rank 3\n1N Cy: 29 points, rank 1\n2N Di: 28.5 points, rank 2",
+    "note": "Low-point win: on the tournament ballot, tick the low-point win box."
+   },
+   {
+    "id": "rfd",
+    "label": "Reason for decision",
+    "text": "Case.",
+    "words": 1
+   },
+   {
+    "id": "affFb",
+    "label": "Aff comments",
+    "text": "a",
+    "words": 1
+   },
+   {
+    "id": "negFb",
+    "label": "Neg comments",
+    "text": "n",
+    "words": 1
+   }
+  ],
+  "print": {
+   "title": "Ballot · R1",
+   "orientation": "portrait",
+   "sections": [
+    {
+     "kind": "facts",
+     "items": [
+      [
+       "Tournament",
+       "T"
+      ],
+      [
+       "Round",
+       "R1"
+      ],
+      [
+       "Judge",
+       "J"
+      ],
+      [
+       "Resolution",
+       "Res"
+      ]
+     ]
+    },
+    {
+     "kind": "winner",
+     "title": "Decision",
+     "text": "Aff (Lake AB) wins"
+    },
+    {
+     "kind": "speakers",
+     "title": "Points (25–30) and ranks",
+     "ranks": true,
+     "rows": [
+      {
+       "speaker": "1A",
+       "side": "aff",
+       "name": "Ann",
+       "pts": "27",
+       "rank": 4
+      },
+      {
+       "speaker": "2A",
+       "side": "aff",
+       "name": "Bo",
+       "pts": "28",
+       "rank": 3
+      },
+      {
+       "speaker": "1N",
+       "side": "neg",
+       "name": "Cy",
+       "pts": "29",
+       "rank": 1
+      },
+      {
+       "speaker": "2N",
+       "side": "neg",
+       "name": "Di",
+       "pts": "28.5",
+       "rank": 2
+      }
+     ]
+    },
+    {
+     "kind": "text",
+     "title": "Reason for decision",
+     "text": "Case."
+    },
+    {
+     "kind": "text",
+     "title": "Aff comments (Lake AB)",
+     "side": "aff",
+     "text": "a"
+    },
+    {
+     "kind": "text",
+     "title": "Neg comments (Hill CD)",
+     "side": "neg",
+     "text": "n"
+    }
+   ]
+  },
+  "tally": {
+   "aff": 1,
+   "even": 1,
+   "neg": 1,
+   "text": "Aff ahead on 1 · Even 1 · Neg ahead on 1"
+  },
+  "judgePrompt": "ROUND INFO\nTournament: T | Round: R1\nResolution: Res\nAff: speakers 1A and 2A. Neg: speakers 1N and 2N.\n\nJUDGE PARADIGM\nPolicymaker judge. Compare the world of the plan against the status quo or a counterplan. Weigh impacts by magnitude, probability and timeframe. Topicality and theory are voting issues only if the negative goes for them and wins them.\n\nTRANSCRIPTS (machine speech-to-text; expect errors and gaps)\n--- 1AC (AFF, 1A) ---\nplan text\n--- CX of 1A (2N asks) (AFF, 1A) ---\nquestion\n\nJUDGE'S FLOW (the human judge's own notes; trust these over the transcript when they conflict)\n### Sheet: Case\n[1AC]\nadv\n[1NC]\nno link",
+  "speechesSoFar": [
+   "1AC",
+   "CX-1A"
+  ],
+  "docSpeech": [
+   "1AC",
+   "1NC"
+  ],
+  "prepUsed": {
+   "aff": {
+    "used": 180,
+    "total": 480,
+    "text": "Aff used 3:00 of 8:00"
+   },
+   "neg": {
+    "used": 0,
+    "total": 480,
+    "text": "Neg used 0:00 of 8:00"
+   },
+   "any": true
+  },
+  "hostedBody": {
+   "callId": "c",
+   "roundId": "r1",
+   "programId": null,
+   "format": "policy-hs",
+   "formatVersion": 1
+  },
+  "savedBallot": {
+   "savedAt": "now",
+   "round": {
+    "tournament": "T",
+    "roundName": "R1",
+    "judge": "J",
+    "topic": "Res",
+    "aff": {
+     "team": "Lake AB",
+     "d1": "Ann",
+     "d2": "Bo"
+    },
+    "neg": {
+     "team": "Hill CD",
+     "d1": "Cy",
+     "d2": "Di"
+    },
+    "ballot": {
+     "winner": "aff",
+     "pts": {
+      "1A": "27",
+      "2A": "28",
+      "1N": "29",
+      "2N": "28.5"
+     },
+     "ranks": {
+      "1A": 4,
+      "2A": 3,
+      "1N": 1,
+      "2N": 2
+     },
+     "rfd": "Case.",
+     "affFb": "a",
+     "negFb": "n"
+    },
+    "format": "policy-hs",
+    "formatVersion": 1
+   },
+   "ptsRange": {
+    "min": 25,
+    "max": 30
+   }
+  },
+  "copy": {
+   "topicHint": "Resolved: The United States federal government should…",
+   "ballotExample": "Example: I'm voting aff on the perm. 2N was the best speaker. Be kind to the 1A.",
+   "argExample": "e.g. No link — plan is cheap",
+   "flowBriefExamples": "\"Perm do both\", \"No link — plan is cheap\"",
+   "readingJudge": "college policy judge",
+   "readingExample": "the link, meaning why the plan causes the problem"
+  }
+ },
+ "ld": {
+  "format": {
+   "id": "ld",
+   "version": 1,
+   "name": "Lincoln-Douglas (LD)",
+   "level": "hs",
+   "sides": {
+    "aff": {
+     "label": "Aff",
+     "name": "Affirmative"
+    },
+    "neg": {
+     "label": "Neg",
+     "name": "Negative"
+    }
+   },
+   "speakers": [
+    {
+     "id": "Aff",
+     "label": "Aff",
+     "side": "aff",
+     "slot": "d1",
+     "tag": "Aff debater"
+    },
+    {
+     "id": "Neg",
+     "label": "Neg",
+     "side": "neg",
+     "slot": "d1",
+     "tag": "Neg debater"
+    }
+   ],
+   "speeches": [
+    {
+     "id": "AC",
+     "label": "AC",
+     "side": "aff",
+     "seconds": 360,
+     "speaker": "Aff",
+     "kind": "speech",
+     "column": 0,
+     "minutes": 6
+    },
+    {
+     "id": "CX-AC",
+     "label": "CX of the AC (Neg asks)",
+     "side": "aff",
+     "seconds": 180,
+     "speaker": "Aff",
+     "kind": "cx",
+     "column": null,
+     "minutes": 3
+    },
+    {
+     "id": "NC",
+     "label": "NC",
+     "side": "neg",
+     "seconds": 420,
+     "speaker": "Neg",
+     "kind": "speech",
+     "column": 1,
+     "minutes": 7
+    },
+    {
+     "id": "CX-NC",
+     "label": "CX of the NC (Aff asks)",
+     "side": "neg",
+     "seconds": 180,
+     "speaker": "Neg",
+     "kind": "cx",
+     "column": null,
+     "minutes": 3
+    },
+    {
+     "id": "1AR",
+     "label": "1AR",
+     "side": "aff",
+     "seconds": 240,
+     "speaker": "Aff",
+     "kind": "speech",
+     "column": 2,
+     "minutes": 4
+    },
+    {
+     "id": "NR",
+     "label": "NR",
+     "side": "neg",
+     "seconds": 360,
+     "speaker": "Neg",
+     "kind": "speech",
+     "column": 3,
+     "minutes": 6
+    },
+    {
+     "id": "2AR",
+     "label": "2AR",
+     "side": "aff",
+     "seconds": 180,
+     "speaker": "Aff",
+     "kind": "speech",
+     "column": 4,
+     "minutes": 3
+    }
+   ],
+   "flowColumns": [
+    {
+     "label": "AC",
+     "side": "aff"
+    },
+    {
+     "label": "NC",
+     "side": "neg"
+    },
+    {
+     "label": "1AR",
+     "side": "aff"
+    },
+    {
+     "label": "NR",
+     "side": "neg"
+    },
+    {
+     "label": "2AR",
+     "side": "aff"
+    }
+   ],
+   "defaultSheets": [
+    "Framework",
+    "AC",
+    "NC"
+   ],
+   "prep": {
+    "seconds": 240,
+    "mode": "perDebater"
+   },
+   "ballot": {
+    "points": {
+     "min": 25,
+     "max": 30
+    },
+    "speakerRanks": false
+   },
+   "timesNote": "NSDA LD uses 6-3-7-3-4-6-3 speeches and 4 minutes prep per debater.",
+   "ai": {
+    "kind": "high school Lincoln-Douglas",
+    "abbr": "LD",
+    "transcribeHint": "High school Lincoln-Douglas debate. Terms: affirmative, negative, AC, NC, 1AR, NR, 2AR, cross-ex, value, value criterion, criterion, framework, standard, contention, burden, resolution, utilitarianism, deontology, Kant, social contract, theory, topicality, T, interpretation, violation, kritik, K, counterplan, CP, disad, DA, link, impact, weighing, extend, turn, card, tag.",
+    "rules": "Weigh the framework first (each side's value and criterion, or standard): decide which framework wins, then which side better meets it. New arguments in the NR or 2AR do not count; the 1AR may answer new arguments from the NC.",
+    "evalNorms": "Remember the norms: the NR and 2AR cannot make new arguments; dropped arguments are conceded; the 1AR must answer the whole NC in less time, so short answers are normal; framework (value and criterion) usually decides how offense is weighed.",
+    "flowSheets": "Put each side's value and criterion (or standard) on a sheet named \"Framework\". Put the AC's contentions on a sheet named \"AC\" and the NC's contentions on a sheet named \"NC\". A new position gets a new sheet named like \"T - Nebel\", \"Theory - Spec\", \"K - Cap\" or \"CP - States\".",
+    "pointsSpread": "Separate the two debaters by how well each one did: if one was clearly better, by at least 0.3-0.5. Give both the same points only when they were truly even."
+   },
+   "key": "ld@1",
+   "flowSpeeches": [
+    "AC",
+    "NC",
+    "1AR",
+    "NR",
+    "2AR"
+   ],
+   "speakerIds": [
+    "Aff",
+    "Neg"
+   ]
+  },
+  "formatFields": {
+   "format": "ld",
+   "formatVersion": 1
+  },
+  "prepClocks": [
+   {
+    "id": "Aff",
+    "side": "aff",
+    "label": "Aff"
+   },
+   {
+    "id": "Neg",
+    "side": "neg",
+    "label": "Neg"
+   }
+  ],
+  "speechLines": [
+   "AC · Aff · 6 min",
+   "CX AC · Aff · 3 min",
+   "NC · Neg · 7 min",
+   "CX NC · Neg · 3 min",
+   "1AR · Aff · 4 min",
+   "NR · Neg · 6 min",
+   "2AR · Aff · 3 min"
+  ],
+  "chips": [
+   {
+    "text": "AC · 0:20",
+    "tone": "caution",
+    "side": "aff",
+    "kind": "speech",
+    "said": "AC clock still running"
+   },
+   {
+    "text": "CX AC · 0:20",
+    "tone": "caution",
+    "side": "aff",
+    "kind": "speech",
+    "said": "CX AC clock still running"
+   },
+   {
+    "text": "NC · 0:20",
+    "tone": "caution",
+    "side": "neg",
+    "kind": "speech",
+    "said": "NC clock still running"
+   },
+   {
+    "text": "CX NC · 0:20",
+    "tone": "caution",
+    "side": "neg",
+    "kind": "speech",
+    "said": "CX NC clock still running"
+   },
+   {
+    "text": "1AR · 0:20",
+    "tone": "caution",
+    "side": "aff",
+    "kind": "speech",
+    "said": "1AR clock still running"
+   },
+   {
+    "text": "NR · 0:20",
+    "tone": "caution",
+    "side": "neg",
+    "kind": "speech",
+    "said": "NR clock still running"
+   },
+   {
+    "text": "2AR · 0:20",
+    "tone": "caution",
+    "side": "aff",
+    "kind": "speech",
+    "said": "2AR clock still running"
+   }
+  ],
+  "prepChips": [
+   {
+    "text": "Aff prep · 0:40",
+    "tone": "",
+    "side": "aff",
+    "kind": "prep",
+    "said": "Aff prep clock still running"
+   },
+   {
+    "text": "Neg prep · 0:40",
+    "tone": "",
+    "side": "neg",
+    "kind": "prep",
+    "said": "Neg prep clock still running"
+   }
+  ],
+  "steps": [
+   {
+    "disabled": true,
+    "reason": "Already at AC"
+   },
+   {
+    "disabled": true,
+    "reason": "Already at 2AR"
+   }
+  ],
+  "checkBallot": [
+   "Low-point win: the Neg wins with fewer points. Check that you meant this."
+  ],
+  "lowPoint": [
+   "Low-point win: the Aff wins with fewer points. Check that you meant this.",
+   "Write a reason for decision (RFD)."
+  ],
+  "ballotFields": [
+   "winner",
+   "pts.Aff",
+   "pts.Neg",
+   "rfd",
+   "affFb",
+   "negFb"
+  ],
+  "draftGroups": [
+   {
+    "id": "winner",
+    "label": "Winner",
+    "fields": [
+     "winner"
+    ]
+   },
+   {
+    "id": "pts",
+    "label": "Points",
+    "fields": [
+     "pts.Aff",
+     "pts.Neg"
+    ]
+   },
+   {
+    "id": "rfd",
+    "label": "Reason for decision",
+    "fields": [
+     "rfd"
+    ]
+   },
+   {
+    "id": "affFb",
+    "label": "Aff comments",
+    "fields": [
+     "affFb"
+    ]
+   },
+   {
+    "id": "negFb",
+    "label": "Neg comments",
+    "fields": [
+     "negFb"
+    ]
+   }
+  ],
+  "fieldLabels": [
+   "the winner",
+   "the reason for decision",
+   "the Aff comments",
+   "the Neg comments",
+   "Aff points",
+   "Neg points"
+  ],
+  "decision": "Neg (Hill CD) wins.\nAff Ann: 29 points\nNeg Cy: 28 points",
+  "blocks": [
+   {
+    "id": "decision",
+    "label": "Decision",
+    "text": "Neg (Hill CD) wins.\nAff Ann: 29 points\nNeg Cy: 28 points",
+    "note": "Low-point win: on the tournament ballot, tick the low-point win box."
+   },
+   {
+    "id": "rfd",
+    "label": "Reason for decision",
+    "text": "Framework.",
+    "words": 1
+   },
+   {
+    "id": "affFb",
+    "label": "Aff comments",
+    "text": "a",
+    "words": 1
+   },
+   {
+    "id": "negFb",
+    "label": "Neg comments",
+    "text": "n",
+    "words": 1
+   }
+  ],
+  "print": {
+   "title": "Ballot · R2",
+   "orientation": "portrait",
+   "sections": [
+    {
+     "kind": "facts",
+     "items": [
+      [
+       "Tournament",
+       "T"
+      ],
+      [
+       "Round",
+       "R2"
+      ],
+      [
+       "Judge",
+       "J"
+      ],
+      [
+       "Resolution",
+       "Res"
+      ]
+     ]
+    },
+    {
+     "kind": "winner",
+     "title": "Decision",
+     "text": "Neg (Hill CD) wins"
+    },
+    {
+     "kind": "speakers",
+     "title": "Points (25–30)",
+     "ranks": false,
+     "rows": [
+      {
+       "speaker": "Aff",
+       "side": "aff",
+       "name": "Ann",
+       "pts": "29",
+       "rank": ""
+      },
+      {
+       "speaker": "Neg",
+       "side": "neg",
+       "name": "Cy",
+       "pts": "28",
+       "rank": ""
+      }
+     ]
+    },
+    {
+     "kind": "text",
+     "title": "Reason for decision",
+     "text": "Framework."
+    },
+    {
+     "kind": "text",
+     "title": "Aff comments (Lake AB)",
+     "side": "aff",
+     "text": "a"
+    },
+    {
+     "kind": "text",
+     "title": "Neg comments (Hill CD)",
+     "side": "neg",
+     "text": "n"
+    }
+   ]
+  },
+  "tally": {
+   "aff": 1,
+   "even": 1,
+   "neg": 1,
+   "text": "Aff ahead on 1 · Even 1 · Neg ahead on 1"
+  },
+  "judgePrompt": "ROUND INFO\nTournament: T | Round: R2\nResolution: Res\nAff: one debater, the Aff debater. Neg: one debater, the Neg debater.\n\nJUDGE PARADIGM\nPolicymaker judge. Compare the world of the plan against the status quo or a counterplan. Weigh impacts by magnitude, probability and timeframe. Topicality and theory are voting issues only if the negative goes for them and wins them.\n\nTRANSCRIPTS (machine speech-to-text; expect errors and gaps)\n--- AC (AFF, Aff debater) ---\nmy value\n--- CX of the AC (Neg asks) (AFF, Aff debater) ---\nquestion\n\nJUDGE'S FLOW (the human judge's own notes; trust these over the transcript when they conflict)\n### Sheet: Framework\n[AC]\nV: justice",
+  "speechesSoFar": [
+   "AC",
+   "CX-AC"
+  ],
+  "docSpeech": [
+   "AC",
+   "NC"
+  ],
+  "prepUsed": {
+   "aff": {
+    "used": 40,
+    "total": 240,
+    "text": "Aff used 0:40 of 4:00"
+   },
+   "neg": {
+    "used": 0,
+    "total": 240,
+    "text": "Neg used 0:00 of 4:00"
+   },
+   "any": true
+  },
+  "hostedBody": {
+   "callId": "c",
+   "roundId": "r2",
+   "programId": null,
+   "format": "ld",
+   "formatVersion": 1
+  },
+  "savedBallot": {
+   "savedAt": "now",
+   "round": {
+    "tournament": "T",
+    "roundName": "R2",
+    "judge": "J",
+    "topic": "Res",
+    "aff": {
+     "team": "Lake AB",
+     "d1": "Ann",
+     "d2": ""
+    },
+    "neg": {
+     "team": "Hill CD",
+     "d1": "Cy",
+     "d2": ""
+    },
+    "ballot": {
+     "winner": "neg",
+     "pts": {
+      "Aff": "29",
+      "Neg": "28"
+     },
+     "ranks": {
+      "Aff": "",
+      "Neg": ""
+     },
+     "rfd": "Framework.",
+     "affFb": "a",
+     "negFb": "n"
+    },
+    "format": "ld",
+    "formatVersion": 1
+   },
+   "ptsRange": {
+    "min": 25,
+    "max": 30
+   }
+  },
+  "copy": {
+   "topicHint": "Resolved: A just government ought to…",
+   "ballotExample": "Example: I'm voting neg on framework. The Neg was the better speaker. Be kind to the Aff.",
+   "argExample": "e.g. Util fails — no link to the criterion",
+   "flowBriefExamples": "\"Util outweighs\", \"No link to the criterion\"",
+   "readingJudge": "Lincoln-Douglas judge",
+   "readingExample": "the criterion, meaning the test for which side better meets the value"
+  }
+ }
+}
