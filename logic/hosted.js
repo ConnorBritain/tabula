@@ -103,30 +103,15 @@
     };
   }
 
-  // The server answers with server-sent events: `data: {"t":"..."}` chunks, then `data: {"done":true,"charged":n}`
-  // or `data: {"error":"provider_error"}`. readSse takes the text read so far and returns the whole events in it and
-  // the rest (a part event that waits for more bytes). A line that is not JSON is skipped.
-  function readSse(buffer) {
-    const parts = String(buffer || '').replace(/\r\n/g, '\n').split('\n\n');
-    const rest = parts.pop();
-    const events = [];
-    for (const p of parts) {
-      const data = p.split('\n').filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trimStart()).join('\n');
-      if (!data) continue;
-      try { const ev = JSON.parse(data); if (ev && typeof ev === 'object') events.push(ev); } catch {}
-    }
-    return { events, rest };
-  }
-  // Adds one event to the answer so far. The answer is finished when done or error is set.
+  // The server answers with server-sent events (readSse and sseStep are shared code in core/ai.js). Debate keeps the
+  // round's AI limits from the done frame as acc.round (logic/limits.js parseRound).
+  const AI = typeof module !== 'undefined' && module.exports ? require('../core/ai.js') : root.TabulaCore.ai;
+  const readSse = AI.readSse;
+  // Adds one event to the answer so far: { text, done, error, round }. The answer is finished when done or error is set.
   function sseStep(acc, ev) {
-    // The `charged` field of the done frame is not used: the balance shows at the next capability check (§3a).
-    // `round` (the round's AI limits state, logic/limits.js parseRound) may come on the done frame.
     const a = Object.assign({ text: '', done: false, error: '', round: null }, acc);
-    if (a.done || a.error) return a;
-    if (typeof ev.t === 'string') a.text += ev.t;
-    if (ev.error) a.error = String(ev.error);
-    else if (ev.done === true) { a.done = true; a.round = parseRound(ev.round); }
-    return a;
+    const c = AI.sseStep({ text: a.text, done: a.done, error: a.error, info: a.round }, ev, (e) => parseRound(e.round));
+    return { text: c.text, done: c.done, error: c.error, round: c.info };
   }
 
   // The words for each hosted problem. Plain words; no error codes.

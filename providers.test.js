@@ -193,7 +193,7 @@ test('OpenRouter: picks a usable chat model and builds a chat request', () => {
 // Why: the owner decided the app must not advertise one model or company over another; a "best value" line coming back would break that promise to judges.
 test('user-facing copy does not favor one model or company', () => {
   const fs = require('node:fs'), path = require('node:path');
-  for (const f of ['index.html', 'app.js', 'providers.js', 'README.md']) {
+  for (const f of ['index.html', 'app.js', 'providers.js', 'core/ai.js', 'README.md']) {
     assert.doesNotMatch(fs.readFileSync(path.join(__dirname, f), 'utf8'), /best value|cheapest|cents a round|GPT-6 Luna/i, f);
   }
 });

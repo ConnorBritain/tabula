@@ -16,7 +16,7 @@ const L = require('./logic.js');
 
 // Why: the app once sent every request to Opus, about $19 a round on a judge's own key; no default path may name a premium model again.
 test('the app hard-codes no premium or deprecated model', () => {
-  for (const f of ['index.html', 'app.js', 'providers.js', 'logic.js', 'bridge.mjs']) {
+  for (const f of ['index.html', 'app.js', 'providers.js', 'core/ai.js', 'logic.js', 'bridge.mjs']) {
     assert.doesNotMatch(read(f), /claude-(opus|fable|mythos)/, f);
     assert.doesNotMatch(read(f), /['"]gpt-4o(-mini)?-transcribe['"]/, f);
   }
@@ -87,7 +87,7 @@ test('the pages have no inline scripts or inline event handlers', () => {
 
 // Why: a personal folder path in shipped files leaks the developer's computer layout and breaks for every other user.
 test('no personal file path in shipped files', () => {
-  for (const f of ['index.html', 'app.js', 'about.html', 'logic.js', 'providers.js', 'tour.js', 'bridge.mjs', 'README.md']) {
+  for (const f of ['index.html', 'app.js', 'about.html', 'logic.js', 'providers.js', 'core/ai.js', 'tour.js', 'bridge.mjs', 'README.md']) {
     assert.doesNotMatch(read(f), /\/Users\/|\/home\/[a-z]/, f);
   }
 });
@@ -107,7 +107,8 @@ test('the security rule allows exactly the AI hosts the app calls', () => {
   const csp = read('_headers').match(/Content-Security-Policy: (.+)/)[1];
   const directive = (name) => (csp.match(new RegExp('(?:^|; )' + name + ' ([^;]+)')) || [])[1].split(' ');
   const called = new Set();
-  for (const f of ['app.js', 'providers.js']) for (const m of read(f).matchAll(/['"`](https:\/\/(?:api\.[a-z0-9.-]+|generativelanguage\.googleapis\.com|openrouter\.ai))\//g)) called.add(m[1]);
+  // The provider hosts moved from providers.js to core/ai.js in step C13; both are read.
+  for (const f of ['app.js', 'providers.js', 'core/ai.js']) for (const m of read(f).matchAll(/['"`](https:\/\/(?:api\.[a-z0-9.-]+|generativelanguage\.googleapis\.com|openrouter\.ai))\//g)) called.add(m[1]);
   assert.deepEqual(directive('connect-src').filter((h) => h.startsWith('https://')).sort(), [...called].sort());
   assert.deepEqual(directive('script-src'), ["'self'"], 'scripts only from this site (no blob:, no inline)');
   assert.match(app, /audioWorklet\.addModule\('tap\.js'\)/, 'the audio tap is a file, which script-src allows');
