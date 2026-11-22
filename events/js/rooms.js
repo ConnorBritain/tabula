@@ -35,9 +35,10 @@ export function roomRow(room, events) {
   };
 }
 
-// The Rooms list as HTML text: one section per day, one row per room. Every text is escaped.
+// The Rooms list as HTML text: one section per day, one row per room; each row opens its room (step E4). Every text
+// is escaped.
 export function roomsHtml(groups, events) {
   return groups.map((g) => `<section class="room-day" aria-label="${esc(g.day)}"><h2>${esc(g.day)}</h2><ul class="room-list">`
-    + g.rooms.map((r) => { const row = roomRow(r, events); return `<li><span class="room-name">${esc(row.name)}</span><span>${esc(row.round)}</span><span class="room-meta">${esc(row.count)} · ${esc(row.state)}</span></li>`; }).join('')
+    + g.rooms.map((r) => { const row = roomRow(r, events); return `<li><a class="room-link" href="#/room/${encodeURIComponent(row.id)}"><span class="room-name">${esc(row.name)}</span><span>${esc(row.round)}</span><span class="room-meta">${esc(row.count)} · ${esc(row.state)}</span></a></li>`; }).join('')
     + '</ul></section>').join('');
 }

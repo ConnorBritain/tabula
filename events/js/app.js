@@ -1,12 +1,18 @@
 // Tabula Speech Events: the page (step E1). It boots the shared toast and dialog (core/ui.js), the store kept to the
 // tabulaEvents.* keys (events/js/store.js), loads every event and rules profile (events/js/data.js), and draws the Rooms
-// list (events/js/rooms.js). Room setup, the room screen, rank and review come in steps E4 to E8.
+// list (events/js/rooms.js). Room setup and the room screen came in step E4; rank and review come in steps E7 and E8.
 // Every events/js file is an ES module with named exports. Only this file boots the page; each new screen adds one
 // import line here.
 import { createUI } from '../../core/ui.js';
+import { focusKind } from '../../core/keys.js';
 import { createEventsStore, ROOMS_KEY } from './store.js';
 import { loadEventData } from './data.js';
 import { groupRoomsByDay, roomsHtml } from './rooms.js';
+import { parseRoute, routeHash } from './routes.js';
+import { upsertRoom } from './room.js';
+import { keymap } from './keys.js';
+import { createSetupScreen } from './setup-screen.js';
+import { createRoomScreen } from './room-screen.js';
 
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
@@ -25,8 +31,43 @@ function renderRooms(data) {
   $('#rooms-list').innerHTML = roomsHtml(groups, data.events);
 }
 
+// The screens share one box (#screen) and these helpers.
+function boot(data) {
+  const env = {
+    el: $('#screen'), ui, data,
+    now: () => Date.now(),
+    rooms: () => store.get(ROOMS_KEY, []),
+    saveRoom: (room) => store.set(ROOMS_KEY, upsertRoom(store.get(ROOMS_KEY, []), room)),
+    go: (screen, id) => { location.hash = routeHash(screen, id); },
+  };
+  const screens = { setup: createSetupScreen(env), room: createRoomScreen(env) };
+  let current = null;
+
+  function route() {
+    const r = parseRoute(location.hash);
+    if (current && current.hide) current.hide();
+    current = screens[r.screen] || null;
+    $('#rooms').hidden = Boolean(current);
+    env.el.hidden = !current;
+    if (current) current.show(r.id);
+    else { env.el.innerHTML = ''; renderRooms(data); }
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', route);
+
+  // One key handler for the page: core/keys.js matches the key in the showing screen's scope.
+  document.addEventListener('keydown', (ev) => {
+    if (!current || !current.run || ev.defaultPrevented) return;
+    const action = keymap.keyAction({ code: ev.code, key: ev.key, meta: ev.metaKey, ctrl: ev.ctrlKey, alt: ev.altKey, shift: ev.shiftKey, repeat: ev.repeat, composing: ev.isComposing, altGraph: ev.getModifierState && ev.getModifierState('AltGraph') },
+      { scopes: [current.scope], focus: focusKind(document.activeElement), modal: ui.askIsOpen() || Boolean(document.querySelector('.overlay:not([hidden])')), narrow: window.innerWidth < 820 });
+    if (action && current.run(action)) ev.preventDefault();
+  });
+  ui.escLayer('row-menu', 40, () => Boolean(current && current.isMenuOpen && current.isMenuOpen()), () => current.closeMenu());
+  route();
+}
+
 loadEventData(readJson).then((data) => {
-  renderRooms(data);
+  boot(data);
   document.documentElement.dataset.ready = 'true';
 }).catch((err) => {
   console.error('Speech Events: the event rules did not load.', err);

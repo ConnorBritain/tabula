@@ -1,0 +1,20 @@
+// Speech Events: the shortcut list (step E4; DESIGN.md §1 rule 10: one key registry). core/keys.js does the matching;
+// this file only names the app's keys. Pure.
+// Scopes: each screen puts its own scope in ctx.scopes while it shows ('room', 'rank').
+// single: a one-key shortcut (obeys the single-key off switch). A shortcut without typing: true never runs while a
+// text box has focus, so number keys still type in a box. noFocus: only when nothing has focus (Space keeps its own
+// job on a button).
+import { createKeymap } from '../../core/keys.js';
+
+const digit = (n) => ({ id: 'pick' + n, keys: { mac: String(n), other: String(n) }, single: true, scope: 'room', action: 'pick' + n, label: 'Pick speaker ' + n, group: 'Room' });
+
+export const SHORTCUTS = Object.freeze([
+  ...[1, 2, 3, 4, 5, 6, 7, 8].map(digit),
+]);
+
+export const keymap = createKeymap(SHORTCUTS);
+
+// The speaker number of a 'pickN' action, or null.
+export const pickNumber = (action) => (/^pick([1-8])$/.test(action || '') ? Number(action.slice(4)) : null);
+
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).keys = Object.freeze({ SHORTCUTS, keymap, pickNumber });
