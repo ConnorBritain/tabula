@@ -251,7 +251,17 @@ export function acceptCleanup(room, review, id, now) {
   return { room: r, changed: true };
 }
 
+// Undo of "Use this": the entry and the room's copy state go back to how they were (before: the room as it was before
+// acceptCleanup), only while the comment is still the clean text (an edit since then wins). Returns the room to save,
+// or null when it may not go back.
+export function undoCleanup(room, before, id, cleanText, now) {
+  const e = room && room.entries.find((x) => x.id === id);
+  const old = before && before.entries.find((x) => x.id === id);
+  if (!e || !old || e.comment !== cleanText) return null;
+  return Object.assign({}, room, { state: before.state, copiedAt: before.copiedAt, updatedAt: now, entries: room.entries.map((x) => (x.id === id ? old : x)) });
+}
+
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).cleanup = Object.freeze({ FEATURE, TASK, levelOf, hostedAllowed,
   cleanupPath, showCleanupButton, sourceText, cleanableEntries, scrubMap, speakerTag, scrub, restore, leaks,
   cleanupMessages, cleanupRequest, draftsFromText, readCleanupReply, cleanupGroups, cleanupRecord, cleanupReview,
-  refreshReview, setChoice, applyCleanup, acceptCleanup, MODES });
+  refreshReview, setChoice, applyCleanup, acceptCleanup, undoCleanup, MODES });

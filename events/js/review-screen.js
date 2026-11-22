@@ -162,6 +162,7 @@ export function createReviewScreen(env) {
     const old = f === 'reason' ? env.el.querySelector('.reason-card') : env.el.querySelector(`[data-card="${CSS.escape(id)}"]`);
     if (!old) return;
     const fresh = document.createElement('template');
+    // No ai part for a card in edit mode: clean-up is closed while the judge edits (cleanup-view.js view()).
     fresh.innerHTML = f === 'reason' ? commentsStageHtml(room(), viewNow()) : cardHtml(cards(room(), view.order).find((c) => c.id === id), true);
     const src = f === 'reason' ? fresh.content.querySelector('.reason-card') : fresh.content.firstElementChild;
     for (const sel of ['.critique', '[data-vact="copy"]']) {

@@ -6,7 +6,7 @@
 // The HTML builders at the top are pure (Node tests call them). createCleanup does the clicks, the dialogs and the call;
 // the rules are in cleanup.js and the key in ai-key.js.
 import { escapeHtml as esc } from '../../core/sheets.js';
-import { cleanupPath, cleanableEntries, cleanupMessages, cleanupReview, acceptCleanup } from './cleanup.js';
+import { cleanupPath, cleanableEntries, cleanupMessages, cleanupReview, acceptCleanup, undoCleanup } from './cleanup.js';
 import { findRoom } from './room.js';
 
 const MODE_LABELS = { full: 'Full clean-up', spelling: 'Spelling only' };
@@ -117,7 +117,6 @@ export function createCleanup(env, hooks) {
     const r = room();
     if (!st || st.status !== 'ready' || !r) return;
     const id = st.id;
-    const before = r.entries.find((e) => e.id === id);
     const out = acceptCleanup(r, { cards: [st.card] }, id, env.now());
     if (!out.changed) {
       st = Object.assign({}, st, { status: 'error', error: 'Your comment changed after the clean-up started. Try again.' });
@@ -130,10 +129,9 @@ export function createCleanup(env, hooks) {
     hooks.draw('copy-' + id);
     // Undo puts the old entry and room state back, only if the comment is still the clean version.
     env.ui.toast('Clean version in. Copy it again before you paste.', { key: 'clean', action: { label: 'Undo', name: 'Undo: clean-up', run: () => {
-      const now = room();
-      const e = now && now.entries.find((x) => x.id === id);
-      if (!e || e.comment !== inText) { env.ui.toast('The comment changed since, so it was not put back.', { key: 'clean' }); return; }
-      env.saveRoom(Object.assign({}, now, { state: r.state, copiedAt: r.copiedAt, updatedAt: env.now(), entries: now.entries.map((x) => (x.id === id ? before : x)) }));
+      const back = undoCleanup(room(), r, id, inText, env.now());
+      if (!back) { env.ui.toast('The comment changed since, so it was not put back.', { key: 'clean' }); return; }
+      env.saveRoom(back);
       hooks.draw();
       env.ui.toast('Your words are back.', { key: 'clean' });
     } } });

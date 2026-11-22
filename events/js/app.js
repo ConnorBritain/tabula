@@ -18,7 +18,7 @@ import { createCommentView } from './comment-view.js';
 import { createRankScreen } from './rank-screen.js';
 import { createReviewScreen } from './review-screen.js';
 import { registerOffline } from './offline.js';
-import { createPageAI } from './ai-key.js';
+import { createPageAI } from './page-ai.js';
 
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });

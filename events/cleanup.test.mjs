@@ -271,3 +271,17 @@ test('acceptCleanup writes one card, clears the copy mark, reopens a done room, 
   const empty = C.cleanupReview(sent, {});
   assert.equal(C.acceptCleanup(r, empty, 'e1', 99).changed, false, 'a card with no AI text writes nothing');
 });
+
+// Why: Undo after "Use this" must bring back the judge's own words and copy mark exactly; and if the judge typed since,
+// Undo must not wipe that newer text.
+test('undoCleanup restores the entry and copy state, but not over a newer edit', () => {
+  const before = Object.assign(room(), { state: 'done', copiedAt: 5 });
+  before.entries[0].commentCopiedAt = 4;
+  const review = C.cleanupReview(C.cleanableEntries(before, ['e1']), { e1: 'Clean words.' });
+  const after = C.acceptCleanup(before, review, 'e1', 99).room;
+  const back = C.undoCleanup(after, before, 'e1', 'Clean words.', 100);
+  assert.deepEqual(back.entries, before.entries);
+  assert.deepEqual([back.state, back.copiedAt, back.updatedAt], ['done', 5, 100]);
+  const typed = Object.assign({}, after, { entries: after.entries.map((e) => (e.id === 'e1' ? Object.assign({}, e, { comment: 'Clean words, plus mine.' }) : e)) });
+  assert.equal(C.undoCleanup(typed, before, 'e1', 'Clean words.', 100), null);
+});

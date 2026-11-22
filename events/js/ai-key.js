@@ -8,7 +8,6 @@
 // No DOM. fetch, the two stores and online() are passed in, so Node tests run it with a fake provider.
 import { PROVIDERS, detectProvider, modelsRequest, modelIds, pickModel, chatModels, retryOnce404, createKeyStore, outputCap } from '../../core/ai.js';
 import { FEATURE, cleanupRequest, readCleanupReply } from './cleanup.js';
-import { createStore } from '../../core/store.js';
 import { PREFIX } from './store.js';
 
 export const KEYS_KEY = PREFIX + 'aiKeys.v1';
@@ -31,7 +30,8 @@ export function aiError(kind, provider) {
   };
   return Object.assign(new Error(words[kind] || words.failed), { kind });
 }
-// The error kind for an HTTP status from a provider.
+// The error kind for an HTTP status from a provider. The debate app maps statuses in logic/rules.js classifyAIError with its
+// own, longer list; a shared status-to-kind rule (no words) is a candidate for core/ai.js when E14 adds hosted calls.
 export const statusKind = (status) => (status === 401 || status === 403 ? 'rejected' : status === 429 || status >= 500 ? 'busy' : 'failed');
 
 // o: { local (the events store), session (a store over sessionStorage), fetch, online () -> boolean, policy (core/policy.js) }.
@@ -95,14 +95,3 @@ export function createOwnKey(o) {
   });
 }
 
-// The page's AI part (app.js): the gate, made once at app start (AI-POLICY.md §6a), and the own key. The gate has no
-// server record yet (the events capabilities fetch comes with the platform), so it is the solo app; ?ai=off is the dev
-// switch that proves the no-AI look (AI-POLICY.md §3e). core/policy.js is a head file, so it is on globalThis.
-// store: the events store (localStorage). The tab-only key goes in a store over sessionStorage.
-export function createPageAI(store) {
-  const policy = globalThis.TabulaCore.policy;
-  const off = new URLSearchParams(location.search).get('ai') === 'off';
-  const session = createStore({ prefixes: [PREFIX], storage: globalThis.sessionStorage });
-  const own = createOwnKey({ local: store, session, fetch: (url, init) => fetch(url, init), online: () => navigator.onLine !== false, policy });
-  return Object.freeze({ gate: policy.gateFor({ record: null, now: Date.now(), off }), own });
-}
