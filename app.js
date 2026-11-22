@@ -24,5 +24,4 @@ showTab(R.tab || 'flow'); renderPrepPresets(); showDrawer(Boolean(S.trDrawer)); 
 renderSdList(); if (sdState().code) { sdFetchList(true); sdWatch(); } // resume watching this round's SpeechDrop room
 booted = true;
 studyBoot(); // study mode (5.7): only with ?study=1
-if (L.shouldShowWelcome({ setupDone: S.setupDone, hostedPlan })) openWelcome();
-else maybeD2Note();
+welcomeWhenKnown(acctBoot); // the welcome or the one-time AI note, once the account check answers (js/help.js)

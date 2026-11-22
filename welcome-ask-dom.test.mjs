@@ -10,6 +10,9 @@ import vm from 'node:vm';
 const require = createRequire(import.meta.url);
 const L = require('./logic.js');
 const UI_SRC = readFileSync(new URL('./ui.js', import.meta.url), 'utf8');
+// ask() itself lives in core/ui.js createUI() since step C3; ui.js calls it. core/ui.js is an ES module with no imports,
+// so dropping the "export" words lets it run as a plain script in the same fake page, as the page loads it before ui.js.
+const CORE_UI_SRC = readFileSync(new URL('./core/ui.js', import.meta.url), 'utf8').replace(/^export /gm, '');
 
 // A fake element: only what askOpen() and the load-time code in ui.js touch.
 class El {
@@ -41,7 +44,7 @@ class El {
   querySelectorAll() { return []; }
 }
 
-// Loads ui.js on a fresh fake page and gives back TabulaUI, the page and a way to press a key on the document.
+// Loads core/ui.js and ui.js on a fresh fake page and gives back TabulaUI, the page and a way to press a key on the document.
 function loadUI() {
   const docListeners = {};
   const doc = {
@@ -69,7 +72,9 @@ function loadUI() {
     requestAnimationFrame: () => 0, // the tip descriptions sync later; nothing here needs them
   };
   win.window = win;
-  vm.runInNewContext(UI_SRC, win);
+  vm.createContext(win);
+  vm.runInContext(CORE_UI_SRC, win);
+  vm.runInContext(UI_SRC, win);
   const key = (k) => { for (const fn of docListeners.keydown || []) fn({ key: k, isComposing: false, target: doc.body, preventDefault() {}, stopImmediatePropagation() {} }); };
   return { UI: win.TabulaUI, doc, key };
 }

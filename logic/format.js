@@ -13,46 +13,41 @@
   const FILES = ['policy-hs.v1', 'ld.v1'];
   const loaded = isNode ? FILES.map((f) => require('../formats/' + f + '.js')) : (root.TabulaFormats || []);
 
-  // A format file, ready to use: frozen, with the derived lists the code needs. The file itself stays plain data.
+  // The shared registry (core/defs.js, an ES module): the page runs it before this file; Node requires it.
+  const { createRegistry, defKey } = isNode ? require('../core/defs.js') : root.TabulaCore.defs;
+
+  // A format file, ready to use, with the derived lists the code needs. The registry freezes it. The file itself
+  // stays plain data.
   function prepare(f) {
-    const speeches = f.speeches.map((s) => Object.freeze(Object.assign({}, s, { minutes: s.seconds / 60 })));
-    return deepFreeze(Object.assign({}, f, {
-      key: f.id + '@' + f.version,
+    const speeches = f.speeches.map((s) => Object.assign({}, s, { minutes: s.seconds / 60 }));
+    return Object.assign({}, f, {
+      key: defKey(f.id, f.version),
       speeches,
       // The speeches the flow and the Round Map use, in order (CX is not flowed).
       flowSpeeches: speeches.filter((s) => s.column != null).map((s) => s.id),
       speakerIds: f.speakers.map((s) => s.id),
-    }));
+    });
   }
-  function deepFreeze(o) {
-    for (const v of Object.values(o)) if (v && typeof v === 'object' && !Object.isFrozen(v)) deepFreeze(v);
-    return Object.freeze(o);
-  }
-
-  const BY_KEY = {};
-  for (const f of loaded) BY_KEY[f.id + '@' + f.version] = prepare(f);
-  // The newest version of each format. A new round uses it.
-  const LATEST = {};
-  for (const f of Object.values(BY_KEY)) if (!LATEST[f.id] || LATEST[f.id].version < f.version) LATEST[f.id] = f;
 
   // The formats a judge can pick for a new round, in the owner's order (policy today, then LD).
   const FORMAT_IDS = ['policy-hs', 'ld'];
   const DEFAULT_FORMAT_ID = 'policy-hs';
   // A round saved before formats existed has no format: it was a policy round under the first policy file.
   const OLD_ROUND = { format: 'policy-hs', formatVersion: 1 };
+  // Every format version, frozen. A round that names no known format falls back to OLD_ROUND's format.
+  const REGISTRY = createRegistry(loaded, { prepare, fallback: { id: OLD_ROUND.format, version: OLD_ROUND.formatVersion } });
 
   // getFormat('ld') -> the newest LD; getFormat('ld', 1) -> LD version 1; null when unknown.
-  function getFormat(id, version) {
-    if (version == null) return LATEST[id] || null;
-    return BY_KEY[id + '@' + Number(version)] || null;
-  }
+  const getFormat = (id, version) => REGISTRY.get(id, version);
   // The format a round was judged under. A round with no format is an old policy round (policy-hs v1).
-  const findFormat = (r) => getFormat(r.format == null ? OLD_ROUND.format : r.format, r.formatVersion == null ? OLD_ROUND.formatVersion : r.formatVersion);
+  // roundKey fills in a round with no format (an old policy round); the registry fallback covers an unknown format.
+  const roundKey = (r) => [r.format == null ? OLD_ROUND.format : r.format, r.formatVersion == null ? OLD_ROUND.formatVersion : r.formatVersion];
+  const findFormat = (r) => getFormat(...roundKey(r));
   // Does this copy of the app have the round's format? false for a file from a newer Tabula. The page checks this
   // where a round comes in (a round file, the saved round), so formatOf never meets an unknown format there.
   const formatKnown = (round) => Boolean(findFormat(round || {}));
   // The round's format. An unknown one falls back to policy-hs v1, so a pure function never breaks on bad data.
-  function formatOf(round) { return findFormat(round || {}) || BY_KEY[OLD_ROUND.format + '@' + OLD_ROUND.formatVersion]; }
+  const formatOf = (round) => REGISTRY.resolve(...roundKey(round || {}));
   // The fields a round record stores for its format.
   const formatFields = (fmt) => ({ format: fmt.id, formatVersion: fmt.version });
   // A format id from the address (?format=ld). '' when there is none or it is not one a judge can pick.

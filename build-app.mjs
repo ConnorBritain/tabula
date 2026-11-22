@@ -13,11 +13,12 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 export const ALLOW = [
   '_headers', 'index.html', 'about.html',
   'app.js', 'logic.js', 'providers.js', 'keys.js', 'clipqueue.js', 'tap.js', 'tour.js', 'ui.js',
-  'js', 'logic', 'formats', 'demo', 'assets', 'vendor', 'learn',
+  'js', 'logic', 'formats', 'core', 'demo', 'assets', 'vendor', 'learn',
 ];
 
 // Never ship these, even inside an allowed folder.
-const BLOCK = [/\.test\.(m?js)$/, /(^|\/)README\.md$/, /\.local\./, /(^|\/)\./];
+// core/package.json only tells Node that core/ holds ES modules; the page does not need it.
+const BLOCK = [/\.test\.(m?js)$/, /(^|\/)README\.md$/, /\.local\./, /(^|\/)\./, /^core\/package\.json$/];
 
 export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW) {
   rmSync(out, { recursive: true, force: true });

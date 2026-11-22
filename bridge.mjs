@@ -26,6 +26,10 @@ for (const f of ['demo', 'core', 'formatsetup', 'pairing', 'caps', 'clock', 'rec
 for (const f of ['format', 'round', 'audio', 'flow', 'files', 'pairing', 'rules', 'decide', 'prompts', 'shell', 'account', 'flags', 'caps', 'limits', 'hosted', 'demo']) FILES['/logic/' + f + '.js'] = 'logic/' + f + '.js';
 for (const f of ['policy-hs.v1', 'ld.v1']) FILES['/formats/' + f + '.js'] = 'formats/' + f + '.js';
 for (const f of ['policy', 'ld']) FILES['/demo/' + f + '.js'] = 'demo/' + f + '.js'; // the demo's sample rounds
+// Shared ES modules (docs/events/LANDING.md §3). index.html loads them with type="module".
+for (const f of ['defs', 'store', 'ui', 'keys', 'clock', 'ranks', 'points', 'sheets', 'review', 'ai']) FILES['/core/' + f + '.js'] = 'core/' + f + '.js';
+FILES['/core/tokens.css'] = 'core/tokens.css'; // the shared tokens; assets/tokens.css imports it
+FILES['/core/policy.js'] = 'core/policy.js'; // the head file: a plain script, loaded in <head> before logic/caps.js
 for (const f of ['mammoth-1.6.0.browser.min.js', 'mermaid-10.9.1.min.js', 'anthropic-sdk-0.137.0.bundle.mjs']) FILES['/vendor/' + f] = 'vendor/' + f;
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.webp': 'image/webp', '.png': 'image/png', '.woff2': 'font/woff2', '.css': 'text/css; charset=utf-8', '.xml': 'application/xml; charset=utf-8' };
 // The Debate Library (built by build-learn.mjs) is a folder of static pages, so it is served by path, not from FILES.

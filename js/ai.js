@@ -43,11 +43,11 @@ const tabStore = {
   set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
   del(k) { try { sessionStorage.removeItem(k); } catch {} },
 };
+// The key store is shared code (core/ai.js). Keys saved one by one by older versions move into it.
+const KEY_STORE = window.TabulaCore.ai.createKeyStore({ name: KEYS, oldNames: { [KEY]: 'anthropic', [OAKEY]: 'openai' }, local: store, session: tabStore });
 // A saved choice wins. With none, a judge who already has keys on disk keeps them, so no current user loses a key.
-S.rememberKeys = L.resolveRememberKeys(S.rememberKeys, Object.keys(store.get(KEYS, {}) || {}).length > 0 || Boolean(store.get(KEY, '')) || Boolean(store.get(OAKEY, '')));
-const keys = Object.assign({}, tabStore.get(KEYS, {}), store.get(KEYS, {}));
-// Move keys saved by older versions of the app.
-(() => { const a = store.get(KEY, '') || tabStore.get(KEY, ''), o = store.get(OAKEY, '') || tabStore.get(OAKEY, ''); if (a && !keys.anthropic) keys.anthropic = a; if (o && !keys.openai) keys.openai = o; })();
+S.rememberKeys = L.resolveRememberKeys(S.rememberKeys, KEY_STORE.hasSaved());
+const keys = KEY_STORE.load();
 S.models = P.cleanSavedModels(S.models); // older versions saved premium or retired models
 S.modelChoice ??= {}; // models the judge picked in Settings (these win over automatic picks)
 S.modelLists ??= {}; // each provider's chat models, for the picker
@@ -58,9 +58,7 @@ if (!S.trEngine) S.trEngine = S.engine === 'openai' && keys.openai ? 'openai' : 
 // Old single-key entries are removed only once the keys are safely saved in the new place.
 function saveKeys() {
   if (restoring) return;
-  const dropTab = () => { tabStore.del(KEY); tabStore.del(OAKEY); };
-  if (S.rememberKeys) { if (store.set(KEYS, keys)) { store.del(KEY); store.del(OAKEY); tabStore.del(KEYS); dropTab(); } }
-  else { tabStore.set(KEYS, keys); dropTab(); store.del(KEYS); store.del(KEY); store.del(OAKEY); }
+  KEY_STORE.save(keys, S.rememberKeys);
 }
 saveKeys();
 const aiReady = () => {

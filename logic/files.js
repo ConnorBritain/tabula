@@ -145,34 +145,24 @@
 
   // ---------- backup and restore ----------
   // One file holds everything the app keeps in the browser, so it can be saved or moved to another computer.
-  const BACKUP_PREFIX = 'policyJudge.';
+  const BACKUP_PREFIX = 'policyJudge.'; // the same prefix as STORE_PREFIX in js/core.js
   const KEYS_ENTRY = 'policyJudge.keys.v1';
   const OLD_KEY_ENTRIES = ['policyJudge.key', 'policyJudge.openaiKey'];
+
+  // The shared backup file code is core/store.js (an ES module): the page runs it before this file; Node requires it.
+  const CORE_STORE = typeof module !== 'undefined' && module.exports ? require('../core/store.js') : root.TabulaCore.store;
 
   // storage: { name: rawString } for every browser storage entry. docs: the round documents.
   function buildBackup(storage, docs, opts) {
     const o = opts || {};
-    const entries = {};
-    for (const [k, v] of Object.entries(storage || {})) {
-      if (!k.startsWith(BACKUP_PREFIX)) continue;
-      // API keys stay out unless the judge asks for them: a backup file is easy to share by mistake.
-      if (!o.includeKeys && (k === KEYS_ENTRY || OLD_KEY_ENTRIES.includes(k))) continue;
-      entries[k] = v;
-    }
-    return { app: 'tabula', kind: 'backup', version: 1, exportedAt: o.now || new Date().toISOString(), includesKeys: Boolean(o.includeKeys), storage: entries, docs: docs || [] };
+    // API keys stay out unless the judge asks for them: a backup file is easy to share by mistake.
+    return CORE_STORE.buildBackup(storage, { prefix: BACKUP_PREFIX, secretKeys: [KEYS_ENTRY, ...OLD_KEY_ENTRIES], includeSecrets: Boolean(o.includeKeys), now: o.now, extra: { docs: docs || [] } });
   }
 
   // Reads a backup file and says plainly what is wrong with it, if anything.
   function parseBackup(text) {
-    let j;
-    try { j = JSON.parse(text); } catch { throw new Error('This file is not a Tabula backup (it is not JSON).'); }
-    if (!j || j.app !== 'tabula' || j.kind !== 'backup') throw new Error('This file is not a Tabula backup.');
-    if (j.version !== 1) throw new Error('This backup is from a newer version of Tabula. Update the app first.');
-    if (!j.storage || typeof j.storage !== 'object') throw new Error('This backup has no saved data in it.');
-    const storage = {};
-    for (const [k, v] of Object.entries(j.storage)) if (k.startsWith(BACKUP_PREFIX) && typeof v === 'string') storage[k] = v;
-    const docs = cleanDocs(j.docs);
-    return { storage, docs, exportedAt: j.exportedAt || '', includesKeys: Boolean(j.includesKeys) };
+    const b = CORE_STORE.parseBackup(text, { prefix: BACKUP_PREFIX });
+    return { storage: b.storage, docs: cleanDocs(b.file.docs), exportedAt: b.exportedAt, includesKeys: b.includesKeys };
   }
 
   // A short summary for the "are you sure" message.

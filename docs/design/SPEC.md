@@ -398,7 +398,7 @@ The tooltip behaviour (old S0.6) moves to Slice 3, with the V11 look.
 Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
 
 #### 2.1 Lighter welcome, free users only (Q11)
-- **Who sees it.** `shouldShowWelcome({setupDone, hostedPlan})`. A new `hasHostedPlan()` returns `false` until the paid plan ships. When it is `true`, the welcome never shows, `setupDone` is set, and the "show again" button hides.
+- **Who sees it.** `shouldShowWelcome({setupDone, hostedPlan})`. `L.hasHostedPlan(gate)` (logic/hosted.js) is true when the round's capabilities record gives hosted access or a school pays for a feature. At app start the welcome waits for the account check, so a paid judge on a new device sees no key welcome. When it is `true`, the welcome never shows, `setupDone` is set, and the "show again" button hides.
 - **Look.** A small dialog, `min(440px,100%−32px)`, with a × button.
   - × or Esc means "Start judging" (CHANGED 2026-11-21, owner approved docs/design/WELCOME-COPY.md §1. Old line: × or Esc means "Start without AI", but skips the skip page.)
   - A backdrop click does nothing.
@@ -424,7 +424,7 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
     - localhost shows Start judging plus 2 setup rows; another host shows Start judging plus 1 setup row;
     - Esc goes to Flow and the welcome does not show after a reload;
     - "Start judging" takes one click (CHANGED 2026-11-21: the skip page is deleted. Old line: skip takes one click);
-    - with `hasHostedPlan` stubbed to true, no welcome shows;
+    - with a hosted plan in the capabilities record, no welcome shows (welcome-gate.test.js);
     - Tab never leaves the dialog.
 
 #### 2.2 Fix stale place names
@@ -545,7 +545,7 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
   - Browser check, new profile: 2 transcribed speeches make no Live Eval, Live AI flow or ballot-fill request.
 
 #### 2.8 Paid-plan states (Q11) — recommended mark: do later, when the plan ships
-- Q11 says paid-plan users get hosted AI "with no keys or model choices". When `hasHostedPlan()` is true:
+- Q11 says paid-plan users get hosted AI "with no keys or model choices". When `hasHostedPlan(gate)` is true:
   - AI counts as ready. `NO_AI`, the Insights `edge-connect` mode and the draft panel's "No AI" state never show.
   - Settings hides the key paste fields, the provider list and the model pickers. It shows one row: "AI: included with your plan." [A]
   - A new error kind `planNoCredit` gives: "Your plan has no AI credits left this month. The clock, flow and ballot still work." [A]

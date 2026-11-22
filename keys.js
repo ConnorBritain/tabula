@@ -1,14 +1,17 @@
-// The keyboard map: one registry of shortcuts, and the pure rules that decide if a key press runs one.
-// No DOM here, so Node tests can check every rule. app.js reads the page state and asks matchKey().
+// Tabula Debate's keyboard map: its one registry of shortcuts and its palette commands. The rules that decide if a key
+// press runs an entry, the key names and the palette search are shared code in core/keys.js (step C5); this file
+// passes debate's entries in and turns debate's place and tab into scopes. No DOM here, so Node tests can check every
+// rule. app.js reads the page state and asks keyAction().
 // Slice 0/1 holds the round-safety keys (spec 4.1); Slice 5 adds ⌘K, ?, ], \ and the palette commands (5.4).
 (function (root) {
   'use strict';
+  // The shared key rules (core/keys.js, an ES module): the page runs it before this file; Node requires it.
+  const CK = typeof module !== 'undefined' && module.exports ? require('./core/keys.js') : root.TabulaCore.keys;
+  const { parseCombo, isReservedCombo, focusKind, keyMatches, isMacPlatform, formatKeys, searchCommands } = CK;
+  const entryKeys = CK.shortcutKeys; // kept under the name debate's page code (js/palette.js) uses
 
-  // keys: the key on Mac and on other systems. 'Meta' is ⌘; on Windows and ChromeOS it becomes 'Control'.
-  // single: a one-key shortcut. These obey the single-key off switch (WCAG 2.1.4). Modifier keys always work.
-  // typing: it also works while the focus is in a text box.
-  // noFocus: it works only when nothing has focus (Space keeps its native job on buttons and boxes).
-  // scope: 'flow' (only on the Flow place), 'ballot' (only on Decide → Ballot, spec 4.1) or 'global'.
+  // The shortcut fields are described in core/keys.js. Debate's scopes: 'flow' (only on the Flow place), 'ballot' (only on
+  // Decide → Ballot, spec 4.1) or 'global'.
   // action: what the key does. Two keys can run the same action.
   // label, group and palette are the fields spec 4.1 names for the shortcut sheet and palette (Slice 5).
   const REGISTRY = [
@@ -29,96 +32,19 @@
     { id: 'layer.close', action: 'close', label: 'Close the top layer', group: 'General', scope: 'global', keys: { mac: 'Escape', other: 'Escape' }, single: false, typing: true, noFocus: false, palette: false, esc: true },
   ];
 
-  function parseCombo(combo) {
-    const parts = String(combo).split('+');
-    // 'Meta+\\' splits fine; a bare '+' key is not used.
-    const key = parts.pop();
-    return { mods: parts, key };
-  }
+  // Debate's page state as the shared scopes: the Flow place and the Ballot tab.
+  const scopesOf = (c) => [c.place === 'flow' ? 'flow' : '', c.tab === 'ballot' ? 'ballot' : ''].filter(Boolean);
+  const KEYMAP = CK.createKeymap(REGISTRY);
 
-  // Keys the browser or the keyboard layout already owns. No entry may use one (spec 4.1).
-  function isReservedCombo(combo, platform) {
-    const { mods, key } = parseCombo(combo);
-    const has = (m) => mods.includes(m);
-    const k = key.length === 1 ? key.toUpperCase() : key;
-    if (has('Control') && has('Alt')) return true; // AltGr on many European layouts
-    const browserMod = has('Control') || (platform === 'mac' && has('Meta'));
-    if (browserMod) {
-      if (['PageUp', 'PageDown', 'Tab'].includes(k)) return true;
-      if (/^[0-9]$/.test(k)) return true;
-      if (['T', 'W', 'N', 'L', 'H', 'J', 'D'].includes(k)) return true;
-    }
-    if (platform === 'mac' && has('Alt') && /^[A-Z0-9]$/.test(k)) return true; // Option+letter types a character
-    return false;
-  }
-
-  // What kind of thing has focus. el is a plain object: { tagName, type, isContentEditable }.
-  //   'none'    nothing (the page body)
-  //   'text'    a box you type in (Space and single keys must type there)
-  //   'control' a button, checkbox, link or similar (Space does its native job there)
-  const NOT_TEXT_INPUTS = ['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file', 'image'];
-  function focusKind(el) {
-    if (!el || !el.tagName) return 'none';
-    const tag = String(el.tagName).toUpperCase();
-    if (tag === 'BODY' || tag === 'HTML') return 'none';
-    if (el.isContentEditable) return 'text';
-    if (tag === 'TEXTAREA' || tag === 'SELECT') return 'text';
-    if (tag === 'INPUT') return NOT_TEXT_INPUTS.includes(String(el.type || 'text').toLowerCase()) ? 'control' : 'text';
-    return 'control';
-  }
-
-  // Does the pressed key match this entry's key? ev: { code, key, meta, ctrl, alt, shift, altGraph }.
-  function keyMatches(entry, ev) {
-    const { mods, key } = parseCombo(entry.keys.other);
-    if (key === 'Space') return ev.code === 'Space' && !ev.meta && !ev.ctrl && !ev.alt && !ev.shift;
-    if (key === 'Escape') return ev.key === 'Escape';
-    if (!mods.length && key.length === 1) {
-      // One character: match the character the layout makes. Shift is fine (some layouts need it); AltGr is fine.
-      if (ev.meta || ev.ctrl) return false;
-      if (ev.alt && !ev.altGraph) return false;
-      return ev.key === key;
-    }
-    // A modifier key: ⌘ on Mac, Ctrl elsewhere. Either one is accepted, so a judge never has to think about it.
-    if (!(ev.meta || ev.ctrl) || ev.alt || ev.shift) return false;
-    return String(ev.key).toLowerCase() === key.toLowerCase();
-  }
-
-  // May this entry run now? ctx: { place, tab, focus, modal, singleKeysOn, narrow }. tab: the open tab (for the 'ballot' scope).
-  function allowed(entry, ctx) {
-    if (ctx.modal) return false;
-    if (entry.wideOnly && ctx.narrow) return false; // the narrow layout opens the palette from the ? menu only (5.4) // a dialog, tour, welcome or node editor is open: shortcuts are off
-    if (entry.scope === 'flow' && ctx.place !== 'flow') return false;
-    if (entry.scope === 'ballot' && ctx.tab !== 'ballot') return false;
-    if (entry.single && ctx.singleKeysOn === false) return false;
-    if (entry.noFocus && ctx.focus !== 'none') return false;
-    if (!entry.typing && ctx.focus === 'text') return false;
-    return true;
-  }
-
-  // The registry id the key press runs, or null. Esc is not matched here (the Esc stack owns it).
-  // Key repeat and input-method composing never run anything.
-  function matchKey(ev, ctx) {
-    if (!ev || ev.repeat || ev.composing) return null;
-    const c = ctx || {};
-    for (const entry of REGISTRY) {
-      if (entry.esc) continue;
-      if (keyMatches(entry, ev) && allowed(entry, c)) return entry.id;
-    }
-    return null;
-  }
-
+  // The registry id the key press runs, or null. ctx: { place, tab, focus, modal, singleKeysOn, narrow }.
+  const withScopes = (ctx) => Object.assign({}, ctx, { scopes: scopesOf(ctx || {}) });
+  const matchKey = (ev, ctx) => KEYMAP.matchKey(ev, withScopes(ctx));
   // The action a key press runs ('clock', 'speeches', 'print', 'palette', 'shortcuts', 'insights', 'focus') or null. app.js calls only this.
-  function keyAction(ev, ctx) {
-    const id = matchKey(ev, ctx);
-    const entry = id && REGISTRY.find((e) => e.id === id);
-    return entry ? entry.action : null;
-  }
+  const keyAction = (ev, ctx) => KEYMAP.keyAction(ev, withScopes(ctx));
   // The clock rule (spec 1.3) and the speeches pane rule (spec 1.5), as spec 6.1 names them for the tests.
   // Each takes one object with the key and the context and returns 'toggle' or null. Both go through keyAction.
   const clockKeyAction = (x) => (keyAction(x, x) === 'clock' ? 'toggle' : null);
   const speechesKeyAction = (x) => (keyAction(x, x) === 'speeches' ? 'toggle' : null);
-
-  const isMacPlatform = (platform) => /Mac|iPhone|iPad|iPod/i.test(String(platform || ''));
 
   // The tooltip copy on the Start button (spec 1.3). The only version; later slices reuse it.
   function startTip(mac, singleKeysOn) {
@@ -131,37 +57,8 @@
     return singleKeysOn === false ? 'Show speeches (' + mod + ')' : 'Show speeches ([ or ' + mod + ')';
   }
 
-  // ---------- key names for people (the shortcut sheet, the palette and the ? menu) ----------
-  // 'Meta+Enter' -> '⌘ Enter' on Mac and 'Ctrl+Enter' elsewhere; 'Meta+k' -> '⌘K' / 'Ctrl+K'; 'Escape' -> 'Esc'.
-  function formatKeys(combo, mac) {
-    const { mods, key } = parseCombo(combo);
-    const name = key === 'Escape' ? 'Esc' : key.length === 1 ? key.toUpperCase() : key;
-    if (!mods.length) return name;
-    if (mac) {
-      const sym = mods.map((m) => ({ Meta: '⌘', Control: '⌃', Alt: '⌥', Shift: '⇧' }[m] || m)).join('');
-      return sym + (name.length > 1 ? ' ' : '') + name;
-    }
-    return mods.map((m) => ({ Meta: 'Ctrl', Control: 'Ctrl', Alt: 'Alt', Shift: 'Shift' }[m] || m)).join('+') + '+' + name;
-  }
-  const entryKeys = (entry, mac) => formatKeys(mac ? entry.keys.mac : entry.keys.other, mac);
-
-  // ---------- the shortcut sheet (spec 5.5): built from the registry ----------
-  // Groups in registry order. A single-key row is marked off when the single-key switch is off. query filters by the
-  // label or the key name. Returns [{ group, rows: [{ id, label, keys, off }] }].
-  // can: the AI gate (feature -> bool, optional); an entry with a feature that is off is left out (platform 1B).
-  function shortcutRows(mac, singleKeysOn, query, can) {
-    const q = String(query || '').trim().toLowerCase();
-    const groups = [];
-    for (const e of REGISTRY) {
-      if (e.feature && can && !can(e.feature)) continue;
-      const keys = entryKeys(e, mac);
-      if (q && !e.label.toLowerCase().includes(q) && !keys.toLowerCase().includes(q)) continue;
-      let g = groups.find((x) => x.group === e.group);
-      if (!g) { g = { group: e.group, rows: [] }; groups.push(g); }
-      g.rows.push({ id: e.id, label: e.label, keys, off: Boolean(e.single && singleKeysOn === false) });
-    }
-    return groups;
-  }
+  // The shortcut sheet (spec 5.5), built from the registry by core/keys.js.
+  const shortcutRows = KEYMAP.shortcutRows;
 
   // ---------- the palette, "Search and commands" (spec 5.4, Q13) ----------
   // The commands, in the spec's groups and order. label: the exact row text; a function when the text depends on
@@ -263,33 +160,7 @@
     return '';
   }
 
-  // Search (5.4): prefix match first, then word match, then alias, then fuzzy (the letters in order). Inside each
-  // tier the rows keep their group order. An empty query gives every row.
-  const words = (t) => String(t).toLowerCase().split(/[^a-z0-9.]+/).filter(Boolean);
-  function fuzzy(q, text) {
-    let i = 0;
-    for (const ch of text) if (ch === q[i]) i++;
-    return i === q.length;
-  }
-  function searchTier(row, q) {
-    const label = row.label.toLowerCase();
-    const qw = words(q);
-    if (label.startsWith(q)) return 0;
-    const lw = words(label);
-    if (qw.length && qw.every((w) => lw.some((l) => l.startsWith(w)))) return 1;
-    const aw = (row.alias || []).flatMap(words);
-    if ((row.alias || []).some((a) => a.toLowerCase().startsWith(q)) || (qw.length && qw.every((w) => aw.some((a) => a.startsWith(w))))) return 2;
-    if (q.replace(/\s+/g, '').length >= 2 && fuzzy(q.replace(/\s+/g, ''), label.replace(/\s+/g, ''))) return 3;
-    return -1;
-  }
-  function searchCommands(query, rows) {
-    const q = String(query || '').trim().toLowerCase();
-    const list = rows || [];
-    if (!q) return list.slice();
-    const tiers = [[], [], [], []];
-    for (const r of list) { const t = searchTier(r, q); if (t >= 0) tiers[t].push(r); }
-    return tiers.flat();
-  }
+  // Search (5.4) is searchCommands in core/keys.js.
 
   const api = { REGISTRY, parseCombo, isReservedCombo, focusKind, keyMatches, matchKey, keyAction, clockKeyAction, speechesKeyAction, isMacPlatform, startTip, speechesTip,
     formatKeys, entryKeys, shortcutRows, GROUPS, COMMANDS, buildCommands, searchCommands };

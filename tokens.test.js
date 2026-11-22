@@ -1,4 +1,4 @@
-// Tests for the one token file, assets/tokens.css, and the theme boot script (spec Part 2, V0, V10). Run with: node --test
+// Tests for the token files (core/tokens.css, imported by assets/tokens.css, the one file every page links) and the theme boot script (spec Part 2, V0, V10). Run with: node --test
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -7,20 +7,28 @@ const vm = require('node:vm');
 const L = require('./logic.js');
 
 const read = (f) => fs.readFileSync(path.join(__dirname, f), 'utf8');
-const CSS = read('assets/tokens.css');
+// The tokens a page gets: core/tokens.css (shared, step C4), then assets/tokens.css (debate's side colours), which
+// imports the core file first.
+const CSS_PARTS = [read('core/tokens.css'), read('assets/tokens.css')];
 
-// The custom properties inside the first rule whose selector matches, as { name: value }.
-function block(css, selectorRe) {
-  const m = selectorRe.exec(css);
-  assert.ok(m, 'no block for ' + selectorRe);
-  const start = css.indexOf('{', m.index) + 1;
-  const body = css.slice(start, css.indexOf('}', start));
-  return Object.fromEntries([...body.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi)].map((x) => [x[1], x[2].trim()]));
+// The custom properties inside the first rule whose selector matches, in each file, as one { name: value }.
+// Each file has one block per theme, so the first match per file is the whole block.
+function block(parts, selectorRe) {
+  const out = {};
+  for (const css of parts) {
+    const m = selectorRe.exec(css);
+    if (!m) continue;
+    const start = css.indexOf('{', m.index) + 1;
+    const body = css.slice(start, css.indexOf('}', start));
+    for (const x of body.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi)) out[x[1]] = x[2].trim();
+  }
+  assert.ok(Object.keys(out).length, 'no block for ' + selectorRe);
+  return out;
 }
-const LIGHT = block(CSS, /^:root \{/m);
-const DARK = block(CSS, /^:root\[data-theme="dark"\] \{/m);
-const DARK_NO_JS = block(CSS, /:root:not\(\[data-theme\]\) \{/);
-const PRINT = block(CSS, /:root\[data-theme\], :root:not\(\[data-theme\]\) \{/);
+const LIGHT = block(CSS_PARTS, /^:root \{/m);
+const DARK = block(CSS_PARTS, /^:root\[data-theme="dark"\] \{/m);
+const DARK_NO_JS = block(CSS_PARTS, /:root:not\(\[data-theme\]\) \{/);
+const PRINT = block(CSS_PARTS, /:root\[data-theme\], :root:not\(\[data-theme\]\) \{/);
 const isColour = (v) => /#[0-9a-f]{3,8}\b/i.test(v);
 const colours = (b) => Object.fromEntries(Object.entries(b).filter(([, v]) => isColour(v)));
 

@@ -16,7 +16,8 @@ test('shouldShowWelcome: a free judge who has not finished setup sees it; after 
 });
 
 // Why: paid-plan judges get hosted AI with no keys (Q11); showing them a key screen would be a dead end.
-test('shouldShowWelcome: a hosted plan never shows it, and no one has a hosted plan yet', () => {
+// (hasHostedPlan now reads the capabilities gate; with no gate there is no plan. The gate cases: welcome-gate.test.js.)
+test('shouldShowWelcome: a hosted plan never shows it, and with no gate no one has a hosted plan', () => {
   assert.equal(L.shouldShowWelcome({ setupDone: false, hostedPlan: true }), false);
   assert.equal(L.hasHostedPlan(), false);
 });

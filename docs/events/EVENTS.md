@@ -12,7 +12,7 @@ Full research with every source key: shared notes folder, `speech-events/events-
 - **So the v1 cut is about primitives, not events.** v1 ships every event that fits the core primitives. Events that need a new primitive wait.
 - **v1 (17 events + Custom):** the 8 NSDA main events, 7 NSDA supplemental speech events, NSDA middle school Declamation and Mixed Extemp, and a **Custom event** form for any local event.
 - **Phase P3 (see PLAN.md):** state and league packs (California CHSSA, Texas UIL and TFA, Illinois, Kansas, Minnesota, Ohio, Michigan, Iowa, NCFL, NCFCA, Stoa) as preset files, plus extemp cross-ex, Pro Con Challenge, and rating-only ballots.
-- **Later or never:** Radio (audio-only window), large-group events, Discussion, Extemp Debate (it is a debate), Congress (phase P5, its own grid).
+- **Later or never:** Radio (audio-only window), large-group events, Discussion, Extemp Debate (it is a debate), Congress (phase P5, its own grid, right after v1 by PLAN.md Q13 B).
 
 ## 2. Rules every event shares (what the ballot holds)
 
@@ -130,7 +130,7 @@ This is the most product-shaping fact in the research. The rules profile ([ARCHI
 
 AFA National Speech Tournament and NFA: prepared events run 10:00, interp holds a manuscript, limited prep runs 7:00, no automatic overtime penalty. Ballots: ranks 1–5 plus points 1–25 (AFA) or 1–30 with no ties (NFA). These fit the same primitives as a league pack [AFA], [NFA].
 
-## 6. Congress (phase P5)
+## 6. Congress (phase P5, right after v1)
 
 Congressional Debate is not an individual speech event in shape. It needs its own grid (primitive N14 in [SHARED-VS-NEW.md](SHARED-VS-NEW.md)). NSDA uses two point scales in the same manual: 1–6 per speech (event rules) and 1–8 per speech plus 4–8 per hour of presiding (district rules). Each scorer ranks a top 8. See `docs/growth/FORENSICS.md` §2 and the ballot research §6.
 

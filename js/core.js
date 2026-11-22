@@ -16,18 +16,13 @@ const flagOn = (name) => L.flagOn(name, { search: location.search, local: LOCAL_
 document.querySelectorAll('[data-flag]').forEach((el) => { if (flagOn(el.dataset.flag)) el.hidden = false; });
 
 // ---------- storage (never trust it to exist) ----------
-const store = {
-  get(k, d) {
-    let raw = null;
-    try { raw = localStorage.getItem(k); return raw ? JSON.parse(raw) : d; }
-    catch { try { if (raw) localStorage.setItem(k + '.corrupt-backup', raw); } catch {} return d; }
-  },
-  set(k, v) {
-    try { localStorage.setItem(k, JSON.stringify(v)); if (storageWarned) { storageWarned = ''; dismissToast('storage'); } return true; }
-    catch (err) { storageFailed(err); return false; }
-  },
-  del(k) { try { localStorage.removeItem(k); } catch {} },
-};
+// The shared store (core/store.js) keeps debate to its own key names: policyJudge.* and the account-wide tabula.*.
+const STORE_PREFIX = 'policyJudge.'; // the same prefix as BACKUP_PREFIX in logic/files.js
+const store = window.TabulaCore.store.createStore({
+  prefixes: [STORE_PREFIX, 'tabula.'],
+  onSaved: () => { if (storageWarned) { storageWarned = ''; dismissToast('storage'); } },
+  onFail: (err) => storageFailed(err),
+});
 // A failed save shows one error toast (key 'storage'), not one per keystroke. The clock still runs in memory.
 let storageWarned = '';
 function storageFailed(err) {
@@ -145,11 +140,7 @@ async function copy(text) {
 }
 // The plain callers: a toast either way.
 async function copyToast(text) { toast((await copy(text)) ? 'Copied' : 'Copy did not work in this browser. Select the text and press Ctrl+C (⌘C on Mac).'); }
-function download(name, text, type) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text], { type: type || 'text/csv' }));
-  a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-}
+const download = window.TabulaCore.store.downloadFile;
 const safeName = (s) => (s || 'round').replace(/[^\w-]+/g, '_');
 
 // ---------- tabs ----------
