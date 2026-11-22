@@ -405,6 +405,10 @@
   .theme-pick { border: 0; margin: 0; padding: 0; min-width: 0; }
   .theme-pick legend { padding: 0; margin-bottom: var(--s1); font-size: var(--fs-2); font-weight: var(--fw-2); color: var(--text-2); }
   .theme-pick .row { gap: var(--s4); }
+  .round-mode .check-row { align-items: flex-start; margin-top: var(--s2); }
+  .round-mode .check-row .field-help { display: block; }
+  .rounds-big { margin: 0 0 var(--s3); font-size: var(--fs-4); font-weight: var(--fw-3); font-variant-numeric: tabular-nums; }
+  .rounds-big a { margin-left: var(--s2); font-size: var(--fs-2); font-weight: var(--fw-2); }
   .meter { display: inline-block; width: 64px; height: 8px; border-radius: var(--r-pill); background: var(--border); overflow: hidden; vertical-align: middle; flex: none; }
   .meter.big { width: 140px; height: 10px; }
   .meter[hidden] { display: none; }
@@ -670,6 +674,8 @@
   .clock-chip { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--h-md); padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); font-variant-numeric: tabular-nums; white-space: nowrap; cursor: pointer; flex: none; }
   .clock-chip:hover { background: var(--sunk); border-color: var(--text-2); }
   .clock-chip[hidden] { display: none; }
+  /* Rounds left (docs/design/AI-ROUND-CONSENT.md §3): the same pill as the clock chip, quiet text. */
+  .rounds-pill { font-weight: var(--fw-2); color: var(--text-2); }
   /* Last 30 s and over time (spec 5.2). These must come after .clock-chip, which sets color and would win over the global .is-caution / .is-error. */
   .clock-chip.is-caution { color: var(--caution); } .clock-chip.is-error { color: var(--error); }
   .chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); flex: none; }
@@ -841,6 +847,7 @@
   <span class="spacer"></span>
   <button class="clock-chip" id="clock-chip" type="button" hidden><span class="chip-dot" aria-hidden="true"></span><span id="clock-chip-text" aria-hidden="true"></span></button>
   <span class="net-note" id="net-note" role="status"></span>
+  <button class="clock-chip rounds-pill" id="rounds-pill" type="button" hidden></button>
   <div class="help-wrap">
     <button class="iconbtn" id="help-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="help-menu" aria-label="Help and tours" data-tip="Help and tours">?</button>
     <div class="help-menu" id="help-menu" role="menu" aria-label="Help" hidden>
@@ -1186,6 +1193,16 @@
       <div data-ai="aiFlow"><label>&nbsp;</label><label class="row check-row"><input type="checkbox" id="live-flow"> Live AI flow during speeches <span class="muted">(uses AI while a speech runs)</span></label></div>
     </div>
   </div>
+  <div class="card" id="ai-rounds-card" hidden>
+    <h2>AI rounds</h2>
+    <p class="rounds-big"><span id="rounds-left-num"></span> <a id="rounds-buy" target="_blank" rel="noopener">Buy rounds</a></p>
+    <fieldset class="theme-pick round-mode" aria-describedby="round-mode-help">
+      <legend>When a round starts</legend>
+      <label class="row check-row"><input type="radio" name="round-mode" value="ask"> <span><strong>Ask me first</strong><span class="muted field-help">Before AI runs in a round, Tabula asks you. Nothing is used until you say yes.</span></span></label>
+      <label class="row check-row"><input type="radio" name="round-mode" value="auto"> <span><strong>Use AI automatically</strong><span class="muted field-help">Your AI settings run on their own. Each round with AI uses 1 round.</span></span></label>
+    </fieldset>
+    <p class="muted field-help" id="round-mode-help">The clock, flow and ballot are always free.</p>
+  </div>
   <div class="card" id="account-card" hidden>
     <h2>Your paradigm</h2>
     <p class="muted" id="acct-who"></p>
@@ -1341,7 +1358,7 @@
   <div class="rb-prep"><span class="aff">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
   <div class="rb-prep"><span class="neg">Neg prep</span><span class="t" id="prep-neg">8:00</span><button class="b small" data-prep="neg">Start</button></div>
   <span id="mini-rec" class="rb-ai" data-ai="any"></span>
-  <span id="ai-round" class="rb-ai" role="status" aria-live="polite" hidden><span id="ai-round-text"></span> <button class="b small" id="ai-resume" type="button" hidden>Turn AI back on</button></span>
+  <span id="ai-round" class="rb-ai" role="status" aria-live="polite" hidden><span id="ai-round-text"></span> <button class="b small" id="ai-resume" type="button" hidden>Turn AI back on</button><button class="b small" id="ai-consent-on" type="button" hidden>Turn on AI</button></span>
 </footer>
 <div id="node-editor" class="overlay" role="dialog" aria-modal="true" aria-labelledby="ne-title" hidden>
   <div class="overlay-card narrow">
@@ -1478,6 +1495,7 @@
 <script defer src="js/docs.js"></script>
 <script defer src="js/ai.js"></script>
 <script defer src="js/limits.js"></script>
+<script defer src="js/consent.js"></script>
 <script defer src="js/settings.js"></script>
 <script defer src="js/help.js"></script>
 <script defer src="js/insights.js"></script>

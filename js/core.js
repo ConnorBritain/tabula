@@ -93,6 +93,7 @@ function freshRound(prev, fmt) {
     // The clocks (spec 1.1). run = the running speech { id, endAt, beeped, rec }; prepRun = { side, endAt }.
     // savedAt stamps the clock fields as one unit, so a second tab can tell which clock is newer.
     run: null, prepRun: null, savedAt: 0,
+    aiConsent: null, // the judge's answer to "Use 1 round of AI?" for this round: 'yes' | 'no' | null (js/consent.js)
   };
 }
 // A saved round with no format is from before formats: it loads as policy-hs version 1 (L.OLD_ROUND).
@@ -373,7 +374,7 @@ $('#round-open').addEventListener('change', async (e) => {
   stopAll(); resetting = true;
   CQ.clear(); await clipStore.clear().catch(() => {}); // the old round's waiting audio is deleted now
   const oldId = R.id;
-  R = Object.assign(freshRound(), opened.round, { tab: 'flow', started: true, run: null, prepRun: null, programId: null }); // a saved file never brings a clock back, nor another judge's school
+  R = Object.assign(freshRound(), opened.round, { tab: 'flow', started: true, run: null, prepRun: null, programId: null, aiConsent: null }); // a saved file never brings a clock back, another judge's school, nor a yes to use a round
   fitPrepToFormat(); // the file's round keeps its own format (none = an old policy round; unknown ones were refused)
   save();
   docStore.clearRound(oldId).finally(() => location.reload());
