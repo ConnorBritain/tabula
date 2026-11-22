@@ -4,7 +4,9 @@
 // The builders at the top are pure (Node tests call them); createSetupScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { parseRoom } from './parse.js';
-import { ENABLED_EVENTS, DEFAULT_PROFILE, createRoom, setupError } from './room.js';
+import { ENABLED_EVENTS, CUSTOM_EVENT, DEFAULT_PROFILE, createRoom, setupError } from './room.js';
+import { customError, customEvent, withGrace } from './custom.js';
+import { graceOf } from './timer.js';
 
 // The event files' { id, name, short } in the picker order, for the enabled events only.
 export function eventChoices(data) {
@@ -34,6 +36,20 @@ export function previewHtml(parsed) {
     ${checks ? `<h3>Check these</h3><ul class="check-list">${checks}</ul>` : ''}${skipped}`;
 }
 
+// The Custom event fields (step E12) as HTML text: shown only when the judge picks "Custom event". grace: the picked
+// rules profile's grace in seconds, the starting value.
+export function customHtml(grace) {
+  return `<fieldset class="setup-custom" id="setup-custom" hidden>
+      <legend>Custom event</legend>
+      <div class="setup-fields">
+        <label class="field wide"><span>Event name <span class="muted">(optional)</span></span><input id="custom-name" autocomplete="off" placeholder="Custom event" maxlength="60"></label>
+        <label class="field"><span>Time limit <span class="muted">(min:sec)</span></span><input id="custom-limit" autocomplete="off" inputmode="numeric" placeholder="7:00"></label>
+        <label class="field"><span>Grace <span class="muted">(seconds)</span></span><input id="custom-grace" autocomplete="off" inputmode="numeric" value="${esc(grace)}"></label>
+      </div>
+      <p class="field-help">This room keeps this limit and grace. The app has no rule checks or chips for this event.</p>
+    </fieldset>`;
+}
+
 // The whole setup form as HTML text.
 export function setupHtml(data) {
   const evOpts = eventChoices(data).map((e) => `<option value="${esc(e.id)}">${esc(e.name)} (${esc(e.limitMinutes)} min)</option>`).join('');
@@ -41,12 +57,13 @@ export function setupHtml(data) {
   return `<div class="screen-head"><a class="b quiet" href="#/">‹ Rooms</a><h1 id="screen-title" tabindex="-1">New room</h1></div>
   <form class="setup" id="setup-form" novalidate>
     <div class="setup-fields">
-      <label class="field"><span>Event</span><select id="setup-event"><option value="">Pick the event</option>${evOpts}</select></label>
+      <label class="field"><span>Event</span><select id="setup-event"><option value="">Pick the event</option>${evOpts}<option value="${CUSTOM_EVENT}">Custom event (set the time)</option></select></label>
       <label class="field"><span>Rules</span><select id="setup-profile">${prOpts}</select></label>
       <label class="field"><span>Round</span><input id="setup-round" autocomplete="off" placeholder="Round 1"></label>
       <label class="field"><span>Flight <span class="muted">(optional)</span></span><input id="setup-flight" autocomplete="off"></label>
       <label class="field wide"><span>Tournament <span class="muted">(optional)</span></span><input id="setup-tournament" autocomplete="off"></label>
     </div>
+    ${customHtml(graceOf({ profile: data.profiles.get(DEFAULT_PROFILE) }))}
     <label class="field wide" for="setup-paste"><span>Paste the room from Tabroom or SpeechWire, or type one code per line</span></label>
     <textarea id="setup-paste" rows="8" spellcheck="false" placeholder="1. A12&#10;2. B07&#10;3. C33"></textarea>
     <p class="field-help">The text stays on this device. Codes are enough; names are optional.</p>
@@ -60,6 +77,7 @@ export function setupHtml(data) {
 export function createSetupScreen(env) {
   let decided = {};
   let eventTouched = false;
+  let graceTouched = false;
   let parsed = null;
   const $ = (s) => env.el.querySelector(s);
   const evList = () => eventChoices(env.data).map((e) => ({ id: e.id, name: e.name, short: e.short }));
@@ -73,15 +91,23 @@ export function createSetupScreen(env) {
     $('#setup-err').textContent = '';
   }
 
+  // The Custom event fields show only for the Custom event.
+  function showCustom() { $('#setup-custom').hidden = $('#setup-event').value !== CUSTOM_EVENT; }
+
   function start(e) {
     e.preventDefault();
     update();
     const eventId = $('#setup-event').value;
+    const custom = eventId === CUSTOM_EVENT;
+    const form = { name: $('#custom-name').value, limit: $('#custom-limit').value, grace: $('#custom-grace').value };
+    const cErr = custom ? customError(form) : '';
+    if (cErr) { $('#setup-err').textContent = cErr; $(/limit/.test(cErr) ? '#custom-limit' : '#custom-grace').focus(); return; }
     const err = setupError(parsed, eventId);
     if (err) { $('#setup-err').textContent = err; (eventId ? $('#setup-paste') : $('#setup-event')).focus(); return; }
+    const profile = env.data.profiles.get($('#setup-profile').value);
     const room = createRoom({
-      event: env.data.events.get(eventId),
-      profile: env.data.profiles.get($('#setup-profile').value),
+      event: custom ? customEvent(form) : env.data.events.get(eventId),
+      profile: custom ? withGrace(profile, form.grace) : profile,
       entries: parsed.entries,
       round: $('#setup-round').value, flight: $('#setup-flight').value, tournament: $('#setup-tournament').value,
       now: env.now(),
@@ -109,10 +135,13 @@ export function createSetupScreen(env) {
   return {
     scope: 'setup',
     show() {
-      decided = {}; eventTouched = false;
+      decided = {}; eventTouched = false; graceTouched = false;
       env.el.innerHTML = setupHtml(env.data);
       $('#setup-paste').addEventListener('input', update);
-      $('#setup-event').addEventListener('change', () => { eventTouched = true; $('#setup-err').textContent = ''; });
+      $('#setup-event').addEventListener('change', () => { eventTouched = true; $('#setup-err').textContent = ''; showCustom(); });
+      // The grace starts as the picked rules' grace, until the judge types their own.
+      $('#custom-grace').addEventListener('input', () => { graceTouched = true; });
+      $('#setup-profile').addEventListener('change', () => { if (!graceTouched) $('#custom-grace').value = String(graceOf({ profile: env.data.profiles.get($('#setup-profile').value) })); });
       $('#setup-form').addEventListener('submit', start);
       $('#setup-preview').addEventListener('click', onClick);
       $('#setup-preview').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.classList.contains('chk-code')) { e.preventDefault(); e.target.parentElement.querySelector('[data-act="use"]').click(); } });

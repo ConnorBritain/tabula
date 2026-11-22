@@ -1,6 +1,7 @@
 // Tabula Speech Events: the Rooms list (docs/events/ARCHITECTURE.md §5 screen 1, §6.3 the room record; step E1). Pure:
 // it groups the saved rooms by day, says what each row shows, and builds the list's HTML text. app.js puts it on the page.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { roomEvent } from './room.js';
 
 // The words for a room's state on its row.
 export const STATE_LABEL = { setup: 'Set up', judging: 'Judging', ranking: 'Ranking', review: 'Review', done: 'Copied' };
@@ -28,7 +29,7 @@ export const roundLine = (room, withTournament) => [withTournament ? room.tourna
 // What one row shows: the event name, the round, the number of entries and the state.
 // events: the events registry (core/defs.js); a room names its event's id and version.
 export function roomRow(room, events) {
-  const ev = events && events.get(room.eventId, room.eventVersion);
+  const ev = roomEvent(events, room);
   const n = (room.entries || []).length;
   return {
     id: room.id,

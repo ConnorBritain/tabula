@@ -159,7 +159,8 @@ test('setup waits for "Check these", an event and at least one entry', () => {
   const text = 'Round 2\n1. A12 Maya Chen\n2. B07\nsee judge about room change\n';
   const parsed = parseRoom(text);
   assert.match(setupError(parsed, 'exp'), /Check these/);
-  assert.equal(setupError(parsed, 'di'), 'Pick the event.', 'interp is not on yet (F1b is E9)');
+  // E9 turned interp on, so 'di' no longer shows the refusal; an event that is not on is still refused.
+  assert.equal(setupError(parsed, 'no-such-event'), 'Pick the event.', 'an event that is not turned on is refused');
   const fixed = parseRoom(text, { decided: { [parsed.check[0].key]: 'skip' } });
   assert.equal(setupError(fixed, 'exp'), '');
   assert.match(setupError(parseRoom(''), 'oo'), /Paste the room/);

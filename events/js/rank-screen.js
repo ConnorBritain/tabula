@@ -10,7 +10,7 @@ import {
 } from './rank.js';
 import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks, stepRating } from './board.js';
 import { attachDrag } from './rank-drag.js';
-import { entryOf, findRoom } from './room.js';
+import { entryOf, findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf, usedAt, clockText } from './timer.js';
 import { setReason } from './comments.js';
@@ -78,7 +78,7 @@ export function createRankScreen(env) {
   let detachDrag = null;
   const $ = (s) => env.el.querySelector(s);
   const room = () => findRoom(env.rooms(), roomId);
-  const event = (r) => env.data.events.get(r.eventId, r.eventVersion);
+  const event = (r) => roomEvent(env.data.events, r);
   const save = (r) => { env.saveRoom(r); return r; };
 
   function draw(focusKey) {
