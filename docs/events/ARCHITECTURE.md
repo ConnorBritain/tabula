@@ -217,7 +217,8 @@ core/        shared by debate, events and (later) student. Generic words only (s
   providers.js    AI providers, own-key client
   hosted.js       hosted AI client (/api/v1/ai), meter messages
   policy.js       can(feature), ready(feature), applyCapabilities()
-  ranks.js        move-rank and points stepper for N items (debate LD/PF rank4 uses it too)
+  ranks.js        move-rank and ranking state for N items, full or top-N (debate ranks use it too)
+  points.js       points range, range error, stepper (step C9)
   review.js       AI review diff: field locks, word diff, accept or undo
   recording.js    mic, clip queue, transcription: lifted in P4 only, when practice needs it
   tokens.css      design tokens

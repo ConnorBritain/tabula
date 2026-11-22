@@ -3,6 +3,8 @@
 // One part of logic.js (pure logic, no DOM). logic.js joins the parts into one API; index.html loads the parts first.
 (function (root) {
   'use strict';
+  // Shared rank moves (core/ranks.js, an ES module): the page runs it before this file; Node requires it.
+  const CORE_RANKS = typeof module !== 'undefined' && module.exports ? require('../core/ranks.js') : root.TabulaCore.ranks;
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
   const F = part('format');
   const { formatClock, BALLOT_HEADER, LOG_SLOTS, ballotRow, num, ballotFields, speechesSoFar, ptsRange, isLowPointWin } = part('round');
@@ -225,12 +227,9 @@
   const ranksSet = (ballot, fmt) => (fmt || F.POLICY).speakerIds.filter((s) => !isEmptyValue(((ballot || {}).ranks || {})[s])).length;
 
   // 4.8 Picking a rank another speaker has moves it: that speaker loses it. Returns the new ranks and the message.
+  // The move itself is shared code (core/ranks.js); debate adds its speakers and the message.
   function moveRank(ranks, speaker, rank, fmt) {
-    const out = Object.assign({}, ranks || {});
-    const r = rank == null || rank === '' ? '' : String(rank);
-    let moved = null;
-    if (r) for (const s of (fmt || F.POLICY).speakerIds) if (s !== speaker && String(out[s] ?? '') === r) { out[s] = ''; moved = { rank: r, from: s, to: speaker }; }
-    out[speaker] = r;
+    const { ranks: out, moved } = CORE_RANKS.moveRank(ranks, speaker, rank, (fmt || F.POLICY).speakerIds);
     return { ranks: out, moved, message: moved ? 'Rank ' + moved.rank + ' moved from ' + moved.from + ' to ' + moved.to + '.' : '' };
   }
   // 4.8 The − and + buttons: steps of 0.1 inside the range. An empty box starts near the top of the range.
