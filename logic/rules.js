@@ -124,13 +124,15 @@
   // The one "no AI" line (spec 2.2). Every place that needs AI says exactly this.
   const NO_AI = 'No AI is connected. Connect one in Settings.';
 
-  // The paid plan (spec 2.8) is not built yet, so no one has it. When it ships, this reads the plan state.
-  function hasHostedPlan() { return false; }
-  // The first-time welcome shows only to free users who have not finished it (spec 2.1, Q11).
+  // The first-time welcome shows only to free users who have not finished it (spec 2.1, Q11). hostedPlan: the
+  // capabilities gate says AI runs without a key (L.hasHostedPlan, logic/hosted.js).
   function shouldShowWelcome(o) {
     const s = o || {};
     return !s.hostedPlan && !s.setupDone;
   }
+  // At app start the welcome waits for the account check (profile, then capabilities) at most this long, so a
+  // signed-in paid judge on a new device never sees the key welcome before the server says they have a plan.
+  const WELCOME_WAIT_MS = 5000;
 
   // One classifier for every failed AI or transcription call (spec 2.3). The rules run in this order.
   // e: { status, name, message, online, stop: 'refusal' | 'max_tokens', helper: true when the call went to the local helper }.
@@ -374,7 +376,7 @@
 
   const api = { OVER_LIMIT, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer,
     shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere, NO_AI,
-    hasHostedPlan, shouldShowWelcome, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt,
+    shouldShowWelcome, WELCOME_WAIT_MS, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt,
     restoreAt, askInputState, resolveRememberKeys, splitRestoreKeys, restoreKeysLine, restoreTabKeys,
     undoSheetDelete, autoEvalDefault, liveFlowDefault, d2Reset, needsD2Note, escTop, TOAST_MAX, toastPlan,
     askFirstFocus, trapNext, insightsMode, resolveTheme, TIP_DELAY_MS, SHEET_TIP_DELAY_MS, tipDelay, tipPlace,

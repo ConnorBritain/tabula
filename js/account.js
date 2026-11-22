@@ -43,7 +43,7 @@ async function refreshProfile() {
   } catch { out = { state: 'unknown' }; } // offline: keep the cached profile
   if (out.state === 'unknown') return;
   applyProfile(out.state === 'in' ? out.profile : null);
-  if (out.state === 'in') { refreshCaps(R.programId); maybeOfferParadigmCopy(); } // the AI gate for this round
+  if (out.state === 'in') { await refreshCaps(R.programId); maybeOfferParadigmCopy(); } // the AI gate for this round
   else clearCaps(); // signed out: forget the record (AI-POLICY §6d)
 }
 
@@ -116,7 +116,8 @@ $('#acct-save').addEventListener('click', async () => {
 
 // Check the account at start, and again when the judge comes back to this tab (they may have signed in elsewhere).
 applyProfile(acctProfile); // the cached profile at once (it may be offline), then what the server says now
-refreshProfile();
+// The first check at app start. The welcome waits for it (js/help.js welcomeWhenKnown, started in app.js).
+const acctBoot = refreshProfile();
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && Date.now() - acctCheckedAt > 60000) refreshProfile();
 });

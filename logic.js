@@ -25,7 +25,7 @@
   const { FLAGS, FLAG_GROUP, flagOn } = part('flags');
   const { OVER_LIMIT, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer,
     shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere, NO_AI,
-    hasHostedPlan, shouldShowWelcome, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt,
+    shouldShowWelcome, WELCOME_WAIT_MS, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt,
     restoreAt, askInputState, resolveRememberKeys, splitRestoreKeys, restoreKeysLine, restoreTabKeys,
     undoSheetDelete, autoEvalDefault, liveFlowDefault, d2Reset, needsD2Note, escTop, toastPlan, TOAST_MAX,
     askFirstFocus, trapNext, insightsMode, resolveTheme, TIP_DELAY_MS, SHEET_TIP_DELAY_MS, tipDelay, tipPlace,
@@ -46,7 +46,7 @@
   const { PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
     activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody } = part('account');
   const { limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal } = part('limits');
-  const { BUY_URL, accountUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
+  const { BUY_URL, accountUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hasHostedPlan, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
 
   const api = {
     SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS, PARADIGMS,
@@ -64,7 +64,7 @@
     // Slice 1: round safety
     OVER_LIMIT, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer, shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere,
     // Slice 2: copy and dialogs
-    NO_AI, hasHostedPlan, shouldShowWelcome, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt, restoreAt, askInputState,
+    NO_AI, hasHostedPlan, shouldShowWelcome, WELCOME_WAIT_MS, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt, restoreAt, askInputState,
     resolveRememberKeys, splitRestoreKeys, restoreKeysLine, restoreTabKeys, undoSheetDelete, autoEvalDefault, liveFlowDefault, d2Reset, needsD2Note,
     // Slice 0: shared UI rules
     escTop, toastPlan, TOAST_MAX, askFirstFocus, trapNext,
