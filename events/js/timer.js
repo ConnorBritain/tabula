@@ -129,13 +129,16 @@ export function restoreTiming(timing, now, limit, grace) {
 
 // A room after a reload: each saved run comes back (restoreTiming). Only one clock may run in a room, so when a
 // damaged save holds more than one, the one started last keeps running and the others stop at their time now.
-// limitOf(room) and grace are the room's. Returns { room, runId (the running entry, or null), notes: [sentences] }.
-export function restoreRoom(room, now, limit, grace) {
+// limit: the room's limit in seconds, or a function (entry) -> that entry's limit (a prep event, step E11: prep.js
+// speechLimit). grace is the room's. Returns { room, runId (the running entry, or null), notes: [sentences] }.
+export function restoreRoom(room, now, limitIn, grace) {
+  const lim = typeof limitIn === 'function' ? limitIn : () => limitIn;
   const notes = [];
   let runId = null;
   let r = room;
   const running = room.entries.filter((e) => e.timing && e.timing.run).sort((a, b) => b.timing.run.endAt - a.timing.run.endAt);
   running.forEach((e, i) => {
+    const limit = lim(e);
     const res = i === 0 ? restoreTiming(e.timing, now, limit, grace)
       : { timing: stoppedTiming(e.timing, e.timing.run, limit - usedAt(e.timing, now, limit), limit, grace, now), note: 'Two clocks were running, so one was stopped. Check the times.' };
     if (res.note && !notes.includes(res.note)) notes.push(res.note);

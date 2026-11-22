@@ -12,7 +12,8 @@ import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRes
 import { attachDrag } from './rank-drag.js';
 import { entryOf, findRoom } from './room.js';
 import { roundLine } from './rooms.js';
-import { limitOf, usedAt, clockText } from './timer.js';
+import { limitOf, clockText } from './timer.js';
+import { totalUsedAt } from './prep.js';
 import { setReason } from './comments.js';
 
 // The rating control of one row as HTML text ('' when the profile has no rating).
@@ -45,7 +46,7 @@ export function boardHtml(room, view) {
     const conflict = conflicts.find((c) => c.id === id);
     const fix = conflict ? ratingFix(id, ranks, ratings, ctx) : null;
     const err = ratingError(ratings[id], scale) || (tied.has(id) ? 'Another speaker has this rating.' : '');
-    const used = usedAt(e.timing, view.now, view.limit);
+    const used = totalUsedAt(e.timing, view.now, view.limit); // on a prep event (E11), prep and speech
     const main = view.tapMode
       ? `<button class="tap-pick" type="button" data-ract="tap" data-id="${id}" data-key="tap-${id}">${rank ? 'Rank ' + esc(rank) + ' · tap to clear' : next ? 'Tap to rank ' + next : ''}</button>`
       : `<button class="b small" type="button" data-ract="up" data-id="${id}" data-key="up-${id}" aria-label="Move ${esc(e.code)} up"${i === 0 ? ' disabled' : ''}>↑</button>

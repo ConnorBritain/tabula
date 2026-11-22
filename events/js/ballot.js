@@ -121,7 +121,8 @@ export function printModel(room, event, limit) {
   const head = [{ text: 'Code' }, { text: 'Rank' }].concat(rated ? [{ text: 'Rating' }] : [], [{ text: 'Time' }, { text: 'Over time' }]);
   const tableRows = rows.map((r) => {
     const e = entryOf(room, r.id);
-    const used = Math.round(((e.timing && e.timing.usedMs) || 0) / 1000);
+    // The time used; on a prep event (step E11) prep and speech together, against the shared limit.
+    const used = Math.round((((e.timing && e.timing.usedMs) || 0) + ((e.timing && e.timing.prepMs) || 0)) / 1000);
     return [{ text: r.code }, { text: r.rank || '–' }].concat(rated ? [{ text: r.rating || '–' }] : [], [{ text: used ? clockText(used) : '–' }, { text: r.overTime ? 'Yes' : 'No' }]);
   });
   const facts = [['Event', event ? event.name : 'Custom event'], ['Round', room.round], ['Flight', room.flight], ['Tournament', room.tournament], ['Time limit', limit ? clockText(limit) : ''], ['Rules', room.profile && room.profile.name]].filter(([, v]) => v);

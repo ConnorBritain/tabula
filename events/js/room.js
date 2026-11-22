@@ -7,9 +7,9 @@
 // The entries array is always in speaking order, and entry.order is always its place, 1 to N.
 
 // The events turned on so far, in published order (setup-screen.js lists them in that order). F1a, public address
-// (LANDING.md §4.1 E4): oo, inf, exp, osw. F2, extemp with a drawn question (E10): usx, ix, com, mx. F1b, F3 and
-// Custom come in E9, E11 and E12.
-export const ENABLED_EVENTS = Object.freeze(['oo', 'inf', 'usx', 'ix', 'com', 'exp', 'osw', 'mx']);
+// (LANDING.md §4.1 E4): oo, inf, exp, osw. F2, extemp with a drawn question (E10): usx, ix, com, mx. F3, impromptu
+// with prep in the room on a shared limit (E11): imp. F1b and Custom come in E9 and E12.
+export const ENABLED_EVENTS = Object.freeze(['oo', 'inf', 'usx', 'ix', 'com', 'exp', 'imp', 'osw', 'mx']);
 // The rules profile a new room starts with (the NSDA district preset).
 export const DEFAULT_PROFILE = 'nsda-district';
 // A room holds 1 to 8 entries (ARCHITECTURE.md §1: one judge, one room, 4 to 8 speakers; MODELS.md §3: 1..8).
@@ -159,11 +159,11 @@ export function moveEntry(room, id, to, now) {
 }
 
 // "No show": the entry stays on the roster but does not speak or get a rank. Undo puts back the status it had
-// (prev). An entry with time on the clock (running or not) is refused, so no time is ever thrown away.
+// (prev). An entry with time on the clock (running or not, speech or prep) is refused, so no time is ever thrown away.
 export function markNoShow(room, id, now) {
   const e = entryOf(room, id);
   if (!e || e.status === 'noShow') return { room, prev: null, refused: '' };
-  if (e.timing.run || e.timing.usedMs > 0) return { room, prev: null, refused: e.code + ' already has time on the clock, so it cannot be a no show. Reset the time first.' };
+  if (e.timing.run || e.timing.usedMs > 0 || e.timing.prepRun || e.timing.prepMs > 0) return { room, prev: null, refused: e.code + ' already has time on the clock, so it cannot be a no show. Reset the time first.' };
   const list = room.entries.map((x) => (x.id === id ? Object.assign({}, x, { status: 'noShow' }) : x));
   return { room: withEntries(room, list, now), prev: e.status, refused: '' };
 }
@@ -231,7 +231,7 @@ export function rosterAction(room, action, id, now) {
     return { room: clearNoShow(room, id, now), message: e.code + ' is back on the roster.', undo: (cur, t) => markNoShow(cur, id, t).room, refused: '' };
   }
   if (action === 'remove') {
-    if (e.timing.run) return none('Stop the clock for ' + e.code + ' first.');
+    if (e.timing.run || e.timing.prepRun) return none('Stop the clock for ' + e.code + ' first.');
     const res = removeEntry(room, id, now);
     return { room: res.room, message: e.code + ' removed.', undo: (cur, t) => restoreEntry(cur, res.removed, t), refused: '' };
   }
