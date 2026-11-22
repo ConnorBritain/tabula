@@ -34,6 +34,7 @@ const toNum = (v) => (asText(v) === '' ? NaN : Number(v));
 const labelOf = (ctx, id) => (ctx && ctx.labels && ctx.labels[id]) || id;
 const isOver = (ctx, id) => Boolean(ctx && ctx.overGrace && ctx.overGrace[id]);
 const idsOf = (ctx) => (ctx && ctx.ids) || [];
+const rangeMessage = (ctx) => 'Ranks run 1 to ' + idsOf(ctx).length + '.';
 
 // ---------- overtime (N3: overtime.effect) ----------
 
@@ -87,16 +88,22 @@ export function orderOf(ranks, ctx) {
   return ids.map((id, i) => ({ id, i, k: rankOf(id) })).sort((a, b) => a.k - b.k || a.i - b.i).map((x) => x.id);
 }
 
-// Drag, or the up and down buttons: put id at rank `to`; the entries in between shift by one, so every entry has a
-// rank 1 to N after the move and a tie cannot happen.
-// Returns { ranks, moved: { id, from, to } | null, refused?: 'out-of-range' | 'over-grace-first', message? }. A refused
-// move returns the board unchanged.
+// Drag, or the up and down buttons: put id at rank `to`; the entries in between shift by one, so a tie cannot happen.
+// core/ranks.js moveRank cannot do this: it takes the rank from the entry that held it and leaves that entry with no
+// rank, which suits tapRank but not a list. So the shift is built here, and rankState checks the board first.
+// The board must be full (every entry 1 to N once, as startRanks gives). A partly ranked board (in the middle of
+// "tap in order") is refused with 'not-full', because a shift would give the unranked entries ranks silently.
+// Returns { ranks, moved: { id, from, to } | null, refused?: 'out-of-range' | 'not-full' | 'over-grace-first',
+// message? }. A refused move returns the board unchanged.
 export function moveTo(ranks, id, to, ctx) {
   const ids = idsOf(ctx);
   const before = Object.assign({}, ranks || {});
   const t = toNum(to);
   if (!ids.includes(id) || !Number.isInteger(t) || t < 1 || t > ids.length) {
-    return { ranks: before, moved: null, refused: 'out-of-range', message: 'Ranks run 1 to ' + ids.length + '.' };
+    return { ranks: before, moved: null, refused: 'out-of-range', message: rangeMessage(ctx) };
+  }
+  if (!rankState(before, ids).complete) {
+    return { ranks: before, moved: null, refused: 'not-full', message: 'Give every speaker a rank first, then move them.' };
   }
   const order = orderOf(before, ctx).filter((x) => x !== id);
   order.splice(t - 1, 0, id);
@@ -123,7 +130,7 @@ export function tapRank(ranks, id, rank, ctx) {
     return { ranks: before, moved: null, refused: 'over-grace-first', message: noFirstMessage(labelOf(ctx, id)) };
   }
   const res = moveRank(before, id, r, ids, { cap: ids.length });
-  return res.refused ? Object.assign(res, { message: 'Ranks run 1 to ' + ids.length + '.' }) : res;
+  return res.refused ? Object.assign(res, { message: rangeMessage(ctx) }) : res;
 }
 
 // "Tap in order" mode: the rank the next tap gives (the lowest rank no entry has), or null when all are given.
@@ -155,7 +162,8 @@ export function ratingScale(profile) {
   return { kind: 'none' };
 }
 
-// The error for a points range the judge types in room settings (Custom profile), or ''. core/points.js rangeError.
+// The error for a points range the judge types in room settings (Custom profile), or ''. It is core/points.js
+// rangeError, given here so the rank screen gets every rating rule from this one module.
 export const customRangeError = rangeError;
 
 // How good a rating is, as a number (higher is better), or NaN when it is empty or not on the scale.
@@ -191,7 +199,9 @@ export function ratingTies(ratings, ctx) {
     if (!by.has(v)) by.set(v, []);
     by.get(v).push(id);
   }
-  return [...by.entries()].filter(([, list]) => list.length > 1).map(([, list]) => ({ rating: asText(ratings[list[0]]), ids: list }));
+  // The rating is shown in one spelling (95, not '95.0'; the word itself on a word scale).
+  const show = (v) => (scale.kind === 'words' ? scale.words[scale.words.length - v] : String(v));
+  return [...by.entries()].filter(([, list]) => list.length > 1).map(([v, list]) => ({ rating: show(v), ids: list }));
 }
 
 // Breaks of the rank-rating rule (a better rank never has a lower rating) when the profile's rankRatingRule is on:

@@ -71,6 +71,15 @@ test('tap in order gives the next rank, and a taken rank moves to the new entry'
   assert.equal(tapRank(r, 'b', '9', ctx).message, 'Ranks run 1 to 4.');
 });
 
+// Why: "nothing moves silently" (DESIGN.md §4.5): a drag in the middle of tap mode must not hand ranks to entries the judge never placed.
+test('a drag on a partly ranked board is refused and leaves it unchanged', () => {
+  const ctx = ctxFor(DISTRICT);
+  const res = moveTo({ c: '1', a: '2' }, 'a', 1, ctx);
+  assert.equal(res.refused, 'not-full');
+  assert.deepEqual(res.ranks, { c: '1', a: '2' });
+  assert.equal(moveDown({ c: '1' }, 'c', ctx).refused, 'not-full');
+});
+
 // ---------- overtime ----------
 
 // Why: the profile picks the overtime rule; reading it wrong either blocks a legal rank 1 or lets an illegal one through.
@@ -165,6 +174,11 @@ test('a points range that is not valid falls back to the default and the review 
   assert.equal(customRangeError('70', '100'), '');
 });
 
+// Why: the fallback copies the invitational range by hand; if the profile changes and the fallback does not, a broken profile shows a stale range.
+test('the points fallback equals the NSDA-style invitational range', () => {
+  assert.deepEqual({ ...POINTS_FALLBACK }, INVITATIONAL.rating);
+});
+
 // Why: a points value outside the range or off the step is a rating the tab room rejects; the judge must see it inline.
 test('points: a value outside the range or off the step has an inline error', () => {
   const s = ratingScale(INVITATIONAL);
@@ -173,6 +187,7 @@ test('points: a value outside the range or off the step has an inline error', ()
   assert.equal(ratingError('69', s), 'Use a number from 70 to 100.');
   assert.equal(ratingError('abc', s), 'Type a number from 70 to 100.');
   assert.equal(ratingError('95.5', s), 'Use steps of 1 from 70.');
+  assert.equal(ratingError('95.1', s), 'Use steps of 1 from 70.'); // what core stepPoints (0.1 steps) gives from 95
   assert.equal(ratingValue('95', s), 95);
 });
 
@@ -194,6 +209,13 @@ test('no-ties: equal ratings are listed only when the profile asks for it', () =
   assert.deepEqual(ratingTies(ratings, strict), [{ rating: '95', ids: ['a', 'b'] }]);
   assert.ok(checkBoard({ ranks, ratings }, strict).includes('A12, B3 have the same rating (95). Each speaker needs a different rating.'));
   assert.deepEqual(checkBoard({ ranks, ratings }, ctxFor(INVITATIONAL)), []);
+});
+
+// Why: ratingNoTies applies to any rating (ARCHITECTURE.md §6.2); on a word scale two equal words must be named, or the rule is skipped.
+test('no-ties on a word scale lists entries that share a word', () => {
+  const strict = ctxFor(withRules(WORDS, { ratingNoTies: true }));
+  assert.deepEqual(ratingTies({ a: 'Superior', b: 'Good', c: 'Good', d: 'Fair' }, strict), [{ rating: 'Good', ids: ['b', 'c'] }]);
+  assert.deepEqual(ratingTies({ a: 'Superior', b: 'Excellent', c: 'Good', d: 'Fair' }, strict), []);
 });
 
 // Why: with the rank-rating rule on, a better rank with fewer points is a ballot the tab room sends back; the row and review must say which.
@@ -228,6 +250,9 @@ test('the Fix value is the highest rating that does not beat a better-ranked ent
   assert.equal(ratingFix('b', ranks, { a: 70, b: 94 }, strict), null);
   const words = ctxFor(withRules(WORDS, { rankRatingRule: true }));
   assert.equal(ratingFix('b', ranks, { a: 'Excellent', b: 'Superior' }, words), 'Excellent');
+  const wordsStrict = ctxFor(withRules(WORDS, { rankRatingRule: true, ratingNoTies: true }));
+  assert.equal(ratingFix('b', ranks, { a: 'Excellent', b: 'Superior' }, wordsStrict), 'Good');
+  assert.equal(ratingFix('b', ranks, { a: 'Fair', b: 'Superior' }, wordsStrict), null);
 });
 
 // ---------- the review list ----------
@@ -252,7 +277,7 @@ test('the review catches ties and ranks outside 1 to N in saved data', () => {
   assert.ok(out.includes('More than one speaker has rank 1. Each rank 1 to 4 is used once.'));
 });
 
-// Why: classic scripts on the events page reach this module through the global, the same bridge as core/*.js.
+// Why: classic scripts on the events page call the rank rules through this global; without it the rank screen has no rules and lets any board through.
 test('the functions are also on globalThis.TabulaEvents.rank', () => {
   assert.equal(globalThis.TabulaEvents.rank.checkBoard, checkBoard);
   assert.ok(Object.isFrozen(globalThis.TabulaEvents.rank));
