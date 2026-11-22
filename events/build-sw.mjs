@@ -5,7 +5,9 @@
 //   - events/index.html: every <script src> and <link href>;
 //   - every JS module reached from there: each static import (import ... from '...', import '...', export ... from);
 //   - every CSS file: each url(...) and @import;
-//   - the event data: events/js/data.js's own loader (loadEventData), run with a reader that notes each file it asks for.
+//   - the event data: events/js/data.js's own loader (loadEventData), run with a reader that notes each file it asks for;
+//   - every workspace module in the round-type router's registry (events/js/workspaces.js WORKSPACES), and what each
+//     one imports, so a round still opens offline when a workspace is loaded on demand (EXPERIENCE.md §9).
 // The release name is a content hash of that list (each path and its bytes). A change to any cached byte changes the
 // hash, so sw-files.js changes, so the browser installs a new worker and replaces the whole cache at once.
 // events/sw.test.mjs fails while sw-files.js is out of date.
@@ -13,6 +15,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { loadEventData } from './js/data.js';
+import { WORKSPACES } from './js/workspaces.js';
 
 const EVENTS = new URL('./', import.meta.url);
 const ROOT = new URL('../', import.meta.url);
@@ -41,7 +44,8 @@ export const jsRefs = (src, path) => {
 /** Every file the events page loads, as repo-root paths ('events/index.html', 'core/ui.js'), sorted. */
 export async function pageFiles() {
   const seen = new Set();
-  const todo = [new URL('index.html', EVENTS)];
+  const registry = new URL('js/workspaces.js', EVENTS);
+  const todo = [new URL('index.html', EVENTS), ...Object.values(WORKSPACES).map((p) => resolve(p, registry))];
   while (todo.length) {
     const u = todo.pop();
     const path = u.href.slice(ROOT.href.length);
