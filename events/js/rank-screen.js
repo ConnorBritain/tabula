@@ -221,7 +221,8 @@ export function createRankScreen(env) {
         <div id="board-box"></div>
         <div id="problems"></div>
         <label class="field" for="rank-reason"><span>Reason for rank <span class="muted">(whole room)</span></span></label>
-        <textarea id="rank-reason" rows="3">${esc(r.reasonForRank || '')}</textarea>`;
+        <textarea id="rank-reason" rows="3">${esc(r.reasonForRank || '')}</textarea>
+        <div class="rank-foot"><a class="b primary" id="go-review" href="#/review/${encodeURIComponent(id)}">Review and copy</a></div>`;
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('input', onInput);
       env.el.addEventListener('change', onChange);
