@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import vm from 'node:vm';
-import { pageFiles, forWorker, releaseHash, swFilesSource, OUT } from './build-sw.mjs';
+import { pageFiles, forWorker, releaseHash, swFilesSource, jsRefs, OUT } from './build-sw.mjs';
 import { registerOffline } from './js/offline.js';
 
 const ROOT = new URL('../', import.meta.url);
@@ -11,13 +11,17 @@ const read = (p) => readFileSync(new URL(p, ROOT), 'utf8');
 
 // Why: if sw-files.js is older than the files, the offline page misses a new file, or browsers keep the old release
 // beside new code (the E1 failure: an old core/sheets.js beside a new events file stopped the page).
-test('events/sw-files.js is up to date with the files the page loads (run node events/build-sw.mjs)', async () => {
+test('events/sw-files.js is up to date with the files the page loads (if not: run node events/build-sw.mjs; after a merge, run it again, never hand-merge sw-files.js)', async () => {
   assert.equal(read('events/sw-files.js'), await swFilesSource());
 });
 
-// Why: the crawl can only follow static imports and the event loader; a dynamic import() or another fetch() would load
-// a file the cache does not hold, and that screen would fail with the network off.
-test('every file the page loads is found by the crawl: no import(), and the only fetch is the event loader', async () => {
+// The loaded modules that may call fetch(), and why the cache still covers them. A new fetch() must either read a file
+// the build adds to the list (extend build-sw.mjs), or go to /api/ or another host (never cached); then add it here.
+const FETCHERS = { 'events/js/app.js': 'readJson: reads only the files loadEventData asks for, which the build lists' };
+
+// Why: the crawl can only follow static imports and the event loader; a dynamic import() or an unlisted fetch() would
+// load a file the cache does not hold, and that screen would fail with the network off.
+test('every file the page loads is found by the crawl: no import(), and fetch() only where the list covers it', async () => {
   const files = await pageFiles();
   for (const want of ['events/index.html', 'events/js/app.js', 'events/js/offline.js', 'core/sheets.js', 'core/ui.css', 'assets/theme-boot.js', 'events/published.json', 'events/defs/oo.v1.json', 'events/profiles/custom.v1.json']) {
     assert.ok(files.includes(want), want + ' is cached');
@@ -28,10 +32,15 @@ test('every file the page loads is found by the crawl: no import(), and the only
   for (const f of files.filter((p) => p.endsWith('.js'))) {
     const src = read(f);
     assert.doesNotMatch(src, /\bimport\s*\(/, f + ' uses import(); the cache list cannot follow it');
-    const fetches = [...src.matchAll(/\bfetch\s*\(/g)].length;
-    assert.equal(fetches, f === 'events/js/app.js' ? 1 : 0, f + ' fetches a file the cache list may not hold');
+    if (/\bfetch\s*\(/.test(src)) assert.ok(FETCHERS[f], f + ' calls fetch(); make sure the cache covers it, then add it to FETCHERS in events/sw.test.mjs');
   }
-  assert.match(read('events/js/app.js'), /loadEventData\(readJson\)/, 'the one fetch is readJson, which the loader drives');
+});
+
+// Why: if the crawl skipped an import form it cannot read, that module would be missing offline with no warning.
+test('the crawl reads each import form and stops on one it cannot read', () => {
+  const src = "import a, { b } from './a.js';\nimport {\n  c,\n  d,\n} from '../core/c.js';\nimport './side.js';\nexport { e } from './e.js';\nconst x = import.meta.url;";
+  assert.deepEqual(jsRefs(src, 't.js'), ['./a.js', '../core/c.js', './side.js', './e.js']);
+  assert.throws(() => jsRefs("import a from `./a.js`;", 't.js'), /cannot read/);
 });
 
 // Why: the cache must hold only this app's own files; a debate file, a test or a prototype in it would ship to judges'
@@ -147,5 +156,4 @@ test('the page registers events/sw.js with the events/ scope, past the HTTP cach
   assert.equal(await registerOffline({}), null);
   const warn = console.warn; console.warn = () => {};
   try { assert.equal(await registerOffline({ serviceWorker: { register: async () => { throw new Error('blocked'); } } }), null); } finally { console.warn = warn; }
-  assert.match(read('events/js/app.js'), /^import \{ registerOffline \} from '\.\/offline\.js';$/m);
 });

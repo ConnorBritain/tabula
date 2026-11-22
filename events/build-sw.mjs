@@ -28,7 +28,15 @@ const cssRefs = (src) => [
   ...[...src.matchAll(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi)].map((m) => m[2]),
   ...[...src.matchAll(/@import\s+(['"])([^'"]+)\1/gi)].map((m) => m[2]),
 ];
-const jsRefs = (src) => [...src.matchAll(/^\s*(?:import|export)\b[^'"`;]*?\bfrom\s*['"]([^'"]+)['"]|^\s*import\s*['"]([^'"]+)['"]/gm)].map((m) => m[1] || m[2]);
+// A static import or re-export. Each line that starts an import must give a path, or the crawl stops: a form it cannot
+// read would leave a file out of the cache with no warning.
+export const jsRefs = (src, path) => {
+  const refs = [...src.matchAll(/^\s*(?:import|export)\b[^'"`;]*?\bfrom\s*['"]([^'"]+)['"]|^\s*import\s*['"]([^'"]+)['"]/gm)].map((m) => m[1] || m[2]);
+  const imports = (src.match(/^\s*import\b(?!\s*[(.])/gm) || []).length;
+  const fromImports = refs.length - (src.match(/^\s*export\b[^'"`;]*?\bfrom\s*['"]/gm) || []).length;
+  if (imports !== fromImports) throw new Error(path + ': an import line the crawl cannot read (' + imports + ' import lines, ' + fromImports + ' paths found)');
+  return refs;
+};
 
 /** Every file the events page loads, as repo-root paths ('events/index.html', 'core/ui.js'), sorted. */
 export async function pageFiles() {
@@ -43,7 +51,7 @@ export async function pageFiles() {
     const ext = path.slice(path.lastIndexOf('.'));
     if (!['.html', '.js', '.css'].includes(ext)) continue;
     const src = read(u);
-    const refs = ext === '.html' ? htmlRefs(src) : ext === '.css' ? cssRefs(src) : jsRefs(src);
+    const refs = ext === '.html' ? htmlRefs(src) : ext === '.css' ? cssRefs(src) : jsRefs(src, path);
     for (const r of refs) if (local(r)) todo.push(resolve(r, u));
   }
   // The event data: ask the real loader which files it reads.
