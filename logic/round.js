@@ -3,6 +3,8 @@
 // One part of logic.js (pure logic, no DOM). logic.js joins the parts into one API; index.html loads the parts first.
 (function (root) {
   'use strict';
+  // Shared points rules (core/points.js, an ES module): the page runs it before this file; Node requires it.
+  const CORE_POINTS = typeof module !== 'undefined' && module.exports ? require('../core/points.js') : root.TabulaCore.points;
 
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
   const F = part('format');
@@ -245,18 +247,10 @@
   const MAP_SPEECHES = POLICY.flowSpeeches; // deprecated alias (policy): page code reads FMT().flowSpeeches
   // 4.7 (Q10) The speaker points range is a Round setup setting. 25–30 when nothing is set.
   const DEFAULT_PTS_RANGE = { min: 25, max: 30 };
-  function ptsRange(r) {
-    const min = Number(r && r.min), max = Number(r && r.max);
-    if (!Number.isInteger(min) || !Number.isInteger(max) || min < 0 || max > 100 || min >= max) return { ...DEFAULT_PTS_RANGE };
-    return { min, max };
-  }
+  // The range rules are shared code (core/points.js); debate gives its default.
+  const ptsRange = (r) => CORE_POINTS.pointsRange(r, DEFAULT_PTS_RANGE);
   // The error for a range the judge typed, or '' when it is fine.
-  function rangeError(min, max) {
-    const ok = (v) => v !== '' && v != null && Number.isInteger(Number(v)) && Number(v) >= 0 && Number(v) <= 100;
-    if (!ok(min) || !ok(max)) return 'Use a number from 0 to 100.';
-    if (Number(min) >= Number(max)) return 'The lowest score must be less than the highest.';
-    return '';
-  }
+  const rangeError = CORE_POINTS.rangeError;
   const isDefaultRange = (r) => r.min === DEFAULT_PTS_RANGE.min && r.max === DEFAULT_PTS_RANGE.max;
 
   const api = { SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS,

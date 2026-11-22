@@ -1,8 +1,10 @@
 # Tabula Speech Events: plan (draft 1)
 
-Status: **approved by the owner, 2026-11-20** ("Yes, all my picks": Q1–Q10 all option A). Q2, Q5, Q6 and Q7 still need a short lawyer check before P2 ships. No Speech Events code is built. Nothing in Cloudflare, Stripe or DNS changed. Plan committed in `1ef78f9`. Build order (owner, 2026-11-21): debate format refactor and LD first, then the safe Speech Events pieces (17 event data files with a schema test, and a clickable Room, Rank and Review prototype for a lay-judge test). Q11 (2026-11-21, owner): A, v1 is high school only.
+Status: **approved by the owner, 2026-11-20** ("Yes, all my picks": Q1–Q10 all option A). Q2, Q5, Q6 and Q7 still need a short lawyer check before P2 ships. No Speech Events code is built. Nothing in Cloudflare, Stripe or DNS changed. Plan committed in `1ef78f9`. Build order (owner, 2026-11-21): debate format refactor and LD first, then the safe Speech Events pieces (17 event data files with a schema test, and a clickable Room, Rank and Review prototype for a lay-judge test). Q11 (2026-11-21, owner): A, v1 is high school only. Q12 and Q13 (2026-11-21, owner): both B. The `core/` lift starts now, before PF; Congress comes right after v1.
 
 Read in this order: this file, then [ARCHITECTURE.md](ARCHITECTURE.md), [EVENTS.md](EVENTS.md), [SHARED-VS-NEW.md](SHARED-VS-NEW.md), [DESIGN.md](DESIGN.md).
+
+**Added 2026-11-21 (catalog and core plan, for owner approval):** [CATALOG.md](CATALOG.md) (the full event panel and which app owns each event), [SEASON.md](SEASON.md) (fall versus spring, Friday versus Saturday, the LD question), [MODELS.md](MODELS.md) (object, data and design models per event family, shared objects), [LANDING.md](LANDING.md) (the rest of the `core/` lift, the atomic landing order, and two open owner choices, Q12 and Q13). Q12 and Q13 (LANDING.md §5) were decided 2026-11-21 (owner: "Q12 B and Q13 B, go ahead"). Q12 B changed P1 and R2; Q13 B changed Q8 and P5. Those rows below now say so.
 
 ## 1. The plan in one screen
 
@@ -12,18 +14,18 @@ Read in this order: this file, then [ARCHITECTURE.md](ARCHITECTURE.md), [EVENTS.
 - **Shared with debate:** about 35–45% of the code (clock engine, storage, export, dialogs, toasts, keys, AI client, print and copy sheets, review-diff, tokens, the no-stripes test). Accounts, billing and AI policy are shared on the server.
 - **New:** the room and entry model, event and rules-profile files, grace and over-time state, time signals, in-room prep, the roster, the rank board, ratings, the comment sheet, student-facing critique help, review and copy cards, a paste parser.
 - **The real cost:** lifting a `core/` folder out of the debate app first, using the seams the debate format refactor makes for LD.
-- **Order (owner decision stands):** LD, then PF, then Speech Events. The `core/` lift starts after PF ships, right before `events/` code.
+- **Order (owner, 2026-11-21, Q12 B):** LD is done. The `core/` lift runs now. Then PF and Speech Events are built side by side, both on `core/`. Congress comes right after v1 (Q13 B).
 
 ## 2. Phases
 
 | Phase | What ships | Done when | Depends on |
 |---|---|---|---|
 | **P0. Decide** | Owner answers §5, including the module mechanism (Q10). Short legal read on Q2, Q5, Q6, Q7. | Answers written into this file. | — |
-| **P1. Shared core** | Debate format refactor (already planned for LD). Then, after PF ships, `core/` lifted from the seams: clock (pure + driver with hooks), storage with a prefix, backup, dialogs, toasts, keys registry, AI client, key store, print and copy sheets, review-diff, ranks and stepper for N entries, tokens without side colors. Recording waits for P4. `can()` / `ready()` in `core/policy.js`. | Debate passes every gate (`node --test`, `node check-publish.mjs`) and its browser checks, with no visible change. A static test proves `core/` uses no word from the banned list (ARCHITECTURE.md §8). | Debate format refactor |
+| **P1. Shared core** | Debate format refactor (done with LD). Then, now and before PF (Q12 B), `core/` lifted from the seams: clock (pure + driver with hooks), storage with a prefix, backup, dialogs, toasts, keys registry, AI client, key store, print and copy sheets, review-diff, ranks and stepper for N entries, tokens without side colors. Recording waits for P4. `can()` / `ready()` in `core/policy.js`. | Debate passes every gate (`node --test`, `node check-publish.mjs`) and its browser checks, with no visible change. A static test proves `core/` uses no word from the banned list (ARCHITECTURE.md §8). | Debate format refactor |
 | **P2. v1 judge app** | `events/` on `events.tabulaspeech.com`. Screens 1–7 (ARCHITECTURE.md §5). 17 events + Custom. Presets: NSDA district, NSDA-style invitational, Custom. Two-stage review (ranks first, then comments). Print / PDF. Export / import. Service worker. Own-key "Clean up my comments". Hosted clean-up through the Worker (`events.cleanup`, `productLine: 'events'`). | 10 judges at one real tournament (from `docs/growth/FORENSICS.md` §6): a 6-entry room's ranks and comments at least 30% faster than paper, and 4 of 5 say they would use it again. All gates green. Axe and keyboard pass. 5-judge lay test. | P1; cloud: sign-in on the new host, the `events.cleanup` task, the Q2 round rule (new commit trigger) |
+| **P5. Congress** (moved by Q13 B: right after P2, before P3) | Scoring grid (1–6 and 1–8 scales), PO hours, top-8 helper, session timer. Steps K1–K7 in LANDING.md §4.3. | 3 Congress scorers at one tournament. | P2 |
 | **P3. Leagues** | League packs as data: CHSSA, TFA, UIL, IHSA, KSHSAA, MSHSL, OSDA, MIFA, IHSSA, NCFL, NCFCA, Stoa. New: minimum time, extemp cross-ex run, Pro Con Challenge (two runs), rating-only ballots, top-N ranks with unique percentages, rubric grids. Shareable rules profile link from a coach. | Each pack reviewed against its 2026-27 rulebook; a schema test per file. | P2 |
 | **P4. Practice and coach** | Practice timer for teams; recording and transcripts with consent (practice only); time-use report; ballot box (paste past comments, see by student and event); coach summary (AI, policy key `coachSummary`); extemp practice questions. | Coach beta with 3 programs. | P2; program accounts (cloud plan steps 1–4) |
-| **P5. Congress** | Scoring grid (1–6 and 1–8 scales), PO hours, top-8 helper, session timer. | 3 Congress scorers at one tournament. | P2 |
 | Later | Radio window, group events. | — | Demand |
 
 ## 3. The v1 cut
@@ -48,7 +50,7 @@ Read in this order: this file, then [ARCHITECTURE.md](ARCHITECTURE.md), [EVENTS.
 | # | Risk | How likely | Answer |
 |---|---|---|---|
 | R1 | The `core/` lift breaks the live debate app. | Medium | Do it behind the full debate test suite and browser checks. One module at a time. No visible change allowed. Keep the debate app at the repo root (no move into `debate/`) unless a real need shows up: a move changes live paths, `check-publish.mjs` and `learn/` links. No deploys Thursday noon to Saturday night in season. |
-| R2 | The lift delays LD and PF. | Medium | Do the lift only after the format refactor, using its seams. Lift only what Speech Events needs (SHARED-VS-NEW.md §2). |
+| R2 | The lift delays PF. | Medium | LD is done. The lift uses the format refactor's seams and lifts only what Speech Events needs (SHARED-VS-NEW.md §2). PF starts about 2–3 weeks later (a guess) and is built once, on `core/` (Q12 B). |
 | R3 | Lay judges stay with paper. | Medium | Phone-first layout, no account needed, one-screen setup, the 5-judge lay test before beta. Coaches hand out a QR code at judge check-in. |
 | R4 | Rules change every season. | High | Versioned event and pack files; old versions kept forever. A yearly review each August against the new manuals. Every file names its source and season. |
 | R5 | Tabroom or SpeechWire change their room text, so paste breaks. | Medium | The parser falls back to one code per line. Unclear lines go under "Check these". |
@@ -103,6 +105,7 @@ Each has at most 2 options and my pick. **Q2, Q5, Q6 and Q7 touch legal or busin
 - A. Phase 5, as its own grid inside the Speech Events app.
 - B. Drop it.
 - **Decided 2026-11-20 (owner): A.** Congress scoring is the most painful by hand (FORENSICS.md §6), but it is a different machine, so it waits.
+- **Changed 2026-11-21 (owner, Q13 B):** still its own grid in the Speech Events app, but it comes right after v1, before league packs.
 
 **Q9. Phase order after v1.**
 - A. League packs (P3) before practice and coach tools (P4).
@@ -118,6 +121,12 @@ Each has at most 2 options and my pick. **Q2, Q5, Q6 and Q7 touch legal or busin
 - A. v1 is high school only. Middle school judges use the Custom rules to set 7:00 for the room.
 - B. Add `pro-ms` and `poe-ms` files at 7:00 (19 events).
 - **Decided 2026-11-21 (owner): A.**
+
+**Q12. When the `core/` lift starts.** Options and reasons in LANDING.md §5.
+- **Decided 2026-11-21 (owner): B.** Lift `core/` now. Then PF and Speech Events are built side by side, both on `core/`. This changes P1 and R2.
+
+**Q13. Where Congress goes.** Options and reasons in LANDING.md §5.
+- **Decided 2026-11-21 (owner): B.** Congress (P5) comes right after v1, before league packs (P3). This changes Q8 and the phase table.
 
 **Follow-ups outside this folder (this session may not edit them):**
 - `tabula-cloud/docs/PLAN.md`: the cloud session must add the Speech Events round rule (commit trigger, day-window, the time-limit exception) once Q2 is answered.

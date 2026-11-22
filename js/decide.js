@@ -314,11 +314,7 @@ async function runAutoRefill() {
 }
 
 // ---------- backup and restore ----------
-function readAllStorage() {
-  const out = {};
-  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('policyJudge.')) out[k] = localStorage.getItem(k); } } catch {}
-  return out;
-}
+const readAllStorage = () => store.snapshot(STORE_PREFIX);
 async function readAllDocs() {
   try { return (await docStore.tx('readonly', (st) => st.getAll())) || []; } catch { return DOCS.slice(); }
 }
@@ -371,8 +367,7 @@ $('#restore-file').addEventListener('change', async (e) => {
     for (const [k, v] of Object.entries(entries)) sessionStorage.setItem(k, v); // a failure here runs the rollback below
   };
   const writeStorage = (entries) => {
-    for (const k of Object.keys(readAllStorage())) localStorage.removeItem(k);
-    for (const [k, v] of Object.entries(entries)) localStorage.setItem(k, v);
+    store.replaceAll(STORE_PREFIX, entries);
   };
   const writeDocs = (docs) => docStore.tx('readwrite', (store2) => { store2.clear(); let last = null; for (const d of docs) last = store2.put(d); return last; });
   try {
@@ -511,6 +506,8 @@ function renderSaveStatus() {
 }
 
 // ----- Save to History (spec 4.12) -----
+// The one direct write left: Save to History needs the error kind ('full' or 'blocked') for its own message, which
+// store.set does not return. LOG is a policyJudge.* key, so it stays inside debate's names.
 function storeLog(list) { try { localStorage.setItem(LOG, JSON.stringify(list)); return ''; } catch (err) { return L.storageErrorKind(err); } }
 $('#b-save').addEventListener('click', async () => {
   const issues = L.checkBallot(R.ballot, { range: ptsRangeNow(), format: FMT() });
@@ -555,12 +552,7 @@ function openCopySheet() {
   const n = L.checkBallot(R.ballot, { range: ptsRangeNow(), format: FMT() }).length;
   $('#copy-warn').hidden = !n;
   $('#copy-warn').textContent = n ? 'This ballot has ' + n + (n === 1 ? ' problem' : ' problems') + '. Fix them first, or copy anyway.' : '';
-  $('#copy-blocks').innerHTML = copyBlocks.map((b) => `<section class="copy-block" aria-labelledby="cb-h-${b.id}">
-    <div class="copy-head"><h3 id="cb-h-${b.id}">${escapeHtml(b.label)}${b.text && b.words !== undefined ? ` <span class="muted copy-words">${b.words} ${b.words === 1 ? 'word' : 'words'}</span>` : ''}</h3>${b.text ? `<button class="b small" type="button" data-copy-block="${b.id}" aria-label="Copy ${escapeHtml(b.label)}">Copy</button>` : ''}</div>
-    ${b.text ? `<textarea class="copy-text" id="cb-t-${b.id}" readonly rows="${Math.min(8, Math.max(2, b.text.split('\n').length + Math.floor(b.text.length / 70)))}" aria-labelledby="cb-h-${b.id}">${escapeHtml(b.text)}</textarea>
-    ${b.note ? `<p class="field-help copy-note">${escapeHtml(b.note)}</p>` : ''}
-    <p class="copy-fail" id="cb-f-${b.id}" hidden>Press Ctrl+C (⌘C on Mac) to copy.</p>` : '<p class="muted">Nothing written yet</p>'}
-  </section>`).join('');
+  $('#copy-blocks').innerHTML = window.TabulaCore.sheets.copyBlocksHtml(copyBlocks); // the shared copy sheet (core/sheets.js)
   copyDlg.open($('#copy-blocks [data-copy-block]') || $('#copy-done'));
 }
 $('#copy-btn').addEventListener('click', openCopySheet);
@@ -603,21 +595,9 @@ function currentPrintModel(opts) {
   return L.printModel(R, { ...o, range: ptsRangeNow(), liveEval: LV().liveEval && LV().liveEval.data,
     analysis: [['Paradigm Lens', lens && lens.data ? lens.data.rfd : ''], ['Impact Calculus', imp ? [imp.weighing_done, imp.comparison].filter(Boolean).join('\n\n') : ''], ['Key moments', km]] });
 }
-function buildPrintSheet(model) {
-  const e = escapeHtml;
-  removePrintSheet();
-  const el = document.createElement('div');
-  el.id = 'print-sheet'; el.className = 'print-sheet' + (model.orientation === 'landscape' ? ' landscape' : '');
-  el.innerHTML = `<h1>${e(model.title)}</h1>` + model.sections.map((s) => {
-    if (s.kind === 'facts') return s.items.length ? '<dl class="ps-facts">' + s.items.map(([k, v]) => `<div><dt>${e(k)}</dt><dd>${e(v)}</dd></div>`).join('') + '</dl>' : '';
-    if (s.kind === 'winner') return `<h2>${e(s.title)}</h2><p class="ps-win">${e(s.text)}</p>`;
-    if (s.kind === 'speakers') return `<h2>${e(s.title)}</h2><table><thead><tr><th>Speaker</th><th>Name</th><th>Points</th>${s.ranks ? '<th>Rank</th>' : ''}</tr></thead><tbody>${s.rows.map((r) => `<tr><td class="${r.side}">${r.speaker}</td><td>${e(r.name)}</td><td>${e(r.pts)}</td>${s.ranks ? `<td>${e(r.rank)}</td>` : ''}</tr>`).join('')}</tbody></table>`;
-    if (s.kind === 'flow') return `<h2>${e(s.title)}</h2><table class="ps-flow"><thead><tr>${s.cols.map((c) => `<th class="${c.side}">${e(c.label)}</th>`).join('')}</tr></thead><tbody><tr>${s.cols.map((c) => `<td class="${c.side}">${e(c.text)}</td>`).join('')}</tr></tbody></table>`;
-    return `<h2 class="${s.side || ''}">${e(s.title)}</h2><div class="ps-text">${e(s.text) || '<span class="muted">Nothing written.</span>'}</div>`;
-  }).join('');
-  document.body.append(el); document.body.classList.add('printing');
-}
-function removePrintSheet() { const old = $('#print-sheet'); if (old) old.remove(); document.body.classList.remove('printing'); }
+// The shared print sheet (core/sheets.js), from debate's print model.
+function buildPrintSheet(model) { window.TabulaCore.sheets.showPrintSheet(L.printSheet(model)); }
+function removePrintSheet() { window.TabulaCore.sheets.removePrintSheet(); }
 $('#print-go').addEventListener('click', () => {
   const orientation = document.querySelector('input[name="print-orient"]:checked').value;
   const model = printSaved ? L.printModel(printSaved.round, { range: printSaved.ptsRange, orientation })

@@ -6,26 +6,24 @@
   const F = part('format');
   const { speechColumn } = part('flow');
   const { KEYS_ENTRY, OLD_KEY_ENTRIES } = part('files');
+  // The shared UI rules (core/ui.js, an ES module): the page runs it before this file; Node requires it.
+  const { escTop, TOAST_MAX, toastPlan, askFirstFocus, trapNext, toastMs, askInputState } = typeof module !== 'undefined' && module.exports ? require('../core/ui.js') : root.TabulaCore.ui;
+  // The shared clock math (core/clock.js, an ES module): the page runs it before this file; Node requires it.
+  const { OVER_LIMIT, restoreTimer, prepWins, beepDecision, leftAt } = typeof module !== 'undefined' && module.exports ? require('../core/clock.js') : root.TabulaCore.clock;
 
   // ---------- Slice 1: round safety (docs/design/SPEC.md §3.1) ----------
-  // A running clock stops by itself at -9:59 (599 s over), on screen and after a reload.
-  const OVER_LIMIT = -599;
+  // The clock math (OVER_LIMIT, restoreTimer, prepWins, beepDecision) is shared code in core/clock.js (step C6).
+  // These wrappers find the speech or the prep clock in the round's format and pass its length in.
 
   // 1.1 The speech clock after a reload, a crash or sleep. run = { id, endAt, ... } as saved with the round.
-  // Time always comes from the wall clock, so a closed tab keeps "running". fmt: the round's format (policy-hs when not given).
+  // fmt: the round's format (policy-hs when not given).
   function restoreRun(run, now, speechLength, fmt) {
     if (!run || typeof run !== 'object') return { state: 'none' };
     const s = F.speechOf(fmt || F.POLICY, run.id);
-    if (!s || typeof run.endAt !== 'number' || !Number.isFinite(run.endAt) || !Number.isFinite(now)) return { state: 'none' };
+    if (!s) return { state: 'none' };
     const len = Number.isFinite(speechLength) ? speechLength : s.minutes * 60;
-    const left = (run.endAt - now) / 1000;
-    // run.startLeft is the time left when the clock was started (a resumed speech has less than the full time).
-    // More time than that, or than the speech has, means the device clock was moved back. 2 s allows for rounding.
-    const cap = Number.isFinite(run.startLeft) ? Math.min(len, run.startLeft + 2) : len;
-    // Start again from the full time (spec 1.1: the judge is told to check it).
-    if (left > cap) return { state: 'running', id: s.id, left: len, endAt: now + len * 1000, reason: 'clock-moved' };
-    if (left < OVER_LIMIT) return { state: 'paused', id: s.id, left: OVER_LIMIT, reason: 'over-limit' };
-    return { state: 'running', id: s.id, left, endAt: run.endAt };
+    const r = restoreTimer(run, now, { length: len, kind: 'speech' });
+    return r.state === 'none' ? r : Object.assign({ id: s.id }, r);
   }
 
   // 1.1b A prep clock after a reload. prepRun = { side, endAt }: side is the prep clock's id (a side for prep per team,
@@ -33,27 +31,17 @@
   // prep clock ids (the two sides when not given).
   function restorePrep(prepRun, now, maxSeconds, clockIds) {
     if (!prepRun || typeof prepRun !== 'object') return { state: 'none' };
-    if (!(clockIds || ['aff', 'neg']).includes(prepRun.side) || typeof prepRun.endAt !== 'number' || !Number.isFinite(prepRun.endAt) || !Number.isFinite(now)) return { state: 'none' };
-    const left = (prepRun.endAt - now) / 1000;
-    if (left <= 0) return { state: 'paused', side: prepRun.side, left: 0, reason: 'ran-out' };
-    if (Number.isFinite(maxSeconds) && left > maxSeconds) return { state: 'running', side: prepRun.side, left: maxSeconds, endAt: now + maxSeconds * 1000, reason: 'clock-moved' };
-    return { state: 'running', side: prepRun.side, left, endAt: prepRun.endAt };
+    if (!(clockIds || ['aff', 'neg']).includes(prepRun.side)) return { state: 'none' };
+    const r = restoreTimer(prepRun, now, { length: maxSeconds, kind: 'prep' });
+    return r.state === 'none' ? r : Object.assign({ side: prepRun.side }, r);
   }
 
-  // Both clocks at once. Only one may run: a prep start always pauses the speech, so prep wins
-  // and the speech is paused at its restored time (a damaged file or a race can save both).
+  // Both clocks at once. Only one may run: prep wins (core/clock.js prepWins).
   function restoreClocks(run, prepRun, now, maxPrepSeconds, speechLength, fmt) {
-    let speech = restoreRun(run, now, speechLength, fmt);
+    const speech = restoreRun(run, now, speechLength, fmt);
     const prep = restorePrep(prepRun, now, maxPrepSeconds, fmt ? F.prepClocks(fmt).map((c) => c.id) : undefined);
-    if (speech.state === 'running' && prep.state === 'running') speech = { state: 'paused', id: speech.id, left: speech.left, reason: 'prep-running' };
-    return { speech, prep };
-  }
-
-  // The 0:00 beep plays once. It is skipped (but marked as done) when the page wakes or reloads more than 5 s late.
-  // Returns 'beep', 'skip' (mark it done, no sound) or null (nothing to do).
-  function beepDecision(left, beeped) {
-    if (beeped || !(left <= 0)) return null;
-    return left > -5 ? 'beep' : 'skip';
+    const won = prepWins(speech, prep);
+    return { speech: won === speech ? speech : Object.assign({ id: speech.id }, won), prep };
   }
 
   // A failed localStorage write: 'full' (the quota is used up) or 'blocked' (the browser refuses storage).
@@ -79,14 +67,6 @@
     if (!runningId || !viewedId || viewedId === runningId) return null;
     const v = shortSpeech(viewedId), r = shortSpeech(runningId);
     return { text: 'Viewing ' + v + ' · ' + r + ' running', back: 'Back to ' + r, sr: 'Viewing ' + v + '. ' + r + ' is still running.' };
-  }
-
-  // 1.4 How long a toast stays (ms). 0 means it stays until it is closed.
-  function toastMs(text, kind, hasAction) {
-    if (kind === 'error') return 0;
-    if (hasAction) return 10000;
-    const n = String(text || '').length;
-    return Math.min(10000, Math.max(4000, 1000 + 60 * n));
   }
 
   // 1.5 How the speeches pane works at this window width (spec 1.5 table).
@@ -190,16 +170,6 @@
     return l;
   }
 
-  // The text box in ask() (spec 4.2): is the typed text good enough for the primary button?
-  // opts: { required (default true), maxLength, emptyError }. Returns { ok, text, error }.
-  function askInputState(raw, opts) {
-    const o = opts || {};
-    let text = String(raw == null ? '' : raw).trim();
-    if (o.maxLength > 0) text = text.slice(0, o.maxLength);
-    if (o.required !== false && !text) return { ok: false, text, error: o.emptyError || 'Type something first.' };
-    return { ok: true, text, error: '' };
-  }
-
   // Keys are not remembered by default (spec 2.6, D1). A saved choice wins. With no saved choice, a judge who
   // already has stored keys keeps them (they came from the old default), so no current user loses a key.
   function resolveRememberKeys(saved, hasStoredKeys) {
@@ -255,46 +225,6 @@
   function needsD2Note(o) {
     const s = o || {};
     return Boolean(s.aiReady) && !s.shown && !s.clockRunning;
-  }
-
-  // ---------- Slice 0: shared UI rules (spec 4.2, 4.3, S0.4). ui.js does the DOM; these decide. ----------
-  // The Esc stack: the index of the open layer with the highest rank, or -1. layers: [{ rank, open }].
-  // On a tie the layer added first wins. Esc closes only that one layer.
-  function escTop(layers) {
-    let top = -1;
-    (layers || []).forEach((l, i) => { if (l && l.open && (top < 0 || l.rank > layers[top].rank)) top = i; });
-    return top;
-  }
-  // What a new toast does to the list. list: [{ key, msg, action }] oldest first; t: { key, msg, action }.
-  // Returns { reuse: index or -1, close: [indexes to close, in order] }.
-  // Rules (spec 4.3): the same key or text restarts that toast; only one toast with an action (Undo) at a time;
-  // at most 3 toasts, so the oldest goes first.
-  const TOAST_MAX = 3;
-  function toastPlan(list, t) {
-    const l = list || [];
-    const reuse = l.findIndex((x) => (t.key && x.key === t.key) || x.msg === t.msg);
-    if (reuse >= 0) return { reuse, close: [] };
-    const close = [];
-    if (t.action) l.forEach((x, i) => { if (x.action) close.push(i); });
-    let left = l.length - close.length;
-    for (let i = 0; i < l.length && left >= TOAST_MAX; i++) if (!close.includes(i)) { close.push(i); left--; }
-    return { reuse: -1, close: close.sort((a, b) => a - b) };
-  }
-  // The dialog button that gets focus first. buttons: [{ value, kind }]; opts: { focus, hasFocus, cancelValue }.
-  // An asked-for button wins; else the safe (cancel) button in a dialog with a danger button; else the primary one; else the first.
-  function askFirstFocus(buttons, opts) {
-    const b = buttons || [], o = opts || {};
-    const idx = (pred) => b.findIndex(pred);
-    let i = o.hasFocus ? idx((x) => x.value === o.focus) : -1;
-    if (i < 0 && b.some((x) => x.kind === 'danger')) i = idx((x) => x.value === o.cancelValue);
-    if (i < 0) i = idx((x) => x.kind === 'primary');
-    return i < 0 ? 0 : i;
-  }
-  // The focus trap: the button Tab (or Shift+Tab) goes to. Focus outside the list goes to the first (or last).
-  function trapNext(i, n, back) {
-    if (!(n > 0)) return -1;
-    if (i < 0) return back ? n - 1 : 0;
-    return (i + (back ? -1 : 1) + n) % n;
   }
 
   // ---------- Slice 3: visual system and Flow look ----------
@@ -371,7 +301,7 @@
     return { current: current == null ? null : current, now: runId && runCol != null ? runCol : null, viewing };
   }
 
-  const api = { OVER_LIMIT, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer,
+  const api = { OVER_LIMIT, leftAt, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer,
     shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere, NO_AI,
     shouldShowWelcome, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt,
     restoreAt, askInputState, resolveRememberKeys, splitRestoreKeys, restoreKeysLine, restoreTabKeys,

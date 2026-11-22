@@ -24,7 +24,7 @@ test('every published format version file still exists and is loaded', () => {
   for (const f of PUBLISHED) {
     assert.ok(fs.existsSync(path.join(__dirname, 'formats', f + '.js')), 'formats/' + f + '.js is missing');
     assert.ok(L.FORMAT_FILES.includes(f), f + ' is not in logic/format.js FORMAT_FILES');
-    assert.ok(html.includes('<script src="formats/' + f + '.js"></script>'), 'index.html does not load formats/' + f + '.js');
+    assert.ok(new RegExp('<script\\b[^>]*\\bsrc="formats/' + f.replace('.', '\\.') + '\\.js"').test(html), 'index.html does not load formats/' + f + '.js');
     assert.ok(bridge.includes("'" + f + "'"), f + ' is not in the local helper whitelist (bridge.mjs)');
     const [id, v] = f.split('.v');
     assert.ok(L.getFormat(id, Number(v)), f + ' does not load as ' + id + ' version ' + v);

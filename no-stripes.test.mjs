@@ -1,7 +1,7 @@
 // Tests for the owner's "no coloured left stripes" rule (2026-11-20). Run with: node --test
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const html = readFileSync(new URL('index.html', import.meta.url), 'utf8');
 
@@ -34,7 +34,14 @@ const SOURCES = {
   'events/prototype/index.html': readSource('events/prototype/index.html'),
   'events/prototype/proto.css': readSource('events/prototype/proto.css'),
   'events/prototype/proto.js': readSource('events/prototype/proto.js'),
+  // Added in step C4 (docs/events/LANDING.md §3): every file in core/, shared by both apps.
+  ...Object.fromEntries(readdirSync(new URL('core/', import.meta.url)).filter((f) => /\.(js|css)$/.test(f) && !/\.test\./.test(f)).map((f) => ['core/' + f, readSource('core/' + f)])),
 };
+
+// Why: the stripe rule must also hold in the shared code, or the second app inherits a stripe from core/ unseen.
+test('the stripe checks read every core/ file', () => {
+  for (const f of ['core/tokens.css', 'core/ui.js']) assert.ok(f in SOURCES, f + ' is not checked');
+});
 
 // Split a CSS value on top-level commas (not the commas inside rgb() or var()).
 function splitTop(v) {
@@ -47,7 +54,9 @@ function splitTop(v) {
   return [...out, cur];
 }
 // Length tokens from tokens.css (for example --s1: 4px), so a bar written as var(--s1) is measured too.
-const LEN = Object.fromEntries([...readFileSync(new URL('assets/tokens.css', import.meta.url), 'utf8').matchAll(/(--[a-z0-9-]+):\s*(-?\d*\.?\d+)px\s*;/g)].map((m) => [m[1], parseFloat(m[2])]));
+// The length tokens: the shared ones in core/tokens.css (step C4), debate's layout sizes in assets/tokens.css.
+const TOKEN_CSS = ['core/tokens.css', 'assets/tokens.css'].map((f) => readFileSync(new URL(f, import.meta.url), 'utf8')).join('\n');
+const LEN = Object.fromEntries([...TOKEN_CSS.matchAll(/(--[a-z0-9-]+):\s*(-?\d*\.?\d+)px\s*;/g)].map((m) => [m[1], parseFloat(m[2])]));
 const px = (t) => {
   const v = /^var\((--[a-z0-9-]+)\)$/.exec(t);
   if (v) return v[1] in LEN ? LEN[v[1]] : null;

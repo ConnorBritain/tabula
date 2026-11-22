@@ -166,6 +166,32 @@ Not chosen: an always-on VM or container (you pay all summer), or a region-locke
 
 Use the Workers rate-limiting binding or WAF rate rules for the per-IP limits.
 
+#### 6.5a Provider limits on record (owner read the consoles on 2026-11-22)
+
+**Luna (GPT-6 Luna) stays the main model** for every automatic call. Haiku 5.5 is the failover. Sonnet 5.5 serves the paid "deep" actions. The server copy of these numbers is `perMinute` in tabula-cloud `src/ai/prices.ts`. The limiter DO uses 80% of it.
+
+Our accounts now:
+
+| Model | Provider and org | Tier | Requests per minute | Tokens per minute |
+|---|---|---|---|---|
+| gpt-6-luna (main) | OpenAI, Pattern Engine AI org | Build | 5,000 | 2,000,000 |
+| claude-haiku-5-5 (failover) | Anthropic, Pattern Engine LLC | Build | 10,000 | 5M input, 1M output |
+| claude-sonnet-5-5 (deep actions) | Anthropic, Pattern Engine LLC | Build | 10,000 | 5M input, 1M output |
+
+OpenAI tier ladder for gpt-6-luna (from the OpenAI limits page):
+
+| OpenAI tier | Requests per minute | Requests per day | Tokens per minute | Batch queue (tokens per day) |
+|---|---|---|---|---|
+| Free | 10 | 50 | 60,000 | 200,000 |
+| Build (ours) | 5,000 | no cap shown | 2,000,000 | 20,000,000 |
+| Launch | 10,000 | no cap shown | 10,000,000 | 1,000,000,000 |
+| Grow | 30,000 | no cap shown | 180,000,000 | 15,000,000,000 |
+
+Rules:
+- The production OpenAI key must come from the **Pattern Engine AI** org. The owner's "Personal" org is on the Free tier (50 requests a day), which would push almost every call to failover.
+- Build gives Luna 4,000 calls a minute after the 80% margin. The app makes one live-flow pass every 30 s per speech, so this is far above the 400-round load test. Ask for Launch before a season where "Growth" traffic is likely.
+- Read both consoles again each August and update `src/ai/prices.ts` and this table together.
+
 ### 6.6 Queues
 
 Use Cloudflare Queues for work that can wait:

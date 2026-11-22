@@ -113,6 +113,8 @@ test('caps-boot.js writes the same data-ai-off words as the app, from the cached
     const win = { location: { search }, URLSearchParams, localStorage: { getItem: (k) => (k in store ? store[k] : null) }, document: { documentElement: { setAttribute: (k, v) => { attrs[k] = v; } } } };
     win.window = win;
     vm.createContext(win);
+    // The page's <head> order: the shared gate (core/policy.js, step C11), then logic/caps.js, then caps-boot.js.
+    vm.runInContext(read('core/policy.js'), win);
     vm.runInContext(read('logic/caps.js'), win);
     vm.runInContext(read('assets/caps-boot.js'), win);
     return attrs['data-ai-off'];

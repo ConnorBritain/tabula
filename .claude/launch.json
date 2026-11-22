@@ -24,6 +24,18 @@
         "127.0.0.1"
       ],
       "port": 8771
+    },
+    {
+      "name": "ai-demo",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8790",
+        "--bind",
+        "127.0.0.1"
+      ],
+      "port": 8790
     }
   ]
 }
