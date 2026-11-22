@@ -201,7 +201,8 @@ function renderAIFlow() {
     + '<span class="tab-gap"></span>' + L.FLOW_LEVELS.map((lv) => `<button data-level="${lv}" class="${lv === level ? 'on' : ''}">${lv[0].toUpperCase() + lv.slice(1)}</button>`).join('')
     + '<span class="tab-gap"></span><button data-act="map-docs">Map docs to flow now</button>'
     + `<span class="muted" style="margin-left:var(--s2)" id="ai-flow-ago">Updated ${ago}.</span>` + sheetLearnLink((sheets[aiIdx] || {}).name)
-    + `<div id="ai-flow-status">${flowStatusHtml()}</div>`;
+    + `<div id="ai-flow-status">${flowStatusHtml()}</div>`
+    + (sheets.length ? '' : `<p class="muted ai-flow-empty">${escapeHtml(L.AI_FLOW_EMPTY)}</p>`);
   const sh = sheets[aiIdx];
   // Every cell can be edited. An edited cell keeps the judge's text; if the AI writes something newer
   // underneath, a small bar offers "Use AI" or "Keep mine".
@@ -214,7 +215,7 @@ function renderAIFlow() {
         + (behind ? `<div class="aibar">AI has a newer version. <button data-ai-use="${i}">Use AI</button><button data-ai-keep="${i}">Keep mine</button></div>` : ed ? `<div class="aibar quiet"><button data-ai-use="${i}">Undo my edit</button></div>` : '')
         + `<div class="flow-cell"><div class="flow-hl" aria-hidden="true"></div><textarea data-aicol="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(sh.name)}">${escapeHtml(L.flowCellText(sh, i, level, FMT()))}</textarea></div></div>`;
     }).join('')
-    : '<p class="muted flow-empty">No AI flow yet. Click "Map docs to flow now" to flow your docs, or tick "Transcribe" in the round bar and start a speech. Needs AI connected and Live AI flow on (in Settings).</p>';
+    : L.emptyFlowHtml(FMT().flowColumns); // no sheet yet: the columns, empty, and the note above (L.AI_FLOW_EMPTY)
   markFlowColumns();
   paintAllFlowMarks();
 }
