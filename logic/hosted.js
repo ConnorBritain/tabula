@@ -43,6 +43,9 @@
   }
   // Some app feature runs hosted: the device is ready for AI without a key.
   function hostedAny(gate) { return APP_FEATURES.some((f) => hostedOn(gate, f)); }
+  // The judge has a hosted plan for this round: the record says hosted access, or the school pays for some feature.
+  // Such a judge needs no key, so the first-time key welcome never shows (spec 2.1, Q11). No gate: no plan.
+  function hasHostedPlan(gate) { return Boolean(gate && gate.mode === 'record' && (gate.hosted === true || hostedAny(gate))); }
 
   const text = (v) => String(v == null ? '' : v).trim();
   const block = (lines) => lines.join('\n');
@@ -187,7 +190,7 @@
     return out('noAnswer', { retryable: true });
   }
 
-  const api = { BUY_URL, accountUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hostedState, hostedRequest, readSse, sseStep, hostedError };
+  const api = { BUY_URL, accountUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, hasHostedPlan, hostedState, hostedRequest, readSse, sseStep, hostedError };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).hosted = api;
 })(typeof window !== 'undefined' ? window : globalThis);

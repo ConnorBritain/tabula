@@ -133,10 +133,18 @@ $('#tour-offer-go').addEventListener('click', () => tourStart('main'));
 $('#tour-offer-no').addEventListener('click', () => { $('#tour-offer').hidden = true; toast('You can take the tour any time from the ? menu.'); });
 
 // ---------- welcome (spec 2.1, Q11): free users only, built on the shared dialog ask() ----------
-// Paid-plan users (2.8, not built yet) never see it: hosted AI just works.
-const hostedPlan = L.hasHostedPlan();
-if (hostedPlan && !S.setupDone) { S.setupDone = true; saveSettings(); }
-$('#show-welcome').hidden = hostedPlan;
+// Hosted-plan judges never see it: hosted AI just works. With a plan (spec 2.1), setupDone is set and the "show again"
+// button hides. At app start it waits for the account check (settled: acctBoot from js/account.js), because a new
+// device has no cached capabilities yet and would show a paid judge the key welcome before the server's answer.
+// The check always ends: both fetches have timeouts, and offline or with no account server it ends at once.
+async function welcomeWhenKnown(settled) {
+  await settled;
+  const hostedPlan = L.hasHostedPlan(capsGate);
+  $('#show-welcome').hidden = hostedPlan;
+  if (hostedPlan && !S.setupDone) { S.setupDone = true; saveSettings(); }
+  if (L.shouldShowWelcome({ setupDone: S.setupDone, hostedPlan })) openWelcome();
+  else maybeD2Note();
+}
 async function openWelcome() {
   if (!showSetup()) return; // no own AI to set up (or already set up): no welcome
   const choices = [{ label: 'Connect an AI key', desc: 'Paste a key from any AI provider. Step-by-step help is included.', value: 'key' }];
