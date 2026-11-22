@@ -421,7 +421,7 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
   - Static test, the welcome word budget: at most one "AI"; no "without AI", "feedback", "AI key", "never", "only" or "can only"; no "$" price; no "free trial".
   - Static test, revision 2: zero "AI"; no "pay", "key", "subscription", "Terminal" or "$" (CHANGED 2026-11-21: added; the budget line above still holds).
   - Static test: one ask() only (no skip page); "Start judging", × and Esc all go to Flow; one 'setup' link on every host (CHANGED 2026-11-21, revision 2. Old line: the subscription row only on localhost).
-  - Static test: the "Set it up" link opens the AI tab, scrolls to the setup area and puts the cursor in the key field.
+  - Static test: the "Set it up" link opens the AI tab and puts the cursor in the key field, with no explicit scroll (CHANGED 2026-11-21, revision 2 review: the scroll put the card heading under the sticky top bar; focus on the key field keeps the heading in view. Old line: the "Set it up" link opens the AI tab, scrolls to the setup area and puts the cursor in the key field).
   - DOM test (the real ask()): the link is a real `<button>` inside the dialog, so Tab reaches it and Enter works; focus still starts on "Start judging".
   - Browser checks:
     - every host shows Start judging plus one help line with the "Set it up" link (CHANGED 2026-11-21, revision 2. Old line: localhost shows Start judging plus 2 setup rows; another host shows Start judging plus 1 setup row);

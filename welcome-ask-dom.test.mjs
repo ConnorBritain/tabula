@@ -87,7 +87,10 @@ function loadUI() {
 }
 const tick = () => new Promise((r) => setImmediate(r));
 
-// A choices dialog with a primary and two quiet rows (the revision-1 welcome). ask() still supports this shape.
+// A choices dialog with a primary and two quiet rows (the revision-1 welcome shape). No live caller passes this shape
+// since revision 2 (2026-11-21). The three tests below that use it now guard ask()'s shared choice-card support in
+// core/ui.js (the .choice and .has-primary paths), not the welcome. They stay until the owner decides whether to keep
+// that support or remove it with its CSS (index.html .choice rules); removing it would delete these assertions.
 const WELCOME = {
   title: 'Welcome to Tabula Debate', body: 'Your clock, flow and ballot are ready.', variant: 'choices', cancelValue: 'start',
   buttons: [
@@ -97,8 +100,9 @@ const WELCOME = {
   ],
 };
 
-// Why: if ui.js stops drawing the primary as a real button, "Start judging" turns back into one of three equal cards,
-// and the free path reads as just one option among AI setups again (the problem the owner asked to fix).
+// Why (choice-card support, not the live welcome): if ui.js stops drawing the primary as a real button in a choices
+// dialog, any dialog that uses this shape turns its main action into one of several equal cards, the problem the
+// owner asked to fix in revision 1.
 test('ask() with choices and a primary draws one primary button above quiet .choice rows', async () => {
   const { UI, doc } = loadUI();
   const p = UI.ask(WELCOME); await tick();
@@ -118,8 +122,8 @@ test('ask() with choices and a primary draws one primary button above quiet .cho
   assert.equal(await p, 'start');
 });
 
-// Why: other dialogs use the choices variant with no primary; if has-primary leaked onto them, their equal cards would
-// pick up the quiet-row look and lose their weight.
+// Why (choice-card support, not the live welcome): a choices dialog with no primary must keep equal cards; if
+// has-primary leaked onto it, its cards would pick up the quiet-row look and lose their weight.
 test('ask() with choices and no primary keeps every button an equal card', async () => {
   const { UI, doc } = loadUI();
   const p = UI.ask({ variant: 'choices', buttons: [{ label: 'A', value: 'a', desc: 'x' }, { label: 'B', value: 'b', desc: 'y' }] }); await tick();
@@ -130,8 +134,8 @@ test('ask() with choices and no primary keeps every button an equal card', async
   assert.equal(await p, 'b');
 });
 
-// Why: the welcome promises that × and Esc do what "Start judging" does; if the wiring in ui.js broke, closing the
-// welcome would leave the judge with no Flow and the welcome back again on reload.
+// Why (choice-card support; the live welcome has its own Esc and × test below): × and Esc must give cancelValue in a
+// choices dialog; if the wiring in ui.js broke, closing such a dialog would do nothing the caller expects.
 test('Esc and × on the welcome resolve with cancelValue', async () => {
   for (const close of ['esc', 'x']) {
     const { UI, doc, key } = loadUI();
@@ -180,4 +184,36 @@ test('the welcome help line is one quiet line with a real, focusable "Set it up"
   // A native <button type="button"> turns Enter into a click; the click gives 'setup'.
   link.click();
   assert.equal(await p, 'setup');
+});
+
+// Why: the live welcome promises that × and Esc do what "Start judging" does; if the wiring in ui.js broke for the
+// revision-2 shape, closing the welcome would leave the judge with no Flow and the welcome back again on reload.
+test('Esc and × on the revision-2 welcome resolve with "start"', async () => {
+  for (const close of ['esc', 'x']) {
+    const { UI, doc, key } = loadUI();
+    const p = UI.ask(WELCOME_R2); await tick();
+    assert.equal(doc.byId.ask.hidden, false, 'the dialog did not open');
+    if (close === 'esc') key('Escape'); else doc.byId['ask-x'].click();
+    assert.equal(await p, 'start', `${close} did not give "start"`);
+    assert.equal(doc.byId.ask.hidden, true, `${close} left the dialog open`);
+  }
+});
+
+// Why: a 'link' button used to draw as a quiet line only inside the choices variant and silently fell back to a plain
+// button elsewhere; a later dialog that asks for a link would then show a heavy button with no desc and no error.
+test('a link button draws as a quiet line in a dialog without the choices variant', async () => {
+  const { UI, doc } = loadUI();
+  const p = UI.ask({ title: 'T', buttons: [{ label: 'OK', value: 'ok', kind: 'primary' }, { label: 'Read more', value: 'more', kind: 'link', desc: 'Not sure?' }] });
+  await tick();
+  const row = doc.byId['ask-btns'];
+  assert.ok(!row.classList.contains('choices'));
+  const [first, line] = row.children;
+  assert.equal(first.className, 'b primary');
+  assert.equal(line.tagName, 'P');
+  assert.equal(line.className, 'ask-aside');
+  assert.equal(line.textContent, 'Not sure? Read more');
+  const link = line.children.find((c) => c.tagName === 'BUTTON');
+  assert.equal(link.className, 'linkish');
+  link.click();
+  assert.equal(await p, 'more');
 });

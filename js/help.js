@@ -154,9 +154,10 @@ async function openWelcome() {
     { label: 'Start judging', value: 'start', kind: 'primary' },
     { label: 'Set it up', value: 'setup', kind: 'link', desc: 'Want help with your flow and ballot?' },
   ];
-  // "Start judging", × and Esc all mean the same thing: one click to Flow. A click on the dim layer does nothing.
+  // "Start judging", × and Esc all mean the same thing: one click to Flow. cancelValue is the one place that says so,
+  // so v is only ever 'start' or 'setup'. A click on the dim layer does nothing.
   const v = await ask({ title: `Welcome to ${window.TabulaBrand.NAME}`, body: 'Your clock, flow and ballot are ready.', buttons: choices, variant: 'choices', backdrop: false, cancelValue: 'start' });
-  if (v !== 'setup') return startJudging();
+  if (v === 'start') return startJudging();
   S.setupDone = true; saveSettings(); showTab('ai'); setTimeout(offerTour, 400);
   // The setup area is the first card on the AI tab (the key field and, on localhost, the subscription box). Focus on the
   // key field keeps the card's heading in view; an explicit scroll put the heading under the sticky top bar.
