@@ -469,6 +469,10 @@
   /* Slice 2: the dialog's text box, list and choice cards (the welcome), and the primary button while it waits. */
   .ask-card.ask-choices { width: min(440px, calc(100% - 32px)); }
   .ask-btns.choices { display: grid; justify-content: stretch; }
+  .ask-btns.choices.has-primary .b.primary { min-height: var(--h-lg); font-size: var(--fs-3); }
+  .ask-btns.choices.has-primary .choice { border-color: var(--border); background: none; padding: var(--s2) var(--s3); }
+  .ask-btns.choices.has-primary .choice:hover { border-color: var(--border-ctl); background: var(--sunk); }
+  .ask-btns.choices.has-primary .choice strong { font-size: var(--fs-2); font-weight: var(--fw-3); }
   .ask-list { margin: 0 0 var(--s2); padding-left: 20px; color: var(--text-2); }
   .ask-field { margin-top: var(--s2); }
   .ask-field[hidden] { display: none; }
@@ -1104,7 +1108,7 @@
   <div class="card" id="conn-card" data-ai-setup>
     <div class="row card-head">
       <h2>Connect AI</h2>
-      <button class="b" id="show-welcome">Show the first-time setup again</button>
+      <button class="b" id="show-welcome">Show the welcome again</button>
     </div>
     <p class="muted" style="margin:var(--s2) 0 var(--s3)">Paste a key from any provider below. The app works out which one it is and checks that it works.</p>
     <div class="row nowrap">

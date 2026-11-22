@@ -140,26 +140,21 @@ if (hostedPlan && !S.setupDone) { S.setupDone = true; saveSettings(); }
 $('#show-welcome').hidden = hostedPlan;
 async function openWelcome() {
   if (!showSetup()) return; // no own AI to set up (or already set up): no welcome
-  const choices = [{ label: 'Connect an AI key', desc: 'Paste a key from any AI provider. Step-by-step help is included.', value: 'key' }];
-  if (LOCAL_ORIGIN) choices.push({ label: 'Use an AI app you pay for', desc: 'Uses an AI app you already pay for on this computer. Needs one Terminal command.', value: 'sub' });
-  choices.push({ label: 'Start without AI', desc: 'You can connect AI later in Settings.', value: 'skip' });
-  // × or Esc means "Start without AI" without the skip page. A click on the dim layer does nothing.
-  const v = await ask({ title: `Welcome to ${window.TabulaBrand.NAME}`, body: 'The clock, flow and ballot work without AI. AI can add a transcript, an AI flow and feedback.', buttons: choices, variant: 'choices', backdrop: false, cancelValue: 'none' });
-  if (v === 'skip') {
-    const go = await ask({
-      title: 'Start without AI',
-      body: ['You get the clock, prep timers, flow sheets and the ballot.', 'To add AI later, open Settings (the gear button).'],
-      buttons: [{ label: 'Back', value: 'back', kind: 'plain' }, { label: 'Start flowing', value: 'go', kind: 'primary' }], cancelValue: 'back',
-    });
-    return go === 'go' ? startWithoutAI() : openWelcome();
-  }
-  if (v !== 'key' && v !== 'sub') return startWithoutAI();
+  // "Start judging" is the one primary button, alone and first. The setup rows are quieter rows under it.
+  const choices = [
+    { label: 'Start judging', value: 'start', kind: 'primary' },
+    { label: 'Add an automatic flow and a draft ballot', desc: 'Paste a key from an AI company. You pay that company for what you use.', value: 'key' },
+  ];
+  if (LOCAL_ORIGIN) choices.push({ label: 'Use a subscription you have', desc: 'Connects to an app you pay for on this computer. Needs one Terminal command.', value: 'sub' });
+  // "Start judging", × and Esc all mean the same thing: one click to Flow. A click on the dim layer does nothing.
+  const v = await ask({ title: `Welcome to ${window.TabulaBrand.NAME}`, body: 'Your clock, flow and ballot are ready.', buttons: choices, variant: 'choices', backdrop: false, cancelValue: 'start' });
+  if (v !== 'key' && v !== 'sub') return startJudging();
   S.setupDone = true; saveSettings(); showTab('ai'); setTimeout(offerTour, 400);
   if (v === 'key') setTimeout(() => $('#key-paste').focus(), 0);
   else setTimeout(() => { $('#sub-box').scrollIntoView({ block: 'center' }); const btn = $('#sub-box .sub-btn:not([disabled])'); if (btn) btn.focus(); }, 0);
 }
-function startWithoutAI() {
-  S.setupDone = true; S.aiSkipped = true; saveSettings();
+function startJudging() {
+  S.setupDone = true; saveSettings();
   showTab('flow'); setTimeout(offerTour, 400);
 }
 $('#show-welcome').addEventListener('click', () => openWelcome());

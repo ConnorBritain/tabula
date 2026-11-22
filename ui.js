@@ -126,9 +126,12 @@
       card.setAttribute('role', buttons.some((b) => b.kind === 'danger') ? 'alertdialog' : 'dialog');
       const row = $('#ask-btns'); row.textContent = '';
       row.classList.toggle('choices', choices);
+      // Choices with one primary button: that button renders as a plain primary button and the other choices are
+      // quieter rows under it (the welcome, spec 2.1). Without a primary, every choice is an equal card.
+      row.classList.toggle('has-primary', choices && buttons.some((b) => b.kind === 'primary'));
       const els = buttons.map((b) => {
         const el = document.createElement('button'); el.type = 'button';
-        if (choices) {
+        if (choices && b.kind !== 'primary') {
           el.className = 'choice';
           const strong = document.createElement('strong'); strong.textContent = b.label; el.append(strong);
           if (b.desc) { const d = document.createElement('span'); d.textContent = b.desc; el.append(d); }

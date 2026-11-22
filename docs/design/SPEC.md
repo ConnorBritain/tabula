@@ -400,27 +400,28 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
 #### 2.1 Lighter welcome, free users only (Q11)
 - **Who sees it.** `shouldShowWelcome({setupDone, hostedPlan})`. A new `hasHostedPlan()` returns `false` until the paid plan ships. When it is `true`, the welcome never shows, `setupDone` is set, and the "show again" button hides.
 - **Look.** A small dialog, `min(440px,100%−32px)`, with a × button.
-  - × or Esc means "Start without AI", but skips the skip page.
+  - × or Esc means "Start judging" (CHANGED 2026-11-21, owner approved docs/design/WELCOME-COPY.md §1. Old line: × or Esc means "Start without AI", but skips the skip page.)
   - A backdrop click does nothing.
-- **Choices.** They have equal borders. Nothing is marked "Recommended" (delete `.choice:first-child`).
-  - "Use an AI app you pay for" shows only when `LOCAL_ORIGIN` is true.
-  - The skip page has no checkbox.
-  - After skip, the app goes to **Flow**.
+- **Choices.** "Start judging" is the one primary button. It comes first, alone and full width, with no description. The setup rows are quieter rows under it, not equal cards. Nothing is marked "Recommended" (delete `.choice:first-child`).
+  - "Use a subscription you have" shows only when `LOCAL_ORIGIN` is true.
+  - There is no skip page (CHANGED 2026-11-21: deleted). "Start judging" goes to **Flow** in one click and then offers the tour.
 - **Copy**
-  - Title: "Welcome to Tabula".
-  - Intro: "The clock, flow and ballot work without AI. AI can add a transcript, an AI flow and feedback."
-  - "Connect an AI key" + "Paste a key from any AI provider. Step-by-step help is included."
-  - "Use an AI app you pay for" + "Uses an AI app you already pay for on this computer. Needs one Terminal command." (shown only on localhost)
-  - "Start without AI" + "You can connect AI later in Settings."
-  - Skip page: "Start without AI" / "You get the clock, prep timers, flow sheets and the ballot." / "To add AI later, open Settings (the gear button)." / [Start flowing] [Back]
+  - (CHANGED 2026-11-21, owner approved docs/design/WELCOME-COPY.md §1 with "Yes, build it". The whole flow now says "AI" once.)
+  - Title: "Welcome to Tabula Debate" (`TabulaBrand.NAME`).
+  - Intro: "Your clock, flow and ballot are ready."
+  - Primary button: "Start judging" (no description).
+  - Setup row: "Add an automatic flow and a draft ballot" + "Paste a key from an AI company. You pay that company for what you use." It opens Settings with the cursor in the key field.
+  - Setup row: "Use a subscription you have" + "Connects to an app you pay for on this computer. Needs one Terminal command." (shown only on localhost) It opens Settings at the subscription box.
   - Toast after "Not now" on the tour offer: "You can take the tour any time from the ? menu."
-  - Settings button: "Show the first-time setup again".
+  - Settings button: "Show the welcome again".
 - **Files.** index.html:150, 156, 539, 757-778; app.js:1730-1751, 2387; `logic.js`.
 - **Checks**
   - Unit test, `shouldShowWelcome`.
   - Static test: no "I understand", no "Recommended." and no `skip-ack`.
+  - Static test, the welcome word budget: at most one "AI"; no "without AI", "feedback", "AI key", "never", "only" or "can only"; no "$" price; no "free trial".
+  - Static test: one ask() only (no skip page); "Start judging", × and Esc all go to Flow; the subscription row only on localhost.
   - Browser checks:
-    - localhost shows 3 choices; another host shows 2;
+    - localhost shows Start judging plus 2 setup rows; another host shows Start judging plus 1 setup row;
     - Esc goes to Flow and the welcome does not show after a reload;
     - skip takes one click;
     - with `hasHostedPlan` stubbed to true, no welcome shows;
