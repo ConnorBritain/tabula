@@ -125,7 +125,7 @@ function startSpeech() {
 function pauseSpeech() {
   if (!R.run) return;
   const s = runSp();
-  R.timeLeft[s.id] = Math.max(L.OVER_LIMIT, (R.run.endAt - Date.now()) / 1000);
+  R.timeLeft[s.id] = L.leftAt(R.run.endAt, Date.now());
   R.run = null; stopTick();
   R.cur = speechIdx(s.id); // Q-5: pausing while viewing returns the view to the running speech
   saveClocks();
@@ -159,7 +159,7 @@ $('#cv-next').addEventListener('click', () => { if (!stepSpeech(1)) toast(L.step
 $('#cv-reset').addEventListener('click', () => {
   // The speech it resets and the time it had: the running one (pausing returns the view to it), else the viewed one.
   const s = runSp();
-  const before = R.run ? Math.max(L.OVER_LIMIT, (R.run.endAt - Date.now()) / 1000) : R.timeLeft[s.id];
+  const before = R.run ? L.leftAt(R.run.endAt, Date.now()) : R.timeLeft[s.id];
   resetSpeechClock();
   undoToast(L.shortSpeech(s.id) + ' clock reset.', 'reset ' + L.shortSpeech(s.id) + ' clock', () => {
     if (R.run && R.run.id === s.id) return false;

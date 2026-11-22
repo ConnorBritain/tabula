@@ -8,26 +8,22 @@
   const { KEYS_ENTRY, OLD_KEY_ENTRIES } = part('files');
   // The shared UI rules (core/ui.js, an ES module): the page runs it before this file; Node requires it.
   const { escTop, TOAST_MAX, toastPlan, askFirstFocus, trapNext, toastMs, askInputState } = typeof module !== 'undefined' && module.exports ? require('../core/ui.js') : root.TabulaCore.ui;
+  // The shared clock math (core/clock.js, an ES module): the page runs it before this file; Node requires it.
+  const { OVER_LIMIT, restoreTimer, prepWins, beepDecision, leftAt } = typeof module !== 'undefined' && module.exports ? require('../core/clock.js') : root.TabulaCore.clock;
 
   // ---------- Slice 1: round safety (docs/design/SPEC.md §3.1) ----------
-  // A running clock stops by itself at -9:59 (599 s over), on screen and after a reload.
-  const OVER_LIMIT = -599;
+  // The clock math (OVER_LIMIT, restoreTimer, prepWins, beepDecision) is shared code in core/clock.js (step C6).
+  // These wrappers find the speech or the prep clock in the round's format and pass its length in.
 
   // 1.1 The speech clock after a reload, a crash or sleep. run = { id, endAt, ... } as saved with the round.
-  // Time always comes from the wall clock, so a closed tab keeps "running". fmt: the round's format (policy-hs when not given).
+  // fmt: the round's format (policy-hs when not given).
   function restoreRun(run, now, speechLength, fmt) {
     if (!run || typeof run !== 'object') return { state: 'none' };
     const s = F.speechOf(fmt || F.POLICY, run.id);
-    if (!s || typeof run.endAt !== 'number' || !Number.isFinite(run.endAt) || !Number.isFinite(now)) return { state: 'none' };
+    if (!s) return { state: 'none' };
     const len = Number.isFinite(speechLength) ? speechLength : s.minutes * 60;
-    const left = (run.endAt - now) / 1000;
-    // run.startLeft is the time left when the clock was started (a resumed speech has less than the full time).
-    // More time than that, or than the speech has, means the device clock was moved back. 2 s allows for rounding.
-    const cap = Number.isFinite(run.startLeft) ? Math.min(len, run.startLeft + 2) : len;
-    // Start again from the full time (spec 1.1: the judge is told to check it).
-    if (left > cap) return { state: 'running', id: s.id, left: len, endAt: now + len * 1000, reason: 'clock-moved' };
-    if (left < OVER_LIMIT) return { state: 'paused', id: s.id, left: OVER_LIMIT, reason: 'over-limit' };
-    return { state: 'running', id: s.id, left, endAt: run.endAt };
+    const r = restoreTimer(run, now, { length: len, kind: 'speech' });
+    return r.state === 'none' ? r : Object.assign({ id: s.id }, r);
   }
 
   // 1.1b A prep clock after a reload. prepRun = { side, endAt }: side is the prep clock's id (a side for prep per team,
@@ -35,27 +31,17 @@
   // prep clock ids (the two sides when not given).
   function restorePrep(prepRun, now, maxSeconds, clockIds) {
     if (!prepRun || typeof prepRun !== 'object') return { state: 'none' };
-    if (!(clockIds || ['aff', 'neg']).includes(prepRun.side) || typeof prepRun.endAt !== 'number' || !Number.isFinite(prepRun.endAt) || !Number.isFinite(now)) return { state: 'none' };
-    const left = (prepRun.endAt - now) / 1000;
-    if (left <= 0) return { state: 'paused', side: prepRun.side, left: 0, reason: 'ran-out' };
-    if (Number.isFinite(maxSeconds) && left > maxSeconds) return { state: 'running', side: prepRun.side, left: maxSeconds, endAt: now + maxSeconds * 1000, reason: 'clock-moved' };
-    return { state: 'running', side: prepRun.side, left, endAt: prepRun.endAt };
+    if (!(clockIds || ['aff', 'neg']).includes(prepRun.side)) return { state: 'none' };
+    const r = restoreTimer(prepRun, now, { length: maxSeconds, kind: 'prep' });
+    return r.state === 'none' ? r : Object.assign({ side: prepRun.side }, r);
   }
 
-  // Both clocks at once. Only one may run: a prep start always pauses the speech, so prep wins
-  // and the speech is paused at its restored time (a damaged file or a race can save both).
+  // Both clocks at once. Only one may run: prep wins (core/clock.js prepWins).
   function restoreClocks(run, prepRun, now, maxPrepSeconds, speechLength, fmt) {
-    let speech = restoreRun(run, now, speechLength, fmt);
+    const speech = restoreRun(run, now, speechLength, fmt);
     const prep = restorePrep(prepRun, now, maxPrepSeconds, fmt ? F.prepClocks(fmt).map((c) => c.id) : undefined);
-    if (speech.state === 'running' && prep.state === 'running') speech = { state: 'paused', id: speech.id, left: speech.left, reason: 'prep-running' };
-    return { speech, prep };
-  }
-
-  // The 0:00 beep plays once. It is skipped (but marked as done) when the page wakes or reloads more than 5 s late.
-  // Returns 'beep', 'skip' (mark it done, no sound) or null (nothing to do).
-  function beepDecision(left, beeped) {
-    if (beeped || !(left <= 0)) return null;
-    return left > -5 ? 'beep' : 'skip';
+    const won = prepWins(speech, prep);
+    return { speech: won === speech ? speech : Object.assign({ id: speech.id }, won), prep };
   }
 
   // A failed localStorage write: 'full' (the quota is used up) or 'blocked' (the browser refuses storage).
@@ -316,7 +302,7 @@
     return { current: current == null ? null : current, now: runId && runCol != null ? runCol : null, viewing };
   }
 
-  const api = { OVER_LIMIT, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer,
+  const api = { OVER_LIMIT, leftAt, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer,
     shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere, NO_AI,
     hasHostedPlan, shouldShowWelcome, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt,
     restoreAt, askInputState, resolveRememberKeys, splitRestoreKeys, restoreKeysLine, restoreTabKeys,
