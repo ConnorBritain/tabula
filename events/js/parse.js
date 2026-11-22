@@ -38,7 +38,7 @@ const LATE_LEAD = /^(?:late|added)\s*[:\-–]\s*/i;
 const ORDER_WORD = /^(?:speaker|spkr|spk)\.?\s*#?\s*(\d{1,2})\s*[:.)\-–]?\s+/i;
 const ORDER_MARK = /^(?:#(\d{1,2})\s*[.):\-–]?\s+|(\d{1,2})(?:\s*[.)]|(?:st|nd|rd|th)\b|\s*[:\-–](?=\s))\s*)/i;
 // Partners in a pair event (Duo): "A & B", "A and B", "A / B", "A + B".
-const PARTNERS = /\s+(?:&|and|\/|\+)\s+/i;
+export const PARTNERS = /\s+(?:&|and|\/|\+)\s+/i;
 
 // Web copy brings non-breaking and zero-width spaces and bullets; make them plain.
 const clean = (raw) => raw.replace(/[​-‍﻿]/g, '').replace(/ /g, ' ').replace(/^\s*[•·▪◦*]\s+/, '').replace(/\s+$/, '');

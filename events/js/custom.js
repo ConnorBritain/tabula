@@ -11,10 +11,10 @@ import { parseClock } from './timer.js';
 
 // The limits the form accepts. A limit from 0:30 to 60:00 covers every event in EVENTS.md (the longest group events
 // wait for a later step). Grace from 0 (none) to 5 minutes.
-export const LIMIT_MIN = 30;
-export const LIMIT_MAX = 3600;
-export const GRACE_MAX = 300;
-export const CUSTOM_NAME = 'Custom event';
+const LIMIT_MIN = 30;
+const LIMIT_MAX = 3600;
+const GRACE_MAX = 300;
+const CUSTOM_NAME = 'Custom event';
 const NAME_MAX = 60;
 
 // The grace the judge typed, in whole seconds, or null when it is not a whole number of seconds.

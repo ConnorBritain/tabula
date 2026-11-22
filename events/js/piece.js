@@ -8,9 +8,9 @@
 //   (MODELS.md §3, F1). The two names live in the entry's one `name` field as "First & Second", so every screen that
 //   shows a name, and the clean-up scrub (cleanup.js nameParts splits on "&"), already handles both.
 
-export const PAIR_JOIN = ' & ';
-// The words that join partners in pasted text (the same set as parse.js PARTNERS): "&", "and", "/", "+".
-const PARTNERS = /\s+(?:&|and|\/|\+)\s+/i;
+import { PARTNERS } from './parse.js';
+
+const PAIR_JOIN = ' & ';
 const str = (s) => String(s == null ? '' : s).trim();
 
 // Does this event ask for the piece's title and author?
@@ -38,14 +38,13 @@ export function entryName(pasted, event) {
 // The judge types in one piece field. field: 'title' | 'author' | 'name1' | 'name2'. Returns the new entry (the same
 // entry when nothing changed, so updateEntry saves nothing).
 export function setPieceField(entry, field, value) {
-  let patch;
-  if (field === 'title' || field === 'author') patch = { [field]: String(value == null ? '' : value) };
+  let key, next;
+  if (field === 'title' || field === 'author') { key = field; next = String(value == null ? '' : value); }
   else if (field === 'name1' || field === 'name2') {
     const [a, b] = pairNames(entry.name);
-    patch = { name: field === 'name1' ? joinPair(value, b) : joinPair(a, value) };
+    key = 'name'; next = field === 'name1' ? joinPair(value, b) : joinPair(a, value);
   } else return entry;
-  const k = Object.keys(patch)[0];
-  return (entry[k] || '') === patch[k] ? entry : Object.assign({}, entry, patch);
+  return (entry[key] || '') === next ? entry : Object.assign({}, entry, { [key]: next });
 }
 
 // The piece in words for a card or the print sheet: "“Title” by Author", "“Title”", "by Author", or ''.
