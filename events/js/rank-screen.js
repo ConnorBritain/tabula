@@ -8,7 +8,8 @@ import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
   ratingFix, ratingTies, checkBoard, RANK_RATING_ROW,
 } from './rank.js';
-import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, stepRating } from './board.js';
+import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks, stepRating } from './board.js';
+import { attachDrag } from './rank-drag.js';
 import { entryOf, findRoom } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf, usedAt, clockText } from './timer.js';
@@ -22,9 +23,9 @@ export function ratingHtml(e, value, scale, err) {
   if (scale.kind === 'words') {
     return `<div class="rate words" role="group" aria-label="${esc(label)}">${scale.words.map((w) => `<button class="rate-word${w === value ? ' on' : ''}" type="button" data-ract="word" data-id="${e.id}" data-value="${esc(w)}" aria-pressed="${w === value}">${esc(w)}</button>`).join('')}</div>${errHtml}`;
   }
-  return `<div class="rate points"><button class="b small" type="button" data-ract="minus" data-id="${e.id}" aria-label="Lower the rating for ${esc(e.code)}"${value !== '' && Number(value) <= scale.min ? ' disabled' : ''}>−</button>
+  return `<div class="rate points"><button class="b small" type="button" data-ract="minus" data-id="${e.id}" data-key="minus-${e.id}" aria-label="Lower the rating for ${esc(e.code)}"${value !== '' && Number(value) <= scale.min ? ' disabled' : ''}>−</button>
     <input class="rate-num" id="rate-${e.id}" data-ract="num" data-id="${e.id}" inputmode="decimal" autocomplete="off" value="${esc(value)}" aria-label="${esc(label)}, ${scale.min} to ${scale.max}" aria-describedby="rate-err-${e.id}"${err ? ' aria-invalid="true"' : ''}>
-    <button class="b small" type="button" data-ract="plus" data-id="${e.id}" aria-label="Raise the rating for ${esc(e.code)}"${value !== '' && Number(value) >= scale.max ? ' disabled' : ''}>+</button></div>${errHtml}`;
+    <button class="b small" type="button" data-ract="plus" data-id="${e.id}" data-key="plus-${e.id}" aria-label="Raise the rating for ${esc(e.code)}"${value !== '' && Number(value) >= scale.max ? ' disabled' : ''}>+</button></div>${errHtml}`;
 }
 
 // The board as HTML text. view: { tapMode, limit, now }.
@@ -74,7 +75,7 @@ export function problemsHtml(room) {
 export function createRankScreen(env) {
   let roomId = null;
   let tapMode = false;
-  let drag = null;
+  let detachDrag = null;
   const $ = (s) => env.el.querySelector(s);
   const room = () => findRoom(env.rooms(), roomId);
   const event = (r) => env.data.events.get(r.eventId, r.eventVersion);
@@ -135,9 +136,21 @@ export function createRankScreen(env) {
       if (!nextRank(ranksOf(room()), boardCtx(room()))) { tapMode = false; draw(); env.ui.announce('Every speaker has a rank.'); $('#tap-toggle').focus(); }
       return;
     }
-    if (act === 'word') { setRating(id, entryOf(r, id).rating === b.dataset.value ? '' : b.dataset.value); return draw(); }
-    if (act === 'minus' || act === 'plus') { setRating(id, String(stepRating(entryOf(r, id).rating ?? '', act === 'minus' ? -1 : 1, scale))); draw(act + '-' + id); const inp = $(`#rate-${CSS.escape(id)}`); if (inp && document.activeElement !== inp) $(`[data-ract="${act}"][data-id="${CSS.escape(id)}"]`)?.focus(); return; }
-    if (act === 'fix') { setRating(id, b.dataset.value); draw(); env.ui.announce('Rating for ' + entryOf(room(), id).code + ' set to ' + b.dataset.value + '.'); }
+    if (act === 'word') {
+      setRating(id, entryOf(r, id).rating === b.dataset.value ? '' : b.dataset.value);
+      draw();
+      return;
+    }
+    if (act === 'minus' || act === 'plus') {
+      setRating(id, String(stepRating(entryOf(r, id).rating ?? '', act === 'minus' ? -1 : 1, scale)));
+      draw(act + '-' + id); // at the end of the range the button turns off, and the focus goes to the row
+      return;
+    }
+    if (act === 'fix') {
+      setRating(id, b.dataset.value);
+      draw();
+      env.ui.announce('Rating for ' + entryOf(room(), id).code + ' set to ' + b.dataset.value + '.');
+    }
   }
 
   // Typing a rating: saved on every change; the error shows when the box is left (not while the judge types).
@@ -153,33 +166,10 @@ export function createRankScreen(env) {
     move(row.dataset.row, ev.key === 'ArrowUp' ? 'up' : 'down');
   }
 
-  // Drag by the handle (pointer events, so it works with a finger too). The row under the pointer gets a full outline.
-  function onDown(ev) {
-    const h = ev.target.closest('[data-drag]');
-    if (!h || tapMode) return;
-    ev.preventDefault();
-    drag = { id: h.dataset.drag, to: null };
-    h.setPointerCapture(ev.pointerId);
-    $(`[data-row="${CSS.escape(drag.id)}"]`).classList.add('dragging');
-  }
-  function onMove(ev) {
-    if (!drag) return;
-    // The new place counts the rows without the one being dragged: it goes before the first row whose middle is
-    // below the pointer, or last.
-    const rows = [...env.el.querySelectorAll('[data-row]')].filter((row) => row.dataset.row !== drag.id);
-    let at = rows.findIndex((row) => { const b = row.getBoundingClientRect(); return ev.clientY < b.top + b.height / 2; });
-    if (at < 0) at = rows.length;
-    drag.to = at + 1;
-    rows.forEach((row, i) => row.classList.toggle('drop-here', i === Math.min(at, rows.length - 1)));
-  }
-  function onUp() {
-    if (!drag) return;
-    const { id, to } = drag;
-    drag = null;
-    env.el.querySelectorAll('.dragging, .drop-here').forEach((x) => x.classList.remove('dragging', 'drop-here'));
-    if (!to) return;
+  // Drag by the handle (rank-drag.js reports the new place; rank.js moveTo may refuse it).
+  function onDrop(id, place) {
     const r = room();
-    const res = moveTo(ranksOf(r), id, to, boardCtx(r));
+    const res = moveTo(ranksOf(r), id, place, boardCtx(r));
     if (res.moved || res.refused) apply(res, id, 'up-' + id);
   }
 
@@ -190,7 +180,7 @@ export function createRankScreen(env) {
     tapMode = true;
     save(withRanks(before, {}, env.now()));
     draw();
-    env.ui.toast('Tap the speakers from best to last.', { action: { label: 'Undo', name: 'Undo: tap in order', run: () => { tapMode = false; save(Object.assign({}, room(), { entries: before.entries })); draw(); } } });
+    env.ui.toast('Tap the speakers from best to last.', { action: { label: 'Undo', name: 'Undo: tap in order', run: () => { tapMode = false; save(restoreRanks(room(), before, env.now())); draw(); } } });
   }
   function endTap() {
     const r = room();
@@ -208,7 +198,7 @@ export function createRankScreen(env) {
     const cleared = withRanks(before, {}, env.now());
     save(openBoard(cleared, env.now()).room);
     draw();
-    env.ui.toast('Ranks back in speaking order.', { action: { label: 'Undo', name: 'Undo: start the ranks again', run: () => { save(Object.assign({}, room(), { entries: before.entries })); draw(); } } });
+    env.ui.toast('Ranks back in speaking order.', { action: { label: 'Undo', name: 'Undo: start the ranks again', run: () => { save(restoreRanks(room(), before, env.now())); draw(); } } });
   }
 
   return {
@@ -216,7 +206,7 @@ export function createRankScreen(env) {
     show(id) {
       const r0 = findRoom(env.rooms(), id);
       if (!r0) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
-      roomId = id; tapMode = false; drag = null;
+      roomId = id; tapMode = false;
       const opened = openBoard(r0, env.now());
       if (opened.room !== r0) save(opened.room);
       const r = room();
@@ -236,17 +226,15 @@ export function createRankScreen(env) {
       env.el.addEventListener('input', onInput);
       env.el.addEventListener('change', onChange);
       env.el.addEventListener('keydown', onKey);
-      env.el.addEventListener('pointerdown', onDown);
-      env.el.addEventListener('pointermove', onMove);
-      env.el.addEventListener('pointerup', onUp);
-      env.el.addEventListener('pointercancel', onUp);
+      detachDrag = attachDrag($('#board-box'), { enabled: () => !tapMode, onDrop });
       $('#rank-reason').addEventListener('input', (e) => save(setReason(room(), e.target.value, env.now())));
       draw();
       if (opened.started) env.ui.announce('The ranks start in speaking order.');
       $('#screen-title').focus();
     },
     hide() {
-      for (const [t, f] of [['click', onClick], ['input', onInput], ['change', onChange], ['keydown', onKey], ['pointerdown', onDown], ['pointermove', onMove], ['pointerup', onUp], ['pointercancel', onUp]]) env.el.removeEventListener(t, f);
+      for (const [t, f] of [['click', onClick], ['input', onInput], ['change', onChange], ['keydown', onKey]]) env.el.removeEventListener(t, f);
+      if (detachDrag) detachDrag();
       roomId = null;
     },
   };

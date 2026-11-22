@@ -41,7 +41,10 @@ export function openBoard(room, now) {
   const ranks = ranksOf(room);
   const stale = room.entries.some((e) => e.status === 'noShow' && asText(e.rank) !== '');
   if (!ctx.ids.some((id) => ranks[id] !== '')) return { room: Object.assign(withRanks(room, startRanks(ctx), now), { state: 'ranking' }), started: true };
-  const next = stale ? withRanks(room, ranks, now) : room;
+  // A board left half-tapped (a reload in "Tap in order") is filled in speaking order, so moves work again.
+  const partial = rankState(ranks, ctx.ids);
+  const half = partial.missing.length && !partial.ties.length && !partial.outOfRange.length && ctx.ids.some((id) => ranks[id] === '');
+  const next = half ? withRanks(room, fillRest(ranks, ctx), now) : stale ? withRanks(room, ranks, now) : room;
   return { room: next.state === 'judging' ? Object.assign({}, next, { state: 'ranking', updatedAt: now }) : next, started: false };
 }
 
@@ -57,8 +60,12 @@ export function fillRest(ranks, ctx) {
   return out;
 }
 
-// Is every entry on the board ranked 1 to N once?
-export const boardFull = (room) => rankState(ranksOf(room), boardCtx(room).ids).complete;
+// Undo of "Start again" or "Tap in order": only the ranks go back to what they were; a rating, a note or a time
+// changed since stays.
+export function restoreRanks(room, before, now) {
+  const old = Object.fromEntries(before.entries.map((e) => [e.id, asText(e.rank)]));
+  return Object.assign({}, room, { updatedAt: now, entries: room.entries.map((e) => (e.id in old ? Object.assign({}, e, { rank: e.status === 'noShow' ? '' : old[e.id] }) : e)) });
+}
 
 // The − and + buttons of a points rating, in the profile's own step (rank.js ratingScale; the v1 invitational step is
 // 1, so core/points.js stepPoints, which moves by 0.1, does not fit). An empty box starts 60% of the way up the
@@ -72,4 +79,4 @@ export function stepRating(value, dir, scale) {
   return k(Math.min(scale.max, Math.max(scale.min, next)));
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).board = Object.freeze({ boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, boardFull, stepRating });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).board = Object.freeze({ boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks, stepRating });
