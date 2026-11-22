@@ -169,7 +169,8 @@ export function createRoomScreen(env, parts) {
       roomId = id; menuFor = null; rosterOpen = false;
       env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">‹ Rooms</a>
           <h1 id="screen-title" tabindex="-1">${esc(roomTitle(r, event(r)))}</h1>
-          <button class="b" type="button" id="roster-toggle" aria-controls="roster-full" aria-expanded="false">Roster</button></div>
+          <button class="b" type="button" id="roster-toggle" aria-controls="roster-full" aria-expanded="false">Roster</button>
+          <a class="b primary" id="go-rank" href="#/rank/${encodeURIComponent(id)}">Rank the room</a></div>
         <div class="room-grid"><nav class="roster" id="roster" aria-label="Roster"></nav><section class="stage" id="stage" aria-labelledby="stage-code"></section></div>`;
       env.el.addEventListener('click', onClick);
       for (const v of views) if (v.show) v.show(ctx);
