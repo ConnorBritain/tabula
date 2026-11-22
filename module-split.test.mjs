@@ -59,8 +59,10 @@ test('loading the logic files as the page does gives the same API as require("./
   win.window = win;
   // The page runs the core/ ES modules first; each one puts its functions on globalThis.TabulaCore.
   for (const s of scripts.filter((x) => /type="module"/.test(x.attrs) && x.src.startsWith('core/'))) await import('./' + s.src);
-  win.TabulaCore = globalThis.TabulaCore;
+  win.TabulaCore = Object.assign({}, globalThis.TabulaCore);
   vm.createContext(win);
+  // The head files (plain core/ scripts, step C11) run in the page as classic scripts, before the logic parts.
+  for (const s of scripts.filter((x) => !/type="module"/.test(x.attrs) && x.src.startsWith('core/'))) vm.runInContext(read(s.src), win, { filename: s.src });
   // The page loads the format files (data the logic parts read) before the logic parts.
   const formatFiles = scripts.map((x) => x.src).filter((src) => src.startsWith('formats/'));
   for (const f of [...formatFiles, ...LOGIC_FILES]) vm.runInContext(read(f), win, { filename: f });
