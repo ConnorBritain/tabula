@@ -417,13 +417,13 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
 - **Files.** index.html:150, 156, 539, 757-778; app.js:1730-1751, 2387; `logic.js`.
 - **Checks**
   - Unit test, `shouldShowWelcome`.
-  - Static test: no "I understand", no "Recommended." and no `skip-ack`.
+  - Static test: no "I understand", no "Recommended." and no `skip-ack` (the old skip checkbox; copy-dialogs.test.mjs keeps it from coming back).
   - Static test, the welcome word budget: at most one "AI"; no "without AI", "feedback", "AI key", "never", "only" or "can only"; no "$" price; no "free trial".
   - Static test: one ask() only (no skip page); "Start judging", × and Esc all go to Flow; the subscription row only on localhost.
   - Browser checks:
     - localhost shows Start judging plus 2 setup rows; another host shows Start judging plus 1 setup row;
     - Esc goes to Flow and the welcome does not show after a reload;
-    - skip takes one click;
+    - "Start judging" takes one click (CHANGED 2026-11-21: the skip page is deleted. Old line: skip takes one click);
     - with `hasHostedPlan` stubbed to true, no welcome shows;
     - Tab never leaves the dialog.
 

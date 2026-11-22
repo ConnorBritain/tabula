@@ -40,10 +40,18 @@ test('the welcome stays inside its word budget on every host', async () => {
 });
 
 // Why: the draft ballot only suggests; a welcome that says it decides the winner would mislead judges and parents (E7).
+// The approved copy only names the draft ballot, so the "suggests" pin is a guard for future wording (WELCOME-COPY.md
+// §5); the ban on "decides / picks the winner" runs on every host today.
+const DESCRIBES_BALLOT = /draft ballot (that|which|to)\b/i;
 test('if the welcome describes the draft ballot, it says it suggests a winner and points', async () => {
-  const { calls } = await runWelcome({ local: true, answer: 'start' });
-  const text = textOf(calls[0]);
-  if (/draft ballot (that|which|to)\b/i.test(text)) assert.match(text, /suggests a winner and points/);
+  // The guard must fire on a sentence that describes the ballot (the WELCOME-COPY.md option B intro), or it checks nothing.
+  assert.ok(DESCRIBES_BALLOT.test('a draft ballot that suggests a winner and points'), 'the guard regex no longer matches a description');
+  for (const local of [true, false]) {
+    const { calls } = await runWelcome({ local, answer: 'start' });
+    const text = textOf(calls[0]);
+    assert.ok(!/\b(decides?|picks?|chooses?|declares?)\b[^.\n]{0,30}\bwinner\b/i.test(text), `claims the app picks the winner:\n${text}`);
+    if (DESCRIBES_BALLOT.test(text)) assert.match(text, /suggests a winner and points/);
+  }
 });
 
 // Why: a second "are you sure" page made the free path take two clicks and read as a loss; judges want the flow at once.
@@ -70,7 +78,8 @@ test('the subscription row shows only when LOCAL_ORIGIN is true', async () => {
   assert.deepEqual(off, ['start', 'key']);
 });
 
-// Why: the Settings button must name the dialog it opens; the old "first-time setup" name no longer matches it.
+// Why: a judge who closed the welcome looks in Settings for a way back; a button still named "first-time setup" promises
+// a setup wizard that is gone, so the judge does not find the welcome again.
 test('the Settings button says "Show the welcome again"', () => {
   const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
   assert.match(html, /<button class="b" id="show-welcome">Show the welcome again<\/button>/);
