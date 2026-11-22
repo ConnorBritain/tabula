@@ -61,9 +61,9 @@ test('hosted clean-up is off by default for middle school, on by opt-in', () => 
   assert.equal(C.hostedAllowed({ level: 'middle', hostedOptIn: true }), true);
   assert.equal(C.hostedAllowed({ level: 'middle', hostedOptIn: 'yes' }), false);
   const paid = gate(record({ ballotDraft: { payer: 'program' } }, { aiSetup: false, account: { plan: 'school', hosted: true } }));
-  assert.equal(C.cleanupPath({ gate: paid, level: 'high' }), 'hosted');
-  assert.equal(C.cleanupPath({ gate: paid, level: 'middle' }), 'none');
-  assert.equal(C.cleanupPath({ gate: paid, level: 'middle', hostedOptIn: true }), 'hosted');
+  assert.equal(C.cleanupPath({ gate: paid, hosted: true, level: 'high' }), 'hosted');
+  assert.equal(C.cleanupPath({ gate: paid, hosted: true, level: 'middle' }), 'none');
+  assert.equal(C.cleanupPath({ gate: paid, hosted: true, level: 'middle', hostedOptIn: true }), 'hosted');
   assert.equal(C.cleanupPath({ gate: SOLO, hosted: true, hasKey: true, level: 'middle' }), 'own');
 });
 
@@ -122,6 +122,20 @@ test('only the judge\'s own words for real entries are sent', () => {
   assert.ok(!msg.prompt.includes('SECRET FLAG'));
   assert.ok(msg.prompt.includes('focus drifted'), 'notes are used when the comment is empty');
   assert.deepEqual(C.cleanupMessages(r, EVENT, 'e2').sent.map((x) => x.id), ['e2'], 'one speaker at a time');
+});
+
+// Why: an entry with no code, or a code typed twice, must still be sent and get its own draft; dropping it would make a judge's comment vanish from the clean-up with no sign.
+test('entries with no code or a shared code are still sent, each with its own tag', () => {
+  const r = { entries: [
+    { id: 'a', code: 'Q5', order: 1, status: 'done', comment: 'Q5 good pace' },
+    { id: 'b', code: 'Q5', order: 2, status: 'done', comment: 'loud' },
+    { id: 'c', code: '', order: 3, status: 'done', comment: 'clear' },
+  ] };
+  const msg = C.cleanupMessages(r, EVENT);
+  assert.deepEqual(msg.sent, [{ id: 'a', speaker: '[Speaker 1]' }, { id: 'b', speaker: '[Speaker 2]' }, { id: 'c', speaker: '[Speaker 3]' }]);
+  assert.ok(!msg.prompt.includes('Q5'));
+  const d = C.draftsFromText(reply(msg, ['[Speaker 1], good pace.', 'Loud.', 'Clear.']), msg);
+  assert.deepEqual(d, { a: 'Q5, good pace.', b: 'Loud.', c: 'Clear.' });
 });
 
 // ---------- the prompt (R7) ----------

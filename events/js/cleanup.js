@@ -40,8 +40,8 @@ export function hostedAllowed({ level, hostedOptIn } = {}) {
 }
 
 // Which path the Review screen offers. 'none' means the button is gone: not greyed, no hole (ARCHITECTURE.md §7 rule 4,
-// AI-POLICY.md §0). o: { gate (from policy.gateFor), hasKey (an own key or helper is connected), hosted (this account
-// has a hosted plan), level, hostedOptIn }.
+// AI-POLICY.md §0). o: { gate (from policy.gateFor), hasKey (an own key or helper is connected), hosted (true when the
+// app knows this person has a hosted plan or a school that pays; E14 sets it), level, hostedOptIn }.
 //   'hosted'  : the Worker path (E14), allowed by plan and by the middle school rule.
 //   'own'     : the judge's own key.
 //   'connect' : AI is allowed but nothing is connected; the button opens the Connect AI invite.
@@ -51,7 +51,8 @@ export function cleanupPath(o) {
   const s = o || {};
   const gate = s.gate;
   if (!gate || !P.canUse(gate, FEATURE)) return 'none';
-  const hostedPlan = s.hosted === true || (gate.mode === 'record' && gate.hosted === true) || P.payerOf(gate, FEATURE) === 'program';
+  // One input from the caller decides "hosted plan" (E14 owns how it is found), so this rule cannot drift from the cloud.
+  const hostedPlan = s.hosted === true;
   if (hostedPlan && hostedAllowed(s)) return 'hosted';
   if (s.hasKey && P.setupAllowed(gate)) return 'own';
   if (P.showSetupFor(gate, Boolean(s.hasKey) || hostedPlan)) return 'connect';
@@ -107,10 +108,11 @@ export function scrubMap(room) {
   });
   return out.sort((a, b) => b.value.length - a.value.length);
 }
-// The speaker tag for an entry id.
-export function speakerTag(swaps, id) {
-  const s = swaps.find((x) => x.id === id && x.tag.startsWith('[Speaker '));
-  return s ? s.tag : null;
+// The speaker tag for an entry id: its place in speaking order. Every entry has one, even with no code or a code it
+// shares with another entry, so no comment is dropped from a clean-up.
+export function speakerTag(room, id) {
+  const i = ((room && room.entries) || []).slice().sort(byOrder).findIndex((e) => e.id === id);
+  return i < 0 ? null : '[Speaker ' + (i + 1) + ']';
 }
 
 // Swaps every code and name for its tag. Case does not matter ("a12", "maria" are caught). Each swap first puts in a
@@ -149,7 +151,7 @@ export function leaks(text, swaps) {
 export function cleanupMessages(room, event, ids) {
   const swaps = scrubMap(room);
   const list = cleanableEntries(room, ids);
-  const sent = list.map((e) => ({ id: e.id, speaker: speakerTag(swaps, e.id) })).filter((x) => x.speaker);
+  const sent = list.map((e) => ({ id: e.id, speaker: speakerTag(room, e.id) }));
   const blocks = sent.map((x) => {
     const e = list.find((y) => y.id === x.id);
     return x.speaker + '\n' + scrub(sourceText(e), swaps).trim();
