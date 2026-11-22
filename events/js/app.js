@@ -19,6 +19,7 @@ import { createPieceView } from './piece-view.js';
 import { createRankScreen } from './rank-screen.js';
 import { createReviewScreen } from './review-screen.js';
 import { registerOffline } from './offline.js';
+import { createPageAI } from './page-ai.js';
 
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
@@ -46,6 +47,7 @@ function boot(data) {
     rooms: () => store.get(ROOMS_KEY, []),
     saveRoom: (room) => store.set(ROOMS_KEY, upsertRoom(store.get(ROOMS_KEY, []), room)),
     go: (screen, id) => { location.hash = routeHash(screen, id); },
+    ai: createPageAI(store), // step E13: the AI gate and the judge's own key (Review screen clean-up)
   };
   const screens = { setup: createSetupScreen(env), room: createRoomScreen(env, [createPieceView(), createTimerView(), createCommentView()]), rank: createRankScreen(env), review: createReviewScreen(env) };
   let current = null;

@@ -26,6 +26,7 @@ button.b.quiet { border-color: transparent; background: transparent; }
 .overlay-card { position: relative; width: min(520px, 100%); background: var(--raised); border: 1px solid var(--border-ctl); border-radius: var(--r-xl); box-shadow: var(--shadow-3); padding: var(--s5); }
 .ask-x { position: absolute; top: var(--s2); right: var(--s2); }
 .ask-field { display: grid; gap: var(--s1); margin: var(--s3) 0; }
+.ask-field[hidden] { display: none; }
 .ask-field input { min-height: var(--h-lg); font: inherit; padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); }
 .ask-err { color: var(--error); margin: 0; min-height: 1em; font-size: var(--fs-2); }
 .ask-btns { display: flex; justify-content: flex-end; gap: var(--s2); margin-top: var(--s4); flex-wrap: wrap; }

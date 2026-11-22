@@ -8,6 +8,8 @@
 <!-- Tabula Speech Events (docs/events/LANDING.md §4.1, step E1): the page shell. It runs on the shared core/ ES modules
      and its own events/js/ modules. Not public yet: it runs on a preview host until v1 is ready. -->
 <script src="../assets/theme-boot.js" data-settings="tabulaEvents.settings.v1"></script>
+<!-- The AI gate (core/policy.js) is a head file: it runs before the first paint, so a removed AI tool never flashes. -->
+<script src="../core/policy.js"></script>
 <link rel="stylesheet" href="../core/tokens.css">
 <link rel="stylesheet" href="../core/ui.css">
 <link rel="stylesheet" href="app.css">

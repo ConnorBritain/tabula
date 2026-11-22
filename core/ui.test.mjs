@@ -39,3 +39,11 @@ test('PolicyLogic gives the very same rule functions as core/ui.js', () => {
   for (const k of ['escTop', 'toastPlan', 'askFirstFocus', 'trapNext', 'toastMs', 'askInputState']) assert.equal(L[k], core[k], k);
   assert.equal(L.TOAST_MAX, core.TOAST_MAX);
 });
+
+// Why: ask() hides its text box with the hidden attribute; if a display rule beats it, a plain dialog shown after a
+// text dialog (the events "Keep the key?" question) still shows the last typed text, an API key included.
+test('ui.css: the ask() text box stays hidden when ask() has no input', () => {
+  const css = readFileSync(new URL('ui.css', import.meta.url), 'utf8');
+  assert.match(css, /\.ask-field \{ display: grid;/);
+  assert.match(css, /\.ask-field\[hidden\] \{ display: none; \}/);
+});

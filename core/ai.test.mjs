@@ -75,3 +75,18 @@ test('core/ai.js has no round shape and no anonymizer, and debate gets the same 
   const L = require('../logic.js');
   assert.equal(L.readSse, AI.readSse);
 });
+
+// Why: the events page has no Anthropic SDK (it may not load debate's vendor bundle), so a Claude key works there only
+// through this plain request; a wrong header or body would fail every clean-up with a Claude key.
+test('Anthropic: a plain-fetch request with the browser header, the schema in the words, and the reply text read back', () => {
+  const req = AI.buildAIRequest('anthropic', { key: 'sk-ant-k', model: 'claude-haiku-5-5', system: 'S', prompt: 'P', docs: [], schema: { type: 'object' }, maxTokens: 900 });
+  assert.equal(req.url, 'https://api.anthropic.com/v1/messages');
+  assert.equal(req.init.headers['x-api-key'], 'sk-ant-k');
+  assert.equal(req.init.headers['anthropic-dangerous-direct-browser-access'], 'true');
+  const body = JSON.parse(req.init.body);
+  assert.deepEqual([body.model, body.max_tokens, body.system], ['claude-haiku-5-5', 900, 'S']);
+  assert.match(body.messages[0].content, /^P\n\nReply with only a JSON object that matches this JSON Schema:\n\{"type":"object"\}$/);
+  assert.equal(AI.parseAIResponse('anthropic', { content: [{ type: 'thinking', thinking: 'x' }, { type: 'text', text: '{"a"' }, { type: 'text', text: ':1}' }], stop_reason: 'end_turn' }), '{"a":1}');
+  assert.throws(() => AI.parseAIResponse('anthropic', { content: [{ type: 'text', text: '{"a' }], stop_reason: 'max_tokens' }), /cut off/);
+  assert.throws(() => AI.parseAIResponse('anthropic', { content: [], stop_reason: 'refusal' }), /declined/);
+});
