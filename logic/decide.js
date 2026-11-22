@@ -3,8 +3,10 @@
 // One part of logic.js (pure logic, no DOM). logic.js joins the parts into one API; index.html loads the parts first.
 (function (root) {
   'use strict';
-  // Shared rank moves (core/ranks.js, an ES module): the page runs it before this file; Node requires it.
+  // Shared rank moves and points (core/ranks.js, core/points.js, ES modules): the page runs them before this file; Node
+  // requires them.
   const CORE_RANKS = typeof module !== 'undefined' && module.exports ? require('../core/ranks.js') : root.TabulaCore.ranks;
+  const CORE_POINTS = typeof module !== 'undefined' && module.exports ? require('../core/points.js') : root.TabulaCore.points;
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
   const F = part('format');
   const { formatClock, BALLOT_HEADER, LOG_SLOTS, ballotRow, num, ballotFields, speechesSoFar, ptsRange, isLowPointWin } = part('round');
@@ -233,13 +235,8 @@
     return { ranks: out, moved, message: moved ? 'Rank ' + moved.rank + ' moved from ' + moved.from + ' to ' + moved.to + '.' : '' };
   }
   // 4.8 The − and + buttons: steps of 0.1 inside the range. An empty box starts near the top of the range.
-  function stepPoints(value, dir, range) {
-    const r = ptsRange(range);
-    const v = num(value);
-    if (Number.isNaN(v)) return Math.round(r.min + (r.max - r.min) * 0.6);
-    const next = Math.round((v + (dir < 0 ? -0.1 : 0.1)) * 10) / 10;
-    return Math.min(r.max, Math.max(r.min, next));
-  }
+  // The stepper is shared code (core/points.js); debate passes its own range (25–30 when none is set).
+  const stepPoints = (value, dir, range) => CORE_POINTS.stepPoints(value, dir, ptsRange(range));
 
   // 4.12 A saved ballot: the spreadsheet row, plus one object at the end with what the row has no column for
   // (the range, the comments and the format). Old saved ballots have no object: they show with no range check, and
