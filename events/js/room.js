@@ -6,8 +6,10 @@
 // one it was given unchanged, so a screen can keep the old room for Undo checks and tests can compare both.
 // The entries array is always in speaking order, and entry.order is always its place, 1 to N.
 
-// The events this landing turns on (F1a, public address: LANDING.md §4.1 E4). F1b, F2, F3 and Custom come in E9–E12.
-export const ENABLED_EVENTS = Object.freeze(['oo', 'inf', 'exp', 'osw']);
+// The events turned on so far, in published order (setup-screen.js lists them in that order). F1a, public address
+// (LANDING.md §4.1 E4): oo, inf, exp, osw. F2, extemp with a drawn question (E10): usx, ix, com, mx. F1b, F3 and
+// Custom come in E9, E11 and E12.
+export const ENABLED_EVENTS = Object.freeze(['oo', 'inf', 'usx', 'ix', 'com', 'exp', 'osw', 'mx']);
 // The rules profile a new room starts with (the NSDA district preset).
 export const DEFAULT_PROFILE = 'nsda-district';
 // A room holds 1 to 8 entries (ARCHITECTURE.md §1: one judge, one room, 4 to 8 speakers; MODELS.md §3: 1..8).

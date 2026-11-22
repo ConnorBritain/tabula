@@ -4,6 +4,7 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { KINDS, KIND_TITLE, tagKey, checkLabel, tapChip, toggleCheck, applyInput } from './comments.js';
 import { entryOf, updateEntry } from './room.js';
+import { asksQuestion, setQuestion, QUESTION_MAX } from './question.js';
 
 // One chip and one rule check as HTML text (the sheet draws them, and a tap redraws just that button).
 export const chipHtml = (t, kind, on) => `<button class="chip${on ? ' on' : ''}" type="button" data-cact="chip" data-kind="${kind}" data-tag="${esc(t.id)}" aria-pressed="${on}" title="${esc(t[kind])}">${esc(t.label)}</button>`;
@@ -20,8 +21,11 @@ export function sheetHtml(room, entry, event) {
       <div class="chips">${tags.map((t) => chipHtml(t, kind, (entry.tags || []).includes(tagKey(kind, t.id)))).join('')}</div></div>`).join('');
   const checks = ((event && event.checks) || []).map((c) => checkHtml(c, (entry.checks || {})[c] === 'flag')).join('');
   const prompts = ((event && event.prompts) || []).map((p) => `<li>${esc(p)}</li>`).join('');
+  // The drawn question (step E10, extemp events): one line at the top of the sheet (MODELS.md §4.2).
+  const question = asksQuestion(event) ? `<label class="field sheet-question" for="question"><span>Question drawn <span class="muted">(stays on this device)</span></span>
+      <input id="question" data-cfield="question" maxlength="${QUESTION_MAX}" autocomplete="off" value="${esc(entry.question || '')}"></label>` : '';
   return `<div class="sheet" id="sheet">
-    ${chips}
+    ${question}${chips}
     ${checks ? `<div class="chk-group" role="group" aria-labelledby="chk-title"><p class="chip-title" id="chk-title">Rule checks <span class="muted">(tap to flag; a flag goes in your private note)</span></p><div class="chks">${checks}</div></div>` : ''}
     <label class="field sheet-notes" for="notes"><span>Comments for ${esc(entry.code)} <span class="muted">(go on the ballot)</span></span></label>
     <textarea id="notes" rows="7" data-cfield="notes" spellcheck="true">${esc(entry.notes || '')}</textarea>
@@ -45,7 +49,8 @@ export function createCommentView() {
   function onInput(ev) {
     const f = ev.target.dataset && ev.target.dataset.cfield;
     const r = room();
-    if (f && r) ctx.save(applyInput(r, f, ev.target.value, env().now()));
+    if (f === 'question' && r) ctx.save(setQuestion(r, ev.target.value, env().now()));
+    else if (f && r) ctx.save(applyInput(r, f, ev.target.value, env().now()));
   }
 
   function onClick(ev) {

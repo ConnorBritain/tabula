@@ -12,6 +12,7 @@ import { present, entryOf } from './room.js';
 import { orderOf, ratingScale, checkBoard } from './rank.js';
 import { boardCtx, ranksOf, ratingsOf, isOverGrace } from './board.js';
 import { clockText } from './timer.js';
+import { questionOf } from './question.js';
 
 // "Over time" on the ranks line: the sticky over-grace flag (inside grace is still on time, ARCHITECTURE.md §6.2).
 export const overTime = isOverGrace;
@@ -48,11 +49,12 @@ export function critique(text) {
   ];
 }
 
-// Stage 2: one card per entry. Returns [{ id, code, rank, rating, comment, copied, critique }].
+// Stage 2: one card per entry. Returns [{ id, code, rank, rating, comment, copied, critique, question }].
+// question: the drawn question (step E10, extemp events), '' when there is none. It is not part of the comment.
 export function cards(room, order) {
   return entriesIn(room, order).map((e) => {
     const comment = ballotComment(e);
-    return { id: e.id, code: e.code, rank: String(e.rank || ''), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment) };
+    return { id: e.id, code: e.code, rank: String(e.rank || ''), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment), question: questionOf(e) };
   });
 }
 
@@ -107,7 +109,7 @@ export function setReasonReview(room, text, now) {
 export function copyAllText(room, event) {
   const head = [event ? event.name : 'Custom event', room.round, room.tournament].filter(Boolean).join(' · ');
   const parts = [head, '', 'Ranks', ranksBlock(room).text];
-  for (const c of cards(room, 'speaking')) parts.push('', c.code + (c.rank ? ' (rank ' + c.rank + ')' : ''), c.comment || '(no comment)');
+  for (const c of cards(room, 'speaking')) parts.push('', c.code + (c.rank ? ' (rank ' + c.rank + ')' : ''), ...(c.question ? ['Question: ' + c.question] : []), c.comment || '(no comment)');
   if (String(room.reasonForRank || '').trim()) parts.push('', 'Reason for rank', room.reasonForRank.trim());
   return parts.join('\n');
 }
@@ -127,7 +129,7 @@ export function printModel(room, event, limit) {
     title: 'Ballot · ' + [event ? event.short : 'Custom', room.round].filter(Boolean).join(' · '),
     landscape: false,
     sections: [{ kind: 'facts', items: facts }, { kind: 'table', title: 'Ranks', head, rows: tableRows }]
-      .concat(cards(room, 'speaking').map((c) => ({ kind: 'text', title: c.code + (c.rank ? ' · rank ' + c.rank : ''), cls: 'ps-entry', text: c.comment })))
+      .concat(cards(room, 'speaking').map((c) => ({ kind: 'text', title: c.code + (c.rank ? ' · rank ' + c.rank : ''), cls: 'ps-entry', text: (c.question ? 'Question: ' + c.question + '\n\n' : '') + c.comment })))
       .concat([{ kind: 'text', title: 'Reason for rank', cls: 'ps-reason', text: room.reasonForRank || '' }]),
   };
 }

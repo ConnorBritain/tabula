@@ -33,6 +33,7 @@ export function cardHtml(c, editing) {
   return `<li class="card" data-card="${c.id}">
     <div class="card-head"><span class="code">${esc(c.code)}</span><span class="muted">${c.rank ? 'Rank ' + esc(c.rank) : 'No rank'}${c.rating ? ' · Rating ' + esc(c.rating) : ''}</span>
       <button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : 'Edit'}</button></div>
+    ${c.question ? `<p class="card-question"><span class="muted">Question:</span> ${esc(c.question)}</p>` : ''}
     ${body}
     <ul class="critique" aria-label="Comment check for ${esc(c.code)}">${c.critique.map((k) => done(k.ok, k.label)).join('')}</ul>
     ${c.comment.trim() ? `<button class="b${c.copied ? '' : ' primary'}" type="button" data-vact="copy" data-what="${c.id}" data-key="copy-${c.id}">${c.copied ? '✓ Copied' : 'Copy comment'}</button>` : ''}
