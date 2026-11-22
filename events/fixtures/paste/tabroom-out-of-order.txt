@@ -1,0 +1,8 @@
+Round 4	Humorous Interpretation
+
+Spkr	Code	Name
+3	5103	Gus Mariner
+1	5110	Leona Price
+2	5121	Tobias Wren
+5	5134	Fern Abbott
+4	5142	Silas Monroe
