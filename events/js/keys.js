@@ -9,6 +9,8 @@ import { createKeymap } from '../../core/keys.js';
 const digit = (n) => ({ id: 'pick' + n, keys: { mac: String(n), other: String(n) }, single: true, scope: 'room', action: 'pick' + n, label: 'Pick speaker ' + n, group: 'Room' });
 
 export const SHORTCUTS = Object.freeze([
+  // Space starts and stops the clock (the debate Space rule, DESIGN.md §4.2). noFocus: on a button Space presses it.
+  { id: 'startStop', keys: { mac: 'Space', other: 'Space' }, single: true, noFocus: true, scope: 'room', action: 'startStop', label: 'Start or stop the clock', group: 'Room' },
   ...[1, 2, 3, 4, 5, 6, 7, 8].map(digit),
 ]);
 

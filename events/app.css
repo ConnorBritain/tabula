@@ -100,3 +100,23 @@ main:has(.room-grid) { max-width: 1120px; }
   .row-pick { min-height: 48px; }
   .stage { padding: var(--s3); }
 }
+
+/* ---------- Timer card (step E5; DESIGN.md §3 stage fills, §4.2) ---------- */
+.timer-card { position: relative; text-align: center; padding: var(--s4) var(--s3); border-radius: var(--r-lg); border: 2px solid transparent; background: var(--panel); }
+.timer-card.stage-ready, .timer-card.stage-speaking { background: var(--panel); border-color: var(--border); }
+.timer-card.stage-last { background: var(--panel); border-color: var(--text); }
+.timer-card.stage-grace { background: var(--caution-tint); border-color: var(--caution); }
+.timer-card.stage-over { background: var(--error-tint); border-color: var(--error); }
+.timer-card.stage-stopped { background: var(--sunk); }
+.timer-card p { margin: 0; }
+.timer-word { font-size: var(--fs-3); font-weight: var(--fw-4); }
+.timer-card .timer-digits { font-family: var(--font-display); font-size: var(--fs-clock); line-height: 1; font-variant-numeric: tabular-nums; margin: var(--s2) 0 var(--s1); }
+.timer-sub, .timer-limit { color: var(--text-2); font-size: var(--fs-2); }
+.timer-card .timer-limit { margin-top: var(--s2); }
+.signal-chip { position: absolute; top: var(--s2); right: var(--s2); padding: var(--s1) var(--s3); border-radius: var(--r-pill); background: var(--text); color: var(--canvas); font-weight: var(--fw-4); font-size: var(--fs-3); }
+.signal-chip[hidden] { display: none; }
+.timer-flag { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; margin-top: var(--s2); }
+.timer-btns { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s3); }
+.timer-btns .timer-go { min-width: 8rem; min-height: var(--h-lg); font-size: var(--fs-3); }
+.timer-none { margin: var(--s3) 0; }
+@media (max-width: 820px) { .timer-btns .timer-go { flex: 1 0 100%; } }

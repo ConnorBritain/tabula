@@ -113,6 +113,13 @@ export const indexOf = (room, id) => (room && room.entries || []).findIndex((e) 
 // The entries that are in the room (not "No show"): the ones that speak and get a rank.
 export const present = (room) => (room && room.entries || []).filter((e) => e.status !== 'noShow');
 
+// Change one entry: fn(entry) returns the new entry (or the same one for no change). Returns the new room.
+export function updateEntry(room, id, fn, now) {
+  let changed = false;
+  const entries = room.entries.map((e) => { if (e.id !== id) return e; const n = fn(e); changed = n !== e; return n; });
+  return changed ? Object.assign({}, room, { entries, updatedAt: now }) : room;
+}
+
 // Pick the entry the judge works on now.
 export function selectEntry(room, id, now) {
   if (!entryOf(room, id)) return room;
@@ -240,6 +247,6 @@ export const findRoom = (rooms, id) => (Array.isArray(rooms) ? rooms : []).find(
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).room = Object.freeze({
   ENABLED_EVENTS, DEFAULT_PROFILE, MAX_ENTRIES, STATUS_LABEL, normCode, newId, makeEntry, codeError, createRoom, setupError,
-  entryOf, indexOf, present, selectEntry, entryAtNumber, nextWaiting, moveEntry, markNoShow, clearNoShow,
+  entryOf, indexOf, present, updateEntry, selectEntry, entryAtNumber, nextWaiting, moveEntry, markNoShow, clearNoShow,
   addEntry, removeEntry, restoreEntry, rosterAction, upsertRoom, findRoom,
 });

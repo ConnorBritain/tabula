@@ -57,7 +57,7 @@ export function rosterHtml(room, menuFor, extra) {
 //   rowExtra(room, entry) -> HTML after a roster row's name     stageHtml(room, entry) -> HTML in the main pane
 //   mounted(ctx) after the main pane is drawn                    show(ctx) / hide(ctx) when the screen opens / closes
 //   run(action, ctx) -> true when it ran a shortcut              stopFor(id) stops that entry's running clock
-// ctx: { env, room(), save(room), draw() }.
+// ctx: { env, room(), save(room), draw(), drawStage() } (drawStage redraws the main pane only).
 export function createRoomScreen(env, parts) {
   const views = parts || [];
   let roomId = null;
@@ -147,7 +147,7 @@ export function createRoomScreen(env, parts) {
     if (b && env.el.contains(b)) act(b.dataset.act, b.dataset.id);
   }
 
-  const ctx = { env, room, save, draw };
+  const ctx = { env, room, save, draw, drawStage };
   const menuOpen = () => roomId !== null && menuFor !== null;
   env.ui.escLayer('row-menu', 40, menuOpen, () => {
     const id = menuFor; menuFor = null; drawRoster();
