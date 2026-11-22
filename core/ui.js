@@ -155,9 +155,10 @@ export function createUI({ behind }) {
   // ---------- the in-app dialog: ask(opts) -> Promise<value | null> (spec 4.2, S0.3, extended in Slice 2) ----------
   // opts: { title, body (a string or a list of paragraphs), list (lines shown as a list), foot,
   //         input: { label, value, placeholder, maxLength, required, emptyError },
-  //         buttons: [{ label, value, kind: 'primary'|'danger'|'plain', desc }], cancelValue,
+  //         buttons: [{ label, value, kind: 'primary'|'danger'|'plain'|'link', desc }], cancelValue,
   //         focus (the value of the button that gets focus first), backdrop (false: a click on the dim layer does nothing),
-  //         variant ('choices': buttons with a desc show as large choice cards, as on the welcome) }.
+  //         variant ('choices': buttons with a desc show as large choice cards; a 'link' button shows as a quiet line,
+  //         its desc then a text link, as on the welcome) }.
   // With an input, the primary button resolves with the typed text (trimmed); other buttons resolve with their value.
   // Esc, × and a click on the dim layer give cancelValue. Focus is trapped and returns to the opener. One at a time.
   let askState = null, askChain = Promise.resolve();
@@ -198,6 +199,16 @@ export function createUI({ behind }) {
       row.classList.toggle('has-primary', choices && buttons.some((b) => b.kind === 'primary'));
       const els = buttons.map((b) => {
         const el = document.createElement('button'); el.type = 'button';
+        if (choices && b.kind === 'link') {
+          // A quiet line with an inline text link (the welcome's help line, spec 2.1): desc is the plain text before
+          // the link. The link is a real button, so Tab reaches it and Enter works.
+          const line = document.createElement('p'); line.className = 'ask-aside';
+          if (b.desc) { const t = document.createElement('span'); t.textContent = b.desc + ' '; line.append(t); }
+          el.className = 'linkish'; el.textContent = b.label;
+          el.addEventListener('click', () => pick(b));
+          line.append(el); row.append(line);
+          return el;
+        }
         if (choices && b.kind !== 'primary') {
           el.className = 'choice';
           const strong = document.createElement('strong'); strong.textContent = b.label; el.append(strong);

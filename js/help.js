@@ -148,18 +148,19 @@ async function welcomeWhenKnown(settled) {
 }
 async function openWelcome() {
   if (!showSetup()) return; // no own AI to set up (or already set up): no welcome
-  // "Start judging" is the one primary button, alone and first. The setup rows are quieter rows under it.
+  // "Start judging" is the one primary button, alone and first. Under it is one quiet help line with a "Set it up" link,
+  // the same on every host (spec 2.1, WELCOME-COPY.md §7). Settings explains the ways to get help.
   const choices = [
     { label: 'Start judging', value: 'start', kind: 'primary' },
-    { label: 'Add an automatic flow and a draft ballot', desc: 'Paste a key from an AI company. You pay that company for what you use.', value: 'key' },
+    { label: 'Set it up', value: 'setup', kind: 'link', desc: 'Want help with your flow and ballot?' },
   ];
-  if (LOCAL_ORIGIN) choices.push({ label: 'Use a subscription you have', desc: 'Connects to an app you pay for on this computer. Needs one Terminal command.', value: 'sub' });
   // "Start judging", × and Esc all mean the same thing: one click to Flow. A click on the dim layer does nothing.
   const v = await ask({ title: `Welcome to ${window.TabulaBrand.NAME}`, body: 'Your clock, flow and ballot are ready.', buttons: choices, variant: 'choices', backdrop: false, cancelValue: 'start' });
-  if (v !== 'key' && v !== 'sub') return startJudging();
+  if (v !== 'setup') return startJudging();
   S.setupDone = true; saveSettings(); showTab('ai'); setTimeout(offerTour, 400);
-  if (v === 'key') setTimeout(() => $('#key-paste').focus(), 0);
-  else setTimeout(() => { $('#sub-box').scrollIntoView({ block: 'center' }); const btn = $('#sub-box .sub-btn:not([disabled])'); if (btn) btn.focus(); }, 0);
+  // The setup area is the first card on the AI tab (the key field and, on localhost, the subscription box). Focus on the
+  // key field keeps the card's heading in view; an explicit scroll put the heading under the sticky top bar.
+  setTimeout(() => $('#key-paste').focus(), 0);
 }
 function startJudging() {
   S.setupDone = true; saveSettings();

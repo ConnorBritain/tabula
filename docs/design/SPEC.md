@@ -402,16 +402,16 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
 - **Look.** A small dialog, `min(440px,100%−32px)`, with a × button.
   - × or Esc means "Start judging" (CHANGED 2026-11-21, owner approved docs/design/WELCOME-COPY.md §1. Old line: × or Esc means "Start without AI", but skips the skip page.)
   - A backdrop click does nothing.
-- **Choices.** "Start judging" is the one primary button. It comes first, alone and full width, with no description. The setup rows are quieter rows under it, not equal cards. Nothing is marked "Recommended" (delete `.choice:first-child`).
-  - "Use a subscription you have" shows only when `LOCAL_ORIGIN` is true.
+- **Choices.** "Start judging" is the one primary button. It comes first, alone and full width, with no description. Under it is one quiet help line with a text link, the same on every host (CHANGED 2026-11-21, revision 2, docs/design/WELCOME-COPY.md §7. Old line: the setup rows are quieter rows under it, not equal cards). The line is not a card and not a row of choices. Nothing is marked "Recommended" (delete `.choice:first-child`).
+  - The welcome has no localhost-only row (CHANGED 2026-11-21, revision 2. Old line: "Use a subscription you have" shows only when `LOCAL_ORIGIN` is true). Settings still shows the subscription box only on localhost, as before.
   - There is no skip page (CHANGED 2026-11-21: deleted). "Start judging" goes to **Flow** in one click and then offers the tour.
 - **Copy**
   - (CHANGED 2026-11-21, owner approved docs/design/WELCOME-COPY.md §1 with "Yes, build it". The whole flow now says "AI" once.)
+  - (CHANGED 2026-11-21, revision 2, owner: "shorten the card afterwards using the help/assistance angle". The welcome now says "AI" zero times, and it names no payment, key, subscription or Terminal. Settings explains the ways to get help: your own key, a subscription, or round credits.)
   - Title: "Welcome to Tabula Debate" (`TabulaBrand.NAME`).
   - Intro: "Your clock, flow and ballot are ready."
   - Primary button: "Start judging" (no description).
-  - Setup row: "Add an automatic flow and a draft ballot" + "Paste a key from an AI company. You pay that company for what you use." It opens Settings with the cursor in the key field.
-  - Setup row: "Use a subscription you have" + "Connects to an app you pay for on this computer. Needs one Terminal command." (shown only on localhost) It opens Settings at the subscription box.
+  - Help line: "Want help with your flow and ballot?" + a text link "Set it up". The link opens Settings at the setup area (the "Connect AI" card that holds the key field and the subscription box) and puts the cursor in the key field. (CHANGED 2026-11-21, revision 2. Old lines: Setup row "Add an automatic flow and a draft ballot" + "Paste a key from an AI company. You pay that company for what you use.", which opened Settings with the cursor in the key field; Setup row "Use a subscription you have" + "Connects to an app you pay for on this computer. Needs one Terminal command." (shown only on localhost), which opened Settings at the subscription box.)
   - Toast after "Not now" on the tour offer: "You can take the tour any time from the ? menu."
   - Settings button: "Show the welcome again".
 - **Files.** index.html:150, 156, 539, 757-778; app.js:1730-1751, 2387; `logic.js`.
@@ -419,9 +419,12 @@ Slice 2 extends `ask()` with `input` and `list` (Part 4.2).
   - Unit test, `shouldShowWelcome`.
   - Static test: no "I understand", no "Recommended." and no `skip-ack` (the old skip checkbox; copy-dialogs.test.mjs keeps it from coming back).
   - Static test, the welcome word budget: at most one "AI"; no "without AI", "feedback", "AI key", "never", "only" or "can only"; no "$" price; no "free trial".
-  - Static test: one ask() only (no skip page); "Start judging", × and Esc all go to Flow; the subscription row only on localhost.
+  - Static test, revision 2: zero "AI"; no "pay", "key", "subscription", "Terminal" or "$" (CHANGED 2026-11-21: added; the budget line above still holds).
+  - Static test: one ask() only (no skip page); "Start judging", × and Esc all go to Flow; one 'setup' link on every host (CHANGED 2026-11-21, revision 2. Old line: the subscription row only on localhost).
+  - Static test: the "Set it up" link opens the AI tab, scrolls to the setup area and puts the cursor in the key field.
+  - DOM test (the real ask()): the link is a real `<button>` inside the dialog, so Tab reaches it and Enter works; focus still starts on "Start judging".
   - Browser checks:
-    - localhost shows Start judging plus 2 setup rows; another host shows Start judging plus 1 setup row;
+    - every host shows Start judging plus one help line with the "Set it up" link (CHANGED 2026-11-21, revision 2. Old line: localhost shows Start judging plus 2 setup rows; another host shows Start judging plus 1 setup row);
     - Esc goes to Flow and the welcome does not show after a reload;
     - "Start judging" takes one click (CHANGED 2026-11-21: the skip page is deleted. Old line: skip takes one click);
     - with a hosted plan in the capabilities record, no welcome shows (welcome-gate.test.js);

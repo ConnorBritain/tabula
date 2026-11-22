@@ -41,7 +41,14 @@ class El {
   focus() { this.doc.activeElement = this; }
   select() {}
   closest() { return null; }
-  querySelectorAll() { return []; }
+  // Only 'button, input' is needed (the focus trap in askOpen()): every button or input under this element, in order.
+  querySelectorAll(sel) {
+    if (sel !== 'button, input') return [];
+    const out = [];
+    const walk = (el) => { for (const c of el.children) { if (c.tagName === 'BUTTON' || c.tagName === 'INPUT') out.push(c); walk(c); } };
+    walk(this);
+    return out;
+  }
 }
 
 // Loads core/ui.js and ui.js on a fresh fake page and gives back TabulaUI, the page and a way to press a key on the document.
@@ -80,7 +87,7 @@ function loadUI() {
 }
 const tick = () => new Promise((r) => setImmediate(r));
 
-// The welcome's buttons, in the shape js/help.js openWelcome() passes them.
+// A choices dialog with a primary and two quiet rows (the revision-1 welcome). ask() still supports this shape.
 const WELCOME = {
   title: 'Welcome to Tabula Debate', body: 'Your clock, flow and ballot are ready.', variant: 'choices', cancelValue: 'start',
   buttons: [
@@ -134,4 +141,43 @@ test('Esc and × on the welcome resolve with cancelValue', async () => {
     assert.equal(await p, 'start', `${close} did not give cancelValue`);
     assert.equal(doc.byId.ask.hidden, true, `${close} left the dialog open`);
   }
+});
+
+// The revision-2 welcome, in the shape js/help.js openWelcome() passes it (WELCOME-COPY.md §7).
+const WELCOME_R2 = {
+  title: 'Welcome to Tabula Debate', body: 'Your clock, flow and ballot are ready.', variant: 'choices', cancelValue: 'start',
+  buttons: [
+    { label: 'Start judging', value: 'start', kind: 'primary' },
+    { label: 'Set it up', value: 'setup', kind: 'link', desc: 'Want help with your flow and ballot?' },
+  ],
+};
+
+// Why: a keyboard or screen-reader judge must reach "Set it up" with Tab and use it with Enter; a link drawn as plain
+// text or a div would lock them out of the only door to help, and focus must still start on "Start judging".
+test('the welcome help line is one quiet line with a real, focusable "Set it up" button', async () => {
+  const { UI, doc } = loadUI();
+  const p = UI.ask(WELCOME_R2); await tick();
+  const row = doc.byId['ask-btns'];
+  const [first, line] = row.children;
+  assert.equal(row.children.length, 2, 'more than a button and one line');
+  assert.equal(first.className, 'b primary');
+  assert.equal(line.tagName, 'P', 'the help line is not a plain line');
+  assert.equal(line.className, 'ask-aside');
+  assert.equal(line.textContent, 'Want help with your flow and ballot? Set it up');
+  const link = line.children.find((c) => c.tagName === 'BUTTON');
+  assert.ok(link, 'the link is not a <button>, so Tab and Enter do not reach it');
+  assert.equal(link.type, 'button');
+  assert.equal(link.className, 'linkish');
+  assert.equal(link.textContent, 'Set it up');
+  assert.equal(doc.activeElement, first, 'focus does not start on "Start judging"');
+  // Tab from "Start judging" goes to the link (the dialog's own focus trap), and Shift+Tab goes back.
+  const card = doc.byId['ask-card'];
+  card.append(row);
+  card.fire('keydown', { key: 'Tab', shiftKey: false });
+  assert.equal(doc.activeElement, link, 'Tab does not reach "Set it up"');
+  card.fire('keydown', { key: 'Tab', shiftKey: true });
+  assert.equal(doc.activeElement, first);
+  // A native <button type="button"> turns Enter into a click; the click gives 'setup'.
+  link.click();
+  assert.equal(await p, 'setup');
 });

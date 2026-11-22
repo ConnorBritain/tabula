@@ -13,15 +13,18 @@ const AsyncFunction = (async () => {}).constructor;
 // fnSource starts at the word "function", so the "async" in front is added back here.
 const SRC = 'async ' + fnSource(help, 'openWelcome') + '\n' + fnSource(help, 'startJudging');
 
-// Runs the welcome once. answer: what the stub ask() resolves with ('start', 'key', 'sub', or the cancel value).
-async function runWelcome({ local, answer }) {
-  const calls = [], tabs = [], S = {};
+// Runs the welcome once. answer: what the stub ask() resolves with ('start', 'setup', or the cancel value).
+// runTimers: run the setTimeout callbacks at once (but not the 400 ms tour offer), so the focus and scroll can be seen.
+// dom: every element call, as "selector.method", for example "#key-paste.focus".
+async function runWelcome({ local, answer, runTimers = false }) {
+  const calls = [], tabs = [], S = {}, dom = [];
   const ask = async (o) => { calls.push(o); return typeof answer === 'function' ? answer(o) : answer; };
-  const el = { focus() {}, scrollIntoView() {} };
+  const $ = (sel) => ({ focus() { dom.push(sel + '.focus'); }, scrollIntoView() { dom.push(sel + '.scrollIntoView'); } });
+  const timer = (fn, ms) => { if (runTimers && !ms) fn(); };
   const run = new AsyncFunction('ask', 'showSetup', 'LOCAL_ORIGIN', 'window', 'S', 'saveSettings', 'showTab', 'setTimeout', '$', 'offerTour',
     SRC + '\nreturn openWelcome();');
-  await run(ask, () => true, local, { TabulaBrand: { NAME: 'Tabula Debate' } }, S, () => {}, (t) => tabs.push(t), () => {}, () => el, () => {});
-  return { calls, tabs, S };
+  await run(ask, () => true, local, { TabulaBrand: { NAME: 'Tabula Debate' } }, S, () => {}, (t) => tabs.push(t), timer, $, () => {});
+  return { calls, tabs, S, dom };
 }
 const textOf = (o) => [o.title, ...[].concat(o.body || []), ...o.buttons.flatMap((b) => [b.label, b.desc || ''])].join('\n');
 
@@ -71,11 +74,15 @@ test('"Start judging", × and Esc each reach Flow in one click, with no skip pag
 });
 
 // Why: the subscription row needs a helper app on this computer; on a hosted site it would be a dead end for the judge.
-test('the subscription row shows only when LOCAL_ORIGIN is true', async () => {
+// CHANGED 2026-11-21 (revision 2, WELCOME-COPY.md §7): the welcome has no host-only row now. One 'setup' link shows on
+// every host, and Settings (not the welcome) shows the subscription box only on localhost. So a hosted judge still meets
+// no dead end. Old name: "the subscription row shows only when LOCAL_ORIGIN is true"; old values: ['start', 'key', 'sub']
+// on localhost and ['start', 'key'] elsewhere.
+test('the welcome shows the same one setup link on every host', async () => {
   const on = (await runWelcome({ local: true, answer: 'start' })).calls[0].buttons.map((b) => b.value);
   const off = (await runWelcome({ local: false, answer: 'start' })).calls[0].buttons.map((b) => b.value);
-  assert.deepEqual(on, ['start', 'key', 'sub']);
-  assert.deepEqual(off, ['start', 'key']);
+  assert.deepEqual(on, ['start', 'setup']);
+  assert.deepEqual(off, ['start', 'setup']);
 });
 
 // Why: a judge who closed the welcome looks in Settings for a way back; a button still named "first-time setup" promises
@@ -83,4 +90,40 @@ test('the subscription row shows only when LOCAL_ORIGIN is true', async () => {
 test('the Settings button says "Show the welcome again"', () => {
   const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
   assert.match(html, /<button class="b" id="show-welcome">Show the welcome again<\/button>/);
+});
+
+// Why: a judge with round credits pays nothing more and needs no key; a welcome that talks about paying, keys,
+// subscriptions or the Terminal tells that judge the wrong story and makes the free app look like a sales page.
+test('the welcome says no "AI", "pay", "key", "subscription", "Terminal" or "$" on any host', async () => {
+  for (const local of [true, false]) {
+    const text = textOf((await runWelcome({ local, answer: 'start' })).calls[0]);
+    assert.equal((text.match(/\bAI\b/g) || []).length, 0, `says "AI" (local=${local}):\n${text}`);
+    for (const [word, re] of [['pay', /\bpa(y|ys|id|ying)\b/i], ['key', /\bkeys?\b/i], ['subscription', /subscri/i], ['Terminal', /terminal/i]]) {
+      assert.ok(!re.test(text), `says "${word}" (local=${local}):\n${text}`);
+    }
+    assert.ok(!text.includes('$'), 'names a price');
+    assert.match(text, /Want help with your flow and ballot\?/);
+  }
+});
+
+// Why: "Set it up" is the welcome's only door to help; if it lands on the wrong tab or off screen, the judge who asked
+// for help sees nothing to do and gives up on the flow and ballot help.
+test('"Set it up" opens Settings at the setup area with the cursor in the key field', async () => {
+  for (const local of [true, false]) {
+    const { calls, tabs, S, dom } = await runWelcome({ local, answer: 'setup', runTimers: true });
+    assert.equal(calls.length, 1, 'the link opened a second dialog');
+    assert.deepEqual(tabs, ['ai'], 'the link did not open Settings');
+    assert.equal(S.setupDone, true, 'the welcome would show again after a reload');
+    assert.deepEqual(dom, ['#key-paste.focus']);
+  }
+  // The key field must sit in #conn-card, the first card on the AI tab, which holds every way to set up help: the key
+  // field and the subscription box. So focus on the key field lands the judge at the top of the setup area.
+  const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+  const tab = html.indexOf('<section class="tab" id="tab-ai">');
+  const start = html.indexOf('<div class="card" id="conn-card"'), end = html.indexOf('<div class="card" id="audio-card"');
+  assert.ok(tab > 0 && start > tab && end > start, 'the setup card or the card after it is gone');
+  assert.ok(!html.slice(tab, start).includes('class="card'), 'the setup card is not the first card on the AI tab');
+  const card = html.slice(start, end);
+  assert.match(card, /id="key-paste"/, 'the key field is not in the setup area');
+  assert.match(card, /id="sub-box"/, 'the subscription box is not in the setup area');
 });

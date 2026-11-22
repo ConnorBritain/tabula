@@ -122,3 +122,34 @@ The welcome is the first surface. For each surface below, run the same E1 test: 
 - **Flow tab:** "AI flow". **Insights:** "Live insights need AI." + "Connect AI". **Settings:** "Live AI flow during speeches".
 - **Help menu:** "Watch the AI demo". Review it when the demo goes live.
 - **Keep as they are:** the "(uses AI)" and "Uses AI" hints on controls that spend AI. ai-words.test.js pins them, and SPEC 4.5 makes them house policy.
+
+## 7. Revision 2 (2026-11-21, owner approved)
+
+**Owner's words, first:** "Welcome to tabula debate, your clock, flow and ballot are ready, start judging; that's great. the rest is tough."
+
+**Owner's words, then:** "does it have to be one they pay for? if they have round credits, then it's covered and they wont need an api key. i think its still a little long on the 'Want xyz? It needs... set this up in settings'; but directionally, better. shorten the card afterwards using the help/assistance angle"
+
+**What changes.** The two setup rows in section 1 go away. One quiet line takes their place. The top half does not change.
+
+**Title:** Welcome to Tabula Debate (`TabulaBrand.NAME`). No change.
+
+**Intro:** Your clock, flow and ballot are ready. No change.
+
+**Primary button:** Start judging. No change: it is first and alone, and × and Esc do the same thing.
+
+**Help line (one quiet line under the button, the same on every host):**
+- Text: Want help with your flow and ballot?
+- Link: Set it up
+- It is a text link, not a card and not a row.
+- Action: it opens Settings at the setup area (the "Connect AI" card with the key field and the subscription box). The cursor goes to the key field.
+
+**Why.**
+- A judge can get help in more than one way: their own key, a subscription, or round credits. The welcome does not choose for them. Settings explains each way.
+- The welcome names no payment, key, subscription, Terminal or price. So it stays true for a judge with round credits, who pays nothing more and needs no key.
+- The localhost-only subscription row goes away from the welcome. Settings still shows the subscription box only on localhost.
+
+**"AI" count:** 1 becomes **0**.
+
+**Settings button (#show-welcome):** still "Show the welcome again".
+
+**Tests.** The old test "the subscription row shows only when LOCAL_ORIGIN is true" now checks one 'setup' entry on both hosts. That diff stays visible. New tests check: zero "AI" and no "pay", "key", "subscription", "Terminal" or "$"; the link opens Settings at the setup area; and the link is a real control that Tab reaches.
