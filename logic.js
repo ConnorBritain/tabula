@@ -25,7 +25,7 @@
   const { FLAGS, FLAG_GROUP, flagOn } = part('flags');
   const { OVER_LIMIT, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer,
     shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere, NO_AI,
-    shouldShowWelcome, WELCOME_WAIT_MS, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt,
+    shouldShowWelcome, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt,
     restoreAt, askInputState, resolveRememberKeys, splitRestoreKeys, restoreKeysLine, restoreTabKeys,
     undoSheetDelete, autoEvalDefault, liveFlowDefault, d2Reset, needsD2Note, escTop, toastPlan, TOAST_MAX,
     askFirstFocus, trapNext, insightsMode, resolveTheme, TIP_DELAY_MS, SHEET_TIP_DELAY_MS, tipDelay, tipPlace,
@@ -64,7 +64,7 @@
     // Slice 1: round safety
     OVER_LIMIT, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer, shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere,
     // Slice 2: copy and dialogs
-    NO_AI, hasHostedPlan, shouldShowWelcome, WELCOME_WAIT_MS, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt, restoreAt, askInputState,
+    NO_AI, hasHostedPlan, shouldShowWelcome, classifyAIError, AI_ERROR_TEXT, aiErrorText, AI_ERROR_PREFIX, removeAt, restoreAt, askInputState,
     resolveRememberKeys, splitRestoreKeys, restoreKeysLine, restoreTabKeys, undoSheetDelete, autoEvalDefault, liveFlowDefault, d2Reset, needsD2Note,
     // Slice 0: shared UI rules
     escTop, toastPlan, TOAST_MAX, askFirstFocus, trapNext,

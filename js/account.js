@@ -43,7 +43,8 @@ async function refreshProfile() {
   } catch { out = { state: 'unknown' }; } // offline: keep the cached profile
   if (out.state === 'unknown') return;
   applyProfile(out.state === 'in' ? out.profile : null);
-  if (out.state === 'in') { await refreshCaps(R.programId); maybeOfferParadigmCopy(); } // the AI gate for this round
+  // Signed in: the AI gate for this round. The promise ends only after the capabilities answer (the welcome waits on it).
+  if (out.state === 'in') { maybeOfferParadigmCopy(); await refreshCaps(R.programId); }
   else clearCaps(); // signed out: forget the record (AI-POLICY §6d)
 }
 

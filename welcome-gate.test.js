@@ -45,11 +45,13 @@ test('shouldShowWelcome with the real gate: a paid judge on a new device gets no
 // ---------- the start-up timing (js/help.js welcomeWhenKnown), run with stubs ----------
 // A page world: capsGate starts as the first paint saw it (no cache: solo), the account check may change it.
 function world(first) {
-  const out = { opened: 0, noted: 0, timers: [] };
+  const out = { opened: 0, noted: 0, saved: 0, button: { hidden: false } };
+  const S = { setupDone: false };
+  out.S = S;
   const env = {
-    L, S: { setupDone: false }, capsGate: first,
+    L, S, capsGate: first, $: (sel) => (sel === '#show-welcome' ? out.button : null),
+    saveSettings: () => { out.saved++; },
     openWelcome: () => { out.opened++; }, maybeD2Note: () => { out.noted++; },
-    setTimeout: (fn, ms) => { out.timers.push({ fn, ms }); return out.timers.length; },
   };
   const src = 'async ' + fnSource(read('js/help.js'), 'welcomeWhenKnown');
   const run = new Function(...Object.keys(env), 'setGate', 'return [' + src + ', (g) => { capsGate = g; }];');
@@ -80,19 +82,29 @@ test('welcomeWhenKnown opens the welcome for a free judge once the check answers
   assert.equal(w.out.opened, 1);
 });
 
-// Why: offline at a tournament, or on the local helper, the account check may never answer; the welcome must not
-// wait forever, but only up to the set limit.
-test('welcomeWhenKnown gives up waiting after L.WELCOME_WAIT_MS and then opens for a free judge', async () => {
-  const w = world(gate(null, null));
-  const done = w.welcomeWhenKnown(new Promise(() => {}));
-  await flush();
-  assert.equal(w.out.opened, 0);
-  assert.equal(w.out.timers.length, 1);
-  assert.equal(w.out.timers[0].ms, L.WELCOME_WAIT_MS);
-  assert.ok(L.WELCOME_WAIT_MS > 0 && L.WELCOME_WAIT_MS <= 8000, 'never longer than the account fetch timeout');
-  w.out.timers[0].fn();
-  await done;
-  assert.equal(w.out.opened, 1);
+// Why: if a paid judge's cached record later expires offline, an unset setupDone would pop the first-run welcome
+// mid-season, and the "show again" button would offer a key setup they do not need (spec 2.1).
+test('welcomeWhenKnown with a plan sets setupDone and hides "Show the first-time setup again"', async () => {
+  const w = world(gate(record(ALL_SELF, true)));
+  await w.welcomeWhenKnown(Promise.resolve());
+  assert.equal(w.out.S.setupDone, true);
+  assert.equal(w.out.saved, 1);
+  assert.equal(w.out.button.hidden, true);
+  const free = world(gate(null, null));
+  await free.welcomeWhenKnown(Promise.resolve());
+  assert.equal(free.out.button.hidden, false, 'a free judge keeps the button');
+  assert.equal(free.out.S.setupDone, false, 'the welcome itself sets it when the judge picks a choice');
+});
+
+// Why: the welcome waits on the account check with no timer of its own, so that check must always end, or a free
+// judge offline would never see the welcome.
+test('the account check always ends: both start-up fetches have a timeout and catch network errors', () => {
+  const acct = fnSource(read('js/account.js'), 'refreshProfile');
+  const caps = fnSource(read('js/caps.js'), 'refreshCaps');
+  for (const src of [acct, caps]) {
+    assert.match(src, /AbortSignal\.timeout\(\d+\)/);
+    assert.match(src, /catch \{ out = \{ state: 'unknown' \}; \}/);
+  }
 });
 
 // ---------- the wiring ----------

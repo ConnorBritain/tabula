@@ -133,12 +133,16 @@ $('#tour-offer-go').addEventListener('click', () => tourStart('main'));
 $('#tour-offer-no').addEventListener('click', () => { $('#tour-offer').hidden = true; toast('You can take the tour any time from the ? menu.'); });
 
 // ---------- welcome (spec 2.1, Q11): free users only, built on the shared dialog ask() ----------
-// Hosted-plan judges never see it: hosted AI just works. At app start it waits for the account check (settled: the
-// promise from js/account.js), at most L.WELCOME_WAIT_MS, because a new device has no cached capabilities yet and
-// would show a paid judge the key welcome before the server's answer. Offline or no account server: it opens then.
+// Hosted-plan judges never see it: hosted AI just works. With a plan (spec 2.1), setupDone is set and the "show again"
+// button hides. At app start it waits for the account check (settled: acctBoot from js/account.js), because a new
+// device has no cached capabilities yet and would show a paid judge the key welcome before the server's answer.
+// The check always ends: both fetches have timeouts, and offline or with no account server it ends at once.
 async function welcomeWhenKnown(settled) {
-  await Promise.race([settled, new Promise((done) => setTimeout(done, L.WELCOME_WAIT_MS))]);
-  if (L.shouldShowWelcome({ setupDone: S.setupDone, hostedPlan: L.hasHostedPlan(capsGate) })) openWelcome();
+  await settled;
+  const hostedPlan = L.hasHostedPlan(capsGate);
+  $('#show-welcome').hidden = hostedPlan;
+  if (hostedPlan && !S.setupDone) { S.setupDone = true; saveSettings(); }
+  if (L.shouldShowWelcome({ setupDone: S.setupDone, hostedPlan })) openWelcome();
   else maybeD2Note();
 }
 async function openWelcome() {
