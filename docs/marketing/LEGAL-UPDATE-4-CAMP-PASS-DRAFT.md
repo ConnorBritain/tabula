@@ -1,6 +1,12 @@
 # Legal update 4 (draft 3): Camp Pass
 
-Status: DRAFT for the lawyer. Not approved. Do not publish.
+Status: LAWYER-APPROVED. Do not publish until the rest of the publish gate is met.
+
+Lawyer result (owner report, 2026-11-22): the owner sent this draft (pushed as 1f05e66) to the lawyer. The lawyer said "lgtm". This approves the text as written, so:
+
+- L1, L2, L4: no change needed.
+- L3: the sale dates stay off the Terms. The Plans page shows them. The other §6.1 sentence is not used.
+- L5: the live Weekend Pass refund line stays as it is.
 
 Owner answers, 2026-11-22 (relayed by the pricing session): "Yes, all four picks". Q1 to Q4 now use the recommended choices. This is not a yes to publish.
 
@@ -169,7 +175,7 @@ Answered 2026-11-22: "Yes, all four picks". Each question below uses the recomme
 ## Checklist
 
 - [x] Owner answers Q1 to Q4 (2026-11-22: all recommended choices).
-- [ ] Lawyer answers L1 to L5 and approves the text.
+- [x] Lawyer answers L1 to L5 and approves the text (2026-11-22: "lgtm").
 - [x] Pick the "After" text for §6.5 and Refunds §4 "Order": choice B.
 - [ ] The app and server apply the Camp Pass rules (publish gate, item 3), including the choice B use order and the US Eastern sale dates.
 - [ ] Check other copy for one-time plan lists again.
