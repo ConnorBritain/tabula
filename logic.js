@@ -33,7 +33,7 @@
   const { PTS_FIELDS, DRAFT_GROUPS, ptsFields, draftGroups, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot, roundHasContent, insightsReady,
     draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft, staleReviewCards,
     reviewInsertFields, applyReview, autoRefillPlan, speechEndedSince, ranksSet, moveRank, stepPoints,
-    savedBallotEntry, savedBallotRow, savedBallotView, historyTable, historyColumns, decisionText, tournamentBlocks, printModel, prepUsed,
+    savedBallotEntry, savedBallotRow, savedBallotView, historyTable, historyColumns, decisionText, tournamentBlocks, printModel, printSheet, prepUsed,
     keyMoments, issueTally, andList, outOfDateText, runVerb, readingFor, decideTab } = part('decide');
   const { JUDGE_SYSTEM, POINTS_GUIDE, parseFeedback, buildJudgePrompt, ANALYSIS_SYSTEM, MAP_SCHEMA, MAP_TASK,
     IMPACT_SCHEMA, IMPACT_TASK, LENS_SCHEMA, LENS_TASK, buildAnalysisPrompt, buildMermaid, layoutMap, READING_LEVELS,
@@ -74,7 +74,7 @@
     // Slice 4: Decide and ballot
     DEFAULT_PTS_RANGE, ptsRange, rangeError, PTS_FIELDS, DRAFT_GROUPS, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot,
     roundHasContent, insightsReady, draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft, staleReviewCards, reviewInsertFields, applyReview, autoRefillPlan,
-    speechEndedSince, ranksSet, moveRank, stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, historyTable, historyColumns, decisionText, tournamentBlocks, printModel,
+    speechEndedSince, ranksSet, moveRank, stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, historyTable, historyColumns, decisionText, tournamentBlocks, printModel, printSheet,
     prepUsed, keyMoments, issueTally, andList, outOfDateText, runVerb, readingFor, decideTab,
     // Slice 4, Option B (Q-8): flow mark shading
     FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged,

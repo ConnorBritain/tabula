@@ -398,6 +398,22 @@
     }
     return { title, orientation: o.flow ? 'landscape' : (o.orientation === 'landscape' ? 'landscape' : 'portrait'), sections };
   }
+  // The print model as the shared print sheet (core/sheets.js): the winner line, the speakers table and the flow
+  // table become its generic sections. The HTML is the same as before step C10 (core/sheets.test.mjs checks it).
+  function printSheet(model) {
+    const sections = model.sections.map((s) => {
+      if (s.kind === 'winner') return { kind: 'lead', title: s.title, text: s.text };
+      if (s.kind === 'speakers') {
+        const head = ['Speaker', 'Name', 'Points'].concat(s.ranks ? ['Rank'] : []).map((text) => ({ text }));
+        const rows = s.rows.map((r) => [{ text: r.speaker, cls: r.side }, { text: r.name }, { text: r.pts }].concat(s.ranks ? [{ text: r.rank }] : []));
+        return { kind: 'table', title: s.title, head, rows };
+      }
+      if (s.kind === 'flow') return { kind: 'table', title: s.title, cls: 'ps-flow', head: s.cols.map((c) => ({ text: c.label, cls: c.side })), rows: [s.cols.map((c) => ({ text: c.text, cls: c.side }))] };
+      if (s.kind === 'facts') return s;
+      return { kind: 'text', title: s.title, cls: s.side, text: s.text };
+    });
+    return { title: model.title, landscape: model.orientation === 'landscape', sections };
+  }
 
   // 4.14 Prep used on each side, from the round's prep fields. Keyed by side ('aff', 'neg'): each format so far has
   // one prep clock per side, a team's clock (policy) or the one debater's clock (LD).
@@ -451,7 +467,7 @@
   const api = { PTS_FIELDS, DRAFT_GROUPS, ptsFields, draftGroups, fieldLabel, fieldValue, fieldState, markFields, ballotSnapshot,
     roundHasContent, insightsReady, draftPanelState, feedbackLines, outOfRangePoints, draftValue, wordDiff, reviewFromDraft,
     staleReviewCards, reviewInsertFields, applyReview, autoRefillPlan, speechEndedSince, ranksSet, moveRank,
-    stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, historyTable, historyColumns, decisionText, tournamentBlocks, printModel,
+    stepPoints, savedBallotEntry, savedBallotRow, savedBallotView, historyTable, historyColumns, decisionText, tournamentBlocks, printModel, printSheet,
     prepUsed, keyMoments, issueTally, andList, outOfDateText, runVerb, readingFor, decideTab };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).decide = api;
