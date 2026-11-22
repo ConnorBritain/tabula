@@ -125,6 +125,7 @@ function renderFlow() {
     + (R.flows.length < 2 ? `<button data-act="del" aria-disabled="true" aria-describedby="one-sheet-why" data-tip="${ONE_SHEET}">Delete</button><span class="sr-only" id="one-sheet-why">${ONE_SHEET}</span>` : '<button data-act="del">Delete</button>')
     + sheetLearnLink(f && f.name);
   setFlowCols();
+  // The column shell (div.col, h3 with .col-mark, .flow-cell) is also in renderAIFlow and L.emptyFlowHtml: change all three.
   $('#flow').innerHTML = FMT().flowColumns.map((c, i) => `<div class="col ${c.side}"><h3><span>${c.label}</span><span class="col-mark"></span></h3><div class="flow-cell"><div class="flow-hl" aria-hidden="true"></div><textarea data-col="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(f.name)}">${escapeHtml((f.cells || {})[i] || '')}</textarea></div></div>`).join('');
   markFlowColumns();
   paintAllFlowMarks();
@@ -207,6 +208,7 @@ function renderAIFlow() {
   // Every cell can be edited. An edited cell keeps the judge's text; if the AI writes something newer
   // underneath, a small bar offers "Use AI" or "Keep mine".
   setFlowCols();
+  // Same column shell as renderFlow's My flow and L.emptyFlowHtml (logic/flow.js): change all three.
   $('#flow').innerHTML = sh
     ? FMT().flowColumns.map((c, i) => {
       const ed = sh.edits && sh.edits[i];
