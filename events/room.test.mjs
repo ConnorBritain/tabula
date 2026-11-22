@@ -8,7 +8,7 @@ import { loadEventData } from './js/data.js';
 import { parseRoom } from './js/parse.js';
 import {
   ENABLED_EVENTS, MAX_ENTRIES, createRoom, codeError, setupError, entryOf, present, selectEntry, entryAtNumber, nextWaiting,
-  moveEntry, markNoShow, clearNoShow, addEntry, removeEntry, restoreEntry, upsertRoom, findRoom,
+  moveEntry, markNoShow, clearNoShow, addEntry, removeEntry, restoreEntry, rosterAction, upsertRoom, findRoom,
 } from './js/room.js';
 import { rosterHtml, roomTitle } from './js/room-screen.js';
 import { previewHtml, setupHtml, eventChoices, profileChoices } from './js/setup-screen.js';
@@ -79,6 +79,45 @@ test('remove undoes at the old place and never doubles a code', () => {
   assert.equal(codes(restoreEntry(res.room, res.removed, 3000)), codes(r));
   const again = addEntry(res.room, 'd41', '', 2500, 'x1').room;
   assert.equal(restoreEntry(again, res.removed, 3000), again, 'D41 was added again, so the undo is refused');
+});
+
+// Why: every row-menu action must undo from the toast (LANDING.md E4 "late arrival and no-show with Undo"); the
+// undo runs on the room as it is at that moment, so a pick made in between must survive it.
+test('each roster action gives a message and an undo that puts the roster back', () => {
+  const r = room6();
+  const [a, b, c] = r.entries.map((e) => e.id);
+  for (const [action, id] of [['up', b], ['down', b], ['end', c], ['noshow', b], ['remove', c]]) {
+    const res = rosterAction(r, action, id, 2000);
+    assert.equal(res.refused, '', action);
+    assert.ok(res.message.length > 0 && typeof res.undo === 'function', action);
+    assert.notDeepEqual(res.room.entries.map((e) => e.code + e.status), r.entries.map((e) => e.code + e.status), action + ' changed the roster');
+    const picked = selectEntry(res.room, a, 2500);
+    const back = res.undo(picked, 3000);
+    assert.deepEqual(back.entries.map((e) => [e.code, e.status, e.order]), r.entries.map((e) => [e.code, e.status, e.order]), action + ' undo');
+    if (action !== 'remove') assert.equal(back.current, a, action + ' undo keeps the pick made in between');
+  }
+  const ns = rosterAction(r, 'noshow', b, 2000).room;
+  const show = rosterAction(ns, 'show', b, 2100);
+  assert.equal(entryOf(show.room, b).status, 'waiting');
+  assert.equal(entryOf(show.undo(show.room, 2200), b).status, 'noShow', '"Undo no show" undoes too');
+  assert.equal(rosterAction(r, 'up', a, 2000).undo, null, 'the first row cannot move up; nothing to undo');
+  const running = Object.assign({}, r, { entries: r.entries.map((e) => (e.id === c ? Object.assign({}, e, { timing: Object.assign({}, e.timing, { run: { kind: 'speech', endAt: 9e12 } }) }) : e)) });
+  assert.match(rosterAction(running, 'remove', c, 2000).refused, /Stop the clock/);
+  assert.match(rosterAction(running, 'noshow', c, 2000).refused, /already has time/);
+});
+
+// Why: undoing the removal of the speaker the judge was on must bring the judge back to that speaker, or their next
+// note lands on the wrong student.
+test('undoing the removal of the current speaker picks them again', () => {
+  const r = room6();
+  const d = r.entries[3].id;
+  const res = removeEntry(selectEntry(r, d, 1), d, 2);
+  assert.equal(restoreEntry(res.room, res.removed, 3).current, d);
+});
+
+// Why: a room never holds more than 8; the model must refuse a longer list rather than drop speakers in silence.
+test('createRoom refuses more than 8 entries', () => {
+  assert.throws(() => createRoom({ event: DATA.events.get('oo'), profile: DATA.profiles.get('custom'), entries: Array.from({ length: 9 }, (_, i) => ({ code: 'A' + i })), now: 1 }), /at most 8/);
 });
 
 // Why: a typed code is how the judge finds a speaker on the online ballot; a duplicate or a blank code would put

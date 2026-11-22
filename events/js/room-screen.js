@@ -4,10 +4,8 @@
 // Each roster row has a menu: Move up, Move down, Move to end (late arrivals), Mark no show and Remove, each with Undo.
 // Number keys 1–8 pick an entry. The builders at the top are pure (Node tests call them); createRoomScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
-import {
-  STATUS_LABEL, entryOf, labelOf, selectEntry, entryAtNumber, nextWaiting, moveEntry, markNoShow, clearNoShow,
-  addEntry, removeEntry, restoreEntry, findRoom, present,
-} from './room.js';
+import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present } from './room.js';
+import { roundLine } from './rooms.js';
 import { pickNumber } from './keys.js';
 
 const pill = (word, cls) => `<span class="pill${cls ? ' ' + cls : ''}">${esc(word)}</span>`;
@@ -16,7 +14,7 @@ export const statusPill = (e) => pill(STATUS_LABEL[e.status] || STATUS_LABEL.wai
 
 // The room's title line: event short name and round.
 export function roomTitle(room, event) {
-  return [event ? event.name : 'Custom event', room.round, room.flight ? 'Flight ' + room.flight : ''].filter(Boolean).join(' · ');
+  return [event ? event.name : 'Custom event', roundLine(room, false)].filter(Boolean).join(' · ');
 }
 
 // One roster row as HTML text. extra(e): optional HTML after the name (the time, from step E5).
@@ -55,7 +53,11 @@ export function rosterHtml(room, menuFor, extra) {
 }
 
 // env: { el, ui, data, now, rooms(), saveRoom(room), go(screen, id) }.
-// parts: optional views the later steps add to the main pane ({ stageHtml(room, entry), mount(ctx), ... }).
+// parts: the views that add to this screen (the timer in step E5, the comment sheet in E6). Each may have:
+//   rowExtra(room, entry) -> HTML after a roster row's name     stageHtml(room, entry) -> HTML in the main pane
+//   mounted(ctx) after the main pane is drawn                    show(ctx) / hide(ctx) when the screen opens / closes
+//   run(action, ctx) -> true when it ran a shortcut              stopFor(id) stops that entry's running clock
+// ctx: { env, room(), save(room), draw() }.
 export function createRoomScreen(env, parts) {
   const views = parts || [];
   let roomId = null;
@@ -66,7 +68,6 @@ export function createRoomScreen(env, parts) {
   const event = (r) => env.data.events.get(r.eventId, r.eventVersion);
 
   function save(next) { env.saveRoom(next); return next; }
-  function undoToast(msg, name, run) { env.ui.toast(msg, { action: { label: 'Undo', name: 'Undo: ' + name, run } }); }
 
   // Draw the roster; keep the focus on the same control (by data-key).
   function drawRoster() {
@@ -103,7 +104,7 @@ export function createRoomScreen(env, parts) {
     menuFor = null;
     save(selectEntry(r, id, env.now()));
     draw();
-    env.ui.announce(labelOf(entryOf(room(), id)) + ' picked.');
+    env.ui.announce(entryOf(room(), id).code + ' picked.');
   }
 
   // A running timer must stop before its entry moves out of the room (step E5 gives the views a stop hook).
@@ -112,37 +113,16 @@ export function createRoomScreen(env, parts) {
   async function act(action, id) {
     const r = room();
     if (!r) return;
-    const e = entryOf(r, id);
-    const now = env.now();
     if (action === 'pick') return pick(id);
     if (action === 'menu') { menuFor = menuFor === id ? null : id; return drawRoster(); }
-    if (action === 'up' || action === 'down' || action === 'end') {
-      const from = r.entries.findIndex((x) => x.id === id) + 1;
-      const to = action === 'up' ? from - 1 : action === 'down' ? from + 1 : r.entries.length;
-      const res = moveEntry(r, id, to, now);
-      if (!res.moved) return;
-      save(res.room); drawRoster(); drawStage();
-      undoToast(e.code + ' moved to place ' + res.to + '.', 'move ' + e.code, () => {
-        const cur = room(); if (!cur) return;
-        save(moveEntry(cur, id, res.from, env.now()).room); draw();
-      });
-      return;
-    }
-    if (action === 'noshow') {
-      const res = markNoShow(r, id, now);
-      if (res.refused) { env.ui.toast(res.refused, { kind: 'error', key: 'noshow' }); return; }
-      menuFor = null;
+    if (['up', 'down', 'end', 'noshow', 'show', 'remove'].includes(action)) {
+      if (action === 'remove') stopFor(id);
+      const res = rosterAction(room(), action, id, env.now());
+      if (res.refused) { env.ui.toast(res.refused, { kind: 'error', key: 'roster' }); return; }
+      if (!res.undo) return;
+      if (action !== 'up' && action !== 'down') menuFor = null;
       save(res.room); draw();
-      undoToast(e.code + ' marked no show.', 'no show ' + e.code, () => { const cur = room(); if (cur) { save(clearNoShow(cur, id, env.now(), res.prev)); draw(); } });
-      return;
-    }
-    if (action === 'show') { menuFor = null; save(clearNoShow(r, id, now)); draw(); return; }
-    if (action === 'remove') {
-      stopFor(id);
-      const res = removeEntry(room(), id, env.now());
-      menuFor = null;
-      save(res.room); draw();
-      undoToast(e.code + ' removed.', 'remove ' + e.code, () => { const cur = room(); if (cur) { save(restoreEntry(cur, res.removed, env.now())); draw(); } });
+      env.ui.toast(res.message, { action: { label: 'Undo', name: 'Undo: ' + res.message, run: () => { const cur = room(); if (cur) { save(res.undo(cur, env.now())); draw(); } } } });
       return;
     }
     if (action === 'add') {
@@ -162,14 +142,17 @@ export function createRoomScreen(env, parts) {
   }
 
   function onClick(ev) {
+    if (ev.target.closest('#roster-toggle')) { rosterOpen = !rosterOpen; drawRoster(); return; }
     const b = ev.target.closest('[data-act]');
-    if (!b || !env.el.contains(b)) return;
-    if (b.id === 'roster-toggle') { rosterOpen = !rosterOpen; return drawRoster(); }
-    if (b.id === 'go-rank') return env.go('rank', roomId);
-    act(b.dataset.act, b.dataset.id);
+    if (b && env.el.contains(b)) act(b.dataset.act, b.dataset.id);
   }
 
-  const ctx = { env, room, save, draw, drawRoster, drawStage, el: () => env.el };
+  const ctx = { env, room, save, draw };
+  const menuOpen = () => roomId !== null && menuFor !== null;
+  env.ui.escLayer('row-menu', 40, menuOpen, () => {
+    const id = menuFor; menuFor = null; drawRoster();
+    const b = $(`[data-key="menu-${CSS.escape(id || '')}"]`); if (b) b.focus();
+  });
 
   return {
     scope: 'room',
@@ -180,8 +163,7 @@ export function createRoomScreen(env, parts) {
       roomId = id; menuFor = null; rosterOpen = false;
       env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">‹ Rooms</a>
           <h1 id="screen-title" tabindex="-1">${esc(roomTitle(r, event(r)))}</h1>
-          <button class="b" type="button" id="roster-toggle" data-act="toggle" aria-controls="roster-full" aria-expanded="false">Roster</button>
-          <button class="b primary" type="button" id="go-rank" data-act="rank">Rank the room</button></div>
+          <button class="b" type="button" id="roster-toggle" aria-controls="roster-full" aria-expanded="false">Roster</button></div>
         <div class="room-grid"><nav class="roster" id="roster" aria-label="Roster"></nav><section class="stage" id="stage" aria-labelledby="stage-code"></section></div>`;
       env.el.addEventListener('click', onClick);
       for (const v of views) if (v.show) v.show(ctx);
@@ -200,7 +182,5 @@ export function createRoomScreen(env, parts) {
       for (const v of views) if (v.run && v.run(action, ctx)) return true;
       return false;
     },
-    isMenuOpen: () => menuFor !== null,
-    closeMenu() { const id = menuFor; menuFor = null; drawRoster(); const b = $(`[data-key="menu-${CSS.escape(id || '')}"]`); if (b) b.focus(); },
   };
 }

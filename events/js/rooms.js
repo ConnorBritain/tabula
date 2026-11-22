@@ -21,6 +21,10 @@ export function groupRoomsByDay(rooms) {
   return [...days.keys()].sort().reverse().map((day) => ({ day, rooms: days.get(day) }));
 }
 
+// The round line of a room: tournament (when asked), round and flight, joined with " · " (the Rooms row and the room
+// screen title both use it).
+export const roundLine = (room, withTournament) => [withTournament ? room.tournament : '', room.round, room.flight ? 'Flight ' + room.flight : ''].filter(Boolean).join(' · ');
+
 // What one row shows: the event name, the round, the number of entries and the state.
 // events: the events registry (core/defs.js); a room names its event's id and version.
 export function roomRow(room, events) {
@@ -29,7 +33,7 @@ export function roomRow(room, events) {
   return {
     id: room.id,
     name: ev ? ev.name : 'Custom event',
-    round: [room.tournament, room.round, room.flight ? 'Flight ' + room.flight : ''].filter(Boolean).join(' · '),
+    round: roundLine(room, true),
     count: n + (n === 1 ? ' entry' : ' entries'),
     state: STATE_LABEL[room.state] || STATE_LABEL.setup,
   };

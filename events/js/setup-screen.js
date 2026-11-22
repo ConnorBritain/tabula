@@ -119,6 +119,5 @@ export function createSetupScreen(env) {
       update();
       $('#screen-title').focus();
     },
-    hide() {},
   };
 }

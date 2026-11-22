@@ -27,9 +27,8 @@ const withEntries = (room, entries, now) => Object.assign({}, room, { entries: r
 
 // An id that is random and holds no tournament name or code (ARCHITECTURE.md §6.4: a room ID is a random ID).
 export function newId(prefix) {
-  const c = globalThis.crypto;
-  const r = c && c.randomUUID ? c.randomUUID().replace(/-/g, '').slice(0, 12) : Math.random().toString(36).slice(2, 14);
-  return (prefix || '') + r;
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(6));
+  return (prefix || '') + [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 // One new entry. code: already checked with codeError.
@@ -71,6 +70,7 @@ export function createRoom(opts) {
   if (!o.event || !o.profile) throw new Error('createRoom needs an event and a profile');
   const profile = clone(o.profile);
   delete profile.key; // the registry's own field, not a rule
+  if ((o.entries || []).length > MAX_ENTRIES) throw new Error('createRoom: a room holds at most ' + MAX_ENTRIES + ' entries (setupError checks this first)');
   const seen = new Set();
   const entries = [];
   for (const x of o.entries || []) {
@@ -92,7 +92,7 @@ export function createRoom(opts) {
     flight: String(o.flight || '').trim(),
     state: 'judging',
     current: entries.length ? entries[0].id : null,
-    entries: renumber(entries).slice(0, MAX_ENTRIES),
+    entries: renumber(entries),
     reasonForRank: '',
   };
 }
@@ -112,8 +112,6 @@ export const entryOf = (room, id) => (room && room.entries || []).find((e) => e.
 export const indexOf = (room, id) => (room && room.entries || []).findIndex((e) => e.id === id);
 // The entries that are in the room (not "No show"): the ones that speak and get a rank.
 export const present = (room) => (room && room.entries || []).filter((e) => e.status !== 'noShow');
-// A label for messages: the code, and the name when the judge typed one.
-export const labelOf = (e) => (e ? e.code : '');
 
 // Pick the entry the judge works on now.
 export function selectEntry(room, id, now) {
@@ -152,11 +150,11 @@ export function moveEntry(room, id, to, now) {
 }
 
 // "No show": the entry stays on the roster but does not speak or get a rank. Undo puts back the status it had
-// (prev). A running timer must be stopped by the caller first; an entry that already has time cannot be marked.
+// (prev). An entry with time on the clock (running or not) is refused, so no time is ever thrown away.
 export function markNoShow(room, id, now) {
   const e = entryOf(room, id);
   if (!e || e.status === 'noShow') return { room, prev: null, refused: '' };
-  if (e.timing.run || e.timing.usedMs > 0) return { room, prev: null, refused: labelOf(e) + ' already has time on the clock, so it cannot be a no show. Reset the time first.' };
+  if (e.timing.run || e.timing.usedMs > 0) return { room, prev: null, refused: e.code + ' already has time on the clock, so it cannot be a no show. Reset the time first.' };
   const list = room.entries.map((x) => (x.id === id ? Object.assign({}, x, { status: 'noShow' }) : x));
   return { room: withEntries(room, list, now), prev: e.status, refused: '' };
 }
@@ -187,7 +185,7 @@ export function removeEntry(room, id, now) {
   const list = room.entries.filter((e) => e.id !== id);
   const next = withEntries(room, list, now);
   if (room.current === id) next.current = list.length ? list[Math.min(at, list.length - 1)].id : null;
-  return { room: next, removed: { entry, place: at + 1 } };
+  return { room: next, removed: { entry, place: at + 1, wasCurrent: room.current === id } };
 }
 // Undo a remove: put the entry back at its old place (or the end, if the list is shorter now). A code someone has
 // added again since is not doubled: the restore is refused and the room stays as it is.
@@ -197,7 +195,38 @@ export function restoreEntry(room, removed, now) {
   const list = room.entries.slice();
   list.splice(Math.min(removed.place - 1, list.length), 0, removed.entry);
   const next = withEntries(room, list, now);
-  return next.current ? next : Object.assign(next, { current: removed.entry.id });
+  return next.current && !removed.wasCurrent ? next : Object.assign(next, { current: removed.entry.id });
+}
+
+// One roster action from the row menu, with its Undo (DESIGN.md §4.1, §1 rule 6). action: 'up' | 'down' | 'end' |
+// 'noshow' | 'show' | 'remove'. Returns { room, message, undo(room, now) -> room, refused } — refused is '' or the
+// reason in words (the room is then unchanged and there is no undo). undo works on the room as it is when the judge
+// taps Undo, so a change made in between (a pick, a note) is kept.
+export function rosterAction(room, action, id, now) {
+  const e = entryOf(room, id);
+  const none = (refused) => ({ room, message: '', undo: null, refused: refused || '' });
+  if (!e) return none('That entry is not in this room.');
+  if (action === 'up' || action === 'down' || action === 'end') {
+    const from = indexOf(room, id) + 1;
+    const res = moveEntry(room, id, action === 'up' ? from - 1 : action === 'down' ? from + 1 : room.entries.length, now);
+    if (!res.moved) return none();
+    return { room: res.room, message: e.code + ' moved to place ' + res.to + '.', undo: (cur, t) => moveEntry(cur, id, res.from, t).room, refused: '' };
+  }
+  if (action === 'noshow') {
+    const res = markNoShow(room, id, now);
+    if (res.refused || !res.prev) return none(res.refused);
+    return { room: res.room, message: e.code + ' marked no show.', undo: (cur, t) => clearNoShow(cur, id, t, res.prev), refused: '' };
+  }
+  if (action === 'show') {
+    if (e.status !== 'noShow') return none();
+    return { room: clearNoShow(room, id, now), message: e.code + ' is back on the roster.', undo: (cur, t) => markNoShow(cur, id, t).room, refused: '' };
+  }
+  if (action === 'remove') {
+    if (e.timing.run) return none('Stop the clock for ' + e.code + ' first.');
+    const res = removeEntry(room, id, now);
+    return { room: res.room, message: e.code + ' removed.', undo: (cur, t) => restoreEntry(cur, res.removed, t), refused: '' };
+  }
+  return none('Unknown action.');
 }
 
 // Put a room into the saved list (replace the one with the same id, or add it at the front).
@@ -211,6 +240,6 @@ export const findRoom = (rooms, id) => (Array.isArray(rooms) ? rooms : []).find(
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).room = Object.freeze({
   ENABLED_EVENTS, DEFAULT_PROFILE, MAX_ENTRIES, STATUS_LABEL, normCode, newId, makeEntry, codeError, createRoom, setupError,
-  entryOf, indexOf, present, labelOf, selectEntry, entryAtNumber, nextWaiting, moveEntry, markNoShow, clearNoShow,
-  addEntry, removeEntry, restoreEntry, upsertRoom, findRoom,
+  entryOf, indexOf, present, selectEntry, entryAtNumber, nextWaiting, moveEntry, markNoShow, clearNoShow,
+  addEntry, removeEntry, restoreEntry, rosterAction, upsertRoom, findRoom,
 });

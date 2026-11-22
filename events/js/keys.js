@@ -14,7 +14,11 @@ export const SHORTCUTS = Object.freeze([
 
 export const keymap = createKeymap(SHORTCUTS);
 
+// A browser key event in the plain shape core/keys.js matches ({ code, key, meta, ctrl, alt, shift, ... }).
+export const keyOf = (ev) => ({ code: ev.code, key: ev.key, meta: ev.metaKey, ctrl: ev.ctrlKey, alt: ev.altKey, shift: ev.shiftKey,
+  repeat: ev.repeat, composing: ev.isComposing, altGraph: Boolean(ev.getModifierState && ev.getModifierState('AltGraph')) });
+
 // The speaker number of a 'pickN' action, or null.
 export const pickNumber = (action) => (/^pick([1-8])$/.test(action || '') ? Number(action.slice(4)) : null);
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).keys = Object.freeze({ SHORTCUTS, keymap, pickNumber });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).keys = Object.freeze({ SHORTCUTS, keymap, keyOf, pickNumber });

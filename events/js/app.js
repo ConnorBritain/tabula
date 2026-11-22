@@ -10,7 +10,7 @@ import { loadEventData } from './data.js';
 import { groupRoomsByDay, roomsHtml } from './rooms.js';
 import { parseRoute, routeHash } from './routes.js';
 import { upsertRoom } from './room.js';
-import { keymap } from './keys.js';
+import { keymap, keyOf } from './keys.js';
 import { createSetupScreen } from './setup-screen.js';
 import { createRoomScreen } from './room-screen.js';
 
@@ -58,11 +58,10 @@ function boot(data) {
   // One key handler for the page: core/keys.js matches the key in the showing screen's scope.
   document.addEventListener('keydown', (ev) => {
     if (!current || !current.run || ev.defaultPrevented) return;
-    const action = keymap.keyAction({ code: ev.code, key: ev.key, meta: ev.metaKey, ctrl: ev.ctrlKey, alt: ev.altKey, shift: ev.shiftKey, repeat: ev.repeat, composing: ev.isComposing, altGraph: ev.getModifierState && ev.getModifierState('AltGraph') },
-      { scopes: [current.scope], focus: focusKind(document.activeElement), modal: ui.askIsOpen() || Boolean(document.querySelector('.overlay:not([hidden])')), narrow: window.innerWidth < 820 });
+    const action = keymap.keyAction(keyOf(ev), { scopes: [current.scope], focus: focusKind(document.activeElement),
+      modal: ui.askIsOpen() || Boolean(document.querySelector('.overlay:not([hidden])')), narrow: window.innerWidth < 820 });
     if (action && current.run(action)) ev.preventDefault();
   });
-  ui.escLayer('row-menu', 40, () => Boolean(current && current.isMenuOpen && current.isMenuOpen()), () => current.closeMenu());
   route();
 }
 
