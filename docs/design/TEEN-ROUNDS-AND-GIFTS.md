@@ -1,6 +1,6 @@
 # Teen rounds, school AI settings, sending rounds, and the refund fallback (design, draft 1)
 
-Status: DRAFT, 2026-11-23. Design only. No code, no Stripe change, no legal text is live. The owner decided D1 to D8 on 2026-11-23 (§12). Items marked "lawyer" in §13 wait for the lawyer's answers in §11.
+Status: DRAFT, 2026-11-23. Design only. No code, no Stripe change, no legal text is live. The owner decided D1 to D8 on 2026-11-23 (§12). The lawyer agreed with all 9 working answers on 2026-11-23 (§11b, as reported by the owner). Their three changes are now in §5.1, §6.1 and §8. Items marked "lawyer" in §13 are answered; each part still goes live only with its legal text.
 
 Builds on: `docs/design/BUY-FIRST-SPEC.md` (draft 2, "send setup to someone else"), `docs/design/AI-POLICY.md`, `docs/design/AI-ROUND-CONSENT.md`, `docs/marketing/LEGAL-UPDATE-5-DRAFT.md` (Parts A and B), tabula-cloud `src/age.ts`, `src/platform/resolve.ts`, `src/platform/settings.ts`, `src/platform/limits.ts`, `src/meter/user-do.ts`, `src/billing/webhook.ts`, `docs/platform/MODEL.md`.
 
@@ -164,7 +164,7 @@ The owner asked for: send by email, accept, a pause, and a 7-day refund. The **v
 - §7 (the pause refund).
 - §8 (refunds and disputes follow the holder).
 
-**Optional, add only if abuse or the lawyer asks for them:** the two-send limit (v1 can allow only "give back" plus one re-send, which is the same thing in practice), the 3-senders-per-30-days cap, the 72-hour hold after an "elevated" Radar charge, blocking a sender, and the consent record in §9.2. Each one adds Terms text and lawyer time.
+**Optional, add only if abuse or the lawyer asks for them:** the two-send limit (v1 can allow only "give back" plus one re-send, which is the same thing in practice), the 3-senders-per-30-days cap, the 72-hour hold after an "elevated" Radar charge, and blocking a sender. Each one adds Terms text. **Not optional any more** (lawyer, §11b items 2 and 9): the "I know this person" confirm in §5.1 step 3, and the consent record in §9.2.
 
 ### 5.1 One flow for every send
 
@@ -172,7 +172,7 @@ The buy-first spec already has "Send setup to someone else" after checkout. This
 
 1. **Who can send:** the buyer of the purchase, signed in. (A teen holder cannot send. See §6.2.)
 2. **What moves:** all unused rounds of **one purchase**. No split. One purchase is one row in `payment_moves`, so refunds stay simple.
-3. **The sender types one email.** No free-text note (spam and contact risk). The sender confirms: "Send 7 rounds to ma***@example.com?"
+3. **The sender types one email.** No free-text note (spam and contact risk). The sender confirms "I know this person (parent, guardian, coach or teammate)" (lawyer, §11b item 9). Then: "Send 7 rounds to ma***@example.com?"
 4. **The rounds are held.** They leave the sender's balance at once and wait. They cannot be spent while they wait.
 5. **The recipient gets one email,** the same words whether or not the email has an account: "[masked sender email] sent you 7 Tabula rounds. Open Tabula to accept them. The offer ends on [date]." The link opens the setup page (BUY-FIRST §4.5): sign in or sign up, then the date-of-birth step, then the accept screen.
 6. **The accept screen** (the consent double check):
@@ -218,7 +218,7 @@ The reverse (AI comes back on, or the teen leaves) clears the pause the same way
 The server:
 
 1. Stamps the pause start on each affected purchase the teen holds (`paused_at` on the `payment_moves` row, or on the lot).
-2. Emails **the buyer** (when the buyer is another account): "Rounds you sent to ma***@example.com are paused. A school program manages AI on that account. You can take them back, send them to someone else, or ask for a refund until [pause start + 7 days]." The email does **not** name the school (§11 item 7).
+2. Emails **the buyer** (when the buyer is another account): "The rounds you sent can't be used on that account right now. You can take them back, send them to someone else, or ask for a refund until [date]." [date] is the pause start plus 7 days. The email does **not** mention a school at all (lawyer, §11b item 7).
 3. Stops any renewal auto-move to that teen (§6.5).
 
 Nothing is removed. Expiry dates keep running (decision D8).
@@ -302,6 +302,7 @@ The buy-first spec §11 covers a refund after the first send. These rules cover 
 | Refund after a send | Take back the purchase's unused rounds from the **current holder** named by the latest `payment_moves` row. Rounds already used are not taken back. |
 | The shortfall | When the holder is not the buyer, **any shortfall is taken only from the buyer's other rounds, never from the holder's own purchases.** Today `applyTakeBack` takes the shortfall from the same user's other lots. This must change for moved purchases. |
 | Dispute | The hold (if the lawyer keeps it; Part A drops the account suspension) goes on the buyer only. The holder's unused rounds from that purchase are held back while it is open. |
+| Legal text | Legal update 5 Part B says the take-back "includes Rounds that you sent to another person, and Rounds that another person sent to you" (lawyer, §11b item 6). This table is the code side of that sentence. |
 | Dispute won | Held rounds go back to the account that held them (the holder), not to the buyer. Today `applyRestore` returns them to the original user. Fix with `payment_moves`. |
 | Re-send after a take-back | Not allowed for that purchase once a refund or dispute has started. |
 | The holder's account is deleted | Unused rounds go back to the buyer (BUY-FIRST §11). |
@@ -330,7 +331,7 @@ The buy-first spec §11 covers a refund after the first send. These rules cover 
 
 - COPPA does not apply at 13 to 17. Some state laws do (for example Arkansas Act 952, Texas SCOPE Act, California age-appropriate design rules). `age.ts` has one switch per state (`parentConsentForHostedAI`). None is on.
 - A send from an adult to a teen is a natural place to record consent. Proposal: when an adult sends to an account that turns out to be a teen, the accept step asks **the sender** (by email) one question: "Are you this person's parent or guardian, and do you agree that they may use Tabula's Hosted AI?" A yes is stored as a consent record (date, notice version, the two account IDs).
-- **Lawyer:** does this count as parent consent in the states that need it? If not, those states stay blocked until a real consent flow exists. Until the lawyer answers, the record is kept but not relied on.
+- **Lawyer (§11b item 2):** the record counts as parent consent (a card payment plus a statement) and is relied on where a state needs it. The per-state switch stays off today.
 
 ### 9.3 Abuse risks and controls
 
@@ -347,7 +348,7 @@ The buy-first spec §11 covers a refund after the first send. These rules cover 
 
 ### 9.4 Expiry of sent rounds
 
-- **First send:** the 12 months restart on the accept day (Part B §6.6, owner O2).
+**Update, 2026-11-23:** paid Rounds now never expire (legal update 6, draft 4; lawyer §11b item 3). So the expiry rules below no longer apply to one-time Rounds, and D8 is moot for them. They apply only to any Rounds that still have an end date under legal update 6 (check that draft). The rule "only the first send restarts the dates" stays for those.- **First send:** the 12 months restart on the accept day (Part B §6.6, owner O2).
 - **Give back, take back, re-send:** dates do **not** restart.
 - **While waiting for accept:** dates keep running. If the rounds would expire during the 14 days, the offer ends early on the expiry day.
 - **While paused:** dates keep running (decision D8).
@@ -389,7 +390,7 @@ The buy-first spec §11 covers a refund after the first send. These rules cover 
 | Terms §6.7 and §13 (Part B's exception) | Widen "send a purchase to one other person" to: the buyer may send a purchase, take it back, and send it once more. The person who receives it may give it back to the buyer. No other transfer. |
 | Terms §8 / Refund Policy §6 | New case: the pause refund (§7.1), with its 7-day window from the pause start. |
 | Refund Policy §4 | Same transfer exception as §6.7. |
-| Terms §8 "Disputes" / Refund Policy §8 | A refund or dispute of a sent purchase takes back that purchase's unused rounds from whoever holds them; any shortfall comes only from the buyer. |
+| Terms §8 "Disputes" / Refund Policy §8 | A refund or dispute of a sent purchase takes back that purchase's unused rounds from whoever holds them; any shortfall comes only from the buyer. Legal update 5 Part B adds (lawyer, §11b item 6): "This includes Rounds that you sent to another person, and Rounds that another person sent to you." |
 | Privacy Policy §3 | The recipient's email is used to send the offer, and kept with the move record (it is needed for refunds). This changes Part B's "we do not keep it". |
 | Privacy Policy §12 | The pause email to the buyer; the consent record (if the lawyer agrees). |
 | School terms / DPA | The school does not see family purchases. A family's rounds pause under the school's setting; the school cannot take or use them. |
@@ -409,6 +410,20 @@ The buy-first spec §11 covers a refund after the first send. These rules cover 
 9. **Unrelated adults sending to minors.** Are the controls in §9.3 enough?
 
 ---
+
+### 11b. Lawyer answers (2026-11-23)
+
+The owner sent the legal session's 9 working answers (`private/legal/TEEN-ROUNDS-LAWYER-NOTES.md`). The owner reports that the lawyer agrees with all 9. In short:
+
+1. Teens 13 to 17 may use Hosted AI with no program. The per-state consent switch stays off. Arkansas: the teen's own consent at sign-up is enough. Texas SCOPE does not apply.
+2. The sender's yes is stored as parent consent and relied on where a state needs it (a card payment plus a statement).
+3. Gift-card laws: "send", never "gift". Paid Rounds never expire (legal update 6 draft 4), so §9.4 no longer applies to one-time Rounds.
+4. The pause refund is promised as "we refund through Link" and issued with Stripe's refund tool.
+5. Only the adult buyer can move, take back or refund a purchase. If a teen cancels their own agreement, the account closes and unused Rounds go back to the buyer.
+6. **Change:** legal update 5 Part B adds: "This includes Rounds that you sent to another person, and Rounds that another person sent to you." (refund and dispute take-back).
+7. **Change:** the pause email to the buyer does not mention a school at all: "The rounds you sent can't be used on that account right now. You can take them back, send them to someone else, or ask for a refund until [date]." (§6.1 item 2.)
+8. Texas SCOPE does not apply (no profiles, posts or chat).
+9. **Change:** the sender confirms "I know this person (parent, guardian, coach or teammate)" before a send (§5.1 step 3).
 
 ## 12. Owner decisions
 
@@ -461,10 +476,10 @@ No code or deploy is part of this doc. Each step below is a later task. "Lawyer"
 | S1 | Student "family rounds" mode (D2): `settings.ts` `modesFor`, `resolve.ts`, `limits.ts` `walletOrder`. Strictest policy for a teen in two programs (D3). Tests for each role and mode. | Nothing. It does not change who can buy. |
 | S2 | Pause detection hooks: on join and on a student policy change, plus the daily backstop (§6.1). `paused_at` on the purchase. | S1. |
 | S3 | Take-back and restore follow the holder (§8): the two-step saga with shared refs. | Buy-first `payment_moves`. Build this before any later send goes live. |
-| S4 | Later sends (§5): held state, accept or decline, 14-day lapse, same message for every email (D7), give back and take back (D4), re-send once. | S3. Lawyer items 3, 5, 6, 9. |
+| S4 | Later sends (§5): held state, accept or decline, 14-day lapse, same message for every email (D7), give back and take back (D4), re-send once, the "I know this person" confirm, and the consent record (§9.2). | S3. Lawyer answered (§11b); goes live with its legal text. |
 | S5 | Buyer emails: pause notice (§6.1), renewal notice while paused (§6.5). Stop renewal auto-move while paused. | S2. Lawyer item 7 (the pause email). |
 | S6 | Pause refund route (§7, D6): buyer only, 7 days from the pause start, once per purchase, unused share pro rata, through the Link Refund API. | S2, S3. Lawyer item 4. Check that Managed Payments allows refunds by API. |
-| S7 | Optional items from §5.0b (caps, Radar hold, sender block, consent record) only if abuse or the lawyer asks. | Lawyer items 2 and 9. |
+| S7 | Optional items from §5.0b (caps, Radar hold, sender block) only if abuse shows up. | Nothing. |
 
 ### App
 
