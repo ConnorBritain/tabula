@@ -39,7 +39,7 @@
   const { JUDGE_SYSTEM, POINTS_GUIDE, parseFeedback, buildJudgePrompt, ANALYSIS_SYSTEM, MAP_SCHEMA, MAP_TASK,
     IMPACT_SCHEMA, IMPACT_TASK, LENS_SCHEMA, LENS_TASK, buildAnalysisPrompt, buildMermaid, layoutMap, READING_LEVELS,
     readingLevels, readingGuide, BALLOT_SCHEMA, BALLOT_TASK, buildBallotPrompt, applyBallotDraft, nextSpeech, EVAL_SYSTEM,
-    EVAL_SCHEMA, buildEvalPrompt, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM, buildLiveFlowPrompt, promptsFor } = part('prompts');
+    EVAL_SCHEMA, buildEvalPrompt, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM, buildLiveFlowPrompt, promptsFor, NARROW_TOOL } = part('prompts');
   const { chipText, chipTip, CHIP_NAME_MS, chipNameDue, NET_TIP, netNote, speechLine, clockStatus, prepPausesLine,
     stepSpeechState, studyOn, studyMark, studyResult } = part('shell');
   const { FEATURE_KEYS, APP_FEATURES, STORE_KEYS, capsRequest, parseCaps, capsOutcome, gateFor, canUse, payerOf, setupAllowed,
@@ -52,6 +52,7 @@
   const { DEMO_CTA, demoSample, demoParamFor, demoCtaButtons, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript } = part('demo');
 
   const api = {
+    NARROW_TOOL, // the narrow-tool line that every own-key system text carries (AI-POLICY §9)
     SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS, PARADIGMS,
     BALLOT_HEADER, JUDGE_SYSTEM, POINTS_GUIDE,
     LOG_COLUMNS,
