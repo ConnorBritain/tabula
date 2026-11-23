@@ -29,7 +29,7 @@ This file shows the text without the Camp Pass, unless a line says otherwise.
 
 Publish Part A only when all of these are true:
 
-1. **Live checkout is checked.** Cloud setup confirms, on a live Checkout Session (no purchase by us), that Managed Payments is on and that the page shows "Sold through Link". It also confirms that a customer can cancel a live subscription through Link. If not, remove "through Link" from Terms §8 "Cancelling" and Refund Policy §3. If the live statement name is known, use it in §8 "Payment". If not, the text below stays true.
+1. **Live checkout is checked.** Cloud setup confirms, on a live Checkout Session (no purchase by us), that Managed Payments is on and that the page shows "Sold through Link". Cloud setup reports that customers can cancel and update cards on the Link website, as well as in our portal. If the live statement name is known, use it in §8 "Payment". If not, the text below stays true.
 2. **The dispute hold is changed in the code** (section A.4). Today a dispute puts a billing hold on the account. The hold stops Hosted AI and blocks checkout. Part A says we do not do that.
 3. **The live Link refund setting is "Refund without emailing me"** (owner choice O3), so it matches Refund Policy §6.
 4. **The owner says yes** in the marketing chat.
@@ -37,7 +37,7 @@ Publish Part A only when all of these are true:
 **Gate status (2026-11-22, reported by cloud setup and checked in git):**
 - Item 1: partly done. Read-only check in the live Stripe dashboard: Managed Payments is on ("Ready to use", default for all Checkout Sessions; no payment has used it yet). The live statement descriptor is `TABULASPEECH`, so the statement will start with `LINK.COM*`. Not checked live: the "Sold through Link" label and cancel through Link. Both were seen in the sandbox. Opening a live Checkout Session needs a prod account with a date of birth.
 - Item 2: built, not deployed. tabula-cloud branch `claude/dispute-no-hold` (cf85e36, ee28934, ed8daed): `refreshHold` is removed; a hold that support sets by hand still works. Tests: 456/456 passed on cf85e36. The lost-dispute review flag (O1) is on the same branch (aec73bf, 7360c8c): the second lost dispute adds a "possible fraud" line to the review list, with no hold. Tests: 459/459 passed on 7360c8c.
-- Item 3: the owner chose **automatic refunds** in this chat (2026-11-22: "automatic, check after the first month"). The live Stripe setting was switched to "Email me for approval" earlier the same day. Cloud setup must switch it back to "Refund without emailing me" before Part A goes live. Then no 48-hour approval is needed. Review the refund count in the Stripe dashboard one month after the first sale. If there is abuse, switch to approval and update Refund Policy §6.
+- Item 3: the owner chose **automatic refunds** (2026-11-22: "automatic, check after the first month"). Cloud setup switched the live setting back to "Refund without emailing me" on the owner's word in its chat, and checked it after a page reload. Then no 48-hour approval is needed. Review the refund count in the Stripe dashboard one month after the first sale. If there is abuse, switch to approval and update Refund Policy §6.
 
 ## A.1 Terms of Service
 
@@ -73,11 +73,17 @@ Publish Part A only when all of these are true:
 
 **After:** "A Subscription renews automatically at the end of each billing period, and Link charges the price then in effect for your plan, until you cancel."
 
+**Before:** "At least 7 days and no more than 30 days before each yearly renewal, we send a reminder to your Account email."
+
+**After:** "At least 7 days and no more than 30 days before each yearly renewal, you get a reminder by email. Link sends it to the email you used at checkout."
+
+(Cloud setup, 2026-11-22: our server sends no reminder. Link sends one 15 days before each yearly renewal, per Stripe's "How Managed Payments works".)
+
 ### §8 "Cancelling" (A3)
 
 **Before:** "You can cancel a Subscription at any time in your Account settings, or by email to {{support}}."
 
-**After:** "You can cancel a Subscription at any time in your Account settings, through Link, or by email to {{support}}."
+**After:** "You can cancel a Subscription at any time in your Account settings, on the Link website, or by email to {{support}}."
 
 ### §8 "No refunds" (A3)
 
@@ -149,10 +155,20 @@ The Link refund rule is written once, in §6. The other places point to it.
 **After:**
 "You can cancel at any time in any of these ways:
 - in your Account settings;
-- through Link; or
+- on the Link website; or
 - by email to {{support}} from your Account email address."
 
 ### §5 Renewal reminders (A1)
+
+**Before (In short):** "We email you before each yearly renewal."
+
+**After (In short):** "You get an email before each yearly renewal."
+
+**Before:** "At least 7 days and no more than 30 days before each Season or All-Access renewal, we send a reminder to your Account email. It gives the renewal date, the price and how to cancel."
+
+**After:** "At least 7 days and no more than 30 days before each Season or All-Access renewal, you get a reminder by email. Link sends it to the email you used at checkout."
+
+(The old sentence "It gives the renewal date, the price and how to cancel." is removed, because we do not control what Link's reminder says.)
 
 **Before:** "Charges appear on your card statement as "TABULA SPEECH", or as a short name that starts with "TABULA"."
 
