@@ -48,10 +48,29 @@ History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) publishe
 
 ## Approved, not live yet
 
-- **Update 6** (`LEGAL-UPDATE-6-WEEKEND-PASS-12-MONTHS-DRAFT.md`, lawyer good 2026-11-23): Weekend Pass Rounds last 12 months; spend order becomes Subscription Rounds, then Single Round, Round Pack and Weekend Pass Rounds; expiry reminder emails (with send records); Rounds are not a gift card or gift certificate (§6.7). Waits for the server change and the owner's yes in the marketing chat.
-- **Update 4 draft 3** (`LEGAL-UPDATE-4-CAMP-PASS-DRAFT-2.md`, lawyer good with his two changes 2026-11-23): Camp Pass with a Start button, an August 15 end and a kept share set on the purchase day, rounded up. Goes live after update 6.
+- **Update 6 draft 4** (`LEGAL-UPDATE-6-ROUNDS-NEVER-EXPIRE-DRAFT.md`, owner and lawyer agree 2026-11-23): paid Rounds never expire; Monthly, Season and All-Access add new Rounds only up to a cap that never removes Rounds; plan Rounds stay after cancel; Program Rounds still end July 31; the Weekend Pass loses its 4-day window; the Refund Policy gets "except where the law requires otherwise". Waits for the server work and the owner's yes in the marketing chat.
+- **Update 4 draft 4** (`LEGAL-UPDATE-4-CAMP-PASS-DRAFT-2.md`): Camp Pass with a Start button and an August 15 end; a started pass keeps a share (set on the purchase day, rounded up); a pass never started keeps all its Rounds; kept Rounds never expire. Goes live after update 6.
 - **Update 5 Part B** (buy without signing in, send a purchase to another person): waits for the buy-first build.
-- **Plans page changes held by marketing** (tabula-sites `claude/pricing-held-weekend`): pack names Single, Trio, Weekend Pass, Circuit; 7-round pack removed; Circuit price change; Weekend Pass "Rounds last 12 months". These ship on the same day as update 6.
+- **Marketing holds** the matching Plans page lines on a branch.
+- Replaced and never live: the Weekend Pass 12-month text (`LEGAL-UPDATE-6-WEEKEND-PASS-12-MONTHS-DRAFT.md`) and the first Camp Pass text (`LEGAL-UPDATE-4-CAMP-PASS-FINAL.md`).
+
+## Support rules (owner and lawyer, 2026-11-23)
+
+- **Small-balance cash-out.** If a customer asks, and a state law requires a cash payment for a small balance (California below $15, Washington below $5, if Rounds are covered), support pays the price that the customer paid per Round for their unused Rounds from that purchase. Refund through Link. Record the request.
+- **Account deletion.** Before a user deletes their Account, the app shows: "You have N rounds. Deleting your account removes them." Support handles any request that the law requires (Terms §18, "except where the law requires otherwise").
+- **Words.** See "Words for Rounds" below.
+
+## School data (owner and lawyer, 2026-11-23)
+
+- Every school data agreement says: we delete a student's data within 45 days of the school's request (Georgia O.C.G.A. 20-2-666 sets 45 days; Florida sets 90 days after a student leaves). The shorter deadline applies everywhere.
+- No ads, no profiling, no sale of student data, no use of student data to train AI. Each Hosted AI provider is bound by contract to the same rules.
+- Idaho and Indiana work through school contracts. Use the school's contract terms where they are stricter.
+
+## Watch list
+
+- **Federal KIDS Act / COPPA 2.0.** None has passed (2026-11-23). If a version that covers age 13 passes, 13-year-olds need a parent's consent or a school agreement. The per-state consent switch in `src/age.ts` can be used.
+- **New York GBL Art. 48** from 2027-01-01: product rules in `docs/design/AI-POLICY.md` §9.
+- **Pennsylvania:** re-check in December 2026 that no added session day passed a bill.
 
 ## Not yet true in the product
 
@@ -65,5 +84,5 @@ This rule applies to the product, the legal pages, emails and all marketing.
 - Never call Rounds, packs or passes a "gift", a "gift card" or a "gift certificate".
 - Never offer them "as a gift", and never say "give Rounds" or "gift Rounds" to a person.
 - When a buyer moves Rounds to another person, say "send" (for example "send Rounds", "send a purchase").
-- Reason: in some states a gift card or gift certificate cannot expire (for example Cal. Civ. Code 1749.5). Rounds expire 12 months after purchase. Terms §6.7 says Rounds are a license, not a gift card or stored value. Copy that calls them gifts weakens that case.
+- Reason: in some states a gift card or gift certificate cannot expire (for example Cal. Civ. Code 1749.5). Paid Rounds never expire (update 6 draft 4), but the Camp Pass and Program Rounds still have end dates, and gift-card laws also add cash-out duties. Copy that calls Rounds gifts makes them look like gift cards.
 - Not covered: money given to a school team pool (Programs page, "Fund our team"). That is a donation of money, not Rounds sold to a person. Ask the legal session before you change that copy.

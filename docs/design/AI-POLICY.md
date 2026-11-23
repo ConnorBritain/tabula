@@ -290,3 +290,18 @@ Step 1 changes app files. Slice 4 owns them now, so it waits.
 **Later (not needed now):**
 - Seat price for Flow-only users: free, or lower.
 - A school Chromebook device policy through Chrome's Managed Configuration API, so AI stays off even when signed out.
+
+## 9. New York companion rules (from 2027-01-01)
+
+Source: New York GBL Art. 48 (Laws 2026 ch. 368, signed 2026-10-28, effective 2027-01-01). Research: `private/legal/minors-ai-research/group7-gaps-2026-11-23.md`, item 3. Adopted by the owner and the lawyer on 2026-11-23.
+
+The law defines a "covered AI companion" broadly. It bans 12 "unsafe features" for users who are not age-checked as adults. Tabula stays outside it by keeping Hosted AI a narrow tool. These rules apply to every Hosted AI feature, for every user, in every state:
+
+1. **On topic only.** Hosted AI answers only about the debate round in front of it (transcript, flow, ballot, decision). No open chat. An off-topic request gets a short refusal, not a conversation.
+2. **No AI opinions.** Drafted decisions and ballots are the judge's draft. The AI never says "I think", "I feel" or "in my opinion" in its own voice.
+3. **No praise of the user.** No flattery, no "great job", no encouragement aimed at the person.
+4. **No persona.** No name, character, coach or authority role for the AI.
+5. **No memory of the person.** No use of personal facts from earlier sessions. Each round starts fresh.
+6. **No engagement hooks.** No streaks, no "come back" prompts from the AI, no push notifications to known minors.
+
+Before any new Hosted AI feature ships, check it against this list. If Tabula ever adds free chat with the AI, the legal session must re-check New York Art. 48 first.

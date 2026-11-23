@@ -103,9 +103,10 @@ No change.
 
 - Header line. Before: "Pay once. Nothing renews. Packs and single rounds expire 12 months after purchase." After: "Pay once. Nothing renews. Your rounds never expire."
 - Weekend Pass card: remove "Use within 4 days from your first round." Suggested line: "Rounds never expire."
-- Season card. Before: "60 rounds for the year." and "Use them any month you like." After: "60 rounds each year." and "Unused rounds carry over, up to 60."
-- Monthly card: "Unused rounds carry over, up to 39." can stay.
-- All-Access card: add "Unused rounds carry over, up to 165." when it goes on sale.
+- Season card. Before: "60 rounds for the year." and "Use them any month you like." After: "Each year we top you up to 60 rounds." and "Unused rounds carry over." (Marketing review: "carry over, up to 60" can be read as 60 extra.)
+- Monthly card. Before: "Unused rounds carry over, up to 39." After: "Unused rounds carry over, up to 39 in all."
+- All-Access card: "Each year we top you up to 165 rounds." and "Unused rounds carry over." (when it goes on sale).
+- my. app Plan page (`sites/my/pages/plan.html`, W7): "{{rounds_season}} rounds for the year." → "Each year we top you up to {{rounds_season}} rounds. Unused rounds carry over."
 - Weekend Pass card, full line: "For one tournament weekend. Rounds never expire."
 - FAQ on cancel. Before: "Yes. You keep your plan until the end of the month or Season you paid for." After: add "The rounds you have stay in your account and never expire."
 - Camp Pass keep wording (card, `TabulaCamp.keepText`, the my. confirm step): "as saved rounds for 12 months" → "as saved rounds that never expire".
