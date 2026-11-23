@@ -142,6 +142,7 @@
     ageRequired: 'Add your date of birth on your Tabula account page to use AI. The clock, flow and ballot still work.',
     parentConsent: 'Where you live, a parent or guardian must agree before you use Tabula AI. The clock, flow and ballot still work.',
     billingHold: 'Billing is on hold for this account, so Tabula AI is paused. Your own key still works.',
+    accountHold: 'This account is on hold. Open your account page to see why. The clock, flow and ballot still work.',
     notAllowed: 'AI is not allowed for this round.',
     slowDown: 'Too many AI requests at once. Wait a moment and try again.',
     tooManyRounds: 'Too many rounds today. The round goes on without AI.',
@@ -183,6 +184,11 @@
       if (c === 'age_required') return out('ageRequired', { fallback: true, link: { label: 'Open account', url: page } });
       if (c === 'parent_consent_required') return out('parentConsent', { fallback: true });
       return out('noCredits', { link: buy });
+    }
+    if (s === 403 && c === 'age_hold') {
+      // The under-13 hold (tabula-cloud CONTRACTS §6i, BUY-FIRST-SPEC §7.2): the account may only sign out. Neutral words in
+      // the round; the account page shows the hold and the review request. No own-key fallback: the account is on hold.
+      return out('accountHold', { link: { label: 'Open account', url: page } });
     }
     if (s === 403) return c === 'billing_hold' ? out('billingHold', { fallback: true }) : out('notAllowed');
     if (s === 404 || c === 'reload_app') return out('reload');
