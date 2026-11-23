@@ -34,7 +34,7 @@ Source of the rules: the owner's decisions in the pricing chat, 2026-11-23 (`pri
 
 1. **Update 6 draft 4 (paid Rounds never expire) is live first.** This draft uses its After texts as "Before".
 2. The lawyer sees the final T2 and R4 wording.
-3. The server sells the Camp Pass and applies every rule above: the Start step; the camp period; the spend order; the keep step for a started pass (share stored at purchase, rounded up); the full conversion of a pass never started; kept Rounds with no expiry; refunds and disputes after the keep step (T8); the reminders, with a record of each send try (time, address, purchase, email type, provider message ID, result; kept at least 2 years).
+3. The server retries a failed reminder send within the same day, including the last-day email ("If a send fails, we try again"), skips the reminder when a started pass has no unused Rounds, and includes `email_sends` in the user data export. The server sells the Camp Pass and applies every rule above: the Start step; the camp period; the spend order; the keep step for a started pass (share stored at purchase, rounded up); the full conversion of a pass never started; kept Rounds with no expiry; refunds and disputes after the keep step (T8); the reminders, with a record of each send try (time, address, purchase, email type, provider message ID, result; kept at least 2 years).
 4. The owner types yes in the marketing chat.
 5. Before publish, save a live Privacy Policy snapshot and check the P1 Before text against it.
 6. The Terms, the Refund Policy, the Privacy Policy and the Plans page go live on the same day, or the Plans page later. The build check keeps the Camp Pass card off the Plans page until `terms.html` contains "Camp Pass".
@@ -71,7 +71,7 @@ Use the publish date in the page headers.
 - Add: "Camp Pass: when the camp period ends, unused Camp Pass Rounds expire, except the Rounds that we keep (see 6.1). Rounds that we keep do not expire."
 
 **T7. §6.6, new paragraph after the list**
-- Add: "For a Camp Pass that you have started, we try to email the Account that holds its Rounds about 7 days before the camp period ends, if the camp period is that long, and on its last day. If a send fails, we try again. If an email does not reach you, the end of the camp period does not change."
+- Add: "For a Camp Pass that you have started, we try to email the Account that holds its Rounds about 7 days before the camp period ends, if the camp period is that long, and on its last day, while the pass still has unused Rounds. If a send fails, we try again. If an email does not reach you, the end of the camp period does not change."
 
 **T8. §8 "Disputes and chargebacks" (no text change)**
 - The live text says "first from that payment's unused Rounds". T2's "count as Rounds from your Camp Pass payment" makes kept Rounds part of that payment. The server must take back kept Rounds first, then the user's other unused Rounds, in proportion, as the live text says.
@@ -105,13 +105,18 @@ Use the publish date in the page headers.
 **R6. §5 "Renewal reminders"**
 - Heading. Before: "5. Renewal reminders". After: "5. Reminders". The table of contents entry changes too.
 - In short. Before: "You get an email before each yearly renewal." After: "You get an email before each yearly renewal, and before a Camp Pass camp period ends."
-- Add after the first paragraph: "For a Camp Pass that you have started, we try to email you about 7 days before the camp period ends, if the camp period is that long, and on its last day. Terms Section 6.6 gives the full rule."
+- Add after the first paragraph: "For a Camp Pass that you have started, we try to email you about 7 days before the camp period ends, if the camp period is that long, and on its last day, while the pass still has unused Rounds. Terms Section 6.6 gives the full rule."
 
 ## Privacy Policy (`sites/speech/pages/privacy.html`)
 
 **P1. §9 "How we use data"**
 - Before: "send service messages, such as sign-in emails, receipts, renewal reminders and notices of changes to our terms or this policy;"
 - After: "send service messages, such as sign-in emails, receipts, renewal reminders, Camp Pass reminders and notices of changes to our terms or this policy;"
+
+**P2. §13 "Retention", new item after "Support emails are kept for as long as needed to help you and to keep a record of the request."**
+- Add: "Records of the reminder emails we send you (the address, the time, the type of email and the delivery result) are kept for 2 years after each email, so that we can show that we sent it. We keep them for that time even if you delete your Account."
+- The data export (Privacy §16, access) includes these records. Server: add `email_sends` rows for the user to the export.
+- The lawyer has not seen P2. Send it to him before publish (it is the record-keeping that he approved in update 6's L2).
 
 ## Plans page and other copy (marketing)
 

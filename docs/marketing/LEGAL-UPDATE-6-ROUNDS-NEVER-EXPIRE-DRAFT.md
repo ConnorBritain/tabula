@@ -66,8 +66,8 @@ This draft **replaces** `LEGAL-UPDATE-6-WEEKEND-PASS-12-MONTHS-DRAFT.md` (Weeken
 
   "**6.6 How long Rounds last.** Except for Program Rounds, Rounds that you buy do not expire. They stay in your balance until you use them, except as Sections 8 and 18 say.
   - Single Round, Round Pack and Weekend Pass Rounds do not expire.
-  - Monthly plan: each month we add the plan's Rounds, but only enough to bring your Monthly plan Rounds up to the cap shown on the Plans page and at checkout. The cap limits only what we add. It never removes Rounds that you already have.
-  - Season plan and All-Access plan: at the start of each yearly term we add the plan's Rounds, but only enough to bring your Rounds from that plan up to one year's amount for that plan. Rounds that you did not use in earlier terms stay in your balance. The cap limits only what we add. It never removes Rounds that you already have.
+  - Monthly plan: each month we add the plan's Rounds, but only enough to bring your Monthly plan Rounds up to the cap shown on the Plans page and at checkout. The cap limits only what we add. It never removes Rounds that you already have. If your Monthly plan Rounds are already at the cap, a renewal adds no Rounds, but you are still charged. You can cancel at any time (see Section 8).
+  - Season plan and All-Access plan: at the start of each yearly term we add the plan's Rounds, but only enough to bring your Rounds from that plan up to one year's amount for that plan. Rounds that you did not use in earlier terms stay in your balance. The cap limits only what we add. It never removes Rounds that you already have. If your Rounds from that plan are already at one year's amount, a renewal adds no Rounds, but you are still charged. You can cancel at any time before the renewal (see Section 8).
   - If you cancel a Subscription, the Rounds that you have stay in your balance. They do not expire.
   - Program Rounds expire on July 31 following the start of the Program term."
 
@@ -87,7 +87,7 @@ Nothing else in the Terms changes. §8 (refunds and disputes take back Rounds) a
 
 **R3. §4 "Expiry" (replace the whole item; new label "How long Rounds last")**
 - Before: "Expiry. Single Round and Round Pack Rounds expire 12 months after purchase. Weekend Pass Rounds expire 4 days after the first Round from the pass is committed. Monthly plan Rounds roll over while your plan stays active, up to a cap. Season and All-Access Rounds expire at the end of the 12-month term. Program Rounds expire on July 31. Terms Section 6.6 gives the full schedule."
-- After: "**How long Rounds last.** Single Round, Round Pack and Weekend Pass Rounds do not expire. Plan Rounds carry over. Each month or year, we add new plan Rounds only up to a cap, and the cap never removes Rounds that you have. If you cancel a plan, you keep the Rounds that you have. Program Rounds expire on July 31. Terms Section 6.6 gives the full rule."
+- After: "**How long Rounds last.** Single Round, Round Pack and Weekend Pass Rounds do not expire. Plan Rounds carry over. Each month or year, we add new plan Rounds only up to a cap, and the cap never removes Rounds that you have. A renewal when you are already at the cap adds no Rounds, but it is still charged. You can cancel at any time before a renewal. If you cancel a plan, you keep the Rounds that you have. Program Rounds expire on July 31. Terms Section 6.6 gives the full rule."
 
 **R4. §4 "Order" (replace the first sentence)**
 - Before: "We use Weekend Pass Rounds first, then Subscription Rounds, then Single Round and Round Pack Rounds."
@@ -138,6 +138,13 @@ No change.
   - Refund §4 "no cash value" item (A9): its Before ("They cannot be refunded, redeemed for cash or transferred.") changes after R5 to "They cannot be refunded, redeemed for cash or transferred, except where the law requires otherwise."
 - **`TEEN-ROUNDS-AND-GIFTS.md` §9.4** (expiry of sent Rounds): no longer needed for one-time Rounds.
 - **`LEGAL-FACTS.md`** on the publish day: the "Round expiry" and "Spend order" rows, and the "Approved, not live yet" list.
+
+## Renewal at the cap (owner, legal chat, 2026-11-23)
+
+The server (checkout-lots, branch `claude/rounds-never-expire`) charges a renewal in full even when the person already holds the cap, and then adds 0 Rounds. Monthly already works this way on the live site. The owner chose to say it clearly instead of changing the billing code:
+- T5 (Monthly, Season and All-Access items) and R3 now say that a renewal at the cap adds no Rounds but is still charged, and that you can cancel at any time.
+- The my. account page shows the plan Rounds balance and the cap next to the next renewal date (app work).
+- The lawyer has not seen these sentences. Send them to him before publish.
 
 ## Questions for the lawyer
 
