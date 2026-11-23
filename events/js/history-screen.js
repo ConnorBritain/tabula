@@ -95,11 +95,18 @@ export function createHistoryScreen(env) {
     const del = e.target.closest('button[data-del]');
     if (del) {
       // Focus goes to the next row's Delete button (or the title), so a keyboard judge keeps their place.
-      const tr = del.closest('tr');
-      const next = tr && (tr.nextElementSibling || tr.previousElementSibling);
-      const nextId = next ? next.dataset.id : '';
+      // The place is found by position, not by putting the round id in a CSS selector: ids can come from a backup
+      // file, and a quote in one would make querySelector throw.
+      const all = [...env.el.querySelectorAll('button[data-del]')];
+      const at = all.indexOf(del);
       // The Undo toast stays up for a while; if the judge has left History, Undo must not draw History over the new screen.
-      env.deleteRound(del.dataset.del, () => { if (showing) draw(nextId ? `button[data-del="${nextId}"]` : '#screen-title'); });
+      env.deleteRound(del.dataset.del, () => {
+        if (!showing) return;
+        draw();
+        const left = [...env.el.querySelectorAll('button[data-del]')];
+        const f = left[Math.min(at, left.length - 1)] || $('#screen-title');
+        if (f) f.focus();
+      });
       return;
     }
     if (e.target.id === 'hist-tsv') copyTsv();

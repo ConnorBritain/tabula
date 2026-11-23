@@ -15,7 +15,8 @@ import { createEventsStore, ROOMS_KEY, SETTINGS_KEY } from './store.js';
 import { loadEventData } from './data.js';
 import { groupRoomsByDay, roomsHtml } from './rooms.js';
 import { parseRoute, routeHash, roundTarget } from './routes.js';
-import { upsertRoom, findRoom, removeRoom, restoreRoom, undoDeleteKey } from './room.js';
+import { upsertRoom, findRoom } from './room.js';
+import { createDeleteRound } from './delete-round.js';
 import { migrateRooms, migrateSettings } from './migrate.js';
 import { MODES, modeMenuShown, withSetting } from './settings.js';
 import { keymap, keyOf } from './keys.js';
@@ -82,22 +83,10 @@ function boot(data) {
     ai: createPageAI(store), // step E13: the AI gate and the judge's own key (Review screen clean-up, Settings)
     settings: readSettings,
     saveSettings: (s) => { store.set(SETTINGS_KEY, s); renderHeader(parseRoute(location.hash).screen); },
-    // Delete a round, with Undo in the toast that puts it back in the same place (EXPERIENCE.md §7). after(): redraw
-    // the screen that asked, after the delete and after an Undo.
-    deleteRound(id, after) {
-      const saved = store.get(ROOMS_KEY, []);
-      const res = removeRoom(saved, id);
-      if (!res.removed) return;
-      if (!store.set(ROOMS_KEY, res.rooms)) return;
-      const r = res.removed.room;
-      const what = [r.round, r.tournament].filter(Boolean).join(', ') || 'the round';
-      if (after) after();
-      ui.toast('Deleted ' + what + '.', { key: undoDeleteKey(id), action: { label: 'Undo', name: 'Undo: delete ' + what, run: () => {
-        store.set(ROOMS_KEY, restoreRoom(store.get(ROOMS_KEY, []), res.removed));
-        if (after) after();
-        ui.toast('The round is back.', { key: undoDeleteKey(id) });
-      } } });
-    },
+    // Delete a round, with Undo in the toast that puts it back in the same place (EXPERIENCE.md §7; events/js/delete-round.js).
+    // after(): the asking screen redraws and moves focus. After an Undo, the screen that shows then redraws.
+    deleteRound: createDeleteRound({ get: () => store.get(ROOMS_KEY, []), set: (list) => store.set(ROOMS_KEY, list), ui,
+      refresh: () => { if (!$('#rooms').hidden) renderRooms(data); else if (current && current.refresh) current.refresh(); } }),
     // After a restore: the theme, the header and the screen read the new data.
     reload() {
       if (globalThis.TabulaTheme) globalThis.TabulaTheme.set(readSettings().theme);
@@ -162,7 +151,7 @@ function boot(data) {
   // Delete from the Rooms list (with Undo, like History).
   $('#rooms-list').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-del]');
-    if (b) env.deleteRound(b.dataset.del, () => { renderRooms(data); if (!$('#rooms').hidden) $('#rooms-title').focus(); });
+    if (b) env.deleteRound(b.dataset.del, () => { renderRooms(data); $('#rooms-title').focus(); });
   });
 
   // The palette (⌘K / Ctrl+K): each enabled event, each saved round, History and Settings, and the waiting Undo.

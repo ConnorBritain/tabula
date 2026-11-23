@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { buildBackup } from '../core/store.js';
 import { loadEventData } from './js/data.js';
-import { createRoom, undoDeleteKey } from './js/room.js';
+import { createRoom } from './js/room.js';
+import { createDeleteRound, DELETE_TOAST_KEY } from './js/delete-round.js';
 import { historyTableHtml, createHistoryScreen } from './js/history-screen.js';
 import { historyRows, historyColumns } from './js/history.js';
 import { readBackup, restoreItems, BACKUP_APP } from './js/settings.js';
@@ -19,11 +20,63 @@ let n = 0;
 const room = (id, round) => Object.assign(createRoom({ event: DATA.events.get('hi'), profile: PROFILE, entries: [{ code: 'A1' }],
   round, now: new Date(2026, 10, 20, 9).getTime(), makeId: (p) => p + 'fx' + (++n) }), { id });
 
-// Why: core/ui reuses an open toast with the same key and keeps its first Undo; if two deletes share a key, the
-// second delete's Undo brings back the first round and the second round is lost for good.
-test('each deleted round gets its own Undo toast key', () => {
-  assert.notEqual(undoDeleteKey('rA'), undoDeleteKey('rB'));
-  assert.equal(undoDeleteKey('rA'), undoDeleteKey('rA'));
+// A fake core/ui toast with the same reuse rule as core/ui.js (toastPlan): an open toast with the same key or the
+// same text is reused and keeps its first action. Clicking a toast's button runs the action it holds.
+function fakeUI() {
+  const open = [];
+  return {
+    open,
+    toast(msg, o = {}) {
+      const same = open.find((t) => (o.key && t.key === o.key) || t.msg === msg);
+      if (same) { same.msg = msg; return same; }
+      const t = { msg, key: o.key || '', action: o.action || null };
+      if (t.action) open.splice(0, open.length, ...open.filter((x) => !x.action)); // only one Undo waits at a time
+      open.push(t); return t;
+    },
+    dismissToast(key) { for (let i = open.length - 1; i >= 0; i--) if (open[i].key === key) open.splice(i, 1); },
+    click(t) { open.splice(open.indexOf(t), 1); t.action.run(); },
+  };
+}
+const harness = (list) => {
+  let saved = list.slice();
+  const ui = fakeUI();
+  let refreshed = 0;
+  const del = createDeleteRound({ get: () => saved, set: (l) => { saved = l; return true; }, ui, refresh: () => { refreshed++; } });
+  return { del, ui, ids: () => saved.map((r) => r.id), refreshed: () => refreshed };
+};
+
+// Why: two rounds can share a name ("R1" at two tournaments with no tournament typed); if the second delete reused the
+// first toast, its Undo would bring back the wrong round and the round just deleted would be lost for good.
+test('a second delete with the same text gets its own working Undo', () => {
+  const h = harness([room('rA', 'R1'), room('rB', 'R1'), room('rC', 'R2')]);
+  h.del('rA'); h.del('rB');
+  const undo = h.ui.open.filter((t) => t.action);
+  assert.equal(undo.length, 1, 'one Undo waits');
+  h.ui.click(undo[0]);
+  assert.deepEqual(h.ids(), ['rB', 'rC'], 'Undo brought back the round deleted last, in its place');
+});
+
+// Why: a judge who taps Undo and then deletes the same round again within a few seconds must still get an Undo;
+// reusing the "The round is back." toast (which has none) would leave that delete with no way back.
+test('deleting a round again right after its Undo still offers Undo', () => {
+  const h = harness([room('rA', 'R1'), room('rB', 'R2')]);
+  h.del('rA');
+  h.ui.click(h.ui.open.find((t) => t.action));
+  assert.deepEqual(h.ids(), ['rA', 'rB']);
+  h.del('rA');
+  const undo = h.ui.open.find((t) => t.action);
+  assert.ok(undo, 'the second delete has an Undo');
+  h.ui.click(undo);
+  assert.deepEqual(h.ids(), ['rA', 'rB']);
+  assert.equal(h.refreshed(), 2, 'each Undo redraws the screen that shows then');
+});
+
+// Why: the Undo toast must be up before the asking screen redraws; if the redraw throws (bad data from a backup), the
+// round is already deleted, and without the toast the judge could not get it back.
+test('the Undo toast shows even when the redraw after a delete fails', () => {
+  const h = harness([room('rA', 'R1')]);
+  assert.throws(() => h.del('rA', () => { throw new Error('redraw failed'); }));
+  assert.ok(h.ui.open.some((t) => t.action && t.key === DELETE_TOAST_KEY));
 });
 
 // Why: the Undo toast stays up after the judge leaves History; if Undo then drew History, it would wipe out the
@@ -31,7 +84,7 @@ test('each deleted round gets its own Undo toast key', () => {
 test('Undo after leaving History does not draw History over the new screen', () => {
   let after = null;
   const listeners = {};
-  const el = { innerHTML: '', querySelector: () => null,
+  const el = { innerHTML: '', querySelector: () => null, querySelectorAll: () => [],
     addEventListener: (t, f) => { listeners[t] = f; }, removeEventListener: (t) => { delete listeners[t]; } };
   const rooms = [room('rA', 'R1'), room('rB', 'R2')];
   const screen = createHistoryScreen({ el, data: DATA, now: () => 0, rooms: () => rooms, ui: { toast() {} },
