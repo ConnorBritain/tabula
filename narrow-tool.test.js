@@ -33,7 +33,9 @@ test('no own-key system text gives the AI a name or a role such as a coach', () 
 // Why: the demo shows saved answers as AI output to people trying Tabula; they must follow the same rules.
 test('no demo answer has a first-person view or praise of the reader', () => {
   const dir = path.join(__dirname, 'demo');
-  for (const f of fs.readdirSync(dir).filter((n) => n.endsWith('.js'))) {
+  const files = fs.readdirSync(dir).filter((n) => n.endsWith('.js'));
+  assert.ok(files.length >= 3, 'the demo answers are where this test looks');
+  for (const f of files) {
     const text = fs.readFileSync(path.join(dir, f), 'utf8');
     assert.doesNotMatch(text, /\bI\s+(?:think|feel|believe)\b|\bin\s+my\s+(?:opinion|view)\b/i, f);
     assert.doesNotMatch(text, /\b(?:great|excellent|amazing)\s+(?:job|work)\b|\bwell\s+done\b|\bproud\s+of\s+you\b/i, f);
