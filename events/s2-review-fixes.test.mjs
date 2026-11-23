@@ -126,3 +126,17 @@ test('a backup whose date is not text still reads, with no date', () => {
   const file = Object.assign(buildBackup({}, { prefix: PREFIX, app: BACKUP_APP, now: 'x' }), { exportedAt: 12345 });
   assert.equal(readBackup(JSON.stringify(file)).exportedAt, '');
 });
+
+// Why: if the Undo save fails (storage full), telling the judge "The round is back." would make them trust a round
+// that is gone; they must see that it did not come back.
+test('an Undo whose save fails says the round did not come back', () => {
+  let saved = [room('rA', 'R1')];
+  let fail = false;
+  const ui = fakeUI();
+  const del = createDeleteRound({ get: () => saved, set: (l) => { if (fail) return false; saved = l; return true; }, ui, refresh() {} });
+  del('rA');
+  fail = true;
+  ui.click(ui.open.find((t) => t.action));
+  assert.ok(!ui.open.some((t) => /is back/.test(t.msg)));
+  assert.ok(ui.open.some((t) => /did not come back/.test(t.msg)));
+});

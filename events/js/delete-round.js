@@ -22,9 +22,10 @@ export function createDeleteRound({ get, set, ui, refresh }) {
     ui.dismissToast(DELETE_TOAST_KEY);
     // The toast goes up before the screen redraws, so a redraw that fails cannot take the Undo away.
     ui.toast('Deleted ' + what + '.', { key: DELETE_TOAST_KEY, action: { label: 'Undo', name: 'Undo: delete ' + what, run: () => {
-      set(restoreRoom(get(), res.removed));
-      if (refresh) refresh();
       ui.dismissToast(DELETE_TOAST_KEY);
+      // A failed save says so (the store also shows its own storage error); it never claims the round is back.
+      if (!set(restoreRoom(get(), res.removed))) { ui.toast('The round did not come back. The device storage is full or blocked.', { kind: 'error', key: DELETE_TOAST_KEY }); return; }
+      if (refresh) refresh();
       ui.toast('The round is back.', { key: DELETE_TOAST_KEY });
     } } });
     if (after) after();
