@@ -6,6 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { createRequire } from 'node:module';
 import { isReservedCombo, searchCommands } from '../core/keys.js';
 import { buildBackup } from '../core/store.js';
 import { loadEventData } from './js/data.js';
@@ -135,6 +136,19 @@ test('CSV quotes commas, quotes and line breaks; TSV flattens them; a formula st
   assert.equal(sheetSafe(null), '');
   assert.equal(toCSV([['a', 'b'], ['c,d', '=e']]), 'a,b\r\n"c,d",\'=e');
   assert.equal(toTSV([['a\tb', 'c\nd'], ['=x', 'y']]), 'a b\tc d\n\'=x\ty');
+});
+
+// Why: the CSV rules are copied from the debate exports; if the copies drifted, a formula guard fixed in one app would
+// still let a cell like =HYPERLINK(...) run when a coach opens the other app's file.
+test('the events CSV and TSV rules give the same text as the debate copy', () => {
+  const L = createRequire(import.meta.url)('../logic.js');
+  const rows = [['plain', 'a,b', 'say "hi"', 'two\nlines', 'cr\rhere', 'tab\there'], ['=SUM(A1)', '+1', '-2', '@x', 3, null], ['=1,2', '', 0, undefined, ' =x', 'ok']];
+  for (const v of rows.flat()) {
+    assert.equal(sheetSafe(v), L.sheetSafe(v), JSON.stringify(v));
+    assert.equal(csvCell(v), L.csvCell(v), JSON.stringify(v));
+  }
+  assert.equal(toCSV(rows), L.toCSV(rows));
+  assert.equal(toTSV(rows), L.toTSV(rows));
 });
 
 // Why: History draws text the judge typed (tournament, round); an unescaped "<" would run code in the page that holds

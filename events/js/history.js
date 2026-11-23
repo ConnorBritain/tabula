@@ -80,8 +80,10 @@ export function historyColumns(rows, filter) {
 }
 
 // ---------- the exports ----------
-// Text that starts with = + - @ runs as a formula in a spreadsheet. A leading ' keeps it text (the same rule as the
-// debate exports, logic/round.js sheetSafe; the events page may not load debate files).
+// Text that starts with = + - @ runs as a formula in a spreadsheet. A leading ' keeps it text. This is a copy of the
+// debate rules (logic/round.js sheetSafe, csvCell, toCSV, toTSV): the events page may not load debate files, and a new
+// core/ module must also load in the debate page. events/console.test.mjs checks the two copies give the same text.
+// TODO: move both to core/ when the debate page can load a new core module.
 export function sheetSafe(value) {
   if (value == null) return '';
   if (typeof value === 'number') return String(value);
