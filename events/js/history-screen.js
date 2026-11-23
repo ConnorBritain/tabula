@@ -12,7 +12,7 @@ const option = (value, label, picked) => `<option value="${esc(value)}"${value =
 
 // One cell of the table as HTML text. The round cell opens the round.
 function cellHtml(row, key) {
-  if (key === 'round') return `<a href="${routeHash('round', row.id)}">${esc(row.round || 'Untitled round')}</a>`;
+  if (key === 'round') return `<a href="${esc(routeHash('round', row.id))}">${esc(row.round || 'Untitled round')}</a>`;
   if (key === 'commentsOpen') return row.commentsOpen ? 'Yes' : '';
   return esc(row[key]);
 }
@@ -89,6 +89,8 @@ export function createHistoryScreen(env) {
     env.ui.toast('The CSV file is in your downloads.', { key: 'hist' });
   }
 
+  let showing = false;
+
   function onClick(e) {
     const del = e.target.closest('button[data-del]');
     if (del) {
@@ -96,7 +98,8 @@ export function createHistoryScreen(env) {
       const tr = del.closest('tr');
       const next = tr && (tr.nextElementSibling || tr.previousElementSibling);
       const nextId = next ? next.dataset.id : '';
-      env.deleteRound(del.dataset.del, () => draw(nextId ? `button[data-del="${nextId}"]` : '#screen-title'));
+      // The Undo toast stays up for a while; if the judge has left History, Undo must not draw History over the new screen.
+      env.deleteRound(del.dataset.del, () => { if (showing) draw(nextId ? `button[data-del="${nextId}"]` : '#screen-title'); });
       return;
     }
     if (e.target.id === 'hist-tsv') copyTsv();
@@ -110,11 +113,13 @@ export function createHistoryScreen(env) {
   return {
     scope: 'history',
     show() {
+      showing = true;
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('change', onChange);
       draw('#screen-title');
     },
     hide() {
+      showing = false;
       env.el.removeEventListener('click', onClick);
       env.el.removeEventListener('change', onChange);
     },

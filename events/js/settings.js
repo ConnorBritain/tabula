@@ -79,14 +79,16 @@ export function readBackup(text) {
     const s = parseJson(storage[SETTINGS_KEY]);
     storage[SETTINGS_KEY] = JSON.stringify(migrateSettings(s.ok ? s.value : {}));
   }
-  return { storage, exportedAt: b.exportedAt, includesKeys: b.includesKeys, rounds };
+  return { storage, exportedAt: typeof b.exportedAt === 'string' ? b.exportedAt : '', includesKeys: b.includesKeys, rounds };
 }
 
 // What restore writes: the backup's values. A backup made without the AI key keeps the key this device has now, so
 // restoring never signs the judge out of their AI by surprise. current: store.snapshot(PREFIX).
 export function restoreItems(current, backup) {
   const items = Object.assign({}, backup.storage);
-  if (!backup.includesKeys && current && typeof current[KEYS_KEY] === 'string') items[KEYS_KEY] = current[KEYS_KEY];
+  // A file can say it includes keys and still hold none (the key lived only in this tab). Keep the device's key then too.
+  const hasKey = backup.includesKeys && typeof items[KEYS_KEY] === 'string';
+  if (!hasKey && current && typeof current[KEYS_KEY] === 'string') items[KEYS_KEY] = current[KEYS_KEY];
   return items;
 }
 

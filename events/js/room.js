@@ -269,6 +269,10 @@ export const findRoom = (rooms, id) => (Array.isArray(rooms) ? rooms : []).find(
 
 // Delete a round (step S2, EXPERIENCE.md §7: delete with Undo). Returns { rooms, removed: { room, index } } for
 // restoreRoom; removed is null when no round has that id (the list comes back unchanged).
+// The toast key for one delete's Undo. Each round gets its own key: core/ui reuses an open toast with the same key
+// and keeps that toast's first action, so a shared key would make a second delete's Undo bring back the first round.
+export const undoDeleteKey = (id) => 'del-round:' + id;
+
 export function removeRoom(rooms, id) {
   const list = Array.isArray(rooms) ? rooms.slice() : [];
   const index = list.findIndex((r) => r && r.id === id);
@@ -288,5 +292,5 @@ export function restoreRoom(rooms, removed) {
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).room = Object.freeze({
   ENABLED_EVENTS, CUSTOM_EVENT, DEFAULT_PROFILE, MAX_ENTRIES, STATUS_LABEL, normCode, newId, makeEntry, codeError, createRoom, roomEvent, setupError,
   entryOf, indexOf, present, updateEntry, selectEntry, entryAtNumber, nextWaiting, moveEntry, markNoShow, clearNoShow,
-  addEntry, removeEntry, restoreEntry, rosterAction, upsertRoom, findRoom, removeRoom, restoreRoom,
+  addEntry, removeEntry, restoreEntry, rosterAction, upsertRoom, findRoom, removeRoom, restoreRoom, undoDeleteKey,
 });

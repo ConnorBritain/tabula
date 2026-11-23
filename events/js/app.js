@@ -15,7 +15,7 @@ import { createEventsStore, ROOMS_KEY, SETTINGS_KEY } from './store.js';
 import { loadEventData } from './data.js';
 import { groupRoomsByDay, roomsHtml } from './rooms.js';
 import { parseRoute, routeHash, roundTarget } from './routes.js';
-import { upsertRoom, findRoom, removeRoom, restoreRoom } from './room.js';
+import { upsertRoom, findRoom, removeRoom, restoreRoom, undoDeleteKey } from './room.js';
 import { migrateRooms, migrateSettings } from './migrate.js';
 import { MODES, modeMenuShown, withSetting } from './settings.js';
 import { keymap, keyOf } from './keys.js';
@@ -92,10 +92,10 @@ function boot(data) {
       const r = res.removed.room;
       const what = [r.round, r.tournament].filter(Boolean).join(', ') || 'the round';
       if (after) after();
-      ui.toast('Deleted ' + what + '.', { key: 'del-round', action: { label: 'Undo', name: 'Undo: delete ' + what, run: () => {
+      ui.toast('Deleted ' + what + '.', { key: undoDeleteKey(id), action: { label: 'Undo', name: 'Undo: delete ' + what, run: () => {
         store.set(ROOMS_KEY, restoreRoom(store.get(ROOMS_KEY, []), res.removed));
         if (after) after();
-        ui.toast('The round is back.', { key: 'del-round' });
+        ui.toast('The round is back.', { key: undoDeleteKey(id) });
       } } });
     },
     // After a restore: the theme, the header and the screen read the new data.
@@ -162,7 +162,7 @@ function boot(data) {
   // Delete from the Rooms list (with Undo, like History).
   $('#rooms-list').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-del]');
-    if (b) env.deleteRound(b.dataset.del, () => { renderRooms(data); $('#rooms-title').focus(); });
+    if (b) env.deleteRound(b.dataset.del, () => { renderRooms(data); if (!$('#rooms').hidden) $('#rooms-title').focus(); });
   });
 
   // The palette (⌘K / Ctrl+K): each enabled event, each saved round, History and Settings, and the waiting Undo.
