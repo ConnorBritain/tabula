@@ -10,7 +10,7 @@ The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/pri
 - No refunds for any purchase, except where the law requires one.
 - Free trial: 7 days, 8 rounds of hosted AI, no card.
 - Prices (Option A, 2026-11-20): Single Round $2; Round Packs $5, $10, $20; Weekend Pass $10; Monthly $15; Season $79 a year; All-Access $149 a year (sold only after Speech Events opens). Round counts are public on the plans page (owner, 2026-11-20): Single Round 1; packs 3, 7, 16; Weekend Pass 8; Monthly 13 a month; Season 70; All-Access 135 (all granted at the start of the term, Terms §6.6).
-- Seller: Pattern Engine LLC, doing business as Tabula Speech. Payment by card or a Stripe-offered method (Link, Apple Pay, Google Pay).
+- Seller (live since 2026-11-22, legal update 5 Part A): Paid Plans bought online are sold through Link, Stripe's checkout service, as the merchant of record. Programs are sold by Pattern Engine LLC by invoice. The statement name starts with "LINK.COM*".
 
 ## Legal choices in the pages
 
@@ -44,3 +44,13 @@ The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/pri
 
 - Accounts are live for sign-in. The trial, paid plans, checkout and Programs are not live. The plans page says accounts open soon. The legal text describes the service as it will run.
 - Google and Microsoft sign-in are not built yet.
+
+## Words for Rounds (owner rule, 2026-11-23)
+
+This rule applies to the product, the legal pages, emails and all marketing.
+
+- Never call Rounds, packs or passes a "gift", a "gift card" or a "gift certificate".
+- Never offer them "as a gift", and never say "give Rounds" or "gift Rounds" to a person.
+- When a buyer moves Rounds to another person, say "send" (for example "send Rounds", "send a purchase").
+- Reason: in some states a gift card or gift certificate cannot expire (for example Cal. Civ. Code 1749.5). Rounds expire 12 months after purchase. Terms §6.7 says Rounds are a license, not a gift card or stored value. Copy that calls them gifts weakens that case.
+- Not covered: money given to a school team pool (Programs page, "Fund our team"). That is a donation of money, not Rounds sold to a person. Ask the legal session before you change that copy.

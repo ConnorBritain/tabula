@@ -1,6 +1,8 @@
-# Legal update 6 (draft 1): Weekend Pass lasts 12 months, plus expiry reminders
+# Legal update 6 (draft 2): Weekend Pass lasts 12 months, plus expiry reminders
 
 2026-11-23. Draft for the owner and the lawyer. Not live.
+
+Draft 2 (2026-11-23) adds the owner's answers to L1 to L5 (see "Owner decisions" at the end): no "gift" wording and a stronger §6.7, "we try to email" with send records, effect on the publish day, and no text for old passes.
 
 ## Why
 
@@ -20,11 +22,10 @@
 3. The server rule is live first, or on the same day:
    - Weekend Pass Rounds expire 12 months after purchase.
    - Weekend Pass Rounds are spent in the same group as pack Rounds (§6.5 below).
-   - Weekend Passes already sold, with Rounds not yet expired, get the 12-month date and move to the "pack" spend group.
-   - Window starts held in each user's Durable Object (`lot_starts`) are cleared or skipped, so no later flush puts back a 4-day date.
-   - Rounds that already expired under the 4-day rule are given back by hand before publish, if any exist (goodwill; see L5).
+   - On the publish day, confirm that no customer holds a Weekend Pass sold under the 4-day rule. The owner says no one holds Rounds yet (2026-11-23). If someone does, the server moves those passes to the 12-month date and the "pack" group, clears `lot_starts`, and we send that person a short service email.
 4. The Terms, the Refund Policy, the Privacy Policy and the Plans page go live on the same day. The Plans page loses "Use within 4 days from your first round." Use the publish date in the Terms and Refund Policy headers. Change the Privacy Policy date only if P1 ships.
-5. **The reminder sentences (T4, R4, P1) go live only when the reminder emails are live.** If the emails ship later, publish this update without T4, R4 and P1, then add them in a later update.
+5. **Send records.** Before T4 and R4 go live, the server keeps a record of each reminder: the time, the address, the purchase, the email type, the mail provider's message ID and the provider's result. If a send fails, the server tries again and records each try. Keep the records for at least 2 years after the Rounds expire (L2 asks the lawyer to confirm the period). These records are our evidence that we tried in good faith.
+6. **The reminder sentences (T4, R4, P1) go live only when the reminder emails are live.** If the emails ship later, publish this update without T4, R4 and P1, then add them in a later update.
 
 ## Terms of Service (`sites/speech/pages/terms.html`)
 
@@ -40,10 +41,15 @@
 
 **T3. §6.6, first two list items (replace both with one item)**
 - Before: "Single Round and Round Pack Rounds expire 12 months after the date of purchase." and "Weekend Pass Rounds expire 4 days after the first Round from the pass is committed. If you never commit a Round from the pass, its Rounds expire 12 months after the date of purchase."
-- After: "Single Round, Round Pack and Weekend Pass Rounds expire 12 months after the date of purchase. This also applies to unexpired Rounds from Weekend Passes bought before [publish date]."
+- After: "Single Round, Round Pack and Weekend Pass Rounds expire 12 months after the date of purchase."
 
 **T4. §6.6, new paragraph after the list (only when the emails are live)**
-- Add: "Before Single Round, Round Pack and Weekend Pass Rounds expire, we email the address on your Account about 30 days before, about 7 days before, and on the last day. We send these emails only while Rounds from that purchase are still unused. If an email does not reach you, the expiry date in this section does not change."
+- Add: "Before Single Round, Round Pack and Weekend Pass Rounds expire, we try to email the address on your Account about 30 days before, about 7 days before, and on the last day. If a send fails, we try again. We send these emails only while Rounds from that purchase are still unused. If an email does not reach you, the expiry date in this section does not change."
+
+**T5. §6.7 "What Rounds are", second sentence (replace)**
+- Before: "They are not money, a deposit, a stored-value instrument (an account or card that holds money to spend later) or property."
+- After: "They are not money, a deposit, a gift card, a gift certificate, a stored-value instrument (an account or card that holds money to spend later) or property."
+- Reason: the owner wants the strongest case for a 12-month expiry (L1). Update 5 Part B must also change the next sentence ("cannot be … transferred …"), so that it allows the send step.
 
 Nothing else in the Terms changes. "Weekend Pass" stays in §2, the renewal paragraph, "No refunds" and the prohibited uses list. Those lines name the plan, not the window.
 
@@ -64,7 +70,7 @@ Nothing else in the Terms changes. "Weekend Pass" stays in §2, the renewal para
 **R4. §5 (only when the emails are live)**
 - Heading. Before: "5. Renewal reminders". After: "5. Reminders". The table of contents entry changes too.
 - In short. Before: "You get an email before each yearly renewal." After: "You get an email before each yearly renewal, and before your one-time Rounds expire."
-- Add after the first paragraph: "Before Single Round, Round Pack and Weekend Pass Rounds expire, we email the address on your Account about 30 days before, about 7 days before, and on the last day. We send these emails only while Rounds from that purchase are still unused. Terms Section 6.6 gives the full rule."
+- Add after the first paragraph: "Before Single Round, Round Pack and Weekend Pass Rounds expire, we try to email the address on your Account about 30 days before, about 7 days before, and on the last day. If a send fails, we try again. We send these emails only while Rounds from that purchase are still unused. Terms Section 6.6 gives the full rule."
 
 ## Privacy Policy (`sites/speech/pages/privacy.html`)
 
@@ -80,7 +86,7 @@ Then the T2 and R3 "Before" quotes are update 4's texts. Use these instead:
 - **R1.** Keep update 4's Camp Pass item after the new "Single Rounds, Round Packs and Weekend Passes;" item.
 - **R2.** Keep update 4's Camp Pass sentence after the new 12-month sentence.
 - **R3.** Before: update 4's Order sentence. After: "We use Rounds from a started Camp Pass first, then Subscription Rounds, then Single Round, Round Pack and Weekend Pass Rounds. We use Rounds from a Camp Pass that has not started last."
-- **T4 and R4.** Add: "Before Camp Pass Rounds expire, we email the address on your Account about 7 days before and on the last day." Use it only if the server sends Camp Pass reminders.
+- **T4 and R4.** Add: "Before Camp Pass Rounds expire, we try to email the address on your Account about 7 days before and on the last day." Use it only if the server sends Camp Pass reminders.
 
 ## Plans page (marketing)
 
@@ -110,10 +116,14 @@ Then the T2 and R3 "Before" quotes are update 4's texts. Use these instead:
   - Other rows in that file are already out of date (statement descriptor, trial). They are not part of this update.
 - **Lawyer brief** (`private/legal/BUY-FIRST-LAWYER-BRIEF.md`): tell the lawyer that the Weekend Pass window is gone. The Weekend Pass parts of the A-answers change.
 
-## Questions for the lawyer
+## Owner decisions (2026-11-23) and what the lawyer still confirms
 
-- **L1. State expiry laws.** Our emails will say "your Rounds expire". Do state laws on prepaid expiry apply to Rounds? Examples: Cal. Civ. Code 1749.5, and the federal CARD Act rules for gift cards. Our view: Rounds are a service credit, not a gift card or stored value. Rounds have no cash value, and §4 of the Refund Policy says so. Please confirm.
-- **L2. A missed email.** T4 says that a missed email does not change the expiry date. Is that enough? Or must we say "we try to email"?
-- **L3. Teen users.** Users aged 13 to 17 get only service emails. Is a reminder email to a teen fine with no parent copy? (Arkansas, Vermont and other state rules on known minors: see `private/legal/MINORS-AI-SUMMARY.md`.)
-- **L4. Notice of change.** The Terms promise 30 days' notice for material changes. This change only helps users: a longer life and new reminders. Can it take effect on the publish day? The spend-order change (T2) uses Subscription Rounds first. Is that a material change for anyone?
-- **L5. Old passes.** T3 gives Weekend Passes bought before the publish date the 12-month rule. Rounds that already expired under the 4-day rule come back as goodwill, by hand. Is any text needed for that?
+- **L1. Gift card laws.** Keep the 12-month expiry.
+  - We never call Rounds a "gift", a "gift card" or a "gift certificate", in the product, the legal pages or marketing. Moving Rounds to another person is "send" (the word in update 5 Part B and the teen-rounds design). The rule is in `LEGAL-FACTS.md`, "Words for Rounds".
+  - T5 adds "a gift card, a gift certificate" to the list of things Rounds are not.
+  - Fallback: if the lawyer sees real gift-card risk, we follow the CARD Act rules (no expiry sooner than 5 years, with the required disclosures). The lawyer says which purchases it covers: sent purchases only, or all.
+  - Lawyer confirms: Cal. Civ. Code 1749.5, Washington law, the CARD Act, *Hollis v. Audible* (W.D. Wash. 2025), and California's cash-out rule for small balances (see `docs/design/TEEN-ROUNDS-AND-GIFTS.md` §11 item 3).
+- **L2. A missed email.** "We try to email", and "if a send fails, we try again" (T4, R4). Gate item 5 keeps a record of each try. Lawyer confirms the wording and how long to keep the records.
+- **L3. Teen users.** Send the reminder to the teen only. No parent copy, because that means collecting a parent's email. Lawyer confirms.
+- **L4. Notice.** The change takes effect on the publish day. It helps users, and no one holds Rounds yet, so no notice email is needed. Gate item 3 checks this on the day.
+- **L5. Old passes.** No one holds Rounds yet, so T3 has no "bought before" sentence and there is nothing to give back.
