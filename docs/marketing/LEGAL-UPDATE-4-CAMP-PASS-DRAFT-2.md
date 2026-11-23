@@ -116,7 +116,7 @@ Use the publish date in the page headers.
 **P2. §13 "Retention", new item after "Support emails are kept for as long as needed to help you and to keep a record of the request."**
 - Add: "Records of the reminder emails we send you (the address, the time, the type of email and the delivery result) are kept for 2 years after each email, so that we can show that we sent it. We keep them for that time even if you delete your Account."
 - The data export (Privacy §16, access) includes these records. Server: add `email_sends` rows for the user to the export.
-- The lawyer has not seen P2. Send it to him before publish (it is the record-keeping that he approved in update 6's L2).
+- **Lawyer approved (2026-11-23):** P2 was item 2 in `private/legal/NEW-SENTENCES-FOR-LAWYER.md`; owner, relayed by the pricing session: "Lawyer agrees with this note."
 
 ## Plans page and other copy (marketing)
 
