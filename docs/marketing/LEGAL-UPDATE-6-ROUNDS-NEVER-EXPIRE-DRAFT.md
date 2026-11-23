@@ -66,8 +66,8 @@ This draft **replaces** `LEGAL-UPDATE-6-WEEKEND-PASS-12-MONTHS-DRAFT.md` (Weeken
 
   "**6.6 How long Rounds last.** Except for Program Rounds, Rounds that you buy do not expire. They stay in your balance until you use them, except as Sections 8 and 18 say.
   - Single Round, Round Pack and Weekend Pass Rounds do not expire.
-  - Monthly plan: each month we add the plan's Rounds, but only enough to bring your Monthly plan Rounds up to the cap shown on the Plans page and at checkout. The cap limits only what we add. It never removes Rounds that you already have. If your Monthly plan Rounds are already at the cap when your plan renews, we do not charge you for that month, and your plan stays active. If a renewal adds any Rounds, we charge the full price. If we charge you for a renewal that adds no Rounds, we refund that charge.
-  - Season plan and All-Access plan: at the start of each yearly term we add the plan's Rounds, but only enough to bring your Rounds from that plan up to one year's amount for that plan. Rounds that you did not use in earlier terms stay in your balance. The cap limits only what we add. It never removes Rounds that you already have. If your Rounds from that plan are already at one year's amount when your plan renews, we do not charge you for that year, and your plan stays active. If a renewal adds any Rounds, we charge the full price. If we charge you for a renewal that adds no Rounds, we refund that charge.
+  - Monthly plan: each month we add the plan's Rounds, but only enough to bring your Monthly plan Rounds up to the cap shown on the Plans page and at checkout. The cap limits only what we add. It never removes Rounds that you already have. If you already hold the cap of Monthly plan Rounds when your plan renews, your plan takes a break: we do not charge you for that month, and your plan stays active. We check again at your next renewal. If a renewal adds any Rounds, we charge the full price. If we ever charge you for a renewal that adds no Rounds, we refund that charge.
+  - Season plan and All-Access plan: at the start of each yearly term we add the plan's Rounds, but only enough to bring your Rounds from that plan up to one year's amount for that plan. Rounds that you did not use in earlier terms stay in your balance. The cap limits only what we add. It never removes Rounds that you already have. If you already hold one year's amount of Rounds from that plan when your plan renews, your plan takes a break: we do not charge you for that year, and your plan stays active. We check again at your next renewal. If a renewal adds any Rounds, we charge the full price. If we ever charge you for a renewal that adds no Rounds, we refund that charge.
   - If you cancel a Subscription, the Rounds that you have stay in your balance. They do not expire.
   - Program Rounds expire on July 31 following the start of the Program term."
 
@@ -87,7 +87,7 @@ Nothing else in the Terms changes. §8 (refunds and disputes take back Rounds) a
 
 **R3. §4 "Expiry" (replace the whole item; new label "How long Rounds last")**
 - Before: "Expiry. Single Round and Round Pack Rounds expire 12 months after purchase. Weekend Pass Rounds expire 4 days after the first Round from the pass is committed. Monthly plan Rounds roll over while your plan stays active, up to a cap. Season and All-Access Rounds expire at the end of the 12-month term. Program Rounds expire on July 31. Terms Section 6.6 gives the full schedule."
-- After: "**How long Rounds last.** Single Round, Round Pack and Weekend Pass Rounds do not expire. Plan Rounds carry over. Each month or year, we add new plan Rounds only up to a cap, and the cap never removes Rounds that you have. If you are already at the cap when your plan renews, we do not charge you for that period. A renewal that adds any Rounds is charged in full. If we charge a renewal that adds no Rounds, we refund it. If you cancel a plan, you keep the Rounds that you have. Program Rounds expire on July 31. Terms Section 6.6 gives the full rule."
+- After: "**How long Rounds last.** Single Round, Round Pack and Weekend Pass Rounds do not expire. Plan Rounds carry over. Each month or year, we add new plan Rounds only up to a cap, and the cap never removes Rounds that you have. If you already hold the cap when your plan renews, your plan takes a break: we do not charge you for that period, and your plan stays active. A renewal that adds any Rounds is charged in full. If we ever charge a renewal that adds no Rounds, we refund it. If you cancel a plan, you keep the Rounds that you have. Program Rounds expire on July 31. Terms Section 6.6 gives the full rule."
 
 **R4. §4 "Order" (replace the first sentence)**
 - Before: "We use Weekend Pass Rounds first, then Subscription Rounds, then Single Round and Round Pack Rounds."
@@ -105,9 +105,9 @@ No change.
 
 - Header line. Before: "Pay once. Nothing renews. Packs and single rounds expire 12 months after purchase." After: "Pay once. Nothing renews. Your rounds never expire."
 - Weekend Pass card: remove "Use within 4 days from your first round." Suggested line: "Rounds never expire."
-- Season card. Before: "60 rounds for the year." and "Use them any month you like." After: "Each year we top you up to 60 rounds." and "Unused rounds carry over." (Marketing review: "carry over, up to 60" can be read as 60 extra.)
-- Monthly card. Before: "Unused rounds carry over, up to 39." After: "Unused rounds carry over, up to 39 in all."
-- All-Access card: "Each year we top you up to 165 rounds." and "Unused rounds carry over." (when it goes on sale).
+- Season card. Before: "60 rounds for the year." and "Use them any month you like." After: "Each year we top you up to 60 rounds." and "Unused rounds never expire. Still have 60 at renewal? Your plan takes a break, and you pay nothing that year." (Marketing review: "carry over, up to 60" can be read as 60 extra.)
+- Monthly card. Before: "Unused rounds carry over, up to 39." After: "Unused rounds never expire. They carry over, up to 39 in all. Already have 39 at renewal? Your plan takes a break, and you pay nothing that month."
+- All-Access card: "Each year we top you up to 165 rounds." and "Unused rounds never expire. Still have 165 at renewal? Your plan takes a break, and you pay nothing that year." (when it goes on sale).
 - my. app Plan page (`sites/my/pages/plan.html`, W7): "{{rounds_season}} rounds for the year." → "Each year we top you up to {{rounds_season}} rounds. Unused rounds carry over."
 - Weekend Pass card, full line: "For one tournament weekend. Rounds never expire."
 - FAQ on cancel. Before: "Yes. You keep your plan until the end of the month or Season you paid for." After: add "The rounds you have stay in your account and never expire."
@@ -139,11 +139,13 @@ No change.
 - **`TEEN-ROUNDS-AND-GIFTS.md` §9.4** (expiry of sent Rounds): no longer needed for one-time Rounds.
 - **`LEGAL-FACTS.md`** on the publish day: the "Round expiry" and "Spend order" rows, and the "Approved, not live yet" list.
 
-## Renewal at the cap (owner, 2026-11-23: "Skip the charge, option B", confirmed in the legal chat)
+## Renewal at the cap (owner, 2026-11-23: "Skip the charge, option B", confirmed in the legal chat; kept as option A over "no cap", with a "your plan takes a break" voice)
 
 - If a renewal would add 0 Rounds because the person already holds the cap, we do not charge for that period. The plan stays active.
 - A renewal that adds any Rounds is charged in full (no partial price).
-- T5 (Monthly, Season and All-Access items) and R3 say this.
+- T5 (Monthly, Season and All-Access items) and R3 say this, in a "your plan takes a break, you pay nothing" voice (owner, 2026-11-23). The meaning is the same as the lawyer-approved wording; only the tone changed. Lawyer agrees (owner, legal chat, 2026-11-23).
+- Fallback: if the Stripe sandbox proof of the $0 renewal fails, the owner falls back to no cap (each renewal charges and adds the full grant). That needs new text and a lawyer note.
+- Never use the word "gift" for this, even though the goal is that it feels generous (see `LEGAL-FACTS.md`, "Words for Rounds").
 - Server and Stripe work: built on `claude/rounds-never-expire` (checkout-lots, 2026-11-23); the renewal is $0 at the cap, decided at the renewal itself. Not deployed until the Stripe sandbox proof passes. If Stripe refuses the $0 edit, the person is charged and support refunds it by hand; T5 says "we refund that charge".
 - The my. account page shows the plan Rounds balance, the cap and whether the next renewal will be charged.
 - **Lawyer approved (2026-11-23):** the owner sent `private/legal/NEW-SENTENCES-FOR-LAWYER.md`; owner, relayed by the pricing session: "Lawyer agrees with this note."
