@@ -2,7 +2,7 @@
 
 2026-11-23. Draft for the owner and the lawyer. Not live.
 
-**Lawyer (2026-11-23):** he agrees with the never-expire email "as is", including its Camp Pass question (the started-pass share in Washington). The 2-per-summer limit was added after that email; the lawyer has not seen it.
+**Lawyer (2026-11-23):** he agrees with the never-expire email "as is", including its Camp Pass question (the started-pass share in Washington). The 2-per-summer limit was added after that email; the owner reports the lawyer approved it too (2026-11-23).
 
 **Status (2026-11-23):** the owner confirmed in the legal chat (2026-11-23) that a pass never started keeps all its Rounds. This replaces "Option A" from the pricing chat.
 
