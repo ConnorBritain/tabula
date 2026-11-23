@@ -2,6 +2,8 @@
 
 2026-11-23. Draft for the owner and the lawyer. Not live.
 
+**Status (2026-11-23):** the owner sent draft 2 to the lawyer. The owner reports that the lawyer is good with it and asked for no change to this update (his two changes were for the Camp Pass, update 4 draft 3). Still needed to publish: the server change, then the owner's yes in the marketing chat.
+
 Draft 2 (2026-11-23) adds the owner's answers to L1 to L5 (see "Owner decisions" at the end): no "gift" wording and a stronger §6.7, "we try to email" with send records, effect on the publish day, and no text for old passes.
 
 ## Why
