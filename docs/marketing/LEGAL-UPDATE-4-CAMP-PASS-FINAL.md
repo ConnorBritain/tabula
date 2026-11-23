@@ -1,5 +1,7 @@
 # Legal update 4 FINAL: Camp Pass
 
+> **REPLACED 2026-11-23** by `LEGAL-UPDATE-4-CAMP-PASS-DRAFT-2.md`. The owner changed the Camp Pass rules (Start button, August 15 end, half-keep rule). Do not publish this text.
+
 Lawyer-approved text (2026-11-22). Source with notes: `docs/marketing/LEGAL-UPDATE-4-CAMP-PASS-DRAFT.md`.
 
 **Publish gate.** Publish only when all of these are true:

@@ -80,6 +80,8 @@ Nothing else in the Terms changes. "Weekend Pass" stays in §2, the renewal para
 
 ## If update 4 (Camp Pass) is live first
 
+> Replaced 2026-11-23: the Camp Pass rules changed. Use `LEGAL-UPDATE-4-CAMP-PASS-DRAFT-2.md`, which requires update 6 to go live first.
+
 Then the T2 and R3 "Before" quotes are update 4's texts. Use these instead:
 
 - **T2.** Before: update 4's §6.5 sentence ("first Weekend Pass Rounds and Rounds from a Camp Pass that has started, …"). After: "We use your Rounds in this order: first Rounds from a Camp Pass that has started, then Subscription Rounds, then Single Round, Round Pack and Weekend Pass Rounds, then Rounds from a Camp Pass that has not started."
