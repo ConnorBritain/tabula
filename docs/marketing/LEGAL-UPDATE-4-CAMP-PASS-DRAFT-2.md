@@ -2,6 +2,8 @@
 
 2026-11-23. Draft for the owner and the lawyer. Not live.
 
+**Lawyer (2026-11-23):** he agrees with the never-expire email "as is", including its Camp Pass question (the started-pass share in Washington). The 2-per-summer limit was added after that email; the lawyer has not seen it.
+
 **Status (2026-11-23):** the owner confirmed in the legal chat (2026-11-23) that a pass never started keeps all its Rounds. This replaces "Option A" from the pricing chat.
 
 - Draft 3 had the lawyer's two changes: the keep share is set by prices on the day of purchase, and it rounds up (19 unused → 10 kept).
@@ -16,6 +18,7 @@ Source of the rules: the owner's decisions in the pricing chat, 2026-11-23 (`pri
 
 - The Camp Pass is a one-time purchase of a set number of Rounds for summer camp.
 - **Sale period:** May 1 to July 15 each year, Pacific time. The Plans page shows the dates. The Terms do not name them.
+- **Limit (owner, pricing chat, 2026-11-23: "Yes, limit to 2"):** at most 2 Camp Passes per Account in each summer sale period. A fully refunded pass does not count. If a third pass is paid anyway (for example two checkouts at once), the server still grants it and flags it for review: we never take money and refuse the Rounds. Site: "Up to 2 per account each summer." Checkout error: "You already have 2 Camp Passes this summer."
 - **Start:** Camp Pass Rounds are not used until the user taps "Start my Camp Pass". Using a Round does not start the pass.
 - **Camp period:** it starts when the user starts the pass. It ends 30 days later, or at 11:59 p.m. Pacific time on August 15, whichever comes first.
 - **Spend order:** after the start, Camp Pass Rounds are used first. Before the start, they are not used at all.
@@ -46,7 +49,7 @@ Use the publish date in the page headers.
 - After: ""Paid Plan" means a Single Round, a Round Pack, a Weekend Pass, a Camp Pass, a Subscription or a Program, as described in Section 6."
 
 **T2. §6.1, new item after the Weekend Pass item**
-- Add: "**Camp Pass.** A one-time purchase of a set number of Rounds for summer camp. We sell the Camp Pass only in a summer sale period each year. The Plans page shows the dates. We do not use Camp Pass Rounds until you start the pass in your Account. Your camp period starts when you start the pass. It ends 30 days later, or at 11:59 p.m. Pacific time on August 15, whichever comes first. When the camp period ends, we keep a share of your unused Camp Pass Rounds, rounded up, as Round Pack Rounds. The share is the price you paid per Camp Pass Round divided by the price of a Single Round on the day you bought the pass, and never more than all of them. Checkout and your receipt show the share. For example, if the share is one half and 19 Camp Pass Rounds are unused, we keep 10. The other unused Camp Pass Rounds expire. If you never start the pass, we keep all of its Rounds as Round Pack Rounds after 11:59 p.m. Pacific time on August 15. Rounds that we keep count as Rounds from your Camp Pass payment (see Section 8). A Camp Pass does not renew."
+- Add: "**Camp Pass.** A one-time purchase of a set number of Rounds for summer camp. We sell the Camp Pass only in a summer sale period each year. The Plans page shows the dates. Each Account can buy at most 2 Camp Passes in each summer sale period. A Camp Pass that was fully refunded does not count. We do not use Camp Pass Rounds until you start the pass in your Account. Your camp period starts when you start the pass. It ends 30 days later, or at 11:59 p.m. Pacific time on August 15, whichever comes first. When the camp period ends, we keep a share of your unused Camp Pass Rounds, rounded up, as Round Pack Rounds. The share is the price you paid per Camp Pass Round divided by the price of a Single Round on the day you bought the pass, and never more than all of them. Checkout and your receipt show the share. For example, if the share is one half and 19 Camp Pass Rounds are unused, we keep 10. The other unused Camp Pass Rounds expire. If you never start the pass, we keep all of its Rounds as Round Pack Rounds after 11:59 p.m. Pacific time on August 15. Rounds that we keep count as Rounds from your Camp Pass payment (see Section 8). A Camp Pass does not renew."
 
 **T3. §6 "In short", fourth sentence (replace; update 6 T0 text)**
 - Before: "Rounds that you buy do not expire, except Program Rounds (see 6.6)."

@@ -2,6 +2,8 @@
 
 2026-11-23. Draft for the owner and the lawyer. Not live.
 
+**Lawyer approved (2026-11-23).** The owner sent `private/legal/ROUNDS-NEVER-EXPIRE-LAWYER-EMAIL.md` (cap wording, cancel rule, account deletion, Program Rounds, Camp Pass in Washington, cash-out). Owner, relayed by the pricing session: "He agrees with everything as is."
+
 **Status (2026-11-23):** the owner reports that the owner and the lawyer agree with this text and with the legal session's recommendations (see "Recommendations adopted" at the end). Still needed to publish: the server work, then the owner's yes in the marketing chat.
 
 This draft **replaces** `LEGAL-UPDATE-6-WEEKEND-PASS-12-MONTHS-DRAFT.md` (Weekend Pass 12 months). That text never went live.
