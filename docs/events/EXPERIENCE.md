@@ -418,7 +418,7 @@ Each step needs green gates (`.claude/gates.json`). Each new test needs a one-li
 | Step | Scope |
 |---|---|
 | **S1 Router, no new behavior** | Derived `family` in `data.js`, the `WORKSPACES` registry, the room module behind the contract, `#/round/<id>`, old routes as aliases, every registry module in the service worker list (with its gate test). All existing tests stay green. |
-| **S2 Console basics** | Header, History with TSV and CSV (codes only), backup and restore, delete with Undo, Settings, palette, read-time migration with its new test. |
+| **S2 Console basics** | Header, History with TSV and CSV (codes only), backup and restore, delete with Undo, Settings, palette, read-time migration with its new test. Deferred from S2 Settings: league pack, defaults for each type, draw gap, ranks-due minutes (S3, S4), Congress scale (S6), Shared device (S8). |
 | **S3 My day** | Day and BallotCard records, Standby, the picker with chips, flight and level, "Start a round", ranks due and "I submitted", the type page (Guide, Rules, Rounds). |
 | **S4 Profile layer and elims** | Ranks off, top N, rubric, critique only, `maxEntries`, `level` and panel note, the F2 cross-ex in elims, cross-entry status. |
 | **S5 PCC** | v2 def with a new test, `runs[]`, the phase bar. |

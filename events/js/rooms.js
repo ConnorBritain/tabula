@@ -7,7 +7,7 @@ import { roomEvent } from './room.js';
 export const STATE_LABEL = { setup: 'Set up', judging: 'Judging', ranking: 'Ranking', review: 'Review', done: 'Copied' };
 
 // The local day of a time, as YYYY-MM-DD (the list groups by tournament day).
-const dayOf = (t) => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+export const dayOf = (t) => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 
 // Rooms grouped by day, newest day first; inside a day, the newest room first. A broken record (no id or no time) is
 // left out of the list, never shown half-drawn.
@@ -40,10 +40,10 @@ export function roomRow(room, events) {
   };
 }
 
-// The Rooms list as HTML text: one section per day, one row per room; each row opens its room (step E4). Every text
-// is escaped.
+// The Rooms list as HTML text: one section per day, one row per room; each row opens its room (step E4) and has a
+// Delete button (step S2: delete with Undo; app.js runs it). Every text is escaped.
 export function roomsHtml(groups, events) {
   return groups.map((g) => `<section class="room-day" aria-label="${esc(g.day)}"><h2>${esc(g.day)}</h2><ul class="room-list">`
-    + g.rooms.map((r) => { const row = roomRow(r, events); return `<li><a class="room-link" href="#/room/${encodeURIComponent(row.id)}"><span class="room-name">${esc(row.name)}</span><span>${esc(row.round)}</span><span class="room-meta">${esc(row.count)} · ${esc(row.state)}</span></a></li>`; }).join('')
+    + g.rooms.map((r) => { const row = roomRow(r, events); return `<li><a class="room-link" href="#/room/${encodeURIComponent(row.id)}"><span class="room-name">${esc(row.name)}</span><span>${esc(row.round)}</span><span class="room-meta">${esc(row.count)} · ${esc(row.state)}</span></a><button class="b small quiet room-del" type="button" data-del="${esc(row.id)}" aria-label="Delete ${esc(row.name)} ${esc(row.round || 'round')}">Delete</button></li>`; }).join('')
     + '</ul></section>').join('');
 }

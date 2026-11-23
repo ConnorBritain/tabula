@@ -267,8 +267,26 @@ export function upsertRoom(rooms, room) {
 }
 export const findRoom = (rooms, id) => (Array.isArray(rooms) ? rooms : []).find((r) => r && r.id === id) || null;
 
+// Delete a round (step S2, EXPERIENCE.md §7: delete with Undo). Returns { rooms, removed: { room, index } } for
+// restoreRoom; removed is null when no round has that id (the list comes back unchanged).
+export function removeRoom(rooms, id) {
+  const list = Array.isArray(rooms) ? rooms.slice() : [];
+  const index = list.findIndex((r) => r && r.id === id);
+  if (index < 0) return { rooms: list, removed: null };
+  const [room] = list.splice(index, 1);
+  return { rooms: list, removed: { room, index } };
+}
+// Undo a delete: put the round back in the same place (or at the end, if the list is shorter now). A round with that
+// id that is back already (a restore from a backup in between) is not doubled: the list comes back unchanged.
+export function restoreRoom(rooms, removed) {
+  const list = Array.isArray(rooms) ? rooms.slice() : [];
+  if (!removed || !removed.room || list.some((r) => r && r.id === removed.room.id)) return list;
+  list.splice(Math.min(Math.max(0, removed.index), list.length), 0, removed.room);
+  return list;
+}
+
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).room = Object.freeze({
   ENABLED_EVENTS, CUSTOM_EVENT, DEFAULT_PROFILE, MAX_ENTRIES, STATUS_LABEL, normCode, newId, makeEntry, codeError, createRoom, roomEvent, setupError,
   entryOf, indexOf, present, updateEntry, selectEntry, entryAtNumber, nextWaiting, moveEntry, markNoShow, clearNoShow,
-  addEntry, removeEntry, restoreEntry, rosterAction, upsertRoom, findRoom,
+  addEntry, removeEntry, restoreEntry, rosterAction, upsertRoom, findRoom, removeRoom, restoreRoom,
 });

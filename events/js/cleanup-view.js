@@ -8,6 +8,7 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { cleanupPath, cleanableEntries, cleanupMessages, cleanupReview, acceptCleanup, undoCleanup } from './cleanup.js';
 import { findRoom } from './room.js';
+import { askConnectKey, askForgetKey } from './ai-connect.js';
 
 const MODE_LABELS = { full: 'Full clean-up', spelling: 'Spelling only' };
 
@@ -66,25 +67,10 @@ export function createCleanup(env, hooks) {
   function close(focusKey) { token++; const id = st && st.id; st = null; hooks.draw(focusKey || (id ? 'clean-' + id : undefined)); }
   function open(id) { token++; st = { id, mode: 'full', status: 'idle', providerName: own.providerName() }; hooks.draw('clean-go-' + id); }
 
-  // The Connect AI invite (path 'connect'): paste a key, then choose where it is kept. Not remembered unless chosen.
+  // The Connect AI invite (path 'connect'): paste a key, then choose where it is kept (ai-connect.js, shared with
+  // Settings). Not remembered unless chosen.
   async function connect(id) {
-    const key = await env.ui.ask({
-      title: 'Connect your AI key',
-      body: ['Clean-up uses your own API key from Anthropic, OpenAI, Google, xAI or OpenRouter. You pay that company for each use, usually less than a cent.', 'The key stays in this browser. It is sent only to that company.'],
-      input: { label: 'API key', placeholder: 'Paste the key', emptyError: 'Paste a key first.' },
-      buttons: [{ label: 'Cancel', value: null }, { label: 'Connect', kind: 'primary' }],
-    });
-    if (!key) return;
-    const keep = await env.ui.ask({
-      title: 'Keep the key after you close this tab?',
-      body: 'On a shared computer, choose "Only this tab".',
-      buttons: [{ label: 'Remember on this device', value: 'remember' }, { label: 'Only this tab', value: 'tab', kind: 'primary' }],
-      cancelValue: 'tab',
-    });
-    env.ui.announce('Checking the key.');
-    try { await own.connect(key, keep === 'remember'); }
-    catch (err) { env.ui.toast(err.message, { kind: 'error', key: 'ai' }); return; }
-    env.ui.toast(own.providerName() + ' is connected.', { key: 'ai' });
+    if (!(await askConnectKey(env.ui, own))) return;
     if (path() === 'own') open(id); else hooks.draw('clean-' + id);
   }
 
@@ -138,10 +124,8 @@ export function createCleanup(env, hooks) {
   }
 
   async function forget() {
-    const ok = await env.ui.ask({ title: 'Forget your AI key?', body: 'Tabula removes the key from this browser. You can connect it again later.', buttons: [{ label: 'Cancel', value: false }, { label: 'Forget the key', value: true, kind: 'danger' }], cancelValue: false });
-    if (!ok) return;
+    if (!(await askForgetKey(env.ui, own))) return;
     const id = st && st.id;
-    own.forget();
     token++; st = null;
     hooks.draw(id ? 'clean-' + id : undefined);
     env.ui.toast('Your AI key is gone from this browser.', { key: 'ai' });

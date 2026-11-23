@@ -17,8 +17,16 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to the main content</a>
+<!-- The header on every screen (step S2, docs/events/EXPERIENCE.md §1.1): the brand (home), the mode menu (hidden until
+     someone turns on Coach or Student), History, Settings, and the offline chip. No underline tabs (DESIGN.md §1). -->
 <header class="bar">
-  <span class="brand">Tabula Speech Events</span>
+  <a class="brand" href="#/">Tabula Speech Events</a>
+  <label class="mode-menu" id="mode-menu" hidden><span class="sr-only">Mode</span><select id="mode-select"></select></label>
+  <nav class="bar-nav" aria-label="Main">
+    <span class="pill outline" id="offline-chip" hidden>Offline</span>
+    <a class="b quiet" id="nav-history" href="#/history">History</a>
+    <a class="b quiet" id="nav-settings" href="#/settings">Settings</a>
+  </nav>
 </header>
 <main id="main" tabindex="-1">
   <section id="rooms" aria-labelledby="rooms-title">
@@ -32,6 +40,15 @@
 <div class="sr-only" id="toasts-polite" role="status" aria-live="polite"></div>
 <div class="sr-only" id="toasts-alert" role="alert" aria-live="assertive"></div>
 <div class="sr-only" id="sr-status" role="status" aria-live="polite"></div>
+<!-- The palette, "Search and commands" (step S2, EXPERIENCE.md §7): ⌘K or Ctrl+K on any screen. -->
+<div class="overlay palette-wrap" id="palette" hidden>
+  <div class="palette" id="palette-card" role="dialog" aria-modal="true" aria-label="Search and commands">
+    <input id="pal-input" type="text" role="combobox" autocomplete="off" spellcheck="false" aria-expanded="true" aria-controls="pal-list" aria-autocomplete="list" aria-label="Search commands and rounds" placeholder="Search commands and rounds">
+    <div class="pal-list" id="pal-list" role="listbox" aria-label="Commands"></div>
+    <p class="muted pal-empty" id="pal-empty" hidden>No match. Try "history", "new" or an event like "HI".</p>
+    <p class="muted pal-foot" aria-hidden="true">↑↓ to move · ↵ to run · Esc to close</p>
+  </div>
+</div>
 <div id="ask" class="overlay" hidden>
   <div class="overlay-card" id="ask-card" role="dialog" aria-modal="true" aria-labelledby="ask-title" aria-describedby="ask-body">
     <h2 id="ask-title"></h2>

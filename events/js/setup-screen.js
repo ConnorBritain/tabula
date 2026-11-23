@@ -134,9 +134,12 @@ export function createSetupScreen(env) {
 
   return {
     scope: 'setup',
-    show() {
+    // eventId: the event to pick at the start (#/new/<eventId>, the palette's "New HI round"; step S2). An id that is
+    // not an enabled event is ignored, so the judge picks as before.
+    show(eventId) {
       decided = {}; eventTouched = false; graceTouched = false;
       env.el.innerHTML = setupHtml(env.data);
+      if (eventId && ENABLED_EVENTS.includes(eventId)) { $('#setup-event').value = eventId; eventTouched = true; }
       $('#setup-paste').addEventListener('input', update);
       $('#setup-event').addEventListener('change', () => { eventTouched = true; $('#setup-err').textContent = ''; showCustom(); });
       // The grace starts as the picked rules' grace, until the judge types their own.

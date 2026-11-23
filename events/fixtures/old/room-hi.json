@@ -1,0 +1,111 @@
+{
+  "id": "rold004",
+  "createdAt": 1794668400000,
+  "updatedAt": 1794672000000,
+  "productLine": "events",
+  "eventId": "hi",
+  "eventVersion": 1,
+  "profile": {
+    "id": "nsda-district",
+    "version": 1,
+    "name": "NSDA district rules",
+    "rating": "none",
+    "ratingNoTies": false,
+    "rankRatingRule": false,
+    "overtime": {
+      "grace": 30,
+      "effect": "noFirst"
+    },
+    "biasNote": "Judge the performance, not the person.",
+    "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season. Summarized in our own words; no rule text copied."
+  },
+  "tournament": "Fall Classic",
+  "round": "Round 2",
+  "flight": "A",
+  "state": "review",
+  "current": "eold001",
+  "entries": [
+    {
+      "id": "eold001",
+      "code": "A12",
+      "name": "Sam Rivera",
+      "title": "The Play",
+      "author": "A. Writer",
+      "order": 1,
+      "status": "done",
+      "timing": {
+        "run": null,
+        "runs": [
+          {
+            "startedAt": 1794668460000,
+            "ms": 581000
+          }
+        ],
+        "usedMs": 581000,
+        "overLimit": false,
+        "overGrace": false
+      },
+      "notes": "clear characters",
+      "privateNote": "",
+      "tags": [],
+      "checks": {},
+      "comment": "Clear, distinct characters. Work on the ending.",
+      "commentSource": "judge",
+      "rank": "1",
+      "commentCopiedAt": 1794672000000
+    },
+    {
+      "id": "eold002",
+      "code": "B07",
+      "name": "Jo Chen",
+      "title": "",
+      "author": "",
+      "order": 2,
+      "status": "done",
+      "timing": {
+        "run": null,
+        "runs": [
+          {
+            "startedAt": 1794669100000,
+            "ms": 640000
+          }
+        ],
+        "usedMs": 640000,
+        "overLimit": true,
+        "overGrace": true
+      },
+      "notes": "",
+      "privateNote": "",
+      "tags": [],
+      "checks": {},
+      "comment": "=SUM(A1) went long",
+      "commentSource": "judge",
+      "rank": "3"
+    },
+    {
+      "id": "eold003",
+      "code": "C33",
+      "name": "",
+      "title": "",
+      "author": "",
+      "order": 3,
+      "status": "noShow",
+      "timing": {
+        "run": null,
+        "runs": [],
+        "usedMs": 0,
+        "overLimit": false,
+        "overGrace": false
+      },
+      "notes": "",
+      "privateNote": "",
+      "tags": [],
+      "checks": {},
+      "comment": null,
+      "commentSource": "judge",
+      "rank": ""
+    }
+  ],
+  "reasonForRank": "A12 had the clearest switches.",
+  "ranksCopiedAt": 1794671900000
+}
