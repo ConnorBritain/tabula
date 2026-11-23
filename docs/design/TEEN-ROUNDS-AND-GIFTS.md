@@ -1,6 +1,6 @@
 # Teen rounds, school AI settings, sending rounds, and the refund fallback (design, draft 1)
 
-Status: DRAFT, 2026-11-23. Design only. No code, no Stripe change, no legal text is live. Nothing here ships before the owner answers §12 and the lawyer answers §11.
+Status: DRAFT, 2026-11-23. Design only. No code, no Stripe change, no legal text is live. The owner decided D1 to D8 on 2026-11-23 (§12). Items marked "lawyer" in §13 wait for the lawyer's answers in §11.
 
 Builds on: `docs/design/BUY-FIRST-SPEC.md` (draft 2, "send setup to someone else"), `docs/design/AI-POLICY.md`, `docs/design/AI-ROUND-CONSENT.md`, `docs/marketing/LEGAL-UPDATE-5-DRAFT.md` (Parts A and B), tabula-cloud `src/age.ts`, `src/platform/resolve.ts`, `src/platform/settings.ts`, `src/platform/limits.ts`, `src/meter/user-do.ts`, `src/billing/webhook.ts`, `docs/platform/MODEL.md`.
 
@@ -28,7 +28,7 @@ This doc keeps ideas 1 and 3. It changes idea 2 (code work is needed), idea 4 (�
 |---|---|---|
 | Live Terms §3 (tabula-sites `sites/speech/pages/terms.html`) | 13+ may have an Account **and use Hosted AI on their own**. Only adults buy. A parent or guardian may buy for a minor's Account. | No. Idea 1 matches it. |
 | tabula-cloud `src/age.ts` (on main, commit c6bd335 "13+ for Hosted AI, adults buy, school stays 18+") | `hostedAge`: a teen with a date of birth may use Hosted AI on their own plan. `buyAge`: the state's age of majority (18; AL 19, NE 19, MS 21). `joinAge`: under 18 joins a school as **managed**. Running a school is 18+. A per-state "parent consent before Hosted AI" switch exists, but no state has it on and no consent flow exists. | No. Idea 1 already works in code. |
-| `BUSINESS-PLAN.md` (private) row 6 and §12 Q7 | Hosted AI is 18+ until Program codes exist (summer 2027). Student judges use Hosted AI only through a Program code. | **Yes.** It is older than the Terms and the code. The owner should mark Q7 as replaced (decision D1). I did not edit the private file. |
+| `BUSINESS-PLAN.md` (private) row 6 and §12 Q7 | Hosted AI is 18+ until Program codes exist (summer 2027). Student judges use Hosted AI only through a Program code. | **Yes.** It is older than the Terms and the code. **Replaced by D1** (owner, 2026-11-23). The private file itself is not edited; the owner edits it if they want. |
 | `BUY-FIRST-SPEC.md` rule 5 | An adult may buy; a 13 to 17 user may receive and use the rounds. | No. It matches idea 1. |
 | tabula-cloud `docs/platform/MODEL.md` §7 | "A teen account is always managed by at least one program, or by a guardian (later). A teen never buys." | **Yes, the first sentence.** A solo teen account (no program) exists today under Terms §3 and `age.ts`. "A teen never buys" still holds. |
 | `AI-POLICY.md` §2c ("Managed account" line) | Students 13 to 17 can get an account only through the school or with parent consent (paraphrase). | **Yes**, same as MODEL §7. Both docs need one line fixed (§10.3). |
@@ -378,7 +378,7 @@ The buy-first spec §11 covers a refund after the first send. These rules cover 
 - tabula-cloud `docs/platform/MODEL.md` §5 and §7: student `self` mode; "a teen account is managed by a program, or is solo"; "a teen never buys" stays.
 - `docs/design/BUY-FIRST-SPEC.md` §4.3 and §11: point to this doc for later sends, pause, and refunds after a re-send.
 - tabula-cloud `docs/STRIPE.md` item 5: remove "14 days"; point to the Refund Policy.
-- `BUSINESS-PLAN.md` (private) Q7 and row 6: mark as replaced by Terms §3 (owner edits it).
+- `BUSINESS-PLAN.md` (private) Q7 and row 6: replaced by D1 (owner, 2026-11-23). Edit the private file only if the owner asks.
 
 ### 10.4 Legal text (draft later, as legal update 7; none written here)
 
@@ -412,36 +412,83 @@ The buy-first spec §11 covers a refund after the first send. These rules cover 
 
 ## 12. Owner decisions
 
-Each has two options. My pick is first.
+**All 8 DECIDED, 2026-11-23: option A for each.** Owner's words: "Yes, all 8" (typed in the cloud-setup chat, relayed to this session by the cloud-setup session). Option B stays below as the record of what was not chosen.
 
-**D1. Can a teen (13 to 17) with no school program use Hosted AI now?**
-- **A (pick): Yes.** This is the live Terms §3 and the code today, and your idea 1. Mark business plan Q7 as replaced. The lawyer checks the state list (§11 item 1).
+**D1. Can a teen (13 to 17) with no school program use Hosted AI now?** **DECIDED 2026-11-23: A.**
+- **A (chosen): Yes.** This is the live Terms §3 and the code today, and your idea 1. Mark business plan Q7 as replaced. The lawyer checks the state list (§11 item 1).
 - B: No. Wait until Programs (summer 2027), as Q7 says. Then the Terms and the code must change back.
 
-**D2. A school allows AI. Can the teen use family-bought rounds?**
-- **A (pick): Yes. Add a third student choice, "AI clerk, family rounds".** It works before school pools exist. Code change in §4.2.
+**D2. A school allows AI. Can the teen use family-bought rounds?** **DECIDED 2026-11-23: A.**
+- **A (chosen): Yes. Add a third student choice, "AI clerk, family rounds".** It works before school pools exist. Code change in §4.2.
 - B: No. Keep the code: students use only the school pool. Family rounds pause in every program until pools exist.
 
-**D3. Which setting wins for a teen in a school?**
-- **A (pick): The school wins on every round, home practice too.** This is the code and AI-POLICY today, and your idea 3.
+**D3. Which setting wins for a teen in a school?** **DECIDED 2026-11-23: A.**
+- **A (chosen): The school wins on every round, home practice too.** This is the code and AI-POLICY today, and your idea 3.
 - B: The school wins only in rounds for that school. The teen's own rounds work in their own practice.
 
-**D4. Who can move paused rounds?**
-- **A (pick): Only the buyer.** The teen can give them back to the buyer in one tap. The buyer can take back, send once more, or ask for a refund.
+**D4. Who can move paused rounds?** **DECIDED 2026-11-23: A.**
+- **A (chosen): Only the buyer.** The teen can give them back to the buyer in one tap. The buyer can take back, send once more, or ask for a refund.
 - B: The teen can send them straight to anyone, for example a judge they know (your idea 5 as written).
 
-**D5. Can paused rounds move into the school's pool?**
-- **A (pick): No. They stay personal.** The buyer can send them to a coach or judge in that school instead.
+**D5. Can paused rounds move into the school's pool?** **DECIDED 2026-11-23: A.**
+- **A (chosen): No. They stay personal.** The buyer can send them to a coach or judge in that school instead.
 - B: Yes, after pools exist in 2027. Needs school terms and refund rules for pool rounds bought through Link.
 
-**D6. When does the 7-day pause refund window start?**
-- **A (pick): On the day the rounds pause.** The buyer gets an email with the last day.
+**D6. When does the 7-day pause refund window start?** **DECIDED 2026-11-23: A.**
+- **A (chosen): On the day the rounds pause.** The buyer gets an email with the last day.
 - B: On the purchase day. Simpler, but it is usually closed before a teen joins a school.
 
-**D7. Should the sender learn whether the email has an account?**
-- **A (pick): No. Same message every time.** Nothing moves until the person accepts. This stops strangers from testing which teens use Tabula.
+**D7. Should the sender learn whether the email has an account?** **DECIDED 2026-11-23: A.**
+- **A (chosen): No. Same message every time.** Nothing moves until the person accepts. This stops strangers from testing which teens use Tabula.
 - B: Yes, as your idea 4 says ("if it is a valid account").
 
-**D8. Do expiry dates stop while rounds are paused?**
-- **A (pick): No. Dates keep running.** The 7-day refund and the take-back cover the gap. It matches Terms §6.6.
+**D8. Do expiry dates stop while rounds are paused?** **DECIDED 2026-11-23: A.**
+- **A (chosen): No. Dates keep running.** The 7-day refund and the take-back cover the gap. It matches Terms §6.6.
 - B: Yes. The clock stops while paused. Fairer to the family, but it needs new Terms text and makes the balance last longer on our books.
+
+---
+
+## 13. Build order (after the decisions, 2026-11-23)
+
+No code or deploy is part of this doc. Each step below is a later task. "Lawyer" means: wait for that §11 item before the step goes live. A step can be built and tested on staging before the lawyer answers. Only going live waits.
+
+**Depends on:** the buy-first flow (`BUY-FIRST-SPEC.md`) adds `purchase_setups` and `payment_moves`. Steps S3 to S6 build on those tables, so they come after buy-first, or in the same build.
+
+### Server (tabula-cloud)
+
+| Step | What | Waits for |
+|---|---|---|
+| S1 | Student "family rounds" mode (D2): `settings.ts` `modesFor`, `resolve.ts`, `limits.ts` `walletOrder`. Strictest policy for a teen in two programs (D3). Tests for each role and mode. | Nothing. It does not change who can buy. |
+| S2 | Pause detection hooks: on join and on a student policy change, plus the daily backstop (§6.1). `paused_at` on the purchase. | S1. |
+| S3 | Take-back and restore follow the holder (§8): the two-step saga with shared refs. | Buy-first `payment_moves`. Build this before any later send goes live. |
+| S4 | Later sends (§5): held state, accept or decline, 14-day lapse, same message for every email (D7), give back and take back (D4), re-send once. | S3. Lawyer items 3, 5, 6, 9. |
+| S5 | Buyer emails: pause notice (§6.1), renewal notice while paused (§6.5). Stop renewal auto-move while paused. | S2. Lawyer item 7 (the pause email). |
+| S6 | Pause refund route (§7, D6): buyer only, 7 days from the pause start, once per purchase, unused share pro rata, through the Link Refund API. | S2, S3. Lawyer item 4. Check that Managed Payments allows refunds by API. |
+| S7 | Optional items from §5.0b (caps, Radar hold, sender block, consent record) only if abuse or the lawyer asks. | Lawyer items 2 and 9. |
+
+### App
+
+| Step | What | Waits for |
+|---|---|---|
+| A1 | Admin AI setting: the third student choice "AI clerk, family rounds". | S1. |
+| A2 | Managed teen while paused: no pill, no notice in round screens; one Settings → Account card with "Give back" (§6.3). | S2, S4. |
+| A3 | Accept screen with the one pause line (§5.1 step 6). Buyer's purchase list with Take back, Send, Refund. | S4, S6. |
+
+### Sites (tabula-sites)
+
+| Step | What | Waits for |
+|---|---|---|
+| W1 | Pricing page parent and student wording (§10.2). D1 to D3 are now decided, so the wording can be drafted now. | Publish with A1, or say only what is live. |
+| W2 | Help page: "Buying for a teen", "If a school turns AI off", "Sending rounds". | S4 to S6 live. |
+
+### Legal text (legal update 7, drafted by the legal-text session)
+
+| Step | What | Waits for |
+|---|---|---|
+| L1 | Draft the text in §10.4: Terms 6.6, 6.7, new 6.10, §8, §13; Refund Policy §4, §6, §8; Privacy §3, §12; school terms note. | Can be drafted now. It must merge with legal update 5 Part B, which is not live yet. |
+| L2 | Send the §11 list and the L1 draft to the lawyer. | L1. |
+| L3 | Publish on the same day as the matching server step: 6.10 with S2, transfers with S4, the pause refund with S6. The owner says yes in the marketing chat. | Lawyer answers. Legal update 5 Part B live. |
+
+### Doc fixes (any time)
+
+- AI-POLICY §2c and R6, MODEL §5 and §7, BUY-FIRST §4.3 and §11 pointers, STRIPE.md item 5 (§10.3). These are one-line edits in other files. Each one needs its owner session's yes.
