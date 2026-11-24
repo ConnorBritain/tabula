@@ -1,13 +1,14 @@
 // Speech Events step S2 (docs/events/EXPERIENCE.md §1.1, §7, §8.5): the device settings and the backup file. Pure: no
 // DOM, no storage, no clock. settings-screen.js draws the Settings screen; app.js saves.
 //
+// Step S4 adds drawGapMin, the F2 draw gap (7 or 10 minutes; cross-ex.js DRAW_GAPS).
 // Deferred to later steps (EXPERIENCE.md §11.1), so not here yet: the league pack and default profile, the defaults
-// for each type (signals, grace), the F2 draw gap and ranks-due minutes (S3, S4), the Congress scale defaults (S6), and
-// Shared device (S8).
+// for each type (signals, grace), ranks-due minutes (S3), the Congress scale defaults (S6), and Shared device (S8).
 import { buildBackup, parseBackup } from '../../core/store.js';
 import { PREFIX, ROOMS_KEY, SETTINGS_KEY } from './store.js';
 import { KEYS_KEY } from './ai-key.js';
 import { migrateRooms, migrateSettings } from './migrate.js';
+import { DRAW_GAPS } from './cross-ex.js';
 
 // The app name in a backup file. A file with another name (a Tabula Debate backup) is refused.
 export const BACKUP_APP = 'tabula-events';
@@ -39,7 +40,8 @@ export function withSetting(settings, key, value) {
   if (key === 'mode' && !MODES.some((m) => m.id === value)) return s;
   if (key === 'theme' && !THEMES.some((t) => t.id === value)) return s;
   if (key === 'showModeMenu' && typeof value !== 'boolean') return s;
-  if (!['mode', 'theme', 'showModeMenu'].includes(key)) return s;
+  if (key === 'drawGapMin' && !DRAW_GAPS.includes(value)) return s;
+  if (!['mode', 'theme', 'showModeMenu', 'drawGapMin'].includes(key)) return s;
   return Object.assign({}, s, { [key]: value });
 }
 

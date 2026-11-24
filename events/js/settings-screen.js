@@ -1,7 +1,8 @@
 // Speech Events step S2 (docs/events/EXPERIENCE.md §7, §8.5, §9): the Settings screen, #/settings. Only the parts that
-// work today: Mode, Theme, Connect AI, the keyboard sheet, Ready for offline, and Data (backup and restore).
-// Deferred (EXPERIENCE.md §11.1): league pack and default profile, defaults for each type, F2 draw gap and ranks-due
-// minutes (S3, S4), Congress scale defaults (S6), Shared device (S8).
+// work today: Mode, Theme, the extemp draw gap (step S4), Connect AI, the keyboard sheet, Ready for offline, and Data
+// (backup and restore).
+// Deferred (EXPERIENCE.md §11.1): league pack and default profile, defaults for each type, ranks-due minutes (S3),
+// Congress scale defaults (S6), Shared device (S8).
 // The rules are in settings.js; the builders at the top are pure (Node tests call them); createSettingsScreen does the
 // DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
@@ -12,6 +13,7 @@ import { PREFIX } from './store.js';
 import { keymap } from './keys.js';
 import { checkOffline } from './offline.js';
 import { askConnectKey, askForgetKey } from './ai-connect.js';
+import { DRAW_GAPS } from './cross-ex.js';
 
 const radios = (name, list, picked) => list.map((x) => `<label class="radio"><input type="radio" name="${name}" value="${esc(x.id)}"${x.id === picked ? ' checked' : ''}> ${esc(x.label)}</label>`).join('');
 
@@ -41,6 +43,10 @@ export function settingsHtml(v) {
   </section>
   <section class="set-part" aria-labelledby="set-theme-h"><h2 id="set-theme-h">Theme</h2>
     <fieldset class="radios"><legend class="sr-only">Theme</legend>${radios('set-theme', THEMES, s.theme)}</fieldset>
+  </section>
+  <section class="set-part" aria-labelledby="set-gap-h"><h2 id="set-gap-h">Extemp draw gap</h2>
+    <fieldset class="radios"><legend class="sr-only">Extemp draw gap</legend>${radios('set-gap', DRAW_GAPS.map((n) => ({ id: String(n), label: n + ' minutes' })), String(s.drawGapMin))}</fieldset>
+    <p class="field-help">Extemp speakers prep outside after the draw. Between speakers the room shows "Waiting for next speaker" for about this long. Pick what your tournament uses.</p>
   </section>
   ${aiPartHtml(v.ai)}
   <section class="set-part" aria-labelledby="set-keys-h"><h2 id="set-keys-h">Keyboard</h2>${v.keys}</section>
@@ -130,6 +136,7 @@ export function createSettingsScreen(env) {
     const t = e.target;
     if (t.name === 'set-mode') env.saveSettings(withSetting(env.settings(), 'mode', t.value));
     if (t.id === 'set-modemenu') env.saveSettings(withSetting(env.settings(), 'showModeMenu', t.checked));
+    if (t.name === 'set-gap') env.saveSettings(withSetting(env.settings(), 'drawGapMin', Number(t.value)));
     if (t.name === 'set-theme') {
       env.saveSettings(withSetting(env.settings(), 'theme', t.value));
       if (globalThis.TabulaTheme) globalThis.TabulaTheme.set(t.value);

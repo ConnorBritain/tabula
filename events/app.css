@@ -286,3 +286,24 @@ kbd { font-family: var(--font-mono); font-size: var(--fs-2); }
   .bar { flex-wrap: wrap; padding: var(--s2) var(--s4); }
   .hist-tools { grid-template-columns: 1fr; }
 }
+/* Step S4: profile layer and elims. Round frame (level, panel), F2 cross-ex, waiting line, rubric grid, Rate list. */
+.round-frame { margin: 0 0 var(--s3); font-size: var(--fs-2); }
+.cross-note, .waiting-line { margin: 0 0 var(--s2); font-size: var(--fs-2); }
+.crossex { margin: var(--s3) 0; padding: var(--s3); border: 1px solid var(--border); border-radius: var(--r-md); }
+.crossex .phase-bar { justify-content: flex-start; }
+.cx-fields { display: flex; flex-wrap: wrap; gap: var(--s3); }
+.cx-warn { margin: var(--s2) 0; padding: var(--s2) var(--s3); background: var(--error-tint); border: 1px solid var(--error); border-radius: var(--r-md); }
+.cx-clock { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin-top: var(--s2); }
+.cx-digits { font-family: var(--font-mono); font-size: var(--fs-4); min-width: 6ch; }
+.board-row .rubric, .rate-row .rubric { grid-column: 2 / -1; }
+.rubric { display: grid; gap: var(--s1); margin-top: var(--s1); }
+.rub-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1); }
+.rub-label { min-width: 9rem; font-size: var(--fs-2); }
+.rub-num { width: 3.2rem; text-align: center; font: inherit; min-height: var(--h-md); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); }
+.rub-num[aria-invalid="true"] { border-color: var(--error); }
+.rub-total { margin: 0; font-size: var(--fs-2); font-weight: var(--fw-4); }
+.rate-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: var(--r-md); }
+.rate-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s2) var(--s3); align-items: center; padding: var(--s2) var(--s3); border-top: 1px solid var(--border); }
+.rate-row:first-child { border-top: 0; }
+@media (max-width: 560px) { .rate-row { grid-template-columns: 1fr; } }
+.board-main > .pill { align-self: flex-start; justify-self: start; width: max-content; }

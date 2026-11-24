@@ -22,25 +22,30 @@ import { createRoom, present, nextWaiting } from './room.js';
 import { STATE_LABEL } from './rooms.js';
 import { boardCtx, ranksOf, ratingsOf } from './board.js';
 import { ranksBlock, ranksProblems, cards, checklist, statusText } from './ballot.js';
+import { stagesOf, layerOf } from './profile-layer.js';
 
 export const family = 'room';
 export const families = Object.freeze(['f1', 'f2', 'f3', 'custom']);
 
 const STAGES = Object.freeze(['judge', 'rank', 'review']);
+// Step S4 (profile layer, EXPERIENCE.md §2.4): the round's frozen profile picks the stages and the Rank screen. A
+// critiqueOnly round has no Rank stage (judge, review). A ranks 'off' round draws its 'rank' stage with the Rate screen
+// (env.roomScreens.rate), so the address stays #/round/<id>/rank.
+const screenFor = (env, round, stage) => (stage === 'rank' && layerOf(round.profile).ranks === 'off' ? env.roomScreens.rate : env.roomScreens[stage]);
 // Each stage's key scope (js/keys.js names the room scope's shortcuts; rank and review have none yet).
 const SCOPE = Object.freeze({ judge: 'room', rank: 'rank', review: 'review' });
 
 // input: { entries, tournament, round, flight, now, makeId } as createRoom takes them.
 export const newRound = (def, profile, input) => createRoom(Object.assign({}, input, { event: def, profile }));
 
-export const stages = () => STAGES;
+export const stages = (round) => (round ? stagesOf(round.profile) : STAGES);
 
 // The screen that shows now (one round shows at a time), for keys().run.
 let showing = null;
 
 export function mount(el, env, round, stage) {
   if (el !== env.el) throw new Error('room workspace: the shipped screens draw in env.el');
-  const screen = STAGES.includes(stage) && env.roomScreens ? env.roomScreens[stage] : null;
+  const screen = stages(round).includes(stage) && env.roomScreens ? screenFor(env, round, stage) : null;
   if (!screen) throw new Error('room workspace: no screen for the stage ' + stage);
   showing = screen;
   screen.show(round.id);
@@ -63,6 +68,6 @@ export function summary(round) {
   return { status: STATE_LABEL[round.state] || STATE_LABEL.setup, done: list.filter((e) => e.status === 'done').length, total: list.length, next: next ? next.code : null };
 }
 
-export const rankModel = (round) => ({ ranks: ranksOf(round), ratings: ratingsOf(round), ctx: boardCtx(round) });
+export const rankModel = (round) => (layerOf(round.profile).critiqueOnly ? null : { ranks: ranksOf(round), ratings: ratingsOf(round), ctx: boardCtx(round) });
 
 export const reviewModel = (round) => ({ status: statusText(round), checklist: checklist(round), ranks: ranksBlock(round), cards: cards(round) });

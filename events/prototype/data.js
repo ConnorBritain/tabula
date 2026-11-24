@@ -1010,6 +1010,123 @@ window.TABULA_EVENTS_DATA = {
    },
    "biasNote": "Judge the performance, not the person.",
    "source": "Tabula defaults (ARCHITECTURE.md §6.2), 2026-27 season. The judge changes them per room."
+  },
+  {
+   "id": "top-three",
+   "version": 1,
+   "name": "Rank the top 3 only",
+   "ranks": "topN",
+   "topN": 3,
+   "rating": "none",
+   "ratingNoTies": false,
+   "rankRatingRule": false,
+   "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+   },
+   "biasNote": "Judge the performance, not the person.",
+   "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape."
+  },
+  {
+   "id": "rate-only",
+   "version": 1,
+   "name": "Rate only (no ranks)",
+   "ranks": "off",
+   "rating": {
+    "min": 1,
+    "max": 10,
+    "step": 1
+   },
+   "ratingNoTies": false,
+   "rankRatingRule": false,
+   "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+   },
+   "biasNote": "Judge the performance, not the person.",
+   "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape."
+  },
+  {
+   "id": "rubric-five",
+   "version": 1,
+   "name": "Rubric, 5 parts (no ranks)",
+   "ranks": "off",
+   "rubric": [
+    {
+     "id": "content",
+     "label": "Content",
+     "min": 1,
+     "max": 5
+    },
+    {
+     "id": "organization",
+     "label": "Organization",
+     "min": 1,
+     "max": 5
+    },
+    {
+     "id": "delivery",
+     "label": "Delivery",
+     "min": 1,
+     "max": 5
+    },
+    {
+     "id": "language",
+     "label": "Language",
+     "min": 1,
+     "max": 5
+    },
+    {
+     "id": "overall",
+     "label": "Overall",
+     "min": 1,
+     "max": 5
+    }
+   ],
+   "rating": "none",
+   "ratingNoTies": false,
+   "rankRatingRule": false,
+   "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+   },
+   "biasNote": "Judge the performance, not the person.",
+   "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape."
+  },
+  {
+   "id": "comments-only",
+   "version": 1,
+   "name": "Comments only (no ranks)",
+   "ranks": "off",
+   "critiqueOnly": true,
+   "rating": "none",
+   "ratingNoTies": false,
+   "rankRatingRule": false,
+   "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+   },
+   "biasNote": "Judge the performance, not the person.",
+   "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape."
+  },
+  {
+   "id": "elim-large",
+   "version": 1,
+   "name": "Elim room: up to 12, extemp cross-ex",
+   "ranks": "all",
+   "maxEntries": 12,
+   "elim": {
+    "cx": true
+   },
+   "rating": "none",
+   "ratingNoTies": false,
+   "rankRatingRule": false,
+   "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+   },
+   "biasNote": "Judge the performance, not the person.",
+   "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape. Cross-ex length and who asks whom are not verified, so the rules give no cross-ex limit; the cap of 12 is a Tabula limit."
   }
  ],
  "checks": {

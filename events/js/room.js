@@ -18,11 +18,23 @@ export const ENABLED_EVENTS = Object.freeze(['oo', 'inf', 'usx', 'ix', 'di', 'hi
 export const CUSTOM_EVENT = 'custom';
 // The rules profile a new room starts with (the NSDA district preset).
 export const DEFAULT_PROFILE = 'nsda-district';
-// A room holds 1 to 8 entries (ARCHITECTURE.md §1: one judge, one room, 4 to 8 speakers; MODELS.md §3: 1..8).
+// A room holds 1 to 8 entries by default (ARCHITECTURE.md §1: one judge, one room, 4 to 8 speakers; MODELS.md §3: 1..8).
 export const MAX_ENTRIES = 8;
+// The largest cap a rules profile may set (step S4, EXPERIENCE.md §2.5: elim finals, some state rounds and Group events
+// go over 8). A Tabula limit, not a league rule: it keeps the roster usable on a phone.
+export const MAX_ENTRIES_LIMIT = 30;
+// The entry cap of a rules profile (step S4, §2.5, §8.5): profile.maxEntries when it is a whole number from 1 to
+// MAX_ENTRIES_LIMIT, else MAX_ENTRIES. A room keeps a frozen copy of its profile, so entryCap(room.profile) is the
+// room's cap for life. The v1 profiles have no maxEntries, so their rooms keep the cap of 8.
+export function entryCap(profile) {
+  const n = profile && profile.maxEntries;
+  return Number.isInteger(n) && n >= 1 && n <= MAX_ENTRIES_LIMIT ? n : MAX_ENTRIES;
+}
 
 // The words for each entry status on the roster pill (DESIGN.md §4.1).
-export const STATUS_LABEL = Object.freeze({ waiting: 'Waiting', speaking: 'Speaking', done: 'Done', noShow: 'No show' });
+// crossEntered (step S4, EXPERIENCE.md §3.1): the student is in another event in the same slot and speaks later. It is
+// not a no show: the entry stays on the board and gets a rank (cross-entry.js sets and clears it).
+export const STATUS_LABEL = Object.freeze({ waiting: 'Waiting', speaking: 'Speaking', done: 'Done', noShow: 'No show', crossEntered: 'Cross-entered: speaks later' });
 
 // An entry code: letters and digits with an optional hyphen, 1 to 12 characters (the paste parser makes the same
 // shapes: "A12", "1024", "AB-104").
@@ -76,13 +88,16 @@ export function codeError(code, room, exceptId) {
 //   entries: [{ code, name, names, title }] in speaking order (from the paste parser or typed). A pair event (Duo)
 //     joins the two names into one entry's name (piece.js entryName).
 //   tournament, round, flight: optional text.   now: the time.   makeId: an id maker (newId by default).
+//   level: 'prelim' | 'elim' (step S4, EXPERIENCE.md §3.2; anything else is 'prelim').
+//   panel: { size, note } when 3 or 5 judges sit in the room (round-frame.js panelOf checks it); left out for one judge.
 export function createRoom(opts) {
   const o = opts || {};
   const mk = o.makeId || newId;
   if (!o.event || !o.profile) throw new Error('createRoom needs an event and a profile');
   const profile = clone(o.profile);
   delete profile.key; // the registry's own field, not a rule
-  if ((o.entries || []).length > MAX_ENTRIES) throw new Error('createRoom: a room holds at most ' + MAX_ENTRIES + ' entries (setupError checks this first)');
+  const cap = entryCap(profile);
+  if ((o.entries || []).length > cap) throw new Error('createRoom: a room holds at most ' + cap + ' entries (setupError checks this first)');
   const seen = new Set();
   const entries = [];
   for (const x of o.entries || []) {
@@ -102,12 +117,14 @@ export function createRoom(opts) {
     tournament: String(o.tournament || '').trim(),
     round: String(o.round || '').trim(),
     flight: String(o.flight || '').trim(),
+    level: o.level === 'elim' ? 'elim' : 'prelim',
     state: 'judging',
     current: entries.length ? entries[0].id : null,
     entries: renumber(entries),
     reasonForRank: '',
   };
   if (o.event.id === CUSTOM_EVENT) room.customEvent = clone(o.event);
+  if (o.panel) room.panel = clone(o.panel);
   return room;
 }
 
@@ -120,13 +137,15 @@ export function roomEvent(events, room) {
 }
 
 // Why a room cannot start yet, in plain words, or '' when it can. parsed: the paste parser's result.
-export function setupError(parsed, eventId) {
+// cap: the picked profile's entry cap (entryCap); MAX_ENTRIES when left out.
+export function setupError(parsed, eventId, cap) {
+  const max = Number.isInteger(cap) && cap >= 1 ? cap : MAX_ENTRIES;
   if (eventId !== CUSTOM_EVENT && !ENABLED_EVENTS.includes(eventId)) return 'Pick the event.';
   const n = (parsed && parsed.entries || []).length;
   const c = (parsed && parsed.check || []).length;
   if (c) return 'Sort out the ' + (c === 1 ? 'line' : c + ' lines') + ' under "Check these" first.';
   if (!n) return 'Paste the room, or type one code per line.';
-  if (n > MAX_ENTRIES) return 'A room holds at most ' + MAX_ENTRIES + ' entries. This text has ' + n + '.';
+  if (n > max) return 'A room holds at most ' + max + ' entries. This text has ' + n + '.';
   return '';
 }
 
@@ -148,20 +167,24 @@ export function selectEntry(room, id, now) {
   return Object.assign({}, room, { current: id, updatedAt: now });
 }
 
-// Number keys 1–8: the entry at that place on the roster (1-based), or null.
+// Number keys: the entry at that place on the roster (1-based), or null. 1–8 pick at once; a room over 8 types the
+// number, then Enter (number-pick.js).
 export function entryAtNumber(room, n) {
   const list = (room && room.entries) || [];
   return Number.isInteger(n) && n >= 1 && n <= list.length ? list[n - 1] : null;
 }
 
 // "Next speaker": the first waiting entry after the current one, going round to the top; else the first waiting
-// entry at all; else null (every entry has spoken or is a no show).
+// entry at all; else the first cross-entered entry the same way (step S4: they speak later, after the others); else
+// null (every entry has spoken or is a no show).
 export function nextWaiting(room) {
   const list = (room && room.entries) || [];
   const at = Math.max(0, indexOf(room, room && room.current));
-  for (let k = 1; k <= list.length; k++) {
-    const e = list[(at + k) % list.length];
-    if (e.status === 'waiting') return e;
+  for (const status of ['waiting', 'crossEntered']) {
+    for (let k = 1; k <= list.length; k++) {
+      const e = list[(at + k) % list.length];
+      if (e.status === status) return e;
+    }
   }
   return null;
 }
@@ -199,7 +222,8 @@ export function clearNoShow(room, id, now, status) {
 export function addEntry(room, code, name, now, id) {
   const error = codeError(code, room);
   if (error) return { room, entry: null, error };
-  if (room.entries.length >= MAX_ENTRIES) return { room, entry: null, error: 'A room holds at most ' + MAX_ENTRIES + ' entries.' };
+  const cap = entryCap(room.profile);
+  if (room.entries.length >= cap) return { room, entry: null, error: 'A room holds at most ' + cap + ' entries.' };
   const entry = makeEntry(code, name, id);
   const next = withEntries(room, room.entries.concat([entry]), now);
   return { room: next.current ? next : Object.assign(next, { current: entry.id }), entry: entryOf(next, entry.id), error: '' };
@@ -286,7 +310,7 @@ export function restoreRoom(rooms, removed) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).room = Object.freeze({
-  ENABLED_EVENTS, CUSTOM_EVENT, DEFAULT_PROFILE, MAX_ENTRIES, STATUS_LABEL, normCode, newId, makeEntry, codeError, createRoom, roomEvent, setupError,
+  ENABLED_EVENTS, CUSTOM_EVENT, DEFAULT_PROFILE, MAX_ENTRIES, MAX_ENTRIES_LIMIT, entryCap, STATUS_LABEL, normCode, newId, makeEntry, codeError, createRoom, roomEvent, setupError,
   entryOf, indexOf, present, updateEntry, selectEntry, entryAtNumber, nextWaiting, moveEntry, markNoShow, clearNoShow,
   addEntry, removeEntry, restoreEntry, rosterAction, upsertRoom, findRoom, removeRoom, restoreRoom,
 });

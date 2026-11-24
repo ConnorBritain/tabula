@@ -5,24 +5,32 @@
 // card (cleanup-view.js), built only when the AI gate allows it.
 // The builders at the top are pure (Node tests call them); createReviewScreen does the DOM.
 import { escapeHtml as esc, showPrintSheet, removePrintSheet } from '../../core/sheets.js';
-import { ranksBlock, ranksProblems, cards, checklist, statusText, markCopied, setComment, setReasonReview, copyAllText, printModel } from './ballot.js';
+import { ranksBlock, ranksProblems, cards, checklist, statusText, markCopied, setComment, setReasonReview, copyAllText, printModel, hasRanksStage } from './ballot.js';
 import { findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf } from './timer.js';
 import { createCleanup } from './cleanup-view.js';
+import { rankStageLabel } from './profile-layer.js';
 
 const done = (ok, label) => `<li class="${ok ? 'is-ok' : ''}"><span aria-hidden="true">${ok ? '✓' : '○'}</span> ${esc(label)}${ok ? '' : ' <span class="sr-only">(not yet)</span>'}</li>`;
 
-// Stage 1 as HTML text.
+// Stage 1 as HTML text. Step S4 (profile layer): under ranks 'off' it is "Ratings to submit" with no Rank column;
+// a rubric adds a column; under critiqueOnly there is nothing to submit and the stage says so.
 export function ranksStageHtml(room) {
-  const { rows, rated } = ranksBlock(room);
+  if (!hasRanksStage(room)) {
+    return `<section class="review-stage" aria-labelledby="stage1"><h2 id="stage1">1. Ranks</h2>
+    <p class="muted">These rules are comments only. There are no ranks to submit. Copy each comment below.</p></section>`;
+  }
+  const { rows, rated, ranked, rubric } = ranksBlock(room);
   const problems = ranksProblems(room);
   const sent = Boolean(room.ranksCopiedAt);
-  const table = `<table class="ranks-table"><thead><tr><th>Code</th><th>Rank</th>${rated ? '<th>Rating</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td><td>${esc(r.rank || '–')}</td>${rated ? `<td>${esc(r.rating || '–')}</td>` : ''}<td>${r.overTime ? 'Yes' : 'No'}</td></tr>`).join('')}</tbody></table>`;
+  const word = ranked ? 'ranks' : 'ratings';
+  const back = ranked ? 'Rank' : 'Rate';
+  const table = `<table class="ranks-table"><thead><tr><th>Code</th>${ranked ? '<th>Rank</th>' : ''}${rated ? '<th>Rating</th>' : ''}${rubric ? '<th>Rubric</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td>${ranked ? `<td>${esc(r.rank || '–')}</td>` : ''}${rated ? `<td>${esc(r.rating || '–')}</td>` : ''}${rubric ? `<td>${esc(r.rubric.scores.map((x) => x.label + ' ' + (x.value || '–')).join(', '))} · <strong>${esc(r.rubric.total || '–')}</strong> of ${r.rubric.max}</td>` : ''}<td>${r.overTime ? 'Yes' : 'No'}</td></tr>`).join('')}</tbody></table>`;
   const block = problems.length
-    ? `<div class="problems"><h3>Fix these before you copy the ranks</h3><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul><a class="b" href="#/rank/${encodeURIComponent(room.id)}">Back to Rank</a></div>`
-    : `<button class="b primary" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${sent ? '✓ Copied. Copy ranks again' : 'Copy ranks'}</button>`;
-  return `<section class="review-stage" aria-labelledby="stage1"><h2 id="stage1">1. Ranks to submit</h2>
+    ? `<div class="problems"><h3>Fix these before you copy the ${word}</h3><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul><a class="b" href="#/rank/${encodeURIComponent(room.id)}">Back to ${back}</a></div>`
+    : `<button class="b primary" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${sent ? '✓ Copied. Copy ' + word + ' again' : 'Copy ' + word}</button>`;
+  return `<section class="review-stage" aria-labelledby="stage1"><h2 id="stage1">1. ${ranked ? 'Ranks' : 'Ratings'} to submit</h2>
     <p class="muted">Enter these in the online ballot first. Most sites lock ranks when you submit, but keep comments open.</p>
     ${table}${block}</section>`;
 }
@@ -35,7 +43,7 @@ export function cardHtml(c, editing, ai) {
     ? `<label class="sr-only" for="edit-${c.id}">Comment for ${esc(c.code)}</label><textarea id="edit-${c.id}" class="card-edit" data-vfield="comment" data-id="${c.id}" rows="6">${esc(c.comment)}</textarea>`
     : `<div class="card-text">${c.comment ? esc(c.comment) : '<span class="muted">No comment yet.</span>'}</div>`;
   return `<li class="card" data-card="${c.id}">
-    <div class="card-head"><span class="code">${esc(c.code)}</span><span class="muted">${c.rank ? 'Rank ' + esc(c.rank) : 'No rank'}${c.rating ? ' · Rating ' + esc(c.rating) : ''}</span>
+    <div class="card-head"><span class="code">${esc(c.code)}</span><span class="muted">${[c.ranked === false ? '' : c.rank ? 'Rank ' + esc(c.rank) : 'No rank', c.rating ? 'Rating ' + esc(c.rating) : ''].filter(Boolean).join(' · ')}</span>
       ${a.button}<button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : 'Edit'}</button></div>
     ${c.name || c.piece ? `<p class="card-piece">${[c.name, c.piece].filter(Boolean).map(esc).join(' · ')}</p>` : ''}
     ${c.question ? `<p class="card-question"><span class="muted">Question:</span> ${esc(c.question)}</p>` : ''}
@@ -183,7 +191,8 @@ export function createReviewScreen(env) {
       roomId = id; view = { order: 'speaking', editing: null };
       if (cleanup) cleanup.reset();
       const ev = event(r);
-      env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/rank/${encodeURIComponent(id)}">‹ Rank</a>
+      const back = hasRanksStage(r) ? `<a class="b quiet" href="#/rank/${encodeURIComponent(id)}">‹ ${rankStageLabel(r.profile)}</a>` : `<a class="b quiet" href="#/room/${encodeURIComponent(id)}">‹ Room</a>`;
+      env.el.innerHTML = `<div class="screen-head">${back}
           <h1 id="screen-title" tabindex="-1">Review · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <div id="review-top"></div><div id="review-ranks"></div><div id="review-comments"></div>`;
       env.el.addEventListener('click', onClick);

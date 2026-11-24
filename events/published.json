@@ -22,6 +22,11 @@
   "profiles": [
     "nsda-district.v1.json",
     "nsda-invitational.v1.json",
-    "custom.v1.json"
+    "custom.v1.json",
+    "v2/top-three.v1.json",
+    "v2/rate-only.v1.json",
+    "v2/rubric-five.v1.json",
+    "v2/comments-only.v1.json",
+    "v2/elim-large.v1.json"
   ]
 }
