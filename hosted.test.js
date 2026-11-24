@@ -168,7 +168,7 @@ const refusal = (status, error) => ({ ok: false, status, json: async () => ({ er
 // A page world: the gate, an optional own key (the subscription helper path), a fetch stub, and the toasts shown.
 function world({ g, ownKey = false, answers, host, consent = true }) {
   const calls = [], toasts = [], opened = [];
-  let cleared = 0;
+  let cleared = 0, signedOut = 0;
   const S = { aiEngine: ownKey ? 'claude-cli' : '', helper: { 'claude-cli': ownKey } };
   const R = round();
   const fetch = async (url, init) => {
@@ -177,11 +177,11 @@ function world({ g, ownKey = false, answers, host, consent = true }) {
     return answers.shift();
   };
   // demoOn: the page is not the staged demo (js/demo.js), so callAI takes its real path.
-  const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console', 'location', 'demoOn', 'roundConsent',
+  const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console', 'location', 'demoOn', 'roundConsent', 'acctSignedOut',
     PAGE + '\nreturn [callAI, () => hostedLimits, (v) => { hostedLimits = v; }];');
   const [callAI, limits, setLimits] = make(L, P, S, R, [], g, (f) => L.canUse(g, f), () => ownKey, () => L.NO_AI, fetch,
-    (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} }, { host: host || 'debate.tabulaspeech.com' }, false, async () => consent); // the round question's answer (default yes; consent tests: round-consent.test.js)
-  return { callAI, calls, toasts, opened, R, cleared: () => cleared, limits, setLimits };
+    (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} }, { host: host || 'debate.tabulaspeech.com' }, false, async () => consent, () => { signedOut++; }); // the round question's answer (default yes; consent tests: round-consent.test.js)
+  return { callAI, calls, toasts, opened, R, cleared: () => cleared, signedOut: () => signedOut, limits, setLimits };
 }
 const EVAL_CALL = { feature: 'liveEval', system: 'sys', prompt: 'p', schema: L.EVAL_SCHEMA, hosted: { job: 'eval' } };
 
@@ -392,6 +392,19 @@ test('the Buy rounds link follows the site the app runs on', async () => {
   w.toasts[0].o.action.run();
   assert.deepEqual(w.opened, ['https://tabulaspeech.dev/account/']);
   assert.equal(L.hostedError(402, 'age_required', L.accountUrl('debate.tabulaspeech.dev')).link.url, 'https://tabulaspeech.dev/account/', 'Open account too');
+});
+
+// Why: a judge with no own key whose session ends mid-round must get a one-click way back to the rounds they bought,
+// on the staging or live site they are on; a "get more rounds" toast or a Buy link would send them to pay again.
+test('signed out with no own key: the toast offers Sign in on the same site', async () => {
+  const w = world({ g: gate(record(ALL_SELF, true)), answers: [refusal(401, 'signed_out')], host: 'debate.tabulaspeech.dev' });
+  await assert.rejects(w.callAI(EVAL_CALL));
+  assert.equal(w.toasts.length, 1);
+  assert.match(w.toasts[0].msg, /^Sign in to use your Tabula rounds again\.$/);
+  assert.equal(w.toasts[0].o.action.label, 'Sign in');
+  w.toasts[0].o.action.run();
+  assert.deepEqual(w.opened, [L.signinUrl('debate.tabulaspeech.dev')]);
+  assert.equal(w.signedOut(), 1, 'the top-bar Sign in was not told the session ended');
 });
 
 // ---------- reading level and points range (tabula-cloud contracts/ai-replies-v1, note ai-json-replies.md) ----------

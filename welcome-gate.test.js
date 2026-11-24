@@ -51,7 +51,8 @@ function world(first) {
   const env = {
     L, S, capsGate: first, $: (sel) => (sel === '#show-welcome' ? out.button : null),
     saveSettings: () => { out.saved++; },
-    openWelcome: () => { out.opened++; }, maybeD2Note: () => { out.noted++; },
+    openWelcome: (signedOut) => { out.opened++; out.signedOut = signedOut; }, maybeD2Note: () => { out.noted++; },
+    acctOut: false, // what js/account.js knows: false = not known to be signed out
   };
   const src = 'async ' + fnSource(read('js/help.js'), 'welcomeWhenKnown');
   const run = new Function(...Object.keys(env), 'setGate', 'return [' + src + ', (g) => { capsGate = g; }];');
