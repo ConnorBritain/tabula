@@ -287,6 +287,7 @@ hourScores[{hour, points}], partHour: bool
 | `nsda-nationals` | Scale 3 to 9, top 8 | `reasonBelow`, PO scale |
 | `uil` | Scale 1 to 6, first 5 speeches, parliamentarian ranks all | `reasonBelow`, PO rule |
 | `tfa` | Scale 0 to 6, parliamentarian gives PO points 0 to 6 per hour | `reasonBelow` |
+| `tfa-state` | Scale 1 to 6, parliamentarian gives PO points 1 to 6 at the end of each hour, top 8, max 20 in a prelim chamber, wrong side no more than 3 | `reasonBelow`, rank pool, wrong-side cap (read from the IQT rules) |
 | `ncfl`, `chssa` | None | All |
 
 ## 8. Build order
@@ -351,9 +352,10 @@ Each open fact in §10 was checked against primary sources. A fact that is not c
 | 7 | UIL | 1 to 6 for each speech; only the first five speeches in a session are scored. PO: "up to six points per clock hour"; the PO form says 2 to 6. No part-hour rule found. A ballot for every member, even those who did not speak. | [UIL-CR27]; [UIL-PO] | Speech confirmed; PO partial (marked) |
 | 8 | TFA | IQTs: 0 to 6 for each speech. The parliamentarian gives 0 to 6 for each PO hour (one line also says "and scorers"). State: 1 to 6 for speeches and PO. A wrong-side speech gets no more than 3 points. | [TFA] | Confirmed; PO rule marked for the wording conflict |
 | 9 | NCFL, CHSSA | No speech-point scale in either rulebook. NCFL: top 8 ranks, unranked students get 9, the parliamentarian ranks all. CHSSA: ranks only; the PO is a separate win/loss contest. No profile written yet. | [NCFL-BY]; [CHSSA-RR] | Confirmed: ranks only |
+| 11 | TFA State | Scorers give 1 to 6 for each speech. The parliamentarian gives the PO 1 to 6 at the end of each hour. Top 8 ranks by the scorers and the parliamentarian. A prelim chamber has no more than 20; semifinals and Super Congress no more than 16. Scorers change each prelim session. State floor debate points to the IQT rules, so the wrong-side cap of 3 is read from there. | [TFA] State Tournament: Congressional Debate (Chambers, Scoring, Semifinal, Super Congress) | Confirmed; wrong-side cap, `reasonBelow` and rank pool marked |
 | 10 | Times | Speeches up to 3:00. 2:00 of questions after authorship or sponsorship and after the first negative; 1:00 after others. Direct questioning blocks of at most 30 s. | [NSDA-HS] Congress event rules | Confirmed |
 
-Still open for the owner: §10 items 3 (rank pool), 4 (parliamentarian full rank, S7), 8 (seat chart), 9 (timekeeper view), 10 (slowest device), plus a TFA State profile and NCFL and CHSSA rank-only profiles.
+Still open for the owner: §10 items 3 (rank pool), 4 (parliamentarian full rank, S7), 8 (seat chart), 9 (timekeeper view), 10 (slowest device), plus NCFL and CHSSA rank-only profiles. The TFA State profile (`tfa-state`) is written (row 11 above).
 
 ## Sources
 

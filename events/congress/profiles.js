@@ -45,6 +45,12 @@ export const CONGRESS_PROFILES = Object.freeze([
   make({ id: 'tfa', version: 1, name: 'TFA (Texas) IQT', scale: { min: 0, max: 6 }, poScale: { min: 0, max: 6 }, reasonBelow: null,
     poRule: 'parliScores', wrongSideOff: null, wrongSideMax: 3, unverified: ['reasonBelow', 'poRule'],
     source: 'TFA Constitution and Contest Rules 2026-27 (amended Oct 2026), Congressional Debate Tabulation. See CONGRESS.md §5.' }),
+  // TFA State: scorers give 1-6 for each speech; the parliamentarian gives the PO 1-6 at the end of each hour; top 8;
+  // a prelim chamber has no more than 20 (semifinals and Super Congress: 16). State floor debate points to the IQT
+  // rules, so the wrong-side cap (no more than 3) is read from there and stays marked.
+  make({ id: 'tfa-state', version: 1, name: 'TFA (Texas) State', scale: { min: 1, max: 6 }, poScale: { min: 1, max: 6 }, reasonBelow: null,
+    poRule: 'parliScores', maxLegislators: 20, wrongSideOff: null, wrongSideMax: 3, unverified: ['reasonBelow', 'rankPool', 'wrongSideMax'],
+    source: 'TFA Constitution and Contest Rules 2026-27 (amended Oct 2026), State Tournament: Congressional Debate (Chambers, Scoring). See CONGRESS.md §5, §11.' }),
 ]);
 
 export const DEFAULT_CONGRESS_PROFILE = 'nsda-district';
@@ -65,7 +71,7 @@ export function congressProfile(id) {
 }
 
 // The plain-words list of values a source did not confirm, for the setup screen.
-const FIELD_WORDS = Object.freeze({ reasonBelow: 'when to ask for a reason', poScale: 'the PO points range', poRule: 'how PO hours score', rankPool: 'who can be ranked', scale: 'the speech points range' });
+const FIELD_WORDS = Object.freeze({ reasonBelow: 'when to ask for a reason', poScale: 'the PO points range', poRule: 'how PO hours score', rankPool: 'who can be ranked', wrongSideMax: 'the wrong-side cap', scale: 'the speech points range' });
 export const unverifiedWords = (p) => (p && p.unverified ? p.unverified.map((f) => FIELD_WORDS[f] || f) : []);
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressProfiles = Object.freeze({ CONGRESS_PROFILES, DEFAULT_CONGRESS_PROFILE, SCALE_CHOICES, scaleId, scaleText, congressProfile, unverifiedWords });

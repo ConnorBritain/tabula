@@ -382,3 +382,17 @@ test('a 30-row chamber over 3 hours saves after every speech and stays small', (
   assert.equal(chamberSessions(io.read(), chamber.id).length, 1);
   assert.equal(removeSpeech(back, back.speeches[0].id).speeches.length, SPEECHES - 1);
 });
+
+// Why: TFA State is a different ballot from TFA IQTs (1 to 6, not 0 to 6; chambers of 20); scoring a State chamber on
+// the IQT rules would let a judge give a 0 the State ballot cannot take, or accept a 30-row chamber.
+test('the TFA State profile scores 1 to 6, leaves the PO to the parliamentarian, caps prelim chambers at 20, and marks its open values', () => {
+  const st = congressProfile('tfa-state');
+  assert.deepEqual([st.scale.min, st.scale.max, st.poScale.min, st.poScale.max], [1, 6, 1, 6]);
+  assert.equal(st.poRule, 'parliScores');
+  assert.equal(st.topN, 8);
+  assert.equal(countedPoints({ points: 6, penalty: 'wrongSide' }, st, 1), 3, 'wrong side: no more than 3');
+  assert.deepEqual(setupChecks(parseRoom(codes(21).join('\n')), ['B'], st).filter((c) => c.block).map((c) => c.kind), ['tooMany']);
+  assert.deepEqual(setupChecks(parseRoom(codes(20).join('\n')), ['B'], st), []);
+  assert.deepEqual([...st.unverified].sort(), ['rankPool', 'reasonBelow', 'wrongSideMax']);
+  assert.equal(congressProfile('tfa').scale.min, 0, 'the IQT profile is unchanged');
+});
