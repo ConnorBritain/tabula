@@ -49,7 +49,7 @@ History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) publishe
 ## Approved, not live yet
 
 - **Update 4 draft 4** (`LEGAL-UPDATE-4-CAMP-PASS-DRAFT-2.md`): Camp Pass with a Start button and an August 15 end; a started pass keeps a share (set on the purchase day, rounded up); a pass never started keeps all its Rounds; kept Rounds never expire. Update 6 is live, so this can go next.
-- **Update 5 Part B** (buy without signing in, send a purchase to another person): waits for the buy-first build.
+- **Update 5 Part B draft 3** (`LEGAL-UPDATE-5B-BUY-FIRST-DRAFT.md`): buy without signing in, send a purchase to one person. The lawyer agreed with all answers L1 to L13 (2026-11-23, reported by the owner). The build is done (tabula-cloud PR 7, tabula-sites PR 19), not merged or live. Goes live after the build is on production.
 - **Marketing holds** the matching Plans page lines on a branch.
 - Replaced and never live: the Weekend Pass 12-month text (`LEGAL-UPDATE-6-WEEKEND-PASS-12-MONTHS-DRAFT.md`) and the first Camp Pass text (`LEGAL-UPDATE-4-CAMP-PASS-FINAL.md`).
 

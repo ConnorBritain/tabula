@@ -23,7 +23,7 @@ Scope: the first send only (buyer to one other person). Later moves (give back, 
 
 1. Update 6 (never expire) is live. If update 4 (Camp Pass) is live too, use the Camp variant in T6.
 2. The buy-first flow is live on the server and the site, including: the "I know this person" confirm; the accept screen, decline and the 14-day end of an unaccepted send; deletion of the recipient email when a send is accepted, declined or ends (including `mail_outbox` rows and per-recipient cap counters); the parent-or-guardian question and its consent record (P3); return of sent Rounds to the buyer when the holder's Account is deleted (T8); a started Camp Pass cannot be sent; the under-13 hold; the two sender controls from the lawyer's answer 9 (at most 3 different senders per receiving Account in 30 days, keyed on Account ids; and the receiver can decline or block a sender); the holder-first take-back with buyer-only shortfall; the California renewal consent on the Subscribe button ("Subscribe: renews yearly at $Y", with the bold renewal line, a confirmation email with cancel steps, and consent records kept at least 3 years).
-3. The lawyer approves this draft 3 (new since his baseline: T4 "I know this person", T5 and R3 holder take-back, P1 "until the send ends", the never-expire changes).
+3. ~~The lawyer approves this draft 3.~~ **Done 2026-11-23:** the lawyer agreed with all proposed answers in `private/programs/legal/LAWYER-CONFIRM-SHEET.md` Part 4 (L1 to L13), reported by the owner (relayed from the Programs legal chat). His L7, L10 and L12 answers are in P1, P3 and P4 below.
 4. The owner types yes in the marketing chat.
 
 ## Terms of Service (`sites/speech/pages/terms.html`)
@@ -85,13 +85,20 @@ Scope: the first send only (buyer to one other person). Later moves (give back, 
 ## Privacy Policy (`sites/speech/pages/privacy.html`)
 
 **P1. §3 Data we collect (add after "If you create an Account, buy a Paid Plan or join a Program, we collect and store the following on our servers:" list)**
-- Add: "If you buy a Paid Plan without signing in, we create an Account with the email you give at checkout, so we can deliver your purchase. If you send the purchase to another person, we use the email you give for them only to send the setup email and to match their acceptance. We delete it when the send is accepted, declined or ends."
+- Add: "If you buy a Paid Plan without signing in, we create an Account with the email you give at checkout, so we can deliver your purchase. If you send the purchase to another person, we use the email you give for them only to send the setup email and to match their acceptance. We delete it when the send is accepted, declined or ends. We keep a record of each send, linking the buyer's and the holder's Accounts, for refunds and disputes."
 
 **P2. §12 Children (add after "We do not knowingly collect personal information from children under 13.")**
 - Add: "If someone gives a date of birth under 13 when they set up an Account, we freeze the Account for up to 7 days, so that a mistake can be fixed. During that time we keep only the email address, the date of birth and the time. We use them only for this review. If support confirms that the date was a mistake, the Account opens with the right date. If not, we delete the Account's personal data after 7 days."
 
 **P3. §12 Children (add after P2)**
-- Add: "If an adult sends a purchase to an Account holder aged 13 to 17, we ask the adult to confirm that they are the person's parent or guardian and that the person may use Hosted AI. We keep a record of the answer (the date, the notice shown and the two Accounts) while either Account is open, and as long as a law requires after that."
+- Add: "If an adult sends a purchase to an Account holder aged 13 to 17, we ask the adult to confirm that they are the person's parent or guardian and that the person may use Hosted AI. We keep a record of the answer (the date, the notice shown and the two Accounts) while either Account is open, and for 3 years after both Accounts close. Then we delete it."
+
+**P4. §10 Sharing and subprocessors (replace the Resend row)**
+- Before: Purpose "Sign-in email"; Data "Email address, sign-in link or code".
+- After: Purpose "Email delivery (sign-in, receipts, reminders and setup emails)"; Data "Email address, email content".
+- If update 4 goes live first, make this change there instead, because Camp Pass reminders also use Resend.
+
+**Name fix (L13).** If any text from this update names the Plans page, write "the Pricing page (tabulaspeech.com/plans/)".
 
 ## Words
 
