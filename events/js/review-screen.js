@@ -82,7 +82,7 @@ export function summaryHtml(room) {
 // DESIGN.md §4.7 asks for cards with Edit, a "Copied" state and the critique list.
 // Copy text to the clipboard. Returns true when it worked. A browser that refuses the clipboard API gets the older
 // select-and-copy way; if that fails too, the caller tells the judge to press Ctrl+C.
-async function copyText(text) {
+export async function copyText(text) {
   try { await navigator.clipboard.writeText(text); return true; } catch {}
   try {
     const t = document.createElement('textarea');

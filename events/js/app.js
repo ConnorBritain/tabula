@@ -45,6 +45,8 @@ import { createMydayScreen } from './myday-screen.js';
 import { createPickerScreen } from './picker-screen.js';
 import { createTypeScreen } from './type-screen.js';
 import { focusIfLost } from './focus.js';
+import { createChamberScreen } from '../congress/chamber-screen.js';
+import { findRound as findCongressRound } from '../congress/workspace.js';
 
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
@@ -100,7 +102,7 @@ function boot(data) {
   };
   env.day = createDayStore({ store, now: env.now });
   const screens = { rooms: createMydayScreen(env), setup: createSetupScreen(env), history: createHistoryScreen(env), settings: createSettingsScreen(env),
-    pick: createPickerScreen(env), type: createTypeScreen(env) };
+    pick: createPickerScreen(env), type: createTypeScreen(env), chamber: createChamberScreen(env) };
   screens.start = { scope: 'setup', show: (cardId) => screens.setup.show(null, { cardId }) }; // #/start/<cardId>: setup filled from the card
   // The room workspace's stages are the shipped screens, made once here (only app.js makes screens).
   // Step S4: the F2 cross-ex part under the timer, and the Rate screen for a profile with ranks off (room-workspace.js).
@@ -120,9 +122,11 @@ function boot(data) {
 
   // Open one stage of a saved round in its family's workspace.
   async function openRound(target, no) {
-    const round = findRoom(env.rooms(), target.id);
+    // Step S6: a Congress session lives in its own key (tabulaEvents.congress.v1), never in rooms.v1.
+    const room = findRoom(env.rooms(), target.id);
+    const round = room || findCongressRound(store, target.id);
     if (!round) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
-    const ws = await loadWorkspace(roundFamily(data.events, round));
+    const ws = await loadWorkspace(room ? roundFamily(data.events, round) : 'congress');
     if (no !== routeNo) return;
     const stage = target.stage || ws.stages(round)[0];
     if (!ws.stages(round).includes(stage)) { showScreen('rooms'); return; } // an unknown stage is like an unknown address
