@@ -1,6 +1,6 @@
 # Tabula Speech Events: design review of every screen
 
-Status: plan for owner approval, 2026-11-24. No app code changed.
+Status: owner accepted the three picks in §4 on 2026-11-24 (all A). No app code changed.
 
 Not yet reviewed: the Congress session screens (log, PO hours, rank, review), phone light theme for 13 of 23 screens, and a keyboard and screen-reader walk. §6 gives the reasons.
 
@@ -385,6 +385,8 @@ Suggested build order: 1 (overflow fix first, as a bug), then 5, 6, 7 and 10 as 
 Mockups (brief step 4, optional) were not made in this pass. If the owner wants them, the top 3 (sticky phone timer, signal track, My day "Up next") are the ones to draw.
 
 ## 4. Owner decisions
+
+**Decided 2026-11-24 (owner): OD1 = A, OD2 = A, OD3 = A.** OD3 needs DESIGN.md §3 and BRAND.md §7 edited before the header mark is built.
 
 ### OD1. How the phone room keeps the time on screen while the judge writes
 
