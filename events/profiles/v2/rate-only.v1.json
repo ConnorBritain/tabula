@@ -1,0 +1,20 @@
+{
+  "id": "rate-only",
+  "version": 1,
+  "name": "Rate only (no ranks)",
+  "group": "shape",
+  "ranks": "off",
+  "rating": {
+    "min": 1,
+    "max": 10,
+    "step": 1
+  },
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape."
+}

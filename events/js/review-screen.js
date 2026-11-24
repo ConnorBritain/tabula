@@ -5,24 +5,32 @@
 // card (cleanup-view.js), built only when the AI gate allows it.
 // The builders at the top are pure (Node tests call them); createReviewScreen does the DOM.
 import { escapeHtml as esc, showPrintSheet, removePrintSheet } from '../../core/sheets.js';
-import { ranksBlock, ranksProblems, cards, checklist, statusText, markCopied, setComment, setReasonReview, copyAllText, printModel } from './ballot.js';
+import { ranksBlock, ranksProblems, cards, checklist, statusText, markCopied, setComment, setReasonReview, copyAllText, printModel, hasRanksStage, rubricLine } from './ballot.js';
 import { findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf } from './timer.js';
 import { createCleanup } from './cleanup-view.js';
+import { rankStageLabel } from './profile-layer.js';
 
 const done = (ok, label) => `<li class="${ok ? 'is-ok' : ''}"><span aria-hidden="true">${ok ? '✓' : '○'}</span> ${esc(label)}${ok ? '' : ' <span class="sr-only">(not yet)</span>'}</li>`;
 
-// Stage 1 as HTML text.
+// Stage 1 as HTML text. Step S4 (profile layer): under ranks 'off' it is "Ratings to submit" with no Rank column;
+// a rubric adds a column; under critiqueOnly there is nothing to submit and the stage says so.
 export function ranksStageHtml(room) {
-  const { rows, rated } = ranksBlock(room);
+  if (!hasRanksStage(room)) {
+    return `<section class="review-stage" aria-labelledby="stage1"><h2 id="stage1">1. Ranks</h2>
+    <p class="muted">These rules are comments only. There are no ranks to submit. Copy each comment below.</p></section>`;
+  }
+  const { rows, rated, ranked, rubric } = ranksBlock(room);
   const problems = ranksProblems(room);
   const sent = Boolean(room.ranksCopiedAt);
-  const table = `<table class="ranks-table"><thead><tr><th>Code</th><th>Rank</th>${rated ? '<th>Rating</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td><td>${esc(r.rank || '–')}</td>${rated ? `<td>${esc(r.rating || '–')}</td>` : ''}<td>${r.overTime ? 'Yes' : 'No'}</td></tr>`).join('')}</tbody></table>`;
+  const word = ranked ? 'ranks' : 'ratings';
+  const back = ranked ? 'Rank' : 'Rate';
+  const table = `<table class="ranks-table"><thead><tr><th>Code</th>${ranked ? '<th>Rank</th>' : ''}${rated ? '<th>Rating</th>' : ''}${rubric ? '<th>Rubric</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td>${ranked ? `<td>${esc(r.rank || '–')}</td>` : ''}${rated ? `<td>${esc(r.rating || '–')}</td>` : ''}${rubric ? `<td>${esc(rubricLine(r.rubric))}</td>` : ''}<td>${r.overTime ? 'Yes' : 'No'}</td></tr>`).join('')}</tbody></table>`;
   const block = problems.length
-    ? `<div class="problems"><h3>Fix these before you copy the ranks</h3><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul><a class="b" href="#/rank/${encodeURIComponent(room.id)}">Back to Rank</a></div>`
-    : `<button class="b primary" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${sent ? '✓ Copied. Copy ranks again' : 'Copy ranks'}</button>`;
-  return `<section class="review-stage" aria-labelledby="stage1"><h2 id="stage1">1. Ranks to submit</h2>
+    ? `<div class="problems"><h3>Fix these before you copy the ${word}</h3><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul><a class="b" href="#/rank/${encodeURIComponent(room.id)}">Back to ${back}</a></div>`
+    : `<button class="b primary" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${sent ? '✓ Copied. Copy ' + word + ' again' : 'Copy ' + word}</button>`;
+  return `<section class="review-stage" aria-labelledby="stage1"><h2 id="stage1">1. ${ranked ? 'Ranks' : 'Ratings'} to submit</h2>
     <p class="muted">Enter these in the online ballot first. Most sites lock ranks when you submit, but keep comments open.</p>
     ${table}${block}</section>`;
 }
@@ -35,19 +43,22 @@ export function cardHtml(c, editing, ai) {
     ? `<label class="sr-only" for="edit-${c.id}">Comment for ${esc(c.code)}</label><textarea id="edit-${c.id}" class="card-edit" data-vfield="comment" data-id="${c.id}" rows="6">${esc(c.comment)}</textarea>`
     : `<div class="card-text">${c.comment ? esc(c.comment) : '<span class="muted">No comment yet.</span>'}</div>`;
   return `<li class="card" data-card="${c.id}">
-    <div class="card-head"><span class="code">${esc(c.code)}</span><span class="muted">${c.rank ? 'Rank ' + esc(c.rank) : 'No rank'}${c.rating ? ' · Rating ' + esc(c.rating) : ''}</span>
+    <div class="card-head"><span class="code">${esc(c.code)}</span><span class="muted">${[c.ranked === false ? '' : c.rank ? 'Rank ' + esc(c.rank) : 'No rank', c.rating ? 'Rating ' + esc(c.rating) : ''].filter(Boolean).join(' · ')}</span>
       ${a.button}<button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : 'Edit'}</button></div>
     ${c.name || c.piece ? `<p class="card-piece">${[c.name, c.piece].filter(Boolean).map(esc).join(' · ')}</p>` : ''}
     ${c.question ? `<p class="card-question"><span class="muted">Question:</span> ${esc(c.question)}</p>` : ''}
+    ${c.topic ? `<p class="card-question card-topic"><span class="muted">Topic:</span> ${esc(c.topic)}</p>` : ''}
+    ${c.runs ? `<p class="card-question card-runs"><span class="muted">Runs:</span> ${esc(c.runs)}</p>` : ''}
     ${body}${a.panel}
     <ul class="critique" aria-label="Comment check for ${esc(c.code)}">${c.critique.map((k) => done(k.ok, k.label)).join('')}</ul>
     ${c.comment.trim() ? `<button class="b${c.copied ? '' : ' primary'}" type="button" data-vact="copy" data-what="${c.id}" data-key="copy-${c.id}">${c.copied ? '✓ Copied' : 'Copy comment'}</button>` : ''}
   </li>`;
 }
 
-// Stage 2 and the tools as HTML text. view: { order, editing, ai (optional: (card, editing) -> { button, panel }) }.
+// Stage 2 and the tools as HTML text. view: { order, editing, ai (optional: (card, editing) -> { button, panel }),
+// event (optional: the room's event file, for the PCC run labels) }.
 export function commentsStageHtml(room, view) {
-  const list = cards(room, view.order);
+  const list = cards(room, view.order, view.event);
   const reason = String(room.reasonForRank || '');
   const reasonEditing = view.editing === 'reason';
   return `<section class="review-stage" aria-labelledby="stage2"><h2 id="stage2" tabindex="-1">2. Comments</h2>
@@ -74,7 +85,7 @@ export function summaryHtml(room) {
 // DESIGN.md §4.7 asks for cards with Edit, a "Copied" state and the critique list.
 // Copy text to the clipboard. Returns true when it worked. A browser that refuses the clipboard API gets the older
 // select-and-copy way; if that fails too, the caller tells the judge to press Ctrl+C.
-async function copyText(text) {
+export async function copyText(text) {
   try { await navigator.clipboard.writeText(text); return true; } catch {}
   try {
     const t = document.createElement('textarea');
@@ -96,7 +107,7 @@ export function createReviewScreen(env) {
   const save = (r) => { env.saveRoom(r); return r; };
   // "Clean up my comments" (E13). Only with env.ai: a page with no AI part has no clean-up at all.
   const cleanup = env.ai ? createCleanup(env, { roomId: () => roomId, event: (r) => event(r), draw: (k) => draw(k) }) : null;
-  const viewNow = () => Object.assign({}, view, { ai: cleanup ? (c, editing) => cleanup.view(c, editing) : null });
+  const viewNow = () => Object.assign({}, view, { ai: cleanup ? (c, editing) => cleanup.view(c, editing) : null, event: event(room()) });
 
   function draw(focusKey) {
     const r = room();
@@ -165,7 +176,7 @@ export function createReviewScreen(env) {
     if (!old) return;
     const fresh = document.createElement('template');
     // No ai part for a card in edit mode: clean-up is closed while the judge edits (cleanup-view.js view()).
-    fresh.innerHTML = f === 'reason' ? commentsStageHtml(room(), viewNow()) : cardHtml(cards(room(), view.order).find((c) => c.id === id), true);
+    fresh.innerHTML = f === 'reason' ? commentsStageHtml(room(), viewNow()) : cardHtml(cards(room(), view.order, event(room())).find((c) => c.id === id), true);
     const src = f === 'reason' ? fresh.content.querySelector('.reason-card') : fresh.content.firstElementChild;
     for (const sel of ['.critique', '[data-vact="copy"]']) {
       const a = old.querySelector(sel), b = src.querySelector(sel);
@@ -183,7 +194,8 @@ export function createReviewScreen(env) {
       roomId = id; view = { order: 'speaking', editing: null };
       if (cleanup) cleanup.reset();
       const ev = event(r);
-      env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/rank/${encodeURIComponent(id)}">‹ Rank</a>
+      const back = hasRanksStage(r) ? `<a class="b quiet" href="#/rank/${encodeURIComponent(id)}">‹ ${rankStageLabel(r.profile)}</a>` : `<a class="b quiet" href="#/room/${encodeURIComponent(id)}">‹ Room</a>`;
+      env.el.innerHTML = `<div class="screen-head">${back}
           <h1 id="screen-title" tabindex="-1">Review · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <div id="review-top"></div><div id="review-ranks"></div><div id="review-comments"></div>`;
       env.el.addEventListener('click', onClick);

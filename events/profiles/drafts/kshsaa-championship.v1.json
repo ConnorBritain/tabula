@@ -1,0 +1,16 @@
+{
+  "id": "kshsaa-championship",
+  "version": 1,
+  "name": "KSHSAA championship (Kansas)",
+  "ranks": "all",
+  "maxEntries": 7,
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 15,
+    "effect": "noFirst"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "KSHSAA 2026-27 Debate, Speech and Drama Manual, pp. 41-48. Summarized in our own words; no rule text copied. Past 15 s: no rank 1. Past 30 s: lowest rank (this profile cannot hold that step). Penalties count only with an official timekeeper, except in the 6A, 5A and 1A pilot. Not verified: whether a judge may tie."
+}

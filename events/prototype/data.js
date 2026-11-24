@@ -962,6 +962,88 @@ window.TABULA_EVENTS_DATA = {
     }
    ],
    "source": "NSDA Middle School Unified Manual, 2026-27 season. Summarized in our own words; no rule text copied."
+  },
+  {
+   "id": "pcc",
+   "version": 2,
+   "family": "f4",
+   "name": "Pro Con Challenge",
+   "short": "PCC",
+   "category": "publicAddress",
+   "performers": {
+    "min": 1,
+    "max": 1
+   },
+   "timing": {
+    "limit": 630,
+    "inRoomPrep": false,
+    "sharedClock": false
+   },
+   "runs": [
+    {
+     "side": "pro",
+     "label": "Pro"
+    },
+    {
+     "side": "con",
+     "label": "Con"
+    }
+   ],
+   "fields": [
+    "topic"
+   ],
+   "topic": {
+    "label": "Topic",
+    "hint": "The student picks it: the CX, LD or PF topic, or one bill from the Congress docket. Pro and Con use the same topic.",
+    "drawn": false
+   },
+   "material": "manuscript",
+   "checks": [],
+   "prompts": [
+    "Did the Pro speech make a clear case for the topic?",
+    "Did the Con speech make a clear case against it?",
+    "Were both sides argued with equal care?",
+    "Was the evidence clear and fair?",
+    "How was the delivery?"
+   ],
+   "tags": [
+    {
+     "id": "proCase",
+     "label": "Pro case",
+     "strength": "Your Pro speech made a clear case for the topic.",
+     "toWork": "Give the Pro speech one clear main reason, and back it up."
+    },
+    {
+     "id": "conCase",
+     "label": "Con case",
+     "strength": "Your Con speech made a clear case against the topic.",
+     "toWork": "Give the Con speech one clear main reason, and back it up."
+    },
+    {
+     "id": "balance",
+     "label": "Balance",
+     "strength": "You argued both sides with the same care.",
+     "toWork": "Give the weaker side as much work as the side you prefer."
+    },
+    {
+     "id": "evidence",
+     "label": "Evidence",
+     "strength": "Your facts and examples were clear and fair.",
+     "toWork": "Add stronger facts or examples, and say where they come from."
+    },
+    {
+     "id": "delivery",
+     "label": "Delivery",
+     "strength": "Your voice and pace were easy to listen to.",
+     "toWork": "Vary your voice and pace so key lines stand out."
+    }
+   ],
+   "notVerified": [
+    "Grace length: the rule names a grace period past the 10:30 limit but does not say how long it is. The rules profile holds the grace (docs/events/VENN.md §6 item 17).",
+    "Material: 'read from a script' comes from our own summary in docs/events/EVENTS.md §4, not a second read of the rule.",
+    "Whether Pro Con Challenge runs at Nationals 2027 (docs/events/CATALOG.md)."
+   ],
+   "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season, Pro Con Challenge rules 1 to 3, as checked in docs/events/VENN.md §6: one 10:30 limit covers both runs; no minimum time for a run; the student picks the topic. Summarized in our own words; no rule text copied."
   }
  ],
  "profiles": [
@@ -1010,6 +1092,128 @@ window.TABULA_EVENTS_DATA = {
    },
    "biasNote": "Judge the performance, not the person.",
    "source": "Tabula defaults (ARCHITECTURE.md §6.2), 2026-27 season. The judge changes them per room."
+  },
+  {
+   "id": "top-three",
+   "version": 1,
+   "name": "Rank the top 3 only",
+   "group": "shape",
+   "ranks": "topN",
+   "topN": 3,
+   "rating": "none",
+   "ratingNoTies": false,
+   "rankRatingRule": false,
+   "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+   },
+   "biasNote": "Judge the performance, not the person.",
+   "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape."
+  },
+  {
+   "id": "rate-only",
+   "version": 1,
+   "name": "Rate only (no ranks)",
+   "group": "shape",
+   "ranks": "off",
+   "rating": {
+    "min": 1,
+    "max": 10,
+    "step": 1
+   },
+   "ratingNoTies": false,
+   "rankRatingRule": false,
+   "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+   },
+   "biasNote": "Judge the performance, not the person.",
+   "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape."
+  },
+  {
+   "id": "rubric-five",
+   "version": 1,
+   "name": "Rubric, 5 parts (no ranks)",
+   "group": "shape",
+   "ranks": "off",
+   "rubric": [
+    {
+     "id": "content",
+     "label": "Content",
+     "min": 1,
+     "max": 5
+    },
+    {
+     "id": "organization",
+     "label": "Organization",
+     "min": 1,
+     "max": 5
+    },
+    {
+     "id": "delivery",
+     "label": "Delivery",
+     "min": 1,
+     "max": 5
+    },
+    {
+     "id": "language",
+     "label": "Language",
+     "min": 1,
+     "max": 5
+    },
+    {
+     "id": "overall",
+     "label": "Overall",
+     "min": 1,
+     "max": 5
+    }
+   ],
+   "rating": "none",
+   "ratingNoTies": false,
+   "rankRatingRule": false,
+   "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+   },
+   "biasNote": "Judge the performance, not the person.",
+   "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape."
+  },
+  {
+   "id": "comments-only",
+   "version": 1,
+   "name": "Comments only (no ranks)",
+   "group": "shape",
+   "ranks": "off",
+   "critiqueOnly": true,
+   "rating": "none",
+   "ratingNoTies": false,
+   "rankRatingRule": false,
+   "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+   },
+   "biasNote": "Judge the performance, not the person.",
+   "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape."
+  },
+  {
+   "id": "elim-large",
+   "version": 1,
+   "name": "Elim room: up to 12, extemp cross-ex",
+   "group": "shape",
+   "ranks": "all",
+   "maxEntries": 12,
+   "elim": {
+    "cx": true
+   },
+   "rating": "none",
+   "ratingNoTies": false,
+   "rankRatingRule": false,
+   "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+   },
+   "biasNote": "Judge the performance, not the person.",
+   "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape. Cross-ex length and who asks whom are not verified, so the rules give no cross-ex limit; the cap of 12 is a Tabula limit."
   }
  ],
  "checks": {

@@ -9,7 +9,8 @@ import { createRoom, rosterAction } from './js/room.js';
 import { boardCtx, ranksOf, withRanks, withRating, openBoard, fillRest, restoreRanks, stepRating } from './js/board.js';
 import { dropPlace } from './js/rank-drag.js';
 import { stepPoints } from '../core/points.js';
-import { boardHtml, problemsHtml, ratingHtml } from './js/rank-screen.js';
+import { boardHtml, problemsHtml } from './js/rank-screen.js';
+import { ratingHtml } from './js/score-view.js'; // step S4 moved it here: the Rate screen draws it too
 import { moveTo, tapRank, ratingScale, FLAG_ONLY_NOTE } from './js/rank.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');

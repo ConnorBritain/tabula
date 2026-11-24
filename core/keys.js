@@ -55,6 +55,8 @@ export function keyMatches(shortcut, ev) {
   const { mods, key } = parseCombo(shortcut.keys.other);
   if (key === 'Space') return ev.code === 'Space' && !ev.meta && !ev.ctrl && !ev.alt && !ev.shift;
   if (key === 'Escape') return ev.key === 'Escape';
+  // A bare Enter (no modifier). 'Meta+Enter' and other combos still take the modifier path below.
+  if (key === 'Enter' && !mods.length) return ev.key === 'Enter' && !ev.meta && !ev.ctrl && !ev.alt && !ev.shift;
   if (!mods.length && key.length === 1) {
     // One character: match the character the layout makes. Shift is fine (some layouts need it); AltGr is fine.
     if (ev.meta || ev.ctrl) return false;

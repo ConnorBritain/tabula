@@ -6,6 +6,9 @@ import { createStore } from '../../core/store.js';
 export const PREFIX = 'tabulaEvents.';
 export const ROOMS_KEY = PREFIX + 'rooms.v1';
 export const SETTINGS_KEY = PREFIX + 'settings.v1'; // also named on the theme script tag in index.html
+// Step S3 (EXPERIENCE.md §8.3): the judge's days and ballot cards (events/js/cards.js).
+export const DAYS_KEY = PREFIX + 'days.v1';
+export const CARDS_KEY = PREFIX + 'cards.v1';
 
 // The store for this page. ui: the page's core/ui.js parts, for the warning toast.
 export function createEventsStore(ui, storage) {

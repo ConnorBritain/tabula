@@ -7,26 +7,32 @@
 // hands them to the workspace (env.roomScreens).
 // Step S2 (EXPERIENCE.md §7, §8.1): the header on every screen, History, Settings, delete with Undo, the palette, and
 // the read-time migration: every room and the settings are read through events/js/migrate.js.
+// Step S3 (EXPERIENCE.md §1.2, §5): #/ is My day (events/js/myday-screen.js), not the Rooms list. The judge's days and
+// ballot cards are read and saved through events/js/day-store.js (env.day). New routes: #/pick, #/start/<cardId>,
+// #/type/<eventId>.
 // Every events/js file is an ES module with named exports. Only this file boots the page.
 import { createUI } from '../../core/ui.js';
 import { focusKind } from '../../core/keys.js';
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { createEventsStore, ROOMS_KEY, SETTINGS_KEY } from './store.js';
 import { loadEventData } from './data.js';
-import { groupRoomsByDay, roomsHtml } from './rooms.js';
+import { groupRoomsByDay } from './rooms.js';
 import { parseRoute, routeHash, roundTarget } from './routes.js';
 import { upsertRoom, findRoom } from './room.js';
 import { createDeleteRound } from './delete-round.js';
 import { migrateRooms, migrateSettings } from './migrate.js';
 import { MODES, modeMenuShown, withSetting } from './settings.js';
 import { keymap, keyOf } from './keys.js';
-import { paletteRows } from './palette.js';
+import { paletteRows, runUndo } from './palette.js';
 import { createSetupScreen, eventChoices } from './setup-screen.js';
 import { createRoomScreen } from './room-screen.js';
 import { createTimerView } from './timer-view.js';
 import { createCommentView } from './comment-view.js';
 import { createPieceView } from './piece-view.js';
+import { createRunsParts } from './runs-view.js';
 import { createRankScreen } from './rank-screen.js';
+import { createRateScreen } from './rate-screen.js';
+import { createCrossExView } from './cross-ex-view.js';
 import { createReviewScreen } from './review-screen.js';
 import { createHistoryScreen } from './history-screen.js';
 import { createSettingsScreen } from './settings-screen.js';
@@ -34,6 +40,14 @@ import { createPalette } from './palette-screen.js';
 import { loadWorkspace, roundFamily } from './workspaces.js';
 import { registerOffline } from './offline.js';
 import { createPageAI } from './page-ai.js';
+import { createDayStore } from './day-store.js';
+import { createMydayScreen } from './myday-screen.js';
+import { createPickerScreen } from './picker-screen.js';
+import { createTypeScreen } from './type-screen.js';
+import { focusIfLost } from './focus.js';
+import { createChamberScreen } from '../congress/chamber-screen.js';
+import { findRound as findCongressRound } from '../congress/workspace.js';
+import { congressIO, congressToday } from '../congress/store.js';
 
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
@@ -50,12 +64,6 @@ async function readJson(path) {
 // Every read of the saved rounds and the settings goes through the read-time migration (EXPERIENCE.md §8.1).
 const readRooms = () => migrateRooms(store.get(ROOMS_KEY, []));
 const readSettings = () => migrateSettings(store.get(SETTINGS_KEY, {}));
-
-function renderRooms(data) {
-  const groups = groupRoomsByDay(readRooms());
-  $('#rooms-status').textContent = groups.length ? '' : 'No rooms yet. Rooms you judge show here, by day.';
-  $('#rooms-list').innerHTML = roomsHtml(groups, data.events);
-}
 
 // The header (EXPERIENCE.md §1.1): the mode menu shows only when the settings say so; the link for the screen that
 // shows is marked with aria-current (a fill, never an underline); the offline chip shows with the network off.
@@ -86,35 +94,44 @@ function boot(data) {
     // Delete a round, with Undo in the toast that puts it back in the same place (EXPERIENCE.md §7; events/js/delete-round.js).
     // after(): the asking screen redraws and moves focus. After an Undo, the screen that shows then redraws.
     deleteRound: createDeleteRound({ get: () => store.get(ROOMS_KEY, []), set: (list) => store.set(ROOMS_KEY, list), ui,
-      refresh: () => { if (!$('#rooms').hidden) renderRooms(data); else if (current && current.refresh) current.refresh(); } }),
+      refresh: () => { if (current && current.refresh) current.refresh(); focusIfLost(document, ['#screen-title', '#main']); } }),
     // After a restore: the theme, the header and the screen read the new data.
     reload() {
       if (globalThis.TabulaTheme) globalThis.TabulaTheme.set(readSettings().theme);
       route();
     },
   };
-  const screens = { setup: createSetupScreen(env), history: createHistoryScreen(env), settings: createSettingsScreen(env) };
+  env.day = createDayStore({ store, now: env.now });
+  env.congressToday = (now) => congressToday(congressIO(store).read(), now); // My day lists today's Congress chambers (S6 keeps them apart)
+  const screens = { rooms: createMydayScreen(env), setup: createSetupScreen(env), history: createHistoryScreen(env), settings: createSettingsScreen(env),
+    pick: createPickerScreen(env), type: createTypeScreen(env), chamber: createChamberScreen(env) };
+  screens.start = { scope: 'setup', show: (cardId) => screens.setup.show(null, { cardId }) }; // #/start/<cardId>: setup filled from the card
   // The room workspace's stages are the shipped screens, made once here (only app.js makes screens).
-  env.roomScreens = { judge: createRoomScreen(env, [createPieceView(), createTimerView(), createCommentView()]), rank: createRankScreen(env), review: createReviewScreen(env) };
+  // Step S4: the F2 cross-ex part under the timer, and the Rate screen for a profile with ranks off (room-workspace.js).
+  env.roomScreens = { judge: createRoomScreen(env, [createPieceView(), createTimerView(), createCrossExView(), createCommentView()]), rank: createRankScreen(env), rate: createRateScreen(env), review: createReviewScreen(env) };
+  // Step S5: the F4 workspace's judge stage (PCC), a Room screen with the run parts (runs-view.js).
+  env.runsScreens = { judge: createRoomScreen(env, [...createRunsParts(), createCommentView()]) };
   // The showing screen: { scope, run(action), hide() }. A round's comes from its workspace (keys and mount).
   let current = null;
   let routeNo = 0; // which route() call is the latest, so a round that finishes loading late never draws
 
-  function showBox(open) {
-    $('#rooms').hidden = open;
-    env.el.hidden = !open;
-    if (!open) { env.el.innerHTML = ''; renderRooms(data); }
+  // Show a screen that is not a round (My day for an unknown address).
+  function showScreen(name, id) {
+    current = screens[name] || screens.rooms;
+    current.show(id);
+    window.scrollTo(0, 0);
   }
 
   // Open one stage of a saved round in its family's workspace.
   async function openRound(target, no) {
-    const round = findRoom(env.rooms(), target.id);
+    // Step S6: a Congress session lives in its own key (tabulaEvents.congress.v1), never in rooms.v1.
+    const room = findRoom(env.rooms(), target.id);
+    const round = room || findCongressRound(store, target.id);
     if (!round) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
-    const ws = await loadWorkspace(roundFamily(data.events, round));
+    const ws = await loadWorkspace(room ? roundFamily(data.events, round) : 'congress');
     if (no !== routeNo) return;
     const stage = target.stage || ws.stages(round)[0];
-    if (!ws.stages(round).includes(stage)) { showBox(false); window.scrollTo(0, 0); return; } // an unknown stage is like an unknown address
-    showBox(true);
+    if (!ws.stages(round).includes(stage)) { showScreen('rooms'); return; } // an unknown stage is like an unknown address
     const hide = ws.mount(env.el, env, round, stage);
     const k = ws.keys(round, stage);
     current = { scope: k.scope, run: k.run, hide };
@@ -135,10 +152,7 @@ function boot(data) {
       });
       return;
     }
-    current = screens[r.screen] || null;
-    showBox(Boolean(current));
-    if (current) current.show(r.id);
-    window.scrollTo(0, 0);
+    showScreen(r.screen, r.id);
   };
   window.addEventListener('hashchange', route);
 
@@ -148,17 +162,11 @@ function boot(data) {
   window.addEventListener('offline', renderOffline);
   renderOffline();
 
-  // Delete from the Rooms list (with Undo, like History).
-  $('#rooms-list').addEventListener('click', (e) => {
-    const b = e.target.closest('button[data-del]');
-    if (b) env.deleteRound(b.dataset.del, () => { renderRooms(data); $('#rooms-title').focus(); });
-  });
-
   // The palette (⌘K / Ctrl+K): each enabled event, each saved round, History and Settings, and the waiting Undo.
   const palette = createPalette(env,
     () => paletteRows({ events: data.events, choices: eventChoices(data), rooms: groupRoomsByDay(env.rooms()).flatMap((g) => g.rooms), undo: (ui.pendingUndo() || {}).name || '' }),
     (row) => {
-      if (row.act === 'undo') { const u = ui.pendingUndo(); if (u) u.run(); return; }
+      if (row.act === 'undo') { runUndo(ui, row); return; }
       if (row.hash === location.hash || (row.hash === '#/' && !location.hash)) route(); else location.hash = row.hash;
     });
 
@@ -181,9 +189,10 @@ function boot(data) {
 
 loadEventData(readJson).then((data) => {
   boot(data);
+  $('#boot-status').hidden = true;
   document.documentElement.dataset.ready = 'true';
 }).catch((err) => {
   console.error('Speech Events: the event rules did not load.', err);
-  $('#rooms-status').textContent = 'The event rules did not load. Check the connection, then reload the page.';
+  $('#boot-status').textContent = 'The event rules did not load. Check the connection, then reload the page.';
   ui.toast('The event rules did not load.', { kind: 'error', key: 'load', action: { label: 'Reload', name: 'Reload the page', run: () => location.reload() } });
 });

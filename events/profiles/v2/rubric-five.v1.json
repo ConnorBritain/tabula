@@ -1,0 +1,48 @@
+{
+  "id": "rubric-five",
+  "version": 1,
+  "name": "Rubric, 5 parts (no ranks)",
+  "group": "shape",
+  "ranks": "off",
+  "rubric": [
+    {
+      "id": "content",
+      "label": "Content",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "organization",
+      "label": "Organization",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "delivery",
+      "label": "Delivery",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "language",
+      "label": "Language",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "overall",
+      "label": "Overall",
+      "min": 1,
+      "max": 5
+    }
+  ],
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape."
+}

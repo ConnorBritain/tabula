@@ -6,30 +6,22 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
-  ratingFix, ratingTies, checkBoard, RANK_RATING_ROW,
+  ratingFix, ratingTies, RANK_RATING_ROW,
 } from './rank.js';
-import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks, stepRating } from './board.js';
+import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks } from './board.js';
 import { attachDrag } from './rank-drag.js';
 import { entryOf, findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf, clockText } from './timer.js';
 import { totalUsedAt } from './prep.js';
 import { setReason } from './comments.js';
-
-// The rating control of one row as HTML text ('' when the profile has no rating).
-export function ratingHtml(e, value, scale, err) {
-  if (scale.kind === 'none') return '';
-  const label = 'Rating for ' + e.code;
-  const errHtml = `<p class="rate-err" id="rate-err-${e.id}">${esc(err)}</p>`;
-  if (scale.kind === 'words') {
-    return `<div class="rate words" role="group" aria-label="${esc(label)}">${scale.words.map((w) => `<button class="rate-word${w === value ? ' on' : ''}" type="button" data-ract="word" data-id="${e.id}" data-value="${esc(w)}" aria-pressed="${w === value}">${esc(w)}</button>`).join('')}</div>${errHtml}`;
-  }
-  return `<div class="rate points"><button class="b small" type="button" data-ract="minus" data-id="${e.id}" data-key="minus-${e.id}" aria-label="Lower the rating for ${esc(e.code)}"${value !== '' && Number(value) <= scale.min ? ' disabled' : ''}>−</button>
-    <input class="rate-num" id="rate-${e.id}" data-ract="num" data-id="${e.id}" inputmode="decimal" autocomplete="off" value="${esc(value)}" aria-label="${esc(label)}, ${scale.min} to ${scale.max}" aria-describedby="rate-err-${e.id}"${err ? ' aria-invalid="true"' : ''}>
-    <button class="b small" type="button" data-ract="plus" data-id="${e.id}" data-key="plus-${e.id}" aria-label="Raise the rating for ${esc(e.code)}"${value !== '' && Number(value) >= scale.max ? ' disabled' : ''}>+</button></div>${errHtml}`;
-}
+import { layerOf, layerProblems, notRankedText } from './profile-layer.js';
+import { ratingHtml, rubricHtml, scoreClick, scoreInput, isScoreBox } from './score-view.js';
+import { overtimeNote } from './round-frame.js';
 
 // The board as HTML text. view: { tapMode, limit, now }.
+// Step S4 (profile layer): under ranks 'topN' the rows past N show "Not in top N" (the board still orders everyone);
+// a profile rubric adds its grid to each row; under a panel an over-grace row says to agree with the panel first.
 export function boardHtml(room, view) {
   const ctx = boardCtx(room);
   const ranks = ranksOf(room), ratings = ratingsOf(room);
@@ -39,6 +31,9 @@ export function boardHtml(room, view) {
   const tied = new Set(ratingTies(ratings, ctx).flatMap((t) => t.ids));
   const next = view.tapMode ? nextRank(ranks, ctx) : null;
   const n = order.length;
+  const layer = layerOf(room.profile);
+  const panel = overtimeNote(room);
+  const cut = layer.ranks === 'topN' ? layer.topN : null;
   const rows = order.map((id, i) => {
     const e = entryOf(room, id);
     const ot = overtimeRow(id, ctx);
@@ -56,18 +51,21 @@ export function boardHtml(room, view) {
       <span class="board-rank" aria-hidden="true">${esc(rank || '–')}</span>
       <span class="board-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}
         <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ` <span class="pill err">${esc(ot.pill)}</span>` : ''}</span>
-        ${ot.note ? `<span class="board-note">${esc(ot.note)}</span>` : ''}
+        ${cut && i >= cut ? ` <span class="pill outline">${esc(notRankedText(room.profile))}</span>` : ''}
+        ${ot.note ? `<span class="board-note">${esc(ot.note)}</span>` : ''}${ot.pill && panel ? `<span class="board-note">${esc(panel)}</span>` : ''}
         ${conflict ? `<span class="board-note">${esc(RANK_RATING_ROW)}${fix != null ? ` <button class="b small" type="button" data-ract="fix" data-id="${id}" data-value="${esc(fix)}">Fix: ${esc(fix)}</button>` : ''}</span>` : ''}</span>
       <span class="board-moves">${main}</span>
       ${scale.kind !== 'none' ? `<span class="board-rate">${ratingHtml(e, ratings[id], scale, err)}</span>` : ''}
+      ${rubricHtml(e, layer.rubric)}
     </li>`;
   }).join('');
   return `<ol class="board${view.tapMode ? ' tapping' : ''}" id="board" aria-label="Ranks, best first">${rows}</ol>`;
 }
 
-// The checklist under the board ("Before you review"), from rank.js checkBoard.
+// The checklist under the board ("Before you review"), from rank.js checkBoard (with the rubric scores, step S4:
+// profile-layer.js layerProblems).
 export function problemsHtml(room) {
-  const list = checkBoard({ ranks: ranksOf(room), ratings: ratingsOf(room) }, boardCtx(room));
+  const list = layerProblems(room);
   return list.length ? `<div class="problems" role="status"><h2>Before you review</h2><ul>${list.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>`
     : '<p class="problems ok" role="status"><span class="pill outline">Ready</span> Every speaker has a rank' + (ratingScale(room.profile).kind === 'none' ? '.' : ' and a rating.') + '</p>';
 }
@@ -122,11 +120,12 @@ export function createRankScreen(env) {
   function onClick(ev) {
     if (ev.target.closest('#tap-toggle')) return tapMode ? endTap() : startTap();
     if (ev.target.closest('#restart')) return restart();
+    const sc = scoreClick(ev.target, room(), env.now()); // a rating word, a rating − or +, or a rubric stepper
+    if (sc) { save(sc.room); draw(sc.focusKey); return; }
     const b = ev.target.closest('[data-ract]');
     if (!b || b.dataset.ract === 'num') return;
     const id = b.dataset.id;
     const r = room();
-    const scale = ratingScale(r.profile);
     const act = b.dataset.ract;
     if (act === 'up' || act === 'down') return move(id, act);
     if (act === 'tap') {
@@ -137,16 +136,6 @@ export function createRankScreen(env) {
       if (!nextRank(ranksOf(room()), boardCtx(room()))) { tapMode = false; draw(); env.ui.announce('Every speaker has a rank.'); $('#tap-toggle').focus(); }
       return;
     }
-    if (act === 'word') {
-      setRating(id, entryOf(r, id).rating === b.dataset.value ? '' : b.dataset.value);
-      draw();
-      return;
-    }
-    if (act === 'minus' || act === 'plus') {
-      setRating(id, String(stepRating(entryOf(r, id).rating ?? '', act === 'minus' ? -1 : 1, scale)));
-      draw(act + '-' + id); // at the end of the range the button turns off, and the focus goes to the row
-      return;
-    }
     if (act === 'fix') {
       setRating(id, b.dataset.value);
       draw();
@@ -155,8 +144,8 @@ export function createRankScreen(env) {
   }
 
   // Typing a rating: saved on every change; the error shows when the box is left (not while the judge types).
-  function onInput(ev) { if (ev.target.dataset.ract === 'num') setRating(ev.target.dataset.id, ev.target.value.trim()); }
-  function onChange(ev) { if (ev.target.dataset.ract === 'num') draw(); }
+  function onInput(ev) { const next = scoreInput(ev.target, room(), env.now()); if (next) save(next); }
+  function onChange(ev) { if (isScoreBox(ev.target)) draw(); }
 
   // Alt+Up and Alt+Down move the row that has focus (the row or any control in it).
   function onKey(ev) {
@@ -218,7 +207,7 @@ export function createRankScreen(env) {
         <div class="board-tools"><button class="b" type="button" id="tap-toggle" aria-pressed="false">Tap in order</button>
           <button class="b quiet" type="button" id="restart">Start again</button></div>
         <p class="muted" id="tap-help" hidden>Tap the speakers from best to last. Tap a ranked speaker again to take the rank off.</p>
-        <p class="muted board-help">Best first. Drag the handle, use the arrows, or press Alt+Up and Alt+Down on a row.</p>
+        <p class="muted board-help">Best first. Drag the handle, use the arrows, or press Alt+Up and Alt+Down on a row.${layerOf(r.profile).ranks === 'topN' ? ' Only the top ' + layerOf(r.profile).topN + ' get a rank on the ballot. Put the rest in any order.' : ''}</p>
         <div id="board-box"></div>
         <div id="problems"></div>
         <label class="field" for="rank-reason"><span>Reason for rank <span class="muted">(whole room)</span></span></label>

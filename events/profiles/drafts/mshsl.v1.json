@@ -1,0 +1,16 @@
+{
+  "id": "mshsl",
+  "version": 1,
+  "name": "MSHSL (Minnesota)",
+  "ranks": "all",
+  "maxEntries": 8,
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 0,
+    "effect": "flagOnly"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "MSHSL 2026-2027 Speech Rules and Policies (Sept 17, 2026), I-F-6 and V-E, 2026-27 season. Summarized in our own words; no rule text copied. No grace (finish the sentence). The Rules Committee drops one rank for a time violation; the judge only reports it. The state final has 8 entries. Not verified: whether a prelim judge may tie (the final bans ties)."
+}
