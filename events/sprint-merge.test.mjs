@@ -6,6 +6,10 @@ import { readFileSync } from 'node:fs';
 import { loadEventData } from './js/data.js';
 import { pickerRows, pickerSections } from './js/picker.js';
 import { pickerListHtml } from './js/picker-screen.js';
+import { paletteRows } from './js/palette.js';
+import { eventChoices } from './js/setup-screen.js';
+import { parseRoute } from './js/routes.js';
+import { searchCommands } from '../core/keys.js';
 import { eventLine } from './js/guide.js';
 import * as runsWs from './js/runs-workspace.js';
 import * as roomWs from './js/room-workspace.js';
@@ -57,4 +61,15 @@ test('the picker has a Congress group before Custom that opens chamber setup, an
   assert.match(html, /href="#\/chamber\/new"/);
   assert.ok(html.indexOf('pk-h-congress') < html.indexOf('pk-h-custom'), 'Congress comes before Custom');
   assert.doesNotMatch(pickerListHtml(pickerSections(pickerRows(DATA), [], 'humor')), /chamber/);
+});
+
+// Why: the palette is the fast way around the app; without a Guide row per event, a judge mid-round cannot pull up an event's rules from the keyboard.
+test('the palette has a Guide row for each enabled event that opens its type page, and search finds it', () => {
+  const rows = paletteRows({ events: DATA.events, choices: eventChoices(DATA), rooms: [], undo: '' });
+  for (const ev of eventChoices(DATA)) {
+    const g = rows.find((x) => x.id === 'guide-' + ev.id);
+    assert.ok(g, ev.id + ' has a Guide row');
+    assert.deepEqual(parseRoute(g.hash), { screen: 'type', id: ev.id });
+  }
+  assert.equal(searchCommands('guide humorous', rows)[0].id, 'guide-hi');
 });

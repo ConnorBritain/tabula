@@ -4,8 +4,8 @@
 // A row: { id, label, group, alias, hash } where hash is the page address the row opens (every row is a place in the
 // app today), or { ..., act } for a row the page runs itself (Undo).
 // Step S3: the home row is "My day", and "Start a round" opens the type picker (#/pick).
-// "Guide: <event>" rows: the type page (#/type/<eventId>) came in S3, but the S2 test that says "no Guide rows until a
-// guide route exists" still stands, so these rows wait for the owner (listed as an open item in the S3 report).
+// "Guide: <event>" rows open the type page (#/type/<eventId>, step S3), one for each enabled event (added at the S3-S6
+// merge, with the owner's yes, once the guide route existed).
 import { routeHash } from './routes.js';
 import { roundLine } from './rooms.js';
 import { roomEvent } from './room.js';
@@ -25,6 +25,9 @@ export function paletteRows(ctx) {
   rows.push({ id: 'new', label: 'New round', group: 'New', alias: ['start', 'room'], hash: routeHash('setup') });
   for (const ev of c.choices || []) {
     rows.push({ id: 'new-' + ev.id, label: 'New ' + (ev.short || ev.name) + ' round', group: 'New', alias: [ev.name], hash: routeHash('setup', ev.id) });
+  }
+  for (const ev of c.choices || []) {
+    rows.push({ id: 'guide-' + ev.id, label: 'Guide: ' + ev.name, group: 'Guides', alias: [ev.short || '', 'rules', 'about'], hash: routeHash('type', ev.id) });
   }
   for (const r of (c.rooms || []).filter((x) => x && x.id)) {
     const ev = roomEvent(c.events, r);
