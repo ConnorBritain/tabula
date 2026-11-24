@@ -309,10 +309,12 @@ test('Review shows each PCC entry\'s topic and its Pro and Con times, outside th
     Object.assign({}, a, { topic: '  Resolved: <x>  ', timing: Object.assign({}, a.timing, { usedMs: 450_000 }), runs: [{ side: 'pro', startedAt: 1, ms: 240_000 }, { side: 'con', startedAt: 2, ms: 210_000 }] }),
     Object.assign({}, b, { topic: '', runs: [] }),
   ] });
-  const [ca, cb] = cards(judged, 'speaking');
+  const [ca, cb] = cards(judged, 'speaking', PCC);
   assert.equal(ca.topic, 'Resolved: <x>');
   assert.equal(ca.runs, 'Pro 4:00 · Con 3:30');
   assert.equal(ca.comment, '', 'the topic and times are not put into the comment that goes to Tabroom');
+  const relabelled = Object.assign({}, PCC, { runs: [{ side: 'pro', label: 'For' }, { side: 'con', label: 'Against' }] });
+  assert.equal(cards(judged, 'speaking', relabelled)[0].runs, 'For 4:00 · Against 3:30', 'the labels come from the event file, as on the Room screen');
   const html = cardHtml(ca, false);
   assert.match(html, /Topic:<\/span> Resolved: &lt;x&gt;/);
   assert.match(html, /Runs:<\/span> Pro 4:00 · Con 3:30/);

@@ -14,7 +14,7 @@ import { boardCtx, ranksOf, ratingsOf, isOverGrace } from './board.js';
 import { clockText } from './timer.js';
 import { pieceLine } from './piece.js';
 import { questionOf } from './question.js';
-import { storedRunsLine } from './runs.js';
+import { storedRunsLine, topicOf } from './runs.js';
 
 // "Over time" on the ranks line: the sticky over-grace flag (inside grace is still on time, ARCHITECTURE.md §6.2).
 export const overTime = isOverGrace;
@@ -55,11 +55,12 @@ export function critique(text) {
 // name: the entry's name ("First & Second" for a Duo, step E9); piece: "“Title” by Author" ('' when not typed).
 // question: the drawn question (step E10, extemp events), '' when there is none. It is not part of the comment.
 // topic, runs: step S5 (F4, PCC): the student's topic and "Pro 4:12 · Con 3:58" ('' when none). Not part of the comment.
-export function cards(room, order) {
+// event (optional): the room's event file, for the run labels.
+export function cards(room, order, event) {
   return entriesIn(room, order).map((e) => {
     const comment = ballotComment(e);
     return { id: e.id, code: e.code, name: e.name || '', piece: pieceLine(e), rank: String(e.rank || ''), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment), question: questionOf(e),
-      topic: String(e.topic || '').trim(), runs: storedRunsLine(e) };
+      topic: topicOf(e), runs: storedRunsLine(e, event) };
   });
 }
 
