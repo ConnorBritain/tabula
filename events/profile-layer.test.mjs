@@ -12,7 +12,7 @@ import { ranksBlock, checklist, markCopied, statusText, cards, copyAllText, prin
 import { stages, mount, rankModel } from './js/room-workspace.js';
 import { boardHtml, problemsHtml } from './js/rank-screen.js';
 import { rateListHtml } from './js/rate-screen.js';
-import { rubricHtml } from './js/rubric-view.js';
+import { rubricHtml } from './js/score-view.js';
 import { ranksStageHtml, cardHtml } from './js/review-screen.js';
 import { frameLine, frameHtml, overtimeNote, panelOf, makePanel, PANEL_OVERTIME_NOTE } from './js/round-frame.js';
 import { markCrossEntered, clearCrossEntered, crossNote } from './js/cross-entry.js';
