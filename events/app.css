@@ -315,6 +315,7 @@ a.md-ev:hover { background: var(--sunk); }
 .pk-row { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); }
 .pk-pick { flex: 1; min-width: 0; display: grid; gap: var(--s1); padding: var(--s3) var(--s4); border: 0; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; border-radius: var(--r-lg) 0 0 var(--r-lg); }
 .pk-pick:hover { background: var(--sunk); }
+a.pk-pick { text-decoration: none; } /* the Congress row is a link (step S6) */
 .pk-name { font-weight: var(--fw-3); }
 .pk-line { font-size: var(--fs-2); color: var(--text-2); }
 .pk-chips { font-family: var(--font-mono); font-size: var(--fs-1); color: var(--text-3); }

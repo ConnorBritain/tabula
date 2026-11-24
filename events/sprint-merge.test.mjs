@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { loadEventData } from './js/data.js';
 import { pickerRows, pickerSections } from './js/picker.js';
+import { pickerListHtml } from './js/picker-screen.js';
 import { eventLine } from './js/guide.js';
 import * as runsWs from './js/runs-workspace.js';
 import * as roomWs from './js/room-workspace.js';
@@ -48,4 +49,12 @@ test('both room-family workspaces refuse a stage the round profile does not have
   assert.ok(!roomWs.stages(round).includes('rank'));
   assert.throws(() => roomWs.mount(env.el, env, round, 'rank'));
   assert.throws(() => runsWs.mount(env.el, env, round, 'rank'));
+});
+
+// Why: S6 built the Congress scorer after S3 built the picker; without a Congress row a judge who scores Congress has no way in from "Start a round".
+test('the picker has a Congress group before Custom that opens chamber setup, and search results leave it out', () => {
+  const html = pickerListHtml(pickerSections(pickerRows(DATA), [], ''));
+  assert.match(html, /href="#\/chamber\/new"/);
+  assert.ok(html.indexOf('pk-h-congress') < html.indexOf('pk-h-custom'), 'Congress comes before Custom');
+  assert.doesNotMatch(pickerListHtml(pickerSections(pickerRows(DATA), [], 'humor')), /chamber/);
 });

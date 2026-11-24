@@ -22,14 +22,25 @@ const rowHtml = (r) => `<li class="pk-row">
 // The list as HTML text. sections: pickerSections(...).
 export function pickerListHtml(sections) {
   if (!sections.length) return '<p class="muted" id="pk-none">No event matches. Try another word, or pick Custom event.</p>';
-  let html = '', allShown = false;
+  let html = '', allShown = false, congressShown = false;
   for (const s of sections) {
     const group = s.id !== 'recent' && s.id !== 'results';
     if (group && !allShown) { html += '<h2 class="pk-all">All events</h2>'; allShown = true; }
+    if (s.id === 'custom' && !congressShown) { html += congressHtml(); congressShown = true; }
     const H = group ? 'h3' : 'h2';
     html += `<section class="pk-sec" aria-labelledby="pk-h-${esc(s.id)}"><${H} id="pk-h-${esc(s.id)}">${esc(s.title)}</${H}><ul class="pk-list">${s.rows.map(rowHtml).join('')}</ul></section>`;
   }
+  if (allShown && !congressShown) html += congressHtml();
   return html;
+}
+
+// The Congress group (EXPERIENCE.md §5.2; step S6): a chamber is not a room round, so its row opens chamber setup
+// (#/chamber/new) instead of the confirm sheet. It shows with the family groups, never in search results.
+function congressHtml() {
+  return `<section class="pk-sec" aria-labelledby="pk-h-congress"><h3 id="pk-h-congress">Congress</h3><ul class="pk-list"><li class="pk-row">
+    <a class="pk-pick" href="${esc(routeHash('chamber', 'new'))}"><span class="pk-name">Congressional Debate <span class="muted">Congress</span></span>
+      <span class="pk-line">Students give short speeches on bills and answer questions. You score each speech and rank the chamber.</span>
+      <span class="pk-chips" aria-label="POINTS/SPEECH, TOP 8"><span class="pk-chip">POINTS/SPEECH</span><span aria-hidden="true"> · </span><span class="pk-chip">TOP 8</span></span></a></li></ul></section>`;
 }
 
 export function pickerHtml() {
