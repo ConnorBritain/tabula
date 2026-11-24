@@ -23,9 +23,10 @@ export function roomTitle(room, event) {
   return [event ? event.name : 'Custom event', roundLine(room, false)].filter(Boolean).join(' · ');
 }
 
-// One roster row as HTML text. extra(e): optional HTML after the name (the time, from step E5).
+// One roster row as HTML text. extra(e): optional HTML after the name (the time, from step E5). sub(e): optional
+// HTML under the name (design build: the question or topic, quote-view.js, and the mini time track, timer-view.js).
 // menuOpen: this row's menu is open.
-export function rosterRowHtml(room, e, place, menuOpen, extra) {
+export function rosterRowHtml(room, e, place, menuOpen, extra, sub) {
   const cur = room.current === e.id;
   const n = room.entries.length;
   const noShow = e.status === 'noShow';
@@ -39,17 +40,17 @@ export function rosterRowHtml(room, e, place, menuOpen, extra) {
   return `<li class="roster-row${cur ? ' is-current' : ''}${noShow ? ' is-noshow' : ''}">
     <button class="row-pick" type="button" data-act="pick" data-id="${e.id}" data-key="pick-${e.id}"${cur ? ' aria-current="true"' : ''}>
       <span class="row-num" aria-hidden="true">${place}</span>
-      <span class="row-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}</span>
+      <span class="row-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}${sub ? sub(e) : ''}</span>
       ${extra ? extra(e) : ''}${statusPill(e)}</button>
     <button class="iconbtn row-more" type="button" data-act="menu" data-id="${e.id}" data-key="menu-${e.id}" aria-expanded="${menuOpen}" aria-label="Change ${esc(e.code)}">⋯</button>
     ${menu}</li>`;
 }
 
 // The full roster as HTML text, plus the phone strip of code pills.
-export function rosterHtml(room, menuFor, extra) {
+export function rosterHtml(room, menuFor, extra, sub) {
   const done = room.entries.filter((e) => e.status === 'done').length;
   const here = present(room).length;
-  const rows = room.entries.map((e, i) => rosterRowHtml(room, e, i + 1, menuFor === e.id, extra)).join('');
+  const rows = room.entries.map((e, i) => rosterRowHtml(room, e, i + 1, menuFor === e.id, extra, sub)).join('');
   const strip = room.entries.map((e) => `<button class="strip-pill${room.current === e.id ? ' is-current' : ''}" type="button" data-act="pick" data-id="${e.id}"${room.current === e.id ? ' aria-current="true"' : ''}><span class="code">${esc(e.code)}</span> <span class="strip-status">${esc(STATUS_LABEL[e.status] || '')}</span></button>`).join('');
   return `<div class="strip" role="group" aria-label="Speakers">${strip}</div>
     <div class="roster-full" id="roster-full">
@@ -62,6 +63,7 @@ export function rosterHtml(room, menuFor, extra) {
 // env: { el, ui, data, now, rooms(), saveRoom(room), go(screen, id) }.
 // parts: the views that add to this screen (the timer in step E5, the comment sheet in E6). Each may have:
 //   rowExtra(room, entry) -> HTML after a roster row's name     stageHtml(room, entry) -> HTML in the main pane
+//   rowSub(room, entry) -> HTML under a roster row's name
 //   mounted(ctx) after the main pane is drawn                    show(ctx) / hide(ctx) when the screen opens / closes
 //   run(action, ctx) -> true when it ran a shortcut              stopFor(id) stops that entry's running clock
 // ctx: { env, room(), save(room), draw(), drawStage(), drawRoster() } (drawStage and drawRoster redraw one pane only).
@@ -83,7 +85,7 @@ export function createRoomScreen(env, parts) {
     if (!r) return;
     const box = $('#roster');
     const key = box.contains(document.activeElement) && document.activeElement.dataset ? document.activeElement.dataset.key : null;
-    box.innerHTML = rosterHtml(r, menuFor, (e) => views.map((v) => (v.rowExtra ? v.rowExtra(r, e) : '')).join(''));
+    box.innerHTML = rosterHtml(r, menuFor, (e) => views.map((v) => (v.rowExtra ? v.rowExtra(r, e) : '')).join(''), (e) => views.map((v) => (v.rowSub ? v.rowSub(r, e) : '')).join(''));
     box.classList.toggle('open', rosterOpen);
     $('#roster-toggle').setAttribute('aria-expanded', String(rosterOpen));
     if (key) {

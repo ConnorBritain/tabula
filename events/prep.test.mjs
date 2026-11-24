@@ -12,7 +12,7 @@ import {
   hasSharedPrep, prepUsedAt, speechLimit, totalUsedAt, prepPhase, prepStartLeft, stoppedPrep, adjustPrep, resetAll, sharedFace,
   restoreSharedRoom,
 } from './js/prep.js';
-import { timerHtml, rowTimeHtml } from './js/timer-view.js';
+import { timerHtml, rowTimeHtml, cardTrack } from './js/timer-view.js';
 import { eventChoices } from './js/setup-screen.js';
 import { printModel } from './js/ballot.js';
 
@@ -139,32 +139,42 @@ test('restore: prep that ran out stops at the full limit; two running clocks kee
 
 // Why: the judge reads the phase from the card; the two-step bar and the button words must say what a tap does next
 // (DESIGN.md §4.2: "Prep" then "Speech", the judge taps "Speech started"), and the limit line must say it is shared.
+// CHANGED 2026-11-24 (design build, review §2.6): the "Prep, then Speech" pills became the phase row inside the
+// signal track (timer-view.js cardTrack, phase-bar.js). The old pill assertions are kept as comments next to the new
+// ones; each new one checks the same fact (which step is on, which is done, the prep time) as strictly.
 test('screen: the timer card shows the two-step bar and the right buttons for ready, prep and speech', () => {
   const state = { room: impRoom(), now: T0 };
   const id = state.room.entries[0].id;
   const c = clocks(state, id);
-  const html = () => { const e = entryOf(state.room, id); return timerHtml(e, sharedFace(e, L, 30, state.now), L, 30); };
+  const html = () => { const e = entryOf(state.room, id); const f = sharedFace(e, L, 30, state.now); return timerHtml(e, f, L, 30, cardTrack(e, IMP, f, L, 30, state.now)); };
   let h = html();
-  assert.match(h, /class="phase-bar"/);
+  // Old: assert.match(h, /class="phase-bar"/);
+  assert.match(h, /id="timer-track"[\s\S]*class="phase-steps" aria-label="Prep, then speech"/);
   assert.doesNotMatch(h, /aria-current="step"/, 'nothing is on yet');
   assert.match(h, /data-tact="prep"[^>]*>Start prep</);
   assert.match(h, />Start speech</);
   assert.match(h, /Limit 7:00 for prep and speech · grace 0:30/);
   c.startPrep(); c.wait(45);
   h = html();
-  assert.match(h, /<li class="on" aria-current="step">Prep 0:45<\/li><li class="">Speech<\/li>/);
+  // Old: assert.match(h, /<li class="on" aria-current="step">Prep 0:45<\/li><li class="">Speech<\/li>/);
+  assert.match(h, /class="phase is-on" data-phase="prep" aria-current="step"><span class="phase-label">Prep<\/span> <span class="phase-time">0:45<\/span>/);
+  assert.match(h, /class="phase is-todo" data-phase="speech"><span class="phase-label">Speech<\/span><span/);
   assert.match(h, /data-tact="speech"[^>]*>Speech started</);
   assert.match(h, />Stop prep</);
   assert.doesNotMatch(h, /Set time/, 'Set time is for the speech part');
   c.speechStarted(); c.wait(10);
   h = html();
-  assert.match(h, /<li class="done">Prep 0:45<\/li><li class="on" aria-current="step">Speech<\/li>/);
+  // Old: assert.match(h, /<li class="done">Prep 0:45<\/li><li class="on" aria-current="step">Speech<\/li>/);
+  assert.match(h, /class="phase is-done" data-phase="prep">.*<span class="phase-label">Prep<\/span> <span class="phase-time">0:45<\/span>/);
+  assert.match(h, /class="phase is-on" data-phase="speech" aria-current="step"><span class="phase-label">Speech<\/span> <span class="phase-time">0:10<\/span>/);
   assert.match(h, /data-tact="startstop"[^>]*>Stop</);
   assert.match(h, /6:05/, '7:00 − 0:45 − 0:10');
   assert.match(rowTimeHtml(entryOf(state.room, id), totalUsedAt(entryOf(state.room, id).timing, state.now, L)), />0:55</, 'the roster shows prep and speech');
   // A prepared event's card has no bar and keeps its own words.
   const exp = { id: 'x', code: 'X1', status: 'waiting', timing: { run: null, runs: [], usedMs: 0 } };
-  assert.doesNotMatch(timerHtml(exp, timerFace(exp, 300, 30, T0), 300, 30), /phase-bar|for prep and speech/);
+  // Old: assert.doesNotMatch(timerHtml(exp, timerFace(exp, 300, 30, T0), 300, 30), /phase-bar|for prep and speech/);
+  const expFace = timerFace(exp, 300, 30, T0);
+  assert.doesNotMatch(timerHtml(exp, expFace, 300, 30, cardTrack(exp, DATA.events.get('usx'), expFace, 300, 30, T0)), /phase-steps|for prep and speech/);
 });
 
 // Why: a judge who started prep late taps +10 s; the correction must move prep (and so shorten the speech), stay

@@ -12,7 +12,8 @@ import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRes
 import { attachDrag } from './rank-drag.js';
 import { entryOf, findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
-import { limitOf, clockText } from './timer.js';
+import { limitOf, clockText, graceOf } from './timer.js';
+import { rowTrackHtml } from './time-track.js';
 import { totalUsedAt } from './prep.js';
 import { setReason } from './comments.js';
 import { layerOf, layerProblems, notRankedText } from './profile-layer.js';
@@ -20,6 +21,8 @@ import { ratingHtml, rubricHtml, scoreClick, scoreInput, isScoreBox } from './sc
 import { overtimeNote } from './round-frame.js';
 
 // The board as HTML text. view: { tapMode, limit, now }.
+// Design build (review top 10 #3, D3-A; Room and timer session): each row with time shows the mini time track
+// (time-track.js rowTrackHtml, the same one the roster uses). view.event: the event file (prep and runs pieces).
 // Step S4 (profile layer): under ranks 'topN' the rows past N show "Not in top N" (the board still orders everyone);
 // a profile rubric adds its grid to each row; under a panel an over-grace row says to agree with the panel first.
 export function boardHtml(room, view) {
@@ -51,6 +54,7 @@ export function boardHtml(room, view) {
       <span class="board-rank" aria-hidden="true">${esc(rank || '–')}</span>
       <span class="board-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}
         <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ` <span class="pill err">${esc(ot.pill)}</span>` : ''}</span>
+        ${used ? rowTrackHtml(e, view.event, view.limit, graceOf(room), view.now) : ''}
         ${cut && i >= cut ? ` <span class="pill outline">${esc(notRankedText(room.profile))}</span>` : ''}
         ${ot.note ? `<span class="board-note">${esc(ot.note)}</span>` : ''}${ot.pill && panel ? `<span class="board-note">${esc(panel)}</span>` : ''}
         ${conflict ? `<span class="board-note">${esc(RANK_RATING_ROW)}${fix != null ? ` <button class="b small" type="button" data-ract="fix" data-id="${id}" data-value="${esc(fix)}">Fix: ${esc(fix)}</button>` : ''}</span>` : ''}</span>
@@ -83,7 +87,7 @@ export function createRankScreen(env) {
   function draw(focusKey) {
     const r = room();
     if (!r) return;
-    $('#board-box').innerHTML = boardHtml(r, { tapMode, limit: limitOf(event(r)), now: env.now() });
+    $('#board-box').innerHTML = boardHtml(r, { tapMode, limit: limitOf(event(r)), event: event(r), now: env.now() });
     $('#problems').innerHTML = problemsHtml(r);
     $('#tap-toggle').textContent = tapMode ? 'Done tapping' : 'Tap in order';
     $('#tap-toggle').setAttribute('aria-pressed', String(tapMode));

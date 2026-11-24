@@ -1,30 +1,18 @@
 // Speech Events step S5 (docs/events/EXPERIENCE.md §3 F4 row): the Room screen parts of an F4 round (PCC: one entry,
 // two runs, Pro then Con under one 10:30 limit). They plug into createRoomScreen as views (room-screen.js names the
 // hooks), around the shipped timer card:
-//   head view    the student's topic field, the phase bar (phase-bar.js) and its "Next: ..." line
-//   timer view   the shipped timer card (timer-view.js), with the run split kept in step with the clock (runs.js)
+//   timer view   the shipped timer card (timer-view.js), with the run split kept in step with the clock (runs.js);
+//                its signal track has two pieces (Pro, Con) and the phase row (phase-bar.js) with the "Next: ..." line
+//                under it (design build, review §2.7: one control in place of the pills, the line and the cards)
 //   cards view   one run card per run (its time, and Done, Now or Not started) and the "Con started" button
+// The student's topic is the quote line at the top of the card (quote-view.js, review §2.7 and §2.6).
 // The rules are in runs.js. There is no minimum time for a run: a card shows the time and never a warning.
 // The builders at the top are pure (Node tests call them); createRunsParts does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { clockText, limitOf } from './timer.js';
 import { entryOf, updateEntry, roomEvent } from './room.js';
 import { createTimerView } from './timer-view.js';
-import { phasesHtml } from './phase-bar.js';
-import { eventRuns, runsAt, syncRuns, syncAll, labelOf, resetRunFields, markNextRun, unmarkLastRun, runsPhase, runsBarModel, runsLine, setTopic, TOPIC_MAX } from './runs.js';
-
-const BAR_ID = 'runs-bar';
-
-// The topic field and the phase bar for one entry ('' for a no show).
-export function runsHeadHtml(entry, event, now, limit) {
-  if (!entry || entry.status === 'noShow') return '';
-  const t = event && event.topic ? event.topic : {};
-  return `<div class="runs-head" id="runs-head">
-    <label class="field runs-topic" for="run-topic"><span>${esc(t.label || 'Topic')} <span class="muted">(the student's pick; stays on this device)</span></span>
-      <input id="run-topic" data-rfield="topic" value="${esc(entry.topic || '')}" maxlength="${TOPIC_MAX}" autocomplete="off"${t.hint ? ` aria-describedby="run-topic-hint"` : ''}></label>
-    ${t.hint ? `<p class="field-help" id="run-topic-hint">${esc(t.hint)}</p>` : ''}
-    ${phasesHtml(runsBarModel(entry, event, now, limit), { id: BAR_ID })}</div>`;
-}
+import { eventRuns, runsAt, syncRuns, syncAll, labelOf, resetRunFields, markNextRun, unmarkLastRun, runsPhase, runsBarModel, runsLine } from './runs.js';
 
 // The run cards and the "<next> started" button for one entry ('' for a no show).
 export function runCardsHtml(entry, event, now, limit) {
@@ -53,7 +41,7 @@ export const runsRowHtml = (entry, event, now, limit) => {
   return line ? `<span class="row-runs muted" data-runs-row="${esc(entry.id)}">${esc(line)}</span>` : '';
 };
 
-// The three views for an F4 Room screen: [head, timer, cards]. app.js passes them (with the comment view) to
+// The two views for an F4 Room screen: [timer, cards]. app.js passes them (with the quote and comment views) to
 // createRoomScreen.
 export function createRunsParts() {
   let ctx = null;
@@ -67,16 +55,16 @@ export function createRunsParts() {
   const timer = createTimerView({
     syncEntry: (e, ev, now, lim) => syncRuns(e, ev, now, lim),
     resetFields: () => resetRunFields(),
+    phasesFor: (e, ev, now, lim) => runsBarModel(e, ev, now, lim),
   });
 
-  // While the clock runs, the phase bar, the run times and the roster line follow it (the timer card paints itself).
+  // While the clock runs, the run times and the roster line follow it (the timer card paints itself, its track and
+  // its phase row).
   function paint() {
     const r = room();
     const e = r && entryOf(r, r.current);
     if (!e || !e.timing || !e.timing.run) return;
     const now = env().now();
-    const bar = $('#' + BAR_ID);
-    if (bar) bar.outerHTML = phasesHtml(runsBarModel(e, event(), now, limit()), { id: BAR_ID });
     for (const run of runsAt(e, event(), now, limit())) {
       const cell = $(`[data-run-time="${CSS.escape(run.side)}"]`);
       if (cell) cell.textContent = clockText(Math.floor(run.ms / 1000));
@@ -108,21 +96,11 @@ export function createRunsParts() {
     } } });
   }
 
-  function onInput(ev) {
-    if (!ev.target.dataset || ev.target.dataset.rfield !== 'topic') return;
-    const r = room();
-    if (r && r.current) ctx.save(updateEntry(r, r.current, (e) => setTopic(e, ev.target.value), env().now()));
-  }
   function onClick(ev) {
     const b = ev.target.closest('[data-ract]');
     if (b && b.dataset.ract === 'next') startNext();
   }
 
-  const head = {
-    stageHtml: (r, e) => runsHeadHtml(e, roomEvent(env().data.events, r), env().now(), limit()),
-    mounted() { const box = $('#runs-head'); if (box) box.addEventListener('input', onInput); },
-    show(c) { ctx = c; },
-  };
   const cards = {
     rowExtra: (r, e) => runsRowHtml(e, roomEvent(env().data.events, r), env().now(), limit()),
     stageHtml: (r, e) => runCardsHtml(e, roomEvent(env().data.events, r), env().now(), limit()),
@@ -137,5 +115,5 @@ export function createRunsParts() {
     },
     hide() { if (ticker) clearInterval(ticker); ticker = null; },
   };
-  return [head, timer, cards];
+  return [timer, cards];
 }

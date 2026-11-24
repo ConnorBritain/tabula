@@ -29,6 +29,7 @@ import { createRoomScreen } from './room-screen.js';
 import { createTimerView } from './timer-view.js';
 import { createCommentView } from './comment-view.js';
 import { createPieceView } from './piece-view.js';
+import { createQuoteView } from './quote-view.js';
 import { createRunsParts } from './runs-view.js';
 import { createRankScreen } from './rank-screen.js';
 import { createRateScreen } from './rate-screen.js';
@@ -108,9 +109,9 @@ function boot(data) {
   screens.start = { scope: 'setup', show: (cardId) => screens.setup.show(null, { cardId }) }; // #/start/<cardId>: setup filled from the card
   // The room workspace's stages are the shipped screens, made once here (only app.js makes screens).
   // Step S4: the F2 cross-ex part under the timer, and the Rate screen for a profile with ranks off (room-workspace.js).
-  env.roomScreens = { judge: createRoomScreen(env, [createPieceView(), createTimerView(), createCrossExView(), createCommentView()]), rank: createRankScreen(env), rate: createRateScreen(env), review: createReviewScreen(env) };
+  env.roomScreens = { judge: createRoomScreen(env, [createQuoteView(), createTimerView(), createPieceView(), createCrossExView(), createCommentView()]), rank: createRankScreen(env), rate: createRateScreen(env), review: createReviewScreen(env) };
   // Step S5: the F4 workspace's judge stage (PCC), a Room screen with the run parts (runs-view.js).
-  env.runsScreens = { judge: createRoomScreen(env, [...createRunsParts(), createCommentView()]) };
+  env.runsScreens = { judge: createRoomScreen(env, [createQuoteView(), ...createRunsParts(), createCommentView()]) };
   // The showing screen: { scope, run(action), hide() }. A round's comes from its workspace (keys and mount).
   let current = null;
   let routeNo = 0; // which route() call is the latest, so a round that finishes loading late never draws

@@ -3,6 +3,9 @@
 //   - "Waiting for next speaker · about 7 min" between speakers (the draw gap setting), every F2 round;
 //   - in an elim round whose profile turns on cross-ex: the phase bar (Speak, then Cross-ex), "Q: speaker X" with a
 //     pick, the speaker's school (optional), the same-school warning, and the cross-ex clock.
+// Design build (review §2.5 change 3): before the speech stops, the block is closed: only the phase row (Speak now,
+// Cross-ex next) and one line, so the 7-minute speech has one clock on screen. It opens when the speech stops with
+// time (or once cross-ex has time). The phase row is phase-bar.js, the one phase renderer (no pills of its own).
 // The rules are in cross-ex.js. The builders at the top are pure (Node tests call them); createCrossExView does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { clockText, limitOf } from './timer.js';
@@ -11,6 +14,7 @@ import {
   cxOn, cxLimit, askerOf, setAsker, setSchool, sameSchoolWarning, cxUsed, cxRunning, startCx, stopCx, resetCx, phases,
 } from './cross-ex.js';
 import { waitingLine } from './draw-gap.js';
+import { phasesHtml } from './phase-bar.js';
 import { drawGapOf } from './settings.js';
 
 const secs = (ms) => Math.floor(ms / 1000);
@@ -22,19 +26,40 @@ export function cxFace(entry, limitSec, now) {
   return { digits: clockText(used) + (limitSec ? ' / ' + clockText(limitSec) : ''), over, running: cxRunning(entry), used };
 }
 
+// Is the cross-ex block open? Once the speech has stopped with time, or once cross-ex has time or runs.
+export function cxOpen(entry, now) {
+  const t = (entry && entry.timing) || {};
+  return ((t.usedMs || 0) > 0 && !t.run) || cxUsed(entry, now) > 0 || cxRunning(entry);
+}
+
+// The phase row model (phase-bar.js) from cross-ex.js phases(...). closed: the block is not open yet, so the line
+// says when it opens.
+export function cxPhaseModel(ph, closed) {
+  const at = ph.list.findIndex((p) => p.state === 'now');
+  const cx = ph.list[1];
+  return {
+    label: 'Speak, then cross-ex',
+    phases: ph.list.map((p) => ({ id: p.id, label: p.label })),
+    current: at < 0 ? ph.list.length : at,
+    next: closed ? 'Next: ' + cx.label + '. It opens when the speech stops.' : ph.nextLine,
+  };
+}
+
 // The cross-ex part for one entry as HTML text ('' when cross-ex is off or the entry is a no show).
 export function crossExHtml(room, entry, event, now) {
   if (!cxOn(room, event) || !entry || entry.status === 'noShow') return '';
   const lim = cxLimit(room.profile);
   const ph = phases(entry, limitOf(event), lim, now);
+  if (!cxOpen(entry, now)) {
+    return `<fieldset class="crossex is-closed" id="crossex"><legend>Cross-ex <span class="muted">(elim round)</span></legend>
+    ${phasesHtml(cxPhaseModel(ph, true), { id: 'cx-phases' })}</fieldset>`;
+  }
   const asker = askerOf(room, entry.id);
   const others = present(room).filter((x) => x.id !== entry.id);
   const warn = sameSchoolWarning(room, entry.id);
   const face = cxFace(entry, lim, now);
-  const step = (p) => `<li class="${p.state === 'now' ? 'on' : p.state === 'done' ? 'done' : ''}"${p.state === 'now' ? ' aria-current="step"' : ''}>${p.state === 'done' ? '✓ ' : ''}${esc(p.label)}</li>`;
   return `<fieldset class="crossex" id="crossex"><legend>Cross-ex <span class="muted">(elim round)</span></legend>
-    <ol class="phase-bar" aria-label="Speak, then cross-ex">${ph.list.map(step).join('')}</ol>
-    <p class="muted" id="cx-next">${esc(ph.nextLine)}</p>
+    ${phasesHtml(cxPhaseModel(ph, false), { id: 'cx-phases' })}
     <div class="cx-fields">
       <label class="field"><span>Q: asked by</span><select id="cx-asker" data-cxfield="asker">${others.map((o) => `<option value="${esc(o.id)}"${asker && asker.id === o.id ? ' selected' : ''}>Speaker ${esc(o.code)}</option>`).join('')}</select></label>
       <label class="field"><span>School of ${esc(entry.code)} <span class="muted">(optional)</span></span><input id="cx-school" data-cxfield="school" autocomplete="off" maxlength="60" value="${esc(entry.school || '')}"></label>
