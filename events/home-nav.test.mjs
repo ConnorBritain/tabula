@@ -193,8 +193,12 @@ test('History: Delete sits in a hidden "⋯" menu, the state is a pill, and Comm
   //   assert.match(html, /<button class="iconbtn hist-more-btn" type="button" data-more aria-expanded="false" aria-label="More for HI Round 1 from [^"]+">⋯<\/button><div class="hist-menu" role="group" aria-label="[^"]+" hidden><button[^>]*data-del=/);
   assert.match(html, /<button class="iconbtn hist-more-btn" type="button" data-more aria-expanded="false" aria-label="More for HI Round 1 from [^"]+"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-ellipsis"\/><\/svg><\/button><div class="hist-menu" role="group" aria-label="[^"]+" hidden><button[^>]*data-del=/);
   assert.equal((html.match(/>Comments open</g) || []).length, 1, 'only the open round has the pill');
-  assert.match(html, /<span class="pill solid">Review<\/span> <span class="pill">Comments open<\/span>/);
-  assert.match(html, /<span class="pill outline">Copied<\/span>/);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (D2-A status tints with words and icons; top 10 #4: no solid status pills). Old line:
+  //   assert.match(html, /<span class="pill solid">Review<\/span> <span class="pill">Comments open<\/span>/);
+  assert.match(html, /<span class="pill live"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-copy"\/><\/svg>Review<\/span> <span class="pill caution">Comments open<\/span>/);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (D2-A status tints with words and icons; top 10 #4: no solid status pills). Old line:
+  //   assert.match(html, /<span class="pill outline">Copied<\/span>/);
+  assert.match(html, /<span class="pill ok"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-circle-check"\/><\/svg>Copied<\/span>/);
 });
 
 // ---------- picker: "Guide" button, readable chips ----------

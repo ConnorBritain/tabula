@@ -76,8 +76,12 @@ test('screen: the third speaker starts first; the roster shows it done and its s
   const state = { room: usxRoom(), now: T0 };
   judgeOne(state, 'C33', 412);
   const html = rosterHtml(state.room, null);
-  assert.match(html, /C33<\/span><\/span>[\s\S]*?class="pill outline">Done</, 'C33 is done on its roster row');
-  assert.equal((html.match(/class="pill">Waiting</g) || []).length, 3, 'the other three rows still wait');
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (D2-A status tints with words and icons; top 10 #4: no solid status pills). Old line:
+  //   assert.match(html, /C33<\/span><\/span>[\s\S]*?class="pill outline">Done</, 'C33 is done on its roster row');
+  assert.match(html, /C33<\/span><\/span>[\s\S]*?class="pill ok"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-circle-check"\/><\/svg>Done</, 'C33 is done on its roster row');
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.3: roster states get shapes; Waiting is an empty circle). Old line:
+  //   assert.equal((html.match(/class="pill">Waiting</g) || []).length, 3, 'the other three rows still wait');
+  assert.equal((html.match(/class="pill"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-circle"\/><\/svg>Waiting</g) || []).length, 3, 'the other three rows still wait');
   // Next speaker goes on from C33 to the next waiting entry, and then round to the top.
   assert.equal(nextWaiting(state.room).code, 'D41');
   judgeOne(state, 'A12', 380);

@@ -8,6 +8,7 @@
 // Review for a comments-only round). The builders at the top are pure (Node tests call them); createRoomScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
+import { statusPillHtml } from './status-pill.js';
 import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { crossNote } from './cross-entry.js';
@@ -15,9 +16,15 @@ import { createNumberPicker, crossEntryAction } from './room-actions.js';
 import { frameHtml } from './round-frame.js';
 import { rankStageLabel } from './profile-layer.js';
 
-const pill = (word, cls) => `<span class="pill${cls ? ' ' + cls : ''}">${esc(word)}</span>`;
-// The status pill in words (DESIGN.md §4.1): Speaking is a solid fill, Done a gray outline.
-export const statusPill = (e) => pill(STATUS_LABEL[e.status] || STATUS_LABEL.waiting, { speaking: 'solid', done: 'outline', noShow: 'outline', crossEntered: 'outline' }[e.status] || '');
+// The status pill in words (DESIGN.md §4.1) with a shape (§5.3) and a tint (D2-A): Waiting is plain words with an
+// empty circle, Speaking a quiet tint with a play circle, Done green with a check. A Done speech over grace keeps a
+// neutral check (the review's limit 2): green must not say "all fine" next to the "Over grace" pill.
+const STATUS_LOOK = Object.freeze({ waiting: ['', 'circle'], speaking: ['live', 'circle-play'], done: ['ok', 'circle-check'], noShow: ['outline', ''], crossEntered: ['outline', ''] });
+export const statusPill = (e) => {
+  const [tone, ic] = STATUS_LOOK[e.status] || STATUS_LOOK.waiting;
+  const over = e.status === 'done' && e.timing && e.timing.overGrace;
+  return statusPillHtml(over ? '' : tone, STATUS_LABEL[e.status] || STATUS_LABEL.waiting, over ? 'check' : ic);
+};
 
 // The room's title line: event short name and round.
 export function roomTitle(room, event) {
@@ -42,7 +49,7 @@ export function rosterRowHtml(room, e, place, menuOpen, extra, sub) {
     <button class="row-pick" type="button" data-act="pick" data-id="${e.id}" data-key="pick-${e.id}"${cur ? ' aria-current="true"' : ''}>
       <span class="row-num" aria-hidden="true">${place}</span>
       <span class="row-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}${sub ? sub(e) : ''}</span>
-      ${extra ? extra(e) : ''}${statusPill(e)}</button>
+      ${extra ? extra(e) : ''}${cur ? statusPillHtml('', 'Now', '', 'data-now') : ''}${statusPill(e)}</button>
     <button class="iconbtn row-more" type="button" data-act="menu" data-id="${e.id}" data-key="menu-${e.id}" aria-expanded="${menuOpen}" aria-label="Change ${esc(e.code)}">${icon('ellipsis', 20)}</button>
     ${menu}</li>`;
 }

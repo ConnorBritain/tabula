@@ -5,6 +5,7 @@
 // The builders at the top are pure (Node tests call them); createRateScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
+import { problemsListHtml, readyHtml, rateRowPill, jumpToRow } from './ballot-status.js';
 import { ratingScale, ratingError, ratingTies, overtimeRow } from './rank.js';
 import { boardCtx, ratingsOf } from './board.js';
 import { layerOf, layerProblems } from './profile-layer.js';
@@ -28,10 +29,10 @@ export function rateListHtml(room, view) {
     const ot = overtimeRow(e.id, ctx);
     const used = totalUsedAt(e.timing, view.now, view.limit);
     const err = ratingError(ratings[e.id], scale) || (tied.has(e.id) ? 'Another speaker has this rating.' : '');
-    return `<li class="rate-row" data-row="${esc(e.id)}">
+    return `<li class="rate-row" data-row="${esc(e.id)}" tabindex="-1">
       <span class="board-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}
         <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ` <span class="pill err">${esc(ot.pill)}</span>` : ''}</span>
-        ${ot.pill && panel ? `<span class="board-note">${esc(panel)}</span>` : ''}</span>
+        ${ot.pill && panel ? `<span class="board-note">${esc(panel)}</span>` : ''}${rateRowPill(e, ratings[e.id], scale, rubric)}</span>
       ${scale.kind !== 'none' ? `<span class="board-rate">${ratingHtml(e, ratings[e.id], scale, err)}</span>` : ''}
       ${rubricHtml(e, rubric)}
     </li>`;
@@ -42,8 +43,7 @@ export function rateListHtml(room, view) {
 // The checklist under the list, from profile-layer.js layerProblems.
 export function rateProblemsHtml(room) {
   const list = layerProblems(room);
-  return list.length ? `<div class="problems" role="status"><h2>Before you review</h2><ul>${list.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>`
-    : '<p class="problems ok" role="status"><span class="pill outline">Ready</span> Every speaker is rated.</p>';
+  return list.length ? problemsListHtml(room, list) : readyHtml('Every speaker is rated.');
 }
 
 // env: { el, ui, data, now, rooms(), saveRoom(room), go(screen, id) }.
@@ -64,7 +64,10 @@ export function createRateScreen(env) {
 
   // The score controls work as on the Rank screen (score-view.js); typing saves on every change, and the error shows
   // when the box is left.
-  function onClick(ev) { const res = scoreClick(ev.target, room(), env.now()); if (res) { save(res.room); draw(res.focusKey); } }
+  function onClick(ev) {
+    if (jumpToRow(env.el, ev.target)) return; // a "Before you review" item takes the judge to its row
+    const res = scoreClick(ev.target, room(), env.now()); if (res) { save(res.room); draw(res.focusKey); }
+  }
   function onInput(ev) { const next = scoreInput(ev.target, room(), env.now()); if (next) save(next); }
   function onChange(ev) { if (isScoreBox(ev.target)) draw(); }
   // The arrow, Home, End and digit keys on a row of number buttons (score-view.js scoreKey).

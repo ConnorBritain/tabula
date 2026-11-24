@@ -5,6 +5,7 @@
 // The builders at the top are pure (Node tests call them); createRankScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
+import { problemsListHtml, readyHtml, rateRowPill, jumpToRow } from './ballot-status.js';
 import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
   ratingFix, ratingTies, RANK_RATING_ROW, graceLineText,
@@ -70,6 +71,7 @@ export function boardHtml(room, view) {
       <span class="board-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}
         <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ` <span class="pill err">${esc(ot.pill)}</span>` : ''}</span>
         ${used ? rowTrackHtml(e, view.event, view.limit, graceOf(room), view.now) : ''}
+        ${layer.rubric.length ? rateRowPill(e, null, null, layer.rubric) : ''}
         ${rowWordsHtml(e)}
         ${ot.note ? `<span class="board-note">${esc(ot.note)}</span>` : ''}${ot.pill && panel ? `<span class="board-note">${esc(panel)}</span>` : ''}
         ${conflict ? `<span class="board-note">${esc(RANK_RATING_ROW)}${fix != null ? ` <button class="b small" type="button" data-ract="fix" data-id="${id}" data-value="${esc(fix)}">Fix: ${esc(fix)}</button>` : ''}</span>` : ''}</span>
@@ -86,8 +88,8 @@ export function boardHtml(room, view) {
 // profile-layer.js layerProblems).
 export function problemsHtml(room) {
   const list = layerProblems(room);
-  return list.length ? `<div class="problems" role="status"><h2>Before you review</h2><ul>${list.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>`
-    : '<p class="problems ok" role="status"><span class="pill outline">Ready</span> Every speaker has a rank' + (ratingScale(room.profile).kind === 'none' ? '.' : ' and a rating.') + '</p>';
+  return list.length ? problemsListHtml(room, list)
+    : readyHtml('Every speaker has a rank' + (ratingScale(room.profile).kind === 'none' ? '.' : ' and a rating.'));
 }
 
 // env: { el, ui, data, now, rooms(), saveRoom(room), go(screen, id) }.
@@ -140,6 +142,7 @@ export function createRankScreen(env) {
   function onClick(ev) {
     if (ev.target.closest('#tap-toggle')) return tapMode ? endTap() : startTap();
     if (ev.target.closest('#restart')) return restart();
+    if (jumpToRow(env.el, ev.target)) return; // a "Before you review" item takes the judge to its row
     const sc = scoreClick(ev.target, room(), env.now()); // a rating word, a rating − or +, or a rubric stepper
     if (sc) { save(sc.room); draw(sc.focusKey); return; }
     const b = ev.target.closest('[data-ract]');

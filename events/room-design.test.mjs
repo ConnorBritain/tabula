@@ -188,7 +188,9 @@ test('roster row: no time while speaking, the mini track and "Over grace" under 
   assert.match(rosterTimeHtml(done(r.entries[0], 596), 596), />9:56</);
   const over = done(r.entries[1], 661, true);
   const line = rowTrackLine(over, 661, '<span class="track track-mini z-over"></span>');
-  assert.match(line, /track-mini z-over[\s\S]*<span class="pill err">Over grace<\/span>/);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (D2-A status tints with words and icons; top 10 #4: no solid status pills). Old line:
+  //   assert.match(line, /track-mini z-over[\s\S]*<span class="pill err">Over grace<\/span>/);
+  assert.match(line, /track-mini z-over[\s\S]*<span class="pill err"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-triangle-alert"\/><\/svg>Over grace<\/span>/);
   assert.equal(rowTrackLine(speaking, 42, 'x'), '');
   assert.equal(rowTrackLine(done(r.entries[2], 0), 0, 'x'), '', 'no time: no track');
   const row = rosterRowHtml(r, over, 2, false, () => '<span class="row-time">11:01</span>', () => line);

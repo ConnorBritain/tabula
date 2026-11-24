@@ -12,6 +12,8 @@
 // pins to the top while the big card is out of view: it is a second render of the same face, and its button sends
 // the same data-tact action to the same handler. It adds no driver, no tick and no key binding.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from './icons.js';
+import { statusPillHtml } from './status-pill.js';
 import { phasesHtml } from './phase-bar.js';
 import { trackModel, trackHtml, miniTrackHtml, piecesFor, pointsFor, rowTrackHtml } from './time-track.js';
 import { createDriver } from '../../core/clock.js';
@@ -126,7 +128,7 @@ export const rosterTimeHtml = (entry, used) => (entry.status === 'speaking' ? ''
 // flag is on. Nothing while the speaker speaks, for a no show, or before any time. track: time-track.js rowTrackHtml.
 export function rowTrackLine(entry, used, track) {
   if (!entry || entry.status === 'speaking' || entry.status === 'noShow' || !(used > 0)) return '';
-  const over = entry.timing && entry.timing.overGrace ? ' <span class="pill err">Over grace</span>' : '';
+  const over = entry.timing && entry.timing.overGrace ? ' ' + statusPillHtml('err', 'Over grace', 'triangle-alert') : '';
   return `<span class="row-track">${track}${over}</span>`;
 }
 

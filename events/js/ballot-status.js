@@ -1,0 +1,61 @@
+// Progress on the Rank and Rate screens (design build 2026-11-24; docs/design/EVENTS-COLOR-ICON-REVIEW.md top 10 #7,
+// owner D2 A). "Before you review" is a caution list; each item names a speaker and is a button that scrolls to that
+// row. "Ready" is green with a check (the D2 reading: the ranking work is finished). A Rate or Rubric row says how far
+// it is ("Rated 8", "16 / 25 · 4 of 5"). Every color goes with a word. Pure builders (Node tests call them).
+import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from './icons.js';
+import { statusPillHtml } from './status-pill.js';
+import { present } from './room.js';
+import { ratingError } from './rank.js';
+import { rubricScores, rubricTotal, rubricMax, rubricError } from './profile-layer.js';
+
+const blank = (v) => v == null || String(v).trim() === '';
+
+// The entry a problem line is about: the first present entry whose code stands as a whole word in the text, or null
+// (a room-wide line such as "Add the speakers"). Longer codes first, so "A12" never matches inside "A120".
+export function problemTarget(room, text) {
+  const list = present(room).slice().sort((a, b) => b.code.length - a.code.length);
+  const hit = list.find((e) => new RegExp('(^|[^A-Za-z0-9-])' + e.code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^A-Za-z0-9-])').test(text));
+  return hit ? hit.id : null;
+}
+
+// "Before you review" as HTML text: a caution panel (a full 1 px edge in --caution, never a side bar) with a word in
+// its heading. An item about one speaker is a button that takes the judge to that row (data-jump).
+export function problemsListHtml(room, list) {
+  const items = list.map((p) => {
+    const id = problemTarget(room, p);
+    return id ? `<li><button class="prob-jump" type="button" data-jump="${esc(id)}">${esc(p)}${icon('arrow-right')}</button></li>` : `<li>${esc(p)}</li>`;
+  }).join('');
+  return `<div class="problems caution" role="status"><h2>${statusPillHtml('caution', 'Not ready', 'triangle-alert')} Before you review</h2><ul>${items}</ul></div>`;
+}
+
+// The ready line: green, a check and the word, then the plain sentence.
+export const readyHtml = (text) => `<p class="problems ok" role="status">${statusPillHtml('ok', 'Ready', 'circle-check')} ${esc(text)}</p>`;
+
+// A Rate or Rubric row's progress pill. Rating: "Rated 8" (green) or "Not rated" (caution). Rubric: "16 / 25 · 4 of 5"
+// while open (caution), "All scored · 21 / 25" when every part has a valid score (green). Both: the rubric pill
+// follows the rating pill. scale: rank.js ratingScale; rubric: the profile's criteria.
+export function rateRowPill(e, rating, scale, rubric) {
+  const out = [];
+  if (scale && scale.kind !== 'none') {
+    out.push(!blank(rating) && !ratingError(rating, scale) ? statusPillHtml('ok', 'Rated ' + rating, 'circle-check') : statusPillHtml('caution', 'Not rated', 'circle'));
+  }
+  if (rubric && rubric.length) {
+    const s = rubricScores(e);
+    const scored = rubric.filter((c) => !blank(s[c.id]) && !rubricError(s[c.id], c)).length;
+    const total = rubricTotal(e, rubric);
+    const sum = (total == null ? 0 : total) + ' / ' + rubricMax(rubric);
+    out.push(scored === rubric.length ? statusPillHtml('ok', 'All scored · ' + sum, 'circle-check') : statusPillHtml('caution', sum + ' · ' + scored + ' of ' + rubric.length, 'circle'));
+  }
+  return out.length ? `<span class="row-status">${out.join('')}</span>` : '';
+}
+
+// A click on a "Before you review" item: scroll its row into view and move the focus there. Returns true when the
+// click was on such an item. root: the screen element.
+export function jumpToRow(root, target) {
+  const b = target.closest && target.closest('[data-jump]');
+  if (!b) return false;
+  const row = root.querySelector(`[data-row="${CSS.escape(b.dataset.jump)}"]`);
+  if (row) { row.scrollIntoView({ block: 'center' }); row.focus({ preventScroll: true }); }
+  return true;
+}

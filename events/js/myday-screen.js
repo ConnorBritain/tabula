@@ -8,6 +8,7 @@
 // The rules are in cards.js; the builders at the top are pure (Node tests call them); createMydayScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
+import { statusPillHtml } from './status-pill.js';
 import { mydayModel, cardEvent, cardEventId, duePill, roomText, upNextItem, cancelCard, moveRoom, submitCard, findById, undoFields, ROOM_MAX } from './cards.js';
 import { roomEvent, present, CUSTOM_EVENT } from './room.js';
 import { dayOf } from './rooms.js';
@@ -56,7 +57,10 @@ export function itemView(it, events) {
   };
 }
 
-const PILL = { judging: ' solid', ranksIn: ' solid', cancelled: ' outline', done: ' outline' };
+// The status pill of a round (top 10 #4, D2-A): a tint, an icon and the word, never the solid fill (the one solid
+// shape on My day is the Up next card's main button). Finished work is green; in progress is a quiet tint.
+const PILL = Object.freeze({ notStarted: ['outline', 'circle'], judging: ['live', 'circle-dashed'], ranksIn: ['live', 'list-ordered'], submitted: ['ok', 'circle-check'], done: ['ok', 'circle-check'], cancelled: ['outline', ''] });
+export const roundPill = (v) => { const [tone, ic] = PILL[v.status] || ['', '']; return statusPillHtml(tone, v.word, ic); };
 const DUE_TONE = { caution: ' caution', late: ' err' };
 
 // The ranks-due pill in words (design review §2.1 change 3). update() redraws its text and tone each second.
@@ -89,7 +93,7 @@ export function cardHtml(v, now, menuOpen) {
   return `<li class="md-row" data-item="${esc(v.key)}" tabindex="-1" aria-label="${esc(label + ', ' + v.word)}">
     ${evPill(v)}
     ${v.goHash ? `<a class="md-row-main" href="${esc(v.goHash)}" aria-label="${esc(v.goWord + ' ' + label)}">${main}${icon('chevron-right')}</a>` : `<span class="md-row-main">${main}</span>`}
-    <span class="md-pills"><span class="pill${PILL[v.status] || ''}">${esc(v.word)}</span>${dueHtml(v.due, now)}</span>
+    <span class="md-pills">${roundPill(v)}${dueHtml(v.due, now)}</span>
     ${submitHtml(v, true)}${moreHtml(v, Boolean(menuOpen))}
     ${menuHtml(v, Boolean(menuOpen))}
   </li>`;
@@ -101,7 +105,7 @@ export function upNextHtml(v, now, menuOpen) {
   const facts = [v.progress ? `<span class="md-progress">${esc(v.progress)}</span>` : '', dueHtml(v.due, now)].filter(Boolean).join('');
   return `<section class="md-next" aria-labelledby="md-h-next"><h2 id="md-h-next">Up next</h2>
     <div class="md-next-card" data-item="${esc(v.key)}" tabindex="-1" aria-label="${esc(label + ', ' + v.word)}">
-      <div class="md-card-top">${evPill(v)}<span class="md-next-title">${esc(v.title)}</span><span class="pill${PILL[v.status] || ''}">${esc(v.word)}</span></div>
+      <div class="md-card-top">${evPill(v)}<span class="md-next-title">${esc(v.title)}</span>${roundPill(v)}</div>
       ${v.meta ? `<p class="md-next-meta">${esc(v.meta)}</p>` : ''}
       ${facts ? `<p class="md-facts">${facts}</p>` : ''}
       <div class="md-act">${v.goHash ? `<a class="b primary md-go" href="${esc(v.goHash)}">${esc(v.goWord)}${icon('arrow-right', 20)}</a>` : ''}${submitHtml(v, false)}${moreHtml(v, Boolean(menuOpen))}</div>

@@ -32,7 +32,6 @@ button.b:disabled { opacity: .5; cursor: default; }
 .code, .mono { font-family: var(--font-mono); }
 .mono { margin: 0; overflow-wrap: anywhere; }
 .pill { display: inline-flex; align-items: center; min-height: 24px; padding: 0 var(--s2); border-radius: var(--r-pill); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font-size: var(--fs-1); font-weight: var(--fw-3); white-space: nowrap; }
-.pill.solid { background: var(--text); color: var(--canvas); border-color: var(--text); }
 .pill.outline { background: transparent; color: var(--text-2); }
 .pill.err { background: var(--error-tint); border-color: var(--error); color: var(--text); }
 .field { display: grid; gap: var(--s1); font-size: var(--fs-2); font-weight: var(--fw-3); }
@@ -71,7 +70,7 @@ main:has(.room-grid) { max-width: 1120px; }
 .roster-list { list-style: none; margin: 0 0 var(--s3); padding: 0; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); }
 .roster-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; border-top: 1px solid var(--border); }
 .roster-row:first-child { border-top: 0; }
-.roster-row.is-current { background: var(--sunk); }
+.roster-row.is-current { background: var(--sunk); box-shadow: inset 0 0 0 2px var(--text); border-radius: var(--r-md); } /* §5.1 rule 3: a tint, a full outline and the word "Now" */
 .row-pick { display: flex; align-items: center; gap: var(--s2); min-height: var(--h-lg); padding: var(--s2) var(--s2) var(--s2) var(--s3); border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: var(--r-md); }
 .row-num { color: var(--text-3); font-size: var(--fs-2); min-width: 1.2em; }
 .row-main { display: grid; flex: 1; min-width: 0; }
@@ -100,7 +99,7 @@ main:has(.room-grid) { max-width: 1120px; }
   .room-head h1 { flex-basis: 100%; order: -1; font-size: var(--fs-4); }
   .strip { display: flex; gap: var(--s2); overflow-x: auto; padding-bottom: var(--s1); }
   .strip-pill { flex: none; display: inline-flex; gap: var(--s1); align-items: center; min-height: 44px; padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); cursor: pointer; }
-  .strip-pill.is-current { background: var(--text); color: var(--canvas); border-color: var(--text); }
+  .strip-pill.is-current { background: var(--panel); border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); font-weight: var(--fw-4); } /* never solid (D4) */
   .strip-status { font-size: var(--fs-1); }
   .roster-full { display: none; margin-top: var(--s2); }
   .roster.open .roster-full { display: block; }
@@ -120,7 +119,7 @@ main:has(.room-grid) { max-width: 1120px; }
    phase rows use .phase-steps (js/phase-bar.js) since the design build. */
 .phase-bar { display: flex; justify-content: center; gap: var(--s2); list-style: none; margin: 0 0 var(--s2); padding: 0; font-size: var(--fs-2); }
 .phase-bar li { padding: var(--s1) var(--s3); border: 1px solid var(--border); border-radius: var(--r-pill); color: var(--text-2); }
-.phase-bar li.on { background: var(--text); color: var(--canvas); border-color: var(--text); font-weight: var(--fw-4); }
+.phase-bar li.on { background: var(--panel); color: var(--text); border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); font-weight: var(--fw-4); }
 .phase-bar li.done { color: var(--text); }
 .timer-word { font-size: var(--fs-3); font-weight: var(--fw-4); }
 .timer-card .timer-digits { font-family: var(--font-display); font-size: var(--fs-clock); line-height: 1; font-variant-numeric: tabular-nums; margin: var(--s2) 0 var(--s1); }
@@ -139,7 +138,6 @@ main:has(.room-grid) { max-width: 1120px; }
 .chip-title { margin: 0 0 var(--s1); font-size: var(--fs-2); font-weight: var(--fw-3); color: var(--text-2); }
 .chips, .chks { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .chip { min-height: var(--h-md); padding: 0 var(--s3); border-radius: var(--r-pill); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); cursor: pointer; }
-.chip.on { background: var(--text); color: var(--canvas); border-color: var(--text); }
 .chk { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--h-md); padding: 0 var(--s1) 0 var(--s3); border-radius: var(--r-md); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); cursor: pointer; text-align: left; }
 .chk.flag { border-color: var(--error); }
 .sheet-notes { margin-top: var(--s1); }
@@ -201,7 +199,6 @@ main:has(.room-grid) { max-width: 1120px; }
 .ranks-table th, .ranks-table td { text-align: left; padding: var(--s2) var(--s3); border-top: 1px solid var(--border); }
 .ranks-table thead th { border-top: 0; font-size: var(--fs-2); color: var(--text-2); font-weight: var(--fw-3); }
 .order-toggle { display: flex; gap: var(--s1); margin-bottom: var(--s3); }
-.order-toggle .b.on { background: var(--text); color: var(--canvas); border-color: var(--text); }
 .cards { list-style: none; margin: 0 0 var(--s3); padding: 0; display: grid; gap: var(--s3); }
 .card { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); padding: var(--s3) var(--s4); display: grid; gap: var(--s2); justify-items: start; }
 .card-head { display: flex; gap: var(--s3); align-items: baseline; width: 100%; }
@@ -361,7 +358,7 @@ a.pk-pick { text-decoration: none; } /* the Congress row is a link (step S6) */
 .phases { margin-top: var(--s3); }
 .phase-steps { display: flex; flex-wrap: wrap; gap: var(--s2); list-style: none; margin: 0; padding: 0; font-size: var(--fs-2); }
 .phase { display: inline-flex; align-items: center; gap: var(--s1); padding: var(--s1) var(--s3); border: 1px solid var(--border); border-radius: var(--r-pill); color: var(--text-2); }
-.phase.is-on { background: var(--text); color: var(--canvas); border-color: var(--text); font-weight: var(--fw-4); }
+.phase.is-on { background: var(--panel); color: var(--text); border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); font-weight: var(--fw-4); }
 .phase.is-done { color: var(--text); border-color: var(--text); }
 .phase-time { font-variant-numeric: tabular-nums; }
 .phase-next { margin: var(--s2) 0 0; color: var(--text-2); font-size: var(--fs-2); }
@@ -477,7 +474,9 @@ a.b.pk-guide { align-self: center; margin-right: var(--s2); }
 .seg-opt { position: relative; display: inline-flex; align-items: center; min-height: var(--h-lg); padding: 0 var(--s4); font-size: var(--fs-3); font-weight: var(--fw-3); cursor: pointer; background: var(--panel); color: var(--text); }
 .seg-opt + .seg-opt { border-left: 1px solid var(--border-ctl); }
 .seg-opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-.seg-opt:has(input:checked) { background: var(--text); color: var(--canvas); }
+.seg-opt:has(input:checked) { background: var(--panel); color: var(--text); box-shadow: inset 0 0 0 2px var(--text); font-weight: var(--fw-4); }
+.seg:has(.seg-opt) { background: var(--fill-quiet); }
+.seg-opt { background: transparent; }
 .seg-opt:has(input:focus-visible) { outline: 2px solid var(--ring); outline-offset: -2px; }
 /* ---------- Design build, Room and timer session (2026-11-24; docs/design/EVENTS-DESIGN-REVIEW.md §2.4–§2.7) ----------
    The phone room fits the screen (bug 1), the signal track under the digits (D2-A), the mini track on roster and rank
@@ -591,3 +590,11 @@ svg.i.i-20 { width: 20px; height: 20px; vertical-align: -5px; }
 .drag svg.i { color: var(--text-2); }
 .checklist li, .critique li { display: inline-flex; align-items: center; gap: var(--s1); }
 .checklist .is-ok svg.i, .critique .is-ok svg.i { color: var(--ok); }
+/* Progress (top 10 #7, D2-A): the caution "Before you review" box and the Review blocker have a full 1 px caution
+   edge (never a side bar); each item jumps to its row. Row status pills sit under the row's name. */
+.problems.caution { background: var(--caution-tint); border-color: var(--caution); }
+.problems.caution h2, .problems.caution h3 { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
+.problems.caution .b.primary { margin-top: var(--s3); }
+.prob-jump { display: inline-flex; align-items: center; gap: var(--s1); min-height: var(--hit-min); padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.row-status { display: flex; flex-wrap: wrap; gap: var(--s1); }
+.problems.ok .pill { margin-right: var(--s1); }

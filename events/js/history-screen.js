@@ -4,6 +4,7 @@
 // does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
+import { statusPillHtml } from './status-pill.js';
 import { downloadFile } from '../../core/store.js';
 import { historyRows, filterChoices, filterRows, historyColumns, exportTable, toTSV, toCSV, csvName } from './history.js';
 import { dayOf } from './rooms.js';
@@ -13,8 +14,9 @@ const option = (value, label, picked) => `<option value="${esc(value)}"${value =
 
 // The state as the same kind of pill My day uses (design review §2.11), with "Comments open" as a second pill only
 // when it is true. A word always goes with the look.
-const STATE_PILL = Object.freeze({ Judging: ' solid', Ranking: ' solid', Review: ' solid', Copied: ' outline' });
-const stateHtml = (row) => `<span class="pill${STATE_PILL[row.state] || ''}">${esc(row.state)}</span>${row.commentsOpen ? ' <span class="pill">Comments open</span>' : ''}`;
+// Top 10 #4, D2-A: in-progress states are a quiet tint, a fully copied round is green with a check; never solid.
+const STATE_PILL = Object.freeze({ Judging: ['live', 'circle-dashed'], Ranking: ['live', 'list-ordered'], Review: ['live', 'copy'], Copied: ['ok', 'circle-check'] });
+const stateHtml = (row) => { const [tone, ic] = STATE_PILL[row.state] || ['', '']; return statusPillHtml(tone, row.state, ic) + (row.commentsOpen ? ' ' + statusPillHtml('caution', 'Comments open') : ''); };
 
 // One cell of the table as HTML text. The round cell opens the round (and so does a click anywhere on the row).
 function cellHtml(row, key) {

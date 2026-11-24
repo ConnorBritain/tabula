@@ -186,11 +186,15 @@ test('Review stage 1 is a ballot preview: Over grace pill only when true, copy b
   const html = ranksStageHtml(r);
   const head = html.slice(html.indexOf('preview-head'), html.indexOf('</div>'));
   assert.match(head, /data-what="ranks"/);
-  assert.match(head, /id="ranks-state">Not sent</);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (D2-A status tints with words and icons; top 10 #4: no solid status pills). Old line:
+  //   assert.match(head, /id="ranks-state">Not sent</);
+  assert.match(head, /id="ranks-state"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-circle"\/><\/svg>Not sent</);
   assert.equal((html.match(/class="pill err">Over grace</g) || []).length, 1);
   assert.equal((html.match(/<span class="sr-only">No<\/span>/g) || []).length, 2);
   const sent = ranksStageHtml(Object.assign({}, r, { ranksCopiedAt: 9 }));
-  assert.match(sent, /id="ranks-state">✓ Copied</);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (D2-A status tints with words and icons; top 10 #4: no solid status pills). Old line:
+  //   assert.match(sent, /id="ranks-state">✓ Copied</);
+  assert.match(sent, /id="ranks-state"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-circle-check"\/><\/svg>Copied</);
   assert.match(sent, />Copy ranks again</);
   // Copy all and Print / PDF sit in one toolbar group with the checklist.
   assert.match(summaryHtml(r), /<ul class="checklist">[\s\S]*<div class="review-tools" role="group"[^>]*>[\s\S]*Copy all[\s\S]*Print \/ PDF/);
