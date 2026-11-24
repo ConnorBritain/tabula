@@ -9,8 +9,9 @@ import { clockText, limitOf } from './timer.js';
 import { entryOf, present, roomEvent } from './room.js';
 import {
   cxOn, cxLimit, askerOf, setAsker, setSchool, sameSchoolWarning, cxUsed, cxRunning, startCx, stopCx, resetCx, phases,
-  drawGapOf, waitingLine,
+  waitingLine,
 } from './cross-ex.js';
+import { drawGapOf } from './settings.js';
 
 const secs = (ms) => Math.floor(ms / 1000);
 

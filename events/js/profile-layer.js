@@ -24,10 +24,10 @@
 //   rubric helpers: rubricScores(entry), rubricTotal(entry, rubric), rubricMax(rubric), stepRubric(value, dir, crit),
 //                   withRubric(room, id, critId, value, now)
 import { checkBoard, ratingScale, ratingError, ratingTies } from './rank.js';
-import { boardCtx, ranksOf, ratingsOf } from './board.js';
+import { boardCtx, ranksOf, ratingsOf, stepRating } from './board.js';
 import { entryCap, present } from './room.js';
 
-export const RANK_MODES = Object.freeze(['all', 'topN', 'off']);
+const RANK_MODES = Object.freeze(['all', 'topN', 'off']);
 
 const asText = (v) => (v == null ? '' : String(v).trim());
 const isInt = (n) => Number.isInteger(n);
@@ -88,13 +88,9 @@ export function rubricTotal(entry, rubric) {
 }
 export const rubricMax = (rubric) => rubric.reduce((t, c) => t + c.max, 0);
 
-// The − and + steppers: an empty box starts 60% of the way up the range (as board.js stepRating does), then moves by
-// one, inside min..max.
-export function stepRubric(value, dir, crit) {
-  const v = asText(value) === '' ? NaN : Number(value);
-  if (Number.isNaN(v)) return crit.min + Math.round((crit.max - crit.min) * 0.6);
-  return Math.min(crit.max, Math.max(crit.min, Math.round(v) + (dir < 0 ? -1 : 1)));
-}
+// The − and + steppers: board.js stepRating on the criterion's range in steps of one (an empty box starts 60% of the
+// way up, then moves by one inside min..max).
+export const stepRubric = (value, dir, crit) => stepRating(asText(value) === '' ? '' : value, dir, { min: crit.min, max: crit.max, step: 1 });
 
 // Write one rubric score back. value: a whole number or '' (clears it).
 export function withRubric(room, id, critId, value, now) {
@@ -153,6 +149,6 @@ export function layerProblems(room) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).profileLayer = Object.freeze({
-  RANK_MODES, rubricOf, layerOf, stagesOf, rankStageLabel, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax,
+  rubricOf, layerOf, stagesOf, rankStageLabel, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax,
   stepRubric, withRubric, rubricError, layerProblems,
 });

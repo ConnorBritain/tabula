@@ -14,7 +14,7 @@
 // Entry.school: text, optional.
 //
 // Draw gap. An extemp speaker draws a question and preps outside, so the next speaker comes in some minutes after the
-// last one. The gap (7 or 10 minutes) is not confirmed, so it is a setting (settings.js drawGapMin).
+// last one. The gap (7 or 10 minutes) is not confirmed, so it is a setting (settings.js drawGapMin, drawGapOf).
 import { familyOf } from './data.js';
 import { entryOf, updateEntry, present } from './room.js';
 
@@ -109,9 +109,7 @@ export function phases(entry, limitSec, cxSec, now) {
 }
 
 // ---------- the draw gap ----------
-
-export const DRAW_GAPS = Object.freeze([7, 10]);
-export const drawGapOf = (settings) => (settings && DRAW_GAPS.includes(settings.drawGapMin) ? settings.drawGapMin : DRAW_GAPS[0]);
+// The gap in minutes comes from the settings (settings.js drawGapOf); the caller passes it in.
 
 // The "Waiting for next speaker · about N min" line for an F2 room, or ''. It shows when no clock runs, the current
 // entry has not spoken, and the last speech stopped less than the gap ago. N rounds up, so it never says 0 min.
@@ -130,5 +128,5 @@ export function waitingLine(room, event, now, gapMin) {
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).crossEx = Object.freeze({
   SCHOOL_MAX, cxOn, cxLimit, askerOf, setAsker, setSchool, sameSchoolWarning, cxUsed, cxRunning, startCx, stopCx, resetCx, phases,
-  DRAW_GAPS, drawGapOf, waitingLine,
+  waitingLine,
 });

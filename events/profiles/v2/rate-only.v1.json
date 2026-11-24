@@ -2,6 +2,7 @@
   "id": "rate-only",
   "version": 1,
   "name": "Rate only (no ranks)",
+  "group": "shape",
   "ranks": "off",
   "rating": {
     "min": 1,

@@ -71,3 +71,16 @@ test('TabulaKeys gives the very same shared functions as core/keys.js', () => {
   for (const k of ['parseCombo', 'isReservedCombo', 'focusKind', 'keyMatches', 'isMacPlatform', 'formatKeys', 'searchCommands']) assert.equal(K[k], core[k], k);
   assert.equal(K.entryKeys, core.shortcutKeys);
 });
+
+// Why: a bare Enter shortcut (Speech Events picks speaker 12 by "1, 2, Enter") must fire on Enter alone; if it also
+// fired on ⌘/Ctrl/Shift+Enter it would steal combos such as debate's Meta+Enter, and if it never fired the pick fails.
+test('a bare Enter shortcut matches Enter alone, and modifier combos keep their own path', () => {
+  const bare = { keys: { other: 'Enter', mac: 'Enter' } };
+  const combo = { keys: { other: 'Meta+Enter', mac: 'Meta+Enter' } };
+  const ev = (extra) => Object.assign({ code: 'Enter', key: 'Enter', meta: false, ctrl: false, alt: false, shift: false }, extra);
+  assert.equal(core.keyMatches(bare, ev()), true);
+  for (const m of ['meta', 'ctrl', 'alt', 'shift']) assert.equal(core.keyMatches(bare, ev({ [m]: true })), false, 'bare Enter with ' + m);
+  assert.equal(core.keyMatches(combo, ev({ meta: true })), true, 'Meta+Enter still matches ⌘ Enter');
+  assert.equal(core.keyMatches(combo, ev({ ctrl: true })), true, 'and Ctrl+Enter');
+  assert.equal(core.keyMatches(combo, ev()), false, 'Meta+Enter never fires on Enter alone');
+});

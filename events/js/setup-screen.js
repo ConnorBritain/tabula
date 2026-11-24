@@ -20,10 +20,10 @@ function allProfiles(data) {
   for (const k of data.profiles.keys()) { const id = k.split('@')[0]; if (!seen.has(id)) { seen.add(id); out.push(data.profiles.get(id)); } }
   return out.filter(Boolean);
 }
-// Step S4: the Rules picker has two groups. The league rules (the profiles with no profile-layer field) come first, as
-// before S4. The ballot shapes (events/profiles/v2/: top 3, rate only, rubric, comments only, elim room) carry the
-// profile-layer field `ranks` (profile-layer.js) and show in their own group under them.
-export const isBallotShape = (p) => Boolean(p) && Object.prototype.hasOwnProperty.call(p, 'ranks');
+// Step S4: the Rules picker has two groups. The league rules come first, as before S4. The Tabula ballot shapes (top 3,
+// rate only, rubric, comments only, elim room) say so in their own file with group: 'shape', and show in their own
+// group under them. A league profile with profile-layer fields (a later league pack) has no group, so it stays a rule.
+export const isBallotShape = (p) => Boolean(p) && p.group === 'shape';
 export const profileChoices = (data) => allProfiles(data).filter((p) => !isBallotShape(p));
 export const shapeChoices = (data) => allProfiles(data).filter(isBallotShape);
 

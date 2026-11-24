@@ -2,6 +2,7 @@
   "id": "top-three",
   "version": 1,
   "name": "Rank the top 3 only",
+  "group": "shape",
   "ranks": "topN",
   "topN": 3,
   "rating": "none",

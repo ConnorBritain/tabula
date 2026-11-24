@@ -8,9 +8,9 @@
 // Overtime is always a flag (§3). Under a panel the app reminds the judge: PANEL_OVERTIME_NOTE.
 import { escapeHtml as esc } from '../../core/sheets.js';
 
-export const LEVELS = Object.freeze([{ id: 'prelim', label: 'Prelim' }, { id: 'elim', label: 'Elim' }]);
+const LEVELS = Object.freeze([{ id: 'prelim', label: 'Prelim' }, { id: 'elim', label: 'Elim' }]);
 export const PANEL_SIZES = Object.freeze([1, 3, 5]);
-export const PANEL_NOTE_MAX = 120;
+const PANEL_NOTE_MAX = 120;
 export const PANEL_OVERTIME_NOTE = 'Panel: agree on overtime before you flag.';
 
 export const levelOf = (room) => (room && room.level === 'elim' ? 'elim' : 'prelim');
@@ -60,5 +60,5 @@ export function levelFieldsHtml(picked) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).roundFrame = Object.freeze({
-  LEVELS, PANEL_SIZES, PANEL_NOTE_MAX, PANEL_OVERTIME_NOTE, levelOf, panelOf, makePanel, frameLine, overtimeNote, frameHtml, levelFieldsHtml,
+  PANEL_SIZES, PANEL_OVERTIME_NOTE, levelOf, panelOf, makePanel, frameLine, overtimeNote, frameHtml, levelFieldsHtml,
 });

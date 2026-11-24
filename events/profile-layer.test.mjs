@@ -16,12 +16,12 @@ import { rubricHtml } from './js/rubric-view.js';
 import { ranksStageHtml, cardHtml } from './js/review-screen.js';
 import { frameLine, frameHtml, overtimeNote, panelOf, makePanel, PANEL_OVERTIME_NOTE } from './js/round-frame.js';
 import { markCrossEntered, clearCrossEntered, crossNote } from './js/cross-entry.js';
-import { cxOn, cxLimit, askerOf, setAsker, setSchool, sameSchoolWarning, startCx, stopCx, cxUsed, phases, waitingLine, drawGapOf } from './js/cross-ex.js';
+import { cxOn, cxLimit, askerOf, setAsker, setSchool, sameSchoolWarning, startCx, stopCx, cxUsed, phases, waitingLine } from './js/cross-ex.js';
 import { crossExHtml } from './js/cross-ex-view.js';
 import { digitOf, pressDigit, pressEnter } from './js/number-pick.js';
 import { keymap } from './js/keys.js';
 import { keyMatches } from '../core/keys.js';
-import { withSetting } from './js/settings.js';
+import { withSetting, drawGapOf } from './js/settings.js';
 import { migrateSettings } from './js/migrate.js';
 import { profileChoices, shapeChoices, setupHtml } from './js/setup-screen.js';
 import { rosterHtml } from './js/room-screen.js';
@@ -39,7 +39,7 @@ const ranked = (room) => openBoard(room, 2000).room;
 // ---------- the v2 profile files ----------
 
 const V1_KEYS = ['id', 'version', 'name', 'rating', 'ratingNoTies', 'rankRatingRule', 'overtime', 'biasNote', 'source'];
-const LAYER_KEYS = ['ranks', 'topN', 'rubric', 'critiqueOnly', 'maxEntries', 'elim'];
+const LAYER_KEYS = ['ranks', 'topN', 'rubric', 'critiqueOnly', 'maxEntries', 'elim', 'group'];
 const V2 = readdirSync(new URL('profiles/v2/', import.meta.url)).filter((f) => f.endsWith('.json')).map((f) => ({ f, d: readJson('profiles/v2/' + f) }));
 
 // Why: a v2 profile field the app does not understand would silently judge a round under the wrong ballot shape;
@@ -56,6 +56,7 @@ test('every v2 profile file has the v1 fields plus only known profile-layer fiel
     if ('critiqueOnly' in d) assert.equal(typeof d.critiqueOnly, 'boolean', f);
     if ('maxEntries' in d) assert.equal(entryCap(d), d.maxEntries, f + ': maxEntries is inside 1 to 30');
     if ('elim' in d) assert.equal(typeof d.elim.cx, 'boolean', f + ' elim.cx');
+    if ('group' in d) assert.equal(d.group, 'shape', f + ': the only picker group is "shape" (a Tabula ballot shape)');
     if (d.ranks === 'off' && !d.critiqueOnly) assert.ok(d.rating !== 'none' || (d.rubric || []).length, f + ': Rate needs a scale or a rubric');
     assert.match(d.source, /\b20\d\d-\d\d\b/, f + ': names a season');
     assert.match(d.source, /not verified/i, f + ': a Tabula preset says it is not a verified league rule');
@@ -319,4 +320,22 @@ test('setup lists the ballot shapes in their own group and asks for the level an
   assert.match(html, /<optgroup label="League rules">[\s\S]*<optgroup label="Other ballot shapes">[\s\S]*Rate only/);
   assert.match(html, /id="setup-level"[\s\S]*<option value="elim">Elim<\/option>/);
   assert.match(html, /id="setup-panel"[\s\S]*Panel of 5/);
+});
+
+// Why: the Room screen trusts the picker's "handled" answer to stop the browser's default; if Enter were claimed with
+// nothing typed, a focused button would stop working, and if a typed number were dropped the pick would fail.
+test('the number picker claims its keys only when they do something', async () => {
+  const { createNumberPicker } = await import('./js/room-actions.js');
+  const p = createNumberPicker();
+  assert.deepEqual(p.run('numEnter', 12), { mine: true, handled: false, pick: null, hint: '', error: '' }, 'Enter with nothing typed is not claimed');
+  assert.equal(p.run('num0', 12).handled, false, 'a lone 0 types nothing');
+  assert.equal(p.run('num9', 6).handled, false, '9 in a room of 6 does nothing');
+  assert.equal(p.run('pick3', 6).pick, 3, '1–8 still pick at once in a small room');
+  const a = p.run('pick1', 12);
+  assert.equal(a.handled, true); assert.match(a.hint, /Speaker 1/);
+  p.run('pick1', 12);
+  assert.equal(p.run('numEnter', 12).pick, 11);
+  p.run('pick1', 12); p.run('pick5', 12);
+  assert.match(p.run('numEnter', 12).error, /No speaker at place 15/);
+  assert.equal(p.run('startStop', 12).mine, false, 'other keys pass through');
 });

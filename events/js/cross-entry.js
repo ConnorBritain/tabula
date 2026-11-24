@@ -8,7 +8,7 @@
 // verified that Tabroom gives one), so there is nothing to read yet.
 import { entryOf, updateEntry } from './room.js';
 
-export const CROSS_NOTE_MAX = 120;
+const CROSS_NOTE_MAX = 120;
 
 // Mark an entry cross-entered. Only a waiting entry can be marked: one with time on the clock is speaking or has
 // spoken. Returns { room, prev, refused } (prev: the status it had, for Undo).
@@ -32,4 +32,4 @@ export function clearCrossEntered(room, id, now, status) {
 // The note line for the stage and the roster ('' when none).
 export const crossNote = (e) => (e && e.status === 'crossEntered' && e.crossEntry && e.crossEntry.note ? e.crossEntry.note : '');
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).crossEntry = Object.freeze({ CROSS_NOTE_MAX, markCrossEntered, clearCrossEntered, crossNote });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).crossEntry = Object.freeze({ markCrossEntered, clearCrossEntered, crossNote });

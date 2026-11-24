@@ -8,12 +8,11 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { downloadFile } from '../../core/store.js';
 import { isMacPlatform } from '../../core/keys.js';
-import { MODES, THEMES, withSetting, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
+import { MODES, THEMES, DRAW_GAPS, withSetting, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
 import { PREFIX } from './store.js';
 import { keymap } from './keys.js';
 import { checkOffline } from './offline.js';
 import { askConnectKey, askForgetKey } from './ai-connect.js';
-import { DRAW_GAPS } from './cross-ex.js';
 
 const radios = (name, list, picked) => list.map((x) => `<label class="radio"><input type="radio" name="${name}" value="${esc(x.id)}"${x.id === picked ? ' checked' : ''}> ${esc(x.label)}</label>`).join('');
 

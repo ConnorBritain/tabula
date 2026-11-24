@@ -8,7 +8,11 @@ import { buildBackup, parseBackup } from '../../core/store.js';
 import { PREFIX, ROOMS_KEY, SETTINGS_KEY } from './store.js';
 import { KEYS_KEY } from './ai-key.js';
 import { migrateRooms, migrateSettings } from './migrate.js';
-import { DRAW_GAPS } from './cross-ex.js';
+
+// The F2 draw gaps in minutes (step S4, EXPERIENCE.md §3: 7 or 10, not confirmed, so the judge picks) and the gap of a
+// settings record (an unknown value reads as the first, the migration default).
+export const DRAW_GAPS = Object.freeze([7, 10]);
+export const drawGapOf = (settings) => (settings && DRAW_GAPS.includes(settings.drawGapMin) ? settings.drawGapMin : DRAW_GAPS[0]);
 
 // The app name in a backup file. A file with another name (a Tabula Debate backup) is refused.
 export const BACKUP_APP = 'tabula-events';
@@ -94,5 +98,5 @@ export function restoreItems(current, backup) {
   return items;
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ BACKUP_APP, MODES, THEMES, modeMenuShown, withSetting,
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ BACKUP_APP, MODES, THEMES, DRAW_GAPS, drawGapOf, modeMenuShown, withSetting,
   makeBackup, backupName, readBackup, restoreItems });

@@ -2,6 +2,7 @@
   "id": "rubric-five",
   "version": 1,
   "name": "Rubric, 5 parts (no ranks)",
+  "group": "shape",
   "ranks": "off",
   "rubric": [
     {

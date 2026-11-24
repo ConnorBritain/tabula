@@ -9,8 +9,8 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
-import { digitOf, pressDigit, pressEnter } from './number-pick.js';
-import { markCrossEntered, clearCrossEntered, crossNote } from './cross-entry.js';
+import { crossNote } from './cross-entry.js';
+import { createNumberPicker, crossEntryAction } from './room-actions.js';
 import { frameHtml } from './round-frame.js';
 import { rankStageLabel } from './profile-layer.js';
 
@@ -70,7 +70,7 @@ export function createRoomScreen(env, parts) {
   let roomId = null;
   let menuFor = null;
   let rosterOpen = false;
-  let numBuf = ''; // digits typed in a room over 8, waiting for Enter (number-pick.js)
+  const numbers = createNumberPicker(); // "type the number, then Enter" in a room over 8 (room-actions.js)
   const $ = (s) => env.el.querySelector(s);
   const room = () => findRoom(env.rooms(), roomId);
   const event = (r) => roomEvent(env.data.events, r);
@@ -140,23 +140,7 @@ export function createRoomScreen(env, parts) {
       env.ui.toast(res.message, { action: { label: 'Undo', name: 'Undo: ' + res.message, run: () => { const cur = room(); if (cur) { save(res.undo(cur, env.now())); draw(); } } } });
       return;
     }
-    if (action === 'cross') {
-      const note = await env.ui.ask({ title: 'Cross-entered', body: 'The student is in another event now and speaks here later. They stay on the ballot.', input: { label: 'Note (optional)', placeholder: 'For example: in Room 204 for IX', required: false, maxLength: 120 }, buttons: [{ label: 'Cancel', value: null }, { label: 'Mark cross-entered', value: 'ok', kind: 'primary' }] });
-      if (note == null) return;
-      const res = markCrossEntered(room(), id, note, env.now());
-      if (res.refused) { env.ui.toast(res.refused, { kind: 'error', key: 'roster' }); return; }
-      if (!res.prev) return;
-      menuFor = null; save(res.room); draw();
-      const code = entryOf(room(), id).code;
-      env.ui.toast(code + ' marked cross-entered.', { action: { label: 'Undo', name: 'Undo: ' + code + ' cross-entered', run: () => { const cur = room(); if (cur) { save(clearCrossEntered(cur, id, env.now(), res.prev)); draw(); } } } });
-      return;
-    }
-    if (action === 'uncross') {
-      const before = entryOf(r, id);
-      menuFor = null; save(clearCrossEntered(r, id, env.now())); draw();
-      env.ui.toast(before.code + ' is back in the room.', { action: { label: 'Undo', name: 'Undo: ' + before.code + ' back in the room', run: () => { const cur = room(); if (cur) { save(markCrossEntered(cur, id, (before.crossEntry || {}).note, env.now(), (before.crossEntry || {}).expectedAt).room); draw(); } } } });
-      return;
-    }
+    if (action === 'cross' || action === 'uncross') return crossEntryAction(action, id, { env, room, save, draw, closeMenu: () => { menuFor = null; } });
     if (action === 'add') {
       const code = await env.ui.ask({ title: 'Add an entry', body: 'A late entry goes at the end of the roster. You can move it after.', input: { label: 'Entry code', placeholder: 'A12', required: true, emptyError: 'Type the entry code.' }, buttons: [{ label: 'Cancel', value: null }, { label: 'Add', value: 'add', kind: 'primary' }] });
       if (!code) return;
@@ -192,7 +176,7 @@ export function createRoomScreen(env, parts) {
     show(id) {
       const r = findRoom(env.rooms(), id);
       if (!r) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
-      roomId = id; menuFor = null; rosterOpen = false; numBuf = '';
+      roomId = id; menuFor = null; rosterOpen = false; numbers.reset();
       const stageWord = rankStageLabel(r.profile);
       const go = stageWord ? `<a class="b primary" id="go-rank" href="#/rank/${encodeURIComponent(id)}">${stageWord} the room</a>` : `<a class="b primary" id="go-rank" href="#/review/${encodeURIComponent(id)}">Review and copy</a>`;
       env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">‹ Rooms</a>
@@ -214,22 +198,11 @@ export function createRoomScreen(env, parts) {
     // A shortcut from app.js (core/keys.js matched it in the 'room' scope).
     run(action) {
       const r = room();
-      const count = r ? r.entries.length : 0;
-      const d = digitOf(action);
-      if (d != null) {
-        const res = pressDigit(numBuf, d, count);
-        numBuf = res.buf;
-        if (res.pick) { const e = entryAtNumber(r, res.pick); if (e) pick(e.id); }
-        else if (numBuf) env.ui.toast('Speaker ' + numBuf + '… Press Enter to pick.', { key: 'numpick' });
-        return (d >= 1 && d <= 8) || Boolean(numBuf); // 1–8 were always this screen's keys; 9 and 0 only while typing
-      }
-      if (action === 'numEnter') {
-        const res = pressEnter(numBuf, count);
-        numBuf = res.buf;
-        if (res.error) { env.ui.toast(res.error, { kind: 'error', key: 'numpick' }); return true; }
-        if (res.pick) { const e = entryAtNumber(r, res.pick); if (e) pick(e.id); return true; }
-        return false; // nothing typed: Enter keeps its own job (a focused button)
-      }
+      const num = numbers.run(action, r ? r.entries.length : 0);
+      if (num.pick) { const e = entryAtNumber(r, num.pick); if (e) pick(e.id); }
+      if (num.error) env.ui.toast(num.error, { kind: 'error', key: 'numpick' });
+      else if (num.hint) env.ui.toast(num.hint, { key: 'numpick' });
+      if (num.mine) return num.handled;
       for (const v of views) if (v.run && v.run(action, ctx)) return true;
       return false;
     },

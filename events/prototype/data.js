@@ -1015,6 +1015,7 @@ window.TABULA_EVENTS_DATA = {
    "id": "top-three",
    "version": 1,
    "name": "Rank the top 3 only",
+   "group": "shape",
    "ranks": "topN",
    "topN": 3,
    "rating": "none",
@@ -1031,6 +1032,7 @@ window.TABULA_EVENTS_DATA = {
    "id": "rate-only",
    "version": 1,
    "name": "Rate only (no ranks)",
+   "group": "shape",
    "ranks": "off",
    "rating": {
     "min": 1,
@@ -1050,6 +1052,7 @@ window.TABULA_EVENTS_DATA = {
    "id": "rubric-five",
    "version": 1,
    "name": "Rubric, 5 parts (no ranks)",
+   "group": "shape",
    "ranks": "off",
    "rubric": [
     {
@@ -1097,6 +1100,7 @@ window.TABULA_EVENTS_DATA = {
    "id": "comments-only",
    "version": 1,
    "name": "Comments only (no ranks)",
+   "group": "shape",
    "ranks": "off",
    "critiqueOnly": true,
    "rating": "none",
@@ -1113,6 +1117,7 @@ window.TABULA_EVENTS_DATA = {
    "id": "elim-large",
    "version": 1,
    "name": "Elim room: up to 12, extemp cross-ex",
+   "group": "shape",
    "ranks": "all",
    "maxEntries": 12,
    "elim": {

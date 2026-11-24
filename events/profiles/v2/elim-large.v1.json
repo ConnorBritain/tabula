@@ -2,6 +2,7 @@
   "id": "elim-large",
   "version": 1,
   "name": "Elim room: up to 12, extemp cross-ex",
+  "group": "shape",
   "ranks": "all",
   "maxEntries": 12,
   "elim": {

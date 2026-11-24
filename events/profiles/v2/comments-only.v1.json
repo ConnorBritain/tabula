@@ -2,6 +2,7 @@
   "id": "comments-only",
   "version": 1,
   "name": "Comments only (no ranks)",
+  "group": "shape",
   "ranks": "off",
   "critiqueOnly": true,
   "rating": "none",
