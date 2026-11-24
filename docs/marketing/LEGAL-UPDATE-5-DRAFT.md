@@ -256,6 +256,8 @@ The existing §6 paragraph (the law) stays after it.
 
 # Part B: buy first, set up later
 
+> **REPLACED 2026-11-23** by `LEGAL-UPDATE-5B-BUY-FIRST-DRAFT.md` (draft 3: never-expire base, the lawyer's teen answers, the buy-first build). Do not publish the Part B text below.
+
 ## Part B gate
 
 Publish Part B only when all of these are true:
