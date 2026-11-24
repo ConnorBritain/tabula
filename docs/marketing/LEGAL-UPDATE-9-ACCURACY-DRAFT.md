@@ -11,7 +11,7 @@ The fixes only remove claims or make them narrower. They add no new use of data.
 
 ## Publish gate
 
-1. The owner picks: fix the text (this draft), or build Turnstile first. If Turnstile is built, drop A1 and keep "bot protection (Turnstile)" in A2.
+1. ~~The owner picks.~~ **Done 2026-11-23:** fix the text (owner, lead chat: "Yes to all, A on both picks"). Turnstile may be built later by the security session; then add a true Turnstile line back.
 2. The lawyer sees it (FYI; accuracy only).
 3. The owner types yes in the marketing chat.
 4. Use the live text as the "Before" on the publish day. If update 4 or 5B goes live first, start from that text.
