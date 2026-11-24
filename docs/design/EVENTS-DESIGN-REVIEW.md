@@ -2,6 +2,8 @@
 
 Status: plan for owner approval, 2026-11-24. No app code changed.
 
+Not yet reviewed: the Congress session screens (log, PO hours, rank, review), phone light theme for 13 of 23 screens, and a keyboard and screen-reader walk. §6 gives the reasons.
+
 The owner asked for a pass over every event and every screen, with Mobbin, to add visual interest, clarity and clear UI/UX fixes above the baseline. This file gives:
 
 1. What we checked and how (§1).
@@ -34,7 +36,8 @@ Rules that this plan keeps (no option breaks them):
 | `r-di` | DI, F1 | rubric-five (rubric) | Rubric half filled |
 | `r-poi` | POI, F1 | comments-only | 2 of 3 done |
 
-- Shots: laptop (1280 × 800) and phone (390 wide, full page), dark for all 23 screens, light for most. Files are in [`events-review/`](events-review/), named `<screen>-<laptop|phone>-<dark|light>.jpg`. The light phone set stops part way: the local server stalled and the run was not repeated. Nothing in this review depends on a light-only shot.
+- Shots: laptop (1280 × 800) and phone (390 wide, full page). Dark: all 23 screens at both widths. Light laptop: 23 screens. Light phone: 10 of 23 screens only (hi-room, hi-room-grace, hi-room-over, hi-rank, hi-review, imp-room, myday, picker, setup, usx-room). The local server stalled and the run was not repeated, so PCC, rate, rubric, comments-only, History, type page, Settings, palette and the Congress screens have no light phone shot. Files are in [`events-review/`](events-review/), named `<screen>-<laptop|phone>-<dark|light>.jpg`. Phone shots were later scaled down to save space. Nothing in this review depends on a light-only shot.
+- Some "wrong today" items come from the seeded state, not from a single shot. They are marked *(seed state)*.
 - Mobbin: new searches on 2026-11-24 for each problem below, plus the references already in `docs/events/DESIGN.md` §4, `docs/events/EXPERIENCE.md` §10 and `EVENTS-VISUAL-DEPTH.md` §6.
 
 **Effort:** S = up to 1 day, M = 2 to 4 days, L = a week or more (each with tests and the two reviewers).
@@ -49,7 +52,7 @@ Shots: [myday-laptop-dark](events-review/myday-laptop-dark.jpg), [myday-phone-da
 What is wrong today:
 
 - Every card has the same weight. With 8 rounds, "Now 8" is a wall of equal cards. The judge cannot see which round is next.
-- Each card has 4 buttons in a row (Open, I submitted in Tabroom, Change room, Cancel round). "Cancel round" sits next to "Open" at the same weight. It is easy to tap by mistake on a phone.
+- Each card has 4 buttons in a row (Open, I submitted in Tabroom, Change room, Cancel round). "Cancel round" sits next to "Open" at the same weight. It is easy to tap by mistake on a phone. *(Seen on every card in the shot.)*
 - "Room Room 214": the app adds "Room " in front of a label that the judge typed as "Room 214" (`myday-screen.js` line 34).
 - "Ranks due in 1:39" is bold monospace. It looks like code, and "1:39" can read as 1 hour 39 or 1 minute 39.
 - The event pill ("HI") is the only thing that tells two cards apart. Round number and flight are small.
@@ -124,8 +127,8 @@ What is good: the grace and over-grace fills are strong and clear. The roster is
 
 What is wrong today:
 
-- **Phone: the page is wider than the screen.** The full-page shot is 408 px wide on a 390 px phone. Chips, the comment box and the private note run off the right edge, so the page slides sideways under the judge's thumb.
-- **Phone: the timer leaves the screen while the judge writes.** The comment box starts about 1,400 px down. When the judge types, the time and the stage are gone. A judge who writes during the speech (most of them) cannot see a signal point coming.
+- **Phone: the page is wider than the screen.** At capture, the full-page shot came out 408 CSS px wide on a 390 px viewport (816 px at 2× before the shots were scaled down). Chips, the comment box and the private note run off the right edge, so the page slides sideways under the judge's thumb.
+- **Phone: the timer leaves the screen while the judge writes.** The comment box starts about 1,200 px down (most of two phone screens). When the judge types, the time and the stage are gone. A judge who writes during the speech (most of them) cannot see a signal point coming.
 - **The piece fields (Title, Author) sit above the timer** for every speaker. They take the top of the card on every entry, but the judge fills them once, at the intro.
 - **The timer card is flat for the first 9 minutes**: big digits on a blank card. The signal plan is invisible (this is D2, decided A).
 - **Roster rows look the same for 9:56 and 11:01.** B07 went over grace, but the row only says "Done" (this is D3, decided A).
@@ -156,7 +159,7 @@ Shots: [usx-room-laptop-dark](events-review/usx-room-laptop-dark.jpg), [usx-room
 
 What is wrong today:
 
-- The **question drawn** is the most useful fact about an extemp speech, but it is not visible at the top of the card, and the roster rows do not show it. To compare speakers at rank time, the judge must open each one.
+- The **question drawn** is the most useful fact about an extemp speech, but it is not visible at the top of the card, and the roster rows do not show it *(seed state: the first three speakers have a question; the laptop shot shows none of them in the roster)*. To compare speakers at rank time, the judge must open each one.
 - The elim line is plain grey text: "Elim · Panel of 3 · 3 judges Panel: agree on overtime before you flag." It repeats "3" twice and runs two sentences together.
 - The cross-ex block (phase pills, asker, school, a second clock) is open before the speech starts. It doubles the controls on screen during the 7-minute speech.
 
@@ -402,7 +405,7 @@ Pick **A**. It is the cheapest visual lift in the app, it matches the Debate hea
 
 These are not design choices. Each needs a fix and a test with a WHY header.
 
-1. **Phone room is wider than the screen** (408 px content on a 390 px phone). See `hi-room-phone-dark.jpg`: chips and text areas cut off at the right.
+1. **Phone room is wider than the screen** (the full-page capture was 408 CSS px wide on a 390 px viewport; not measured with `scrollWidth`). See `hi-room-phone-dark.jpg`: chips and text areas cut off at the right.
 2. **Setup Event select overlaps the Rules select** at laptop width (`setup-laptop-dark.jpg`).
 3. **"Room Room 214"** on My day cards (`myday-screen.js` line 34 adds "Room " to a typed label).
 4. **Palette groups repeat** ("Go to", "New" twice), because `palette.js` adds the Congress rows between other groups and does not sort by group.
