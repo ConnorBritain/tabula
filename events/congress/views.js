@@ -2,7 +2,7 @@
 // and the round bar. Pure: each builder takes records and returns HTML text, so Node tests can check it.
 // session-screen.js draws them and wires the buttons. House design: black, white and gray; no stripes; plain words.
 import { escapeHtml as esc } from '../../core/sheets.js';
-import { legislatorOf, itemOf, houseWord } from './chamber.js';
+import { legislatorOf, codeOf, itemOf, houseWord } from './chamber.js';
 import { TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS, legislatorLines, precedenceOrder, timerView, clockText, minSec, needsReason, countedPoints } from './speech.js';
 import { hoursDue, openTerm, ordinal, fullHours, poLockLine } from './po.js';
 import { rankModel } from './rank.js';
@@ -10,7 +10,6 @@ import { reviewBlocks, rankProblems } from './review.js';
 import { scaleText } from './profiles.js';
 
 const STAGE_WORDS = Object.freeze({ log: 'Log', rank: 'Rank', review: 'Review' });
-const codeOf = (chamber, id) => { const l = legislatorOf(chamber, id); return l ? l.code : '?'; };
 const range = (s) => { const out = []; for (let i = s.min; i <= s.max; i++) out.push(i); return out; };
 
 // The session clock: time since the session started ("1:24:10").

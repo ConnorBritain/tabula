@@ -77,8 +77,10 @@ export function markDebated(chamber, itemId, sessionNumber) {
 }
 
 export const legislatorOf = (chamber, id) => chamber.legislators.find((l) => l.id === id) || null;
+// The code of a legislator, or '?' when the id is not in the chamber.
+export const codeOf = (chamber, id) => { const l = legislatorOf(chamber, id); return l ? l.code : '?'; };
 export const itemOf = (chamber, id) => chamber.docket.find((d) => d.id === id) || null;
 export const houseWord = (chamber) => (chamber.house === 'senate' ? 'Senate' : 'House');
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressChamber = Object.freeze({ MIN_CHAMBER, docketLines, setupChecks, frozenProfile, createChamber,
-  firstOpenItem, newSession, setStatus, markDebated, legislatorOf, itemOf, houseWord });
+  firstOpenItem, newSession, setStatus, markDebated, legislatorOf, codeOf, itemOf, houseWord });

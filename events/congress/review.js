@@ -1,12 +1,10 @@
 // Speech Events step S6 (docs/events/CONGRESS.md §4.4): Review and copy for a Congress session, in Tabroom order:
 // the speeches first (one block each, copied one at a time), then the PO hour scores, then the rank list as one block.
 // Pure: no DOM.
-import { legislatorOf, itemOf } from './chamber.js';
+import { codeOf, itemOf } from './chamber.js';
 import { SIDE_WORDS, TYPE_WORDS, PENALTY_WORDS, countedPoints, minSec } from './speech.js';
 import { rankModel } from './rank.js';
 import { firstUnscored } from './po.js';
-
-const codeOf = (chamber, id) => { const l = legislatorOf(chamber, id); return l ? l.code : '?'; };
 
 // [{ id, kind: 'speech'|'po'|'ranks', title, text, copied }] in Tabroom order.
 export function reviewBlocks(chamber, session) {
