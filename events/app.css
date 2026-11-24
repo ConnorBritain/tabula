@@ -539,3 +539,38 @@ a.b.pk-guide { align-self: center; margin-right: var(--s2); }
   .track-fill, .track-tick { background: CanvasText; forced-color-adjust: none; }
   .track-zone.z-grace, .track-zone.z-over { background: GrayText; forced-color-adjust: none; }
 }
+
+/* ---------- Control ladder (design build 2026-11-24; docs/design/EVENTS-COLOR-ICON-REVIEW.md §5.1, owner D1 B) ----------
+   Neutral chrome, one solid fill per view. Primary: the next step only. Secondary: panel and a 1 px control edge.
+   Quiet: no fill and no edge. Tool group: one quiet track. Toggle chip and segment: never the solid fill. Status pill:
+   a tint and a word, never the solid fill. Destructive: a word in --error inside a menu; the dialog has the fill. */
+a.b, button.b { gap: var(--s1); font-weight: var(--fw-2); }
+a.b.primary, button.b.primary { min-height: var(--h-lg); padding: 0 var(--s4); font-weight: var(--fw-3); }
+a.b.primary:hover, button.b.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+a.b.primary:active, button.b.primary:active { background: var(--accent-press); border-color: var(--accent-press); }
+/* Rule 2: the ring always shows; on a solid control a 2 px panel gap sits between the fill and the ring. */
+a.b.primary:focus-visible, button.b.primary:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; box-shadow: 0 0 0 2px var(--panel); }
+a.b.quiet, button.b.quiet { color: var(--text-2); font-weight: var(--fw-2); }
+a.b.quiet:hover, button.b.quiet:hover { background: var(--fill-quiet); color: var(--text); }
+button.b.quiet:active { background: var(--fill-press); }
+button.b.danger-text, a.b.danger-text { color: var(--error); }
+.tool-group { display: inline-flex; align-items: center; gap: var(--s0); padding: var(--s0); border-radius: var(--r-md); background: var(--fill-quiet); }
+.tool-group .b { border-color: transparent; background: transparent; color: var(--text); }
+.tool-group .b:hover { background: var(--fill-press); }
+/* Toggle chip on: panel fill, a 2 px full --text edge (1 px border plus 1 px inset), weight 600 and a leading check. */
+.chip.on { background: var(--panel); color: var(--text); border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); font-weight: var(--fw-3); }
+/* Segmented control: one track with a 1 px edge; the selected segment is panel, a full 1 px edge, bold. */
+.seg-track { display: inline-flex; gap: var(--s0); padding: var(--s0); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--fill-quiet); width: max-content; max-width: 100%; }
+.seg-track .b { border-color: transparent; background: transparent; color: var(--text-2); }
+.seg-track .b.on, .seg-track .b[aria-pressed="true"] { background: var(--panel); border-color: var(--border-ctl); color: var(--text); font-weight: var(--fw-4); }
+/* Status pills: a tint and a word (the icon helps; the word carries it). Never the solid fill. */
+.pill { gap: var(--s1); }
+.pill.live { background: var(--fill-quiet); border-color: var(--border-ctl); color: var(--text); }
+.pill.ok { background: var(--ok-tint); border-color: var(--ok); color: var(--text); }
+/* Radios and check boxes take the neutral accent, not the browser's blue (DESIGN.md §1.1 repair). */
+input[type="radio"], input[type="checkbox"] { accent-color: var(--accent); }
+@media (max-width: 820px) {
+  a.b, button.b { min-height: 44px; }
+  a.b.primary, button.b.primary { min-height: 48px; }
+  .tool-group .b, .seg-track .b { min-height: 44px; }
+}
