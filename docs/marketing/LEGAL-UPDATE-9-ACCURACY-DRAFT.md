@@ -31,7 +31,7 @@ The fixes only remove claims or make them narrower. They add no new use of data.
 
 **A4. §10, Resend row:** the approved L12 change ("Email delivery (sign-in, receipts, reminders and setup emails)"; data "Email address, email content"), unless update 4 or 5B already made it.
 
-**A5. Name fix (L13):** "the Plans page" becomes "the Pricing page (tabulaspeech.com/pricing/)" in the Terms (§6.1 twice, "Payment") and the Refund Policy (§4). The link text "Plans" becomes "Pricing". The URL moved to /pricing/ (tabula-sites PR 21). After this, the owner may rename the page title "Plans and pricing" (a test in pricing.test.mjs pins it).
+**A5. Name fix (L13):** "the Plans page" becomes "the Pricing page (tabulaspeech.com/pricing/)" in the Terms (§6.1 twice, §6.6 Monthly cap item "the cap shown on the Plans page", and "Payment") and the Refund Policy (§1). Later mentions in the same section say "the Pricing page". The link text "Plans" becomes "Pricing". The URL moved to /pricing/ (tabula-sites PR 21). After this, the owner may rename the page title "Plans and pricing" (a test in pricing.test.mjs pins it).
 
 ## Rules for later
 
