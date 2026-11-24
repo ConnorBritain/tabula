@@ -39,6 +39,8 @@ export function cardHtml(c, editing, ai) {
       ${a.button}<button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : 'Edit'}</button></div>
     ${c.name || c.piece ? `<p class="card-piece">${[c.name, c.piece].filter(Boolean).map(esc).join(' · ')}</p>` : ''}
     ${c.question ? `<p class="card-question"><span class="muted">Question:</span> ${esc(c.question)}</p>` : ''}
+    ${c.topic ? `<p class="card-question card-topic"><span class="muted">Topic:</span> ${esc(c.topic)}</p>` : ''}
+    ${c.runs ? `<p class="card-question card-runs"><span class="muted">Runs:</span> ${esc(c.runs)}</p>` : ''}
     ${body}${a.panel}
     <ul class="critique" aria-label="Comment check for ${esc(c.code)}">${c.critique.map((k) => done(k.ok, k.label)).join('')}</ul>
     ${c.comment.trim() ? `<button class="b${c.copied ? '' : ' primary'}" type="button" data-vact="copy" data-what="${c.id}" data-key="copy-${c.id}">${c.copied ? '✓ Copied' : 'Copy comment'}</button>` : ''}

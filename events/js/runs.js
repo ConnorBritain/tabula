@@ -133,9 +133,15 @@ export function runsBarModel(entry, event, now, limit) {
 // The text of each run for a roster row or a card: "Pro 4:12 · Con 3:58" ('' with no time yet).
 export const runsLine = (entry, event, now, limit) => runsAt(entry, event, now, limit).map((r) => labelOf(event, r.side) + ' ' + clockText(Math.floor(r.ms / 1000))).join(' · ');
 
+// The stored runs of an entry as one line, "Pro 4:12 · Con 3:58" ('' with none), for a screen with no clock and no
+// event file at hand (the Review cards, ballot.js). The stored times are the stopped ones (syncRuns writes them at each
+// stop). The label is the side with a capital letter, which is the event file's label for PCC ('pro' -> 'Pro').
+export const storedRunsLine = (entry) => storedRuns(entry)
+  .map((r) => r.side.charAt(0).toUpperCase() + r.side.slice(1) + ' ' + clockText(Math.floor(Math.max(0, Number(r.ms) || 0) / 1000))).join(' · ');
+
 // The student's topic, as typed (cut to TOPIC_MAX). Returns the new entry.
 export const setTopic = (entry, text) => Object.assign({}, entry, { topic: String(text == null ? '' : text).slice(0, TOPIC_MAX) });
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).runs = Object.freeze({
-  runEntryDefaults, TOPIC_MAX, eventRuns, hasRuns, runsAt, syncRuns, syncAll, resetRunFields, labelOf, markNextRun, unmarkLastRun, runsPhase, runsBarModel, runsLine, setTopic,
+  runEntryDefaults, TOPIC_MAX, eventRuns, hasRuns, runsAt, syncRuns, syncAll, resetRunFields, labelOf, markNextRun, unmarkLastRun, runsPhase, runsBarModel, runsLine, storedRunsLine, setTopic,
 });

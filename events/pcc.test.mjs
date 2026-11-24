@@ -14,7 +14,8 @@ import { runsAt, syncRuns, resetRunFields, markNextRun, unmarkLastRun, runsPhase
 import { phasesHtml, phaseState } from './js/phase-bar.js';
 import { runsHeadHtml, runCardsHtml, runsRowHtml } from './js/runs-view.js';
 import { migrateRoom, migrateRooms } from './js/migrate.js';
-import { ranksBlock } from './js/ballot.js';
+import { ranksBlock, cards } from './js/ballot.js';
+import { cardHtml } from './js/review-screen.js';
 import { readCheckList } from './check-list.mjs';
 
 const at = (p) => new URL(p, import.meta.url);
@@ -297,4 +298,25 @@ test('a stop keeps the split: the moment with no run and no time does not wipe t
   assert.deepEqual(between.runs, split.runs, 'the split is kept');
   const stopped = sync(withTiming(between, stoppedTiming(split.timing, split.timing.run, LIMIT - 100, LIMIT, 30, 200_000)), 200_000);
   assert.deepEqual(stopped.runs.map((r) => [r.side, r.ms]), [['pro', 60_000], ['con', 40_000]]);
+});
+
+// Why: the judge writes and checks each PCC comment on Review; without the topic and the Pro and Con times there, the
+// judge cannot tie the comment to what the student argued or see how the time split, and must go back to the room.
+test('Review shows each PCC entry\'s topic and its Pro and Con times, outside the comment', () => {
+  const r = pccRoom(DISTRICT, ['A1', 'B2']);
+  const [a, b] = r.entries;
+  const judged = Object.assign({}, r, { entries: [
+    Object.assign({}, a, { topic: '  Resolved: <x>  ', timing: Object.assign({}, a.timing, { usedMs: 450_000 }), runs: [{ side: 'pro', startedAt: 1, ms: 240_000 }, { side: 'con', startedAt: 2, ms: 210_000 }] }),
+    Object.assign({}, b, { topic: '', runs: [] }),
+  ] });
+  const [ca, cb] = cards(judged, 'speaking');
+  assert.equal(ca.topic, 'Resolved: <x>');
+  assert.equal(ca.runs, 'Pro 4:00 · Con 3:30');
+  assert.equal(ca.comment, '', 'the topic and times are not put into the comment that goes to Tabroom');
+  const html = cardHtml(ca, false);
+  assert.match(html, /Topic:<\/span> Resolved: &lt;x&gt;/);
+  assert.match(html, /Runs:<\/span> Pro 4:00 · Con 3:30/);
+  assert.doesNotMatch(cardHtml(cb, false), /card-topic|card-runs/, 'an entry with no topic and no time shows no empty lines');
+  const oo = createRoom({ event: DATA.events.get('oo'), profile: DISTRICT, entries: [{ code: 'A1' }], now: 1, makeId });
+  assert.doesNotMatch(cardHtml(cards(oo, 'speaking')[0], false), /card-topic|card-runs/, 'other events show neither line');
 });
