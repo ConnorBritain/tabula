@@ -6,6 +6,7 @@
 import { CHECK_LABELS } from './comments.js';
 import { CUSTOM_EVENT } from './room.js';
 import { clockText } from './timer.js';
+import { layerOf } from './profile-layer.js';
 
 // One plain line per event id. Summarized in our own words; no rule text copied. Not verified line by line against
 // the NSDA manual (brief rule 9): an owner or coach should check these before release.
@@ -58,14 +59,23 @@ export function rulesLines(profile) {
   const p = profile || {};
   const lines = [];
   const r = p.rating;
-  if (r && typeof r === 'object' && Number.isFinite(r.min) && Number.isFinite(r.max)) lines.push('Ranks and points from ' + r.min + ' to ' + r.max + '.');
+  const points = r && typeof r === 'object' && Number.isFinite(r.min) && Number.isFinite(r.max);
+  // The ballot shape (step S4 profile layer): comments only, no ranks (rate or rubric), the top N only, or rank all.
+  const L = layerOf(p);
+  if (L.critiqueOnly) lines.push('Comments only: no ranks and no points.');
+  else if (L.ranks === 'off') lines.push(points ? 'No ranks. You give each speaker points from ' + r.min + ' to ' + r.max + '.' : 'No ranks. You rate each speaker.');
+  else if (L.ranks === 'topN') lines.push('Rank the top ' + L.topN + ' only' + (points ? ', with points from ' + r.min + ' to ' + r.max : '') + '.');
+  else if (points) lines.push('Ranks and points from ' + r.min + ' to ' + r.max + '.');
   else lines.push('Ranks only, no points.');
+  if (L.rubric.length) lines.push('A rubric with ' + L.rubric.length + (L.rubric.length === 1 ? ' part' : ' parts') + ': ' + L.rubric.map((x) => x.label).join(', ') + '.');
+  if (L.maxEntries > 8) lines.push('Up to ' + L.maxEntries + ' speakers in a room.');
   if (p.ratingNoTies) lines.push('No two speakers can get the same points.');
   if (p.rankRatingRule) lines.push('Points must follow the ranks.');
   const g = Number(p.overtime && p.overtime.grace);
   lines.push('Grace: ' + (Number.isFinite(g) && g >= 0 ? g : 30) + ' seconds over the limit.');
   const eff = p.overtime && p.overtime.effect;
-  if (eff === 'flagOnly') lines.push('A speaker over grace gets a note for the tab room. The rank stays as you give it.');
+  if (L.critiqueOnly || L.ranks === 'off') lines.push('A speaker over grace gets the over-time flag. There is no rank to change.');
+  else if (eff === 'flagOnly') lines.push('A speaker over grace gets a note for the tab room. The rank stays as you give it.');
   else if (eff === 'none') lines.push('Going over grace does not change the rank.');
   else lines.push('A speaker over grace cannot be ranked 1st.');
   if (p.biasNote) lines.push(String(p.biasNote));

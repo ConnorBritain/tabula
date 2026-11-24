@@ -47,6 +47,7 @@ import { createTypeScreen } from './type-screen.js';
 import { focusIfLost } from './focus.js';
 import { createChamberScreen } from '../congress/chamber-screen.js';
 import { findRound as findCongressRound } from '../congress/workspace.js';
+import { congressIO } from '../congress/store.js';
 
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
@@ -101,6 +102,7 @@ function boot(data) {
     },
   };
   env.day = createDayStore({ store, now: env.now });
+  env.congress = congressIO(store).read; // My day lists today's Congress chambers (step S6 keeps them apart from rounds)
   const screens = { rooms: createMydayScreen(env), setup: createSetupScreen(env), history: createHistoryScreen(env), settings: createSettingsScreen(env),
     pick: createPickerScreen(env), type: createTypeScreen(env), chamber: createChamberScreen(env) };
   screens.start = { scope: 'setup', show: (cardId) => screens.setup.show(null, { cardId }) }; // #/start/<cardId>: setup filled from the card

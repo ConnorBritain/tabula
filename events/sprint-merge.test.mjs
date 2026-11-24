@@ -10,10 +10,11 @@ import { paletteRows } from './js/palette.js';
 import { eventChoices } from './js/setup-screen.js';
 import { parseRoute } from './js/routes.js';
 import { searchCommands } from '../core/keys.js';
+import { congressToday, mydayHtml } from './js/myday-screen.js';
 import { createDayStore } from './js/day-store.js';
 import { createRoom } from './js/room.js';
-import { mydayModel, makeDay, makeCard, linkRoundToCard } from './js/cards.js';
-import { eventLine } from './js/guide.js';
+import { mydayModel, makeDay, makeCard, linkRoundToCard, cardStatus, ranksDueAt } from './js/cards.js';
+import { eventLine, rulesLines } from './js/guide.js';
 import * as runsWs from './js/runs-workspace.js';
 import * as roomWs from './js/room-workspace.js';
 
@@ -106,4 +107,41 @@ test('My day keeps an earlier day\'s open ballot (judging or comments open) and 
   assert.deepEqual(m.items.map((x) => x.card.id), [live.card.id], 'the live ballot stays; the never-started one does not');
   assert.equal(m.items[0].earlier, true);
   assert.equal(m.sections.find((s) => s.id === 'now').items.length, 1);
+});
+
+// Why: a comments-only ballot (S4) has no ranks to copy; if My day (S3) waits for ranks, the card says "Judging" with a ranks-due timer forever and never moves to Done.
+test('My day treats a comments-only round as done when its comments are copied, with no ranks-due timer', () => {
+  const prof = DATA.profiles.get('comments-only');
+  const ended = { id: 'r9', state: 'done', profile: prof, entries: [{ id: 'e', status: 'done', timing: { runs: [{ stoppedAt: 1000 }] } }] };
+  const mid = Object.assign({}, ended, { state: 'review' });
+  assert.equal(cardStatus({ status: 'notStarted' }, ended), 'done');
+  assert.equal(cardStatus({ status: 'notStarted' }, mid), 'judging');
+  assert.equal(ranksDueAt({}, mid, 10), null);
+});
+
+// Why: the type page (S3) is where a parent judge learns the ballot; telling them a comments-only or rate-only ballot is "Ranks only" (S4 shapes) sends them to rank a room that takes no ranks.
+test('the type page Rules words each S4 ballot shape correctly', () => {
+  const words = (id) => rulesLines(DATA.profiles.get(id)).lines.join(' ');
+  assert.match(words('comments-only'), /^Comments only: no ranks and no points\./);
+  assert.doesNotMatch(words('comments-only'), /ranked 1st|Ranks only/);
+  assert.match(words('rate-only'), /^No ranks\./);
+  assert.match(words('top-three'), /Rank the top 3 only/);
+  assert.match(words('rubric-five'), /A rubric with 5 parts/);
+  assert.match(words('elim-large'), /Up to 12 speakers/);
+  assert.match(words('nsda-district'), /^Ranks only, no points\./, 'a v1 profile reads as before');
+});
+
+// Why: S6 keeps Congress apart from rounds and cards; if My day (S3) never shows today's chamber, a scorer mid-session sees "No ballots yet" or "On standby" and has no way back to the chamber from home.
+test('My day lists today\'s Congress chambers with an Open link, and hides Standby while one is in use', () => {
+  const now = new Date(2026, 10, 24, 10).getTime();
+  const old = new Date(2026, 10, 20, 10).getTime();
+  const state = { chambers: [{ id: 'ch1', house: 'senate', tournament: 'Fall', roomLabel: '12', createdAt: now }, { id: 'ch2', house: 'house', createdAt: old }, { id: 'ch3', house: 'house', createdAt: old }],
+    sessions: [{ id: 's1', chamberId: 'ch3', createdAt: old, updatedAt: now }] };
+  const list = congressToday(state, now);
+  assert.deepEqual(list.map((c) => c.id), ['ch1', 'ch3'], 'made today, or a session saved today');
+  assert.equal(list[0].label, 'Senate · Fall · Room 12');
+  const day = { id: 'd', date: '2026-11-24', standby: true, checkInAt: now - 60000 };
+  const html = mydayHtml(mydayModel({ day, cards: [], rounds: [], now }), day, DATA.events, now, list);
+  assert.match(html, /href="#\/chamber\/ch1"/);
+  assert.doesNotMatch(html, /On standby|No ballots yet/);
 });

@@ -69,10 +69,23 @@ export function cardHtml(v, now) {
 }
 
 // The whole screen as HTML text. m: mydayModel(...); day: today's Day or null; events: the registry.
-export function mydayHtml(m, day, events, now) {
+// Congress chambers in use today (step S6 keeps them in tabulaEvents.congress.v1, apart from rounds and cards): a chamber
+// made today, or one with a session made or saved today. state: the migrated Congress value. Returns [{ id, label }].
+export function congressToday(state, now) {
+  const today = dayOf(now);
+  const s = state || {};
+  const touched = (t) => Number.isFinite(t) && dayOf(t) === today;
+  return (Array.isArray(s.chambers) ? s.chambers : []).filter((c) => c && c.id && (touched(c.createdAt)
+    || (Array.isArray(s.sessions) ? s.sessions : []).some((x) => x && x.chamberId === c.id && (touched(x.createdAt) || touched(x.updatedAt)))))
+    .map((c) => ({ id: c.id, label: [c.house === 'senate' ? 'Senate' : 'House', c.tournament, c.roomLabel ? 'Room ' + c.roomLabel : ''].filter(Boolean).join(' · ') }));
+}
+
+// congress (optional): congressToday(...). A Congress chamber in use counts as a ballot, so Standby does not show.
+export function mydayHtml(m, day, events, now, congress) {
   const sub = [dayOf(now), day && day.tournament].filter(Boolean).join(' · ');
-  const busy = m.sections[0].items.length + m.sections[1].items.length > 0;
-  const standby = m.standby ? `<section class="md-standby" aria-labelledby="md-sb-h">
+  const chambers = Array.isArray(congress) ? congress : [];
+  const busy = m.sections[0].items.length + m.sections[1].items.length + chambers.length > 0;
+  const standby = m.standby && !chambers.length ? `<section class="md-standby" aria-labelledby="md-sb-h">
       <h2 id="md-sb-h">On standby</h2>
       <p>No ballot yet. When the tab room sends you one, add it here.</p>
       ${Number.isFinite(day.checkInAt) ? `<p class="muted">Checked in <span data-since="${day.checkInAt}">${esc(sinceText(day.checkInAt, now))}</span>.</p>` : ''}
@@ -83,11 +96,13 @@ export function mydayHtml(m, day, events, now) {
   const secs = m.sections.filter((s) => s.items.length).map((s) => `<section class="md-sec" aria-labelledby="md-h-${s.id}">
       <h2 id="md-h-${s.id}">${esc(s.title)} <span class="muted">${s.items.length}</span></h2>
       <ul class="md-list">${s.items.map((it) => cardHtml(itemView(it, events), now)).join('')}</ul></section>`).join('');
-  const empty = !m.items.length && !m.standby ? '<p class="muted md-empty">No ballots yet today. When you get one, tap Start a round.</p>' : '';
+  const cong = chambers.length ? `<section class="md-sec" aria-labelledby="md-h-congress"><h2 id="md-h-congress">Congress <span class="muted">${chambers.length}</span></h2>
+      <ul class="md-list">${chambers.map((c) => `<li class="md-card"><div class="md-card-top"><span class="md-title">${esc(c.label)}</span></div><div class="md-act"><a class="b primary" href="${esc(routeHash('chamber', c.id))}">Open</a></div></li>`).join('')}</ul></section>` : '';
+  const empty = !m.items.length && !m.standby && !chambers.length ? '<p class="muted md-empty">No ballots yet today. When you get one, tap Start a round.</p>' : '';
   const standbyOn = !m.standby && !busy ? '<button class="b" type="button" id="md-standby-on">I am on standby</button>' : '';
   return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">My day</h1><a class="b primary" id="md-start" href="${esc(routeHash('pick'))}">Start a round</a>${standbyOn}</div>
     ${sub ? `<p class="muted md-sub">${esc(sub)}</p>` : ''}
-    ${standby}${note}${empty}${secs}
+    ${standby}${note}${empty}${secs}${cong}
     <p class="muted md-foot">Older rounds are in <a href="${esc(routeHash('history'))}">History</a>.</p>`;
 }
 
@@ -99,7 +114,7 @@ export function createMydayScreen(env) {
   function draw(focusKey) {
     const day = env.day.today();
     model = mydayModel({ day, cards: env.day.cards(), rounds: env.rooms(), now: env.now(), ranksDueMin: ranksDueMinOf(env.settings()) });
-    env.el.innerHTML = mydayHtml(model, day, env.data.events, env.now());
+    env.el.innerHTML = mydayHtml(model, day, env.data.events, env.now(), env.congress ? congressToday(env.congress(), env.now()) : []);
     focusItem(focusKey);
   }
   // Focus an item by its key (found by position, never by putting an id in a CSS selector), else the title.

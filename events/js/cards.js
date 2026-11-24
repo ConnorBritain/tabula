@@ -13,6 +13,7 @@ import { present, CUSTOM_EVENT } from './room.js';
 import { dayOf } from './rooms.js';
 import { clockText } from './timer.js';
 import { RANKS_DUE_DEFAULT } from './migrate.js';
+import { layerOf } from './profile-layer.js';
 
 export const STATUS_WORDS = Object.freeze({
   notStarted: 'Not started',
@@ -102,6 +103,8 @@ export function cardStatus(card, round) {
   if (card && card.status === 'cancelled') return 'cancelled';
   if (!round) return card && card.submittedAt ? 'done' : 'notStarted';
   if (card && card.submittedAt) return round.state === 'done' ? 'done' : 'submitted';
+  // A comments-only round (step S4 critiqueOnly) has no ranks to copy: it is done when its comments are copied.
+  if (layerOf(round.profile).critiqueOnly) return round.state === 'done' ? 'done' : 'judging';
   if (round.ranksCopiedAt) return 'ranksIn';
   return 'judging';
 }
@@ -110,7 +113,7 @@ export function cardStatus(card, round) {
 // minutes. null while a present speaker has not finished (or nobody has spoken).
 export function ranksDueAt(card, round, minutes) {
   if (card && Number.isFinite(card.ranksDueAt)) return card.ranksDueAt;
-  if (!round) return null;
+  if (!round || layerOf(round.profile).critiqueOnly) return null; // a comments-only round has no ranks due
   const list = present(round);
   if (!list.length || list.some((e) => e.status !== 'done')) return null;
   const stops = list.flatMap((e) => ((e.timing && e.timing.runs) || []).map((r) => r && r.stoppedAt)).filter(Number.isFinite);
