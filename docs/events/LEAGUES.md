@@ -28,7 +28,8 @@ Profile fields come from [EXPERIENCE.md](EXPERIENCE.md) §8.5 and [ARCHITECTURE.
 **Field notes for S4 and the coordinator:**
 
 - `elim: { cx: true }` follows the S4 example file. It turns on the extemp cross-ex in every elim. CHSSA and TFA hold it in finals only; OSDA in all State break rounds. The cross-ex length (2 or 3 min) is not a profile field.
-- Four profiles use effect names from ARCHITECTURE.md §6.2 that §8.5 does not list: `judgeChoice` (OSDA, MIFA), `noTopRating` (Kansas festival), `disqualified` (Iowa). S4's `rank.js` reads an unknown effect as "show the over-time pill only", which is safe. S4's v2 schema test must accept these names, or the coordinator renames them before publishing.
+- Three effect names, used by four profiles, come from ARCHITECTURE.md §6.2 and are not in §8.5: `judgeChoice` (OSDA, MIFA), `noTopRating` (Kansas festival), `disqualified` (Iowa). S4's `rank.js` reads an unknown effect as "show the over-time pill only", which is safe. `events/league-drafts.test.mjs` accepts them; S4's `profile-layer.test.mjs` does not check `effect`. Before publishing, the coordinator either adds them to §8.5 or maps them to `flagOnly`.
+- S4's v2 test needs "not verified" in every `v2/` source and every `v2/` file in `published.json`. Every draft names its open items, so the first holds; the second holds once the coordinator publishes.
 - Rules no field can hold yet: Kansas "past 30 s, lowest rank"; IHSA "one rank per full 30 s"; MIFA "best entry gets 100"; IHSA and Iowa Radio time windows (`windowLast`, later); NCFL "no rank worse than 5" (the tab room does it, so `ranks: 'all'` is right for the judge).
 - `noFirst` with grace 0 is never used. "No grace" leagues use `flagOnly`, `directorDq` or `disqualified`.
 
@@ -68,7 +69,7 @@ Sources: [UIL] Constitution and Contest Rules 2026-27 (117th ed.); [UIL-PJ] judg
   - Prose and Poetry: binder manuscript; each round uses literary category A or B; reading outside it is a disqualification. [UIL] §1006-1007
   - The 2026-27 Prose and Poetry Handbook: **not verified** (not found online).
   - After the round: a group oral critique, and judges do not reveal ranks. [UIL-PJ]
-  - Entry limit: two speech events, one from each group; not Prose with Poetry, not both extemps. [UIL] §1000 (from the earlier research note; not re-checked this pass)
+  - Entry limit: two speech events, one from each group; not Prose with Poetry, not both extemps. **not verified** this pass (earlier research note cites [UIL] §1000)
 
 ## 4. TFA (Texas Forensic Association)
 
@@ -94,7 +95,7 @@ Sources: [IHSA-TC] 2026-27 Speech State Series Terms and Conditions; [IHSA-SM] 2
 - **Grace and overtime:** 8:00 limit; up to 8:30.00 is legal. From 8:30.01, each judge's rank drops one place per full 30 s over. Both timers must agree. **The tab room applies it; judges ignore time.** The drop can go past the section size. State final rounds: no penalty until a full minute over. [IHSA-TC] VIII-E-2 to E-4 p. 7
 - **Minimum time:** only Radio, a 4:50-5:05 window with no grace; outside it, last on every ballot. [IHSA-TC] VIII-E p. 7; [IHSA-SM] p. 23
 - **Ranks:** every entrant, no ties; the tab room caps ranks at the smallest section. [IHSA-TC] VI-F, VII-D, XI-B
-- **Section size:** no maximum stated; two prelim sections when 8 or more enter. [IHSA-TC]
+- **Section size:** no maximum stated, so a limit is **not verified**; two prelim sections when 8 or more enter. [IHSA-TC]
 - **Rating, rubric:** none; the critique form has "major basis for ranking", comments and a rank. [IHSA-SM] pp. 52-53
 - **Events that differ from NSDA:**
   - Most events 8:00: Dramatic and Humorous Duet Acting, DI, HI, Prose, Poetry, Oratorical Declamation, OO, Original Comedy, Special Occasion, Informative. [IHSA-SM] pp. 16-24
@@ -132,6 +133,7 @@ Sources: [MN] 2026-2027 Speech Rules and Policies (Sept 17, 2026); [MN-JI] judge
 - **Grace and overtime:** none; the speaker may finish the sentence (one closing sentence in Extemp and Storytelling). A time violation drops one rank in that round, never below the last rank in the room; a violator loses a tie to a non-violator. **The Rules Committee decides; the judge only reports.** [MN] I-F-6 p. 3, V-E p. 14; [MN-JI] item 9
 - **Minimum time:** none; Informative gets up to 2 min set-up before timing. [MN] p. 10
 - **Ranks:** everyone; prelim ranks capped at the smallest room. State final: 8 entries, 5 judges, 1-8 with no ties. [MN] pp. 14-16; [MN-B]
+- **Ties on a prelim ballot:** not verified (no rule found).
   - The final placement rule says to total "all three" final ranks though there are 5 judges. This is an error inside [MN].
 - **Rating, rubric:** none scored. Discussion has five guide questions. [MN] Event Guide p. 17
 - **Events that differ from NSDA:** [MN] pp. 2, 5-13
@@ -173,6 +175,7 @@ Sources: [MIFA] Speech Activities 2026-2027 (no exact date in the document); [MI
 - **Ties:** advancing ties go to total percentage; finals go total ranks, judges' preference, final percentage, then all-round percentage. [MIFA]
 - **Rubric:** none scored. [MIFA-B]
 - **Events that differ from NSDA:** [MIFA] Timing; [MIFA-B]
+  - The document has no exact date (season verified, date **not verified**).
   - 5-8 min: DI, Poetry, POI, Prose, Storytelling, Informative, Oratory, Sales. Duo 7-10. Extemp and Duo Commentary **4-7**. Impromptu 0-6 including prep (clock starts at the prompt). Multiple Interpretation 3-5 performers, 10-15 (group: later).
   - Broadcasting: 5:00 with a 1-min editorial; news copy prepared ahead; only the editorial story is handed out, with 15 min to work it in.
   - Duo Commentary: 2 speakers, draw 3 of 10, 30 min prep, seated, digital notes allowed.
@@ -257,7 +260,7 @@ Sources: [STOA-PR] Persuasive Rules (rev 2025-07-14); [STOA-JR] Judging Reminder
 
 | League | Status |
 |---|---|
-| CHSSA, UIL, TFA, IHSA, MSHSL, OSDA, MIFA | Profile fields all sourced. Small gaps: judge-ballot ties (CHSSA, TFA), UIL 2026-27 Prose and Poetry Handbook, MIFA extemp draw count. |
+| CHSSA, UIL, TFA, IHSA, MSHSL, OSDA, MIFA | Profile fields all sourced. Small gaps: judge-ballot ties (CHSSA, TFA, MSHSL prelims), UIL 2026-27 Prose and Poetry Handbook and entry limit, IHSA section size, OSDA signal rule, MIFA extemp draw count and document date. |
 | KSHSAA | Sourced. Gaps: ballot ties; festival comment sheet; "lowest rank past 30 s" has no field. |
 | IHSSA | Ratings and overtime sourced. Gap: most event times not re-read in the 2026 articles. |
 | NCFL | Sourced from the 2026 bylaws; the 2027 bylaws are not posted. |
