@@ -114,11 +114,11 @@ Base commit: `8e89d6b` (debate repo). Programs: see §3 for its repo and commit.
 
 | # | Now | Where | Proposed | Why |
 |---|---|---|---|---|
-| D1 | "Flowing needs a bigger screen. Use a tablet in landscape or a laptop to flow. Your clock and ballot work here." | `index.html:1013` | "Flow on a tablet or laptop. Clock and ballot work here." | Three sentences, one idea. Pin: `slice5-static.test.mjs:85`. |
+| D1 | "Flowing needs a bigger screen. Use a tablet in landscape or a laptop to flow. Your clock and ballot work here." | `index.html:1013` | "Flow on a tablet or laptop. Clock and ballot work here." | Three sentences, one idea. Pin: `slice5-static.test.mjs:85`. **Done.** |
 | D2 | Placeholder: "Words from the speech show here while the clock runs. You can type or fix them." | `index.html:1332` | "Speech text shows here. You can edit it." | Long placeholder in the live drawer. Pin: `slice3-static.test.mjs:49`. |
 | D3 | Flow "?" tip: "Aff columns are blue and Neg columns are red; each column header names its speech. Keep each argument …" | `index.html:1050` | "Aff blue, Neg red. Keep each argument on one line across columns. "Now" is the timed speech. Shaded marks: *, dropped, conc, ext, turn, L/T, O/W." | The headers name the speeches. Keeps the mark key. |
-| D4 | "No arguments yet. Click "+ Argument" to start, or Draw to let the AI map the round." | `js/insights.js:286` | "No arguments yet. Click + Argument, or Run." | **Also a bug:** no button is named "Draw". The button is "Run" (`index.html:1116`). |
-| D5 | "No map yet. Click "+ Argument" to draw one by hand, or Run to let the AI map the round." | `js/insights.js:278` | Same line as D4 | Two strings for one empty state. |
+| D4 | "No arguments yet. Click "+ Argument" to start, or Draw to let the AI map the round." | `js/insights.js:286` | "No arguments yet. Click + Argument, or Update." | **Also a bug:** no button is named "Draw". A map is saved here, so the button reads "Update" (`runVerb`). **Done** on this branch. |
+| D5 | "No map yet. Click "+ Argument" to draw one by hand, or Run to let the AI map the round." | `js/insights.js:278` | "No map yet. Click + Argument, or Run." | Two long strings for one empty state. **Done.** |
 | D6 | Toast: "Still working on the last one. Try again when it finishes." | `js/insights.js:185` | "Still working. Try again soon." | A toast should be short. |
 | D7 | "Live AI flow is off. When on, it uses AI while a speech runs." + link | `js/flow.js:173` | "Live AI flow is off (uses AI)." + link | Keeps the cost fact. Matches the "(uses AI)" tags. |
 | D8 | "Anything you type is yours. The AI will not change it." | `index.html:1254` | "The AI never changes what you type." | One sentence for the lock rule. See W13. |

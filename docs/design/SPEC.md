@@ -813,7 +813,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
     5. two prep cards, "Aff prep" / "Neg prep" with Start/Stop (aria-label "Start Aff prep"), and the line "Pauses the 1NC" when a speech runs;
     6. the 4×3 speech grid, with view-only taps;
     7. the Transcribe switch and the strip;
-    8. "Flowing needs a bigger screen. Use a tablet in landscape or a laptop to flow. Your clock and ballot work here."
+    8. "Flow on a tablet or laptop. Clock and ballot work here."
 
     The clock renders into both places through one `renderClockInto(el)`.
   - **c. Ballot.** One column: "Aff wins" / "Neg wins" cards, one card per speaker (points stepper and a rank **select** that uses `L.moveRank()`), RFD, comments. A sticky bar: [Print / PDF] [Copy for tournament] [Save] (full `aria-label`s). Example check line: "Ranks: 2 of 4 set."
