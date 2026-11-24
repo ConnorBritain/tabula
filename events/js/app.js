@@ -26,6 +26,7 @@ import { createRoomScreen } from './room-screen.js';
 import { createTimerView } from './timer-view.js';
 import { createCommentView } from './comment-view.js';
 import { createPieceView } from './piece-view.js';
+import { createRunsParts } from './runs-view.js';
 import { createRankScreen } from './rank-screen.js';
 import { createReviewScreen } from './review-screen.js';
 import { createHistoryScreen } from './history-screen.js';
@@ -96,6 +97,8 @@ function boot(data) {
   const screens = { setup: createSetupScreen(env), history: createHistoryScreen(env), settings: createSettingsScreen(env) };
   // The room workspace's stages are the shipped screens, made once here (only app.js makes screens).
   env.roomScreens = { judge: createRoomScreen(env, [createPieceView(), createTimerView(), createCommentView()]), rank: createRankScreen(env), review: createReviewScreen(env) };
+  // Step S5: the F4 workspace's judge stage (PCC), a Room screen with the run parts (runs-view.js).
+  env.runsScreens = { judge: createRoomScreen(env, [...createRunsParts(), createCommentView()]) };
   // The showing screen: { scope, run(action), hide() }. A round's comes from its workspace (keys and mount).
   let current = null;
   let routeNo = 0; // which route() call is the latest, so a round that finishes loading late never draws

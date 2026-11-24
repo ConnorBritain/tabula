@@ -162,7 +162,7 @@ All room families keep the E1 to E13 layout: the roster on the left (on top on a
 | **F7 Group** (data) | A group label. Student names optional. Cap past 8. | Timer-off switch for recordings | None | Often Rate | Later |
 | **F2 prep outside** (USX, IX, COM, MX) | Any order. A "Waiting for next speaker · about 7 min" state. | One run | Question chip. Cross-ex chain in elims ("Q: speaker X"), with a same-school warning that needs `school?`. | 1 to N | Built (base) |
 | **F3 prep inside** (IMP) | Order known | Prep, then Speak, on one 7:00 clock, with a "speech started" mark | Topic field. Split phases as data. | 1 to N | Built (base) |
-| **F4 two runs** (PCC) | One entry, two runs | Pro, then Con, under one 10:30 limit | Run cards, topic field (the student's pick), points only if the profile asks | 1 to N | New, mostly data |
+| **F4 two runs** (PCC) | One entry, two runs | Pro, then Con, under one 10:30 limit | Run cards, topic field (the student's pick), points only if the profile asks | 1 to N | Built (S5): `defs/v2/pcc.v2.json`, `runs.js`, `runs-view.js`, `phase-bar.js` |
 | **F8 Discussion** | A table of students. Tap any student at any time. | 60-minute session clock | Contribution marks, comment cards | Rubric grid, 8 criteria | Later |
 
 Notes:

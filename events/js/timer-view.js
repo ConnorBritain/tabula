@@ -71,7 +71,12 @@ export function timerHtml(entry, face, limit, grace) {
 // The time on a roster row (after the code): the time used (on a prep event, prep and speech), once there is some.
 export const rowTimeHtml = (entry, used) => (used > 0 || (entry.timing && (entry.timing.run || entry.timing.prepRun)) ? `<span class="row-time" data-time="${esc(entry.id)}">${clockText(used)}</span>` : '');
 
-export function createTimerView() {
+// opts (step S5, optional; the F4 run split, runs.js, uses both):
+//   syncEntry(entry, event, now, limit) -> entry   runs after every change this view makes to an entry, so data kept
+//                                                 beside the clock (the runs of a PCC entry) follows the clock
+//   resetFields(entry) -> { field: value }         more fields that "Reset time" sets (its Undo puts the old ones back)
+export function createTimerView(opts) {
+  const o = opts || {};
   let ctx = null;
   let active = false;
   let runId = null;
@@ -93,7 +98,8 @@ export function createTimerView() {
   const $ = (s) => env().el.querySelector(s);
 
   // Save one entry's change to the room.
-  function change(id, fn) { const r = room(); if (r) ctx.save(updateEntry(r, id, fn, env().now())); }
+  const sync = (e) => (o.syncEntry && e ? o.syncEntry(e, event(), env().now(), limit()) : e);
+  function change(id, fn) { const r = room(); if (r) ctx.save(updateEntry(r, id, (e) => { const n = fn(e); return n === e ? e : sync(n); }, env().now())); }
 
   // The driver keeps its run on the entry (timing.run), so a reload or a sleeping phone finds it there.
   const driver = createDriver({
@@ -281,8 +287,9 @@ export function createTimerView() {
       ctx.draw();
     },
     reset(e) {
-      const before = { timing: e.timing, status: e.status };
-      change(e.id, (x) => Object.assign({}, x, { status: 'waiting', timing: shared() ? resetAll(x.timing) : resetTiming(x.timing) }));
+      const extra = o.resetFields ? o.resetFields(e) : {};
+      const before = Object.assign({ timing: e.timing, status: e.status }, Object.fromEntries(Object.keys(extra).map((k) => [k, e[k]])));
+      change(e.id, (x) => Object.assign({}, x, { status: 'waiting', timing: shared() ? resetAll(x.timing) : resetTiming(x.timing) }, extra));
       ctx.draw();
       env().ui.toast('Time reset for ' + e.code + '.', { action: { label: 'Undo', name: 'Undo: reset time for ' + e.code, run: () => { change(e.id, (x) => Object.assign({}, x, before)); ctx.draw(); } } });
     },

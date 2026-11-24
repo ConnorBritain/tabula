@@ -19,9 +19,13 @@
     "dec.v1.json",
     "mx.v1.json"
   ],
+  "defsV2": [
+    "pcc.v2.json"
+  ],
   "profiles": [
     "nsda-district.v1.json",
     "nsda-invitational.v1.json",
     "custom.v1.json"
-  ]
+  ],
+  "noteV2": "Def v2 files (docs/events/EXPERIENCE.md §2.1 step 2, §8.5) live in defs/v2/ and are listed under defsV2. They carry an explicit family and have their own schema test (events/pcc.test.mjs). The v1 files and their test stay as they are."
 }

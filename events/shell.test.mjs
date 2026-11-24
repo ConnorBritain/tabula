@@ -16,10 +16,10 @@ const HTML = read('index.html');
 // time limit or the wrong one.
 test('every published event and profile loads through the shared registry', async () => {
   const data = await loadEventData(readJson);
-  assert.equal(data.events.keys().length, PUB.defs.length);
+  assert.equal(data.events.keys().length, PUB.defs.length + PUB.defsV2.length); // step S5: def v2 files are listed under defsV2
   assert.equal(data.profiles.keys().length, PUB.profiles.length);
   assert.equal(data.events.get('oo').limitMinutes, 10);
-  const ids = await Promise.all(PUB.defs.map(async (f) => (await readJson('defs/' + f)).id));
+  const ids = await Promise.all(PUB.defs.map(async (f) => (await readJson('defs/' + f)).id).concat(PUB.defsV2.map(async (f) => (await readJson('defs/v2/' + f)).id)));
   assert.deepEqual(data.order, ids, 'the picker order is published.json\'s order, by each file\'s own id');
   assert.deepEqual(data.order.slice(0, 3), ['oo', 'inf', 'usx']);
   await assert.rejects(loadEventData(async (p) => (p === 'published.json' ? { defs: ['nope.v1.json'], profiles: PUB.profiles } : readJson(p))), 'a listed file that is missing stops the load');
