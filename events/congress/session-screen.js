@@ -3,7 +3,7 @@
 // runs the tick (timer and session clock), and saves after each change: every action writes the whole Congress value
 // at once (env.store, key tabulaEvents.congress.v1). The comment box saves after a short pause and on leaving it.
 import { congressIO, findSession, findChamber, withSession, withChamber } from './store.js';
-import { startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, timerView, clockText } from './speech.js';
+import { startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, timerView, clockText, refusesAction } from './speech.js';
 import { startTerm, endTerm, setHourScore } from './po.js';
 import { toggleRank } from './rank.js';
 import { reviewBlocks, rankProblems } from './review.js';
@@ -100,6 +100,7 @@ export function mountSession(el, env, sessionId, stage) {
     if (!s || !c) return;
     const now = env.now();
     const a = b.dataset.cact;
+    if (refusesAction(c.profile, a)) return undefined; // ranks only: no points
     const mk = (p) => newId(p);
     switch (a) {
       case 'next': view.picking = true; view.query = ''; return draw('search');

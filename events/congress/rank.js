@@ -9,6 +9,7 @@
 import { moveRank } from '../../core/ranks.js';
 import { legislatorLines } from './speech.js';
 import { poHoursBy } from './po.js';
+import { ranksOnly } from './profiles.js';
 
 const fromMap = (map, ids, cap) => {
   const out = [];
@@ -74,7 +75,8 @@ export function rankModel(chamber, session) {
   const totals = new Map(pool.map((x) => [x.legislator.id, x.total]));
   const ties = [];
   const ranked = slots.filter(Boolean);
-  for (let i = 0; i < ranked.length; i++) for (let j = i + 1; j < ranked.length; j++) if (totals.get(ranked[i]) === totals.get(ranked[j])) ties.push([ranked[i], ranked[j]]);
+  // A ranks-only profile has no points, so a points tie means nothing there.
+  if (!ranksOnly(chamber.profile)) for (let i = 0; i < ranked.length; i++) for (let j = i + 1; j < ranked.length; j++) if (totals.get(ranked[i]) === totals.get(ranked[j])) ties.push([ranked[i], ranked[j]]);
   return { pool, slots, topN: n, complete: n > 0 && slots.every(Boolean), ties, gone };
 }
 

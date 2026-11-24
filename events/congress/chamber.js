@@ -5,6 +5,7 @@
 //   newSession(chamber, sessions, input)   the next CongressSession; session 2 and later carry the chamber over
 //   docketLines(text)                      the docket titles, one for each line, in agenda order
 import { pointsRange } from '../../core/points.js';
+import { ranksOnly } from './profiles.js';
 
 export const MIN_CHAMBER = 8; // the NSDA district minimum (a warning only)
 
@@ -26,7 +27,9 @@ export function setupChecks(parsed, docket, profile) {
 }
 
 // A copy of the profile with the scale the judge picked (a whole-number range; anything else keeps the profile's).
+// A ranks-only profile has no scale, so a picked scale is ignored.
 export function frozenProfile(profile, scale) {
+  if (ranksOnly(profile)) return Object.freeze(Object.assign({}, profile));
   const s = scale ? pointsRange(scale, profile.scale) : profile.scale;
   return Object.freeze(Object.assign({}, profile, { scale: Object.freeze({ min: s.min, max: s.max }) }));
 }

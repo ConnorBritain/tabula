@@ -2,6 +2,7 @@
 // clock (now) and the id maker are passed in. Each function returns a new session; the page saves after each change,
 // so a 3-hour session never loses a speech to a reload or a dead battery.
 import { pointsRange } from '../../core/points.js';
+import { ranksOnly } from './profiles.js';
 
 export const SPEECH_MS = 180000; // 3:00 for every scored speech (NSDA 2026-27)
 export const TYPES = Object.freeze(['authorship', 'sponsorship', 'firstNeg', 'rebuttal', 'extension', 'crystal', 'amendment']);
@@ -116,6 +117,7 @@ export function clockText(ms) {
 //   a speech past profile.scoredSpeechCap for its legislator (UIL: 5) -> no points (null).
 // nth: this speech is the legislator's nth (from 1) in the session.
 export function countedPoints(speech, profile, nth) {
+  if (ranksOnly(profile)) return null; // NCFL, CHSSA: no points
   if (profile.scoredSpeechCap && nth > profile.scoredSpeechCap) return null;
   if (speech.penalty === 'offFloor') return 0;
   if (speech.points == null) return null;
@@ -129,6 +131,11 @@ export function countedPoints(speech, profile, nth) {
 
 // Does this score need a specific reason? Only when the profile has a number (reasonBelow) and the comment is empty.
 // It never blocks the save (§4.2).
+// The log actions that give points. A ranks-only chamber refuses them, so no stray click or key can store points
+// the league does not use (the views also hide the buttons).
+export const POINTS_ACTIONS = Object.freeze(['points', 'penalty', 'po-score', 'po-clear']);
+export const refusesAction = (profile, act) => ranksOnly(profile) && POINTS_ACTIONS.includes(act);
+
 export const needsReason = (speech, profile) => profile.reasonBelow != null && speech.points != null && speech.points < profile.reasonBelow && !String(speech.comment || '').trim();
 
 // One line for each legislator, in chamber order: their speeches (with counted points), count, total and average
@@ -157,5 +164,5 @@ export function precedenceOrder(chamber, session) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressSpeech = Object.freeze({ SPEECH_MS, TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS,
-  questionMsFor, nextDefaults, startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, timerView, minSec, clockText, countedPoints, needsReason,
+  questionMsFor, nextDefaults, POINTS_ACTIONS, refusesAction, startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, timerView, minSec, clockText, countedPoints, needsReason,
   legislatorLines, precedenceOrder });

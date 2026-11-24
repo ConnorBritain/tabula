@@ -7,9 +7,11 @@ import { TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS, legislatorLines, p
 import { hoursDue, openTerm, ordinal, fullHours, poLockLine } from './po.js';
 import { rankModel } from './rank.js';
 import { reviewBlocks, rankProblems } from './review.js';
-import { scaleText } from './profiles.js';
+import { scaleText, ranksOnly } from './profiles.js';
 
 const STAGE_WORDS = Object.freeze({ log: 'Log', rank: 'Rank', review: 'Review' });
+// The PO card's line when the scorer gives the PO no points.
+const PO_NOTE = Object.freeze({ parliScores: 'the parliamentarian scores the PO.', none: 'the PO gets no points.' });
 const range = (s) => { const out = []; for (let i = s.min; i <= s.max; i++) out.push(i); return out; };
 
 // The session clock: time since the session started ("1:24:10").
@@ -68,13 +70,14 @@ export function speechCardHtml(chamber, session, speechId, now) {
   const sp = session.speeches.find((s) => s.id === speechId);
   if (!sp) return '';
   const p = chamber.profile;
+  const noPts = ranksOnly(p);
   const l = legislatorOf(chamber, sp.legislatorId);
   const nth = session.speeches.filter((s) => s.legislatorId === sp.legislatorId).findIndex((s) => s.id === sp.id) + 1;
   const counted = countedPoints(sp, p, nth);
   const capped = p.scoredSpeechCap && nth > p.scoredSpeechCap;
   const items = chamber.docket.map((d) => `<option value="${esc(d.id)}"${d.id === sp.itemId ? ' selected' : ''}>${esc(d.title)}${d.debatedInSession && d.debatedInSession !== session.number ? ' (done in session ' + esc(d.debatedInSession) + ')' : ''}</option>`).join('');
   const live = session.live && session.live.speechId === sp.id;
-  const pointsRow = range(p.scale).map((n) => `<button class="chip cg-pt${sp.points === n ? ' on' : ''}" type="button" aria-pressed="${sp.points === n}" data-cact="points" data-value="${n}" data-key="pt-${n}">${n}</button>`).join('');
+  const pointsRow = noPts ? '' : range(p.scale).map((n) => `<button class="chip cg-pt${sp.points === n ? ' on' : ''}" type="button" aria-pressed="${sp.points === n}" data-cact="points" data-value="${n}" data-key="pt-${n}">${n}</button>`).join('');
   const note = [];
   if (sp.penalty === 'wrongSide') note.push(p.wrongSideMax != null ? `Wrong side: no more than ${p.wrongSideMax} points. It still counts for precedence.` : `Wrong side: ${p.wrongSideOff} points off (at least). It still counts for precedence.`);
   if (sp.penalty === 'offFloor') note.push('Not on the floor: 0 points. It still counts for precedence.');
@@ -88,10 +91,10 @@ export function speechCardHtml(chamber, session, speechId, now) {
       <div class="field"><span>Side</span>${seg('Side', sp.side, SIDES, SIDE_WORDS)}</div>
       <label class="field"><span>Type</span><select id="cg-type" data-cfield="type" data-key="type">${TYPES.map((t) => `<option value="${t}"${t === sp.type ? ' selected' : ''}>${esc(TYPE_WORDS[t])}</option>`).join('')}</select></label>
     </div>
-    <div class="field"><span>Points <span class="muted">(${esc(scaleText(p.scale))})</span></span>
+    ${noPts ? `<p class="field-help">${esc(p.name)} gives no points. Write the comment, then rank at the end.</p>` : `<div class="field"><span>Points <span class="muted">(${esc(scaleText(p.scale))})</span></span>
       <div class="cg-points" role="group" aria-label="Points">${pointsRow}<button class="chip quiet" type="button" data-cact="points" data-value="" data-key="pt-none">Clear</button></div>
       ${counted != null && counted !== sp.points ? `<p class="field-help">Counts as ${esc(counted)}.</p>` : ''}</div>
-    <div class="chks" role="group" aria-label="Penalties">${Object.keys(PENALTY_WORDS).map((k) => `<button class="chk${sp.penalty === k ? ' flag' : ''}" type="button" aria-pressed="${sp.penalty === k}" data-cact="penalty" data-value="${k}" data-key="pen-${k}">${sp.penalty === k ? '✓ ' : ''}${esc(PENALTY_WORDS[k])}</button>`).join('')}</div>
+    <div class="chks" role="group" aria-label="Penalties">${Object.keys(PENALTY_WORDS).map((k) => `<button class="chk${sp.penalty === k ? ' flag' : ''}" type="button" aria-pressed="${sp.penalty === k}" data-cact="penalty" data-value="${k}" data-key="pen-${k}">${sp.penalty === k ? '✓ ' : ''}${esc(PENALTY_WORDS[k])}</button>`).join('')}</div>`}
     ${note.length ? `<p class="field-help">${note.map(esc).join(' ')}</p>` : ''}
     <label class="field cg-comment"><span>Comment</span><textarea id="cg-comment" data-cfield="comment" data-key="comment" rows="5" placeholder="What worked, what to fix. Name a moment.">${esc(sp.comment)}</textarea></label>
     <p class="cg-reason" id="cg-reason" role="status">${needsReason(sp, p) ? esc(`Below ${p.reasonBelow}: write a specific reason. You can still save.`) : ''}</p>
@@ -106,7 +109,7 @@ export function poCardHtml(chamber, session, now, choosing) {
   const term = openTerm(session);
   const scale = p.poScale || p.scale;
   const due = [];
-  session.poTerms.forEach((t, i) => { for (const h of hoursDue(t, now, p)) due.push({ i, t, h }); });
+  if (scale) session.poTerms.forEach((t, i) => { for (const h of hoursDue(t, now, p)) due.push({ i, t, h }); });
   const dueHtml = due.map(({ i, t, h }) => `<div class="cg-due"><p>Score ${esc(codeOf(chamber, t.legislatorId))}’s ${ordinal(h)} hour as PO <span class="muted">(${esc(scaleText(scale))})</span></p>
       <div class="cg-points" role="group" aria-label="PO points, hour ${h}">${range(scale).map((n) => `<button class="chip cg-pt" type="button" data-cact="po-score" data-term="${i}" data-hour="${h}" data-value="${n}" data-key="po-${i}-${h}-${n}">${n}</button>`).join('')}</div></div>`).join('');
   const scored = session.poTerms.flatMap((t, i) => t.hourScores.map((h) => `<li><span class="code">${esc(codeOf(chamber, t.legislatorId))}</span> hour ${h.hour}: ${esc(h.points)} <button class="b quiet small" type="button" data-cact="po-clear" data-term="${i}" data-hour="${h.hour}" data-key="po-clear-${i}-${h.hour}">Change</button></li>`)
@@ -117,21 +120,22 @@ export function poCardHtml(chamber, session, now, choosing) {
        <div class="cg-row"><button class="b small" type="button" data-cact="po-end" data-key="po-end">End term</button><button class="b small quiet" type="button" data-cact="po-choose" data-key="po-choose">New PO</button></div>`
     : `<p class="muted">No PO term is open.</p><button class="b small" type="button" data-cact="po-choose" data-key="po-choose">Start a PO term</button>`;
   return `<section class="stage cg-po" aria-labelledby="cg-po-title"><h2 id="cg-po-title" class="cg-h">Presiding officer</h2>
-    ${p.poRule === 'parliScores' ? `<p class="muted">Under ${esc(p.name)} the parliamentarian scores the PO. Log the term so the speech counts stay right.</p>` : ''}
+    ${PO_NOTE[p.poRule] ? `<p class="muted">Under ${esc(p.name)} ${PO_NOTE[p.poRule]} Log the term so the speech counts stay right.</p>` : ''}
     ${head}${pick}${dueHtml}${scored ? `<ul class="cg-scored">${scored}</ul>` : ''}</section>`;
 }
 
 // The running view: one row for each legislator, a cell for each speech (its counted points), then count, total and
 // average. On a phone the cells wrap under the code (blocks); on a wide screen it reads as a grid.
 export function gridHtml(chamber, session, selectedId) {
+  const noPts = ranksOnly(chamber.profile);
   const rows = legislatorLines(chamber, session).map((line) => {
     const l = line.legislator;
-    const cells = line.speeches.map((x) => `<button class="cg-cell${x.speech.id === selectedId ? ' on' : ''}${x.speech.points == null && x.speech.penalty !== 'offFloor' ? ' empty' : ''}" type="button" data-cact="select" data-id="${esc(x.speech.id)}" data-key="cell-${esc(x.speech.id)}" aria-label="${esc(l.code)} speech ${x.nth}: ${x.counted == null ? 'no points' : esc(x.counted) + ' points'}">${x.counted == null ? '–' : esc(x.counted)}</button>`).join('');
+    const cells = line.speeches.map((x) => `<button class="cg-cell${x.speech.id === selectedId ? ' on' : ''}${!noPts && x.speech.points == null && x.speech.penalty !== 'offFloor' ? ' empty' : ''}" type="button" data-cact="select" data-id="${esc(x.speech.id)}" data-key="cell-${esc(x.speech.id)}" aria-label="${esc(l.code)} speech ${x.nth}${noPts ? '' : ': ' + (x.counted == null ? 'no points' : esc(x.counted) + ' points')}">${noPts ? x.nth : x.counted == null ? '–' : esc(x.counted)}</button>`).join('');
     return `<li class="cg-line${l.status !== 'present' ? ' is-out' : ''}"><span class="code">${esc(l.code)}</span>
       <span class="cg-cells">${cells || '<span class="muted">No speeches</span>'}</span>
-      <span class="cg-stats">${line.count} · ${line.total}${line.average != null ? ' · avg ' + esc(line.average) : ''}${l.status !== 'present' ? ' · ' + esc(l.status) : ''}</span></li>`;
+      <span class="cg-stats">${line.count}${noPts ? '' : ' · ' + line.total + (line.average != null ? ' · avg ' + esc(line.average) : '')}${l.status !== 'present' ? ' · ' + esc(l.status) : ''}</span></li>`;
   }).join('');
-  return `<section class="cg-grid-wrap" aria-labelledby="cg-grid-title"><h2 id="cg-grid-title" class="cg-h">Chamber <span class="muted">(speeches · total · average)</span></h2><ol class="cg-grid">${rows}</ol></section>`;
+  return `<section class="cg-grid-wrap" aria-labelledby="cg-grid-title"><h2 id="cg-grid-title" class="cg-h">Chamber <span class="muted">(${noPts ? 'speeches' : 'speeches · total · average'})</span></h2><ol class="cg-grid">${rows}</ol></section>`;
 }
 
 // The docket line above the log: the item under debate and "Next item".
@@ -151,20 +155,21 @@ export function logHtml(chamber, session, view, now) {
 
 // The Rank stage body.
 export function rankHtml(chamber, session, now) {
+  const noPts = ranksOnly(chamber.profile);
   const lock = poLockLine(session, now, chamber.profile, (id) => codeOf(chamber, id));
   const m = rankModel(chamber, session);
   const slots = m.slots.map((id, i) => `<li><button class="cg-slot${id ? ' on' : ''}" type="button" data-cact="unrank" data-id="${esc(id || '')}" data-key="slot-${i + 1}" ${id ? '' : 'disabled'}><span class="row-num">${i + 1}</span> ${id ? `<span class="code">${esc(codeOf(chamber, id))}</span>` : '<span class="muted">Empty</span>'}</button></li>`).join('');
   const ranked = new Set(m.slots.filter(Boolean));
   const pool = m.pool.map((x) => `<li><button class="cg-poolrow${ranked.has(x.legislator.id) ? ' on' : ''}" type="button" data-cact="rank" data-id="${esc(x.legislator.id)}" data-key="pool-${esc(x.legislator.id)}" aria-pressed="${ranked.has(x.legislator.id)}" ${lock ? 'disabled' : ''}>
       <span class="code">${esc(x.legislator.code)}</span><span class="muted">${esc(x.legislator.name || '')}</span>
-      <span class="cg-stats">${x.count} ${x.count === 1 ? 'speech' : 'speeches'} · ${x.total} points${x.poHours.length ? ' · PO ' + x.poHours.join(', ') : ''}</span></button></li>`).join('');
+      <span class="cg-stats">${x.count} ${x.count === 1 ? 'speech' : 'speeches'}${noPts ? '' : ' · ' + x.total + ' points'}${x.poHours.length ? ' · PO ' + x.poHours.join(', ') : ''}</span></button></li>`).join('');
   const warn = m.ties.map(([a, b]) => `<li>${esc(codeOf(chamber, a))} and ${esc(codeOf(chamber, b))} have the same points. That is fine if you meant it.</li>`)
     .concat(m.gone.map((id) => `<li>${esc(codeOf(chamber, id))} is ranked but not present now. Their slot is empty.</li>`)).join('');
   return `<section class="cg-rank" aria-labelledby="cg-rank-title"><h2 id="cg-rank-title" class="cg-h">Top ${m.topN}</h2>
-    ${lock ? `<p class="problems" role="status">${esc(lock)} <a class="b small" href="#/round/${esc(session.id)}/log">Back to Log</a></p>` : '<p class="muted">Tap a legislator to fill the next slot. Tap a slot to clear it. Points do not limit the order.</p>'}
+    ${lock ? `<p class="problems" role="status">${esc(lock)} <a class="b small" href="#/round/${esc(session.id)}/log">Back to Log</a></p>` : '<p class="muted">Tap a legislator to fill the next slot. Tap a slot to clear it.' + (noPts ? '' : ' Points do not limit the order.') + '</p>'}
     <ol class="cg-slots">${slots}</ol>
     ${warn ? `<ul class="check-list">${warn.replace(/<li>/g, '<li class="check-row">')}</ul>` : ''}
-    <h3 class="cg-h">${chamber.profile.rankPool === 'spokeOrPresided' ? 'Legislators who spoke or presided' : 'Present legislators'}, by points</h3>
+    <h3 class="cg-h">${chamber.profile.rankPool === 'spokeOrPresided' ? 'Legislators who spoke or presided' : 'Present legislators'}${noPts ? ', by speeches' : ', by points'}</h3>
     <ol class="cg-pool">${pool}</ol>
     <div class="stage-foot"><a class="b primary" href="#/round/${esc(session.id)}/review">Go to Review</a></div></section>`;
 }

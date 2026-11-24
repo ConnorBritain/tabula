@@ -59,3 +59,4 @@ main:has(.cg-screen) { max-width: 1120px; }
   .cg-line .cg-cells { grid-column: 1 / -1; grid-row: 2; }
   .cg-clock { margin-left: 0; }
 }
+#cg-scale-field[hidden] { display: none; }

@@ -5,6 +5,7 @@ import { codeOf, itemOf } from './chamber.js';
 import { SIDE_WORDS, TYPE_WORDS, PENALTY_WORDS, countedPoints, minSec } from './speech.js';
 import { rankModel } from './rank.js';
 import { firstUnscored } from './po.js';
+import { ranksOnly } from './profiles.js';
 
 // [{ id, kind: 'speech'|'po'|'ranks', title, text, copied }] in Tabroom order.
 export function reviewBlocks(chamber, session) {
@@ -16,7 +17,7 @@ export function reviewBlocks(chamber, session) {
     const item = itemOf(chamber, s.itemId);
     const pts = countedPoints(s, chamber.profile, n);
     const head = [codeOf(chamber, s.legislatorId), item ? item.title : 'No item', SIDE_WORDS[s.side] || s.side, TYPE_WORDS[s.type] || s.type,
-      pts == null ? 'No points' : pts + (pts === 1 ? ' point' : ' points')].join(' · ');
+      ranksOnly(chamber.profile) ? '' : pts == null ? 'No points' : pts + (pts === 1 ? ' point' : ' points')].filter(Boolean).join(' · ');
     const notes = [s.penalty ? PENALTY_WORDS[s.penalty] : '', s.speakMs ? 'Spoke ' + minSec(s.speakMs) : ''].filter(Boolean).join(' · ');
     out.push({ id: s.id, kind: 'speech', title: head, text: [head, notes, String(s.comment || '').trim()].filter(Boolean).join('\n'), copied: Boolean(s.copiedAt) });
   }
