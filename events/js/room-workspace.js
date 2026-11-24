@@ -67,6 +67,7 @@ export function summary(round) {
   return { status: STATE_LABEL[round.state] || STATE_LABEL.setup, done: list.filter((e) => e.status === 'done').length, total: list.length, next: next ? next.code : null };
 }
 
+// rankModel is null for a comments-only round (step S4, critiqueOnly): it has no Rank stage.
 export const rankModel = (round) => (layerOf(round.profile).critiqueOnly ? null : { ranks: ranksOf(round), ratings: ratingsOf(round), ctx: boardCtx(round) });
 
 export const reviewModel = (round) => ({ status: statusText(round), checklist: checklist(round), ranks: ranksBlock(round), cards: cards(round) });

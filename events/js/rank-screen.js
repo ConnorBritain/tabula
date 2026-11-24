@@ -19,9 +19,6 @@ import { layerOf, layerProblems, notRankedText } from './profile-layer.js';
 import { ratingHtml, rubricHtml, scoreClick, scoreInput, isScoreBox } from './score-view.js';
 import { overtimeNote } from './round-frame.js';
 
-// The rating control moved to score-view.js (step S4: the Rate screen draws it too). Named here for older callers.
-export { ratingHtml };
-
 // The board as HTML text. view: { tapMode, limit, now }.
 // Step S4 (profile layer): under ranks 'topN' the rows past N show "Not in top N" (the board still orders everyone);
 // a profile rubric adds its grid to each row; under a panel an over-grace row says to agree with the panel first.

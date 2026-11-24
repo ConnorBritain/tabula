@@ -16,7 +16,8 @@ import { rubricHtml } from './js/score-view.js';
 import { ranksStageHtml, cardHtml } from './js/review-screen.js';
 import { frameLine, frameHtml, overtimeNote, panelOf, makePanel, PANEL_OVERTIME_NOTE } from './js/round-frame.js';
 import { markCrossEntered, clearCrossEntered, crossNote } from './js/cross-entry.js';
-import { cxOn, cxLimit, askerOf, setAsker, setSchool, sameSchoolWarning, startCx, stopCx, cxUsed, phases, waitingLine } from './js/cross-ex.js';
+import { cxOn, cxLimit, askerOf, setAsker, setSchool, sameSchoolWarning, startCx, stopCx, cxUsed, phases } from './js/cross-ex.js';
+import { waitingLine } from './js/draw-gap.js';
 import { crossExHtml } from './js/cross-ex-view.js';
 import { digitOf, pressDigit, pressEnter } from './js/number-pick.js';
 import { keymap } from './js/keys.js';
@@ -338,4 +339,43 @@ test('the number picker claims its keys only when they do something', async () =
   p.run('pick1', 12); p.run('pick5', 12);
   assert.match(p.run('numEnter', 12).error, /No speaker at place 15/);
   assert.equal(p.run('startStop', 12).mine, false, 'other keys pass through');
+});
+
+// Why: the Rank and Rate screens both save a judge's taps through scoreClick and scoreInput; if this regresses, a tap
+// on a rating word, a − or +, or a rubric stepper saves nothing (or the wrong value) and the ballot goes out wrong.
+test('scoreClick and scoreInput save rating words, rating steps, rubric steps and typed values', async () => {
+  const { scoreClick, scoreInput, isScoreBox } = await import('./js/score-view.js');
+  const target = (dataset) => ({ dataset, value: dataset.value, closest: (sel) => (sel === '[data-rub]' ? (dataset.rub ? target(dataset) : null) : sel === '[data-ract]' ? (dataset.ract ? target(dataset) : null) : null) });
+  // Words: a second tap on the same word clears it.
+  const words = Object.assign(mk('oo', 'custom', 2), {});
+  words.profile = Object.assign({}, words.profile, { rating: { words: ['Superior', 'Excellent', 'Good'] } });
+  const id = words.entries[0].id;
+  let r = scoreClick(target({ ract: 'word', id, value: 'Excellent' }), words, 1);
+  assert.equal(r.room.entries[0].rating, 'Excellent');
+  assert.equal(r.focusKey, '');
+  r = scoreClick(target({ ract: 'word', id, value: 'Excellent' }), r.room, 2);
+  assert.equal(r.room.entries[0].rating, null, 'the same word again clears it');
+  // Points: − and + step inside the range and keep the focus on that button.
+  const pts = mk('hi', 'rate-only', 2);
+  const pid = pts.entries[1].id;
+  r = scoreClick(target({ ract: 'plus', id: pid }), pts, 1);
+  assert.equal(r.room.entries[1].rating, '6', 'an empty box starts 60% up the 1 to 10 range (1 + round(5.4)), as board.js stepRating does');
+  assert.equal(r.focusKey, 'plus-' + pid);
+  r = scoreClick(target({ ract: 'minus', id: pid }), withRating(pts, pid, '1', 1), 2);
+  assert.equal(r.room.entries[1].rating, '1', 'never under the minimum');
+  // Rubric steppers.
+  const rub = mk('dec', 'rubric-five', 1);
+  const rid = rub.entries[0].id;
+  r = scoreClick(target({ rub: 'minus', id: rid, crit: 'content' }), withRubric(rub, rid, 'content', 2, 1), 2);
+  assert.equal(r.room.entries[0].rubric.content, 1);
+  assert.equal(r.focusKey, 'rminus-' + rid + '-content');
+  // Other clicks are not score clicks: the Rank screen handles them itself.
+  assert.equal(scoreClick(target({ ract: 'up', id: pid }), pts, 1), null);
+  assert.equal(scoreClick(target({ ract: 'fix', id: pid }), pts, 1), null);
+  // Typing.
+  assert.equal(scoreInput(target({ ract: 'num', id: pid, value: ' 8 ' }), pts, 3).entries[1].rating, '8');
+  assert.equal(scoreInput(target({ rub: 'num', id: rid, crit: 'delivery', value: '4' }), rub, 3).entries[0].rubric.delivery, 4);
+  assert.equal(scoreInput(target({ value: 'x' }), pts, 3), null);
+  assert.equal(isScoreBox(target({ rub: 'num' })), true);
+  assert.equal(isScoreBox(target({ ract: 'up' })), false);
 });

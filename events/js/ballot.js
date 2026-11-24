@@ -48,7 +48,7 @@ export function ranksBlock(room) {
   return { rows, text, rated, ranked, rubric: rubric.length > 0 };
 }
 // One row's rubric scores in words: ['Content 4', 'Delivery –', ...] (ranksBlock, the print sheet, the Review table).
-export const rubricParts = (rub) => rub.scores.map((x) => x.label + ' ' + (x.value || '–'));
+const rubricParts = (rub) => rub.scores.map((x) => x.label + ' ' + (x.value || '–'));
 // The same with the total, on one line: "Content 4, Delivery 3 · 7 of 10".
 export const rubricLine = (rub) => rubricParts(rub).join(', ') + ' · ' + (rub.total || '–') + ' of ' + rub.max;
 
@@ -178,6 +178,6 @@ export function printModel(room, event, limit) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).ballot = Object.freeze({
-  overTime, entriesIn, ranksBlock, rubricParts, rubricLine, ranksProblems, critique, cards, checklist, hasRanksStage, statusText, markCopied, setComment, setReasonReview,
+  overTime, entriesIn, ranksBlock, rubricLine, ranksProblems, critique, cards, checklist, hasRanksStage, statusText, markCopied, setComment, setReasonReview,
   copyAllText, printModel,
 });

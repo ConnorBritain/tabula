@@ -7,6 +7,7 @@
 // The entries array is always in speaking order, and entry.order is always its place, 1 to N.
 
 import { entryName } from './piece.js';
+import { levelOf } from './round-frame.js';
 
 // The events turned on, in published.json order (setup-screen.js lists them in that order): F1a, public address
 // (LANDING.md §4.1 E4); F1b, interp (E9); F2, extemp with a drawn question (E10: usx, ix, com, mx); F3, impromptu with
@@ -117,7 +118,7 @@ export function createRoom(opts) {
     tournament: String(o.tournament || '').trim(),
     round: String(o.round || '').trim(),
     flight: String(o.flight || '').trim(),
-    level: o.level === 'elim' ? 'elim' : 'prelim',
+    level: levelOf(o),
     state: 'judging',
     current: entries.length ? entries[0].id : null,
     entries: renumber(entries),

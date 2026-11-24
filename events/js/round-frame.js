@@ -18,8 +18,7 @@ export const levelOf = (room) => (room && room.level === 'elim' ? 'elim' : 'prel
 // The panel of a round, cleaned ({ size, note }), or null for one judge or a damaged value.
 export function panelOf(room) {
   const p = room && room.panel;
-  if (!p || typeof p !== 'object' || !PANEL_SIZES.includes(p.size) || p.size === 1) return null;
-  return { size: p.size, note: String(p.note || '').trim().slice(0, PANEL_NOTE_MAX) };
+  return p && typeof p === 'object' && typeof p.size === 'number' ? makePanel(p.size, p.note) : null;
 }
 
 // The panel to store from the setup form: null for one judge. size: the picked number (text or number).
