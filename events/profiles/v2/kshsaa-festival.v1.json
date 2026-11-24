@@ -1,0 +1,22 @@
+{
+  "id": "kshsaa-festival",
+  "version": 1,
+  "name": "KSHSAA festival (Kansas)",
+  "ranks": "off",
+  "rating": {
+    "words": [
+      "Division I",
+      "Division II",
+      "Division III",
+      "Division IV"
+    ]
+  },
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 15,
+    "effect": "noTopRating"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "KSHSAA 2026-27 Debate, Speech and Drama Manual, pp. 35-39. Summarized in our own words; no rule text copied. Ratings only, Division I to IV. Past 15 s: no Division I rating. Not verified: the festival comment sheet."
+}

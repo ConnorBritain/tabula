@@ -1,0 +1,47 @@
+{
+  "id": "ncfca",
+  "version": 1,
+  "name": "NCFCA (platform and limited prep)",
+  "ranks": "all",
+  "rubric": [
+    {
+      "id": "content",
+      "label": "Content",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "organization",
+      "label": "Organization and citations",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "vocal",
+      "label": "Vocal delivery",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "physical",
+      "label": "Physical delivery",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "impact",
+      "label": "Impact",
+      "min": 1,
+      "max": 5
+    }
+  ],
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 15,
+    "effect": "flagOnly"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "NCFCA head judge timer instructions (Aug 29, 2026), event rules pages, judge prep page (Dec 2025), sample rubrics (Aug 2026), 2026-27 season. Summarized in our own words; no rule text copied. Tab software takes 2 ranks for more than 15 s over. The competitor runs the timer. Only the rank decides placing. Not verified: section size; ties."
+}

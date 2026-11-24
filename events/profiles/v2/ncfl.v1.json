@@ -1,0 +1,16 @@
+{
+  "id": "ncfl",
+  "version": 1,
+  "name": "NCFL Grand Nationals",
+  "ranks": "all",
+  "maxEntries": 7,
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "NCFL By-Laws for Grand Nationals 2026 (updated after the Fall 2025 meeting), Art. II §C-D; no 2026-27 edition is posted. Summarized in our own words; no rule text copied. Past 30 s grace: no rank 1. No judge gives a rank worse than 5. Not verified: the 2027 bylaws; whether a judge may tie."
+}
