@@ -61,7 +61,8 @@ History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) publishe
 
 ## School data (owner and lawyer, 2026-11-23)
 
-- Every school data agreement says: we delete a student's data within 45 days of the school's request (Georgia O.C.G.A. 20-2-666 sets 45 days; Florida sets 90 days after a student leaves). The shorter deadline applies everywhere.
+- Program data times (owner, 2026-11-23, after the 50-state check in `private/programs/legal/security/STATE-RETENTION-TABLE.md`; the lawyer must re-confirm): delete within 30 days of a school's request; 30 days after the agreement ends, with export before the end date; 120 days after season end; 90 days after the school tells us a student left; 14 days for an unclaimed ballot. These are stricter than Georgia (45 days) and Florida (90 days). They go live with update 8.
+- Breach notice to schools: a first notice within 24 hours of discovery, and a full notice within 72 hours of discovery. Consumer breach clocks in several states (for example New York, Maryland, Oregon, Florida, Alabama) also start at discovery, not confirmation. Privacy §15 ("within the time the law requires") still fits.
 - No ads, no profiling, no sale of student data, no use of student data to train AI. Each Hosted AI provider is bound by contract to the same rules.
 - Idaho and Indiana work through school contracts. Use the school's contract terms where they are stricter.
 
@@ -79,7 +80,7 @@ History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) publishe
 
 ## Wording fixes for the next legal update
 
-- **"Plans page" becomes "Pricing page".** The site nav and footer say "Pricing" (owner, pricing chat, 2026-11-23). The URL stays /plans/. In the Terms (§6.1 twice, "Payment"), the Refund Policy (§4) and the drafts of updates 4, 5B and 6, say "the Pricing page (tabulaspeech.com/plans/)" at first use, then "the Pricing page". This is a name change only. Tell the lawyer in the next email.
+- **"Plans page" becomes "Pricing page".** The site nav and footer say "Pricing" (owner, pricing chat, 2026-11-23). The URL moves to /pricing/ (tabula-sites PR 21; /plans/ redirects there). In the Terms (§6.1 twice, "Payment"), the Refund Policy (§4) and the drafts of updates 4, 5B and 6, say "the Pricing page (tabulaspeech.com/pricing/)" at first use, then "the Pricing page". This is a name change only. Tell the lawyer in the next email.
 
 ## Watch list
 

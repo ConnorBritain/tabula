@@ -98,7 +98,7 @@ Scope: the first send only (buyer to one other person). Later moves (give back, 
 - After: Purpose "Email delivery (sign-in, receipts, reminders and setup emails)"; Data "Email address, email content".
 - If update 4 goes live first, make this change there instead, because Camp Pass reminders also use Resend.
 
-**Name fix (L13).** If any text from this update names the Plans page, write "the Pricing page (tabulaspeech.com/plans/)".
+**Name fix (L13).** If any text from this update names the Plans page, write "the Pricing page (tabulaspeech.com/pricing/)".
 
 ## Words
 
