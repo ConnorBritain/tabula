@@ -409,6 +409,7 @@ a.pk-info { display: grid; place-items: center; align-self: center; margin-right
 .ballot-preview > .muted { margin: var(--s2) 0 var(--s3); font-size: var(--fs-2); }
 .preview-rank { font-family: var(--font-display); font-size: var(--fs-4); font-weight: var(--fw-4); }
 .review-note { margin: calc(-1 * var(--s2)) 0 var(--s4); font-size: var(--fs-2); }
+.review-summary .checklist { flex: 1 1 16rem; min-width: 0; }
 @media (max-width: 560px) {
   .pick-row { display: grid; width: 100%; grid-auto-columns: minmax(0, 1fr); }
   .pick { min-height: 44px; }
@@ -416,5 +417,6 @@ a.pk-info { display: grid; place-items: center; align-self: center; margin-right
   .rubric .rub-row .rate-err { grid-column: 1; }
   .rate-row:has(.rubric) { grid-template-columns: 1fr; }
   .rate-row .rubric { grid-column: 1; grid-row: auto; }
+  .rate-row .board-rate { grid-column: 1; } /* the 820 px rule puts .board-rate in column 2, which a Rate row has not got */
   .preview-head .b { margin-left: 0; }
 }
