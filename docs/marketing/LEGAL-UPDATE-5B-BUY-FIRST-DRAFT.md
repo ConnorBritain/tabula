@@ -22,7 +22,7 @@ Scope: the first send only (buyer to one other person). Later moves (give back, 
 ## Publish gate
 
 1. Update 6 (never expire) is live. If update 4 (Camp Pass) is live too, use the Camp variant in T6.
-2. The buy-first flow is live on the server and the site, including: the "I know this person" confirm; the accept screen, decline and the 14-day end of an unaccepted send; deletion of the recipient email when a send is accepted, declined or ends (including `mail_outbox` rows and per-recipient cap counters); the parent-or-guardian question and its consent record (P3); return of sent Rounds to the buyer when the holder's Account is deleted (T8); a started Camp Pass cannot be sent; the under-13 hold; the two sender controls from the lawyer's answer 9 (at most 3 different senders per receiving Account in 30 days, keyed on Account ids; and the receiver can decline or block a sender); the holder-first take-back with buyer-only shortfall; the California renewal consent on the Subscribe button ("Subscribe: renews yearly at $Y", with the bold renewal line, a confirmation email with cancel steps, and consent records kept at least 3 years).
+2. The buy-first flow is live on the server and the site, including: the "I know this person" confirm; the accept screen, decline and the 14-day end of an unaccepted send; deletion of the recipient email when a send is accepted, declined or ends (including `mail_outbox` rows and per-recipient cap counters); the parent-or-guardian question and its consent record (P3); return of sent Rounds to the buyer when the holder's Account is deleted (T8); a started Camp Pass cannot be sent; the under-13 hold; the two sender controls from the lawyer's answer 9 (at most 3 different senders per receiving Account in 30 days, keyed on Account ids; and the receiver can decline or block a sender); the Turnstile widget on the guest checkout form with TURNSTILE_SECRET_KEY set (P5 is true only then); the holder-first take-back with buyer-only shortfall; the California renewal consent on the Subscribe button ("Subscribe: renews yearly at $Y", with the bold renewal line, a confirmation email with cancel steps, and consent records kept at least 3 years).
 3. ~~The lawyer approves this draft 3.~~ **Done 2026-11-23:** the lawyer agreed with all proposed answers in `private/programs/legal/LAWYER-CONFIRM-SHEET.md` Part 4 (L1 to L13), reported by the owner (relayed from the Programs legal chat). His L7, L10 and L12 answers are in P1, P3 and P4 below.
 4. The owner types yes in the marketing chat.
 
@@ -97,6 +97,12 @@ Scope: the first send only (buyer to one other person). Later moves (give back, 
 - Before: Purpose "Sign-in email"; Data "Email address, sign-in link or code".
 - After: Purpose "Email delivery (sign-in, receipts, reminders and setup emails)"; Data "Email address, email content".
 - If update 4 goes live first, make this change there instead, because Camp Pass reminders also use Resend.
+
+**P5. Cookies and similar tools, and §10 (Turnstile on guest checkout only)**
+- The buy-first server checks Cloudflare Turnstile on guest checkout (tabula-cloud `src/billing/routes.ts`, guest gate). Update 9 removed the old sign-in Turnstile line, because sign-in has no Turnstile.
+- Add to the cookies list: "If you buy without signing in, the checkout form uses Cloudflare Turnstile to block automated abuse. Turnstile checks the browser for signs of a bot. It does not track you across sites."
+- §10 Cloudflare row, Purpose: add "bot protection on checkout without sign-in (Turnstile)".
+- If Turnstile is later added to sign-in too, say "sign-in and checkout forms".
 
 **Name fix (L13).** If any text from this update names the Plans page, write "the Pricing page (tabulaspeech.com/pricing/)".
 
