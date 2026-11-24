@@ -395,7 +395,7 @@ a.pk-info { display: grid; place-items: center; align-self: center; margin-right
 .rate-row:has(.rubric) { grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); align-items: start; }
 .rate-row .rubric { grid-column: 2; grid-row: 1 / span 3; margin-top: 0; }
 .board-line { grid-column: 1 / -1; margin-top: var(--s1); padding-top: var(--s1); font-size: var(--fs-1); color: var(--text-2); }
-.board-line.cut-line { border-top: 2px solid var(--text); color: var(--text); font-weight: var(--fw-3); }
+.board-line.cut-line { border-top: 1px solid var(--border-ctl); color: var(--text); font-weight: var(--fw-3); }
 .board-line.grace-line { border-top: 1px dashed var(--border-ctl); }
 .board-row.below-cut .board-rank { color: var(--text-3); font-weight: var(--fw-2); }
 .board-piece { font-size: var(--fs-2); color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
