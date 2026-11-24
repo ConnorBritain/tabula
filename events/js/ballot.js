@@ -129,7 +129,6 @@ export function copyAllText(room, event) {
   return parts.join('\n');
 }
 
-
 // The print sheet model for core/sheets.js printSheetHtml: facts, the ranks table, one text section per entry, and
 // the reason for rank. The private note and rule-check flags are never on it.
 export function printModel(room, event, limit) {
