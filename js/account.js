@@ -15,6 +15,9 @@ const COPY_OFFERED = 'tabula.paradigmCopyOffered.v1';
 let acctProfile = L.parseProfile(store.get(PROFILE_CACHE, null)); // null = signed out (or never signed in here)
 let acctDirty = false; // the Settings paradigm box has changes not saved yet
 let acctCheckedAt = 0;
+// True only after the account server said "signed out" (401). Offline, or on a page with no account server (the local
+// helper), it stays false, so no Sign in shows that could not work.
+let acctOut = false;
 
 // The paradigm the app judges by (the "My own paradigm" text): the account's when signed in, else this device's.
 function myParadigm() { return L.activeParadigm(acctProfile, S.customParadigm); }
@@ -42,11 +45,15 @@ async function refreshProfile() {
     out = L.profileOutcome(res.status, res.status === 200 ? await res.json().catch(() => null) : null);
   } catch { out = { state: 'unknown' }; } // offline: keep the cached profile
   if (out.state === 'unknown') return;
+  acctOut = out.state === 'out';
   applyProfile(out.state === 'in' ? out.profile : null);
   // Signed in: the AI gate for this round. The promise ends only after the capabilities answer (the welcome waits on it).
   if (out.state === 'in') { maybeOfferParadigmCopy(); await refreshCaps(R.programId); }
   else clearCaps(); // signed out: forget the record (AI-POLICY §6d)
 }
+
+// The server refused a call because the session ended (a 401 from hosted AI): show the way back in at once.
+function acctSignedOut() { acctOut = true; applyProfile(null); }
 
 // Saves the paradigm to the account. Returns '' when saved, else what to tell the judge.
 async function putParadigm(text) {
@@ -54,7 +61,7 @@ async function putParadigm(text) {
   let res;
   try { res = await fetch(req.url, { ...req.init, signal: AbortSignal.timeout(15000) }); }
   catch { return 'Not saved. Check your internet connection and try again. Your text stays here.'; }
-  if (res.status === 401) { applyProfile(null); return 'Not saved: you are signed out. Sign in again at tabulaspeech.com.'; }
+  if (res.status === 401) { acctSignedOut(); return 'Not saved: you are signed out. Use Sign in at the top to sign in again.'; }
   const out = L.profileOutcome(res.status, res.ok ? await res.json().catch(() => null) : null);
   if (out.state !== 'in') return res.status === 400 ? 'Not saved: the server did not accept this text.' : 'Not saved. The account server did not answer. Try again in a minute.';
   applyProfile(out.profile);
@@ -85,6 +92,12 @@ async function maybeOfferParadigmCopy() {
 function renderAccount() {
   const on = Boolean(acctProfile);
   $('#account-card').hidden = !on;
+  // Signed out (the server said so): the way in, in the top bar and in Settings. The app stays open with no sign-in
+  // wall (owner decision 2026-11-23); this is only the door for judges who bought rounds.
+  const signin = L.signinUrl(location.host);
+  $('#signin-link').hidden = on || !acctOut;
+  $('#signin-card').hidden = on || !acctOut;
+  $('#signin-link').href = signin;
   const custom = $('#paradigm-pick option[value="custom"]');
   if (custom) custom.textContent = on ? 'My own paradigm (from my Tabula account)' : 'My own paradigm (paste it in Decide → Analysis)';
   if (!on) return;
@@ -101,6 +114,7 @@ function renderAcctCount() {
   count.textContent = err || n.toLocaleString('en-US') + ' of ' + L.MAX_PARADIGM.toLocaleString('en-US') + ' characters';
   tone(count, err ? 'error' : 'quiet');
 }
+$('#signin-go').addEventListener('click', () => { location.href = $('#signin-link').href; }); // the same page as the top bar
 $('#acct-paradigm').addEventListener('input', () => { acctDirty = true; tone($('#acct-status'), 'quiet'); $('#acct-status').textContent = ''; renderAcctCount(); });
 $('#acct-save').addEventListener('click', async () => {
   const text = $('#acct-paradigm').value, status = $('#acct-status');

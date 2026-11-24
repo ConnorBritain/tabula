@@ -173,10 +173,10 @@ const useHosted = (f) => L.useHosted(capsGate, f, aiReady());
 const newCallId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2, 10));
 function hostedFail(info) {
   if (info.quiet) return STOPPED();
-  if (info.signOut) clearCaps(); // signed out: today's app (AI-POLICY §6d)
+  if (info.signOut) { clearCaps(); acctSignedOut(); } // signed out: today's app (AI-POLICY §6d), and the Sign in shows (js/account.js)
   if (info.link && !(info.fallback && aiReady())) {
     const { label, url } = info.link;
-    toast('Get more rounds on your Tabula account.', { key: 'hosted-link', action: { label, name: label + ' (opens a new tab)', run: () => window.open(url, '_blank', 'noopener') } });
+    toast(info.kind === 'signedOut' ? 'Sign in to use your Tabula rounds again.' : 'Get more rounds on your Tabula account.', { key: 'hosted-link', action: { label, name: label + ' (opens a new tab)', run: () => window.open(url, '_blank', 'noopener') } });
   }
   return Object.assign(new Error(info.text), { kind: 'hosted', hosted: info.kind, retryable: info.retryable, fallback: info.fallback, status: info.status });
 }
@@ -204,7 +204,7 @@ async function callHosted({ job, extra, signal, feature }) {
   }
   if (!res.ok) {
     const j = await res.json().catch(() => ({}));
-    const info = L.hostedError(res.status, j && j.error, L.accountUrl(location.host));
+    const info = L.hostedError(res.status, j && j.error, L.accountUrl(location.host), L.signinUrl(location.host));
     setHostedRound(L.roundAfterRefusal(hostedLimits && hostedLimits.round, info.roundState, j));
     throw hostedFail(Object.assign(info, { status: res.status }));
   }

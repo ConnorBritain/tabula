@@ -143,10 +143,12 @@ async function welcomeWhenKnown(settled) {
   const hostedPlan = L.hasHostedPlan(capsGate);
   $('#show-welcome').hidden = hostedPlan;
   if (hostedPlan && !S.setupDone) { S.setupDone = true; saveSettings(); }
-  if (L.shouldShowWelcome({ setupDone: S.setupDone, hostedPlan })) openWelcome();
+  if (L.shouldShowWelcome({ setupDone: S.setupDone, hostedPlan })) openWelcome(acctOut);
   else maybeD2Note();
 }
-async function openWelcome() {
+// signedOut: the account server said this judge is signed out (js/account.js acctOut). Then a second quiet line offers
+// Sign in to a judge who bought rounds (WELCOME-COPY.md §8). Offline or on the local helper it is not known, so no line.
+async function openWelcome(signedOut) {
   if (!showSetup()) return; // no own AI to set up (or already set up): no welcome
   // "Start judging" is the one primary button, alone and first. Under it is one quiet help line with a "Set it up" link,
   // the same on every host (spec 2.1, WELCOME-COPY.md §7). Settings explains the ways to get help.
@@ -154,10 +156,12 @@ async function openWelcome() {
     { label: 'Start judging', value: 'start', kind: 'primary' },
     { label: 'Set it up', value: 'setup', kind: 'link', desc: 'Want help with your flow and ballot?' },
   ];
+  if (signedOut === true) choices.push({ label: 'Sign in', value: 'signin', kind: 'link', desc: 'Bought rounds?' });
   // "Start judging", × and Esc all mean the same thing: one click to Flow. cancelValue is the one place that says so,
   // so v is only ever 'start' or 'setup'. A click on the dim layer does nothing.
   const v = await ask({ title: `Welcome to ${window.TabulaBrand.NAME}`, body: 'Your clock, flow and ballot are ready.', buttons: choices, variant: 'choices', backdrop: false, cancelValue: 'start' });
   if (v === 'start') return startJudging();
+  if (v === 'signin') { location.href = L.signinUrl(location.host); return; } // setupDone stays unset: a judge who does not finish sign-in still gets the welcome
   S.setupDone = true; saveSettings(); showTab('ai'); setTimeout(offerTour, 400);
   // The setup area is the first card on the AI tab (the key field and, on localhost, the subscription box). Focus on the
   // key field keeps the card's heading in view; an explicit scroll put the heading under the sticky top bar.
@@ -167,7 +171,7 @@ function startJudging() {
   S.setupDone = true; saveSettings();
   showTab('flow'); setTimeout(offerTour, 400);
 }
-$('#show-welcome').addEventListener('click', () => openWelcome());
+$('#show-welcome').addEventListener('click', () => openWelcome(acctOut));
 
 $('#chunk-sec').value = S.chunkSec; $('#live-flow').checked = S.liveFlow;
 $('#chunk-sec').addEventListener('change', (e) => { S.chunkSec = Math.max(4, Math.min(30, Number(e.target.value) || 8)); e.target.value = S.chunkSec; saveSettings(); setRecNote(''); });
