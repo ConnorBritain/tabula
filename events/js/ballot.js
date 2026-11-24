@@ -9,11 +9,12 @@
 // too. A speaker with no comment keeps the room open: a ballot with an empty comment is not finished.
 import { ballotComment } from './comments.js';
 import { present, entryOf } from './room.js';
-import { orderOf, ratingScale, checkBoard } from './rank.js';
-import { boardCtx, ranksOf, ratingsOf, isOverGrace } from './board.js';
+import { orderOf, ratingScale } from './rank.js';
+import { boardCtx, ranksOf, isOverGrace } from './board.js';
 import { clockText } from './timer.js';
 import { pieceLine } from './piece.js';
 import { questionOf } from './question.js';
+import { layerOf, layerProblems, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax } from './profile-layer.js';
 
 // "Over time" on the ranks line: the sticky over-grace flag (inside grace is still on time, ARCHITECTURE.md §6.2).
 export const overTime = isOverGrace;
@@ -26,15 +27,29 @@ export function entriesIn(room, order) {
   return orderOf(ranksOf(room), boardCtx(room)).map((id) => entryOf(room, id));
 }
 
-// Stage 1: one row per entry, in speaking order. Returns { rows: [{ id, code, rank, rating, overTime }], text }.
+// Stage 1: one row per entry, in speaking order. Returns { rows: [{ id, code, rank, rating, overTime, rubric }], text,
+// rated, ranked, rubric }.
+// Step S4 (profile layer, profile-layer.js): ranked is false under ranks 'off' and critiqueOnly (no Rank column);
+// under 'topN' a rank past N is '' and the copy text says "Not in top N"; a rubric adds each score and the total.
 export function ranksBlock(room) {
   const rated = ratingScale(room.profile).kind !== 'none';
-  const rows = present(room).map((e) => ({ id: e.id, code: e.code, rank: String(e.rank || ''), rating: ratingText(e), overTime: overTime(e) }));
-  const text = rows.map((r) => [r.code, 'Rank ' + (r.rank || '–'), rated ? 'Rating ' + (r.rating || '–') : '', 'Over time: ' + (r.overTime ? 'Yes' : 'No')].filter(Boolean).join('\t')).join('\n');
-  return { rows, text, rated };
+  const layer = layerOf(room.profile);
+  const ranked = !layer.critiqueOnly && layer.ranks !== 'off';
+  const rubric = layer.rubric;
+  const rows = present(room).map((e) => {
+    const s = rubricScores(e);
+    const total = rubricTotal(e, rubric);
+    return { id: e.id, code: e.code, rank: shownRank(e.rank, room.profile), rating: ratingText(e), overTime: overTime(e),
+      rubric: rubric.length ? { scores: rubric.map((c) => ({ label: c.label, value: s[c.id] == null ? '' : String(s[c.id]) })), total: total == null ? '' : String(total), max: rubricMax(rubric) } : null };
+  });
+  const rankWord = (r) => (r.rank ? 'Rank ' + r.rank : layer.ranks === 'topN' ? notRankedText(room.profile) : 'Rank –');
+  const rubricWords = (r) => (r.rubric ? r.rubric.scores.map((x) => x.label + ' ' + (x.value || '–')).concat(['Total ' + (r.rubric.total || '–') + ' of ' + r.rubric.max]).join('\t') : '');
+  const text = rows.map((r) => [r.code, ranked ? rankWord(r) : '', rated ? 'Rating ' + (r.rating || '–') : '', rubricWords(r), 'Over time: ' + (r.overTime ? 'Yes' : 'No')].filter(Boolean).join('\t')).join('\n');
+  return { rows, text, rated, ranked, rubric: rubric.length > 0 };
 }
-// Why the ranks cannot be copied yet: rank.js checkBoard's list ([] = they can).
-export const ranksProblems = (room) => checkBoard({ ranks: ranksOf(room), ratings: ratingsOf(room) }, boardCtx(room));
+// Why the ranks cannot be copied yet ([] = they can): rank.js checkBoard's list, or the Rate checks under ranks 'off',
+// or nothing under critiqueOnly (profile-layer.js layerProblems).
+export const ranksProblems = (room) => layerProblems(room);
 
 // The critique helper under each comment (N11, DESIGN.md §4.4): three quiet checks in words that tick themselves
 // from simple text checks. No score, and it never blocks copying. The word lists are a starting guess.
@@ -50,32 +65,47 @@ export function critique(text) {
   ];
 }
 
-// Stage 2: one card per entry. Returns [{ id, code, name, piece, rank, rating, comment, copied, critique, question }].
+// Stage 2: one card per entry. Returns [{ id, code, name, piece, rank, rating, comment, copied, critique, question, ranked }].
+// ranked (step S4): false when the round has no ranks (ranks 'off' or critiqueOnly), so the card says nothing of a rank.
 // name: the entry's name ("First & Second" for a Duo, step E9); piece: "“Title” by Author" ('' when not typed).
 // question: the drawn question (step E10, extemp events), '' when there is none. It is not part of the comment.
 export function cards(room, order) {
+  const ranked = !layerOf(room.profile).critiqueOnly && layerOf(room.profile).ranks !== 'off';
   return entriesIn(room, order).map((e) => {
     const comment = ballotComment(e);
-    return { id: e.id, code: e.code, name: e.name || '', piece: pieceLine(e), rank: String(e.rank || ''), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment), question: questionOf(e) };
+    return { id: e.id, code: e.code, name: e.name || '', piece: pieceLine(e), rank: shownRank(e.rank, room.profile), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment), question: questionOf(e), ranked };
   });
 }
 
 // The checklist at the top, in words (DESIGN.md §4.7).
+// Step S4: under ranks 'off' the first line counts the rated entries; under critiqueOnly there is no ranks line and no
+// reason-for-rank line (nothing is ranked).
 export function checklist(room) {
   const list = present(room);
   const n = list.length;
-  const ranked = list.filter((e) => e.rank).length;
+  const layer = layerOf(room.profile);
   const commented = list.filter((e) => ballotComment(e).trim()).length;
-  return [
-    { label: ranked + ' of ' + n + ' ranked', ok: ranked === n },
-    { label: commented + ' of ' + n + ' comments', ok: commented === n },
-    { label: 'Reason for rank written', ok: Boolean(String(room.reasonForRank || '').trim()) },
-  ];
+  const comments = { label: commented + ' of ' + n + ' comments', ok: commented === n };
+  if (layer.critiqueOnly) return [comments];
+  let first;
+  if (layer.ranks === 'off') {
+    const rated = ratingScale(room.profile).kind !== 'none';
+    const done = list.filter((e) => (!rated || ratingText(e) !== '') && layer.rubric.every((c) => String(rubricScores(e)[c.id] ?? '') !== '')).length;
+    first = { label: done + ' of ' + n + ' rated', ok: done === n };
+  } else {
+    const ranked = list.filter((e) => e.rank).length;
+    first = { label: ranked + ' of ' + n + ' ranked', ok: ranked === n };
+  }
+  return [first, comments, { label: layer.ranks === 'off' ? 'Notes for the room written' : 'Reason for rank written', ok: Boolean(String(room.reasonForRank || '').trim()) }];
 }
+
+// Does this round copy ranks at all? Not under critiqueOnly (step S4): its ballot is comments only.
+export const hasRanksStage = (room) => !layerOf(room.profile).critiqueOnly;
 
 // The room's status line on the Review screen.
 export function statusText(room) {
   if (room.state === 'done') return 'Copied';
+  if (!hasRanksStage(room)) return 'Comments open';
   if (room.ranksCopiedAt) return 'Ranks sent, comments open';
   return 'Ranks not sent';
 }
@@ -88,8 +118,9 @@ export function markCopied(room, what, now) {
   else r.entries = room.entries.map((e) => (e.id === what ? Object.assign({}, e, { commentCopiedAt: now }) : e));
   const allComments = present(r).every((e) => e.commentCopiedAt && ballotComment(e).trim());
   const reasonDone = Boolean(r.reasonCopiedAt) || !String(r.reasonForRank || '').trim();
-  if (r.ranksCopiedAt && allComments && reasonDone) { r.state = 'done'; r.copiedAt = r.copiedAt || now; }
-  else if (r.ranksCopiedAt) r.state = 'review';
+  const ranksDone = Boolean(r.ranksCopiedAt) || !hasRanksStage(r); // critiqueOnly: there are no ranks to copy
+  if (ranksDone && allComments && reasonDone) { r.state = 'done'; r.copiedAt = r.copiedAt || now; }
+  else if (ranksDone) r.state = 'review';
   return r;
 }
 
@@ -110,7 +141,8 @@ export function setReasonReview(room, text, now) {
 // "Copy all": one block for paper or email: the ranks, then each comment, then the reason for rank.
 export function copyAllText(room, event) {
   const head = [event ? event.name : 'Custom event', room.round, room.tournament].filter(Boolean).join(' · ');
-  const parts = [head, '', 'Ranks', ranksBlock(room).text];
+  const block = ranksBlock(room);
+  const parts = [head].concat(hasRanksStage(room) ? ['', block.ranked ? 'Ranks' : 'Ratings', block.text] : []);
   for (const c of cards(room, 'speaking')) parts.push('', c.code + (c.rank ? ' (rank ' + c.rank + ')' : ''), ...(c.question ? ['Question: ' + c.question] : []), c.comment || '(no comment)');
   if (String(room.reasonForRank || '').trim()) parts.push('', 'Reason for rank', room.reasonForRank.trim());
   return parts.join('\n');
@@ -119,26 +151,28 @@ export function copyAllText(room, event) {
 // The print sheet model for core/sheets.js printSheetHtml: facts, the ranks table, one text section per entry, and
 // the reason for rank. The private note and rule-check flags are never on it.
 export function printModel(room, event, limit) {
-  const { rows, rated } = ranksBlock(room);
-  const head = [{ text: 'Code' }, { text: 'Rank' }].concat(rated ? [{ text: 'Rating' }] : [], [{ text: 'Time' }, { text: 'Over time' }]);
+  const { rows, rated, ranked, rubric } = ranksBlock(room);
+  const head = [{ text: 'Code' }].concat(ranked ? [{ text: 'Rank' }] : [], rated ? [{ text: 'Rating' }] : [], rubric ? [{ text: 'Rubric' }] : [], [{ text: 'Time' }, { text: 'Over time' }]);
   const tableRows = rows.map((r) => {
     const e = entryOf(room, r.id);
     // The time used; on a prep event (step E11) prep and speech together, against the shared limit. Like the speech
     // time here since E8, it is the stopped time (a print has no clock); prep.js totalUsedAt is the live total.
     const used = Math.round((((e.timing && e.timing.usedMs) || 0) + ((e.timing && e.timing.prepMs) || 0)) / 1000);
-    return [{ text: r.code }, { text: r.rank || '–' }].concat(rated ? [{ text: r.rating || '–' }] : [], [{ text: used ? clockText(used) : '–' }, { text: r.overTime ? 'Yes' : 'No' }]);
+    return [{ text: r.code }].concat(ranked ? [{ text: r.rank || '–' }] : [], rated ? [{ text: r.rating || '–' }] : [],
+      rubric ? [{ text: r.rubric.scores.map((x) => x.label + ' ' + (x.value || '–')).join(', ') + ' · ' + (r.rubric.total || '–') + ' of ' + r.rubric.max }] : [],
+      [{ text: used ? clockText(used) : '–' }, { text: r.overTime ? 'Yes' : 'No' }]);
   });
   const facts = [['Event', event ? event.name : 'Custom event'], ['Round', room.round], ['Flight', room.flight], ['Tournament', room.tournament], ['Time limit', limit ? clockText(limit) : ''], ['Rules', room.profile && room.profile.name]].filter(([, v]) => v);
   return {
     title: 'Ballot · ' + [event ? event.short : 'Custom', room.round].filter(Boolean).join(' · '),
     landscape: false,
-    sections: [{ kind: 'facts', items: facts }, { kind: 'table', title: 'Ranks', head, rows: tableRows }]
+    sections: [{ kind: 'facts', items: facts }].concat(hasRanksStage(room) ? [{ kind: 'table', title: ranked ? 'Ranks' : 'Ratings', head, rows: tableRows }] : [])
       .concat(cards(room, 'speaking').map((c) => ({ kind: 'text', title: [c.code + (c.rank ? ' · rank ' + c.rank : ''), c.piece].filter(Boolean).join(' · '), cls: 'ps-entry', text: (c.question ? 'Question: ' + c.question + '\n\n' : '') + c.comment })))
       .concat([{ kind: 'text', title: 'Reason for rank', cls: 'ps-reason', text: room.reasonForRank || '' }]),
   };
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).ballot = Object.freeze({
-  overTime, entriesIn, ranksBlock, ranksProblems, critique, cards, checklist, statusText, markCopied, setComment, setReasonReview,
+  overTime, entriesIn, ranksBlock, ranksProblems, critique, cards, checklist, hasRanksStage, statusText, markCopied, setComment, setReasonReview,
   copyAllText, printModel,
 });

@@ -1,13 +1,20 @@
 // Speech Events step S2 (docs/events/EXPERIENCE.md §1.1, §7, §8.5): the device settings and the backup file. Pure: no
 // DOM, no storage, no clock. settings-screen.js draws the Settings screen; app.js saves.
 //
+// Step S4 adds drawGapMin, the F2 draw gap (7 or 10 minutes; cross-ex.js DRAW_GAPS).
 // Deferred to later steps (EXPERIENCE.md §11.1), so not here yet: the league pack and default profile, the defaults
-// for each type (signals, grace), the F2 draw gap (S4), the Congress scale defaults (S6), and Shared device (S8).
+// for each type (signals, grace), the Congress scale defaults (S6), and Shared device (S8).
 // Step S3 adds ranksDueMin (1 to 60 minutes) and recentEvents (up to 5 public event ids, for the picker).
+// Step S4 adds drawGapMin (the F2 draw gap, 7 or 10 minutes).
 import { buildBackup, parseBackup } from '../../core/store.js';
 import { PREFIX, ROOMS_KEY, SETTINGS_KEY, DAYS_KEY, CARDS_KEY } from './store.js';
 import { KEYS_KEY } from './ai-key.js';
 import { migrateRooms, migrateSettings, migrateDays, migrateCards, RANKS_DUE_DEFAULT } from './migrate.js';
+
+// The F2 draw gaps in minutes (step S4, EXPERIENCE.md §3: 7 or 10, not confirmed, so the judge picks) and the gap of a
+// settings record (an unknown value reads as the first, the migration default).
+export const DRAW_GAPS = Object.freeze([7, 10]);
+export const drawGapOf = (settings) => (settings && DRAW_GAPS.includes(settings.drawGapMin) ? settings.drawGapMin : DRAW_GAPS[0]);
 
 // The app name in a backup file. A file with another name (a Tabula Debate backup) is refused.
 export const BACKUP_APP = 'tabula-events';
@@ -58,7 +65,8 @@ export function withSetting(settings, key, value) {
   if (key === 'showModeMenu' && typeof value !== 'boolean') return s;
   if (key === 'ranksDueMin' && !validRanksDue(value)) return s;
   if (key === 'recentEvents' && !(Array.isArray(value) && value.length <= RECENT_MAX && value.every((x) => typeof x === 'string' && /^[a-z0-9-]{1,20}$/.test(x)))) return s;
-  if (!['mode', 'theme', 'showModeMenu', 'ranksDueMin', 'recentEvents'].includes(key)) return s;
+  if (key === 'drawGapMin' && !DRAW_GAPS.includes(value)) return s;
+  if (!['mode', 'theme', 'showModeMenu', 'ranksDueMin', 'recentEvents', 'drawGapMin'].includes(key)) return s;
   return Object.assign({}, s, { [key]: Array.isArray(value) ? value.slice() : value });
 }
 
@@ -118,5 +126,5 @@ export function restoreItems(current, backup) {
   return items;
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ BACKUP_APP, MODES, THEMES, RANKS_DUE_MAX, RECENT_MAX, validRanksDue, ranksDueMinOf, withRecentEvent, modeMenuShown, withSetting,
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ BACKUP_APP, MODES, THEMES, RANKS_DUE_MAX, RECENT_MAX, DRAW_GAPS, drawGapOf, validRanksDue, ranksDueMinOf, withRecentEvent, modeMenuShown, withSetting,
   makeBackup, backupName, readBackup, restoreItems });

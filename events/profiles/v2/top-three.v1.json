@@ -1,0 +1,17 @@
+{
+  "id": "top-three",
+  "version": 1,
+  "name": "Rank the top 3 only",
+  "group": "shape",
+  "ranks": "topN",
+  "topN": 3,
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "Tabula preset (EXPERIENCE.md §2.4, §8.5), 2026-27 season. Not a league rule; not verified against any league. The judge picks it when the tab room asks for this ballot shape."
+}
