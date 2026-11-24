@@ -12,12 +12,12 @@ The owner asked for a pass over every event and every screen, with Mobbin, to ad
 4. The owner decisions, at most 2 options each, with a pick (§4).
 5. Bugs found on the way, for the events owner (§5).
 
-Rules that this plan keeps (no option breaks them):
+Rules that this plan keeps (no option breaks them, except OD3, which needs a change to DESIGN.md §3 and BRAND.md §7 and is marked so):
 
 - Calm grey chrome. Color only for data and status. A word always goes with a color (`docs/events/DESIGN.md` §1).
 - No stripes and no underline tabs (`docs/design/NO-STRIPES.md`). A data bar is a full bordered track, never a one-sided accent.
 - Brand colors are locked (memory `brand-color-families`): cool grey container, Speech Events green `#1e7a55` / `#5ec796`, no cream.
-- Already decided on 2026-11-23, not asked again here: **D2 = A** (signal track under the timer digits) and **D3 = A** (mini time track on each roster and rank row), from `docs/design/EVENTS-VISUAL-DEPTH.md` (branch `claude/awesome-cori-679017`). This plan places them in the ranked list and joins them with the other moves.
+- Already decided on 2026-11-23, not asked again here: **D2 = A** (signal track under the timer digits) and **D3 = A** (mini time track on each roster and rank row), from `docs/design/EVENTS-VISUAL-DEPTH.md` (branch `claude/awesome-cori-679017`). That file is only on that branch. In short: D2-A is one horizontal data bar under the digits (speech segment neutral, grace segment caution tint, over segment error tint, ticks at the event's signal points, a "now" dot); D3-A is the same track at small size on each roster and rank row, with the final time marked and the pill in words. This plan places them in the ranked list and joins them with the other moves.
 - Mobbin: take layout and behavior only, never another brand's look. Links need a signed-in Mobbin account.
 
 ## 1. Method
@@ -52,7 +52,7 @@ Shots: [myday-laptop-dark](events-review/myday-laptop-dark.jpg), [myday-phone-da
 What is wrong today:
 
 - Every card has the same weight. With 8 rounds, "Now 8" is a wall of equal cards. The judge cannot see which round is next.
-- Each card has 4 buttons in a row (Open, I submitted in Tabroom, Change room, Cancel round). "Cancel round" sits next to "Open" at the same weight. It is easy to tap by mistake on a phone. *(Seen on every card in the shot.)*
+- Each card has 4 buttons in a row (Open, I submitted in Tabroom, Change room, Cancel round). Change room and Cancel round are already quiet text buttons, but "Cancel round" still sits in the same row as "Open". It is easy to tap by mistake on a phone. *(Seen on every card in the shot.)*
 - "Room Room 214": the app adds "Room " in front of a label that the judge typed as "Room 214" (`myday-screen.js` line 34).
 - "Ranks due in 1:39" is bold monospace. It looks like code, and "1:39" can read as 1 hour 39 or 1 minute 39.
 - The event pill ("HI") is the only thing that tells two cards apart. Round number and flight are small.
@@ -60,7 +60,7 @@ What is wrong today:
 Change:
 
 1. **An "Up next" card** at the top: the round that is judging now, or else the next not-started round. Bigger title ("HI · Round 2 · Flight A"), room, the roster count ("2 of 6 done") and one primary button ("Open" or "Continue"). Other cards become compact rows (pill, round, room, one status pill).
-2. **Move rare actions into a "⋯" menu** on each card: Change room, Cancel round. Keep "Open" and "I submitted in Tabroom" visible only where they apply (the second only after ranks are copied).
+2. **Move rare actions into a "⋯" menu** on each card: Change room, Cancel round. Keep "Open" and "I submitted in Tabroom" visible, with today's rule for the second (`myday-screen.js` shows it while judging and after ranks are in). No behavior change.
 3. **Ranks due as a status pill in words**: "Ranks due in 2 min", turning to the `--caution` pill at 2 minutes and `--error` pill after the time ("Ranks 3 min late"). Same font as the rest.
 4. Show "Room 214" as typed. Add "Room" only when the label is a bare number.
 
@@ -139,6 +139,10 @@ Change:
 
 1. **Fix the phone overflow** (chip rows wrap or scroll inside their own row; text areas `max-width: 100%`).
 2. **Sticky compact timer on phone and narrow laptop.** When the big timer card scrolls out of view, a slim bar pins to the top: stage word, time, a thin signal track, and Start/Stop. It uses the same fill as the card (grace = caution tint, over = error tint). Owner decision OD1.
+   - Acceptance rule: the bar is a second render of the state `timer-view.js` already has. It draws from `timerFace()` and its buttons send the same `data-tact` actions. It adds no driver, no tick, no key binding (Space stays the one `startStop` entry in `keys.js`) and no timing code.
+   - IMP: the bar's button follows the current phase (prep or speech), the same as the big card's button.
+   - Speaker view (DESIGN.md §4.2) is a different thing: it is full screen, for the speaker, with no controls. The bar is for the judge, in the page, with one control.
+   - Test cases: F1, IMP (prep then speech), PCC (Pro then Con).
 3. **Piece fields collapse to one line** once filled: "Office Hours · K. Wu · Edit". Empty fields stay open, but sit under the timer, not above it.
 4. **Signal track under the digits** (D2-A, decided): speech segment, grace segment (caution tint), over segment (error tint), ticks at the event's signal points with short labels, a "now" dot.
 5. **Mini time track on each roster row** (D3-A, decided): the speaker's final time on the same track shape, plus the existing pill in words. Over-grace rows show "Done · Over grace".
@@ -165,7 +169,7 @@ What is wrong today:
 
 Change:
 
-1. Question field directly under the speaker code, above the timer. Once filled, it shows as a quote line. Roster rows show the first words of the question under the name.
+1. Question field directly under the speaker code, above the timer. Once filled, it shows as a quote line. Roster rows show the first words of the question under the name, through `question.js` `questionOf` and the same short-text helper as §2.8.
 2. Elim facts as a row of pills: `Elim` `Panel of 3`, and one line under them: "Agree on overtime with the panel before you flag."
 3. Cross-ex block stays closed until the speech stops ("Next: Cross-ex" then opens it), using the phase bar.
 
@@ -185,7 +189,7 @@ What is wrong today:
 
 Change:
 
-1. The D2 signal track starts with a prep segment. When "Speech" starts, the prep part freezes and gets a label ("Prep 2:10"). This merges the prep pills and the phase bar into one control (as EVENTS-VISUAL-DEPTH.md §8 move 1 says).
+1. The D2 signal track starts with a prep segment (see the track ownership rule under §2.7). When "Speech" starts, the prep part freezes and gets a label ("Prep 2:10"). This merges the prep pills and the phase bar into one control (as EVENTS-VISUAL-DEPTH.md §8 move 1 says).
 2. Topic as a quote line under the code, like the extemp question.
 
 Mobbin: same phase-bar and track references as 2.4 and 2.5.
@@ -205,6 +209,8 @@ Change:
 
 1. One control: the D2 track with two segments, "Pro" and "Con", on one 10:30 limit. Run cards below keep the split times. Remove the pills; keep the "Next" line as the label under the track.
 2. Topic field collapses to a one-line input with a short placeholder ("The student's topic"); the long help text goes into the Guide.
+
+**Track ownership (applies to 2.4 to 2.7 and the 2.5 cross-ex).** One model, one renderer. The phases stay in the model that `phase-bar.js` already reads (`phases`, `current`). The track is one new pure view module (for example `signal-track.js`) that `timer-view.js` calls; it reads that model plus `signalPoints()`. When the track ships, it replaces the pill renderer in `phase-bar.js` for IMP, PCC and the F2 cross-ex, so there are never two phase controls on one screen. No logic goes into `room-screen.js`.
 
 Mobbin: Runna run cards (EXPERIENCE.md §10): https://mobbin.com/screens/ea07706a-2073-44c7-8672-f939616ec99d
 
@@ -229,7 +235,7 @@ Change:
 1. **A labelled cut line** under rank N: "Top 3 get a rank. The rest are not ranked on the ballot." Remove the per-row "Not in top 3" pill.
 2. When any entry is over grace, a quiet labelled line under rank 1: "Rank 1 needs a speaker inside grace." (EVENTS-VISUAL-DEPTH.md §8 move 3.)
 3. D3 mini track on each row.
-4. One line of the judge's comment (the first sentence, grey) under the name, and the piece title for F1. Tap opens the full comment in a sheet.
+4. One line of the judge's comment (the first sentence, grey) under the name, and the piece title for F1. Tap opens the full comment in a sheet. The first-sentence cut lives in one pure helper (next to `comments.js`), used by the rank rows and the roster; the screens do not copy it.
 
 Mobbin:
 - Duolingo "Promotion zone" labelled divider in a ranked list: https://mobbin.com/screens/5966689f-bae2-476e-8afd-57402080775b
@@ -251,8 +257,8 @@ What is wrong today:
 
 Change:
 
-1. **Short scales (up to 10 points): a row of number buttons**, chosen one filled solid `--text`. Words at the ends where the profile gives them. Wide ranges keep the stepper.
-2. **Rubric as a compact grid**: one row per criterion, the button row on the right, the speaker's code, name and time in a sticky left column. Total live as "16 of 25 so far (4 of 5 parts)".
+1. **Short scales (1 to 5, or word scales, as DESIGN.md §4.6 says): a row of buttons**, chosen one filled solid `--text`. Words at the ends where the profile gives them. Wide ranges keep the stepper. The change lives in `score-view.js` only, which already has word buttons and the stepper.
+2. **Rubric as a compact grid**: one row per criterion, the button row on the right, the speaker's code, name and time in a column on the left (on a phone, above the grid). Total live as "16 of 25 so far (4 of 5 parts)".
 3. Say which parts count in the total, from the profile.
 
 Mobbin:
@@ -346,12 +352,12 @@ Shots: [chamber-list-laptop-dark](events-review/chamber-list-laptop-dark.jpg), [
 What is wrong today:
 
 - On "New Congress chamber", the House and Senate radios sit above their labels, not beside them. "Role" has a label but no control; the next line reads "Scorer(parliamentarian tools come later)" with no space.
-- Congress is reached only from the palette (S6 hand-over note). My day and the picker do not link it.
+- The picker already has a Congress section that links to a new chamber (`picker-screen.js`). A Congress path from My day was not checked in this pass.
 
 Change:
 
 1. Use a two-option segmented control for House / Senate. Show Role as a fixed line: "Role: Scorer (parliamentarian tools come later)".
-2. Add Congress to the picker's family list and to My day "Start a round" (S6 follow-up, owner of S3 files).
+2. Check that My day reaches Congress; add a path if it does not.
 
 The session screens (log, PO hours, rank, review) were not shot: the chamber needs a paste and a docket through its own form, and the local server stalled first. A follow-up pass should cover them.
 
@@ -372,7 +378,7 @@ Ranked by value to a judge at a tournament, then by effort. "Decided" means the 
 | 7 | **Review as a ballot preview**; one copy toolbar; comments-only hides rank parts | Review | The step the tab room waits on; fewer wrong copies | S | Low |
 | 8 | **Extemp and impromptu: question or topic as a quote line on top and in the roster**; elim facts as pills; cross-ex opens after the speech | Room F2, F3 | The question is what extemp judges compare at rank time | S | Med |
 | 9 | **Setup: live preview beside the paste**, fix the Event field overlap, rare fields under a disclosure | New room | Faster, safer setup; shows parse mistakes before the round starts | M | Low |
-| 10 | **Paper cuts**: palette grouping, History row menu and pills, picker "Guide" button and chips, Congress setup layout and links | Palette, History, Picker, Congress | Each is small; together they remove the "unfinished" feel | S | Low |
+| 10 | **Paper cuts**: palette grouping, History row menu and pills, picker "Guide" button and chips, Congress setup layout | Palette, History, Picker, Congress | Each is small; together they remove the "unfinished" feel | S | Low |
 
 Suggested build order: 1 (overflow fix first, as a bug), then 5, 6, 7 and 10 as one small step (all S, low risk), then 2 and 3 together (they share the track code and its tests), then 4, 8, 9.
 
@@ -394,12 +400,14 @@ Pick **A**. It keeps every part of the room where it is and adds one control tha
 
 Pick **A**. With 3 flights and 2 events, B still leaves a wall of 6 equal cards. A answers "which room now?" at a glance.
 
-### OD3. The Speech Events mark in the app header
+### OD3. The Speech Events mark in the app header (a brand rule change)
+
+This decision changes a stated rule. DESIGN.md §3 and BRAND.md §7 say the brand tints stay in the mark, logo, icon and marketing, and that no product color is used for app chrome. Option A puts the mark in the app header. If the owner picks A, both files need an edit first.
 
 - **A. The green Speech Events mark next to "Tabula Speech Events" in the header, and nowhere else in the chrome (recommended).** It uses the locked green (`brand-color-families`) as a mark only. Buttons, menus and pills stay grey (DESIGN.md §1, §3).
 - B. Keep the text-only header (or a grey mark).
 
-Pick **A**. It is the cheapest visual lift in the app, it matches the Debate header which shows its own mark, and it does not break the "no brand color for meaning" rule, because the mark carries no state. Note: DESIGN.md §3 says the brand tints stay "in the mark"; A follows that. If the owner picks A, the events owner updates DESIGN.md §3 to say the mark appears in the header.
+Pick **A**. It is the cheapest visual lift in the app, it matches the Debate header which shows its own mark, and the mark carries no state, so color still never carries meaning. Cost: an edit to DESIGN.md §3 and BRAND.md §7 to allow the mark in the header and nowhere else in the chrome.
 
 ## 5. Bugs and spec gaps found on the way (for the events owner)
 
@@ -413,7 +421,7 @@ These are not design choices. Each needs a fix and a test with a WHY header.
 6. **Comments-only review** still shows the Ranks section, the "Rank order" toggle and the "Says why this rank" check.
 7. **Congress setup layout**: radio buttons above their labels; "Role" with no control; missing space in "Scorer(parliamentarian".
 8. **Critique check** leaves "Names one thing to work on" open for a "Make the … clearer" sentence (still open from EVENTS-VISUAL-DEPTH.md §3).
-9. To check, not confirmed as a bug: on My day, the OO round with `state: 'done'` (copied) showed "Judging" in "Now". The seed set the card status by hand, so this may be the seed. Check `cardStatus(card, round)` with a copied round.
+9. To check, not confirmed as a bug: on My day, the OO round with `state: 'done'` (copied) showed "Judging" in "Now". The seed set the card status by hand, so this may be the seed. Write a failing test first: `cardStatus(card, round)` (`cards.js` line 102) with a copied round and a card that says `judging`.
 
 ## 6. Not covered in this pass
 
