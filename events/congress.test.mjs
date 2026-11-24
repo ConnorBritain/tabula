@@ -17,7 +17,7 @@ import { loadWorkspace } from './js/workspaces.js';
 import { CONGRESS_KEY, migrateCongress, congressIO, withChamber, withSession, findSession, chamberSessions } from './congress/store.js';
 import { CONGRESS_PROFILES, congressProfile, SCALE_CHOICES, ranksOnly } from './congress/profiles.js';
 import { setupChecks, createChamber, newSession, markDebated, setStatus, docketLines } from './congress/chamber.js';
-import { nextDefaults, startSpeech, updateSpeech, startQuestions, endSpeech, timerView, questionMsFor, countedPoints, needsReason, legislatorLines, removeSpeech } from './congress/speech.js';
+import { refusesAction, POINTS_ACTIONS, nextDefaults, startSpeech, updateSpeech, startQuestions, endSpeech, timerView, questionMsFor, countedPoints, needsReason, legislatorLines, removeSpeech } from './congress/speech.js';
 import { startTerm, endTerm, hoursDue, setHourScore, poLockLine, HOUR_MS } from './congress/po.js';
 import { rankPool, toggleRank, placeRank, rankModel } from './congress/rank.js';
 import { reviewBlocks, rankProblems } from './congress/review.js';
@@ -328,7 +328,8 @@ test('the congress workspace has the contract, the stages log, rank, review, and
   }
 });
 
-// Why: every profile needs a valid scale and PO rule; a broken profile would crash setup at the tournament.
+// Why: every profile needs a valid scale and PO rule (or, for ranks only, none at all, so no points UI appears); a
+// broken profile would crash setup at the tournament.
 test('each Congress profile has whole-number scales, a known PO rule and rank pool, and a source', () => {
   for (const p of CONGRESS_PROFILES) {
     // Ranks-only profiles (NCFL, CHSSA) have no scale and no PO rule; every other profile keeps the full check.
@@ -426,4 +427,14 @@ test('the NCFL and CHSSA profiles are ranks only: no points, no PO prompt, and t
   assert.deepEqual(rankProblems(c, s, 3 * HOUR_MS), []);
   assert.doesNotMatch(reviewBlocks(c, s)[0].text, /point/);
   assert.doesNotMatch(rankHtml(c, s, 3 * HOUR_MS), /points/);
+});
+
+// Why: in a ranks-only chamber a stray click or key that stored points would put a score on a ballot that has none;
+// the log must refuse every points action there, and keep them in a points chamber.
+test('a ranks-only chamber refuses every points action; a points chamber allows them', () => {
+  for (const act of POINTS_ACTIONS) {
+    assert.equal(refusesAction(congressProfile('ncfl'), act), true, act);
+    assert.equal(refusesAction(DIST, act), false, act);
+  }
+  for (const act of ['pick', 'end', 'rank', 'comment', 'po-start']) assert.equal(refusesAction(congressProfile('chssa'), act), false, act);
 });

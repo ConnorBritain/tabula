@@ -38,7 +38,7 @@ export function setupHtml(prefs) {
       <fieldset class="field cg-house"><legend>Chamber</legend><label><input type="radio" name="cg-house" value="house" checked> House</label> <label><input type="radio" name="cg-house" value="senate"> Senate</label></fieldset>
       <div class="field"><span>Role</span><p class="cg-static">Scorer <span class="muted">(parliamentarian tools come later)</span></p></div>
       <label class="field"><span>Rules</span><select id="cg-profile">${prOpts}</select></label>
-      <label class="field"><span>Points scale</span><select id="cg-scale">${scOpts}</select></label>
+      <label class="field" id="cg-scale-field"><span>Points scale</span><select id="cg-scale">${scOpts}</select></label>
       <p class="field-help wide" id="cg-profile-note"></p>
       <label class="field wide"><span>Chamber list <span class="muted">(paste from Tabroom, or one code for each line)</span></span><textarea id="cg-paste" rows="8" spellcheck="false"></textarea></label>
       <label class="field wide"><span>Docket <span class="muted">(one bill or resolution for each line, in agenda order)</span></span><textarea id="cg-docket" rows="5"></textarea></label>
@@ -53,7 +53,7 @@ export function profileNote(profile, scale) {
   const s = scale || profile.scale;
   const po = profile.poRule === 'none' ? 'The PO gets no points.' : profile.poRule === 'parliScores' ? 'The parliamentarian scores the PO.' : 'PO: ' + scaleText(profile.poScale) + ' for each full hour.';
   const open = unverifiedWords(profile);
-  const speeches = ranksOnly(profile) ? 'Ranks only: no speech points' + (scale ? ' (the points scale is not used)' : '') : 'Speeches: ' + scaleText(s);
+  const speeches = ranksOnly(profile) ? 'Ranks only: no speech points' : 'Speeches: ' + scaleText(s);
   return speeches + '. ' + po + ' Top ' + profile.topN + '.' + (profile.reasonBelow != null ? ' A score below ' + profile.reasonBelow + ' needs a reason.' : '')
     + (open.length ? ' Not verified: ' + open.join(', ') + '. Check with the tab room.' : '');
 }
@@ -98,13 +98,14 @@ export function createChamberScreen(env) {
     const form = $('#cg-setup');
     const read = () => {
       const profile = congressProfile($('#cg-profile').value) || congressProfile(DEFAULT_CONGRESS_PROFILE);
-      const sc = SCALE_CHOICES.find((s) => s.id === $('#cg-scale').value) || null;
+      const sc = ranksOnly(profile) ? null : SCALE_CHOICES.find((s) => s.id === $('#cg-scale').value) || null;
       const parsed = parseRoom($('#cg-paste').value);
       const docket = docketLines($('#cg-docket').value);
       return { profile, sc, parsed, docket, checks: setupChecks(parsed, docket, profile) };
     };
     const update = () => {
       const r = read();
+      $('#cg-scale-field').hidden = ranksOnly(r.profile);
       $('#cg-profile-note').textContent = profileNote(r.profile, r.sc);
       $('#cg-preview').innerHTML = previewHtml(r.parsed, r.checks);
       $('#cg-create').disabled = r.checks.some((c) => c.block);
