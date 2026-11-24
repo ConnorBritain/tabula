@@ -49,8 +49,11 @@ export function createDayStore({ store, now, makeId }) {
     // Returns { round, card }: the round with the card's fields (dayId, cardId, level, roomLabel) and the linked card.
     // Nothing is saved here: the caller saves the round first, then the card (saveCard), so a failed save never leaves
     // a card that points at a round that is not there. card is null when today's day could not be saved.
-    linkNewRound(round, cardId) {
+    // edits: what the judge changed on the setup form for this card (step S4 added a Level field there), given to the
+    // card before it is joined, so the card's level (which the round takes) is the one the judge picked last.
+    linkNewRound(round, cardId, edits) {
       let c = cardId ? card(cardId) : null;
+      if (c && edits && (edits.level === 'elim' || edits.level === 'prelim')) c = Object.assign({}, c, { level: edits.level });
       if (!c) {
         const d = ensureToday();
         if (!d) return { round, card: null };

@@ -125,7 +125,7 @@ export function createSetupScreen(env) {
       now: env.now(),
     });
     // The card gets the round (or a new card is made for it); the round gets the card's day, level and room.
-    const link = env.day ? env.day.linkNewRound(room, cardId) : { round: room, card: null };
+    const link = env.day ? env.day.linkNewRound(room, cardId, { level: $('#setup-level').value }) : { round: room, card: null };
     if (env.saveRoom(link.round) === false) { $('#setup-err').textContent = 'The round was not saved. The device storage is full or blocked.'; return; }
     if (link.card) env.day.saveCard(link.card); // a failed card save still leaves the round on My day (a round with no card)
     env.go('round', link.round.id);
@@ -171,6 +171,7 @@ export function createSetupScreen(env) {
         $('#setup-round').value = card.round || '';
         $('#setup-flight').value = card.flight || '';
         $('#setup-tournament').value = card.tournament || '';
+        $('#setup-level').value = card.level === 'elim' ? 'elim' : 'prelim'; // the S4 Level field starts as the card's level
         $('#screen-title').textContent = 'Paste the room';
         showCustom();
       }

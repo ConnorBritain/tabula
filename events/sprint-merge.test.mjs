@@ -10,6 +10,8 @@ import { paletteRows } from './js/palette.js';
 import { eventChoices } from './js/setup-screen.js';
 import { parseRoute } from './js/routes.js';
 import { searchCommands } from '../core/keys.js';
+import { createDayStore } from './js/day-store.js';
+import { createRoom } from './js/room.js';
 import { eventLine } from './js/guide.js';
 import * as runsWs from './js/runs-workspace.js';
 import * as roomWs from './js/room-workspace.js';
@@ -73,3 +75,18 @@ test('the palette has a Guide row for each enabled event that opens its type pag
   }
   assert.equal(searchCommands('guide humorous', rows)[0].id, 'guide-hi');
 });
+
+const memStore = () => { const m = new Map(); return { get: (k, d) => (m.has(k) ? JSON.parse(m.get(k)) : d), set: (k, v) => { m.set(k, JSON.stringify(v)); return true; } }; };
+
+// Why: S3's card and S4's setup Level field both hold the level; if the setup choice is dropped, an elim round is judged with prelim rules (or the reverse) and the panel line is wrong.
+test('a round started from a card keeps the level the judge last picked on the setup form', () => {
+  let n = 0;
+  const ds = createDayStore({ store: memStore(), now: () => Date.UTC(2026, 10, 23, 15), makeId: (p) => (p || '') + 'id' + (++n) });
+  const c = ds.addCard({ event: DATA.events.get('hi'), round: 'Round 2', level: 'elim', roomLabel: '204' });
+  const r = createRoom({ event: DATA.events.get('hi'), profile: DATA.profiles.get('nsda-district'), entries: [{ code: 'A1' }], round: 'Round 2', level: 'prelim', now: 1, makeId: (p) => p + 'x' });
+  const kept = ds.linkNewRound(r, c.id, { level: 'prelim' });
+  assert.equal(kept.round.level, 'prelim', 'the judge changed elim to prelim on the setup form');
+  assert.equal(kept.card.level, 'prelim');
+  assert.equal(ds.linkNewRound(r, c.id).round.level, 'elim', 'with no edit, the card level still wins (S3 rule)');
+});
+
