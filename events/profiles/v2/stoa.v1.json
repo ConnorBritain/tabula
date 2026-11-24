@@ -1,0 +1,15 @@
+{
+  "id": "stoa",
+  "version": 1,
+  "name": "Stoa",
+  "ranks": "all",
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 14,
+    "effect": "flagOnly"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "Stoa Persuasive Rules (rev 2025-07-14) and Judging Reminders (rev 2025-08-06), 2025-26 season; the 2026-27 rulebook is behind a member login. Summarized in our own words; no rule text copied. At 15 s or more over, staff take 1 rank; the judge ranks as if there were no penalty. Not verified: any 2026-27 change; the rubric grids (only an unofficial copy was read, so this profile has none)."
+}

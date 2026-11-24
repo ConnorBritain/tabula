@@ -1,0 +1,19 @@
+{
+  "id": "osda",
+  "version": 1,
+  "name": "OSDA (Ohio)",
+  "ranks": "all",
+  "maxEntries": 7,
+  "elim": {
+    "cx": true
+  },
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 30,
+    "effect": "flagOnly"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "OSDA Tournament Operations Manual (Sep 2026), Competitive Events Manual (Aug 2026), 2026-27 Speech Judge Handbook. Summarized in our own words; no rule text copied. Past 30 s grace any penalty is up to the judge. Extemp cross-ex (2 min) is in State break rounds; the app turns it on in every elim. Not verified: which signal rule wins (the judge handbook disagrees with itself)."
+}
