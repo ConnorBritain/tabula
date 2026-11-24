@@ -7,6 +7,7 @@
 // Cancel round. Ranks due is a pill in words. The room shows as typed (bug 3).
 // The rules are in cards.js; the builders at the top are pure (Node tests call them); createMydayScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from './icons.js';
 import { mydayModel, cardEvent, cardEventId, duePill, roomText, upNextItem, cancelCard, moveRoom, submitCard, findById, undoFields, ROOM_MAX } from './cards.js';
 import { roomEvent, present, CUSTOM_EVENT } from './room.js';
 import { dayOf } from './rooms.js';
@@ -69,7 +70,7 @@ export function dueHtml(due, now) {
 function moreHtml(v, open) {
   if (!v.canEdit) return '';
   const label = v.short + ' ' + v.title;
-  return `<button class="iconbtn md-more" type="button" data-act="menu" aria-expanded="${open}" aria-label="${esc('More for ' + label)}">⋯</button>`;
+  return `<button class="iconbtn md-more" type="button" data-act="menu" aria-expanded="${open}" aria-label="${esc('More for ' + label)}">${icon('ellipsis', 20)}</button>`;
 }
 function menuHtml(v, open) {
   if (!v.canEdit || !open) return '';
@@ -87,7 +88,7 @@ export function cardHtml(v, now, menuOpen) {
   const main = `<span class="md-title">${esc(v.title)}</span>${v.meta ? `<span class="muted md-meta">${esc(v.meta)}</span>` : ''}`;
   return `<li class="md-row" data-item="${esc(v.key)}" tabindex="-1" aria-label="${esc(label + ', ' + v.word)}">
     ${evPill(v)}
-    ${v.goHash ? `<a class="md-row-main" href="${esc(v.goHash)}" aria-label="${esc(v.goWord + ' ' + label)}">${main}</a>` : `<span class="md-row-main">${main}</span>`}
+    ${v.goHash ? `<a class="md-row-main" href="${esc(v.goHash)}" aria-label="${esc(v.goWord + ' ' + label)}">${main}${icon('chevron-right')}</a>` : `<span class="md-row-main">${main}</span>`}
     <span class="md-pills"><span class="pill${PILL[v.status] || ''}">${esc(v.word)}</span>${dueHtml(v.due, now)}</span>
     ${submitHtml(v, true)}${moreHtml(v, Boolean(menuOpen))}
     ${menuHtml(v, Boolean(menuOpen))}
@@ -103,7 +104,7 @@ export function upNextHtml(v, now, menuOpen) {
       <div class="md-card-top">${evPill(v)}<span class="md-next-title">${esc(v.title)}</span><span class="pill${PILL[v.status] || ''}">${esc(v.word)}</span></div>
       ${v.meta ? `<p class="md-next-meta">${esc(v.meta)}</p>` : ''}
       ${facts ? `<p class="md-facts">${facts}</p>` : ''}
-      <div class="md-act">${v.goHash ? `<a class="b primary md-go" href="${esc(v.goHash)}">${esc(v.goWord)}</a>` : ''}${submitHtml(v, false)}${moreHtml(v, Boolean(menuOpen))}</div>
+      <div class="md-act">${v.goHash ? `<a class="b primary md-go" href="${esc(v.goHash)}">${esc(v.goWord)}${icon('arrow-right', 20)}</a>` : ''}${submitHtml(v, false)}${moreHtml(v, Boolean(menuOpen))}</div>
       ${menuHtml(v, Boolean(menuOpen))}
     </div></section>`;
 }
@@ -132,7 +133,7 @@ export function mydayHtml(m, day, events, now, congress, menuFor) {
       <ul class="md-list">${chambers.map((c) => `<li class="md-row"><span class="pill md-ev">Congress</span><a class="md-row-main" href="${esc(routeHash('chamber', c.id))}" aria-label="${esc('Open ' + c.label)}"><span class="md-title">${esc(c.label)}</span></a></li>`).join('')}</ul></section>` : '';
   const empty = !m.items.length && !m.standby && !chambers.length ? '<p class="muted md-empty">No ballots yet today. When you get one, tap Start a round.</p>' : '';
   const standbyOn = !m.standby && !busy ? '<button class="b" type="button" id="md-standby-on">I am on standby</button>' : '';
-  return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">My day</h1><a class="b${next ? '' : ' primary'}" id="md-start" href="${esc(routeHash('pick'))}">Start a round</a>${standbyOn}</div>
+  return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">My day</h1><a class="b${next ? '' : ' primary'}" id="md-start" href="${esc(routeHash('pick'))}">${icon('plus')}Start a round</a>${standbyOn}</div>
     ${sub ? `<p class="muted md-sub">${esc(sub)}</p>` : ''}
     ${standby}${note}${empty}${nextHtml}${secs}${cong}
     <p class="muted md-foot">Older rounds are in <a href="${esc(routeHash('history'))}">History</a>.</p>`;

@@ -3,6 +3,7 @@
 // with Undo. The rules are in history.js; the builders at the top are pure (Node tests call them); createHistoryScreen
 // does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from './icons.js';
 import { downloadFile } from '../../core/store.js';
 import { historyRows, filterChoices, filterRows, historyColumns, exportTable, toTSV, toCSV, csvName } from './history.js';
 import { dayOf } from './rooms.js';
@@ -28,7 +29,7 @@ function cellHtml(row, key) {
 // until "⋯" opens it, so a keyboard judge reaches Delete only on purpose. Delete still has Undo.
 function moreHtml(r) {
   const name = r.event + ' ' + (r.round || 'round') + ' from ' + r.date;
-  return `<button class="iconbtn hist-more-btn" type="button" data-more aria-expanded="false" aria-label="${esc('More for ' + name)}">⋯</button>`
+  return `<button class="iconbtn hist-more-btn" type="button" data-more aria-expanded="false" aria-label="${esc('More for ' + name)}">${icon('ellipsis', 20)}</button>`
     + `<div class="hist-menu" role="group" aria-label="${esc('More for ' + name)}" hidden><button class="b small quiet" type="button" data-del="${esc(r.id)}" aria-label="${esc('Delete ' + name)}">Delete</button></div>`;
 }
 
@@ -53,8 +54,8 @@ export function historyHtml(allRows, filter) {
     <label class="field"><span>Tournament</span><select id="hist-tour">${option('', 'All tournaments', f.tournament || '')}${ch.tournaments.map((t) => option(t, t, f.tournament)).join('')}</select></label>
   </div>
   <div class="hist-export">
-    <button class="b" type="button" id="hist-tsv">Copy as TSV</button>
-    <button class="b" type="button" id="hist-csv">Download CSV</button>
+    <button class="b" type="button" id="hist-tsv">${icon('copy')}Copy as TSV</button>
+    <button class="b" type="button" id="hist-csv">${icon('download')}Download CSV</button>
     <label class="tick"><input type="checkbox" id="hist-private"> Include names and comments</label>
   </div>
   <p class="field-help">The copy and the file hold the rounds shown, with entry codes only. Names and comments go in only when you tick the box.</p>

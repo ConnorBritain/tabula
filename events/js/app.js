@@ -38,6 +38,7 @@ import { createReviewScreen } from './review-screen.js';
 import { createHistoryScreen } from './history-screen.js';
 import { createSettingsScreen } from './settings-screen.js';
 import { createPalette } from './palette-screen.js';
+import { mountSprite } from './icons.js';
 import { loadWorkspace, roundFamily } from './workspaces.js';
 import { registerOffline } from './offline.js';
 import { createPageAI } from './page-ai.js';
@@ -52,6 +53,7 @@ import { congressIO, congressToday } from '../congress/store.js';
 
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
+mountSprite(document); // the Lucide sprite (icons.js): every icon on every screen points into it
 const store = createEventsStore(ui);
 registerOffline();
 

@@ -5,6 +5,7 @@
 // The rows are in picker.js (pure); the builders at the top are pure (Node tests call them); createPickerScreen does
 // the DOM. The sheet is a modal dialog (core/ui.js modalDialog), made once and kept outside <main>.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from './icons.js';
 import { pickerRows, pickerSections, recentIds } from './picker.js';
 import { cardEventId, nextRoundLabel, FLIGHTS, LEVELS, ROOM_MAX } from './cards.js';
 import { CUSTOM_EVENT } from './room.js';
@@ -20,7 +21,7 @@ const rowHtml = (r) => `<li class="pk-row">
       <span class="pk-line">${esc(r.line)}</span>
       ${chipsHtml(r.chips)}
     </button>
-    <a class="b small quiet pk-guide" href="${esc(routeHash('type', r.id))}" aria-label="${esc('Guide for ' + r.name)}">Guide</a></li>`;
+    <a class="b small quiet pk-guide" href="${esc(routeHash('type', r.id))}" aria-label="${esc('Guide for ' + r.name)}">${icon('book-open')}Guide</a></li>`;
 
 // The list as HTML text. sections: pickerSections(...).
 export function pickerListHtml(sections) {
@@ -47,7 +48,7 @@ function congressHtml() {
 }
 
 export function pickerHtml() {
-  return `<div class="screen-head"><a class="b quiet" href="#/">‹ My day</a><h1 id="screen-title" tabindex="-1">Pick the event</h1></div>
+  return `<div class="screen-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">Pick the event</h1></div>
     <label class="field pk-search"><span>Search</span><input id="pk-search" type="search" autocomplete="off" spellcheck="false" placeholder="HI, extemp, poetry…"></label>
     <div id="pk-list"></div>`;
 }

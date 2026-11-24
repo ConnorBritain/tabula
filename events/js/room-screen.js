@@ -7,6 +7,7 @@
 // under the title (round-frame.js), and the head button that follows the profile layer (Rank, Rate, or straight to
 // Review for a comments-only round). The builders at the top are pure (Node tests call them); createRoomScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from './icons.js';
 import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { crossNote } from './cross-entry.js';
@@ -42,7 +43,7 @@ export function rosterRowHtml(room, e, place, menuOpen, extra, sub) {
       <span class="row-num" aria-hidden="true">${place}</span>
       <span class="row-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}${sub ? sub(e) : ''}</span>
       ${extra ? extra(e) : ''}${statusPill(e)}</button>
-    <button class="iconbtn row-more" type="button" data-act="menu" data-id="${e.id}" data-key="menu-${e.id}" aria-expanded="${menuOpen}" aria-label="Change ${esc(e.code)}">⋯</button>
+    <button class="iconbtn row-more" type="button" data-act="menu" data-id="${e.id}" data-key="menu-${e.id}" aria-expanded="${menuOpen}" aria-label="Change ${esc(e.code)}">${icon('ellipsis', 20)}</button>
     ${menu}</li>`;
 }
 
@@ -183,7 +184,7 @@ export function createRoomScreen(env, parts) {
       const go = stageWord ? `<a class="b primary" id="go-rank" href="#/rank/${encodeURIComponent(id)}">${stageWord} the room</a>` : `<a class="b primary" id="go-rank" href="#/review/${encodeURIComponent(id)}">Review and copy</a>`;
       // Step S3 (EXPERIENCE.md §1.1): the event pill opens the type page for this round's event.
       const ev = event(r);
-      env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">‹ My day</a>
+      env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a>
           <a class="pill md-ev" href="#/type/${encodeURIComponent(r.customEvent ? 'custom' : r.eventId)}" aria-label="${esc('About ' + (ev ? ev.name : 'Custom event'))}">${esc(ev ? ev.short || ev.name : 'Custom')}</a>
           <h1 id="screen-title" tabindex="-1">${esc(roomTitle(r, event(r)))}</h1>
           <button class="b" type="button" id="roster-toggle" aria-controls="roster-full" aria-expanded="false">Roster</button>

@@ -5,6 +5,7 @@
 // card (cleanup-view.js), built only when the AI gate allows it.
 // The builders at the top are pure (Node tests call them); createReviewScreen does the DOM.
 import { escapeHtml as esc, showPrintSheet, removePrintSheet } from '../../core/sheets.js';
+import { icon } from './icons.js';
 import { ranksBlock, ranksProblems, cards, checklist, statusText, markCopied, setComment, setReasonReview, copyAllText, printModel, hasRanksStage, rubricLine } from './ballot.js';
 import { findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
@@ -13,7 +14,12 @@ import { createCleanup } from './cleanup-view.js';
 import { rankStageLabel, ranksShown, layerOf, notRankedText } from './profile-layer.js';
 import { OVER_GRACE_PILL } from './rank.js';
 
-const done = (ok, label) => `<li class="${ok ? 'is-ok' : ''}"><span aria-hidden="true">${ok ? '✓' : '○'}</span> ${esc(label)}${ok ? '' : ' <span class="sr-only">(not yet)</span>'}</li>`;
+// A met check is a check circle, an open one an empty circle (§5.3: icons, not the "✓" and "○" characters); the word
+// and the hidden "(not yet)" carry the meaning.
+const done = (ok, label) => `<li class="${ok ? 'is-ok' : ''}">${icon(ok ? 'circle-check' : 'circle')} ${esc(label)}${ok ? '' : ' <span class="sr-only">(not yet)</span>'}</li>`;
+// A copy button (§5.3): the copy icon and the word; once copied it goes quiet with a check and "Copied" (top 10 #4:
+// only the next copy step keeps the solid fill).
+export const copyLabel = (copied, word) => (copied ? `${icon('check')}Copied` : `${icon('copy')}${esc(word)}`);
 
 // Stage 1 as HTML text: a narrow card shaped like the online ballot (design review 2026-11-24 §2.10, top 10 #7): the
 // code, rank, rating and rubric of each entry, and an "Over grace" pill only when it is true. The card's header holds
@@ -32,7 +38,7 @@ export function ranksStageHtml(room) {
   const overCell = (r) => (r.overTime ? `<span class="pill err">${esc(OVER_GRACE_PILL)}</span>` : '<span class="sr-only">No</span>');
   const table = `<table class="ranks-table"><thead><tr><th>Code</th>${ranked ? '<th>Rank</th>' : ''}${rated ? '<th>Rating</th>' : ''}${rubric ? '<th>Rubric</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td>${ranked ? `<td class="preview-rank">${r.rank ? esc(r.rank) : notRanked ? `<span class="muted preview-out">${esc(notRanked)}</span>` : '–'}</td>` : ''}${rated ? `<td>${esc(r.rating || '–')}</td>` : ''}${rubric ? `<td>${esc(rubricLine(r.rubric))}</td>` : ''}<td>${overCell(r)}</td></tr>`).join('')}</tbody></table>`;
   const copyBtn = problems.length ? ''
-    : `<button class="b${sent ? '' : ' primary'}" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${sent ? 'Copy ' + word + ' again' : 'Copy ' + word}</button>`;
+    : `<button class="b${sent ? '' : ' primary'}" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${copyLabel(false, sent ? 'Copy ' + word + ' again' : 'Copy ' + word)}</button>`;
   const fix = problems.length
     ? `<div class="problems"><h3>Fix these before you copy the ${word}</h3><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul><a class="b" href="#/rank/${encodeURIComponent(room.id)}">Back to ${back}</a></div>` : '';
   return `<section class="review-stage ballot-preview" aria-labelledby="stage1">
@@ -51,14 +57,14 @@ export function cardHtml(c, editing, ai) {
     : `<div class="card-text">${c.comment ? esc(c.comment) : '<span class="muted">No comment yet.</span>'}</div>`;
   return `<li class="card" data-card="${c.id}">
     <div class="card-head"><span class="code">${esc(c.code)}</span><span class="muted">${[c.ranked === false ? '' : c.rank ? 'Rank ' + esc(c.rank) : 'No rank', c.rating ? 'Rating ' + esc(c.rating) : ''].filter(Boolean).join(' · ')}</span>
-      ${a.button}<button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : 'Edit'}</button></div>
+      ${a.button}<button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : icon('pencil') + 'Edit'}</button></div>
     ${c.name || c.piece ? `<p class="card-piece">${[c.name, c.piece].filter(Boolean).map(esc).join(' · ')}</p>` : ''}
     ${c.question ? `<p class="card-question"><span class="muted">Question:</span> ${esc(c.question)}</p>` : ''}
     ${c.topic ? `<p class="card-question card-topic"><span class="muted">Topic:</span> ${esc(c.topic)}</p>` : ''}
     ${c.runs ? `<p class="card-question card-runs"><span class="muted">Runs:</span> ${esc(c.runs)}</p>` : ''}
     ${body}${a.panel}
     <ul class="critique" aria-label="Comment check for ${esc(c.code)}">${c.critique.map((k) => done(k.ok, k.label)).join('')}</ul>
-    ${c.comment.trim() ? `<button class="b${c.copied ? '' : ' primary'}" type="button" data-vact="copy" data-what="${c.id}" data-key="copy-${c.id}">${c.copied ? '✓ Copied' : 'Copy comment'}</button>` : ''}
+    ${c.comment.trim() ? `<button class="b${c.copied ? '' : ' primary'}" type="button" data-vact="copy" data-what="${c.id}" data-key="copy-${c.id}">${copyLabel(c.copied, 'Copy comment')}</button>` : ''}
   </li>`;
 }
 
@@ -80,9 +86,9 @@ export function commentsStageHtml(room, view) {
     ${toggle}
     <ol class="cards">${list.map((c) => cardHtml(c, view.editing === c.id, view.ai && view.ai(c, view.editing === c.id))).join('')}</ol>
     ${showReason ? `<div class="card reason-card"><div class="card-head"><span>${reasonTitle}</span>
-      <button class="b small quiet" type="button" data-vact="edit" data-id="reason" data-key="edit-reason" aria-expanded="${reasonEditing}">${reasonEditing ? 'Done' : 'Edit'}</button></div>
+      <button class="b small quiet" type="button" data-vact="edit" data-id="reason" data-key="edit-reason" aria-expanded="${reasonEditing}">${reasonEditing ? 'Done' : icon('pencil') + 'Edit'}</button></div>
       ${reasonEditing ? `<label class="sr-only" for="edit-reason-box">${reasonTitle}</label><textarea id="edit-reason-box" class="card-edit" data-vfield="reason" rows="4">${esc(reason)}</textarea>` : `<div class="card-text">${reason.trim() ? esc(reason) : `<span class="muted">No ${reasonTitle.toLowerCase()} yet.</span>`}</div>`}
-      ${reason.trim() ? `<button class="b${room.reasonCopiedAt ? '' : ' primary'}" type="button" data-vact="copy" data-what="reason" data-key="copy-reason">${room.reasonCopiedAt ? '✓ Copied' : 'Copy reason'}</button>` : ''}</div>` : ''}
+      ${reason.trim() ? `<button class="b${room.reasonCopiedAt ? '' : ' primary'}" type="button" data-vact="copy" data-what="reason" data-key="copy-reason">${copyLabel(room.reasonCopiedAt, 'Copy reason')}</button>` : ''}</div>` : ''}
   </section>`;
 }
 
@@ -92,8 +98,8 @@ export function commentsStageHtml(room, view) {
 export function summaryHtml(room) {
   return `<div class="review-summary"><span class="pill${room.state === 'done' ? ' solid' : ''}" id="review-status">${esc(statusText(room))}</span>
     <ul class="checklist">${checklist(room).map((c) => done(c.ok, c.label)).join('')}</ul>
-    <div class="review-tools" role="group" aria-label="Copy and print the whole ballot"><button class="b" type="button" data-vact="copyall" data-key="copyall">Copy all</button>
-      <button class="b" type="button" data-vact="print" data-key="print">Print / PDF</button></div></div>
+    <div class="review-tools" role="group" aria-label="Copy and print the whole ballot"><button class="b quiet" type="button" data-vact="copyall" data-key="copyall">${icon('copy')}Copy all</button>
+      <button class="b quiet" type="button" data-vact="print" data-key="print">${icon('printer')}Print / PDF</button></div></div>
     ${hasRanksStage(room) ? '' : '<p class="muted review-note">These rules are comments only. There are no ranks to submit. Copy each comment below.</p>'}`;
 }
 
@@ -210,7 +216,7 @@ export function createReviewScreen(env) {
       roomId = id; view = { order: 'speaking', editing: null };
       if (cleanup) cleanup.reset();
       const ev = event(r);
-      const back = hasRanksStage(r) ? `<a class="b quiet" href="#/rank/${encodeURIComponent(id)}">‹ ${rankStageLabel(r.profile)}</a>` : `<a class="b quiet" href="#/room/${encodeURIComponent(id)}">‹ Room</a>`;
+      const back = hasRanksStage(r) ? `<a class="b quiet" href="#/rank/${encodeURIComponent(id)}">${icon('chevron-left')}${rankStageLabel(r.profile)}</a>` : `<a class="b quiet" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>`;
       env.el.innerHTML = `<div class="screen-head">${back}
           <h1 id="screen-title" tabindex="-1">Review · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <div id="review-top"></div><div id="review-ranks"></div><div id="review-comments"></div>`;

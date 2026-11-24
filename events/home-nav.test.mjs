@@ -108,7 +108,9 @@ test('Change room and Cancel round live in the "⋯" menu, closed until opened, 
   const m = mydayModel({ day: DAY, cards: [card('hi'), later], rounds: [], now: NOW });
   const shut = mydayHtml(m, DAY, DATA.events, NOW, []);
   assert.doesNotMatch(shut, /data-act="cancel"|data-act="room"/, 'no rare step until the menu opens');
-  assert.match(shut, /data-act="menu" aria-expanded="false" aria-label="More for DI Round 1">⋯</);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.3: Lucide icons replace the text marks). Old line:
+  //   assert.match(shut, /data-act="menu" aria-expanded="false" aria-label="More for DI Round 1">⋯</);
+  assert.match(shut, /data-act="menu" aria-expanded="false" aria-label="More for DI Round 1"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-ellipsis"\/><\/svg></);
   const open = mydayHtml(m, DAY, DATA.events, NOW, [], 'c:' + later.id);
   assert.match(open, /aria-expanded="true"/);
   assert.match(open, /data-act="room">Change room<\/button>\s*<button[^>]*data-act="cancel">Cancel round<\/button><\/div>/, 'Cancel is the last item');
@@ -187,7 +189,9 @@ test('History: Delete sits in a hidden "⋯" menu, the state is a pill, and Comm
   const cols = historyColumns(rows, {});
   assert.ok(!cols.some((c) => c.key === 'commentsOpen'), 'no Comments open column');
   const html = historyTableHtml(rows, cols);
-  assert.match(html, /<button class="iconbtn hist-more-btn" type="button" data-more aria-expanded="false" aria-label="More for HI Round 1 from [^"]+">⋯<\/button><div class="hist-menu" role="group" aria-label="[^"]+" hidden><button[^>]*data-del=/);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.3: Lucide icons replace the text marks). Old line:
+  //   assert.match(html, /<button class="iconbtn hist-more-btn" type="button" data-more aria-expanded="false" aria-label="More for HI Round 1 from [^"]+">⋯<\/button><div class="hist-menu" role="group" aria-label="[^"]+" hidden><button[^>]*data-del=/);
+  assert.match(html, /<button class="iconbtn hist-more-btn" type="button" data-more aria-expanded="false" aria-label="More for HI Round 1 from [^"]+"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-ellipsis"\/><\/svg><\/button><div class="hist-menu" role="group" aria-label="[^"]+" hidden><button[^>]*data-del=/);
   assert.equal((html.match(/>Comments open</g) || []).length, 1, 'only the open round has the pill');
   assert.match(html, /<span class="pill solid">Review<\/span> <span class="pill">Comments open<\/span>/);
   assert.match(html, /<span class="pill outline">Copied<\/span>/);
@@ -199,7 +203,9 @@ test('History: Delete sits in a hidden "⋯" menu, the state is a pill, and Comm
 test('picker: each row has a "Guide" text button and plain grey chips, Congress too', () => {
   const html = pickerListHtml(pickerSections(pickerRows(DATA), [], ''));
   assert.doesNotMatch(html, />i<\/a>/);
-  assert.match(html, /<a class="b small quiet pk-guide" href="#\/type\/hi" aria-label="Guide for Humorous Interpretation">Guide<\/a>/);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.3: Lucide icons replace the text marks). Old line:
+  //   assert.match(html, /<a class="b small quiet pk-guide" href="#\/type\/hi" aria-label="Guide for Humorous Interpretation">Guide<\/a>/);
+  assert.match(html, /<a class="b small quiet pk-guide" href="#\/type\/hi" aria-label="Guide for Humorous Interpretation"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-book-open"\/><\/svg>Guide<\/a>/);
   assert.match(html, /<span class="pill outline pk-chip">Rank<\/span><span class="pill outline pk-chip">Title<\/span><span class="pill outline pk-chip">10:00<\/span>/);
   assert.doesNotMatch(html, /POINTS\/SPEECH|TIMER /);
   assert.match(html, /pk-chip">Points per speech</);

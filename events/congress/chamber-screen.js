@@ -6,6 +6,7 @@
 // The parliamentarian's full-chamber rank on this page is step S7. The builders at the top are pure (Node tests);
 // createChamberScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from '../js/icons.js';
 import { parseRoom } from '../js/parse.js';
 import { newId } from '../js/room.js';
 import { congressIO, findChamber, chamberSessions, withChamber, withSession } from './store.js';
@@ -21,7 +22,7 @@ export function listHtml(state) {
     return `<li><a class="room-link" href="#/chamber/${esc(c.id)}"><span class="room-name">${houseWord(c)}${c.tournament ? ' · ' + esc(c.tournament) : ''}${c.roomLabel ? ' · ' + esc(c.roomLabel) : ''}</span>
       <span class="room-meta">${c.legislators.length} legislators · ${n} ${n === 1 ? 'session' : 'sessions'}</span></a></li>`;
   }).join('');
-  return `<div class="screen-head"><a class="b quiet" href="#/">‹ My day</a><h1 id="screen-title" tabindex="-1">Congress chambers</h1><a class="b primary" href="#/chamber/new">New chamber</a></div>
+  return `<div class="screen-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">Congress chambers</h1><a class="b primary" href="#/chamber/new">New chamber</a></div>
     ${rows ? `<ul class="room-list">${rows}</ul>` : '<p class="muted">No chambers yet. A Congress chamber you score shows here.</p>'}`;
 }
 
@@ -30,7 +31,7 @@ export function setupHtml(prefs) {
   const pid = (prefs && prefs.profileId && congressProfile(prefs.profileId)) ? prefs.profileId : DEFAULT_CONGRESS_PROFILE;
   const prOpts = CONGRESS_PROFILES.map((p) => `<option value="${esc(p.id)}"${p.id === pid ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
   const scOpts = `<option value="">The rules' scale</option>` + SCALE_CHOICES.map((s) => `<option value="${s.id}"${prefs && prefs.scale === s.id ? ' selected' : ''}>${esc(scaleText(s))}</option>`).join('');
-  return `<div class="screen-head"><a class="b quiet" href="#/chamber">‹ Chambers</a><h1 id="screen-title" tabindex="-1">New Congress chamber</h1></div>
+  return `<div class="screen-head"><a class="b quiet" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">New Congress chamber</h1></div>
   <form class="setup" id="cg-setup" novalidate>
     <div class="setup-fields">
       <label class="field"><span>Tournament <span class="muted">(optional)</span></span><input id="cg-tournament" autocomplete="off" maxlength="80"></label>
@@ -78,7 +79,7 @@ export function overviewHtml(state, chamber) {
       <label class="sr-only" for="st-${esc(l.id)}">Status of ${esc(l.code)}</label>
       <select id="st-${esc(l.id)}" data-status="${esc(l.id)}">${Object.keys(STATUS_WORDS).map((k) => `<option value="${k}"${l.status === k ? ' selected' : ''}>${STATUS_WORDS[k]}</option>`).join('')}</select></li>`).join('');
   const drows = chamber.docket.map((d) => `<li${d.debatedInSession ? ' class="muted"' : ''}>${esc(d.title)}${d.debatedInSession ? ' <span class="pill outline">Done in session ' + esc(d.debatedInSession) + '</span>' : ''}</li>`).join('');
-  return `<div class="screen-head"><a class="b quiet" href="#/chamber">‹ Chambers</a><h1 id="screen-title" tabindex="-1">${houseWord(chamber)}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''}</h1>
+  return `<div class="screen-head"><a class="b quiet" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">${houseWord(chamber)}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''}</h1>
       <button class="b primary" type="button" data-chact="session" data-key="session">Start session ${next}</button></div>
     <p class="muted">${esc(p.name)} · ${esc(profileNote(p))}</p>
     <h2 class="cg-h">Sessions</h2>${srows ? `<ul class="room-list">${srows}</ul>` : '<p class="muted">No sessions yet.</p>'}

@@ -544,6 +544,7 @@ a.b.pk-guide { align-self: center; margin-right: var(--s2); }
    Neutral chrome, one solid fill per view. Primary: the next step only. Secondary: panel and a 1 px control edge.
    Quiet: no fill and no edge. Tool group: one quiet track. Toggle chip and segment: never the solid fill. Status pill:
    a tint and a word, never the solid fill. Destructive: a word in --error inside a menu; the dialog has the fill. */
+button.b { display: inline-flex; align-items: center; justify-content: center; }
 a.b, button.b { gap: var(--s1); font-weight: var(--fw-2); }
 a.b.primary, button.b.primary { min-height: var(--h-lg); padding: 0 var(--s4); font-weight: var(--fw-3); }
 a.b.primary:hover, button.b.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
@@ -574,3 +575,19 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--accent); }
   a.b.primary, button.b.primary { min-height: 48px; }
   .tool-group .b, .seg-track .b { min-height: 44px; }
 }
+
+/* ---------- Icons (design build 2026-11-24; EVENTS-COLOR-ICON-REVIEW.md §5.3) ----------
+   Lucide outline icons from the inline sprite (js/icons.js). currentColor only, a 1.5 px stroke, never a brand color. */
+.icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+svg.i { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; }
+svg.i.i-14 { width: 14px; height: 14px; vertical-align: -2px; }
+svg.i.i-20 { width: 20px; height: 20px; vertical-align: -5px; }
+.iconbtn svg.i { display: block; margin: auto; }
+/* Icon places: a trailing chevron on rows that open a page; quiet move arrows; the drag grip. */
+.md-row-main { grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--s2); }
+.md-row-main > :not(svg) { grid-column: 1; }
+.md-row-main > svg.i { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--text-3); }
+.board-moves .b.move { min-width: var(--h-md); padding: 0; justify-content: center; }
+.drag svg.i { color: var(--text-2); }
+.checklist li, .critique li { display: inline-flex; align-items: center; gap: var(--s1); }
+.checklist .is-ok svg.i, .critique .is-ok svg.i { color: var(--ok); }

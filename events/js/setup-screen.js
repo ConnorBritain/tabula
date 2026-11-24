@@ -6,6 +6,7 @@
 // tournament) with the paste box in focus. Start makes the round, links the card, and opens #/round/<id>. A round
 // started from #/new gets a card too (decision 2a), so it shows on My day.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from './icons.js';
 import { parseRoom } from './parse.js';
 import { ENABLED_EVENTS, CUSTOM_EVENT, DEFAULT_PROFILE, createRoom, setupError, findRoom, entryCap } from './room.js';
 import { levelFieldsHtml, makePanel } from './round-frame.js';
@@ -67,7 +68,7 @@ export function setupHtml(data) {
   const opt = (p) => `<option value="${esc(p.id)}"${p.id === DEFAULT_PROFILE ? ' selected' : ''}>${esc(p.name)}</option>`;
   const shapes = shapeChoices(data);
   const prOpts = shapes.length ? `<optgroup label="League rules">${profileChoices(data).map(opt).join('')}</optgroup><optgroup label="Other ballot shapes">${shapes.map(opt).join('')}</optgroup>` : profileChoices(data).map(opt).join('');
-  return `<div class="screen-head"><a class="b quiet" href="#/">‹ My day</a><h1 id="screen-title" tabindex="-1">New room</h1></div>
+  return `<div class="screen-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">New room</h1></div>
   <form class="setup" id="setup-form" novalidate>
     <div class="setup-fields">
       <label class="field"><span>Event</span><select id="setup-event"><option value="">Pick the event</option>${evOpts}<option value="${CUSTOM_EVENT}">Custom event (set the time)</option></select></label>

@@ -4,6 +4,7 @@
 // (Alt+Up and Alt+Down on a focused row). A refused move changes nothing and says why.
 // The builders at the top are pure (Node tests call them); createRankScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from './icons.js';
 import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
   ratingFix, ratingTies, RANK_RATING_ROW, graceLineText,
@@ -60,9 +61,9 @@ export function boardHtml(room, view) {
     const used = totalUsedAt(e.timing, view.now, view.limit); // on a prep event (E11), prep and speech
     const main = view.tapMode
       ? `<button class="tap-pick" type="button" data-ract="tap" data-id="${id}" data-key="tap-${id}">${rank ? 'Rank ' + esc(rank) + ' · tap to clear' : next ? 'Tap to rank ' + next : ''}</button>`
-      : `<button class="b small" type="button" data-ract="up" data-id="${id}" data-key="up-${id}" aria-label="Move ${esc(e.code)} up"${i === 0 ? ' disabled' : ''}>↑</button>
-         <button class="b small" type="button" data-ract="down" data-id="${id}" data-key="down-${id}" aria-label="Move ${esc(e.code)} down"${i === n - 1 ? ' disabled' : ''}>↓</button>
-         <span class="drag" data-drag="${id}" aria-hidden="true" title="Drag to move">⠿</span>`;
+      : `<button class="b small quiet move" type="button" data-ract="up" data-id="${id}" data-key="up-${id}" aria-label="Move ${esc(e.code)} up"${i === 0 ? ' disabled' : ''}>${icon('chevron-up', 20)}</button>
+         <button class="b small quiet move" type="button" data-ract="down" data-id="${id}" data-key="down-${id}" aria-label="Move ${esc(e.code)} down"${i === n - 1 ? ' disabled' : ''}>${icon('chevron-down', 20)}</button>
+         <span class="drag" data-drag="${id}" aria-hidden="true" title="Drag to move">${icon('grip-vertical', 20)}</span>`;
     const below = cut && i >= cut;
     return `<li class="board-row${below ? ' below-cut' : ''}" data-row="${id}" tabindex="-1" aria-label="${esc(e.code)}, ${below ? esc(notRankedText(room.profile)) + ', place ' + esc(rank || i + 1) : 'rank ' + esc(rank || 'none')}">
       <span class="board-rank" aria-hidden="true">${esc(rank || '–')}</span>
@@ -231,7 +232,7 @@ export function createRankScreen(env) {
       if (opened.room !== r0) save(opened.room);
       const r = room();
       const ev = event(r);
-      env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/room/${encodeURIComponent(id)}">‹ Room</a>
+      env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
           <h1 id="screen-title" tabindex="-1">Rank · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <p class="bias">${esc(r.profile.biasNote || 'Judge the performance, not the person.')}</p>
         <div class="board-tools"><button class="b" type="button" id="tap-toggle" aria-pressed="false">Tap in order</button>

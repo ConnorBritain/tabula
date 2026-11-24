@@ -70,7 +70,9 @@ test('stage 2: one card per speaker, each comment on its own, never the private 
   const html = cardHtml(a, false);
   assert.match(html, />Copy comment</);
   assert.match(html, />Edit</);
-  assert.match(cardHtml(Object.assign({}, a, { copied: true }), false), />✓ Copied</);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.3: Lucide icons replace the text marks). Old line:
+  //   assert.match(cardHtml(Object.assign({}, a, { copied: true }), false), />✓ Copied</);
+  assert.match(cardHtml(Object.assign({}, a, { copied: true }), false), /<use href="#i-check"\/><\/svg>Copied</);
   assert.doesNotMatch(cardHtml(Object.assign({}, a, { comment: '' }), false), /Copy comment/, 'nothing to copy, no button');
   assert.match(cardHtml(a, true), /<textarea id="edit-[^"]+" class="card-edit"/);
   assert.match(commentsStageHtml(r, { order: 'speaking', editing: null }), />Copy reason</);
