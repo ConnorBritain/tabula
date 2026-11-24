@@ -21,6 +21,18 @@ export const asksQuestion = (event) => Boolean(event && event.category === 'limi
 // The question to show: one line, trimmed. A missing field reads as ''.
 export const questionOf = (entry) => String((entry && entry.question) || '').replace(/\s+/g, ' ').trim();
 
+// The first words of a line, for a row that has little room (the roster's quote line, design review §2.5): the
+// whole text when it fits in max characters, else the words that fit and "…". Pure; it never cuts a word in two
+// unless that one word is longer than max.
+export function shortText(text, max) {
+  const t = String(text == null ? '' : text).replace(/\s+/g, ' ').trim();
+  const n = Math.max(1, Number(max) || 60);
+  if (t.length <= n) return t;
+  const cut = t.slice(0, n);
+  const sp = cut.lastIndexOf(' ');
+  return (sp > 0 ? cut.slice(0, sp) : cut).replace(/[\s,.;:!?-]+$/, '') + '…';
+}
+
 // The judge typed in the Question field of the current entry. Line breaks become spaces (it is a one-line field);
 // the text is kept as typed otherwise, so the cursor does not jump. Returns the new room (the same room when the value
 // did not change or there is no current entry).

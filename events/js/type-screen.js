@@ -23,7 +23,7 @@ export function typeHtml(data, eventId, rooms) {
   const def = custom ? null : data.events.get(eventId);
   if (!custom && (!def || !ENABLED_EVENTS.includes(eventId))) return null;
   const g = guideModel(def, data.profiles.get(DEFAULT_PROFILE));
-  const dl = [['Time limit', g.limit], ['Grace', g.grace], ['Prep', g.prep], ['Material', g.material], ['Performers', g.performers]].filter((x) => x[1])
+  const dl = [['Time limit', g.limit], ['Grace', g.grace], ['Prep', g.prep], ['Material', g.material], ['Performers', g.performers], ['Topic', g.topic]].filter((x) => x[1])
     .map(([k, v]) => `<div class="ty-row"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
   const list = (title, items) => (items.length ? `<h3>${esc(title)}</h3><ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '');
   const rules = profileChoices(data).map((p) => { const r = rulesLines(p); return `<h3>${esc(r.name)}</h3><ul>${r.lines.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`; }).join('');

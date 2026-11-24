@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { loadEventData } from './js/data.js';
-import { createRoom, addEntry, setupError, entryCap, nextWaiting, present, updateEntry, MAX_ENTRIES, STATUS_LABEL } from './js/room.js';
+import { createRoom, addEntry, setupError, entryCap, nextWaiting, present, updateEntry, entryOf, MAX_ENTRIES, STATUS_LABEL } from './js/room.js';
 import { openBoard, withRanks, withRating } from './js/board.js';
 import { layerOf, stagesOf, rankStageLabel, shownRank, layerProblems, rubricTotal, stepRubric, withRubric, rubricOf } from './js/profile-layer.js';
 import { ranksBlock, checklist, markCopied, statusText, cards, copyAllText, printModel } from './js/ballot.js';
@@ -284,7 +284,11 @@ test('cross-ex shows only for F2 in elims with a cx profile; it chains the asker
   r = setSchool(setSchool(r, a, 'North High', 1), b, ' north  high ', 1);
   assert.match(sameSchoolWarning(r, a), /^Same school: A2 would ask A1\./);
   assert.equal(sameSchoolWarning(r, c), '');
-  assert.match(crossExHtml(r, r.entries[0], ix, 1), /Q: asked by[\s\S]*Same school/);
+  // CHANGED 2026-11-24 (design build, review §2.5 change 3): the cross-ex block opens after the speech stops, so the
+  // asker and the warning show for an entry whose speech has time. Old: crossExHtml(r, r.entries[0], ix, 1) matched.
+  const spoke = updateEntry(r, a, (x) => Object.assign({}, x, { timing: Object.assign({}, x.timing, { usedMs: 300000 }) }), 1);
+  assert.match(crossExHtml(spoke, entryOf(spoke, a), ix, 1), /Q: asked by[\s\S]*Same school/);
+  assert.doesNotMatch(crossExHtml(r, r.entries[0], ix, 1), /Q: asked by|Start cross-ex/, 'before the speech: closed');
   assert.equal(crossExHtml(mk('ix', 'elim-large', 3), r.entries[0], ix, 1), '', 'no part in a prelim');
   // The clock: one clock at a time for a speaker.
   const speaking = updateEntry(r, a, (x) => Object.assign({}, x, { timing: Object.assign({}, x.timing, { run: { endAt: 9e9, startLeft: 420 } }) }), 1);

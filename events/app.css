@@ -83,7 +83,7 @@ main:has(.room-grid) { max-width: 1120px; }
 .stage { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); padding: var(--s4); min-width: 0; }
 .stage-head { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s3); align-items: center; margin-bottom: var(--s3); }
 .stage-name:empty { display: none; }
-/* Step E9: the piece fields (title, author; Duo performers) above the timer. */
+/* Step E9: the piece fields (title, author; Duo performers), under the timer since the design build. */
 .piece, .setup-custom { border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s2) var(--s3) var(--s3); margin: 0 0 var(--s3); }
 .setup-custom { margin: var(--s3) 0 0; }
 .piece legend, .setup-custom legend { font-size: var(--fs-2); font-weight: var(--fw-3); padding: 0 var(--s1); }
@@ -116,6 +116,8 @@ main:has(.room-grid) { max-width: 1120px; }
 .timer-card.stage-over { background: var(--error-tint); border-color: var(--error); }
 .timer-card.stage-stopped { background: var(--sunk); }
 .timer-card p { margin: 0; }
+/* The Congress step bar (events/congress/views.js, class "phase-bar cg-steps") still uses these pill rules. The room's
+   phase rows use .phase-steps (js/phase-bar.js) since the design build. */
 .phase-bar { display: flex; justify-content: center; gap: var(--s2); list-style: none; margin: 0 0 var(--s2); padding: 0; font-size: var(--fs-2); }
 .phase-bar li { padding: var(--s1) var(--s3); border: 1px solid var(--border); border-radius: var(--r-pill); color: var(--text-2); }
 .phase-bar li.on { background: var(--text); color: var(--canvas); border-color: var(--text); font-weight: var(--fw-4); }
@@ -141,7 +143,6 @@ main:has(.room-grid) { max-width: 1120px; }
 .chk { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--h-md); padding: 0 var(--s1) 0 var(--s3); border-radius: var(--r-md); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); cursor: pointer; text-align: left; }
 .chk.flag { border-color: var(--error); }
 .sheet-notes { margin-top: var(--s1); }
-.sheet-question { margin-bottom: var(--s3); }
 .sheet textarea { font-size: var(--fs-3); }
 .prompts, .reason { font-size: var(--fs-2); color: var(--text-2); }
 .prompts ul { margin: var(--s1) 0 0; }
@@ -338,7 +339,6 @@ a.pk-pick { text-decoration: none; } /* the Congress row is a link (step S6) */
 .round-frame { margin: 0 0 var(--s3); font-size: var(--fs-2); }
 .cross-note, .waiting-line { margin: 0 0 var(--s2); font-size: var(--fs-2); }
 .crossex { margin: var(--s3) 0; padding: var(--s3); border: 1px solid var(--border); border-radius: var(--r-md); }
-.crossex .phase-bar { justify-content: flex-start; }
 .cx-fields { display: flex; flex-wrap: wrap; gap: var(--s3); }
 .cx-warn { margin: var(--s2) 0; padding: var(--s2) var(--s3); background: var(--error-tint); border: 1px solid var(--error); border-radius: var(--r-md); }
 .cx-clock { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin-top: var(--s2); }
@@ -358,8 +358,6 @@ a.pk-pick { text-decoration: none; } /* the Congress row is a link (step S6) */
 
 /* Step S5 (EXPERIENCE.md §3): the phase bar (js/phase-bar.js, shared by F4 and later F3 and the F2 cross-ex) and the
    F4 run parts (js/runs-view.js). Black, white and gray: a done phase has a check, the phase on now is filled. */
-.runs-head { margin-bottom: var(--s3); }
-.runs-topic input { width: 100%; }
 .phases { margin-top: var(--s3); }
 .phase-steps { display: flex; flex-wrap: wrap; gap: var(--s2); list-style: none; margin: 0; padding: 0; font-size: var(--fs-2); }
 .phase { display: inline-flex; align-items: center; gap: var(--s1); padding: var(--s1) var(--s3); border: 1px solid var(--border); border-radius: var(--r-pill); color: var(--text-2); }
@@ -481,3 +479,63 @@ a.b.pk-guide { align-self: center; margin-right: var(--s2); }
 .seg-opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
 .seg-opt:has(input:checked) { background: var(--text); color: var(--canvas); }
 .seg-opt:has(input:focus-visible) { outline: 2px solid var(--ring); outline-offset: -2px; }
+/* ---------- Design build, Room and timer session (2026-11-24; docs/design/EVENTS-DESIGN-REVIEW.md §2.4–§2.7) ----------
+   The phone room fits the screen (bug 1), the signal track under the digits (D2-A), the mini track on roster and rank
+   rows (D3-A), the sticky compact timer bar on a narrow screen (OD1 A), the question or topic quote line, the folded
+   piece line, the elim pills. Data bars only: a full bordered track, 1 px neutral ticks, an outlined dot (NO-STRIPES). */
+.stage > *, .sheet > *, .chip-group, .chk-group { min-width: 0; }
+.stage textarea, .stage input, .stage select { max-width: 100%; }
+.chk { max-width: 100%; }
+.chk > span:first-child { white-space: normal; }
+.track { display: block; margin: var(--s3) auto 0; max-width: 560px; text-align: left; }
+.track-img { display: block; padding: 0 var(--s2); }
+.track-bar { position: relative; display: block; height: 14px; border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: var(--panel); }
+.track-zone, .track-fill { position: absolute; top: 0; bottom: 0; }
+.track-zone:first-child { border-radius: var(--r-pill) 0 0 var(--r-pill); }
+.track-zone.z-over { border-radius: 0 var(--r-pill) var(--r-pill) 0; }
+.track-zone.z-grace { background: color-mix(in srgb, var(--caution) 38%, transparent); }
+.track-zone.z-over { background: color-mix(in srgb, var(--error) 34%, transparent); }
+.track-fill { top: 3px; bottom: 3px; border-radius: var(--r-pill); background: var(--text); }
+.track-fill.f-alt { background: var(--text-2); opacity: .7; }
+.track-fill.f-prep { background: var(--text-3); opacity: .55; }
+.track-tick { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--border-ctl); transform: translateX(-50%); }
+.track-now { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--text); background: var(--panel); transform: translate(-50%, -50%); }
+.track-ticks { position: relative; display: block; height: 1.4em; margin-top: 2px; }
+.track-tlabel { position: absolute; top: 0; transform: translateX(-50%); font-family: var(--font-mono); font-size: var(--fs-1); color: var(--text-2); white-space: nowrap; }
+.track .phases { margin-top: var(--s2); }
+.timer-card .phase-steps { justify-content: center; }
+.track-mini { display: block; flex: 1 1 auto; min-width: 3rem; max-width: 12rem; margin: 0; }
+.track-mini .track-bar { height: 8px; }
+.track-mini .track-fill { top: 2px; bottom: 2px; }
+.track-mini .track-now { width: 8px; height: 8px; border-width: 1.5px; }
+.row-track { display: flex; align-items: center; gap: var(--s2); margin-top: var(--s1); }
+.row-track .pill { font-size: var(--fs-1); }
+.row-quote { font-size: var(--fs-1); color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-main .track-mini { margin-top: var(--s1); }
+.quote { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s2); margin: 0 0 var(--s3); }
+.quote-line { margin: 0; flex: 1 1 16rem; min-width: 0; font-size: var(--fs-3); line-height: var(--lh-read); overflow-wrap: anywhere; }
+.quote-field { flex: 1 1 100%; }
+.quote-field input { width: 100%; }
+.piece.is-folded { border: 0; padding: 0; }
+.piece-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); margin: 0 0 var(--s2); color: var(--text-2); font-size: var(--fs-2); overflow-wrap: anywhere; }
+.timer-box + .piece, .timer-box + .piece.is-folded { margin-top: var(--s3); }
+.round-frame-pills { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1); margin: 0; }
+.round-frame-line { margin: var(--s1) 0 0; }
+.crossex.is-closed .phases { margin-top: var(--s1); }
+.timer-mini { display: none; }
+@media (max-width: 820px) {
+  .timer-mini.is-on { display: flex; align-items: center; gap: var(--s2); position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-bar); padding: var(--s2) var(--s3); background: var(--panel); border: 1px solid var(--border); box-shadow: 0 6px 18px rgb(0 0 0 / .14); }
+  .timer-mini.stage-last { border-color: var(--text); }
+  .timer-mini.stage-grace { background: var(--caution-tint); border-color: var(--caution); }
+  .timer-mini.stage-over { background: var(--error-tint); border-color: var(--error); }
+  .timer-mini.stage-stopped { background: var(--sunk); }
+  .tm-word { flex: none; font-size: var(--fs-2); font-weight: var(--fw-4); max-width: 34%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tm-digits { flex: none; font-family: var(--font-display); font-size: var(--fs-4); font-variant-numeric: tabular-nums; }
+  .tm-track { flex: 1 1 auto; min-width: 2.5rem; display: flex; }
+  .tm-track .track-mini { max-width: none; }
+  .timer-mini .b { flex: none; min-height: 44px; }
+}
+@media (forced-colors: active) {
+  .track-fill, .track-tick { background: CanvasText; forced-color-adjust: none; }
+  .track-zone.z-grace, .track-zone.z-over { background: GrayText; forced-color-adjust: none; }
+}
