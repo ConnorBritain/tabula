@@ -265,7 +265,7 @@ test('the palette lists New for each enabled event, Open for each round, History
   assert.equal(open.hash, '#/round/' + r.id);
   assert.ok(rows.some((x) => x.label === 'History' && x.hash === '#/history'));
   assert.ok(rows.some((x) => x.label === 'Settings' && x.hash === '#/settings'));
-  // Changed at the S3-S6 merge: the guide route (#/type/<eventId>) exists since S3, so Guide rows exist; each must open it.
+  assert.ok(rows.some((x) => /^Guide/.test(x.label)), 'Guide rows exist now that the guide route (#/type/<eventId>) exists (step S3, owner OK 2026-11-23)');
   for (const x of rows.filter((y) => /^Guide/.test(y.label))) assert.match(x.hash, /^#\/type\/[a-z0-9-]+$/, x.label + ' opens the type page');
   assert.ok(!rows.some((x) => x.act === 'undo'), 'no Undo row with nothing to undo');
   assert.equal(searchCommands('new hi', rows)[0].label, 'New HI round');

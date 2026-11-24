@@ -20,6 +20,7 @@ import { mydayHtml, itemView, sinceText } from './js/myday-screen.js';
 import { pickerListHtml, sheetHtml } from './js/picker-screen.js';
 import { paletteRows, runUndo } from './js/palette.js';
 import { focusIfLost } from './js/focus.js';
+import { searchCommands } from '../core/keys.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const DATA = await loadEventData(async (p) => JSON.parse(read(p)));
@@ -326,6 +327,24 @@ test('the palette lists My day and Start a round, and its Undo row runs only the
   assert.equal(runUndo(ui(null), { label: 'Undo: delete R1' }), false);
   assert.equal(ran, 1);
   assert.deepEqual(toasts, ['That Undo is no longer there.', 'That Undo is no longer there.']);
+});
+
+// Why: the palette is the fast way to the rules mid-round; a Guide row that opened the wrong event (or no page) would
+// show a judge the wrong time limit or rule checks while a speaker waits.
+test('the palette has a Guide row for each enabled event and Custom, each opening that event\'s type page', () => {
+  const choices = ENABLED_EVENTS.map((id) => DATA.events.get(id));
+  const rows = paletteRows({ events: DATA.events, choices, rooms: [], undo: '' });
+  const guides = rows.filter((x) => x.group === 'Guide');
+  assert.equal(guides.length, ENABLED_EVENTS.length + 1);
+  for (const id of ENABLED_EVENTS.concat(CUSTOM_EVENT)) {
+    const g = guides.find((x) => x.id === 'guide-' + id);
+    assert.ok(g, id);
+    assert.deepEqual(parseRoute(g.hash), { screen: 'type', id }, id + ' opens its own type page');
+    assert.ok(typeHtml(DATA, id, []), id + ' has a type page to open');
+  }
+  assert.equal(guides.find((x) => x.id === 'guide-hi').label, 'Guide: HI');
+  assert.equal(searchCommands('guide hi', rows)[0].id, 'guide-hi');
+  assert.equal(searchCommands('new hi', rows)[0].label, 'New HI round', 'Guide rows do not push the New rows down');
 });
 
 // Why: a toast's Undo button is gone after it runs; with focus left on the page body, a keyboard judge starts over
