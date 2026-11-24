@@ -1,6 +1,6 @@
 # Speech Events: the Congress console
 
-Status: draft 1, 2026-11-22, for owner review. No code changed.
+Status: draft 1, 2026-11-22. Step S6 (scorer) built 2026-11-23: code in `events/congress/`; facts checked in §11.
 
 This file designs the Congressional Debate console in Tabula Speech Events. It takes the Congress parts of [EXPERIENCE.md](EXPERIENCE.md) §4 and the Congress research, and goes into more depth. It covers the roles, the screens, the data, the scoring rules and the build order.
 
@@ -195,12 +195,12 @@ Both views write the same data. Each legislator line shows the speech count, the
 
 | League | Points for each speech | PO points |
 |---|---|---|
-| NSDA districts | 1 to 8 | For each full hour. Scale is open: 1 to 8 or 4 to 8 (§10, item 1). No score for a part hour. |
-| NSDA Last Chance | 1 to 8 | For each full hour |
-| NSDA Nationals | 3 to 9 | For each full hour |
-| UIL | 1 to 6, first 5 speeches of each student only | Check |
-| TFA | 0 to 6 | 0 to 6 for each hour, given by the parliamentarian |
-| NCFL, CHSSA | Not verified | Not verified |
+| NSDA districts | 1 to 8 | 4 to 8 for each full hour (Officials rule; the merit-points line says 1 to 8, see §11). No score for a part hour. |
+| NSDA Last Chance | 1 to 8 | 1 to 8 for each full hour |
+| NSDA Nationals | 3 to 9 | 3 to 9 for each full hour |
+| UIL | 1 to 6, first 5 speeches of each student only | Up to 6 for each clock hour (the form says 2 to 6). Part hour: not verified. |
+| TFA | 0 to 6 (IQTs); 1 to 6 (State) | 0 to 6 for each hour, given by the parliamentarian (IQTs); 1 to 6 at State |
+| NCFL, CHSSA | No points: ranks only (§11) | NCFL: none found. CHSSA: the PO is a separate win/loss contest. |
 
 - **Merit points** convert any scale to 1 to 6. That is a different number from the scorer scale. EVENTS.md §6 mixes them up.
 - **Criteria:** originality, organization, evidence and logic, delivery, demeanor, and answers to questions. The scorer must **not** judge on agreement with the argument.
@@ -210,7 +210,7 @@ Both views write the same data. Each legislator line shows the speech count, the
 
 | Case | Effect |
 |---|---|
-| Wrong-side speech, not caught | Counts for precedence. At least 3 points off. |
+| Wrong-side speech, not caught | Counts for precedence. At least 3 points off (NSDA). TFA: no more than 3 points. |
 | Speech on legislation not on the floor | Counts for precedence. 0 points. |
 
 ### 5.4 Ranks
@@ -336,6 +336,25 @@ Note: the Hevy reference in the Mobbin notes shows "Score 1 to 6". Use the profi
 9. **Timekeeper view.** Build it with the Speaker view, or leave it out?
 10. **Session length test.** What device is the slowest one to test 3 hours and 30 rows on?
 
+## 11. Fact check for S6 (2026-11-23)
+
+Each open fact in §10 was checked against primary sources. A fact that is not confirmed is a profile value marked "not verified" (`unverified` in `events/congress/profiles.js`). The setup screen names those values in plain words. No fact blocked the scorer.
+
+| # | Fact | Finding | Source | State |
+|---|---|---|---|---|
+| 1 | District PO scale | 4 to 8 for each full hour. A part hour is not scored. The same manual's "District Merit Points" line says 1 to 8 for each complete hour of presiding. The app uses 4 to 8 and marks it. | [NSDA-HS] District Congress Officials 5.3; District Merit Points 3 | Confirmed rule, with a conflict inside the manual. Marked. |
+| 2 | District speech points | 1 to 8 for each speech. At most 40 points a day for each student. | [NSDA-HS] District Congress Officials | Confirmed |
+| 3 | Nationals points | 3 to 9 for each speech and for each complete PO hour. | [NSDA-HS] National Congressional Debate Procedures | Confirmed |
+| 4 | `reasonBelow` | Last Chance: below 5 needs substantial written comments. Nationals: the same text, but only in the 2020 scorer instructions (set to 5, marked). District: no number found (null). UIL: no number; the form asks for comments to justify every rating (null). TFA: none found (null, marked). | [LC-S] p.4; [NAT-2020]; [UIL-EV]; [TFA] | LC confirmed; Nationals partial; others none found |
+| 5 | Rank pool at NSDA | The manual says scorers rank their 8 most preferred legislators, "which may include POs". It does not limit the pool. The 2020 Nationals and 2023 Last Chance sheets say a student must have spoken or presided. The district and Nationals profiles keep `present` and mark it. | [NSDA-HS]; [LC-S]; [NAT-2020] | Partial. Marked. |
+| 6 | Scorer rotation | Nationals prelims: scorers rotate between sessions and rank in each session they judge. Districts: at least two scorers for each session; no rotation rule. The app makes a new ballot (session) each session in every league. | [NSDA-HS] | Confirmed (Nationals); none at districts |
+| 7 | UIL | 1 to 6 for each speech; only the first five speeches in a session are scored. PO: "up to six points per clock hour"; the PO form says 2 to 6. No part-hour rule found. A ballot for every member, even those who did not speak. | [UIL-CR27]; [UIL-PO] | Speech confirmed; PO partial (marked) |
+| 8 | TFA | IQTs: 0 to 6 for each speech. The parliamentarian gives 0 to 6 for each PO hour (one line also says "and scorers"). State: 1 to 6 for speeches and PO. A wrong-side speech gets no more than 3 points. | [TFA] | Confirmed; PO rule marked for the wording conflict |
+| 9 | NCFL, CHSSA | No speech-point scale in either rulebook. NCFL: top 8 ranks, unranked students get 9, the parliamentarian ranks all. CHSSA: ranks only; the PO is a separate win/loss contest. No profile written yet. | [NCFL-BY]; [CHSSA-RR] | Confirmed: ranks only |
+| 10 | Times | Speeches up to 3:00. 2:00 of questions after authorship or sponsorship and after the first negative; 1:00 after others. Direct questioning blocks of at most 30 s. | [NSDA-HS] Congress event rules | Confirmed |
+
+Still open for the owner: §10 items 3 (rank pool), 4 (parliamentarian full rank, S7), 8 (seat chart), 9 (timekeeper view), 10 (slowest device), plus a TFA State profile and NCFL and CHSSA rank-only profiles.
+
 ## Sources
 
 - [LC-S] NSDA 2023 Last Chance Congressional Debate Scorer Instructions: https://s3.amazonaws.com/tabroom-files/tourns/26154/postings/37300/2023RevisedLastChanceScorerInstructions.pdf
@@ -348,4 +367,9 @@ Note: the Hevy reference in the Mobbin notes shows "Score 1 to 6". Use the profi
 - [UIL-CR] UIL Congress Rules 2024-25: https://uiltexas.org/files/academics/speech/24-25-congress-rules.pdf
 - [UIL-SI] UIL State scorer instructions: https://www.uiltexas.org/files/academics/speech/22SCORERInstructions_STATE_.pdf
 - [TFA] TFA Constitution and Contest Rules 2026-27: https://docs.google.com/document/d/14F0q0qDvhaVr8bEPhpaCG1sJQJfNOpT_Ycl5wmqC7kg
+- [NAT-2020] NSDA 2020 Nationals scorer instructions (same link as above).
+- [UIL-CR27] UIL Congress Rules 2026-27 (revised), CONGRESS_RULES_2026_27_Rev.pdf, uiltexas.org.
+- [UIL-EV], [UIL-PO] UIL Congress speech and presiding evaluation forms, uiltexas.org (no year printed).
+- [NCFL-BY] NCFL Bylaws, updated after the Fall 2025 meeting, for Grand Nationals 2026: ncfl.org.
+- [CHSSA-RR] CHSSA Rules and Regulations, posted October 2025: https://www.chssa.org/wp-content/uploads/2025/10/CHSSA.RR_.pdf (Art. XIII, XIV).
 - Prior research note: congress-and-panel-research.md (side-session notes, `speech-events/`).

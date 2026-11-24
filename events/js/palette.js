@@ -17,6 +17,8 @@ export function paletteRows(ctx) {
   rows.push({ id: 'go-rooms', label: 'Rooms', group: 'Go to', alias: ['home', 'today'], hash: routeHash('rooms') });
   rows.push({ id: 'go-history', label: 'History', group: 'Go to', alias: ['table', 'export', 'csv', 'tsv'], hash: routeHash('history') });
   rows.push({ id: 'go-settings', label: 'Settings', group: 'Go to', alias: ['backup', 'restore', 'theme', 'keys', 'offline'], hash: routeHash('settings') });
+  rows.push({ id: 'go-chambers', label: 'Congress chambers', group: 'Go to', alias: ['congress', 'chamber', 'house', 'senate'], hash: routeHash('chamber') });
+  rows.push({ id: 'new-chamber', label: 'New Congress chamber', group: 'New', alias: ['congress', 'chamber', 'scorer'], hash: routeHash('chamber', 'new') });
   rows.push({ id: 'new', label: 'New round', group: 'New', alias: ['start', 'room'], hash: routeHash('setup') });
   for (const ev of c.choices || []) {
     rows.push({ id: 'new-' + ev.id, label: 'New ' + (ev.short || ev.name) + ' round', group: 'New', alias: [ev.name], hash: routeHash('setup', ev.id) });
