@@ -12,13 +12,12 @@
 //
 // Entry.cx: { by: entryId | null, ms, run: { startedAt } | null } — the asker and the cross-ex time.
 // Entry.school: text, optional.
-//
-// Draw gap. An extemp speaker draws a question and preps outside, so the next speaker comes in some minutes after the
-// last one. The gap (7 or 10 minutes) is not confirmed, so it is a setting (settings.js drawGapMin, drawGapOf).
+// The F2 draw gap and its waiting line are in draw-gap.js.
 import { familyOf } from './data.js';
 import { entryOf, updateEntry, present } from './room.js';
+import { levelOf } from './round-frame.js';
 
-export const SCHOOL_MAX = 60;
+const SCHOOL_MAX = 60;
 
 const asText = (v) => (v == null ? '' : String(v).trim());
 const cxOf = (e) => (e && e.cx && typeof e.cx === 'object' ? e.cx : { by: null, ms: 0, run: null });
@@ -26,7 +25,7 @@ const cxOf = (e) => (e && e.cx && typeof e.cx === 'object' ? e.cx : { by: null, 
 // Is the cross-ex phase on for this round? F2 event, elim round, and a profile with elim.cx.
 export function cxOn(room, event) {
   const elim = room && room.profile && room.profile.elim;
-  return familyOf(event) === 'f2' && Boolean(room) && room.level === 'elim' && Boolean(elim && elim.cx === true);
+  return familyOf(event) === 'f2' && Boolean(room) && levelOf(room) === 'elim' && Boolean(elim && elim.cx === true);
 }
 
 // The cross-ex limit in seconds from the profile, or null (not given: the clock counts up).
@@ -108,25 +107,6 @@ export function phases(entry, limitSec, cxSec, now) {
   return { list: out, nextLine };
 }
 
-// ---------- the draw gap ----------
-// The gap in minutes comes from the settings (settings.js drawGapOf); the caller passes it in.
-
-// The "Waiting for next speaker · about N min" line for an F2 room, or ''. It shows when no clock runs, the current
-// entry has not spoken, and the last speech stopped less than the gap ago. N rounds up, so it never says 0 min.
-export function waitingLine(room, event, now, gapMin) {
-  if (familyOf(event) !== 'f2' || !room) return '';
-  const cur = entryOf(room, room.current);
-  if (!cur || (cur.status !== 'waiting' && cur.status !== 'crossEntered')) return '';
-  if (room.entries.some((e) => e.timing && (e.timing.run || e.timing.prepRun))) return '';
-  let last = -Infinity;
-  for (const e of room.entries) for (const r of (e.timing && e.timing.runs) || []) if (Number.isFinite(r.stoppedAt)) last = Math.max(last, r.stoppedAt);
-  if (!Number.isFinite(last)) return '';
-  const left = gapMin * 60000 - (now - last);
-  if (left <= 0) return '';
-  return 'Waiting for next speaker · about ' + Math.ceil(left / 60000) + ' min';
-}
-
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).crossEx = Object.freeze({
-  SCHOOL_MAX, cxOn, cxLimit, askerOf, setAsker, setSchool, sameSchoolWarning, cxUsed, cxRunning, startCx, stopCx, resetCx, phases,
-  waitingLine,
+  cxOn, cxLimit, askerOf, setAsker, setSchool, sameSchoolWarning, cxUsed, cxRunning, startCx, stopCx, resetCx, phases,
 });
