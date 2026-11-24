@@ -6,7 +6,7 @@ import { DAYS_KEY, CARDS_KEY } from './store.js';
 import { migrateDays, migrateCards } from './migrate.js';
 import { dayOf } from './rooms.js';
 import { newId } from './room.js';
-import { ensureDay, dayFor, withStandby, makeCard, cardForRound, linkRound, roundFields, upsert, findById } from './cards.js';
+import { ensureDay, dayFor, withStandby, makeCard, cardForRound, linkRoundToCard, upsert, findById } from './cards.js';
 
 // deps: { store (get, set), now(), makeId (newId by default) }.
 export function createDayStore({ store, now, makeId }) {
@@ -56,9 +56,7 @@ export function createDayStore({ store, now, makeId }) {
         if (!d) return { round, card: null };
         c = cardForRound(round, d, now(), mk);
       }
-      // What the judge typed in setup wins: the card shows the round, flight and tournament the round has.
-      c = Object.assign(linkRound(c, round.id), { round: round.round || c.round, flight: round.flight || '', tournament: round.tournament || c.tournament });
-      return { round: Object.assign({}, round, roundFields(c), { tournament: round.tournament || c.tournament }), card: c };
+      return linkRoundToCard(round, c);
     },
     // The card for a round that has none (a round from before S3, acted on from My day). Saved; null on failure.
     adopt(round) {

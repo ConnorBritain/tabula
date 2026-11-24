@@ -7,7 +7,7 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { downloadFile } from '../../core/store.js';
 import { isMacPlatform } from '../../core/keys.js';
-import { MODES, THEMES, RANKS_DUE_MAX, withSetting, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
+import { MODES, THEMES, RANKS_DUE_MAX, withSetting, validRanksDue, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
 import { PREFIX } from './store.js';
 import { keymap } from './keys.js';
 import { checkOffline } from './offline.js';
@@ -135,8 +135,7 @@ export function createSettingsScreen(env) {
     if (t.name === 'set-mode') env.saveSettings(withSetting(env.settings(), 'mode', t.value));
     if (t.id === 'set-due') {
       const n = Number(t.value);
-      const next = withSetting(env.settings(), 'ranksDueMin', n);
-      if (next.ranksDueMin === n) { env.saveSettings(next); env.ui.toast('Ranks are due ' + n + ' min after the last speaker.', { key: 'due' }); }
+      if (validRanksDue(n)) { env.saveSettings(withSetting(env.settings(), 'ranksDueMin', n)); env.ui.toast('Ranks are due ' + n + ' min after the last speaker.', { key: 'due' }); }
       else { t.value = String(ranksDueMinOf(env.settings())); env.ui.toast('Type a whole number of minutes from 1 to ' + RANKS_DUE_MAX + '.', { kind: 'error', key: 'due' }); }
     }
     if (t.id === 'set-modemenu') env.saveSettings(withSetting(env.settings(), 'showModeMenu', t.checked));

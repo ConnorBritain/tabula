@@ -7,7 +7,7 @@
 import { buildBackup, parseBackup } from '../../core/store.js';
 import { PREFIX, ROOMS_KEY, SETTINGS_KEY, DAYS_KEY, CARDS_KEY } from './store.js';
 import { KEYS_KEY } from './ai-key.js';
-import { migrateRooms, migrateSettings, migrateDays, migrateCards } from './migrate.js';
+import { migrateRooms, migrateSettings, migrateDays, migrateCards, RANKS_DUE_DEFAULT } from './migrate.js';
 
 // The app name in a backup file. A file with another name (a Tabula Debate backup) is refused.
 export const BACKUP_APP = 'tabula-events';
@@ -27,11 +27,13 @@ export const THEMES = Object.freeze([
 
 export const RANKS_DUE_MAX = 60;
 export const RECENT_MAX = 5;
-// The ranks-due minutes to use: the setting when it is a whole number from 1 to 60, else 10 (a bad value from an old
-// backup never breaks the countdown).
+// A good ranks-due value: a whole number of minutes from 1 to 60.
+export const validRanksDue = (v) => Number.isInteger(v) && v >= 1 && v <= RANKS_DUE_MAX;
+// The ranks-due minutes to use: the setting when it is good, else 10 (a bad value from an old backup never breaks
+// the countdown).
 export function ranksDueMinOf(settings) {
   const v = migrateSettings(settings).ranksDueMin;
-  return Number.isInteger(v) && v >= 1 && v <= RANKS_DUE_MAX ? v : 10;
+  return validRanksDue(v) ? v : RANKS_DUE_DEFAULT;
 }
 // The recent events with one more at the front (no doubles, at most 5).
 export const withRecentEvent = (settings, eventId) => {
@@ -54,7 +56,7 @@ export function withSetting(settings, key, value) {
   if (key === 'mode' && !MODES.some((m) => m.id === value)) return s;
   if (key === 'theme' && !THEMES.some((t) => t.id === value)) return s;
   if (key === 'showModeMenu' && typeof value !== 'boolean') return s;
-  if (key === 'ranksDueMin' && !(Number.isInteger(value) && value >= 1 && value <= RANKS_DUE_MAX)) return s;
+  if (key === 'ranksDueMin' && !validRanksDue(value)) return s;
   if (key === 'recentEvents' && !(Array.isArray(value) && value.length <= RECENT_MAX && value.every((x) => typeof x === 'string' && /^[a-z0-9-]{1,20}$/.test(x)))) return s;
   if (!['mode', 'theme', 'showModeMenu', 'ranksDueMin', 'recentEvents'].includes(key)) return s;
   return Object.assign({}, s, { [key]: Array.isArray(value) ? value.slice() : value });
@@ -93,10 +95,10 @@ export function readBackup(text) {
     storage[ROOMS_KEY] = JSON.stringify(list);
   }
   // Step S3: days and cards come back in today's shape too. A list that is damaged is refused, like the rounds.
-  for (const [key, mig] of [[DAYS_KEY, migrateDays], [CARDS_KEY, migrateCards]]) {
+  for (const [key, mig, what] of [[DAYS_KEY, migrateDays, 'days'], [CARDS_KEY, migrateCards, 'ballot cards']]) {
     if (!(key in storage)) continue;
     const r = parseJson(storage[key]);
-    if (!r.ok || !Array.isArray(r.value)) throw new Error('The ballot cards in this backup are damaged, so nothing was restored.');
+    if (!r.ok || !Array.isArray(r.value)) throw new Error('The ' + what + ' in this backup are damaged, so nothing was restored.');
     storage[key] = JSON.stringify(mig(r.value));
   }
   if (SETTINGS_KEY in storage) {
@@ -116,5 +118,5 @@ export function restoreItems(current, backup) {
   return items;
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ BACKUP_APP, MODES, THEMES, RANKS_DUE_MAX, RECENT_MAX, ranksDueMinOf, withRecentEvent, modeMenuShown, withSetting,
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ BACKUP_APP, MODES, THEMES, RANKS_DUE_MAX, RECENT_MAX, validRanksDue, ranksDueMinOf, withRecentEvent, modeMenuShown, withSetting,
   makeBackup, backupName, readBackup, restoreItems });

@@ -7,7 +7,8 @@ import { CHECK_LABELS } from './comments.js';
 import { CUSTOM_EVENT } from './room.js';
 import { clockText } from './timer.js';
 
-// One plain line per event id. Summarized in our own words; no rule text copied.
+// One plain line per event id. Summarized in our own words; no rule text copied. Not verified line by line against
+// the NSDA manual (brief rule 9): an owner or coach should check these before release.
 export const EVENT_LINES = Object.freeze({
   oo: 'A student gives a speech they wrote, to persuade the room on a topic they chose.',
   inf: 'A student gives a speech they wrote, to teach the room about a topic.',

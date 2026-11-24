@@ -12,6 +12,7 @@
 import { present, CUSTOM_EVENT } from './room.js';
 import { dayOf } from './rooms.js';
 import { clockText } from './timer.js';
+import { RANKS_DUE_DEFAULT } from './migrate.js';
 
 export const STATUS_WORDS = Object.freeze({
   notStarted: 'Not started',
@@ -32,7 +33,7 @@ export const SECTIONS = Object.freeze([
 export const LEVELS = Object.freeze([{ id: 'prelim', label: 'Prelim' }, { id: 'elim', label: 'Elim' }]);
 export const FLIGHTS = Object.freeze(['', 'A', 'B']);
 // The ranks-due minutes when the setting is missing or bad (§5.3: "end of the last speaker plus 10 minutes").
-export const RANKS_DUE_DEFAULT = 10;
+export { RANKS_DUE_DEFAULT };
 export const ROOM_MAX = 40;
 
 const text = (s, max) => String(s == null ? '' : s).trim().slice(0, max || 80);
@@ -135,11 +136,20 @@ export function nextRoundLabel(items) {
 
 // ---------- edits (each returns a new card) ----------
 export const cancelCard = (card, now) => Object.assign({}, card, { status: 'cancelled', cancelledAt: now });
-export const uncancelCard = (card, prev) => Object.assign({}, card, { status: prev && prev.status ? prev.status : 'notStarted', cancelledAt: prev ? prev.cancelledAt || null : null });
 export const moveRoom = (card, label) => Object.assign({}, card, { roomLabel: text(label, ROOM_MAX) });
 export const submitCard = (card, now) => Object.assign({}, card, { submittedAt: now });
-export const unsubmitCard = (card) => Object.assign({}, card, { submittedAt: null });
 export const linkRound = (card, roundId) => Object.assign({}, card, { roundId });
+
+// The fields an edit changed, with their old values: an Undo puts back only these, so a change made since (another
+// edit, a round linked) is kept.
+export const undoFields = (before, after) => Object.fromEntries(Object.keys(after).filter((k) => after[k] !== before[k]).map((k) => [k, before[k] === undefined ? null : before[k]]));
+
+// A new round and its card, joined (step S3, decision 2a). What the judge typed in setup wins: the card takes the
+// round's round, flight and tournament; the round takes the card's day, level and room. Returns { round, card }.
+export function linkRoundToCard(round, card) {
+  const c = Object.assign(linkRound(card, round.id), { round: round.round || card.round, flight: round.flight || '', tournament: round.tournament || card.tournament });
+  return { round: Object.assign({}, round, roundFields(c), { tournament: round.tournament || c.tournament }), card: c };
+}
 
 // The round fields a card gives the round it starts (§8.2: dayId, cardId, level, roomLabel).
 export const roundFields = (card) => ({ cardId: card.id, dayId: card.dayId, level: card.level === 'elim' ? 'elim' : 'prelim', roomLabel: card.roomLabel || '' });
@@ -193,4 +203,4 @@ function item(card, round, c) {
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).cards = Object.freeze({ STATUS_WORDS, SECTION_OF, SECTIONS, LEVELS, FLIGHTS, RANKS_DUE_DEFAULT,
   makeDay, dayFor, ensureDay, withStandby, cardEventId, cardEvent, makeCard, cardForRound, cardStatus, ranksDueAt, dueText, nextRoundLabel,
-  cancelCard, uncancelCard, moveRoom, submitCard, unsubmitCard, linkRound, roundFields, upsert, findById, mydayModel });
+  cancelCard, moveRoom, submitCard, linkRound, linkRoundToCard, undoFields, roundFields, upsert, findById, mydayModel });

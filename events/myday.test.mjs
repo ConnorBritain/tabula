@@ -10,13 +10,13 @@ import { dayOf } from './js/rooms.js';
 import { migrateDays, migrateCards, migrateSettings, DAY_DEFAULTS, CARD_DEFAULTS } from './js/migrate.js';
 import { readBackup, withSetting, withRecentEvent, ranksDueMinOf } from './js/settings.js';
 import { DAYS_KEY, CARDS_KEY } from './js/store.js';
-import { makeDay, makeCard, cardStatus, STATUS_WORDS, mydayModel, ranksDueAt, dueText, nextRoundLabel, withStandby, cancelCard, uncancelCard, moveRoom, submitCard, cardForRound, ensureDay } from './js/cards.js';
+import { makeDay, makeCard, cardStatus, STATUS_WORDS, mydayModel, ranksDueAt, dueText, nextRoundLabel, withStandby, cancelCard, moveRoom, submitCard, cardForRound, ensureDay, undoFields } from './js/cards.js';
 import { createDayStore } from './js/day-store.js';
 import { parseRoute, routeHash, roundTarget } from './js/routes.js';
 import { chipsOf, pickerRows, recentIds, pickerSections } from './js/picker.js';
 import { EVENT_LINES, guideModel, rulesLines } from './js/guide.js';
 import { typeHtml, roundsOfType } from './js/type-screen.js';
-import { mydayHtml, itemView, undoFields, sinceText } from './js/myday-screen.js';
+import { mydayHtml, itemView, sinceText } from './js/myday-screen.js';
 import { pickerListHtml, sheetHtml } from './js/picker-screen.js';
 import { paletteRows, runUndo } from './js/palette.js';
 import { focusIfLost } from './js/focus.js';
@@ -149,7 +149,8 @@ test('ranks are due at the card\'s own time, else the last present speaker\'s st
   assert.equal(m.sections[0].items[0].due, stop + 600000, 'the Now card carries its due time');
 });
 
-// Why: the confirm sheet guesses the next round so a judge makes a card in two taps; a wrong guess costs a retype.
+// Why: the confirm sheet guesses the next round so a judge makes a card in two taps; a wrong guess files the ballot
+// under the wrong round on My day and in History, where the judge looks it up for Tabroom.
 test('the next round is the last card\'s number plus one', () => {
   assert.equal(nextRoundLabel([]), 'Round 1');
   assert.equal(nextRoundLabel([{ round: 'Round 2', createdAt: 1 }, { round: 'Round 1', createdAt: 0 }]), 'Round 3');
@@ -206,7 +207,9 @@ test('card edits change one field, and Undo puts back only what the edit changed
   assert.equal(back.submittedAt, null);
   assert.equal(back.roomLabel, '310', 'the earlier move is kept');
   const cx = cancelCard(c, NOW);
-  assert.equal(uncancelCard(cx, c).status, 'notStarted');
+  const unc = Object.assign({}, cx, undoFields(c, cx));
+  assert.equal(unc.status, 'notStarted', 'Undo of a cancel puts the card back');
+  assert.equal(unc.cancelledAt, null);
   assert.equal(cardForRound(round('hi', { customEvent: { id: 'custom' } }), DAY, NOW, mk).eventKey, CUSTOM_EVENT);
 });
 

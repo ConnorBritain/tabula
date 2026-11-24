@@ -4,7 +4,7 @@
 // submitted in Tabroom", moved to another room or cancelled, each with Undo.
 // The rules are in cards.js; the builders at the top are pure (Node tests call them); createMydayScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
-import { mydayModel, cardEvent, cardEventId, dueText, cancelCard, moveRoom, submitCard, findById, ROOM_MAX } from './cards.js';
+import { mydayModel, cardEvent, cardEventId, dueText, cancelCard, moveRoom, submitCard, findById, undoFields, ROOM_MAX } from './cards.js';
 import { roomEvent, CUSTOM_EVENT } from './room.js';
 import { dayOf } from './rooms.js';
 import { routeHash } from './routes.js';
@@ -180,8 +180,4 @@ export function createMydayScreen(env) {
   };
 }
 
-// The fields an edit changed, with their old values: an Undo puts back only these, so a change made since (another
-// edit, a round linked) is kept.
-export const undoFields = (before, after) => Object.fromEntries(Object.keys(after).filter((k) => after[k] !== before[k]).map((k) => [k, before[k] === undefined ? null : before[k]]));
-
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).myday = Object.freeze({ MD_TOAST_KEY, sinceText, itemKey, itemView, cardHtml, mydayHtml, undoFields });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).myday = Object.freeze({ MD_TOAST_KEY, sinceText, itemKey, itemView, cardHtml, mydayHtml });

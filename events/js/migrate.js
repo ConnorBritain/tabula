@@ -13,7 +13,8 @@ export const ROUND_DEFAULTS = Object.freeze({ mode: 'tournament', level: 'prelim
 // The defaults for the device settings (§1.1, §8.5): Judge mode, no mode menu, the system theme.
 // Step S3 adds ranksDueMin (§5.3) and recentEvents (the picker's last 5 events, §5.2). A list default is copied on
 // every read (fill), so two settings records never share one array.
-export const SETTINGS_DEFAULTS = Object.freeze({ mode: 'judge', showModeMenu: false, theme: 'system', ranksDueMin: 10, recentEvents: Object.freeze([]) });
+export const RANKS_DUE_DEFAULT = 10;
+export const SETTINGS_DEFAULTS = Object.freeze({ mode: 'judge', showModeMenu: false, theme: 'system', ranksDueMin: RANKS_DUE_DEFAULT, recentEvents: Object.freeze([]) });
 // Step S3 (§8.3): the defaults for a Day and a BallotCard.
 export const DAY_DEFAULTS = Object.freeze({ tournament: '', checkInAt: null, standby: false });
 export const CARD_DEFAULTS = Object.freeze({ role: 'judge', status: 'notStarted', tournament: '', flight: '', level: 'prelim', roomLabel: '',
