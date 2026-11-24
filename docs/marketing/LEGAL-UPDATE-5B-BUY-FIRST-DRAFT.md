@@ -102,7 +102,7 @@ Scope: the first send only (buyer to one other person). Later moves (give back, 
 - The buy-first server checks Cloudflare Turnstile on guest checkout (tabula-cloud `src/billing/routes.ts`, guest gate). Update 9 removed the old sign-in Turnstile line, because sign-in has no Turnstile.
 - Add to the cookies list: "If you buy without signing in, the checkout form uses Cloudflare Turnstile to block automated abuse. Turnstile checks the browser for signs of a bot. It does not track you across sites."
 - §10 Cloudflare row, Purpose: add "bot protection on checkout without sign-in (Turnstile)".
-- If Turnstile is later added to sign-in too, say "sign-in and checkout forms".
+- Turnstile is also built (off) for the sign-in form and the send form. On the publish day, name every form where it is on, for example "the sign-in, checkout and send forms".
 
 **Name fix (L13).** If any text from this update names the Plans page, write "the Pricing page (tabulaspeech.com/pricing/)".
 

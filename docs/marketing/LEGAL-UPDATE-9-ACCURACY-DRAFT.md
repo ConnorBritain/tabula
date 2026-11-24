@@ -16,6 +16,8 @@ The fixes only remove claims or make them narrower. They add no new use of data.
 3. The owner types yes in the marketing chat.
 4. Use the live text as the "Before" on the publish day. If update 4 or 5B goes live first, start from that text.
 
+5. Turnstile status (security report 2026-11-24): Turnstile is built for the sign-in and send forms but ships off (`TURNSTILE_FORMS` off, no widget). If it is on in production on the publish day, replace A1 with: "Our sign-in forms use Cloudflare Turnstile to block automated abuse. Turnstile checks the browser for signs of a bot. It does not track you across sites. We also limit how often sign-in can be tried." and keep "bot protection (Turnstile)" in the A2 Cloudflare row.
+
 ## Privacy Policy (`sites/speech/pages/privacy.html`)
 
 **A1. Cookies and similar tools (replace one item)**
