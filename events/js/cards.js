@@ -185,8 +185,8 @@ export function mydayModel(ctx) {
     // Today's cards, and an earlier day's card that is still open work (judging, ranks copied, or comments open):
     // a round that runs past midnight, or comments Tabroom keeps open until the tournament ends (§5.3), must not
     // drop off My day when the date changes. An earlier day's finished, cancelled or never-started card stays in History.
-    const today = c.day && card.dayId === c.day.id;
-    if (today || SECTION_OF[it.status] === 'now' || SECTION_OF[it.status] === 'open') items.push(Object.assign(it, { earlier: !today }));
+    const isToday = Boolean(c.day && card.dayId === c.day.id);
+    if (isToday || SECTION_OF[it.status] === 'now' || SECTION_OF[it.status] === 'open') items.push(Object.assign(it, { earlier: !isToday }));
   }
   for (const r of rounds) if (!linked.has(r.id) && dayOf(r.createdAt) === today) items.push(item(null, r, c));
   const at = (x) => (x.card ? x.card.createdAt : x.round.createdAt) || 0;

@@ -9,6 +9,7 @@
 // Read-time migration (the same rules as events/js/migrate.js): a field a record has is never changed or dropped;
 // only a missing field gets its default; running it twice gives the same result as once.
 import { PREFIX } from '../js/store.js';
+import { dayOf } from '../js/rooms.js';
 
 export const CONGRESS_KEY = PREFIX + 'congress.v1';
 
@@ -76,5 +77,17 @@ export function congressIO(store) {
   });
 }
 
+// Congress chambers in use today (step S6 keeps them in tabulaEvents.congress.v1, apart from rounds and cards): a chamber
+// made today, or one with a session made or saved today. state: the migrated Congress value. Returns [{ id, label }].
+// My day (events/js/myday-screen.js) shows these through env.congressToday, so it never reads the Congress shape.
+export function congressToday(state, now) {
+  const today = dayOf(now);
+  const s = state || {};
+  const touched = (t) => Number.isFinite(t) && dayOf(t) === today;
+  return (Array.isArray(s.chambers) ? s.chambers : []).filter((c) => c && c.id && (touched(c.createdAt)
+    || (Array.isArray(s.sessions) ? s.sessions : []).some((x) => x && x.chamberId === c.id && (touched(x.createdAt) || touched(x.updatedAt)))))
+    .map((c) => ({ id: c.id, label: [c.house === 'senate' ? 'Senate' : 'House', c.tournament, c.roomLabel ? 'Room ' + c.roomLabel : ''].filter(Boolean).join(' · ') }));
+}
+
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressStore = Object.freeze({ CONGRESS_KEY, migrateCongress, migrateChamber, migrateSession,
-  withChamber, withSession, findChamber, findSession, chamberSessions, congressIO });
+  withChamber, withSession, findChamber, findSession, chamberSessions, congressIO, congressToday });

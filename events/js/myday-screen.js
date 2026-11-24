@@ -69,18 +69,7 @@ export function cardHtml(v, now) {
 }
 
 // The whole screen as HTML text. m: mydayModel(...); day: today's Day or null; events: the registry.
-// Congress chambers in use today (step S6 keeps them in tabulaEvents.congress.v1, apart from rounds and cards): a chamber
-// made today, or one with a session made or saved today. state: the migrated Congress value. Returns [{ id, label }].
-export function congressToday(state, now) {
-  const today = dayOf(now);
-  const s = state || {};
-  const touched = (t) => Number.isFinite(t) && dayOf(t) === today;
-  return (Array.isArray(s.chambers) ? s.chambers : []).filter((c) => c && c.id && (touched(c.createdAt)
-    || (Array.isArray(s.sessions) ? s.sessions : []).some((x) => x && x.chamberId === c.id && (touched(x.createdAt) || touched(x.updatedAt)))))
-    .map((c) => ({ id: c.id, label: [c.house === 'senate' ? 'Senate' : 'House', c.tournament, c.roomLabel ? 'Room ' + c.roomLabel : ''].filter(Boolean).join(' · ') }));
-}
-
-// congress (optional): congressToday(...). A Congress chamber in use counts as a ballot, so Standby does not show.
+// congress (optional): [{ id, label }], today's Congress chambers (events/congress/store.js congressToday, via env). A Congress chamber in use counts as a ballot, so Standby does not show.
 export function mydayHtml(m, day, events, now, congress) {
   const sub = [dayOf(now), day && day.tournament].filter(Boolean).join(' · ');
   const chambers = Array.isArray(congress) ? congress : [];
@@ -114,7 +103,7 @@ export function createMydayScreen(env) {
   function draw(focusKey) {
     const day = env.day.today();
     model = mydayModel({ day, cards: env.day.cards(), rounds: env.rooms(), now: env.now(), ranksDueMin: ranksDueMinOf(env.settings()) });
-    env.el.innerHTML = mydayHtml(model, day, env.data.events, env.now(), env.congress ? congressToday(env.congress(), env.now()) : []);
+    env.el.innerHTML = mydayHtml(model, day, env.data.events, env.now(), env.congressToday ? env.congressToday(env.now()) : []);
     focusItem(focusKey);
   }
   // Focus an item by its key (found by position, never by putting an id in a CSS selector), else the title.

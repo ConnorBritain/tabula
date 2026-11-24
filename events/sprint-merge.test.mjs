@@ -10,7 +10,8 @@ import { paletteRows } from './js/palette.js';
 import { eventChoices } from './js/setup-screen.js';
 import { parseRoute } from './js/routes.js';
 import { searchCommands } from '../core/keys.js';
-import { congressToday, mydayHtml } from './js/myday-screen.js';
+import { mydayHtml } from './js/myday-screen.js';
+import { congressToday } from './congress/store.js';
 import { createDayStore } from './js/day-store.js';
 import { createRoom } from './js/room.js';
 import { mydayModel, makeDay, makeCard, linkRoundToCard, cardStatus, ranksDueAt } from './js/cards.js';
@@ -91,7 +92,6 @@ test('a round started from a card keeps the level the judge last picked on the s
   assert.equal(kept.card.level, 'prelim');
   assert.equal(ds.linkNewRound(r, c.id).round.level, 'elim', 'with no edit, the card level still wins (S3 rule)');
 });
-
 
 // Why: a round started at 23:58 is still being judged at 00:10; if My day hides it at midnight, the judge loses the countdown to ranks due and the "I submitted" tick for a live ballot.
 test('My day keeps an earlier day\'s open ballot (judging or comments open) and drops its finished or never-started ones', () => {
