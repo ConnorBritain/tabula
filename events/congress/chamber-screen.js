@@ -35,8 +35,10 @@ export function setupHtml(prefs) {
     <div class="setup-fields">
       <label class="field"><span>Tournament <span class="muted">(optional)</span></span><input id="cg-tournament" autocomplete="off" maxlength="80"></label>
       <label class="field"><span>Room <span class="muted">(optional)</span></span><input id="cg-room" autocomplete="off" maxlength="40"></label>
-      <fieldset class="field cg-house"><legend>Chamber</legend><label><input type="radio" name="cg-house" value="house" checked> House</label> <label><input type="radio" name="cg-house" value="senate"> Senate</label></fieldset>
-      <div class="field"><span>Role</span><p class="cg-static">Scorer <span class="muted">(parliamentarian tools come later)</span></p></div>
+      <!-- House or Senate as a two-option segmented control (design review §2.15, bug 7): the label sits on its option,
+           never under the radio. Role is a fixed line, not a label with no control. -->
+      <fieldset class="field cg-house"><legend>Chamber</legend><div class="seg"><label class="seg-opt"><input type="radio" name="cg-house" value="house" checked><span>House</span></label><label class="seg-opt"><input type="radio" name="cg-house" value="senate"><span>Senate</span></label></div></fieldset>
+      <p class="cg-role"><span class="cg-role-k">Role:</span> Scorer <span class="muted">(parliamentarian tools come later)</span></p>
       <label class="field"><span>Rules</span><select id="cg-profile">${prOpts}</select></label>
       <label class="field" id="cg-scale-field"><span>Points scale</span><select id="cg-scale">${scOpts}</select></label>
       <p class="field-help wide" id="cg-profile-note"></p>

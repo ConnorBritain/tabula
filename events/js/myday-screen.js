@@ -2,10 +2,13 @@
 // the Rooms list. Sections: Now, Later today, Done (comments open), Done. A Standby card shows when today is on standby
 // and nothing is in Now or Later today. The Now card counts down to the ranks-due time. Each card can be marked "I
 // submitted in Tabroom", moved to another room or cancelled, each with Undo.
+// Design build 2026-11-24 (owner decision OD2 A, design review §2.1): one large "Up next" card (the round being judged,
+// else the next one), then the other rounds as compact rows with a status pill and a "⋯" menu that holds Change room and
+// Cancel round. Ranks due is a pill in words. The room shows as typed (bug 3).
 // The rules are in cards.js; the builders at the top are pure (Node tests call them); createMydayScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
-import { mydayModel, cardEvent, cardEventId, dueText, cancelCard, moveRoom, submitCard, findById, undoFields, ROOM_MAX } from './cards.js';
-import { roomEvent, CUSTOM_EVENT } from './room.js';
+import { mydayModel, cardEvent, cardEventId, duePill, roomText, upNextItem, cancelCard, moveRoom, submitCard, findById, undoFields, ROOM_MAX } from './cards.js';
+import { roomEvent, present, CUSTOM_EVENT } from './room.js';
 import { dayOf } from './rooms.js';
 import { routeHash } from './routes.js';
 import { ranksDueMinOf } from './settings.js';
@@ -22,7 +25,8 @@ export function sinceText(from, now) {
 // The key of an item: its card id, or its round id when it has no card yet.
 export const itemKey = (it) => (it.card ? 'c:' + it.card.id : 'r:' + it.round.id);
 
-// What one item shows: { key, eventId, short, name, title, meta, status, word, due, startHash, openHash, canEdit, canSubmit }.
+// What one item shows: { key, eventId, short, name, title, meta, status, word, due, progress, startHash, openHash,
+// goHash, goWord, canEdit, canSubmit }. goHash and goWord are the one main step: Start, Continue or Open.
 export function itemView(it, events) {
   const c = it.card, r = it.round;
   const ev = c ? cardEvent(events, c) : roomEvent(events, r);
@@ -30,47 +34,84 @@ export function itemView(it, events) {
   const eventId = custom ? CUSTOM_EVENT : c ? cardEventId(c) : r.eventId;
   const src = c || r;
   const title = [src.round, src.flight ? 'Flight ' + src.flight : ''].filter(Boolean).join(' · ') || 'Untitled round';
-  const room = c ? c.roomLabel : r.roomLabel;
-  const meta = [it.earlier ? 'From ' + dayOf(src.createdAt) : '', room ? 'Room ' + room : '', src.tournament, src.level === 'elim' ? 'Elim' : ''].filter(Boolean).join(' · ');
+  const room = roomText(c ? c.roomLabel : r.roomLabel); // bug 3: "Room 214" as typed, never "Room Room 214"
+  const meta = [it.earlier ? 'From ' + dayOf(src.createdAt) : '', room, src.tournament, src.level === 'elim' ? 'Elim' : ''].filter(Boolean).join(' · ');
   const live = it.status !== 'cancelled' && it.status !== 'done';
+  const here = r ? present(r) : [];
+  const startHash = c && it.status === 'notStarted' ? routeHash('start', c.id) : '';
+  const openHash = r ? routeHash('round', r.id) : '';
   return {
     key: itemKey(it),
     eventId,
     short: custom ? (r && r.customEvent && r.customEvent.short) || 'Custom' : ev ? ev.short || ev.name : eventId.toUpperCase(),
     name: custom ? 'Custom event' : ev ? ev.name : 'Event not on this device',
     title, meta, status: it.status, word: it.word, due: it.due,
-    startHash: c && it.status === 'notStarted' ? routeHash('start', c.id) : '',
-    openHash: r ? routeHash('round', r.id) : '',
+    progress: here.length ? here.filter((e) => e.status === 'done').length + ' of ' + here.length + ' done' : '',
+    startHash, openHash,
+    goHash: startHash || openHash,
+    goWord: startHash ? 'Start' : it.status === 'judging' ? 'Continue' : 'Open',
     canEdit: live && it.status !== 'submitted',
     canSubmit: it.status === 'judging' || it.status === 'ranksIn',
   };
 }
 
 const PILL = { judging: ' solid', ranksIn: ' solid', cancelled: ' outline', done: ' outline' };
+const DUE_TONE = { caution: ' caution', late: ' err' };
 
-// One card as HTML text.
-export function cardHtml(v, now) {
-  const act = [];
-  if (v.startHash) act.push(`<a class="b primary" href="${esc(v.startHash)}">Start</a>`);
-  if (v.openHash) act.push(`<a class="b${v.status === 'judging' || v.status === 'ranksIn' ? ' primary' : ''}" href="${esc(v.openHash)}">Open</a>`);
-  if (v.canSubmit) act.push(`<button class="b" type="button" data-act="submit">I submitted in Tabroom</button>`);
-  if (v.canEdit) act.push(`<button class="b quiet" type="button" data-act="room">Change room</button>`, `<button class="b quiet" type="button" data-act="cancel">Cancel round</button>`);
+// The ranks-due pill in words (design review §2.1 change 3). update() redraws its text and tone each second.
+export function dueHtml(due, now) {
+  const p = duePill(due, now);
+  return p ? `<span class="pill md-due${DUE_TONE[p.tone] || ''}" data-due="${due}">${esc(p.text)}</span>` : '';
+}
+
+// The "⋯" button and, when open, its menu (owner decision OD2 A): the rare steps, with the destructive one last and
+// set apart (design review §2.1 change 2). It works like the Room roster's row menu: a button that opens a group in place.
+function moreHtml(v, open) {
+  if (!v.canEdit) return '';
   const label = v.short + ' ' + v.title;
-  return `<li class="md-card" data-item="${esc(v.key)}" tabindex="-1" aria-label="${esc(label + ', ' + v.word)}">
-    <div class="md-card-top">
-      <a class="pill md-ev" href="${esc(routeHash('type', v.eventId))}" title="${esc(v.name)}" aria-label="${esc('About ' + v.name)}">${esc(v.short)}</a>
-      <span class="md-title">${esc(v.title)}</span>
-      <span class="pill${PILL[v.status] || ''}">${esc(v.word)}</span>
-    </div>
-    ${v.meta ? `<p class="muted md-meta">${esc(v.meta)}</p>` : ''}
-    ${Number.isFinite(v.due) ? `<p class="md-due" data-due="${v.due}">${esc(dueText(v.due, now))}</p>` : ''}
-    ${act.length ? `<div class="md-act">${act.join('')}</div>` : ''}
+  return `<button class="iconbtn md-more" type="button" data-act="menu" aria-expanded="${open}" aria-label="${esc('More for ' + label)}">⋯</button>`;
+}
+function menuHtml(v, open) {
+  if (!v.canEdit || !open) return '';
+  return `<div class="md-menu" role="group" aria-label="${esc('More for ' + v.short + ' ' + v.title)}">
+      <button class="b small" type="button" data-act="room">Change room</button>
+      <button class="b small quiet md-cancel" type="button" data-act="cancel">Cancel round</button></div>`;
+}
+const submitHtml = (v, small) => (v.canSubmit ? `<button class="b${small ? ' small' : ''}" type="button" data-act="submit">I submitted in Tabroom</button>` : '');
+const evPill = (v) => `<a class="pill md-ev" href="${esc(routeHash('type', v.eventId))}" title="${esc(v.name)}" aria-label="${esc('About ' + v.name)}">${esc(v.short)}</a>`;
+
+// One compact row as HTML text (owner decision OD2 A): event pill, round and room (the link that opens it), the
+// status pill, the ranks-due pill, "I submitted in Tabroom" when it applies, and the "⋯" menu.
+export function cardHtml(v, now, menuOpen) {
+  const label = v.short + ' ' + v.title;
+  const main = `<span class="md-title">${esc(v.title)}</span>${v.meta ? `<span class="muted md-meta">${esc(v.meta)}</span>` : ''}`;
+  return `<li class="md-row" data-item="${esc(v.key)}" tabindex="-1" aria-label="${esc(label + ', ' + v.word)}">
+    ${evPill(v)}
+    ${v.goHash ? `<a class="md-row-main" href="${esc(v.goHash)}" aria-label="${esc(v.goWord + ' ' + label)}">${main}</a>` : `<span class="md-row-main">${main}</span>`}
+    <span class="md-pills"><span class="pill${PILL[v.status] || ''}">${esc(v.word)}</span>${dueHtml(v.due, now)}</span>
+    ${submitHtml(v, true)}${moreHtml(v, Boolean(menuOpen))}
+    ${menuHtml(v, Boolean(menuOpen))}
   </li>`;
+}
+
+// The "Up next" card as HTML text (owner decision OD2 A): the one round to go to now, large, with one primary button.
+export function upNextHtml(v, now, menuOpen) {
+  const label = v.short + ' ' + v.title;
+  const facts = [v.progress ? `<span class="md-progress">${esc(v.progress)}</span>` : '', dueHtml(v.due, now)].filter(Boolean).join('');
+  return `<section class="md-next" aria-labelledby="md-h-next"><h2 id="md-h-next">Up next</h2>
+    <div class="md-next-card" data-item="${esc(v.key)}" tabindex="-1" aria-label="${esc(label + ', ' + v.word)}">
+      <div class="md-card-top">${evPill(v)}<span class="md-next-title">${esc(v.title)}</span><span class="pill${PILL[v.status] || ''}">${esc(v.word)}</span></div>
+      ${v.meta ? `<p class="md-next-meta">${esc(v.meta)}</p>` : ''}
+      ${facts ? `<p class="md-facts">${facts}</p>` : ''}
+      <div class="md-act">${v.goHash ? `<a class="b primary md-go" href="${esc(v.goHash)}">${esc(v.goWord)}</a>` : ''}${submitHtml(v, false)}${moreHtml(v, Boolean(menuOpen))}</div>
+      ${menuHtml(v, Boolean(menuOpen))}
+    </div></section>`;
 }
 
 // The whole screen as HTML text. m: mydayModel(...); day: today's Day or null; events: the registry.
 // congress (optional): [{ id, label }], today's Congress chambers (events/congress/store.js congressToday, via env). A Congress chamber in use counts as a ballot, so Standby does not show.
-export function mydayHtml(m, day, events, now, congress) {
+// menuFor (optional): the key of the item whose "⋯" menu is open.
+export function mydayHtml(m, day, events, now, congress, menuFor) {
   const sub = [dayOf(now), day && day.tournament].filter(Boolean).join(' · ');
   const chambers = Array.isArray(congress) ? congress : [];
   const busy = m.sections[0].items.length + m.sections[1].items.length + chambers.length > 0;
@@ -82,16 +123,18 @@ export function mydayHtml(m, day, events, now, congress) {
         <button class="b quiet" type="button" id="md-standby-off">Leave standby</button></div>
     </section>` : '';
   const note = m.commentsNote ? `<p class="md-note" role="note"><strong>Comments still open.</strong> Tabroom keeps comments open until the tournament ends. Finish them before you go.</p>` : '';
-  const secs = m.sections.filter((s) => s.items.length).map((s) => `<section class="md-sec" aria-labelledby="md-h-${s.id}">
+  const next = upNextItem(m);
+  const nextHtml = next ? upNextHtml(itemView(next, events), now, menuFor === itemKey(next)) : '';
+  const secs = m.sections.map((s) => Object.assign({}, s, { items: s.items.filter((it) => it !== next) })).filter((s) => s.items.length).map((s) => `<section class="md-sec" aria-labelledby="md-h-${s.id}">
       <h2 id="md-h-${s.id}">${esc(s.title)} <span class="muted">${s.items.length}</span></h2>
-      <ul class="md-list">${s.items.map((it) => cardHtml(itemView(it, events), now)).join('')}</ul></section>`).join('');
+      <ul class="md-list">${s.items.map((it) => cardHtml(itemView(it, events), now, menuFor === itemKey(it))).join('')}</ul></section>`).join('');
   const cong = chambers.length ? `<section class="md-sec" aria-labelledby="md-h-congress"><h2 id="md-h-congress">Congress <span class="muted">${chambers.length}</span></h2>
-      <ul class="md-list">${chambers.map((c) => `<li class="md-card"><div class="md-card-top"><span class="md-title">${esc(c.label)}</span></div><div class="md-act"><a class="b primary" href="${esc(routeHash('chamber', c.id))}">Open</a></div></li>`).join('')}</ul></section>` : '';
+      <ul class="md-list">${chambers.map((c) => `<li class="md-row"><span class="pill md-ev">Congress</span><a class="md-row-main" href="${esc(routeHash('chamber', c.id))}" aria-label="${esc('Open ' + c.label)}"><span class="md-title">${esc(c.label)}</span></a></li>`).join('')}</ul></section>` : '';
   const empty = !m.items.length && !m.standby && !chambers.length ? '<p class="muted md-empty">No ballots yet today. When you get one, tap Start a round.</p>' : '';
   const standbyOn = !m.standby && !busy ? '<button class="b" type="button" id="md-standby-on">I am on standby</button>' : '';
-  return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">My day</h1><a class="b primary" id="md-start" href="${esc(routeHash('pick'))}">Start a round</a>${standbyOn}</div>
+  return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">My day</h1><a class="b${next ? '' : ' primary'}" id="md-start" href="${esc(routeHash('pick'))}">Start a round</a>${standbyOn}</div>
     ${sub ? `<p class="muted md-sub">${esc(sub)}</p>` : ''}
-    ${standby}${note}${empty}${secs}${cong}
+    ${standby}${note}${empty}${nextHtml}${secs}${cong}
     <p class="muted md-foot">Older rounds are in <a href="${esc(routeHash('history'))}">History</a>.</p>`;
 }
 
@@ -99,23 +142,40 @@ export function mydayHtml(m, day, events, now, congress) {
 export function createMydayScreen(env) {
   const $ = (s) => env.el.querySelector(s);
   let showing = false, tick = null, model = null;
+  let menuFor = null; // the key of the item whose "⋯" menu is open
 
   function draw(focusKey) {
     const day = env.day.today();
     model = mydayModel({ day, cards: env.day.cards(), rounds: env.rooms(), now: env.now(), ranksDueMin: ranksDueMinOf(env.settings()) });
-    env.el.innerHTML = mydayHtml(model, day, env.data.events, env.now(), env.congressToday ? env.congressToday(env.now()) : []);
+    env.el.innerHTML = mydayHtml(model, day, env.data.events, env.now(), env.congressToday ? env.congressToday(env.now()) : [], menuFor);
     focusItem(focusKey);
+  }
+  // The item element of a key, found by position (an id never goes in a CSS selector).
+  const itemEl = (key) => [...env.el.querySelectorAll('[data-item]')].find((x) => x.dataset.item === key) || null;
+  // Open or close an item's "⋯" menu; focus stays on its "⋯" button.
+  function toggleMenu(key) {
+    menuFor = menuFor === key ? null : key;
+    draw();
+    const el = itemEl(key);
+    const b = el && el.querySelector('[data-act="menu"]');
+    if (b) b.focus();
   }
   // Focus an item by its key (found by position, never by putting an id in a CSS selector), else the title.
   function focusItem(key) {
     if (key === undefined) return;
-    const el = key ? [...env.el.querySelectorAll('[data-item]')].find((x) => x.dataset.item === key) : null;
+    const el = key ? itemEl(key) : null;
     (el || $('#screen-title')).focus();
   }
   // The countdowns and the check-in time redraw each second; nothing else changes, so focus stays put.
   function update() {
     const now = env.now();
-    for (const el of env.el.querySelectorAll('[data-due]')) el.textContent = dueText(Number(el.dataset.due), now);
+    for (const el of env.el.querySelectorAll('[data-due]')) {
+      const p = duePill(Number(el.dataset.due), now);
+      if (!p) continue;
+      el.textContent = p.text;
+      el.classList.toggle('caution', p.tone === 'caution');
+      el.classList.toggle('err', p.tone === 'late');
+    }
     for (const el of env.el.querySelectorAll('[data-since]')) el.textContent = sinceText(Number(el.dataset.since), now);
   }
 
@@ -152,24 +212,33 @@ export function createMydayScreen(env) {
     const b = t.closest('button[data-act]');
     if (!b) return;
     const li = b.closest('[data-item]');
+    if (li && b.dataset.act === 'menu') { toggleMenu(li.dataset.item); return; }
+    menuFor = null; // a step from the menu (or any other button) closes it
     const c = li && cardFor(li.dataset.item);
-    if (!c) return;
+    if (!c) { draw(); return; }
     const name = [c.round || 'the round', c.tournament].filter(Boolean).join(', ');
     if (b.dataset.act === 'submit') change(c, submitCard(c, env.now()), 'Marked submitted in Tabroom: ' + name + '.', 'submitted ' + name);
     if (b.dataset.act === 'cancel') change(c, cancelCard(c, env.now()), 'Cancelled ' + name + '.', 'cancel ' + name);
     if (b.dataset.act === 'room') {
       const label = await env.ui.ask({ title: 'Moved to another room?', input: { label: 'Room', value: c.roomLabel || '', maxLength: ROOM_MAX, emptyError: 'Type the room, for example 204.' },
         buttons: [{ label: 'Cancel', value: null }, { label: 'Save room', value: true, kind: 'primary' }], cancelValue: null });
-      if (typeof label !== 'string' || !showing) return;
+      if (typeof label !== 'string' || !showing) { if (showing) draw('c:' + c.id); return; }
       const cur = findById(env.day.cards(), c.id) || c;
-      change(cur, moveRoom(cur, label), 'Moved to room ' + label + '.', 'move to room ' + label);
+      change(cur, moveRoom(cur, label), 'Moved to ' + roomText(label) + '.', 'move to ' + roomText(label)); // bug 3: never "room Room 214"
     }
   }
+
+  // Esc closes an open "⋯" menu and puts focus back on its button (as the Room roster's row menu does).
+  if (env.ui.escLayer) env.ui.escLayer('md-menu', 40, () => showing && menuFor !== null, () => {
+    const key = menuFor; menuFor = null; draw();
+    const el = itemEl(key); const b = el && el.querySelector('[data-act="menu"]'); if (b) b.focus();
+  });
 
   return {
     scope: 'myday',
     show() {
       showing = true;
+      menuFor = null;
       env.el.addEventListener('click', onClick);
       draw(null);
       tick = setInterval(update, 1000);
@@ -184,4 +253,4 @@ export function createMydayScreen(env) {
   };
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).myday = Object.freeze({ MD_TOAST_KEY, sinceText, itemKey, itemView, cardHtml, mydayHtml });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).myday = Object.freeze({ MD_TOAST_KEY, sinceText, itemKey, itemView, dueHtml, cardHtml, upNextHtml, mydayHtml });

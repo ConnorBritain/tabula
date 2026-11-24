@@ -10,13 +10,26 @@ import { routeHash } from './routes.js';
 
 const option = (value, label, picked) => `<option value="${esc(value)}"${value === picked ? ' selected' : ''}>${esc(label)}</option>`;
 
-// One cell of the table as HTML text. The round cell opens the round.
+// The state as the same kind of pill My day uses (design review §2.11), with "Comments open" as a second pill only
+// when it is true. A word always goes with the look.
+const STATE_PILL = Object.freeze({ Judging: ' solid', Ranking: ' solid', Review: ' solid', Copied: ' outline' });
+const stateHtml = (row) => `<span class="pill${STATE_PILL[row.state] || ''}">${esc(row.state)}</span>${row.commentsOpen ? ' <span class="pill">Comments open</span>' : ''}`;
+
+// One cell of the table as HTML text. The round cell opens the round (and so does a click anywhere on the row).
 function cellHtml(row, key) {
   if (key === 'round') return `<a href="${esc(routeHash('round', row.id))}">${esc(row.round || 'Untitled round')}</a>`;
-  if (key === 'commentsOpen') return row.commentsOpen ? 'Yes' : '';
+  if (key === 'state') return stateHtml(row);
   // Step S3: the event opens its type page (Guide, Rules, Rounds).
   if (key === 'event' && /^[a-z0-9-]{1,20}$/.test(row.eventId || '')) return `<a href="${esc(routeHash('type', row.eventId))}">${esc(row.event)}</a>`;
   return esc(row[key]);
+}
+
+// The quiet "⋯" row menu (design review §2.11): Delete lives in it, not on the row. The menu is in the page but hidden
+// until "⋯" opens it, so a keyboard judge reaches Delete only on purpose. Delete still has Undo.
+function moreHtml(r) {
+  const name = r.event + ' ' + (r.round || 'round') + ' from ' + r.date;
+  return `<button class="iconbtn hist-more-btn" type="button" data-more aria-expanded="false" aria-label="${esc('More for ' + name)}">⋯</button>`
+    + `<div class="hist-menu" role="group" aria-label="${esc('More for ' + name)}" hidden><button class="b small quiet" type="button" data-del="${esc(r.id)}" aria-label="${esc('Delete ' + name)}">Delete</button></div>`;
 }
 
 // The table as HTML text. rows: historyRows(...) after the filter; columns: historyColumns(...).
@@ -25,7 +38,7 @@ export function historyTableHtml(rows, columns) {
   return `<table class="hist-table"><caption class="sr-only">Your rounds, newest first</caption>
     <thead><tr>${columns.map((c) => `<th scope="col">${esc(c.label)}</th>`).join('')}<th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
     <tbody>${rows.map((r) => `<tr data-id="${esc(r.id)}">${columns.map((c) => `<td data-col="${c.key}">${cellHtml(r, c.key)}</td>`).join('')}`
-      + `<td><button class="b small quiet" type="button" data-del="${esc(r.id)}" aria-label="Delete ${esc(r.event)} ${esc(r.round || 'round')} from ${esc(r.date)}">Delete</button></td></tr>`).join('')}</tbody>
+      + `<td class="hist-more">${moreHtml(r)}</td></tr>`).join('')}</tbody>
   </table>`;
 }
 
@@ -93,19 +106,29 @@ export function createHistoryScreen(env) {
 
   let showing = false;
 
+  // Open or close a row's "⋯" menu in place (no redraw, so focus and the scroll stay). One menu is open at a time.
+  function setMenu(btn, open) {
+    for (const b of env.el.querySelectorAll('button[data-more][aria-expanded="true"]')) if (b !== btn) { b.setAttribute('aria-expanded', 'false'); b.nextElementSibling.hidden = true; }
+    btn.setAttribute('aria-expanded', String(open));
+    btn.nextElementSibling.hidden = !open;
+    if (open) btn.nextElementSibling.querySelector('button').focus();
+  }
+  const openMenuBtn = () => env.el.querySelector('button[data-more][aria-expanded="true"]');
+
   function onClick(e) {
+    const more = e.target.closest('button[data-more]');
+    if (more) { setMenu(more, more.getAttribute('aria-expanded') !== 'true'); return; }
     const del = e.target.closest('button[data-del]');
     if (del) {
-      // Focus goes to the next row's Delete button (or the title), so a keyboard judge keeps their place.
+      // Focus goes to the next row's "⋯" button (or the title), so a keyboard judge keeps their place.
       // The place is found by position, not by putting the round id in a CSS selector: ids can come from a backup
       // file, and a quote in one would make querySelector throw.
-      const all = [...env.el.querySelectorAll('button[data-del]')];
-      const at = all.indexOf(del);
+      const at = Math.max(0, [...env.el.querySelectorAll('button[data-del]')].indexOf(del));
       // The Undo toast stays up for a while; if the judge has left History, Undo must not draw History over the new screen.
       env.deleteRound(del.dataset.del, () => {
         if (!showing) return;
         draw();
-        const left = [...env.el.querySelectorAll('button[data-del]')];
+        const left = [...env.el.querySelectorAll('button[data-more]')];
         const f = left[Math.min(at, left.length - 1)] || $('#screen-title');
         if (f) f.focus();
       });
@@ -113,11 +136,17 @@ export function createHistoryScreen(env) {
     }
     if (e.target.id === 'hist-tsv') copyTsv();
     if (e.target.id === 'hist-csv') downloadCsv();
+    // A click on the row itself (not on a link, a button or a box) opens the round. The round link stays the keyboard path.
+    const row = e.target.closest && e.target.closest('tr[data-id]');
+    if (row && !e.target.closest('a, button, input, select, label')) location.hash = routeHash('round', row.dataset.id);
   }
   function onChange(e) {
     if (e.target.id === 'hist-event') { filter.eventId = e.target.value; draw('#hist-event'); }
     if (e.target.id === 'hist-tour') { filter.tournament = e.target.value; draw('#hist-tour'); }
   }
+
+  // Esc closes an open row menu and puts focus back on its "⋯".
+  if (env.ui && env.ui.escLayer) env.ui.escLayer('hist-menu', 40, () => showing && Boolean(openMenuBtn()), () => { const b = openMenuBtn(); if (b) { setMenu(b, false); b.focus(); } });
 
   return {
     scope: 'history',

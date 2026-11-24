@@ -294,7 +294,7 @@ kbd { font-family: var(--font-mono); font-size: var(--fs-2); }
 .md-sec { margin-top: var(--s5); }
 .md-sec h2, .pk-sec h2, .pk-all { font-size: var(--fs-3); color: var(--text-2); }
 .md-list, .pk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
-.md-card, .md-standby { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); padding: var(--s3) var(--s4); }
+.md-standby { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); padding: var(--s3) var(--s4); }
 .md-standby { margin-bottom: var(--s4); }
 .md-standby h2 { font-size: var(--fs-4); }
 .md-standby p { margin: 0 0 var(--s2); }
@@ -303,7 +303,6 @@ kbd { font-family: var(--font-mono); font-size: var(--fs-2); }
 a.md-ev { text-decoration: none; }
 a.md-ev:hover { background: var(--sunk); }
 .md-meta { margin: var(--s1) 0 0; font-size: var(--fs-2); }
-.md-due { margin: var(--s2) 0 0; font-family: var(--font-mono); font-weight: var(--fw-3); }
 .md-act { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s3); }
 .md-note { border: 1px solid var(--border-ctl); border-radius: var(--r-lg); background: var(--sunk); padding: var(--s3) var(--s4); }
 .md-foot { margin-top: var(--s5); font-size: var(--fs-2); }
@@ -318,9 +317,6 @@ a.md-ev:hover { background: var(--sunk); }
 a.pk-pick { text-decoration: none; } /* the Congress row is a link (step S6) */
 .pk-name { font-weight: var(--fw-3); }
 .pk-line { font-size: var(--fs-2); color: var(--text-2); }
-.pk-chips { font-family: var(--font-mono); font-size: var(--fs-1); color: var(--text-3); }
-.pk-chip { white-space: nowrap; }
-a.pk-info { display: grid; place-items: center; align-self: center; margin-right: var(--s2); text-decoration: none; font-family: var(--font-display); font-style: italic; }
 .cf-card h2 { font-size: var(--fs-4); padding-right: var(--s6); }
 .cf-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); }
 .cf-fields .wide { grid-column: 1 / -1; }
@@ -421,3 +417,67 @@ a.pk-info { display: grid; place-items: center; align-self: center; margin-right
   .rate-row .board-rate { grid-column: 1; } /* the 820 px rule puts .board-rate in column 2, which a Rate row has not got */
   .preview-head .b { margin-left: 0; }
 }
+/* ---------- Home and navigation (design build 2026-11-24, the "Home and navigation" session) ----------
+   docs/design/EVENTS-DESIGN-REVIEW.md §2.1–§2.3, §2.11–§2.15. Gray chrome, no stripes; a word goes with every color. */
+/* OD3 A: the green Speech Events mark in the header, the only brand color in the chrome. It never changes with state. */
+a.brand { display: inline-flex; align-items: center; gap: var(--s2); }
+.brand-mark { flex: none; color: var(--text); }
+.pill.caution { background: var(--caution-tint); border-color: var(--caution); color: var(--text); }
+/* My day (OD2 A): one large "Up next" card, then compact rows with a status pill and a "⋯" menu. */
+.md-next { margin-top: var(--s4); }
+.md-next h2 { font-size: var(--fs-3); color: var(--text-2); }
+.md-next-card { border: 1px solid var(--border-ctl); border-radius: var(--r-xl); background: var(--panel); box-shadow: var(--shadow-1); padding: var(--s4) var(--s5); }
+.md-next-title { flex: 1; min-width: 8em; font-family: var(--font-display); font-size: var(--fs-5); font-weight: var(--fw-4); line-height: var(--lh-ui); }
+.md-next-meta { margin: var(--s2) 0 0; color: var(--text-2); }
+.md-facts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); margin: var(--s3) 0 0; }
+.md-progress { font-weight: var(--fw-3); }
+a.b.md-go { min-height: var(--h-lg); padding: 0 var(--s5); font-size: var(--fs-3); }
+.md-act .md-more { margin-left: auto; }
+.md-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); padding: var(--s2) var(--s2) var(--s2) var(--s3); border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); }
+.md-row:hover { background: var(--sunk); }
+.md-row-main { flex: 1; min-width: 9em; display: grid; align-content: center; min-height: var(--h-md); color: inherit; text-decoration: none; }
+a.md-row-main:hover .md-title { text-decoration: underline; }
+.md-row .md-meta { margin: 0; font-size: var(--fs-2); }
+.md-pills { display: flex; flex-wrap: wrap; gap: var(--s1); }
+.md-menu { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: var(--s2); padding-top: var(--s2); }
+.md-next-card .md-menu { padding-top: var(--s3); }
+.md-menu .md-cancel { margin-left: auto; }
+/* Setup (design review §2.3, bug 2): every field fills its own column and never runs under the next one (a long
+   option made the Event select wider than its column). Laptop: the paste box and the live preview side by side. */
+.setup-fields .field { min-width: 0; }
+.setup-fields .field select, .setup-fields .field input { width: 100%; min-width: 0; max-width: 100%; text-overflow: ellipsis; }
+.setup-more { border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s2) var(--s3); }
+.setup-more > summary { min-height: var(--h-md); display: flex; align-items: center; font-size: var(--fs-2); font-weight: var(--fw-3); cursor: pointer; }
+.setup-more[open] > .setup-fields { margin: var(--s2) 0 var(--s1); }
+.setup-paste-area { display: grid; gap: var(--s3); }
+.setup-paste-col { display: grid; gap: var(--s1); align-content: start; }
+.pv-count { margin: calc(-1 * var(--s1)) 0 var(--s2); font-size: var(--fs-2); }
+.preview-list .pv-title { font-size: var(--fs-2); }
+main:has(#setup-form) { max-width: 1040px; }
+@media (min-width: 900px) {
+  .setup-paste-area { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .setup-paste-area #setup-paste { min-height: 18rem; }
+  .setup-paste-area .preview { position: sticky; top: var(--s3); max-height: calc(100dvh - 2 * var(--s3)); overflow: auto; }
+}
+.pal-hint { color: var(--text-2); font-size: var(--fs-1); white-space: nowrap; }
+/* History (design review §2.11): the row opens the round; Delete sits in a quiet "⋯" menu; the state is a pill. */
+.hist-table tbody tr[data-id] { cursor: pointer; }
+.hist-table td.hist-more { white-space: nowrap; text-align: right; padding-top: 0; padding-bottom: 0; }
+.hist-menu { display: inline-flex; margin-left: var(--s1); }
+.hist-menu[hidden] { display: none; }
+.hist-table td[data-col="state"] .pill + .pill { margin-left: var(--s1); }
+/* Picker (design review §2.2): chips are grey pills in normal case; "Guide" is a text button; rows are shorter and
+   each family heading stays in view while its group scrolls. */
+.pk-pick { padding: var(--s2) var(--s4); gap: 2px; }
+.pk-chips { display: flex; flex-wrap: wrap; gap: var(--s1); margin-top: var(--s1); }
+.pill.pk-chip { min-height: 20px; font-weight: var(--fw-2); }
+a.b.pk-guide { align-self: center; margin-right: var(--s2); }
+.pk-sec h3 { position: sticky; top: 0; z-index: 1; background: var(--canvas); padding: var(--s1) 0; margin-bottom: var(--s1); }
+/* A two-option segmented control on real radios (Congress House or Senate; design review §2.15). The radio is
+   hidden from sight only; the option it is on is filled, and its word says which. */
+.seg { display: inline-flex; border: 1px solid var(--border-ctl); border-radius: var(--r-md); overflow: hidden; width: max-content; }
+.seg-opt { position: relative; display: inline-flex; align-items: center; min-height: var(--h-lg); padding: 0 var(--s4); font-size: var(--fs-3); font-weight: var(--fw-3); cursor: pointer; background: var(--panel); color: var(--text); }
+.seg-opt + .seg-opt { border-left: 1px solid var(--border-ctl); }
+.seg-opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg-opt:has(input:checked) { background: var(--text); color: var(--canvas); }
+.seg-opt:has(input:focus-visible) { outline: 2px solid var(--ring); outline-offset: -2px; }

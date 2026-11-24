@@ -170,7 +170,7 @@ test('setup waits for "Check these", an event and at least one entry', () => {
   assert.deepEqual(profileChoices(DATA).map((p) => p.id), ['nsda-district', 'nsda-invitational', 'custom']);
   const html = previewHtml(parsed);
   assert.match(html, /2 entries, in speaking order/);
-  assert.match(html, /<h3>Check these<\/h3>/);
+  assert.match(html, /<h3>Check these \(1\)<\/h3>/); // design build 2026-11-24: the heading now counts the lines to check (review §2.3)
   assert.match(html, /Lines left out \(1\)/, 'the heading line is shown, never dropped in silence');
   assert.match(setupHtml(DATA), /<option value="osw">Original Spoken Word Poetry \(5 min\)<\/option>/);
 });

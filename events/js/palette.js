@@ -1,13 +1,18 @@
 // Speech Events step S2 (docs/events/EXPERIENCE.md §7): the palette rows, "Search and commands" (⌘K / Ctrl+K).
 // Pure: no DOM. core/keys.js searchCommands does the search; palette-screen.js draws the list and runs the row.
 //
-// A row: { id, label, group, alias, hash } where hash is the page address the row opens (every row is a place in the
+// A row: { id, label, group, alias, hash, hint? } where hash is the page address the row opens (every row is a place in the
 // app today), or { ..., act } for a row the page runs itself (Undo).
 // Step S3: the home row is "My day", and "Start a round" opens the type picker (#/pick).
 // "Guide: <event>" rows open the type page (#/type/<eventId>): one for each enabled event, and one for Custom.
 import { routeHash } from './routes.js';
-import { roundLine } from './rooms.js';
+import { roundLine, STATE_LABEL } from './rooms.js';
+import { roomText } from './cards.js';
 import { roomEvent, CUSTOM_EVENT } from './room.js';
+
+// Each group shows once, in this order (design review §2.13, bug 4: the Congress rows came between other groups, so
+// "Go to" and "New" showed twice). Rounds come first: "Open HI R2" is the common task in the middle of a day.
+export const GROUP_ORDER = Object.freeze(['Undo', 'Rounds', 'Go to', 'New', 'Guide']);
 
 // ctx: { events (the registry), choices ([{ id, name, short }] for each enabled event, in picker order), rooms (the
 // saved rounds, newest first is best), undo (the waiting Undo's name, or '') }.
@@ -32,9 +37,13 @@ export function paletteRows(ctx) {
     const ev = roomEvent(c.events, r);
     const short = ev ? ev.short || ev.name : 'Custom';
     const line = roundLine(r, true) || 'Untitled round';
-    rows.push({ id: 'open-' + r.id, label: 'Open ' + short + ' · ' + line, group: 'Rounds', alias: [ev ? ev.name : 'Custom event'], hash: routeHash('round', r.id) });
+    // hint: the room and the state, shown at the right of the row (design review §2.13).
+    const hint = [roomText(r.roomLabel), STATE_LABEL[r.state] || STATE_LABEL.setup].filter(Boolean).join(' · ');
+    rows.push({ id: 'open-' + r.id, label: 'Open ' + short + ' · ' + line, group: 'Rounds', hint, alias: [ev ? ev.name : 'Custom event'], hash: routeHash('round', r.id) });
   }
-  return rows;
+  // A stable sort by group: rows keep their order inside a group.
+  const rank = (g) => { const i = GROUP_ORDER.indexOf(g); return i < 0 ? GROUP_ORDER.length : i; };
+  return rows.map((r, i) => [r, i]).sort((a, b) => rank(a[0].group) - rank(b[0].group) || a[1] - b[1]).map((x) => x[0]);
 }
 
 // Run the palette's Undo row. The row was made when the palette opened; by the time the judge picks it, its toast may
@@ -47,4 +56,4 @@ export function runUndo(ui, row) {
   return true;
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).palette = Object.freeze({ paletteRows, runUndo });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).palette = Object.freeze({ GROUP_ORDER, paletteRows, runUndo });

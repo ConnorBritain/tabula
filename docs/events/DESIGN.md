@@ -35,7 +35,8 @@ These rules come over unchanged. They are already tested in debate.
 
 ## 3. Color for Speech Events
 
-- **The two sage tints stay in the mark** (logo, app icon, marketing). Inside the app, no product color is used for chrome (`docs/growth/BRAND.md` §7: a brand color never carries meaning inside an app).
+- **The two Speech Events greens stay in the mark** (logo, app icon, marketing): deep `#1e7a55` and light `#5ec796`, locked by the owner on 2026-11-23 (they replace the earlier sage drafts).
+- **One exception, the app header (owner decision OD3 A, 2026-11-24, `docs/design/EVENTS-DESIGN-REVIEW.md` §4):** the green Speech Events mark sits next to "Tabula Speech Events" in the header bar, and nowhere else in the chrome. It is a mark only: it never changes with state, it is never a button, pill, outline or fill, and it carries no meaning. Every other part of the chrome stays black, white and gray (`docs/growth/BRAND.md` §7: a brand color never carries meaning inside an app).
 - **No side colors.** Speech has no Aff and Neg, so `--aff` and `--neg` are not loaded in `events/`.
 - **Rust stays out of the app** (it is too close to `--error`; BRAND.md §7).
 - **Timer stage colors use the existing status tokens only:**
