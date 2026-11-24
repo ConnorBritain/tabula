@@ -14,7 +14,7 @@ import { runsAt, syncRuns, resetRunFields, markNextRun, unmarkLastRun, runsPhase
 import { phasesHtml, phaseState } from './js/phase-bar.js';
 import { runsHeadHtml, runCardsHtml, runsRowHtml } from './js/runs-view.js';
 import { migrateRoom, migrateRooms } from './js/migrate.js';
-import { ranksBlock, cards } from './js/ballot.js';
+import { ranksBlock, cards, printModel } from './js/ballot.js';
 import { cardHtml } from './js/review-screen.js';
 import { readCheckList } from './check-list.mjs';
 
@@ -321,4 +321,20 @@ test('Review shows each PCC entry\'s topic and its Pro and Con times, outside th
   assert.doesNotMatch(cardHtml(cb, false), /card-topic|card-runs/, 'an entry with no topic and no time shows no empty lines');
   const oo = createRoom({ event: DATA.events.get('oo'), profile: DISTRICT, entries: [{ code: 'A1' }], now: 1, makeId });
   assert.doesNotMatch(cardHtml(cards(oo, 'speaking')[0], false), /card-topic|card-runs/, 'other events show neither line');
+});
+
+// Why: some judges hand in or keep a printed ballot; if the print sheet left out the PCC topic and the Pro and Con
+// times, the paper copy would not say what the student argued or how the time split, unlike the Review screen.
+test('the print sheet shows each PCC entry\'s topic and Pro and Con times above its comment', () => {
+  const r = pccRoom(DISTRICT, ['A1', 'B2']);
+  const [a, b] = r.entries;
+  const judged = Object.assign({}, r, { entries: [
+    Object.assign({}, a, { topic: 'Resolved: x', comment: 'Clear cases.', timing: Object.assign({}, a.timing, { usedMs: 450_000 }), runs: [{ side: 'pro', startedAt: 1, ms: 240_000 }, { side: 'con', startedAt: 2, ms: 210_000 }] }),
+    Object.assign({}, b, { topic: '', runs: [], comment: 'Good.' }),
+  ] });
+  const sections = printModel(judged, PCC, LIMIT).sections.filter((s) => s.cls === 'ps-entry');
+  assert.equal(sections[0].text, 'Topic: Resolved: x\nRuns: Pro 4:00 · Con 3:30\n\nClear cases.');
+  assert.equal(sections[1].text, 'Good.', 'an entry with no topic and no time gets no empty lines');
+  const relabelled = Object.assign({}, PCC, { runs: [{ side: 'pro', label: 'For' }, { side: 'con', label: 'Against' }] });
+  assert.match(printModel(judged, relabelled, LIMIT).sections.find((s) => s.cls === 'ps-entry').text, /Runs: For 4:00 · Against 3:30/, 'labels come from the event file');
 });

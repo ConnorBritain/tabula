@@ -120,6 +120,13 @@ export function copyAllText(room, event) {
   return parts.join('\n');
 }
 
+// The lines above an entry's comment on the print sheet: the drawn question (step E10), and for PCC (step S5) the
+// student's topic and the Pro and Con times. Each on its own line, then a blank line; '' when there are none.
+const entryLead = (c) => {
+  const lines = [c.question && 'Question: ' + c.question, c.topic && 'Topic: ' + c.topic, c.runs && 'Runs: ' + c.runs].filter(Boolean);
+  return lines.length ? lines.join('\n') + '\n\n' : '';
+};
+
 // The print sheet model for core/sheets.js printSheetHtml: facts, the ranks table, one text section per entry, and
 // the reason for rank. The private note and rule-check flags are never on it.
 export function printModel(room, event, limit) {
@@ -137,7 +144,7 @@ export function printModel(room, event, limit) {
     title: 'Ballot · ' + [event ? event.short : 'Custom', room.round].filter(Boolean).join(' · '),
     landscape: false,
     sections: [{ kind: 'facts', items: facts }, { kind: 'table', title: 'Ranks', head, rows: tableRows }]
-      .concat(cards(room, 'speaking').map((c) => ({ kind: 'text', title: [c.code + (c.rank ? ' · rank ' + c.rank : ''), c.piece].filter(Boolean).join(' · '), cls: 'ps-entry', text: (c.question ? 'Question: ' + c.question + '\n\n' : '') + c.comment })))
+      .concat(cards(room, 'speaking', event).map((c) => ({ kind: 'text', title: [c.code + (c.rank ? ' · rank ' + c.rank : ''), c.piece].filter(Boolean).join(' · '), cls: 'ps-entry', text: entryLead(c) + c.comment })))
       .concat([{ kind: 'text', title: 'Reason for rank', cls: 'ps-reason', text: room.reasonForRank || '' }]),
   };
 }
