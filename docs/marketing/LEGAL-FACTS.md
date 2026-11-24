@@ -66,6 +66,22 @@ History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) publishe
 - No ads, no profiling, no sale of student data, no use of student data to train AI. Each Hosted AI provider is bound by contract to the same rules.
 - Idaho and Indiana work through school contracts. Use the school's contract terms where they are stricter.
 
+## DMCA designated agent (filed 2026-11-23)
+
+- Service provider: Pattern Engine LLC, at the legal address above.
+- Registration number: DMCA-1087298. Filed 2026-11-23 with a $6 fee. The status on that day was "Payment Processing". It turns "Active" after Pay.gov checks the payment. The Pay.gov tracking ID is in `private/programs/legal/DMCA-AGENT-STEPS.md`.
+- Agent: "Copyright Agent" (a job title), Pattern Engine LLC, same address. Phone 785-224-9633 (public). Email support@tabulaspeech.com.
+- Alternate names: Tabula, Tabula Speech, Tabula Debate, Tabula Speech Events, tabulaspeech.com, tabuladebate.com, tabulaforensics.com. "Tabula Programs" is left out on purpose for now.
+- Renew by 2029-11-23 (every 3 years). Any amendment costs $6 and restarts the 3 years.
+- Open items:
+  1. The site must show the agent details too. The draft /copyright/ page is in `private/programs/legal/DMCA-AGENT-STEPS.md` §4. It goes live with update 8 Block C.
+  2. Amend the filing if the business address changes.
+  3. Tabula Speech LLC needs its own designation when it runs the Service.
+
+## Wording fixes for the next legal update
+
+- **"Plans page" becomes "Pricing page".** The site nav and footer say "Pricing" (owner, pricing chat, 2026-11-23). The URL stays /plans/. In the Terms (§6.1 twice, "Payment"), the Refund Policy (§4) and the drafts of updates 4, 5B and 6, say "the Pricing page (tabulaspeech.com/plans/)" at first use, then "the Pricing page". This is a name change only. Tell the lawyer in the next email.
+
 ## Watch list
 
 - **Federal KIDS Act / COPPA 2.0.** None has passed (2026-11-23). If a version that covers age 13 passes, 13-year-olds need a parent's consent or a school agreement. The per-state consent switch in `src/age.ts` can be used.
