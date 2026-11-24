@@ -11,7 +11,7 @@
 // The defaults for a round (room families): a tournament round, a prelim (§8.2).
 export const ROUND_DEFAULTS = Object.freeze({ mode: 'tournament', level: 'prelim' });
 // The defaults for the device settings (§1.1, §8.5): Judge mode, no mode menu, the system theme. drawGapMin (step S4,
-// §3): the F2 draw gap in minutes, 7 or 10 (not confirmed, so the judge picks; cross-ex.js DRAW_GAPS).
+// §3): the F2 draw gap in minutes, 7 or 10 (not confirmed, so the judge picks; settings.js DRAW_GAPS).
 export const SETTINGS_DEFAULTS = Object.freeze({ mode: 'judge', showModeMenu: false, theme: 'system', drawGapMin: 7 });
 
 const isRecord = (x) => Boolean(x) && typeof x === 'object' && !Array.isArray(x);

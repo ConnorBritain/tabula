@@ -5,11 +5,10 @@
 // The builders at the top are pure (Node tests call them); createRateScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { ratingScale, ratingError, ratingTies, overtimeRow } from './rank.js';
-import { boardCtx, ratingsOf, withRating, stepRating } from './board.js';
+import { boardCtx, ratingsOf } from './board.js';
 import { layerOf, layerProblems } from './profile-layer.js';
-import { ratingHtml } from './rank-screen.js';
-import { rubricHtml, rubricClick, rubricInput } from './rubric-view.js';
-import { entryOf, findRoom, present, roomEvent } from './room.js';
+import { ratingHtml, rubricHtml, scoreClick, scoreInput, isScoreBox } from './score-view.js';
+import { findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf, clockText } from './timer.js';
 import { totalUsedAt } from './prep.js';
@@ -62,30 +61,11 @@ export function createRateScreen(env) {
     if (focusKey) { const el = $(`[data-key="${CSS.escape(focusKey)}"]`); if (el && !el.disabled) el.focus(); }
   }
 
-  function onClick(ev) {
-    const r = room();
-    if (!r) return;
-    const rb = ev.target.closest('[data-rub]');
-    if (rb) { const res = rubricClick(rb, r, layerOf(r.profile).rubric, env.now()); if (res) { save(res.room); draw(res.focusKey); } return; }
-    const b = ev.target.closest('[data-ract]');
-    if (!b || b.dataset.ract === 'num') return;
-    const id = b.dataset.id;
-    const scale = ratingScale(r.profile);
-    if (b.dataset.ract === 'word') { save(withRating(r, id, entryOf(r, id).rating === b.dataset.value ? '' : b.dataset.value, env.now())); draw(); return; }
-    if (b.dataset.ract === 'minus' || b.dataset.ract === 'plus') {
-      save(withRating(r, id, String(stepRating(entryOf(r, id).rating ?? '', b.dataset.ract === 'minus' ? -1 : 1, scale)), env.now()));
-      draw(b.dataset.ract + '-' + id);
-    }
-  }
-  // Typing: saved on every change; errors show when the box is left.
-  function onInput(ev) {
-    const r = room();
-    if (!r) return;
-    if (ev.target.dataset.ract === 'num') { save(withRating(r, ev.target.dataset.id, ev.target.value.trim(), env.now())); return; }
-    const next = rubricInput(ev.target, r, env.now());
-    if (next) save(next);
-  }
-  function onChange(ev) { if (ev.target.dataset.ract === 'num' || ev.target.dataset.rub === 'num') draw(); }
+  // The score controls work as on the Rank screen (score-view.js); typing saves on every change, and the error shows
+  // when the box is left.
+  function onClick(ev) { const res = scoreClick(ev.target, room(), env.now()); if (res) { save(res.room); draw(res.focusKey); } }
+  function onInput(ev) { const next = scoreInput(ev.target, room(), env.now()); if (next) save(next); }
+  function onChange(ev) { if (isScoreBox(ev.target)) draw(); }
 
   return {
     scope: 'rank',

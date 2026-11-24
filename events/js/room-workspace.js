@@ -27,7 +27,6 @@ import { stagesOf, layerOf } from './profile-layer.js';
 export const family = 'room';
 export const families = Object.freeze(['f1', 'f2', 'f3', 'custom']);
 
-const STAGES = Object.freeze(['judge', 'rank', 'review']);
 // Step S4 (profile layer, EXPERIENCE.md §2.4): the round's frozen profile picks the stages and the Rank screen. A
 // critiqueOnly round has no Rank stage (judge, review). A ranks 'off' round draws its 'rank' stage with the Rate screen
 // (env.roomScreens.rate), so the address stays #/round/<id>/rank.
@@ -38,7 +37,7 @@ const SCOPE = Object.freeze({ judge: 'room', rank: 'rank', review: 'review' });
 // input: { entries, tournament, round, flight, now, makeId } as createRoom takes them.
 export const newRound = (def, profile, input) => createRoom(Object.assign({}, input, { event: def, profile }));
 
-export const stages = (round) => (round ? stagesOf(round.profile) : STAGES);
+export const stages = (round) => stagesOf(round && round.profile);
 
 // The screen that shows now (one round shows at a time), for keys().run.
 let showing = null;

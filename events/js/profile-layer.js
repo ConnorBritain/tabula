@@ -19,6 +19,7 @@
 //   layerOf(profile)            -> { ranks, topN, rubric, critiqueOnly, maxEntries }   (always valid values)
 //   stagesOf(profile)           -> ['judge', 'rank', 'review'] or ['judge', 'review'] (critiqueOnly)
 //   rankStageLabel(profile)     -> 'Rank' | 'Rate' | ''   (the button and title word; '' when there is no Rank stage)
+//   ranksShown(profile)         -> true when the ballot carries ranks (not ranks 'off', not critiqueOnly)
 //   shownRank(rank, profile)    -> the rank as the ballot shows it ('' below the top N)
 //   layerProblems(room)         -> the lines that stop the ranks or ratings from being copied ([] = none)
 //   rubric helpers: rubricScores(entry), rubricTotal(entry, rubric), rubricMax(rubric), stepRubric(value, dir, crit),
@@ -58,10 +59,15 @@ const STAGES_ALL = Object.freeze(['judge', 'rank', 'review']);
 const STAGES_CRITIQUE = Object.freeze(['judge', 'review']);
 export const stagesOf = (profile) => (layerOf(profile).critiqueOnly ? STAGES_CRITIQUE : STAGES_ALL);
 
-export function rankStageLabel(profile) {
+// Does the ballot carry ranks? The one test for it (ballot.js, review-screen.js and the Rank stage word use it).
+export function ranksShown(profile) {
   const l = layerOf(profile);
-  if (l.critiqueOnly) return '';
-  return l.ranks === 'off' ? 'Rate' : 'Rank';
+  return !l.critiqueOnly && l.ranks !== 'off';
+}
+
+export function rankStageLabel(profile) {
+  if (layerOf(profile).critiqueOnly) return '';
+  return ranksShown(profile) ? 'Rank' : 'Rate';
 }
 
 // The rank as the ballot shows it: under 'topN', a rank past N is '' (the entry is not ranked); under 'off' and
@@ -69,7 +75,7 @@ export function rankStageLabel(profile) {
 export function shownRank(rank, profile) {
   const l = layerOf(profile);
   const r = asText(rank);
-  if (l.critiqueOnly || l.ranks === 'off') return '';
+  if (!ranksShown(profile)) return '';
   if (l.ranks === 'topN' && r && Number(r) > l.topN) return '';
   return r;
 }
@@ -149,6 +155,6 @@ export function layerProblems(room) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).profileLayer = Object.freeze({
-  rubricOf, layerOf, stagesOf, rankStageLabel, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax,
+  rubricOf, layerOf, stagesOf, ranksShown, rankStageLabel, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax,
   stepRubric, withRubric, rubricError, layerProblems,
 });

@@ -8,7 +8,7 @@ import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
   ratingFix, ratingTies, RANK_RATING_ROW,
 } from './rank.js';
-import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks, stepRating } from './board.js';
+import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks } from './board.js';
 import { attachDrag } from './rank-drag.js';
 import { entryOf, findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
@@ -16,21 +16,11 @@ import { limitOf, clockText } from './timer.js';
 import { totalUsedAt } from './prep.js';
 import { setReason } from './comments.js';
 import { layerOf, layerProblems, notRankedText } from './profile-layer.js';
-import { rubricHtml, rubricClick, rubricInput } from './rubric-view.js';
+import { ratingHtml, rubricHtml, scoreClick, scoreInput, isScoreBox } from './score-view.js';
 import { overtimeNote } from './round-frame.js';
 
-// The rating control of one row as HTML text ('' when the profile has no rating).
-export function ratingHtml(e, value, scale, err) {
-  if (scale.kind === 'none') return '';
-  const label = 'Rating for ' + e.code;
-  const errHtml = `<p class="rate-err" id="rate-err-${e.id}">${esc(err)}</p>`;
-  if (scale.kind === 'words') {
-    return `<div class="rate words" role="group" aria-label="${esc(label)}">${scale.words.map((w) => `<button class="rate-word${w === value ? ' on' : ''}" type="button" data-ract="word" data-id="${e.id}" data-value="${esc(w)}" aria-pressed="${w === value}">${esc(w)}</button>`).join('')}</div>${errHtml}`;
-  }
-  return `<div class="rate points"><button class="b small" type="button" data-ract="minus" data-id="${e.id}" data-key="minus-${e.id}" aria-label="Lower the rating for ${esc(e.code)}"${value !== '' && Number(value) <= scale.min ? ' disabled' : ''}>−</button>
-    <input class="rate-num" id="rate-${e.id}" data-ract="num" data-id="${e.id}" inputmode="decimal" autocomplete="off" value="${esc(value)}" aria-label="${esc(label)}, ${scale.min} to ${scale.max}" aria-describedby="rate-err-${e.id}"${err ? ' aria-invalid="true"' : ''}>
-    <button class="b small" type="button" data-ract="plus" data-id="${e.id}" data-key="plus-${e.id}" aria-label="Raise the rating for ${esc(e.code)}"${value !== '' && Number(value) >= scale.max ? ' disabled' : ''}>+</button></div>${errHtml}`;
-}
+// The rating control moved to score-view.js (step S4: the Rate screen draws it too). Named here for older callers.
+export { ratingHtml };
 
 // The board as HTML text. view: { tapMode, limit, now }.
 // Step S4 (profile layer): under ranks 'topN' the rows past N show "Not in top N" (the board still orders everyone);
@@ -133,13 +123,12 @@ export function createRankScreen(env) {
   function onClick(ev) {
     if (ev.target.closest('#tap-toggle')) return tapMode ? endTap() : startTap();
     if (ev.target.closest('#restart')) return restart();
-    const rb = ev.target.closest('[data-rub]');
-    if (rb) { const res = rubricClick(rb, room(), layerOf(room().profile).rubric, env.now()); if (res) { save(res.room); draw(res.focusKey); } return; }
+    const sc = scoreClick(ev.target, room(), env.now()); // a rating word, a rating − or +, or a rubric stepper
+    if (sc) { save(sc.room); draw(sc.focusKey); return; }
     const b = ev.target.closest('[data-ract]');
     if (!b || b.dataset.ract === 'num') return;
     const id = b.dataset.id;
     const r = room();
-    const scale = ratingScale(r.profile);
     const act = b.dataset.ract;
     if (act === 'up' || act === 'down') return move(id, act);
     if (act === 'tap') {
@@ -150,16 +139,6 @@ export function createRankScreen(env) {
       if (!nextRank(ranksOf(room()), boardCtx(room()))) { tapMode = false; draw(); env.ui.announce('Every speaker has a rank.'); $('#tap-toggle').focus(); }
       return;
     }
-    if (act === 'word') {
-      setRating(id, entryOf(r, id).rating === b.dataset.value ? '' : b.dataset.value);
-      draw();
-      return;
-    }
-    if (act === 'minus' || act === 'plus') {
-      setRating(id, String(stepRating(entryOf(r, id).rating ?? '', act === 'minus' ? -1 : 1, scale)));
-      draw(act + '-' + id); // at the end of the range the button turns off, and the focus goes to the row
-      return;
-    }
     if (act === 'fix') {
       setRating(id, b.dataset.value);
       draw();
@@ -168,12 +147,8 @@ export function createRankScreen(env) {
   }
 
   // Typing a rating: saved on every change; the error shows when the box is left (not while the judge types).
-  function onInput(ev) {
-    if (ev.target.dataset.ract === 'num') return setRating(ev.target.dataset.id, ev.target.value.trim());
-    const next = rubricInput(ev.target, room(), env.now());
-    if (next) save(next);
-  }
-  function onChange(ev) { if (ev.target.dataset.ract === 'num' || ev.target.dataset.rub === 'num') draw(); }
+  function onInput(ev) { const next = scoreInput(ev.target, room(), env.now()); if (next) save(next); }
+  function onChange(ev) { if (isScoreBox(ev.target)) draw(); }
 
   // Alt+Up and Alt+Down move the row that has focus (the row or any control in it).
   function onKey(ev) {

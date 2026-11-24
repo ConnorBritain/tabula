@@ -1,7 +1,7 @@
 // Speech Events step S2 (docs/events/EXPERIENCE.md §1.1, §7, §8.5): the device settings and the backup file. Pure: no
 // DOM, no storage, no clock. settings-screen.js draws the Settings screen; app.js saves.
 //
-// Step S4 adds drawGapMin, the F2 draw gap (7 or 10 minutes; cross-ex.js DRAW_GAPS).
+// Step S4 adds drawGapMin, the F2 draw gap (7 or 10 minutes; DRAW_GAPS and drawGapOf below).
 // Deferred to later steps (EXPERIENCE.md §11.1), so not here yet: the league pack and default profile, the defaults
 // for each type (signals, grace), ranks-due minutes (S3), the Congress scale defaults (S6), and Shared device (S8).
 import { buildBackup, parseBackup } from '../../core/store.js';

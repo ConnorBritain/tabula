@@ -4,10 +4,14 @@
 //
 // The keys (keys.js): pick1..pick8, num9, num0 (the digits) and numEnter.
 
-// The digit of a key action, or null.
+import { pickNumber } from './keys.js';
+
+// The digit of a key action, or null: pick1..pick8 (keys.js pickNumber), num9 and num0.
 export function digitOf(action) {
-  const m = /^(?:pick([1-8])|num([09]))$/.exec(action || '');
-  return m ? Number(m[1] || m[2]) : null;
+  const n = pickNumber(action);
+  if (n) return n;
+  const m = /^num([09])$/.exec(action || '');
+  return m ? Number(m[1]) : null;
 }
 
 // A digit key. count: the entries in the room. Returns { buf, pick } (pick: a place to pick now, or null).

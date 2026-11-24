@@ -14,7 +14,7 @@ import { boardCtx, ranksOf, isOverGrace } from './board.js';
 import { clockText } from './timer.js';
 import { pieceLine } from './piece.js';
 import { questionOf } from './question.js';
-import { layerOf, layerProblems, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax } from './profile-layer.js';
+import { layerOf, layerProblems, ranksShown, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax } from './profile-layer.js';
 
 // "Over time" on the ranks line: the sticky over-grace flag (inside grace is still on time, ARCHITECTURE.md §6.2).
 export const overTime = isOverGrace;
@@ -34,7 +34,7 @@ export function entriesIn(room, order) {
 export function ranksBlock(room) {
   const rated = ratingScale(room.profile).kind !== 'none';
   const layer = layerOf(room.profile);
-  const ranked = !layer.critiqueOnly && layer.ranks !== 'off';
+  const ranked = ranksShown(room.profile);
   const rubric = layer.rubric;
   const rows = present(room).map((e) => {
     const s = rubricScores(e);
@@ -43,10 +43,15 @@ export function ranksBlock(room) {
       rubric: rubric.length ? { scores: rubric.map((c) => ({ label: c.label, value: s[c.id] == null ? '' : String(s[c.id]) })), total: total == null ? '' : String(total), max: rubricMax(rubric) } : null };
   });
   const rankWord = (r) => (r.rank ? 'Rank ' + r.rank : layer.ranks === 'topN' ? notRankedText(room.profile) : 'Rank –');
-  const rubricWords = (r) => (r.rubric ? r.rubric.scores.map((x) => x.label + ' ' + (x.value || '–')).concat(['Total ' + (r.rubric.total || '–') + ' of ' + r.rubric.max]).join('\t') : '');
+  const rubricWords = (r) => (r.rubric ? rubricParts(r.rubric).concat(['Total ' + (r.rubric.total || '–') + ' of ' + r.rubric.max]).join('\t') : '');
   const text = rows.map((r) => [r.code, ranked ? rankWord(r) : '', rated ? 'Rating ' + (r.rating || '–') : '', rubricWords(r), 'Over time: ' + (r.overTime ? 'Yes' : 'No')].filter(Boolean).join('\t')).join('\n');
   return { rows, text, rated, ranked, rubric: rubric.length > 0 };
 }
+// One row's rubric scores in words: ['Content 4', 'Delivery –', ...] (ranksBlock, the print sheet, the Review table).
+export const rubricParts = (rub) => rub.scores.map((x) => x.label + ' ' + (x.value || '–'));
+// The same with the total, on one line: "Content 4, Delivery 3 · 7 of 10".
+export const rubricLine = (rub) => rubricParts(rub).join(', ') + ' · ' + (rub.total || '–') + ' of ' + rub.max;
+
 // Why the ranks cannot be copied yet ([] = they can): rank.js checkBoard's list, or the Rate checks under ranks 'off',
 // or nothing under critiqueOnly (profile-layer.js layerProblems).
 export const ranksProblems = (room) => layerProblems(room);
@@ -70,7 +75,7 @@ export function critique(text) {
 // name: the entry's name ("First & Second" for a Duo, step E9); piece: "“Title” by Author" ('' when not typed).
 // question: the drawn question (step E10, extemp events), '' when there is none. It is not part of the comment.
 export function cards(room, order) {
-  const ranked = !layerOf(room.profile).critiqueOnly && layerOf(room.profile).ranks !== 'off';
+  const ranked = ranksShown(room.profile);
   return entriesIn(room, order).map((e) => {
     const comment = ballotComment(e);
     return { id: e.id, code: e.code, name: e.name || '', piece: pieceLine(e), rank: shownRank(e.rank, room.profile), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment), question: questionOf(e), ranked };
@@ -159,7 +164,7 @@ export function printModel(room, event, limit) {
     // time here since E8, it is the stopped time (a print has no clock); prep.js totalUsedAt is the live total.
     const used = Math.round((((e.timing && e.timing.usedMs) || 0) + ((e.timing && e.timing.prepMs) || 0)) / 1000);
     return [{ text: r.code }].concat(ranked ? [{ text: r.rank || '–' }] : [], rated ? [{ text: r.rating || '–' }] : [],
-      rubric ? [{ text: r.rubric.scores.map((x) => x.label + ' ' + (x.value || '–')).join(', ') + ' · ' + (r.rubric.total || '–') + ' of ' + r.rubric.max }] : [],
+      rubric ? [{ text: rubricLine(r.rubric) }] : [],
       [{ text: used ? clockText(used) : '–' }, { text: r.overTime ? 'Yes' : 'No' }]);
   });
   const facts = [['Event', event ? event.name : 'Custom event'], ['Round', room.round], ['Flight', room.flight], ['Tournament', room.tournament], ['Time limit', limit ? clockText(limit) : ''], ['Rules', room.profile && room.profile.name]].filter(([, v]) => v);
@@ -173,6 +178,6 @@ export function printModel(room, event, limit) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).ballot = Object.freeze({
-  overTime, entriesIn, ranksBlock, ranksProblems, critique, cards, checklist, hasRanksStage, statusText, markCopied, setComment, setReasonReview,
+  overTime, entriesIn, ranksBlock, rubricParts, rubricLine, ranksProblems, critique, cards, checklist, hasRanksStage, statusText, markCopied, setComment, setReasonReview,
   copyAllText, printModel,
 });
