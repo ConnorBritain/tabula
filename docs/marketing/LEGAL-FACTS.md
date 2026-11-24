@@ -1,8 +1,8 @@
 # Legal pages: business facts (checked against the live pages on 2026-11-23)
 
-The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/privacy/ and https://tabulaspeech.com/refunds/. They say "Effective November 22, 2026". These are the business facts and legal choices inside them. Change the pages and this file together. Source files: `~/Code/tabula-sites/sites/speech/pages/{terms,privacy,refunds}.html`.
+The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/privacy/ and https://tabulaspeech.com/refunds/. They say "Effective November 23, 2026". These are the business facts and legal choices inside them. Change the pages and this file together. Source files: `~/Code/tabula-sites/sites/speech/pages/{terms,privacy,refunds}.html`.
 
-History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) published 2026-11-20 (`LEGAL-UPDATE-FINAL.md`). Update 3 (13+, no free trials) and update 5 Part A (Link as seller, refunds, disputes) published 2026-11-22 (`LEGAL-UPDATE-3-FINAL.md`, `LEGAL-UPDATE-5-DRAFT.md`).
+History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) published 2026-11-20 (`LEGAL-UPDATE-FINAL.md`). Update 3 (13+, no free trials) and update 5 Part A (Link as seller, refunds, disputes) published 2026-11-22 (`LEGAL-UPDATE-3-FINAL.md`, `LEGAL-UPDATE-5-DRAFT.md`). Update 6 draft 4 (paid Rounds never expire, plan caps, "your plan takes a break") published 2026-11-23 (`LEGAL-UPDATE-6-ROUNDS-NEVER-EXPIRE-DRAFT.md`, tabula-sites `claude/never-expire` 4011706); checked word for word against the live pages that day.
 
 ## Facts from the owner
 
@@ -27,10 +27,10 @@ History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) publishe
 | Renewal reminder | 7 to 30 days before each Season or All-Access renewal, by email; Link sends it to the checkout email (Link sends it 15 days before) | Terms §8, Refunds §5 |
 | Free trials | None; a promotional price is a paid purchase | Terms §7, Refunds §2 |
 | Unit | "Round": one debate round normally uses one Round; internal smaller units are never sold or shown | Terms §2, §6 |
-| Round expiry | Single Round and Round Pack: 12 months. Weekend Pass: 4 days after the first Round is committed (12 months if never committed). Monthly: rolls over while active, up to the cap on the Plans page; expires at the end of the last paid month. Season and All-Access: end of the 12-month term. Programs: July 31 | Terms §6.6, Refunds §4 |
+| How long Rounds last | Single Round, Round Pack and Weekend Pass Rounds never expire. Monthly: each month adds Rounds only up to the cap on the Pricing page (39). Season and All-Access: each year adds Rounds only up to one year's amount (60, 165). The cap never removes Rounds. At the cap, the plan takes a break: no charge, plan stays active; a mistaken charge is refunded. After cancel, Rounds stay and never expire. Programs: July 31 | Terms §6.6, Refunds §4 |
 | What Rounds are | A limited, revocable license to use Hosted AI; not money, a deposit, stored value or property; no cash value | Terms §6.7, Refunds §4 |
-| Return rule | A Round can be returned until the first speech is recorded; then it is committed. A returned Round goes back to its balance with the same expiry; it is not a refund | Terms §6.3, Refunds §1, §4 |
-| Spend order | Weekend Pass Rounds, then Subscription Rounds, then Single Round and Round Pack Rounds; soonest expiry first inside each group; Program Rounds kept apart | Terms §6.5, Refunds §4 |
+| Return rule | A Round can be returned until the first speech is recorded; then it is committed. A returned Round goes back to the balance it came from (not if it came from a Program pool whose term has ended); it is not a refund | Terms §6.3, Refunds §1, §4 |
+| Spend order | Subscription Rounds first, then Single Round, Round Pack and Weekend Pass Rounds; oldest first inside each group; Program Rounds kept apart | Terms §6.5, Refunds §4 |
 | Long rounds | The core of a debate round always finishes and never uses more than one Round; extra features may use another Round only if the user says yes | Terms §6.2, §6.4 |
 | Saved payment methods | Stored by Stripe or the wallet provider, never the full card number by us | Terms §8 |
 | Refunded payment | Rounds taken back in proportion to the amount refunded: first that payment's unused Rounds, then other unused Rounds | Terms §8, Refunds §6 |
@@ -48,8 +48,7 @@ History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) publishe
 
 ## Approved, not live yet
 
-- **Update 6 draft 4** (`LEGAL-UPDATE-6-ROUNDS-NEVER-EXPIRE-DRAFT.md`, owner and lawyer agree 2026-11-23): paid Rounds never expire; Monthly, Season and All-Access add new Rounds only up to a cap that never removes Rounds; plan Rounds stay after cancel; Program Rounds still end July 31; the Weekend Pass loses its 4-day window; the Refund Policy gets "except where the law requires otherwise". Waits for the server work and the owner's yes in the marketing chat.
-- **Update 4 draft 4** (`LEGAL-UPDATE-4-CAMP-PASS-DRAFT-2.md`): Camp Pass with a Start button and an August 15 end; a started pass keeps a share (set on the purchase day, rounded up); a pass never started keeps all its Rounds; kept Rounds never expire. Goes live after update 6.
+- **Update 4 draft 4** (`LEGAL-UPDATE-4-CAMP-PASS-DRAFT-2.md`): Camp Pass with a Start button and an August 15 end; a started pass keeps a share (set on the purchase day, rounded up); a pass never started keeps all its Rounds; kept Rounds never expire. Update 6 is live, so this can go next.
 - **Update 5 Part B** (buy without signing in, send a purchase to another person): waits for the buy-first build.
 - **Marketing holds** the matching Plans page lines on a branch.
 - Replaced and never live: the Weekend Pass 12-month text (`LEGAL-UPDATE-6-WEEKEND-PASS-12-MONTHS-DRAFT.md`) and the first Camp Pass text (`LEGAL-UPDATE-4-CAMP-PASS-FINAL.md`).
