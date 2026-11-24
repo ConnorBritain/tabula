@@ -14,6 +14,8 @@ const option = (value, label, picked) => `<option value="${esc(value)}"${value =
 function cellHtml(row, key) {
   if (key === 'round') return `<a href="${esc(routeHash('round', row.id))}">${esc(row.round || 'Untitled round')}</a>`;
   if (key === 'commentsOpen') return row.commentsOpen ? 'Yes' : '';
+  // Step S3: the event opens its type page (Guide, Rules, Rounds).
+  if (key === 'event' && /^[a-z0-9-]{1,20}$/.test(row.eventId || '')) return `<a href="${esc(routeHash('type', row.eventId))}">${esc(row.event)}</a>`;
   return esc(row[key]);
 }
 

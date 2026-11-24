@@ -167,7 +167,10 @@ export function createRoomScreen(env, parts) {
       const r = findRoom(env.rooms(), id);
       if (!r) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
       roomId = id; menuFor = null; rosterOpen = false;
-      env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">‹ Rooms</a>
+      // Step S3 (EXPERIENCE.md §1.1): the event pill opens the type page for this round's event.
+      const ev = event(r);
+      env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">‹ My day</a>
+          <a class="pill md-ev" href="#/type/${encodeURIComponent(r.customEvent ? 'custom' : r.eventId)}" aria-label="${esc('About ' + (ev ? ev.name : 'Custom event'))}">${esc(ev ? ev.short || ev.name : 'Custom')}</a>
           <h1 id="screen-title" tabindex="-1">${esc(roomTitle(r, event(r)))}</h1>
           <button class="b" type="button" id="roster-toggle" aria-controls="roster-full" aria-expanded="false">Roster</button>
           <a class="b primary" id="go-rank" href="#/rank/${encodeURIComponent(id)}">Rank the room</a></div>

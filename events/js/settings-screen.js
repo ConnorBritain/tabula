@@ -1,13 +1,13 @@
 // Speech Events step S2 (docs/events/EXPERIENCE.md §7, §8.5, §9): the Settings screen, #/settings. Only the parts that
 // work today: Mode, Theme, Connect AI, the keyboard sheet, Ready for offline, and Data (backup and restore).
-// Deferred (EXPERIENCE.md §11.1): league pack and default profile, defaults for each type, F2 draw gap and ranks-due
-// minutes (S3, S4), Congress scale defaults (S6), Shared device (S8).
+// Deferred (EXPERIENCE.md §11.1): league pack and default profile, defaults for each type, F2 draw gap (S4), Congress
+// scale defaults (S6), Shared device (S8). Step S3 adds Ranks due (the minutes after the last speaker, §5.3).
 // The rules are in settings.js; the builders at the top are pure (Node tests call them); createSettingsScreen does the
 // DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { downloadFile } from '../../core/store.js';
 import { isMacPlatform } from '../../core/keys.js';
-import { MODES, THEMES, withSetting, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
+import { MODES, THEMES, RANKS_DUE_MAX, withSetting, validRanksDue, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
 import { PREFIX } from './store.js';
 import { keymap } from './keys.js';
 import { checkOffline } from './offline.js';
@@ -41,6 +41,10 @@ export function settingsHtml(v) {
   </section>
   <section class="set-part" aria-labelledby="set-theme-h"><h2 id="set-theme-h">Theme</h2>
     <fieldset class="radios"><legend class="sr-only">Theme</legend>${radios('set-theme', THEMES, s.theme)}</fieldset>
+  </section>
+  <section class="set-part" aria-labelledby="set-due-h"><h2 id="set-due-h">Ranks due</h2>
+    <label class="field set-due"><span>Minutes after the last speaker</span><input id="set-due" type="number" inputmode="numeric" min="1" max="${RANKS_DUE_MAX}" step="1" value="${esc(ranksDueMinOf(s))}"></label>
+    <p class="field-help">My day counts down to this time, so you send your ranks to Tabroom on time.</p>
   </section>
   ${aiPartHtml(v.ai)}
   <section class="set-part" aria-labelledby="set-keys-h"><h2 id="set-keys-h">Keyboard</h2>${v.keys}</section>
@@ -129,6 +133,11 @@ export function createSettingsScreen(env) {
   function onChange(e) {
     const t = e.target;
     if (t.name === 'set-mode') env.saveSettings(withSetting(env.settings(), 'mode', t.value));
+    if (t.id === 'set-due') {
+      const n = Number(t.value);
+      if (validRanksDue(n)) { env.saveSettings(withSetting(env.settings(), 'ranksDueMin', n)); env.ui.toast('Ranks are due ' + n + ' min after the last speaker.', { key: 'due' }); }
+      else { t.value = String(ranksDueMinOf(env.settings())); env.ui.toast('Type a whole number of minutes from 1 to ' + RANKS_DUE_MAX + '.', { kind: 'error', key: 'due' }); }
+    }
     if (t.id === 'set-modemenu') env.saveSettings(withSetting(env.settings(), 'showModeMenu', t.checked));
     if (t.name === 'set-theme') {
       env.saveSettings(withSetting(env.settings(), 'theme', t.value));

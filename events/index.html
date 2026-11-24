@@ -29,12 +29,9 @@
   </nav>
 </header>
 <main id="main" tabindex="-1">
-  <section id="rooms" aria-labelledby="rooms-title">
-    <div class="screen-head"><h1 id="rooms-title" tabindex="-1">Rooms</h1><a class="b primary" id="new-room" href="#/new">New room</a></div>
-    <p class="muted" id="rooms-status" role="status">Loading the events…</p>
-    <div id="rooms-list"></div>
-  </section>
-  <div id="screen" hidden></div>
+  <!-- Every screen draws in #screen; #/ is My day (step S3, EXPERIENCE.md §1.2). -->
+  <p class="muted" id="boot-status" role="status">Loading the events…</p>
+  <div id="screen"></div>
 </main>
 <div class="toasts" id="toasts"></div>
 <div class="sr-only" id="toasts-polite" role="status" aria-live="polite"></div>

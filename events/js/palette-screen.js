@@ -52,6 +52,9 @@ export function createPalette(env, rows, run) {
     else if (e.key === 'Enter') { e.preventDefault(); pick(active); }
   });
   list.addEventListener('click', (e) => { const r = e.target.closest('.pal-row'); if (r) pick(Number(r.dataset.i)); });
+  // Step S3 (S2 follow-up): a toast came or went while the palette is open, so the Undo row follows it (it never
+  // offers an Undo whose toast is gone). core/ui.js fires 'tabula:toasts'.
+  document.addEventListener('tabula:toasts', () => { if (dialog.isOpen()) { all = rows(); draw(); } });
 
   return Object.freeze({
     isOpen: dialog.isOpen,

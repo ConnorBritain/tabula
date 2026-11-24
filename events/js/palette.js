@@ -3,7 +3,9 @@
 //
 // A row: { id, label, group, alias, hash } where hash is the page address the row opens (every row is a place in the
 // app today), or { ..., act } for a row the page runs itself (Undo).
-// "Guide: <event>" rows wait for the type page (#/type/<eventId>, step S3): there is no guide route yet.
+// Step S3: the home row is "My day", and "Start a round" opens the type picker (#/pick).
+// "Guide: <event>" rows: the type page (#/type/<eventId>) came in S3, but the S2 test that says "no Guide rows until a
+// guide route exists" still stands, so these rows wait for the owner (listed as an open item in the S3 report).
 import { routeHash } from './routes.js';
 import { roundLine } from './rooms.js';
 import { roomEvent } from './room.js';
@@ -14,9 +16,10 @@ export function paletteRows(ctx) {
   const c = ctx || {};
   const rows = [];
   if (c.undo) rows.push({ id: 'undo', label: c.undo, group: 'Undo', alias: ['undo'], act: 'undo' });
-  rows.push({ id: 'go-rooms', label: 'Rooms', group: 'Go to', alias: ['home', 'today'], hash: routeHash('rooms') });
+  rows.push({ id: 'go-rooms', label: 'My day', group: 'Go to', alias: ['home', 'today', 'rooms'], hash: routeHash('rooms') });
   rows.push({ id: 'go-history', label: 'History', group: 'Go to', alias: ['table', 'export', 'csv', 'tsv'], hash: routeHash('history') });
   rows.push({ id: 'go-settings', label: 'Settings', group: 'Go to', alias: ['backup', 'restore', 'theme', 'keys', 'offline'], hash: routeHash('settings') });
+  rows.push({ id: 'pick', label: 'Start a round', group: 'New', alias: ['pick', 'ballot', 'card'], hash: routeHash('pick') });
   rows.push({ id: 'new', label: 'New round', group: 'New', alias: ['start', 'room'], hash: routeHash('setup') });
   for (const ev of c.choices || []) {
     rows.push({ id: 'new-' + ev.id, label: 'New ' + (ev.short || ev.name) + ' round', group: 'New', alias: [ev.name], hash: routeHash('setup', ev.id) });
@@ -30,4 +33,14 @@ export function paletteRows(ctx) {
   return rows;
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).palette = Object.freeze({ paletteRows });
+// Run the palette's Undo row. The row was made when the palette opened; by the time the judge picks it, its toast may
+// have closed, or a newer Undo may wait instead. Only the Undo the row names runs; otherwise the judge is told, and
+// nothing else is undone. ui: { pendingUndo, toast }. Returns true when it ran.
+export function runUndo(ui, row) {
+  const u = ui.pendingUndo();
+  if (!u || !row || u.name !== row.label) { ui.toast('That Undo is no longer there.', { key: 'undo-gone' }); return false; }
+  u.run();
+  return true;
+}
+
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).palette = Object.freeze({ paletteRows, runUndo });

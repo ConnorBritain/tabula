@@ -22,6 +22,14 @@ export function familyOf(d) {
 export const prepareEvent = (d) => Object.assign({}, d, { key: defKey(d.id, d.version), limitMinutes: d.timing.limit / 60, family: familyOf(d) });
 export const prepareProfile = (p) => Object.assign({}, p, { key: defKey(p.id, p.version) });
 
+// Every rules profile, newest version of each, in published order (setup's Rules list and the type page's Rules part).
+export function profileChoices(data) {
+  const seen = new Set();
+  const out = [];
+  for (const k of data.profiles.keys()) { const id = k.split('@')[0]; if (!seen.has(id)) { seen.add(id); out.push(data.profiles.get(id)); } }
+  return out.filter(Boolean);
+}
+
 // readJson(path): a promise of the parsed file at a path under events/ ('published.json', 'defs/oo.v1.json').
 // Returns { events, profiles, order }: two registries (get, resolve, keys) and the event ids in published.json's order
 // (the order the event picker shows). A manifest with no events or no profiles, or a file that is listed but missing
