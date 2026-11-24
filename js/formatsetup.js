@@ -7,13 +7,15 @@
 
 // A round keeps its format. Picking another one starts a new round in it: at once when the round is empty, else after
 // a question. ?format=ld in the address does the same for an empty round (a link from the site or a coach).
+// After the first speech clock the pick is locked (L.formatLocked, docs/design/FORMAT-PICK.md §3): the cards are
+// disabled, and this returns without a question, so a stray click mid-round can never offer "Clear and start new".
 async function switchFormat(id) {
   const fmt = L.getFormat(id);
-  if (!fmt || id === R.format) return renderFormatSetup();
+  if (!fmt || id === R.format || L.formatLocked(R)) return renderFormatSetup();
   const docs = await docStore.list(R.id).catch(() => []);
   if (!(L.isRoundEmpty(R) && !R.started && !docs.length)) {
     const ok = await ask({
-      title: 'Start a new ' + fmt.name + ' round?',
+      title: 'Start a new ' + L.labelOf(fmt) + ' round?',
       body: 'A round keeps the format it started with. ' + NEW_ROUND_BODY,
       buttons: [{ label: 'Cancel', value: false, kind: 'plain' }, { label: 'Clear and start new', value: true, kind: 'danger' }], cancelValue: false,
     });
@@ -21,8 +23,28 @@ async function switchFormat(id) {
   }
   startNewRound(fmt);
 }
-for (const id of L.FORMAT_IDS) $('#format-pick').append(new Option(L.getFormat(id).name, id));
-$('#format-pick').addEventListener('change', (e) => switchFormat(e.target.value));
+// One card per format a judge can pick: a native radio, the plain name and one line (L.labelOf).
+for (const id of L.FORMAT_IDS) {
+  const fmt = L.getFormat(id);
+  const card = document.createElement('label'); card.className = 'fmt-card';
+  const radio = document.createElement('input'); radio.type = 'radio'; radio.name = 'format'; radio.value = id;
+  const name = document.createElement('span'); name.className = 'fmt-name'; name.textContent = L.labelOf(fmt);
+  const blurb = document.createElement('span'); blurb.className = 'fmt-blurb'; blurb.textContent = L.labelOf(fmt, 'blurb');
+  card.append(radio, name, blurb);
+  $('#format-cards').append(card);
+}
+$('#format-cards').addEventListener('change', (e) => { if (e.target.name === 'format') switchFormat(e.target.value); });
+// The format chip in the header and the "Change" line on the start panel open Round setup at the format pick. Neither
+// changes the format itself.
+function openFormatPick() {
+  showTab('setup');
+  const on = document.querySelector('#format-cards input:checked') || document.querySelector('#format-cards input');
+  if (on) on.focus();
+}
+$('#format-chip').addEventListener('click', openFormatPick);
+$('#start-format-change').addEventListener('click', openFormatPick);
+// True after a ?format= link set this round's format, until the page reloads: the start panel says so.
+let formatFromLink = false;
 
 // A coin-flip format (order: 'coinFlip', PF): the round stores the side that speaks first (R.firstSide). The speeches
 // keep their places; each place's side and debater follow the choice. Once speech work exists (L.orderInUse), a change
@@ -54,7 +76,10 @@ function renderSideWords(fmt) {
 // Round setup for the round's format: the format pick, one or two name boxes per side, prep per team or per debater.
 function renderFormatSetup() {
   const fmt = FMT();
-  $('#format-pick').value = fmt.id;
+  const locked = L.formatLocked(R);
+  for (const r of document.querySelectorAll('#format-cards input')) { r.checked = r.value === fmt.id; r.disabled = locked; }
+  $('#format-help').textContent = locked ? 'Set for this round. Start a new round to change it.' : 'Pick the event on your ballot. A round keeps its format.';
+  renderFormatChip(fmt);
   renderSideWords(fmt);
   $('#first-side-row').hidden = !L.isCoinFlip(fmt);
   if (L.isCoinFlip(fmt)) {
@@ -81,6 +106,15 @@ function renderFormatSetup() {
   $('#ne-label').placeholder = copy.argExample;
   $('#pal-empty').textContent = 'No match. Try "sheet", "prep" or a speech like "' + fmt.flowSpeeches[2] + '".';
 }
+// The header chip and the start panel line: the round's format, always in view (FORMAT-PICK.md §3).
+function renderFormatChip(fmt) {
+  const full = L.labelOf(fmt);
+  $('#format-chip-full').textContent = full;
+  $('#format-chip-short').textContent = L.labelOf(fmt, 'short');
+  $('#format-chip').setAttribute('aria-label', 'Format: ' + full + '. Opens Round setup.');
+  $('#start-format-name').textContent = full;
+  $('#start-format-from').textContent = formatFromLink ? ' (from your link)' : '';
+}
 renderFormatSetup();
 (() => {
   const asked = L.formatFromSearch(location.search);
@@ -88,6 +122,6 @@ renderFormatSetup();
   // The link has done its job once read, so a reload or a later round does not act on it again.
   try { const u = new URL(location.href); u.searchParams.delete('format'); history.replaceState(null, '', u); } catch {}
   if (asked === R.format) return;
-  if (L.isRoundEmpty(R) && !R.started) { R = freshRound(R, L.getFormat(asked)); save(); renderFormatSetup(); return; }
-  setTimeout(() => toast('This link is for a ' + L.getFormat(asked).name + ' round. The round on screen is ' + FMT().name + '. To switch, pick the format in Round.', { key: 'format' }));
+  if (L.isRoundEmpty(R) && !R.started) { R = freshRound(R, L.getFormat(asked)); save(); formatFromLink = true; renderFormatSetup(); return; }
+  setTimeout(() => toast('This link is for a ' + L.labelOf(L.getFormat(asked)) + ' round. This round is ' + L.labelOf(FMT()) + '. To switch, start a new round.', { key: 'format' }));
 })();
