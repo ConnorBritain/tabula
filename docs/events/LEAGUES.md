@@ -15,11 +15,11 @@ Profile fields come from [EXPERIENCE.md](EXPERIENCE.md) §8.5 and [ARCHITECTURE.
 | `tfa` | all | none | none | 30 | `noFirst` (judge) | 8 | on |
 | `ihsa` | all | none | none | 30 | `flagOnly` (tab room) | default | off |
 | `kshsaa-championship` | all | none | none | 15 | `noFirst` (judge, with timekeeper) | 7 | off |
-| `kshsaa-festival` | off | Division I-IV | none | 15 | `noTopRating` (judge) | default | off |
+| `kshsaa-festival` | off | Division I-IV | none | 15 | `flagOnly` (judge: no Division I) | default | off |
 | `mshsl` | all | none | none | 0 | `flagOnly` (Rules Committee) | 8 | off |
-| `osda` | all | none | none | 30 | `judgeChoice` | 7 | on |
-| `mifa` | top 3 | 75-100, no ties | none | 0 | `judgeChoice` | 7 | off |
-| `ihssa` | off | Division I-IV | none | 0 | `disqualified` (judge gives IV) | default | off |
+| `osda` | all | none | none | 30 | `flagOnly` (judge's choice) | 7 | on |
+| `mifa` | top 3 | 75-100, no ties | none | 0 | `flagOnly` (judge's choice) | 7 | off |
+| `ihssa` | off | Division I-IV | none | 0 | `flagOnly` (judge gives IV) | default | off |
 | `ncfl` | all | none | none | 30 | `noFirst` (judge) | 7 | off |
 | `ncfca` | all | none | 5 rows, 1-5 | 15 | `flagOnly` (software) | default | off |
 | `ncfca-interp` | all | none | 5 rows, 1-5 | 15 | `flagOnly` (software) | default | off |
@@ -28,10 +28,11 @@ Profile fields come from [EXPERIENCE.md](EXPERIENCE.md) §8.5 and [ARCHITECTURE.
 **Field notes for S4 and the coordinator:**
 
 - `elim: { cx: true }` follows the S4 example file. It turns on the extemp cross-ex in every elim. CHSSA and TFA hold it in finals only; OSDA in all State break rounds. The cross-ex length (2 or 3 min) is not a profile field.
-- Three effect names, used by four profiles, come from ARCHITECTURE.md §6.2 and are not in §8.5: `judgeChoice` (OSDA, MIFA), `noTopRating` (Kansas festival), `disqualified` (Iowa). S4's `rank.js` reads an unknown effect as "show the over-time pill only", which is safe. `events/league-drafts.test.mjs` accepts them; S4's `profile-layer.test.mjs` does not check `effect`. Before publishing, the coordinator either adds them to §8.5 or maps them to `flagOnly`.
+- Every effect is from §8.5: `noFirst`, `flagOnly` or `directorDq`. Owner decision 2026-11-23: OSDA and MIFA (judge's choice), Kansas festival (no Division I past 15 s) and Iowa (Division IV for not stopping) use `flagOnly`. The app shows the over-time flag and does not enforce a penalty; each `source` keeps the real rule.
+  - Known misfit: the `flagOnly` note says the tab room applies the penalty. In these four leagues the judge decides. A league-specific note would need a new field.
 - S4's v2 test needs "not verified" in every `v2/` source and every `v2/` file in `published.json`. Every draft names its open items, so the first holds; the second holds once the coordinator publishes.
 - Rules no field can hold yet: Kansas "past 30 s, lowest rank"; IHSA "one rank per full 30 s"; MIFA "best entry gets 100"; IHSA and Iowa Radio time windows (`windowLast`, later); NCFL "no rank worse than 5" (the tab room does it, so `ranks: 'all'` is right for the judge).
-- `noFirst` with grace 0 is never used. "No grace" leagues use `flagOnly`, `directorDq` or `disqualified`.
+- `noFirst` with grace 0 is never used. "No grace" leagues use `flagOnly` or `directorDq`.
 
 ## 2. CHSSA (California)
 

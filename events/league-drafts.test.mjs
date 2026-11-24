@@ -23,8 +23,8 @@ const DRAFTS = readdirSync(at('profiles/v2/')).filter((f) => f.endsWith('.json')
 
 const V1_KEYS = ['id', 'version', 'name', 'rating', 'ratingNoTies', 'rankRatingRule', 'overtime', 'biasNote', 'source'];
 const LAYER_KEYS = ['ranks', 'topN', 'rubric', 'critiqueOnly', 'maxEntries', 'elim']; // EXPERIENCE.md §8.5
-// §8.5 effects, plus the P3 reference effects named in ARCHITECTURE.md §6.2.
-const EFFECTS = ['noFirst', 'flagOnly', 'directorDq', 'windowLast', 'judgeChoice', 'noTopRating', 'disqualified'];
+// The effects in EXPERIENCE.md §8.5 only (owner decision 2026-11-23: no ARCHITECTURE.md §6.2 reference names in data).
+const EFFECTS = ['noFirst', 'flagOnly', 'directorDq', 'windowLast'];
 const nonEmpty = (s) => typeof s === 'string' && s.trim().length > 0;
 const isInt = (n) => Number.isInteger(n);
 
