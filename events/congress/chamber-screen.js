@@ -21,7 +21,7 @@ export function listHtml(state) {
     return `<li><a class="room-link" href="#/chamber/${esc(c.id)}"><span class="room-name">${houseWord(c)}${c.tournament ? ' · ' + esc(c.tournament) : ''}${c.roomLabel ? ' · ' + esc(c.roomLabel) : ''}</span>
       <span class="room-meta">${c.legislators.length} legislators · ${n} ${n === 1 ? 'session' : 'sessions'}</span></a></li>`;
   }).join('');
-  return `<div class="screen-head"><a class="b quiet" href="#/">‹ Rooms</a><h1 id="screen-title" tabindex="-1">Congress chambers</h1><a class="b primary" href="#/chamber/new">New chamber</a></div>
+  return `<div class="screen-head"><a class="b quiet" href="#/">‹ My day</a><h1 id="screen-title" tabindex="-1">Congress chambers</h1><a class="b primary" href="#/chamber/new">New chamber</a></div>
     ${rows ? `<ul class="room-list">${rows}</ul>` : '<p class="muted">No chambers yet. A Congress chamber you score shows here.</p>'}`;
 }
 

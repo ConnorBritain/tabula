@@ -12,6 +12,7 @@ import { parseRoute } from './js/routes.js';
 import { searchCommands } from '../core/keys.js';
 import { createDayStore } from './js/day-store.js';
 import { createRoom } from './js/room.js';
+import { mydayModel, makeDay, makeCard, linkRoundToCard } from './js/cards.js';
 import { eventLine } from './js/guide.js';
 import * as runsWs from './js/runs-workspace.js';
 import * as roomWs from './js/room-workspace.js';
@@ -90,3 +91,19 @@ test('a round started from a card keeps the level the judge last picked on the s
   assert.equal(ds.linkNewRound(r, c.id).round.level, 'elim', 'with no edit, the card level still wins (S3 rule)');
 });
 
+
+// Why: a round started at 23:58 is still being judged at 00:10; if My day hides it at midnight, the judge loses the countdown to ranks due and the "I submitted" tick for a live ballot.
+test('My day keeps an earlier day\'s open ballot (judging or comments open) and drops its finished or never-started ones', () => {
+  const t0 = new Date(2026, 10, 23, 23, 58).getTime();
+  const t1 = new Date(2026, 10, 24, 0, 10).getTime();
+  let n = 0; const mk = (p) => (p || '') + 'k' + (++n);
+  const yday = makeDay({ now: t0, makeId: mk });
+  const today = makeDay({ now: t1, makeId: mk });
+  const hi = DATA.events.get('hi');
+  const live = linkRoundToCard(createRoom({ event: hi, profile: DATA.profiles.get('nsda-district'), entries: [{ code: 'A1' }], now: t0, makeId: mk }), makeCard({ day: yday, event: hi, round: 'R1', now: t0, makeId: mk }));
+  const idle = makeCard({ day: yday, event: hi, round: 'R2', now: t0, makeId: mk });
+  const m = mydayModel({ day: today, cards: [live.card, idle], rounds: [live.round], now: t1 });
+  assert.deepEqual(m.items.map((x) => x.card.id), [live.card.id], 'the live ballot stays; the never-started one does not');
+  assert.equal(m.items[0].earlier, true);
+  assert.equal(m.sections.find((s) => s.id === 'now').items.length, 1);
+});

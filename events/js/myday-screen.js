@@ -31,7 +31,7 @@ export function itemView(it, events) {
   const src = c || r;
   const title = [src.round, src.flight ? 'Flight ' + src.flight : ''].filter(Boolean).join(' · ') || 'Untitled round';
   const room = c ? c.roomLabel : r.roomLabel;
-  const meta = [room ? 'Room ' + room : '', src.tournament, src.level === 'elim' ? 'Elim' : ''].filter(Boolean).join(' · ');
+  const meta = [it.earlier ? 'From ' + dayOf(src.createdAt) : '', room ? 'Room ' + room : '', src.tournament, src.level === 'elim' ? 'Elim' : ''].filter(Boolean).join(' · ');
   const live = it.status !== 'cancelled' && it.status !== 'done';
   return {
     key: itemKey(it),
