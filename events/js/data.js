@@ -25,17 +25,16 @@ export const prepareEvent = (d) => Object.assign({}, d, { key: defKey(d.id, d.ve
 export const prepareProfile = (p) => Object.assign({}, p, { key: defKey(p.id, p.version) });
 
 // readJson(path): a promise of the parsed file at a path under events/ ('published.json', 'defs/oo.v1.json').
-// Step S5: published.json's defsV2 lists the def v2 files, kept in defs/v2/ (so the v1 schema test, which reads
-// defs/, stays as it is). They load into the same registry, after the v1 files, in that order.
+// Step S5: files added after v1 sit in defs/v2/ and are listed as 'v2/<file>' (so the v1 schema test, which reads
+// defs/ only, stays as it is). They load the same way: 'defs/' + 'v2/pcc.v2.json'.
 // Returns { events, profiles, order }: two registries (get, resolve, keys) and the event ids in published.json's order
 // (the order the event picker shows). A manifest with no events or no profiles, or a file that is listed but missing
 // or broken, rejects the whole load, so the app never runs with half its rules.
 export async function loadEventData(readJson) {
   const pub = await readJson('published.json');
   if (!pub || !Array.isArray(pub.defs) || !pub.defs.length || !Array.isArray(pub.profiles) || !pub.profiles.length) throw new Error('published.json lists no events or no profiles');
-  const v2 = Array.isArray(pub.defsV2) ? pub.defsV2 : [];
   const [defs, profiles] = await Promise.all([
-    Promise.all(pub.defs.map((f) => readJson('defs/' + f)).concat(v2.map((f) => readJson('defs/v2/' + f)))),
+    Promise.all(pub.defs.map((f) => readJson('defs/' + f))),
     Promise.all(pub.profiles.map((f) => readJson('profiles/' + f))),
   ]);
   const events = createRegistry(defs, { prepare: prepareEvent });

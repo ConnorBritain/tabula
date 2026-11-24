@@ -28,11 +28,14 @@ function fill(rec, defaults) {
 
 // One round. Something that is not a record (null, a string) is given back as it is: the readers already leave such
 // a broken record out (rooms.js groupRoomsByDay), and the migration must not hide or invent one.
-const fillEntry = (e) => (isRecord(e) ? fill(e, runEntryDefaults()) : e);
+// family -> the entry defaults of that family's rounds (a function, so each entry gets its own fresh values). A round
+// stores its family only when its family needs entry fields (room.js createRoom); older rounds have none and get none.
+const ENTRY_DEFAULTS = Object.freeze({ f4: runEntryDefaults });
 export function migrateRoom(room) {
   if (!isRecord(room)) return room;
   const out = fill(room, ROUND_DEFAULTS);
-  if (out.family === 'f4' && Array.isArray(out.entries)) out.entries = out.entries.map(fillEntry);
+  const defaults = Object.prototype.hasOwnProperty.call(ENTRY_DEFAULTS, out.family) ? ENTRY_DEFAULTS[out.family] : null;
+  if (defaults && Array.isArray(out.entries)) out.entries = out.entries.map((e) => (isRecord(e) ? fill(e, defaults()) : e));
   return out;
 }
 

@@ -35,25 +35,33 @@ export const newRound = (def, profile, input) => createRoom(Object.assign({}, in
 
 export const stages = () => STAGES;
 
-// The screen that shows now (one round shows at a time), for keys().run.
-let showing = null;
-
-export function mount(el, env, round, stage) {
-  if (el !== env.el) throw new Error('room workspace: the shipped screens draw in env.el');
-  const screen = STAGES.includes(stage) && env.roomScreens ? env.roomScreens[stage] : null;
-  if (!screen) throw new Error('room workspace: no screen for the stage ' + stage);
-  showing = screen;
-  screen.show(round.id);
-  return function unmount() {
-    if (showing === screen) showing = null;
-    if (screen.hide) screen.hide();
-  };
+// The contract's mount and keys over the room stages, for a workspace that picks its own screen for a stage
+// (screenFor(env, stage) -> a screen with show(id), hide(), run(action)). This module uses the shipped screens; step
+// S5's F4 workspace (runs-workspace.js) uses its own judge screen. Each pair keeps the screen that shows now (one
+// round shows at a time), for keys().run.
+export function stageMounter(name, screenFor) {
+  let showing = null;
+  function mount(el, env, round, stage) {
+    if (el !== env.el) throw new Error(name + ': the screens draw in env.el');
+    const screen = STAGES.includes(stage) ? screenFor(env, stage) : null;
+    if (!screen) throw new Error(name + ': no screen for the stage ' + stage);
+    showing = screen;
+    screen.show(round.id);
+    return function unmount() {
+      if (showing === screen) showing = null;
+      if (screen.hide) screen.hide();
+    };
+  }
+  const keys = (round, stage) => ({
+    scope: SCOPE[stage],
+    run: (action) => Boolean(showing && showing.run && showing.run(action)),
+  });
+  return { mount, keys };
 }
 
-export const keys = (round, stage) => ({
-  scope: SCOPE[stage],
-  run: (action) => Boolean(showing && showing.run && showing.run(action)),
-});
+const own = stageMounter('room workspace', (env, stage) => (env.roomScreens ? env.roomScreens[stage] : null));
+export const mount = own.mount;
+export const keys = own.keys;
 
 export const validate = (round) => ranksProblems(round);
 

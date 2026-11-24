@@ -10,8 +10,8 @@ import { escapeHtml as esc } from '../../core/sheets.js';
 import { clockText, limitOf } from './timer.js';
 import { entryOf, updateEntry, roomEvent } from './room.js';
 import { createTimerView } from './timer-view.js';
-import { phaseBarHtml } from './phase-bar.js';
-import { eventRuns, runsAt, syncRuns, resetRunFields, markNextRun, unmarkLastRun, runsPhase, runsBarModel, runsLine, setTopic, TOPIC_MAX } from './runs.js';
+import { phasesHtml } from './phase-bar.js';
+import { eventRuns, runsAt, syncRuns, syncAll, labelOf, resetRunFields, markNextRun, unmarkLastRun, runsPhase, runsBarModel, runsLine, setTopic, TOPIC_MAX } from './runs.js';
 
 const BAR_ID = 'runs-bar';
 
@@ -23,7 +23,7 @@ export function runsHeadHtml(entry, event, now, limit) {
     <label class="field runs-topic" for="run-topic"><span>${esc(t.label || 'Topic')} <span class="muted">(the student's pick; stays on this device)</span></span>
       <input id="run-topic" data-rfield="topic" value="${esc(entry.topic || '')}" maxlength="${TOPIC_MAX}" autocomplete="off"${t.hint ? ` aria-describedby="run-topic-hint"` : ''}></label>
     ${t.hint ? `<p class="field-help" id="run-topic-hint">${esc(t.hint)}</p>` : ''}
-    ${phaseBarHtml(runsBarModel(entry, event, now, limit), { id: BAR_ID })}</div>`;
+    ${phasesHtml(runsBarModel(entry, event, now, limit), { id: BAR_ID })}</div>`;
 }
 
 // The run cards and the "<next> started" button for one entry ('' for a no show).
@@ -76,7 +76,7 @@ export function createRunsParts() {
     if (!e || !e.timing || !e.timing.run) return;
     const now = env().now();
     const bar = $('#' + BAR_ID);
-    if (bar) bar.outerHTML = phaseBarHtml(runsBarModel(e, event(), now, limit()), { id: BAR_ID });
+    if (bar) bar.outerHTML = phasesHtml(runsBarModel(e, event(), now, limit()), { id: BAR_ID });
     for (const run of runsAt(e, event(), now, limit())) {
       const cell = $(`[data-run-time="${CSS.escape(run.side)}"]`);
       if (cell) cell.textContent = clockText(Math.floor(run.ms / 1000));
@@ -96,7 +96,7 @@ export function createRunsParts() {
     if (res.refused) { env().ui.toast(res.refused, { kind: 'error', key: 'runs' }); return; }
     ctx.save(updateEntry(r, e.id, () => res.entry, now));
     const side = res.entry.runs[res.entry.runs.length - 1];
-    const label = (eventRuns(event()).find((s) => s.side === side.side) || {}).label || side.side;
+    const label = labelOf(event(), side.side);
     if (!e.timing.run) timer.run('startStop'); else ctx.draw();
     const b = $('[data-tact="startstop"]'); if (b) b.focus();
     const msg = label + ' started for ' + e.code + '.';
@@ -131,9 +131,7 @@ export function createRunsParts() {
     show(c) {
       ctx = c;
       const r = room();
-      const now = env().now();
-      let next = r;
-      for (const e of r.entries) next = updateEntry(next, e.id, (x) => syncRuns(x, event(), now, limit()), now);
+      const next = syncAll(r, event(), env().now(), limit(), updateEntry);
       if (next !== r) ctx.save(next);
       ticker = setInterval(paint, 500);
     },

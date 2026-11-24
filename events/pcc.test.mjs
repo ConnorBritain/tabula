@@ -11,7 +11,7 @@ import { createRoom, ENABLED_EVENTS, setupError, updateEntry, entryOf, addEntry 
 import { eventChoices } from './js/setup-screen.js';
 import { stoppedTiming, adjustTiming, resetTiming, timerFace, graceOf } from './js/timer.js';
 import { runsAt, syncRuns, resetRunFields, markNextRun, unmarkLastRun, runsPhase, runsBarModel, runsLine, setTopic, TOPIC_MAX, hasRuns } from './js/runs.js';
-import { phaseBarHtml, phaseState } from './js/phase-bar.js';
+import { phasesHtml, phaseState } from './js/phase-bar.js';
 import { runsHeadHtml, runCardsHtml, runsRowHtml } from './js/runs-view.js';
 import { migrateRoom, migrateRooms } from './js/migrate.js';
 import { ranksBlock } from './js/ballot.js';
@@ -82,10 +82,9 @@ test('every def v2 file has the v2 fields with the right types, and no per-run m
 
 // Why: the published list is how an old round finds the rules it was judged under; a v2 file off the list could be
 // deleted later with no test failing, and a listed file that is gone stops the whole app from loading.
-test('every def v2 file on disk is in published.json defsV2, and every listed one exists', () => {
-  assert.ok(Array.isArray(PUB.defsV2));
-  assert.deepEqual([...V2_FILES].sort(), [...PUB.defsV2].sort());
-  const v1Ids = new Set(PUB.defs.map((f) => f.split('.v')[0]));
+test('every def v2 file on disk is in published.json as "v2/<file>", and every listed one exists', () => {
+  assert.deepEqual(V2_FILES.map((f) => 'v2/' + f).sort(), PUB.defs.filter((f) => f.startsWith('v2/')).sort());
+  const v1Ids = new Set(PUB.defs.filter((f) => !f.startsWith('v2/')).map((f) => f.split('.v')[0]));
   for (const { f, d } of V2) assert.ok(!v1Ids.has(d.id) || d.version > 1, f + ' does not reuse a v1 key');
 });
 
@@ -176,7 +175,7 @@ test('the one limit covers both runs: the flags count the total, not each run', 
 // a student who broke no rule.
 test('a short run shows its time with no warning', () => {
   const base = pccRoom().entries[0];
-  const e = Object.assign(sync(withTiming(base, Object.assign({}, base.timing, { usedMs: 20_000 })), 1), {});
+  const e = sync(withTiming(base, Object.assign({}, base.timing, { usedMs: 20_000 })), 1);
   const split = Object.assign({}, e, { runs: [{ side: 'pro', startedAt: 0, ms: 20_000 }, { side: 'con', startedAt: 20_000, ms: 0 }] });
   const html = runCardsHtml(split, PCC, 1, LIMIT);
   assert.match(html, /0:20/);
@@ -204,7 +203,7 @@ test('corrections and Reset time keep the runs in step; Undo of the split gives 
 // "Con started" at the wrong time or miss it, and the split would be wrong.
 test('the phase bar: a done phase has a check, the phase on now is filled, and a Next line sits below', () => {
   const model = { label: 'Pro, then Con', phases: [{ id: 'pro', label: 'Pro', time: '4:00' }, { id: 'con', label: 'Con', time: '1:10' }], current: 1, next: 'Next: stop the clock when the Con speech ends.' };
-  const html = phaseBarHtml(model, { id: 'bar1' });
+  const html = phasesHtml(model, { id: 'bar1' });
   assert.match(html, /id="bar1"/);
   assert.match(html, /class="phase is-done" data-phase="pro"><span class="phase-mark" aria-hidden="true">✓<\/span>/);
   assert.match(html, /class="phase is-on" data-phase="con" aria-current="step"/);
@@ -212,9 +211,9 @@ test('the phase bar: a done phase has a check, the phase on now is filled, and a
   assert.match(html, /<p class="phase-next">Next: stop the clock when the Con speech ends\.<\/p>/);
   assert.match(html, /\(done\)/, 'the state is in words for screen readers, not only a mark');
   assert.deepEqual([0, 1, 2].map((i) => phaseState(i, 1)), ['done', 'on', 'todo']);
-  assert.doesNotMatch(phaseBarHtml({ phases: [{ id: 'a', label: 'A' }], current: -1 }), /aria-current|✓|phase-next/, 'nothing started: no fill, no check, no line');
-  assert.equal((phaseBarHtml({ phases: model.phases, current: 2 }).match(/✓/g) || []).length, 2, 'every phase done: every phase has a check');
-  assert.match(phaseBarHtml({ label: '<b>', phases: [{ id: 'x', label: '<i>' }], current: 0 }), /&lt;b&gt;.*&lt;i&gt;/s, 'text is escaped');
+  assert.doesNotMatch(phasesHtml({ phases: [{ id: 'a', label: 'A' }], current: -1 }), /aria-current|✓|phase-next/, 'nothing started: no fill, no check, no line');
+  assert.equal((phasesHtml({ phases: model.phases, current: 2 }).match(/✓/g) || []).length, 2, 'every phase done: every phase has a check');
+  assert.match(phasesHtml({ label: '<b>', phases: [{ id: 'x', label: '<i>' }], current: 0 }), /&lt;b&gt;.*&lt;i&gt;/s, 'text is escaped');
 });
 
 // Why: the bar must follow the entry through Pro, Con and done; a bar stuck on Pro after Con started would tell the

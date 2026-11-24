@@ -21,7 +21,7 @@ export const TOPIC_MAX = 300;
 export const eventRuns = (event) => (Array.isArray(event && event.runs) ? event.runs : []);
 // Does this event split one entry into two or more runs?
 export const hasRuns = (event) => eventRuns(event).length > 1;
-const labelOf = (event, side) => (eventRuns(event).find((r) => r.side === side) || {}).label || side;
+export const labelOf = (event, side) => (eventRuns(event).find((r) => r.side === side) || {}).label || side;
 
 // When the clock first started for this entry: the first finished speech run, else the running one.
 function firstStart(timing, now) {
@@ -73,6 +73,15 @@ export function syncRuns(entry, event, now, limit) {
   return JSON.stringify(next) === JSON.stringify(entry.runs || []) ? entry : Object.assign({}, entry, { runs: next });
 }
 
+// Every entry of a room brought up to date with its clock (syncRuns), as after a reload brought back a saved clock.
+// Returns the same room when nothing changes. updateEntry: room.js updateEntry (passed in, so this file stays free of
+// the room model).
+export function syncAll(room, event, now, limit, updateEntry) {
+  let next = room;
+  for (const e of (room && room.entries) || []) next = updateEntry(next, e.id, (x) => syncRuns(x, event, now, limit), now);
+  return next;
+}
+
 // The fields "Reset time" clears on an F4 entry, beside the clock (timer-view.js resetFields; its Undo puts them back).
 export const resetRunFields = () => ({ runs: [] });
 
@@ -96,14 +105,14 @@ export function unmarkLastRun(entry, event, now, limit) {
 }
 
 // Where the entry is, for the phase bar: index -1 (no time yet), 0 .. n-1 (that run is on), or n (every run is
-// done: the clock stopped during the last run). running: the clock runs.
+// done: the clock stopped during the last run).
 export function runsPhase(entry, event, now, limit) {
   const n = eventRuns(event).length;
   const runs = runsAt(entry, event, now, limit);
   const running = Boolean(entry && entry.timing && entry.timing.run);
-  if (!runs.length) return { index: -1, running };
+  if (!runs.length) return { index: -1 };
   const at = runs.length - 1;
-  return { index: at === n - 1 && !running ? n : at, running };
+  return { index: at === n - 1 && !running ? n : at };
 }
 
 // The phase bar model (phase-bar.js) for an F4 entry: one phase per run, with its time once it has one, and the
@@ -128,5 +137,5 @@ export const runsLine = (entry, event, now, limit) => runsAt(entry, event, now, 
 export const setTopic = (entry, text) => Object.assign({}, entry, { topic: String(text == null ? '' : text).slice(0, TOPIC_MAX) });
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).runs = Object.freeze({
-  runEntryDefaults, TOPIC_MAX, eventRuns, hasRuns, runsAt, syncRuns, resetRunFields, markNextRun, unmarkLastRun, runsPhase, runsBarModel, runsLine, setTopic,
+  runEntryDefaults, TOPIC_MAX, eventRuns, hasRuns, runsAt, syncRuns, syncAll, resetRunFields, labelOf, markNextRun, unmarkLastRun, runsPhase, runsBarModel, runsLine, setTopic,
 });

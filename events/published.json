@@ -1,5 +1,6 @@
 {
   "note": "Every event and profile file ever published. Add a line when you publish a file. Never remove one: old rooms open with the rules they were judged under.",
+  "noteV2": "Files added after v1 live in a v2/ subfolder and are listed as \"v2/<file>\" (SPRINT brief rule 3a). The v1 files and their schema test stay as they are; each v2/ folder has its own schema test.",
   "defs": [
     "oo.v1.json",
     "inf.v1.json",
@@ -17,15 +18,12 @@
     "sto.v1.json",
     "osw.v1.json",
     "dec.v1.json",
-    "mx.v1.json"
-  ],
-  "defsV2": [
-    "pcc.v2.json"
+    "mx.v1.json",
+    "v2/pcc.v2.json"
   ],
   "profiles": [
     "nsda-district.v1.json",
     "nsda-invitational.v1.json",
     "custom.v1.json"
-  ],
-  "noteV2": "Def v2 files (docs/events/EXPERIENCE.md §2.1 step 2, §8.5) live in defs/v2/ and are listed under defsV2. They carry an explicit family and have their own schema test (events/pcc.test.mjs). The v1 files and their test stay as they are."
+  ]
 }

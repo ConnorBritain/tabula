@@ -16,8 +16,6 @@ import * as room from './room-workspace.js';
 export const family = 'f4';
 export const families = Object.freeze(['f4']);
 
-const SCOPE = Object.freeze({ judge: 'room', rank: 'rank', review: 'review' });
-
 // input: { entries, tournament, round, flight, now, makeId } as createRoom takes them. Each entry starts with no runs
 // and an empty topic (the student says it in the room).
 export function newRound(def, profile, input) {
@@ -28,30 +26,11 @@ export function newRound(def, profile, input) {
 export const stages = room.stages;
 
 // The screen of a stage: the F4 Room screen for judge, the shipped Rank and Review screens for the rest.
-function screenFor(env, stage) {
-  if (!stages().includes(stage)) return null;
-  if (stage === 'judge') return env.runsScreens ? env.runsScreens.judge : null;
-  return env.roomScreens ? env.roomScreens[stage] : null;
-}
-
-let showing = null;
-
-export function mount(el, env, round, stage) {
-  if (el !== env.el) throw new Error('runs workspace: the screens draw in env.el');
-  const screen = screenFor(env, stage);
-  if (!screen) throw new Error('runs workspace: no screen for the stage ' + stage);
-  showing = screen;
-  screen.show(round.id);
-  return function unmount() {
-    if (showing === screen) showing = null;
-    if (screen.hide) screen.hide();
-  };
-}
-
-export const keys = (round, stage) => ({
-  scope: SCOPE[stage],
-  run: (action) => Boolean(showing && showing.run && showing.run(action)),
-});
+const own = room.stageMounter('runs workspace', (env, stage) => (stage === 'judge'
+  ? (env.runsScreens ? env.runsScreens.judge : null)
+  : (env.roomScreens ? env.roomScreens[stage] : null)));
+export const mount = own.mount;
+export const keys = own.keys;
 
 export const validate = room.validate;
 export const summary = room.summary;

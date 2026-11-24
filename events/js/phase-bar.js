@@ -11,13 +11,15 @@
 //   current  the index of the phase on now; -1 = none started yet; phases.length = every phase is done
 //   next     the line below the bar ('' for none)
 // }
+// Name: phasesHtml, not phaseBarHtml, because timer-view.js still has its own older IMP bar (phaseBarHtml, the
+// "Prep, then Speech" pills of step E11). IMP moves onto this module in a later step; until then the two stay apart.
 // opts: { id } the element id of the bar's box (default 'phase-bar-box'), so a view can replace it in place each tick.
 import { escapeHtml as esc } from '../../core/sheets.js';
 
 // The state of one phase: 'done', 'on' or 'todo'.
 export const phaseState = (i, current) => (i < current ? 'done' : i === current ? 'on' : 'todo');
 
-export function phaseBarHtml(model, opts) {
+export function phasesHtml(model, opts) {
   const m = model || {};
   const id = (opts && opts.id) || 'phase-bar-box';
   const phases = Array.isArray(m.phases) ? m.phases : [];
@@ -33,4 +35,4 @@ export function phaseBarHtml(model, opts) {
     + `${m.next ? `<p class="phase-next">${esc(m.next)}</p>` : ''}</div>`;
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).phaseBar = Object.freeze({ phaseState, phaseBarHtml });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).phaseBar = Object.freeze({ phaseState, phasesHtml });
