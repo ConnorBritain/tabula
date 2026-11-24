@@ -14,7 +14,7 @@ import { runsAt, syncRuns, resetRunFields, markNextRun, unmarkLastRun, runsPhase
 import { phasesHtml, phaseState } from './js/phase-bar.js';
 import { runsHeadHtml, runCardsHtml, runsRowHtml } from './js/runs-view.js';
 import { migrateRoom, migrateRooms } from './js/migrate.js';
-import { ranksBlock, cards, printModel } from './js/ballot.js';
+import { ranksBlock, cards, printModel, copyAllText } from './js/ballot.js';
 import { cardHtml } from './js/review-screen.js';
 import { readCheckList } from './check-list.mjs';
 
@@ -337,4 +337,18 @@ test('the print sheet shows each PCC entry\'s topic and Pro and Con times above 
   assert.equal(sections[1].text, 'Good.', 'an entry with no topic and no time gets no empty lines');
   const relabelled = Object.assign({}, PCC, { runs: [{ side: 'pro', label: 'For' }, { side: 'con', label: 'Against' }] });
   assert.match(printModel(judged, relabelled, LIMIT).sections.find((s) => s.cls === 'ps-entry').text, /Runs: For 4:00 · Against 3:30/, 'labels come from the event file');
+});
+
+// Why: "Copy all" is the text a judge pastes into an email or a paper ballot; if it left out the PCC topic and the
+// Pro and Con times, that copy would lose what the print sheet and Review already show.
+test('"Copy all" puts each PCC entry\'s topic and Pro and Con times under its code', () => {
+  const r = pccRoom(DISTRICT, ['A1', 'B2']);
+  const [a, b] = r.entries;
+  const judged = Object.assign({}, r, { entries: [
+    Object.assign({}, a, { topic: 'Resolved: x', comment: 'Clear cases.', timing: Object.assign({}, a.timing, { usedMs: 450_000 }), runs: [{ side: 'pro', startedAt: 1, ms: 240_000 }, { side: 'con', startedAt: 2, ms: 210_000 }] }),
+    Object.assign({}, b, { topic: '', runs: [], comment: 'Good.' }),
+  ] });
+  const text = copyAllText(judged, PCC);
+  assert.match(text, /\nA1\nTopic: Resolved: x\nRuns: Pro 4:00 · Con 3:30\nClear cases\./);
+  assert.match(text, /\nB2\nGood\./, 'an entry with no topic and no time gets no empty lines');
 });
