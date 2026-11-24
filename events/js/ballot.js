@@ -15,6 +15,7 @@ import { clockText } from './timer.js';
 import { pieceLine } from './piece.js';
 import { questionOf } from './question.js';
 import { layerOf, layerProblems, ranksShown, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax } from './profile-layer.js';
+import { storedRunsLine, topicOf } from './runs.js';
 
 // "Over time" on the ranks line: the sticky over-grace flag (inside grace is still on time, ARCHITECTURE.md §6.2).
 export const overTime = isOverGrace;
@@ -74,11 +75,14 @@ export function critique(text) {
 // ranked (step S4): false when the round has no ranks (ranks 'off' or critiqueOnly), so the card says nothing of a rank.
 // name: the entry's name ("First & Second" for a Duo, step E9); piece: "“Title” by Author" ('' when not typed).
 // question: the drawn question (step E10, extemp events), '' when there is none. It is not part of the comment.
-export function cards(room, order) {
+// topic, runs: step S5 (F4, PCC): the student's topic and "Pro 4:12 · Con 3:58" ('' when none). Not part of the comment.
+// event (optional): the room's event file, for the run labels. rank and ranked follow the profile layer (step S4).
+export function cards(room, order, event) {
   const ranked = ranksShown(room.profile);
   return entriesIn(room, order).map((e) => {
     const comment = ballotComment(e);
-    return { id: e.id, code: e.code, name: e.name || '', piece: pieceLine(e), rank: shownRank(e.rank, room.profile), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment), question: questionOf(e), ranked };
+    return { id: e.id, code: e.code, name: e.name || '', piece: pieceLine(e), rank: shownRank(e.rank, room.profile), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment), question: questionOf(e), ranked,
+      topic: topicOf(e), runs: storedRunsLine(e, event) };
   });
 }
 
@@ -153,6 +157,13 @@ export function copyAllText(room, event) {
   return parts.join('\n');
 }
 
+// The lines above an entry's comment on the print sheet: the drawn question (step E10), and for PCC (step S5) the
+// student's topic and the Pro and Con times. Each on its own line, then a blank line; '' when there are none.
+const entryLead = (c) => {
+  const lines = [c.question && 'Question: ' + c.question, c.topic && 'Topic: ' + c.topic, c.runs && 'Runs: ' + c.runs].filter(Boolean);
+  return lines.length ? lines.join('\n') + '\n\n' : '';
+};
+
 // The print sheet model for core/sheets.js printSheetHtml: facts, the ranks table, one text section per entry, and
 // the reason for rank. The private note and rule-check flags are never on it.
 export function printModel(room, event, limit) {
@@ -172,7 +183,7 @@ export function printModel(room, event, limit) {
     title: 'Ballot · ' + [event ? event.short : 'Custom', room.round].filter(Boolean).join(' · '),
     landscape: false,
     sections: [{ kind: 'facts', items: facts }].concat(hasRanksStage(room) ? [{ kind: 'table', title: ranked ? 'Ranks' : 'Ratings', head, rows: tableRows }] : [])
-      .concat(cards(room, 'speaking').map((c) => ({ kind: 'text', title: [c.code + (c.rank ? ' · rank ' + c.rank : ''), c.piece].filter(Boolean).join(' · '), cls: 'ps-entry', text: (c.question ? 'Question: ' + c.question + '\n\n' : '') + c.comment })))
+      .concat(cards(room, 'speaking', event).map((c) => ({ kind: 'text', title: [c.code + (c.rank ? ' · rank ' + c.rank : ''), c.piece].filter(Boolean).join(' · '), cls: 'ps-entry', text: entryLead(c) + c.comment })))
       .concat([{ kind: 'text', title: 'Reason for rank', cls: 'ps-reason', text: room.reasonForRank || '' }]),
   };
 }

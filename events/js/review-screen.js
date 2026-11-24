@@ -47,15 +47,18 @@ export function cardHtml(c, editing, ai) {
       ${a.button}<button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : 'Edit'}</button></div>
     ${c.name || c.piece ? `<p class="card-piece">${[c.name, c.piece].filter(Boolean).map(esc).join(' · ')}</p>` : ''}
     ${c.question ? `<p class="card-question"><span class="muted">Question:</span> ${esc(c.question)}</p>` : ''}
+    ${c.topic ? `<p class="card-question card-topic"><span class="muted">Topic:</span> ${esc(c.topic)}</p>` : ''}
+    ${c.runs ? `<p class="card-question card-runs"><span class="muted">Runs:</span> ${esc(c.runs)}</p>` : ''}
     ${body}${a.panel}
     <ul class="critique" aria-label="Comment check for ${esc(c.code)}">${c.critique.map((k) => done(k.ok, k.label)).join('')}</ul>
     ${c.comment.trim() ? `<button class="b${c.copied ? '' : ' primary'}" type="button" data-vact="copy" data-what="${c.id}" data-key="copy-${c.id}">${c.copied ? '✓ Copied' : 'Copy comment'}</button>` : ''}
   </li>`;
 }
 
-// Stage 2 and the tools as HTML text. view: { order, editing, ai (optional: (card, editing) -> { button, panel }) }.
+// Stage 2 and the tools as HTML text. view: { order, editing, ai (optional: (card, editing) -> { button, panel }),
+// event (optional: the room's event file, for the PCC run labels) }.
 export function commentsStageHtml(room, view) {
-  const list = cards(room, view.order);
+  const list = cards(room, view.order, view.event);
   const reason = String(room.reasonForRank || '');
   const reasonEditing = view.editing === 'reason';
   return `<section class="review-stage" aria-labelledby="stage2"><h2 id="stage2" tabindex="-1">2. Comments</h2>
@@ -104,7 +107,7 @@ export function createReviewScreen(env) {
   const save = (r) => { env.saveRoom(r); return r; };
   // "Clean up my comments" (E13). Only with env.ai: a page with no AI part has no clean-up at all.
   const cleanup = env.ai ? createCleanup(env, { roomId: () => roomId, event: (r) => event(r), draw: (k) => draw(k) }) : null;
-  const viewNow = () => Object.assign({}, view, { ai: cleanup ? (c, editing) => cleanup.view(c, editing) : null });
+  const viewNow = () => Object.assign({}, view, { ai: cleanup ? (c, editing) => cleanup.view(c, editing) : null, event: event(room()) });
 
   function draw(focusKey) {
     const r = room();
@@ -173,7 +176,7 @@ export function createReviewScreen(env) {
     if (!old) return;
     const fresh = document.createElement('template');
     // No ai part for a card in edit mode: clean-up is closed while the judge edits (cleanup-view.js view()).
-    fresh.innerHTML = f === 'reason' ? commentsStageHtml(room(), viewNow()) : cardHtml(cards(room(), view.order).find((c) => c.id === id), true);
+    fresh.innerHTML = f === 'reason' ? commentsStageHtml(room(), viewNow()) : cardHtml(cards(room(), view.order, event(room())).find((c) => c.id === id), true);
     const src = f === 'reason' ? fresh.content.querySelector('.reason-card') : fresh.content.firstElementChild;
     for (const sel of ['.critique', '[data-vact="copy"]']) {
       const a = old.querySelector(sel), b = src.querySelector(sel);
