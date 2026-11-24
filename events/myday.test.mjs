@@ -257,7 +257,7 @@ test('the picker shows Recent first, groups by family, hides empty groups, and s
   assert.equal(rows.length, ENABLED_EVENTS.length + 1, 'every enabled event and Custom');
   assert.deepEqual(recentIds(rows, ['hi', 'oo', 'hi'], ['di', 'oo', 'gone']), ['hi', 'oo', 'di']);
   const secs = pickerSections(rows, ['hi'], '');
-  assert.deepEqual(secs.map((s) => s.title), ['Recent', 'Interp', 'Public address', 'Limited prep', 'Custom']);
+  assert.deepEqual(secs.map((s) => s.title), ['Recent', 'Interp', 'Public address', 'Limited prep', 'Two runs', 'Custom']);
   assert.deepEqual(pickerSections(rows, [], '').map((s) => s.id)[0], 'interp', 'no empty Recent');
   assert.deepEqual(pickerSections(rows, [], 'humor')[0].rows.map((r) => r.id), ['hi']);
   const html = pickerListHtml(secs);
