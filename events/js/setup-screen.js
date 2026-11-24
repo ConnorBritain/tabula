@@ -27,10 +27,12 @@ export const isBallotShape = (p) => Boolean(p) && p.group === 'shape';
 export const profileChoices = (data) => allProfiles(data).filter((p) => !isBallotShape(p));
 export const shapeChoices = (data) => allProfiles(data).filter(isBallotShape);
 
-// The preview under the paste box as HTML text. parsed: parseRoom's result.
+// The live preview beside the paste box (under it on a phone) as HTML text. parsed: parseRoom's result. One row per
+// entry: its place, code, name and piece title; the lines the parser is not sure of wait under "Check these (N)"
+// (design review §2.3 change 2, DESIGN.md §4.8).
 export function previewHtml(parsed) {
-  const n = parsed.entries.length;
-  const rows = parsed.entries.map((e) => `<li><span class="code">${esc(e.code)}</span>${e.name ? ` <span>${esc(e.name)}</span>` : ''}${e.late ? ' <span class="pill">Late add</span>' : ''}</li>`).join('');
+  const n = parsed.entries.length, k = parsed.check.length;
+  const rows = parsed.entries.map((e) => `<li><span class="code">${esc(e.code)}</span>${e.name ? ` <span class="pv-name">${esc(e.name)}</span>` : ''}${e.title ? ` <span class="muted pv-title">${esc(e.title)}</span>` : ''}${e.late ? ' <span class="pill">Late add</span>' : ''}</li>`).join('');
   const checks = parsed.check.map((c, i) => `<li class="check-row">
       <p class="mono">${esc(c.line)}</p><p class="muted">${esc(c.why)}</p>
       <div class="check-act"><label class="sr-only" for="chk-${i}">Code for this line</label>
@@ -38,9 +40,11 @@ export function previewHtml(parsed) {
         <button class="b small" type="button" data-act="use" data-key="${esc(c.key)}">Use code</button>
         <button class="b small quiet" type="button" data-act="skip" data-key="${esc(c.key)}">Skip line</button></div></li>`).join('');
   const skipped = parsed.skipped.length ? `<details class="skipped"><summary>Lines left out (${parsed.skipped.length})</summary><ul>${parsed.skipped.map((s) => `<li><span class="mono">${esc(s.line)}</span></li>`).join('')}</ul></details>` : '';
+  const count = n || k ? `<p class="muted pv-count">${n} ${n === 1 ? 'entry' : 'entries'} found${k ? ' · ' + k + ' to check' : ''}</p>` : '<p class="muted pv-count">Paste the room and each entry shows here as you type.</p>';
   return `<h2 class="preview-title">${n ? n + (n === 1 ? ' entry' : ' entries') + ', in speaking order' : 'No entries yet'}</h2>
+    ${count}
     ${n ? `<ol class="preview-list">${rows}</ol>` : ''}
-    ${checks ? `<h3>Check these</h3><ul class="check-list">${checks}</ul>` : ''}${skipped}`;
+    ${checks ? `<h3>Check these (${k})</h3><ul class="check-list">${checks}</ul>` : ''}${skipped}`;
 }
 
 // The Custom event fields (step E12) as HTML text: shown only when the judge picks "Custom event". grace: the picked
@@ -71,13 +75,20 @@ export function setupHtml(data) {
       <label class="field"><span>Round</span><input id="setup-round" autocomplete="off" placeholder="Round 1"></label>
       <label class="field"><span>Flight <span class="muted">(optional)</span></span><input id="setup-flight" autocomplete="off"></label>
       <label class="field wide"><span>Tournament <span class="muted">(optional)</span></span><input id="setup-tournament" autocomplete="off"></label>
-      ${levelFieldsHtml()}
     </div>
+    <!-- The rare fields (design review §2.3 change 3): closed for a prelim, open when the ballot card says elim. -->
+    <details class="setup-more" id="setup-more"><summary>Elim or panel?</summary>
+      <div class="setup-fields">${levelFieldsHtml()}</div></details>
     ${customHtml(graceOf({ profile: data.profiles.get(DEFAULT_PROFILE) }))}
-    <label class="field wide" for="setup-paste"><span>Paste the room from Tabroom or SpeechWire, or type one code per line</span></label>
-    <textarea id="setup-paste" rows="8" spellcheck="false" placeholder="1. A12&#10;2. B07&#10;3. C33"></textarea>
-    <p class="field-help">The text stays on this device. Codes are enough; names are optional.</p>
-    <div class="preview" id="setup-preview" aria-live="polite"></div>
+    <!-- Laptop: the paste box on the left and the live preview on the right. Phone: the preview under the box. -->
+    <div class="setup-paste-area">
+      <div class="setup-paste-col">
+        <label class="field wide" for="setup-paste"><span>Paste the room from Tabroom or SpeechWire, or type one code per line</span></label>
+        <textarea id="setup-paste" rows="8" spellcheck="false" placeholder="1. A12&#10;2. B07&#10;3. C33"></textarea>
+        <p class="field-help">The text stays on this device. Codes are enough; names are optional.</p>
+      </div>
+      <div class="preview" id="setup-preview" aria-live="polite"></div>
+    </div>
     <p class="form-err" id="setup-err" role="status"></p>
     <div class="setup-btns"><button class="b primary" type="submit" id="setup-start">Start room</button></div>
   </form>`;
@@ -172,6 +183,7 @@ export function createSetupScreen(env) {
         $('#setup-flight').value = card.flight || '';
         $('#setup-tournament').value = card.tournament || '';
         $('#setup-level').value = card.level === 'elim' ? 'elim' : 'prelim'; // the S4 Level field starts as the card's level
+        $('#setup-more').open = card.level === 'elim'; // an elim card opens the rare fields
         $('#screen-title').textContent = 'Paste the room';
         showCustom();
       }

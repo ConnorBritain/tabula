@@ -28,8 +28,8 @@ test('the picker lists Pro Con Challenge under Two runs, with a plain line and a
   assert.ok(pcc, 'PCC is a picker row');
   assert.equal(pcc.group, 'twoRuns');
   assert.ok(eventLine('pcc').length > 20);
-  assert.ok(pcc.chips.includes('PRO THEN CON'));
-  assert.ok(pcc.chips.includes('TIMER 10:30'));
+  assert.ok(pcc.chips.includes('Pro then con')); // design build 2026-11-24: chips in normal case (review §2.2)
+  assert.ok(pcc.chips.includes('10:30'));
   const group = pickerSections(pickerRows(DATA), [], '').find((s) => s.id === 'twoRuns');
   assert.deepEqual(group.rows.map((r) => r.id), ['pcc']);
 });

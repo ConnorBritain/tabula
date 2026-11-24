@@ -11,13 +11,16 @@ import { CUSTOM_EVENT } from './room.js';
 import { routeHash } from './routes.js';
 import { withRecentEvent } from './settings.js';
 
+// One row. The chips are grey pills in normal case; "Guide" is a plain text button, not an unlabeled "i"
+// (design review §2.2 changes 1 and 2).
+const chipsHtml = (chips) => `<span class="pk-chips">${chips.map((c) => `<span class="pill outline pk-chip">${esc(c)}</span>`).join('')}</span>`;
 const rowHtml = (r) => `<li class="pk-row">
     <button class="pk-pick" type="button" data-id="${esc(r.id)}">
       <span class="pk-name">${esc(r.name)} <span class="muted">${esc(r.short)}</span></span>
       <span class="pk-line">${esc(r.line)}</span>
-      <span class="pk-chips" aria-label="${esc(r.chips.join(', '))}">${r.chips.map((c) => `<span class="pk-chip">${esc(c)}</span>`).join('<span aria-hidden="true"> · </span>')}</span>
+      ${chipsHtml(r.chips)}
     </button>
-    <a class="iconbtn pk-info" href="${esc(routeHash('type', r.id))}" aria-label="${esc('Guide for ' + r.name)}">i</a></li>`;
+    <a class="b small quiet pk-guide" href="${esc(routeHash('type', r.id))}" aria-label="${esc('Guide for ' + r.name)}">Guide</a></li>`;
 
 // The list as HTML text. sections: pickerSections(...).
 export function pickerListHtml(sections) {
@@ -40,7 +43,7 @@ function congressHtml() {
   return `<section class="pk-sec" aria-labelledby="pk-h-congress"><h3 id="pk-h-congress">Congress</h3><ul class="pk-list"><li class="pk-row">
     <a class="pk-pick" href="${esc(routeHash('chamber', 'new'))}"><span class="pk-name">Congressional Debate <span class="muted">Congress</span></span>
       <span class="pk-line">Students give short speeches on bills and answer questions. You score each speech and rank the chamber.</span>
-      <span class="pk-chips" aria-label="POINTS/SPEECH, TOP 8"><span class="pk-chip">POINTS/SPEECH</span><span aria-hidden="true"> · </span><span class="pk-chip">TOP 8</span></span></a></li></ul></section>`;
+      ${chipsHtml(['Points per speech', 'Top 8'])}</a></li></ul></section>`;
 }
 
 export function pickerHtml() {

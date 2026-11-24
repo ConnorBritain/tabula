@@ -17,7 +17,7 @@ export function paletteListHtml(shown, active, grouped) {
       last = r.group;
     }
     html += `<div class="pal-row${i === active ? ' is-active' : ''}" role="option" id="pal-o-${i}" data-i="${i}" aria-selected="${i === active}">`
-      + `<span class="pal-label">${esc(r.label)}</span>${grouped ? '' : `<span class="pal-grp-name">${esc(r.group)}</span>`}</div>`;
+      + `<span class="pal-label">${esc(r.label)}</span>${r.hint ? `<span class="pal-hint">${esc(r.hint)}</span>` : ''}${grouped ? '' : `<span class="pal-grp-name">${esc(r.group)}</span>`}</div>`;
   });
   if (grouped && last) html += '</div>';
   return html;
