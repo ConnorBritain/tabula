@@ -7,7 +7,7 @@ import { escapeHtml as esc } from '../../core/sheets.js';
 import { ratingScale, ratingError, ratingTies, overtimeRow } from './rank.js';
 import { boardCtx, ratingsOf } from './board.js';
 import { layerOf, layerProblems } from './profile-layer.js';
-import { ratingHtml, rubricHtml, scoreClick, scoreInput, isScoreBox } from './score-view.js';
+import { ratingHtml, rubricHtml, scoreClick, scoreInput, scoreKey, isScoreBox } from './score-view.js';
 import { findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf, clockText } from './timer.js';
@@ -66,6 +66,8 @@ export function createRateScreen(env) {
   function onClick(ev) { const res = scoreClick(ev.target, room(), env.now()); if (res) { save(res.room); draw(res.focusKey); } }
   function onInput(ev) { const next = scoreInput(ev.target, room(), env.now()); if (next) save(next); }
   function onChange(ev) { if (isScoreBox(ev.target)) draw(); }
+  // The arrow, Home, End and digit keys on a row of number buttons (score-view.js scoreKey).
+  function onKey(ev) { const r = room(); const res = scoreKey(ev, r, env.now()); if (!res) return; ev.preventDefault(); if (res.room !== r) save(res.room); draw(res.focusKey); }
 
   return {
     scope: 'rank',
@@ -87,12 +89,13 @@ export function createRateScreen(env) {
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('input', onInput);
       env.el.addEventListener('change', onChange);
+      env.el.addEventListener('keydown', onKey);
       $('#rank-reason').addEventListener('input', (e) => save(setReason(room(), e.target.value, env.now())));
       draw();
       $('#screen-title').focus();
     },
     hide() {
-      for (const [t, f] of [['click', onClick], ['input', onInput], ['change', onChange]]) env.el.removeEventListener(t, f);
+      for (const [t, f] of [['click', onClick], ['input', onInput], ['change', onChange], ['keydown', onKey]]) env.el.removeEventListener(t, f);
       roomId = null;
     },
   };

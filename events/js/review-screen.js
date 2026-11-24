@@ -10,29 +10,34 @@ import { findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf } from './timer.js';
 import { createCleanup } from './cleanup-view.js';
-import { rankStageLabel } from './profile-layer.js';
+import { rankStageLabel, layerOf, ranksShown } from './profile-layer.js';
+import { OVER_GRACE_PILL } from './rank.js';
 
 const done = (ok, label) => `<li class="${ok ? 'is-ok' : ''}"><span aria-hidden="true">${ok ? '✓' : '○'}</span> ${esc(label)}${ok ? '' : ' <span class="sr-only">(not yet)</span>'}</li>`;
 
-// Stage 1 as HTML text. Step S4 (profile layer): under ranks 'off' it is "Ratings to submit" with no Rank column;
-// a rubric adds a column; under critiqueOnly there is nothing to submit and the stage says so.
+// Stage 1 as HTML text: a narrow card shaped like the online ballot (design review 2026-11-24 §2.10, top 10 #7): the
+// code, rank, rating and rubric of each entry, and an "Over grace" pill only when it is true. The card's header holds
+// the copy button and the copy state. Step S4 (profile layer): under ranks 'off' it is "Ratings to submit" with no
+// Rank column; a rubric adds a column; under critiqueOnly there is nothing to submit, so there is no stage at all
+// (bug 6; the summary says the rules are comments only).
 export function ranksStageHtml(room) {
-  if (!hasRanksStage(room)) {
-    return `<section class="review-stage" aria-labelledby="stage1"><h2 id="stage1">1. Ranks</h2>
-    <p class="muted">These rules are comments only. There are no ranks to submit. Copy each comment below.</p></section>`;
-  }
+  if (!hasRanksStage(room)) return '';
   const { rows, rated, ranked, rubric } = ranksBlock(room);
   const problems = ranksProblems(room);
   const sent = Boolean(room.ranksCopiedAt);
   const word = ranked ? 'ranks' : 'ratings';
   const back = ranked ? 'Rank' : 'Rate';
-  const table = `<table class="ranks-table"><thead><tr><th>Code</th>${ranked ? '<th>Rank</th>' : ''}${rated ? '<th>Rating</th>' : ''}${rubric ? '<th>Rubric</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td>${ranked ? `<td>${esc(r.rank || '–')}</td>` : ''}${rated ? `<td>${esc(r.rating || '–')}</td>` : ''}${rubric ? `<td>${esc(rubricLine(r.rubric))}</td>` : ''}<td>${r.overTime ? 'Yes' : 'No'}</td></tr>`).join('')}</tbody></table>`;
-  const block = problems.length
-    ? `<div class="problems"><h3>Fix these before you copy the ${word}</h3><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul><a class="b" href="#/rank/${encodeURIComponent(room.id)}">Back to ${back}</a></div>`
-    : `<button class="b primary" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${sent ? '✓ Copied. Copy ' + word + ' again' : 'Copy ' + word}</button>`;
-  return `<section class="review-stage" aria-labelledby="stage1"><h2 id="stage1">1. ${ranked ? 'Ranks' : 'Ratings'} to submit</h2>
+  const overCell = (r) => (r.overTime ? `<span class="pill err">${esc(OVER_GRACE_PILL)}</span>` : '<span class="sr-only">No</span>');
+  const table = `<table class="ranks-table"><thead><tr><th>Code</th>${ranked ? '<th>Rank</th>' : ''}${rated ? '<th>Rating</th>' : ''}${rubric ? '<th>Rubric</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td>${ranked ? `<td class="preview-rank">${esc(r.rank || '–')}</td>` : ''}${rated ? `<td>${esc(r.rating || '–')}</td>` : ''}${rubric ? `<td>${esc(rubricLine(r.rubric))}</td>` : ''}<td>${overCell(r)}</td></tr>`).join('')}</tbody></table>`;
+  const copyBtn = problems.length ? ''
+    : `<button class="b${sent ? '' : ' primary'}" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${sent ? 'Copy ' + word + ' again' : 'Copy ' + word}</button>`;
+  const fix = problems.length
+    ? `<div class="problems"><h3>Fix these before you copy the ${word}</h3><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul><a class="b" href="#/rank/${encodeURIComponent(room.id)}">Back to ${back}</a></div>` : '';
+  return `<section class="review-stage ballot-preview" aria-labelledby="stage1">
+    <div class="preview-head"><h2 id="stage1">1. ${ranked ? 'Ranks' : 'Ratings'} to submit</h2>
+      <span class="pill${sent ? ' solid' : ' outline'}" id="ranks-state">${sent ? '✓ Copied' : 'Not sent'}</span>${copyBtn}</div>
     <p class="muted">Enter these in the online ballot first. Most sites lock ranks when you submit, but keep comments open.</p>
-    ${table}${block}</section>`;
+    ${table}${fix}</section>`;
 }
 
 // One comment card as HTML text. editing: the card shows its edit box. ai: { button, panel } for clean-up (E13), or
@@ -58,27 +63,37 @@ export function cardHtml(c, editing, ai) {
 // Stage 2 and the tools as HTML text. view: { order, editing, ai (optional: (card, editing) -> { button, panel }),
 // event (optional: the room's event file, for the PCC run labels) }.
 export function commentsStageHtml(room, view) {
-  const list = cards(room, view.order, view.event);
+  const ranked = ranksShown(room.profile);
+  const layer = layerOf(room.profile);
+  // No ranks (ranks 'off' or comments only, bug 6): no rank order to sort by, so the cards keep speaking order.
+  const list = cards(room, ranked ? view.order : 'speaking', view.event);
   const reason = String(room.reasonForRank || '');
   const reasonEditing = view.editing === 'reason';
-  return `<section class="review-stage" aria-labelledby="stage2"><h2 id="stage2" tabindex="-1">2. Comments</h2>
-    <div class="order-toggle" role="group" aria-label="Card order">
+  const reasonTitle = ranked ? 'Reason for rank' : 'Notes for the room';
+  // Comments only: no reason for rank either, unless one was written before the rules changed (it still copies).
+  const showReason = !layer.critiqueOnly || reason.trim() || reasonEditing;
+  const toggle = ranked ? `<div class="order-toggle" role="group" aria-label="Card order">
       <button class="b small${view.order === 'speaking' ? ' on' : ''}" type="button" data-vact="order" data-order="speaking" data-key="order-speaking" aria-pressed="${view.order === 'speaking'}">Speaking order</button>
-      <button class="b small${view.order === 'rank' ? ' on' : ''}" type="button" data-vact="order" data-order="rank" data-key="order-rank" aria-pressed="${view.order === 'rank'}">Rank order</button></div>
+      <button class="b small${view.order === 'rank' ? ' on' : ''}" type="button" data-vact="order" data-order="rank" data-key="order-rank" aria-pressed="${view.order === 'rank'}">Rank order</button></div>` : '';
+  return `<section class="review-stage" aria-labelledby="stage2"><h2 id="stage2" tabindex="-1">${hasRanksStage(room) ? '2. ' : ''}Comments</h2>
+    ${toggle}
     <ol class="cards">${list.map((c) => cardHtml(c, view.editing === c.id, view.ai && view.ai(c, view.editing === c.id))).join('')}</ol>
-    <div class="card reason-card"><div class="card-head"><span>Reason for rank</span>
+    ${showReason ? `<div class="card reason-card"><div class="card-head"><span>${reasonTitle}</span>
       <button class="b small quiet" type="button" data-vact="edit" data-id="reason" data-key="edit-reason" aria-expanded="${reasonEditing}">${reasonEditing ? 'Done' : 'Edit'}</button></div>
-      ${reasonEditing ? `<label class="sr-only" for="edit-reason-box">Reason for rank</label><textarea id="edit-reason-box" class="card-edit" data-vfield="reason" rows="4">${esc(reason)}</textarea>` : `<div class="card-text">${reason.trim() ? esc(reason) : '<span class="muted">No reason for rank yet.</span>'}</div>`}
-      ${reason.trim() ? `<button class="b${room.reasonCopiedAt ? '' : ' primary'}" type="button" data-vact="copy" data-what="reason" data-key="copy-reason">${room.reasonCopiedAt ? '✓ Copied' : 'Copy reason'}</button>` : ''}</div>
+      ${reasonEditing ? `<label class="sr-only" for="edit-reason-box">${reasonTitle}</label><textarea id="edit-reason-box" class="card-edit" data-vfield="reason" rows="4">${esc(reason)}</textarea>` : `<div class="card-text">${reason.trim() ? esc(reason) : `<span class="muted">No ${reasonTitle.toLowerCase()} yet.</span>`}</div>`}
+      ${reason.trim() ? `<button class="b${room.reasonCopiedAt ? '' : ' primary'}" type="button" data-vact="copy" data-what="reason" data-key="copy-reason">${room.reasonCopiedAt ? '✓ Copied' : ranked ? 'Copy reason' : 'Copy notes'}</button>` : ''}</div>` : ''}
   </section>`;
 }
 
 // The top of the screen: the status pill and the checklist in words.
+// One toolbar row (design review §2.10): the status, the checklist, then Copy all and Print / PDF. The ranks have
+// their own copy button in the ballot preview card.
 export function summaryHtml(room) {
   return `<div class="review-summary"><span class="pill${room.state === 'done' ? ' solid' : ''}" id="review-status">${esc(statusText(room))}</span>
     <ul class="checklist">${checklist(room).map((c) => done(c.ok, c.label)).join('')}</ul>
-    <div class="review-tools"><button class="b" type="button" data-vact="copyall" data-key="copyall">Copy all</button>
-      <button class="b" type="button" data-vact="print" data-key="print">Print / PDF</button></div></div>`;
+    <div class="review-tools" role="group" aria-label="Copy and print the whole ballot"><button class="b" type="button" data-vact="copyall" data-key="copyall">Copy all</button>
+      <button class="b" type="button" data-vact="print" data-key="print">Print / PDF</button></div></div>
+    ${hasRanksStage(room) ? '' : '<p class="muted review-note">These rules are comments only. There are no ranks to submit. Copy each comment below.</p>'}`;
 }
 
 // core/sheets.js copyBlocksHtml is not used here: its blocks have one generic Copy button and a read-only box, while
