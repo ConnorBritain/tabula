@@ -408,6 +408,7 @@ a.pk-info { display: grid; place-items: center; align-self: center; margin-right
 .preview-head .b { margin-left: auto; }
 .ballot-preview > .muted { margin: var(--s2) 0 var(--s3); font-size: var(--fs-2); }
 .preview-rank { font-family: var(--font-display); font-size: var(--fs-4); font-weight: var(--fw-4); }
+.preview-rank .preview-out { font-family: var(--font-sans); font-size: var(--fs-2); font-weight: var(--fw-2); }
 .review-note { margin: calc(-1 * var(--s2)) 0 var(--s4); font-size: var(--fs-2); }
 .review-summary .checklist { flex: 1 1 16rem; min-width: 0; }
 @media (max-width: 560px) {

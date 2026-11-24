@@ -10,7 +10,7 @@ import { createRoom, updateEntry } from './js/room.js';
 import { openBoard, withRating, withRanks } from './js/board.js';
 import { withRubric, layerOf } from './js/profile-layer.js';
 import { firstSentence, setNotes } from './js/comments.js';
-import { critique, cards } from './js/ballot.js';
+import { critique, cards, statusText } from './js/ballot.js';
 import { buttonValues, ratingHtml, rubricHtml, rubricTotalText, scoreClick, scoreKey, SHORT_SCALE_MAX } from './js/score-view.js';
 import { ratingScale, graceLineText } from './js/rank.js';
 import { cutLineText } from './js/profile-layer.js';
@@ -232,4 +232,16 @@ test('the critique check counts a "Make the … clearer" sentence as a thing to 
   assert.equal(toWork('Good pace. Make each character distinct.'), true, 'an order after another sentence');
   assert.deepEqual(critique('x', { ranked: false }).map((k) => k.id), ['strength', 'toWork']);
   assert.deepEqual(critique('I ranked you 2nd because of the close.', { ranked: false }).map((k) => k.ok), [false, false], 'a rank reason ticks nothing on a ballot with no ranks');
+});
+
+// Why: the phone Review shots (2026-11-24) showed "Ranks not sent" on a Rate round and a bare "–" for places past the
+// top N; a judge reads the first as a missing step that does not exist, and the second as a rank they forgot to give.
+test('Review words match the ballot: a Rate round says ratings, and top-N rows past N say "Not in top N"', () => {
+  const rate = mk('hi', 'rate-only', 2);
+  assert.equal(statusText(rate), 'Ratings not sent');
+  assert.equal(statusText(Object.assign({}, rate, { ranksCopiedAt: 5 })), 'Ratings sent, comments open');
+  assert.equal(statusText(ranked(mk('oo', 'nsda-district', 2))), 'Ranks not sent', 'a ranked round keeps its words');
+  const html = ranksStageHtml(ranked(mk('oo', 'top-three', 5)));
+  assert.equal((html.match(/class="muted preview-out">Not in top 3</g) || []).length, 2);
+  assert.doesNotMatch(html, /class="preview-rank">–</);
 });

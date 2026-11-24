@@ -10,7 +10,7 @@ import { findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf } from './timer.js';
 import { createCleanup } from './cleanup-view.js';
-import { rankStageLabel, ranksShown } from './profile-layer.js';
+import { rankStageLabel, ranksShown, layerOf, notRankedText } from './profile-layer.js';
 import { OVER_GRACE_PILL } from './rank.js';
 
 const done = (ok, label) => `<li class="${ok ? 'is-ok' : ''}"><span aria-hidden="true">${ok ? '✓' : '○'}</span> ${esc(label)}${ok ? '' : ' <span class="sr-only">(not yet)</span>'}</li>`;
@@ -27,8 +27,10 @@ export function ranksStageHtml(room) {
   const sent = Boolean(room.ranksCopiedAt);
   const word = ranked ? 'ranks' : 'ratings';
   const back = ranked ? 'Rank' : 'Rate';
+  // A top-N ballot: the rows past N say "Not in top N", as the copied text does, not a bare dash.
+  const notRanked = layerOf(room.profile).ranks === 'topN' ? notRankedText(room.profile) : '';
   const overCell = (r) => (r.overTime ? `<span class="pill err">${esc(OVER_GRACE_PILL)}</span>` : '<span class="sr-only">No</span>');
-  const table = `<table class="ranks-table"><thead><tr><th>Code</th>${ranked ? '<th>Rank</th>' : ''}${rated ? '<th>Rating</th>' : ''}${rubric ? '<th>Rubric</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td>${ranked ? `<td class="preview-rank">${esc(r.rank || '–')}</td>` : ''}${rated ? `<td>${esc(r.rating || '–')}</td>` : ''}${rubric ? `<td>${esc(rubricLine(r.rubric))}</td>` : ''}<td>${overCell(r)}</td></tr>`).join('')}</tbody></table>`;
+  const table = `<table class="ranks-table"><thead><tr><th>Code</th>${ranked ? '<th>Rank</th>' : ''}${rated ? '<th>Rating</th>' : ''}${rubric ? '<th>Rubric</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td>${ranked ? `<td class="preview-rank">${r.rank ? esc(r.rank) : notRanked ? `<span class="muted preview-out">${esc(notRanked)}</span>` : '–'}</td>` : ''}${rated ? `<td>${esc(r.rating || '–')}</td>` : ''}${rubric ? `<td>${esc(rubricLine(r.rubric))}</td>` : ''}<td>${overCell(r)}</td></tr>`).join('')}</tbody></table>`;
   const copyBtn = problems.length ? ''
     : `<button class="b${sent ? '' : ' primary'}" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${sent ? 'Copy ' + word + ' again' : 'Copy ' + word}</button>`;
   const fix = problems.length

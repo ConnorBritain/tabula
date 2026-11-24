@@ -121,8 +121,10 @@ export const hasRanksStage = (room) => !layerOf(room.profile).critiqueOnly;
 export function statusText(room) {
   if (room.state === 'done') return 'Copied';
   if (!hasRanksStage(room)) return 'Comments open';
-  if (room.ranksCopiedAt) return 'Ranks sent, comments open';
-  return 'Ranks not sent';
+  // A Rate round (ranks 'off') copies ratings, so its status says ratings (seen on the phone Review, 2026-11-24).
+  const word = ranksShown(room.profile) ? 'Ranks' : 'Ratings';
+  if (room.ranksCopiedAt) return word + ' sent, comments open';
+  return word + ' not sent';
 }
 
 // After a copy: the room with its copy marks and state. what: 'ranks' | 'reason' | an entry id.
