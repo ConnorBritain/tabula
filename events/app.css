@@ -380,3 +380,44 @@ a.pk-info { display: grid; place-items: center; align-self: center; margin-right
 .run-btns { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .row-pick:has(.row-runs) { flex-wrap: wrap; }
 .row-runs { order: 9; flex-basis: 100%; padding-left: calc(1.2em + var(--s2)); font-size: var(--fs-1); white-space: nowrap; }
+
+/* ---------- Design build 2026-11-24, "Ballot screens" session (EVENTS-DESIGN-REVIEW.md §2.8–§2.10). ----------
+   Number-button rows for short scales (DESIGN.md §4.6), the compact rubric, the rules as lines on the Rank board,
+   the comment line on Rank rows, and the Review ballot preview. Black, white and gray; the words carry the meaning. */
+.pick-row { display: inline-grid; grid-auto-flow: column; grid-auto-columns: minmax(36px, 44px); gap: var(--s1); }
+.pick { min-height: 36px; padding: 0; border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); font-variant-numeric: tabular-nums; cursor: pointer; }
+.pick:hover { border-color: var(--text-2); }
+.pick.on { background: var(--text); color: var(--canvas); border-color: var(--text); font-weight: var(--fw-4); }
+.pick:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.rubric .rub-row { display: grid; grid-template-columns: minmax(7rem, 10rem) auto; justify-content: start; align-items: center; gap: var(--s1) var(--s3); }
+.rubric .rub-row .rate-err { grid-column: 2; }
+.rub-step { display: inline-flex; gap: var(--s1); align-items: center; }
+.rate-row:has(.rubric) { grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); align-items: start; }
+.rate-row .rubric { grid-column: 2; grid-row: 1 / span 3; margin-top: 0; }
+.board-line { grid-column: 1 / -1; margin-top: var(--s1); padding-top: var(--s1); font-size: var(--fs-1); color: var(--text-2); }
+.board-line.cut-line { border-top: 1px solid var(--border-ctl); color: var(--text); font-weight: var(--fw-3); }
+.board-line.grace-line { border-top: 1px dashed var(--border-ctl); }
+.board-row.below-cut .board-rank { color: var(--text-3); font-weight: var(--fw-2); }
+.board-piece { font-size: var(--fs-2); color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-comment { justify-self: start; max-width: 100%; min-height: 24px; padding: 0; border: 0; background: none; color: var(--text-2); font: inherit; font-size: var(--fs-2); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.board-comment:hover { color: var(--text); text-decoration: underline; }
+.board-comment:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.ballot-preview { max-width: 560px; }
+.preview-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); }
+.preview-head h2 { margin: 0; }
+.preview-head .b { margin-left: auto; }
+.ballot-preview > .muted { margin: var(--s2) 0 var(--s3); font-size: var(--fs-2); }
+.preview-rank { font-family: var(--font-display); font-size: var(--fs-4); font-weight: var(--fw-4); }
+.preview-rank .preview-out { font-family: var(--font-sans); font-size: var(--fs-2); font-weight: var(--fw-2); }
+.review-note { margin: calc(-1 * var(--s2)) 0 var(--s4); font-size: var(--fs-2); }
+.review-summary .checklist { flex: 1 1 16rem; min-width: 0; }
+@media (max-width: 560px) {
+  .pick-row { display: grid; width: 100%; grid-auto-columns: minmax(0, 1fr); }
+  .pick { min-height: 44px; }
+  .rubric .rub-row { grid-template-columns: 1fr; }
+  .rubric .rub-row .rate-err { grid-column: 1; }
+  .rate-row:has(.rubric) { grid-template-columns: 1fr; }
+  .rate-row .rubric { grid-column: 1; grid-row: auto; }
+  .rate-row .board-rate { grid-column: 1; } /* the 820 px rule puts .board-rate in column 2, which a Rate row has not got */
+  .preview-head .b { margin-left: 0; }
+}

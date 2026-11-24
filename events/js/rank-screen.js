@@ -6,7 +6,7 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
-  ratingFix, ratingTies, RANK_RATING_ROW,
+  ratingFix, ratingTies, RANK_RATING_ROW, graceLineText,
 } from './rank.js';
 import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks } from './board.js';
 import { attachDrag } from './rank-drag.js';
@@ -14,14 +14,25 @@ import { entryOf, findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf, clockText } from './timer.js';
 import { totalUsedAt } from './prep.js';
-import { setReason } from './comments.js';
-import { layerOf, layerProblems, notRankedText } from './profile-layer.js';
-import { ratingHtml, rubricHtml, scoreClick, scoreInput, isScoreBox } from './score-view.js';
+import { setReason, ballotComment, firstSentence } from './comments.js';
+import { pieceLine } from './piece.js';
+import { layerOf, layerProblems, notRankedText, cutLineText } from './profile-layer.js';
+import { ratingHtml, rubricHtml, scoreClick, scoreInput, scoreKey, isScoreBox } from './score-view.js';
 import { overtimeNote } from './round-frame.js';
 
+// What a row shows of the judge's words: the piece (F1: "“Title” by Author") and the comment's first sentence
+// (comments.js firstSentence). A tap on the comment line opens the whole comment in a sheet.
+function rowWordsHtml(e) {
+  const piece = pieceLine(e);
+  const first = firstSentence(ballotComment(e));
+  return (piece ? `<span class="board-piece">${esc(piece)}</span>` : '')
+    + (first ? `<button class="board-comment" type="button" data-ract="note" data-id="${esc(e.id)}" data-key="note-${esc(e.id)}"><span class="sr-only">Read the comment for ${esc(e.code)}: </span>${esc(first)}</button>` : '');
+}
+
 // The board as HTML text. view: { tapMode, limit, now }.
-// Step S4 (profile layer): under ranks 'topN' the rows past N show "Not in top N" (the board still orders everyone);
-// a profile rubric adds its grid to each row; under a panel an over-grace row says to agree with the panel first.
+// Step S4 (profile layer): under ranks 'topN' the board still orders everyone and a labelled line falls under rank N
+// (the rows past it say "Not in top N" to a screen reader); a profile rubric adds its grid to each row; under a panel
+// an over-grace row says to agree with the panel first.
 export function boardHtml(room, view) {
   const ctx = boardCtx(room);
   const ranks = ranksOf(room), ratings = ratingsOf(room);
@@ -34,6 +45,8 @@ export function boardHtml(room, view) {
   const layer = layerOf(room.profile);
   const panel = overtimeNote(room);
   const cut = layer.ranks === 'topN' ? layer.topN : null;
+  const cutLine = cutLineText(room.profile, n);
+  const graceLine = graceLineText(ctx);
   const rows = order.map((id, i) => {
     const e = entryOf(room, id);
     const ot = overtimeRow(id, ctx);
@@ -47,16 +60,18 @@ export function boardHtml(room, view) {
       : `<button class="b small" type="button" data-ract="up" data-id="${id}" data-key="up-${id}" aria-label="Move ${esc(e.code)} up"${i === 0 ? ' disabled' : ''}>↑</button>
          <button class="b small" type="button" data-ract="down" data-id="${id}" data-key="down-${id}" aria-label="Move ${esc(e.code)} down"${i === n - 1 ? ' disabled' : ''}>↓</button>
          <span class="drag" data-drag="${id}" aria-hidden="true" title="Drag to move">⠿</span>`;
-    return `<li class="board-row" data-row="${id}" tabindex="-1" aria-label="${esc(e.code)}, rank ${esc(rank || 'none')}">
+    const below = cut && i >= cut;
+    return `<li class="board-row${below ? ' below-cut' : ''}" data-row="${id}" tabindex="-1" aria-label="${esc(e.code)}, ${below ? esc(notRankedText(room.profile)) + ', place ' + esc(rank || i + 1) : 'rank ' + esc(rank || 'none')}">
       <span class="board-rank" aria-hidden="true">${esc(rank || '–')}</span>
       <span class="board-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}
         <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ` <span class="pill err">${esc(ot.pill)}</span>` : ''}</span>
-        ${cut && i >= cut ? ` <span class="pill outline">${esc(notRankedText(room.profile))}</span>` : ''}
+        ${rowWordsHtml(e)}
         ${ot.note ? `<span class="board-note">${esc(ot.note)}</span>` : ''}${ot.pill && panel ? `<span class="board-note">${esc(panel)}</span>` : ''}
         ${conflict ? `<span class="board-note">${esc(RANK_RATING_ROW)}${fix != null ? ` <button class="b small" type="button" data-ract="fix" data-id="${id}" data-value="${esc(fix)}">Fix: ${esc(fix)}</button>` : ''}</span>` : ''}</span>
       <span class="board-moves">${main}</span>
       ${scale.kind !== 'none' ? `<span class="board-rate">${ratingHtml(e, ratings[id], scale, err)}</span>` : ''}
       ${rubricHtml(e, layer.rubric)}
+      ${i === 0 && graceLine ? `<span class="board-line grace-line">${esc(graceLine)}</span>` : ''}${cut && i === cut - 1 && cutLine ? `<span class="board-line cut-line">${esc(cutLine)}</span>` : ''}
     </li>`;
   }).join('');
   return `<ol class="board${view.tapMode ? ' tapping' : ''}" id="board" aria-label="Ranks, best first">${rows}</ol>`;
@@ -128,6 +143,7 @@ export function createRankScreen(env) {
     const r = room();
     const act = b.dataset.ract;
     if (act === 'up' || act === 'down') return move(id, act);
+    if (act === 'note') return showComment(id);
     if (act === 'tap') {
       const ranks = ranksOf(r);
       const ctx = boardCtx(r);
@@ -143,12 +159,22 @@ export function createRankScreen(env) {
     }
   }
 
+  // The whole comment of one row in a sheet (the row shows its first sentence). The room is where the judge edits it.
+  function showComment(id) {
+    const e = entryOf(room(), id);
+    if (!e) return;
+    const text = ballotComment(e).trim();
+    env.ui.ask({ title: 'Comment for ' + e.code + (e.name ? ' · ' + e.name : ''), body: text ? text.split(/\n+/) : ['No comment yet.'], buttons: [{ label: 'Close', value: true, kind: 'primary' }], cancelValue: true });
+  }
+
   // Typing a rating: saved on every change; the error shows when the box is left (not while the judge types).
   function onInput(ev) { const next = scoreInput(ev.target, room(), env.now()); if (next) save(next); }
   function onChange(ev) { if (isScoreBox(ev.target)) draw(); }
 
   // Alt+Up and Alt+Down move the row that has focus (the row or any control in it).
   function onKey(ev) {
+    const sk = scoreKey(ev, room(), env.now()); // arrows and digits on a row of number buttons (score-view.js)
+    if (sk) { ev.preventDefault(); if (sk.room !== room()) save(sk.room); draw(sk.focusKey); return; }
     if (!ev.altKey || ev.ctrlKey || ev.metaKey || (ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown')) return;
     const row = ev.target.closest('[data-row]');
     if (!row || tapMode) return;

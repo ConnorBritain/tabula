@@ -13,7 +13,7 @@ import { stages, mount, rankModel } from './js/room-workspace.js';
 import { boardHtml, problemsHtml } from './js/rank-screen.js';
 import { rateListHtml } from './js/rate-screen.js';
 import { rubricHtml } from './js/score-view.js';
-import { ranksStageHtml, cardHtml } from './js/review-screen.js';
+import { ranksStageHtml, cardHtml, summaryHtml } from './js/review-screen.js';
 import { frameLine, frameHtml, overtimeNote, panelOf, makePanel, PANEL_OVERTIME_NOTE } from './js/round-frame.js';
 import { markCrossEntered, clearCrossEntered, crossNote } from './js/cross-entry.js';
 import { cxOn, cxLimit, askerOf, setAsker, setSchool, sameSchoolWarning, startCx, stopCx, cxUsed, phases } from './js/cross-ex.js';
@@ -160,7 +160,11 @@ test('ranks off: the round opens the Rate screen, needs a rating for each entry,
   mount(env.el, env, r, 'rank')();
   mount(env.el, env, mk('hi', 'nsda-district', 3), 'rank')();
   assert.deepEqual(shown, ['rate', 'rank']);
-  assert.match(rateListHtml(r, { limit: 600, now: 1 }), /data-ract="plus"/);
+  // Design review 2026-11-24 (top 10 #5, bug 5): a 1 to 10 scale is short (DESIGN.md §4.6), so each speaker gets a
+  // row of 10 number buttons, not the − / + stepper this line pinned before.
+  const rateHtml = rateListHtml(r, { limit: 600, now: 1 });
+  assert.equal((rateHtml.match(/data-ract="pick"/g) || []).length, 30, '10 number buttons for each of the 3 speakers');
+  assert.doesNotMatch(rateHtml, /data-ract="plus"/);
 });
 
 // Why: a rubric ballot is scored per criterion (§2.4: a grid of steppers); a missing criterion must stop the copy,
@@ -181,7 +185,10 @@ test('rubric: steppers stay in range, every criterion is needed, and the copy ca
   assert.equal(rubricTotal(r.entries[1], rub), 18);
   assert.match(ranksBlock(r).text.split('\n')[1], /^A2\tContent 4\tOrganization 4\tDelivery 4\tLanguage 4\tOverall 2\tTotal 18 of 25\tOver time: No$/);
   const html = rubricHtml(r.entries[0], rub);
-  assert.equal((html.match(/data-rub="plus"/g) || []).length, 5);
+  // Design review 2026-11-24 (top 10 #5): each 1 to 5 criterion is a row of 5 number buttons, not a stepper (this
+  // line counted 5 "+" buttons before).
+  assert.equal((html.match(/data-rub="pick"/g) || []).length, 25);
+  assert.doesNotMatch(html, /data-rub="plus"/);
   assert.match(html, /Total 20 of 25/);
   assert.ok(printModel(r, DATA.events.get('dec'), 600).sections[1].head.some((h) => h.text === 'Rubric'));
 });
@@ -196,7 +203,10 @@ test('critiqueOnly: no Rank stage, no ranks to copy, and the round is done when 
   assert.deepEqual(layerProblems(r), []);
   assert.equal(statusText(r), 'Comments open');
   assert.deepEqual(checklist(r).map((c) => c.label), ['0 of 2 comments']);
-  assert.match(ranksStageHtml(r), /comments only/);
+  // Design review 2026-11-24 bug 6: the Ranks stage is gone for comments only (it used to show a "1. Ranks" section
+  // saying there were none); the summary at the top now says the rules are comments only.
+  assert.equal(ranksStageHtml(r), '');
+  assert.match(summaryHtml(r), /These rules are comments only/);
   assert.doesNotMatch(copyAllText(r, null), /\nRanks\n/);
   assert.match(rosterHtml(r, null), /A1/);
   for (const e of r.entries) r = updateEntry(r, e.id, (x) => Object.assign({}, x, { comment: 'Clear voice. Next time slow the ending.' }), 1);
