@@ -962,6 +962,88 @@ window.TABULA_EVENTS_DATA = {
     }
    ],
    "source": "NSDA Middle School Unified Manual, 2026-27 season. Summarized in our own words; no rule text copied."
+  },
+  {
+   "id": "pcc",
+   "version": 2,
+   "family": "f4",
+   "name": "Pro Con Challenge",
+   "short": "PCC",
+   "category": "publicAddress",
+   "performers": {
+    "min": 1,
+    "max": 1
+   },
+   "timing": {
+    "limit": 630,
+    "inRoomPrep": false,
+    "sharedClock": false
+   },
+   "runs": [
+    {
+     "side": "pro",
+     "label": "Pro"
+    },
+    {
+     "side": "con",
+     "label": "Con"
+    }
+   ],
+   "fields": [
+    "topic"
+   ],
+   "topic": {
+    "label": "Topic",
+    "hint": "The student picks it: the CX, LD or PF topic, or one bill from the Congress docket. Pro and Con use the same topic.",
+    "drawn": false
+   },
+   "material": "manuscript",
+   "checks": [],
+   "prompts": [
+    "Did the Pro speech make a clear case for the topic?",
+    "Did the Con speech make a clear case against it?",
+    "Were both sides argued with equal care?",
+    "Was the evidence clear and fair?",
+    "How was the delivery?"
+   ],
+   "tags": [
+    {
+     "id": "proCase",
+     "label": "Pro case",
+     "strength": "Your Pro speech made a clear case for the topic.",
+     "toWork": "Give the Pro speech one clear main reason, and back it up."
+    },
+    {
+     "id": "conCase",
+     "label": "Con case",
+     "strength": "Your Con speech made a clear case against the topic.",
+     "toWork": "Give the Con speech one clear main reason, and back it up."
+    },
+    {
+     "id": "balance",
+     "label": "Balance",
+     "strength": "You argued both sides with the same care.",
+     "toWork": "Give the weaker side as much work as the side you prefer."
+    },
+    {
+     "id": "evidence",
+     "label": "Evidence",
+     "strength": "Your facts and examples were clear and fair.",
+     "toWork": "Add stronger facts or examples, and say where they come from."
+    },
+    {
+     "id": "delivery",
+     "label": "Delivery",
+     "strength": "Your voice and pace were easy to listen to.",
+     "toWork": "Vary your voice and pace so key lines stand out."
+    }
+   ],
+   "notVerified": [
+    "Grace length: the rule names a grace period past the 10:30 limit but does not say how long it is. The rules profile holds the grace (docs/events/VENN.md §6 item 17).",
+    "Material: 'read from a script' comes from our own summary in docs/events/EVENTS.md §4, not a second read of the rule.",
+    "Whether Pro Con Challenge runs at Nationals 2027 (docs/events/CATALOG.md)."
+   ],
+   "source": "NSDA High School Unified Manual v2027.1.2, 2026-27 season, Pro Con Challenge rules 1 to 3, as checked in docs/events/VENN.md §6: one 10:30 limit covers both runs; no minimum time for a run; the student picks the topic. Summarized in our own words; no rule text copied."
   }
  ],
  "profiles": [

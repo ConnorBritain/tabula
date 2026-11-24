@@ -31,7 +31,7 @@ const STAGES = Object.freeze(['judge', 'rank', 'review']);
 // Step S4 (profile layer, EXPERIENCE.md §2.4): the round's frozen profile picks the stages and the Rank screen. A
 // critiqueOnly round has no Rank stage (judge, review). A ranks 'off' round draws its 'rank' stage with the Rate screen
 // (env.roomScreens.rate), so the address stays #/round/<id>/rank.
-const screenFor = (env, round, stage) => (stage === 'rank' && layerOf(round.profile).ranks === 'off' ? env.roomScreens.rate : env.roomScreens[stage]);
+export const roomScreenFor = (env, round, stage) => (!env.roomScreens ? null : stage === 'rank' && layerOf(round.profile).ranks === 'off' ? env.roomScreens.rate : env.roomScreens[stage]);
 // Each stage's key scope (js/keys.js names the room scope's shortcuts; rank and review have none yet).
 const SCOPE = Object.freeze({ judge: 'room', rank: 'rank', review: 'review' });
 
@@ -40,25 +40,33 @@ export const newRound = (def, profile, input) => createRoom(Object.assign({}, in
 
 export const stages = (round) => (round ? stagesOf(round.profile) : STAGES);
 
-// The screen that shows now (one round shows at a time), for keys().run.
-let showing = null;
-
-export function mount(el, env, round, stage) {
-  if (el !== env.el) throw new Error('room workspace: the shipped screens draw in env.el');
-  const screen = stages(round).includes(stage) && env.roomScreens ? screenFor(env, round, stage) : null;
-  if (!screen) throw new Error('room workspace: no screen for the stage ' + stage);
-  showing = screen;
-  screen.show(round.id);
-  return function unmount() {
-    if (showing === screen) showing = null;
-    if (screen.hide) screen.hide();
-  };
+// The contract's mount and keys over the room stages, for a workspace that picks its own screen for a stage
+// (pick(env, round, stage) -> a screen with show(id), hide(), run(action)). The stages come from the round's profile
+// (stages(round), step S4). This module uses the shipped screens; step S5's F4 workspace (runs-workspace.js) uses its
+// own judge screen. Each pair keeps the screen that shows now (one round shows at a time), for keys().run.
+export function stageMounter(name, pick) {
+  let showing = null;
+  function mount(el, env, round, stage) {
+    if (el !== env.el) throw new Error(name + ': the screens draw in env.el');
+    const screen = stages(round).includes(stage) ? pick(env, round, stage) : null;
+    if (!screen) throw new Error(name + ': no screen for the stage ' + stage);
+    showing = screen;
+    screen.show(round.id);
+    return function unmount() {
+      if (showing === screen) showing = null;
+      if (screen.hide) screen.hide();
+    };
+  }
+  const keys = (round, stage) => ({
+    scope: SCOPE[stage],
+    run: (action) => Boolean(showing && showing.run && showing.run(action)),
+  });
+  return { mount, keys };
 }
 
-export const keys = (round, stage) => ({
-  scope: SCOPE[stage],
-  run: (action) => Boolean(showing && showing.run && showing.run(action)),
-});
+const own = stageMounter('room workspace', roomScreenFor);
+export const mount = own.mount;
+export const keys = own.keys;
 
 export const validate = (round) => ranksProblems(round);
 

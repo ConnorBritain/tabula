@@ -11,8 +11,8 @@ import { entryName } from './piece.js';
 // The events turned on, in published.json order (setup-screen.js lists them in that order): F1a, public address
 // (LANDING.md §4.1 E4); F1b, interp (E9); F2, extemp with a drawn question (E10: usx, ix, com, mx); F3, impromptu with
 // prep in the room on a shared limit (E11: imp). The Custom event (E12) is not a file in events/defs/: the room carries
-// its own (CUSTOM_EVENT below).
-export const ENABLED_EVENTS = Object.freeze(['oo', 'inf', 'usx', 'ix', 'di', 'hi', 'duo', 'poi', 'com', 'pro', 'poe', 'exp', 'imp', 'sto', 'osw', 'dec', 'mx']);
+// its own (CUSTOM_EVENT below). Step S5: F4, two runs in one entry (pcc, a def v2 file; docs/events/EXPERIENCE.md §3).
+export const ENABLED_EVENTS = Object.freeze(['oo', 'inf', 'usx', 'ix', 'di', 'hi', 'duo', 'poi', 'com', 'pro', 'poe', 'exp', 'imp', 'sto', 'osw', 'dec', 'mx', 'pcc']);
 // The event id of a room the judge set up with the Custom event form (step E12, custom.js). Such a room keeps the
 // whole event it was set up with in room.customEvent, because no published file holds its limit.
 export const CUSTOM_EVENT = 'custom';
@@ -125,6 +125,9 @@ export function createRoom(opts) {
   };
   if (o.event.id === CUSTOM_EVENT) room.customEvent = clone(o.event);
   if (o.panel) room.panel = clone(o.panel);
+  // Step S5: a round of an event with runs (F4, PCC) keeps its family, so the read-time migration (migrate.js) can give
+  // each of its entries the run fields (runs, topic) with no event registry at hand.
+  if (Array.isArray(o.event.runs) && o.event.runs.length) room.family = o.event.family;
   return room;
 }
 

@@ -15,6 +15,7 @@ export const GROUPS = Object.freeze([
   { id: 'interp', title: 'Interp' },
   { id: 'publicAddress', title: 'Public address' },
   { id: 'limitedPrep', title: 'Limited prep' },
+  { id: 'twoRuns', title: 'Two runs' }, // family F4 (Pro Con Challenge, step S5)
   { id: 'custom', title: 'Custom' },
 ]);
 
@@ -26,6 +27,7 @@ export function chipsOf(def) {
   if (def.performers === 2) out.push('PAIR');
   if (familyOf(def) === 'f2') out.push('QUESTION');
   if (def.timing && def.timing.inRoomPrep) out.push('PREP IN ROOM');
+  if (familyOf(def) === 'f4') out.push('PRO THEN CON');
   out.push('TIMER ' + clockText(Number(def.timing && def.timing.limit) || 0));
   return out;
 }
@@ -33,7 +35,7 @@ export function chipsOf(def) {
 // Every row the picker can show, in published order, then the Custom event. data: { events, order }.
 export function pickerRows(data) {
   const rows = (data.order || []).filter((id) => ENABLED_EVENTS.includes(id)).map((id) => data.events.get(id)).filter(Boolean)
-    .map((d) => ({ id: d.id, name: d.name, short: d.short, line: eventLine(d.id), chips: chipsOf(d), group: d.category }));
+    .map((d) => ({ id: d.id, name: d.name, short: d.short, line: eventLine(d.id), chips: chipsOf(d), group: familyOf(d) === 'f4' ? 'twoRuns' : d.category }));
   rows.push({ id: CUSTOM_EVENT, name: 'Custom event', short: 'Custom', line: eventLine(CUSTOM_EVENT), chips: chipsOf(null), group: 'custom' });
   return rows;
 }

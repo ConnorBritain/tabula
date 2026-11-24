@@ -7,6 +7,7 @@
 //   - only a missing field gets its default;
 //   - running it twice gives the same result as running it once (idempotent).
 // app.js reads every room and the settings through these functions (env.rooms, the Rooms list, restore).
+import { runEntryDefaults } from './runs.js';
 
 // The defaults for a round (room families): a tournament round, a prelim (§8.2).
 export const ROUND_DEFAULTS = Object.freeze({ mode: 'tournament', level: 'prelim' });
@@ -20,6 +21,8 @@ export const SETTINGS_DEFAULTS = Object.freeze({ mode: 'judge', showModeMenu: fa
 export const DAY_DEFAULTS = Object.freeze({ tournament: '', checkInAt: null, standby: false });
 export const CARD_DEFAULTS = Object.freeze({ role: 'judge', status: 'notStarted', tournament: '', flight: '', level: 'prelim', roomLabel: '',
   startsAt: null, ranksDueAt: null, submittedAt: null, roundId: null, cancelledAt: null });
+// Step S5 (§8.2): each entry of an F4 round (round.family 'f4', set by room.js createRoom) gets the run fields, with
+// runs.js runEntryDefaults (no runs yet, no topic; a fresh list each time). Entries of other rounds get nothing new.
 
 const isRecord = (x) => Boolean(x) && typeof x === 'object' && !Array.isArray(x);
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
@@ -33,7 +36,16 @@ function fill(rec, defaults) {
 
 // One round. Something that is not a record (null, a string) is given back as it is: the readers already leave such
 // a broken record out (rooms.js groupRoomsByDay), and the migration must not hide or invent one.
-export const migrateRoom = (room) => (isRecord(room) ? fill(room, ROUND_DEFAULTS) : room);
+// family -> the entry defaults of that family's rounds (a function, so each entry gets its own fresh values). A round
+// stores its family only when its family needs entry fields (room.js createRoom); older rounds have none and get none.
+const ENTRY_DEFAULTS = Object.freeze({ f4: runEntryDefaults });
+export function migrateRoom(room) {
+  if (!isRecord(room)) return room;
+  const out = fill(room, ROUND_DEFAULTS);
+  const defaults = Object.prototype.hasOwnProperty.call(ENTRY_DEFAULTS, out.family) ? ENTRY_DEFAULTS[out.family] : null;
+  if (defaults && Array.isArray(out.entries)) out.entries = out.entries.map((e) => (isRecord(e) ? fill(e, defaults()) : e));
+  return out;
+}
 
 // The saved list of rounds. A value that is not a list (missing, or damaged storage) reads as no rounds.
 export const migrateRooms = (rooms) => (Array.isArray(rooms) ? rooms.map(migrateRoom) : []);

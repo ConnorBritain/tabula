@@ -1,0 +1,51 @@
+// Speech Events: checks where steps S3, S4 and S5 meet after the parallel sprint merge. Each step had its own tests;
+// these cover the seams between them. Run with: node --test
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { loadEventData } from './js/data.js';
+import { pickerRows, pickerSections } from './js/picker.js';
+import { eventLine } from './js/guide.js';
+import * as runsWs from './js/runs-workspace.js';
+import * as roomWs from './js/room-workspace.js';
+
+const read = (p) => readFileSync(new URL('./' + p, import.meta.url), 'utf8');
+const DATA = await loadEventData(async (p) => JSON.parse(read(p)));
+
+// Why: S5 added Pro Con Challenge after S3 built the picker; if PCC has no group or line, a judge never finds the event on the picker.
+test('the picker lists Pro Con Challenge under Two runs, with a plain line and a Pro then Con chip', () => {
+  const pcc = pickerRows(DATA).find((r) => r.id === 'pcc');
+  assert.ok(pcc, 'PCC is a picker row');
+  assert.equal(pcc.group, 'twoRuns');
+  assert.ok(eventLine('pcc').length > 20);
+  assert.ok(pcc.chips.includes('PRO THEN CON'));
+  assert.ok(pcc.chips.includes('TIMER 10:30'));
+  const group = pickerSections(pickerRows(DATA), [], '').find((s) => s.id === 'twoRuns');
+  assert.deepEqual(group.rows.map((r) => r.id), ['pcc']);
+});
+
+const screen = (name) => ({ name, shown: null, show(id) { this.shown = id; }, hide() {}, run: () => true });
+const fakeEnv = () => {
+  const el = {};
+  return { el, roomScreens: { judge: screen('judge'), rank: screen('rank'), rate: screen('rate'), review: screen('review') }, runsScreens: { judge: screen('runs-judge') } };
+};
+
+// Why: S4 made a ranks-off profile draw the Rate screen and S5 made its own workspace; if the F4 workspace ignores the profile, a PCC round under a rate-only ballot asks the judge for ranks the tournament does not want.
+test('a PCC round follows the profile layer: ranks off draws the Rate screen, the judge stage stays the runs screen', () => {
+  const env = fakeEnv();
+  const round = { id: 'r1', profile: { ranks: 'off' } };
+  runsWs.mount(env.el, env, round, 'rank');
+  assert.equal(env.roomScreens.rate.shown, 'r1');
+  assert.equal(env.roomScreens.rank.shown, null);
+  runsWs.mount(env.el, env, round, 'judge');
+  assert.equal(env.runsScreens.judge.shown, 'r1');
+});
+
+// Why: S4 drops the Rank stage for a comments-only profile; if the shared mounter still opened it, a judge could reach a rank board the ballot does not have.
+test('both room-family workspaces refuse a stage the round profile does not have', () => {
+  const env = fakeEnv();
+  const round = { id: 'r2', profile: { critiqueOnly: true } };
+  assert.ok(!roomWs.stages(round).includes('rank'));
+  assert.throws(() => roomWs.mount(env.el, env, round, 'rank'));
+  assert.throws(() => runsWs.mount(env.el, env, round, 'rank'));
+});

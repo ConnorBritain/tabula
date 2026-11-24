@@ -27,6 +27,7 @@ export const EVENT_LINES = Object.freeze({
   sto: 'A student tells a published story from memory.',
   osw: 'A student performs spoken word poetry they wrote, from memory.',
   dec: 'A student gives, from memory, a speech that another person gave before.',
+  pcc: 'A student picks a topic and argues both sides: first Pro, then Con, on one clock.',
   [CUSTOM_EVENT]: 'An event you set up yourself. You set the time limit and the grace.',
 });
 export const eventLine = (id) => EVENT_LINES[id] || '';

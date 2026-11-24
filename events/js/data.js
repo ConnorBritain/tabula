@@ -10,8 +10,10 @@ import { CUSTOM_EVENT } from './room.js';
 // are. A Custom event is 'custom'; a file this rule does not know (or no file) is null.
 //   limitedPrep with prep in the room (IMP) -> 'f3'    other limitedPrep (extemp, COM, MX) -> 'f2'
 //   publicAddress or interp -> 'f1'                    the Custom event -> 'custom'
+// Step S5 (§2.1 step 2, §8.5): a def v2 file names its family itself (PCC: 'f4'); that name wins.
 export function familyOf(d) {
   if (!d) return null;
+  if (typeof d.family === 'string' && d.family) return d.family;
   if (d.id === CUSTOM_EVENT) return 'custom';
   if (d.category === 'limitedPrep') return d.timing && d.timing.inRoomPrep ? 'f3' : 'f2';
   if (d.category === 'publicAddress' || d.category === 'interp') return 'f1';
@@ -31,6 +33,8 @@ export function profileChoices(data) {
 }
 
 // readJson(path): a promise of the parsed file at a path under events/ ('published.json', 'defs/oo.v1.json').
+// Step S5: files added after v1 sit in defs/v2/ and are listed as 'v2/<file>' (so the v1 schema test, which reads
+// defs/ only, stays as it is). They load the same way: 'defs/' + 'v2/pcc.v2.json'.
 // Returns { events, profiles, order }: two registries (get, resolve, keys) and the event ids in published.json's order
 // (the order the event picker shows). A manifest with no events or no profiles, or a file that is listed but missing
 // or broken, rejects the whole load, so the app never runs with half its rules.

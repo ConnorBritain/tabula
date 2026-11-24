@@ -9,6 +9,7 @@
 // any page file, so until the owner decides on that test, the modules are imported here and handed out by path.
 // loadWorkspace already returns a promise, so the change to a dynamic import stays inside this file.
 import * as roomWorkspace from './room-workspace.js';
+import * as runsWorkspace from './runs-workspace.js';
 import { familyOf } from './data.js';
 import { roomEvent } from './room.js';
 
@@ -18,9 +19,10 @@ export const WORKSPACES = Object.freeze({
   f2: './room-workspace.js',
   f3: './room-workspace.js',
   custom: './room-workspace.js',
+  f4: './runs-workspace.js', // step S5: two runs in one entry (PCC)
 });
 
-const MODULES = Object.freeze({ './room-workspace.js': roomWorkspace });
+const MODULES = Object.freeze({ './room-workspace.js': roomWorkspace, './runs-workspace.js': runsWorkspace });
 
 // A promise of the workspace module for a family. A family with no workspace rejects.
 export async function loadWorkspace(family) {
