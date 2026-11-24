@@ -111,21 +111,24 @@ export function setReasonReview(room, text, now) {
   return r;
 }
 
+// The lines above an entry's comment on "Copy all" and the print sheet: the drawn question (step E10), and for PCC
+// (step S5) the student's topic and the Pro and Con times. [] when there are none.
+const leadLines = (c) => [c.question && 'Question: ' + c.question, c.topic && 'Topic: ' + c.topic, c.runs && 'Runs: ' + c.runs].filter(Boolean);
+// The same lines as one block for the print sheet, then a blank line; '' when there are none.
+const entryLead = (c) => {
+  const lines = leadLines(c);
+  return lines.length ? lines.join('\n') + '\n\n' : '';
+};
+
 // "Copy all": one block for paper or email: the ranks, then each comment, then the reason for rank.
 export function copyAllText(room, event) {
   const head = [event ? event.name : 'Custom event', room.round, room.tournament].filter(Boolean).join(' · ');
   const parts = [head, '', 'Ranks', ranksBlock(room).text];
-  for (const c of cards(room, 'speaking')) parts.push('', c.code + (c.rank ? ' (rank ' + c.rank + ')' : ''), ...(c.question ? ['Question: ' + c.question] : []), c.comment || '(no comment)');
+  for (const c of cards(room, 'speaking', event)) parts.push('', c.code + (c.rank ? ' (rank ' + c.rank + ')' : ''), ...leadLines(c), c.comment || '(no comment)');
   if (String(room.reasonForRank || '').trim()) parts.push('', 'Reason for rank', room.reasonForRank.trim());
   return parts.join('\n');
 }
 
-// The lines above an entry's comment on the print sheet: the drawn question (step E10), and for PCC (step S5) the
-// student's topic and the Pro and Con times. Each on its own line, then a blank line; '' when there are none.
-const entryLead = (c) => {
-  const lines = [c.question && 'Question: ' + c.question, c.topic && 'Topic: ' + c.topic, c.runs && 'Runs: ' + c.runs].filter(Boolean);
-  return lines.length ? lines.join('\n') + '\n\n' : '';
-};
 
 // The print sheet model for core/sheets.js printSheetHtml: facts, the ranks table, one text section per entry, and
 // the reason for rank. The private note and rule-check flags are never on it.
