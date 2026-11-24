@@ -12,8 +12,9 @@ import { withRubric, layerOf } from './js/profile-layer.js';
 import { firstSentence, setNotes } from './js/comments.js';
 import { critique, cards } from './js/ballot.js';
 import { buttonValues, ratingHtml, rubricHtml, rubricTotalText, scoreClick, scoreKey, SHORT_SCALE_MAX } from './js/score-view.js';
-import { ratingScale } from './js/rank.js';
-import { boardHtml, cutLineText, graceLineText } from './js/rank-screen.js';
+import { ratingScale, graceLineText } from './js/rank.js';
+import { cutLineText } from './js/profile-layer.js';
+import { boardHtml } from './js/rank-screen.js';
 import { boardCtx } from './js/board.js';
 import { ranksStageHtml, commentsStageHtml, cardHtml, summaryHtml } from './js/review-screen.js';
 
@@ -134,7 +135,8 @@ test('top N: one labelled cut line under rank N, no per-row pill, and the rows b
   assert.match(rows[2], /cut-line">Top 3 get a rank\. The rest are not ranked on the ballot\.</, 'the line sits in the rank 3 row');
   assert.doesNotMatch(html, /class="pill outline">Not in top/, 'the per-row pill is gone');
   assert.match(rows[3], /class="board-row below-cut"[^>]*aria-label="A4, Not in top 3, place 4"/);
-  assert.equal(cutLineText(ranked(mk('oo', 'top-three', 3)), 3), '', 'no line when everyone is in the top N');
+  assert.equal(cutLineText(prof('top-three'), 3), '', 'no line when everyone is in the top N');
+  assert.equal(cutLineText(prof('nsda-district'), 6), '', 'no line on a rank-all board');
 });
 
 // Why: the noFirst rule used to show only after a refused move (§2.8); the judge must see "Rank 1 needs a speaker
@@ -207,11 +209,11 @@ test('comments only: no Ranks stage, no Rank order toggle, no "Says why this ran
   assert.doesNotMatch(html, /Reason for rank/, 'no reason for rank on a comments-only ballot');
   assert.deepEqual(cards(r, 'rank').map((c) => c.code), ['A1', 'A2'], 'speaking order');
   assert.doesNotMatch(cardHtml(cards(r, 'speaking')[0], false), /Says why this rank/);
-  // A Rate ballot (ranks off) has no ranks either: no toggle, no rank check, and its room note says so.
+  // A Rate ballot (ranks off) has no ranks either: no toggle and no rank check, but it keeps its reason card.
   const rate = mk('hi', 'rate-only', 2);
   const rateHtml = commentsStageHtml(rate, { order: 'speaking', editing: null });
   assert.doesNotMatch(rateHtml, /Rank order|Says why this rank/);
-  assert.match(rateHtml, /<span>Notes for the room<\/span>/);
+  assert.match(rateHtml, /<span>Reason for rank<\/span>/);
   // A ranked ballot keeps all three.
   const rk = ranked(mk('oo', 'nsda-district', 2));
   assert.match(commentsStageHtml(rk, { order: 'speaking', editing: null }), /Rank order[\s\S]*Says why this rank[\s\S]*Reason for rank/);
@@ -229,4 +231,5 @@ test('the critique check counts a "Make the … clearer" sentence as a thing to 
   assert.equal(toWork('You make the room laugh.'), false, '"make" inside praise is not an order');
   assert.equal(toWork('Good pace. Make each character distinct.'), true, 'an order after another sentence');
   assert.deepEqual(critique('x', { ranked: false }).map((k) => k.id), ['strength', 'toWork']);
+  assert.deepEqual(critique('I ranked you 2nd because of the close.', { ranked: false }).map((k) => k.ok), [false, false], 'a rank reason ticks nothing on a ballot with no ranks');
 });

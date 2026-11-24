@@ -6,7 +6,7 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
-  ratingFix, ratingTies, RANK_RATING_ROW, overtimeEffect,
+  ratingFix, ratingTies, RANK_RATING_ROW, graceLineText,
 } from './rank.js';
 import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks } from './board.js';
 import { attachDrag } from './rank-drag.js';
@@ -16,21 +16,10 @@ import { limitOf, clockText } from './timer.js';
 import { totalUsedAt } from './prep.js';
 import { setReason, ballotComment, firstSentence } from './comments.js';
 import { pieceLine } from './piece.js';
-import { layerOf, layerProblems, notRankedText } from './profile-layer.js';
+import { layerOf, layerProblems, notRankedText, cutLineText } from './profile-layer.js';
 import { ratingHtml, rubricHtml, scoreClick, scoreInput, scoreKey, isScoreBox } from './score-view.js';
 import { overtimeNote } from './round-frame.js';
 
-// The rules as places on the board (design review 2026-11-24 §2.8, top 10 #6): the line under rank N on a top-N
-// board, and the line under rank 1 while a speaker is over grace under the noFirst rule. Each is '' when it does not
-// apply. ctx: board.js boardCtx.
-export function cutLineText(room, n) {
-  const l = layerOf(room.profile);
-  return l.ranks === 'topN' && n > l.topN ? 'Top ' + l.topN + ' get a rank. The rest are not ranked on the ballot.' : '';
-}
-export function graceLineText(ctx) {
-  const over = ctx && ctx.overGrace ? ctx.ids.some((id) => ctx.overGrace[id]) : false;
-  return over && overtimeEffect(ctx.profile) === 'noFirst' ? 'Rank 1 needs a speaker inside grace.' : '';
-}
 // What a row shows of the judge's words: the piece (F1: "“Title” by Author") and the comment's first sentence
 // (comments.js firstSentence). A tap on the comment line opens the whole comment in a sheet.
 function rowWordsHtml(e) {
@@ -56,7 +45,7 @@ export function boardHtml(room, view) {
   const layer = layerOf(room.profile);
   const panel = overtimeNote(room);
   const cut = layer.ranks === 'topN' ? layer.topN : null;
-  const cutLine = cutLineText(room, n);
+  const cutLine = cutLineText(room.profile, n);
   const graceLine = graceLineText(ctx);
   const rows = order.map((id, i) => {
     const e = entryOf(room, id);

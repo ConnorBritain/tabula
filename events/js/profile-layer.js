@@ -81,6 +81,12 @@ export function shownRank(rank, profile) {
 }
 // The words for an entry with no rank on a top-N ballot.
 export const notRankedText = (profile) => 'Not in top ' + layerOf(profile).topN;
+// The labelled line under rank N on a top-N board of n entries (design review 2026-11-24 §2.8); '' when every entry is
+// inside the top N or the profile is not top N.
+export function cutLineText(profile, n) {
+  const l = layerOf(profile);
+  return l.ranks === 'topN' && n > l.topN ? 'Top ' + l.topN + ' get a rank. The rest are not ranked on the ballot.' : '';
+}
 
 // ---------- rubric ----------
 

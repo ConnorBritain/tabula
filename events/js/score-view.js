@@ -93,6 +93,9 @@ export function rubricHtml(e, rubric) {
     <p class="rub-total" data-total="${esc(e.id)}">${esc(rubricTotalText(e, rubric))}</p></div>`;
 }
 
+// Is v the number already stored? A number tapped again clears it, as a rating word does.
+const sameNumber = (stored, v) => stored != null && String(stored).trim() !== '' && Number(stored) === Number(v);
+
 // A click on a rubric stepper or number button. Returns { room, focusKey } or null when the click was not on one.
 function rubricClick(b, room, rubric, now) {
   const act = b && b.dataset && b.dataset.rub;
@@ -101,10 +104,8 @@ function rubricClick(b, room, rubric, now) {
   const e = entryOf(room, b.dataset.id);
   if (!crit || !e) return null;
   if (act === 'pick') {
-    // A number clicked again clears it, as a rating word does.
     const v = Number(b.dataset.value);
-    const same = String(rubricScores(e)[crit.id] ?? '') !== '' && Number(rubricScores(e)[crit.id]) === v;
-    return { room: withRubric(room, e.id, crit.id, same ? '' : v, now), focusKey: 'rpick-' + e.id + '-' + crit.id };
+    return { room: withRubric(room, e.id, crit.id, sameNumber(rubricScores(e)[crit.id], v) ? '' : v, now), focusKey: 'rpick-' + e.id + '-' + crit.id };
   }
   const next = stepRubric(rubricScores(e)[crit.id], act === 'minus' ? -1 : 1, crit);
   return { room: withRubric(room, e.id, crit.id, next, now), focusKey: 'r' + act + '-' + e.id + '-' + crit.id };
@@ -122,8 +123,7 @@ export function scoreClick(target, room, now) {
   if (!e) return null;
   if (act === 'word') return { room: withRating(room, e.id, e.rating === b.dataset.value ? '' : b.dataset.value, now), focusKey: '' };
   if (act === 'pick') {
-    const same = e.rating != null && String(e.rating).trim() !== '' && Number(e.rating) === Number(b.dataset.value);
-    return { room: withRating(room, e.id, same ? '' : b.dataset.value, now), focusKey: 'pick-' + e.id };
+    return { room: withRating(room, e.id, sameNumber(e.rating, b.dataset.value) ? '' : b.dataset.value, now), focusKey: 'pick-' + e.id };
   }
   if (act === 'minus' || act === 'plus') {
     // At the end of the range the button turns off; the screen then puts the focus on the row.

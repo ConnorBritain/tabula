@@ -10,7 +10,7 @@ import { findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf } from './timer.js';
 import { createCleanup } from './cleanup-view.js';
-import { rankStageLabel, layerOf, ranksShown } from './profile-layer.js';
+import { rankStageLabel, ranksShown } from './profile-layer.js';
 import { OVER_GRACE_PILL } from './rank.js';
 
 const done = (ok, label) => `<li class="${ok ? 'is-ok' : ''}"><span aria-hidden="true">${ok ? '✓' : '○'}</span> ${esc(label)}${ok ? '' : ' <span class="sr-only">(not yet)</span>'}</li>`;
@@ -64,14 +64,13 @@ export function cardHtml(c, editing, ai) {
 // event (optional: the room's event file, for the PCC run labels) }.
 export function commentsStageHtml(room, view) {
   const ranked = ranksShown(room.profile);
-  const layer = layerOf(room.profile);
   // No ranks (ranks 'off' or comments only, bug 6): no rank order to sort by, so the cards keep speaking order.
   const list = cards(room, ranked ? view.order : 'speaking', view.event);
   const reason = String(room.reasonForRank || '');
   const reasonEditing = view.editing === 'reason';
-  const reasonTitle = ranked ? 'Reason for rank' : 'Notes for the room';
+  const reasonTitle = 'Reason for rank';
   // Comments only: no reason for rank either, unless one was written before the rules changed (it still copies).
-  const showReason = !layer.critiqueOnly || reason.trim() || reasonEditing;
+  const showReason = hasRanksStage(room) || reason.trim() || reasonEditing;
   const toggle = ranked ? `<div class="order-toggle" role="group" aria-label="Card order">
       <button class="b small${view.order === 'speaking' ? ' on' : ''}" type="button" data-vact="order" data-order="speaking" data-key="order-speaking" aria-pressed="${view.order === 'speaking'}">Speaking order</button>
       <button class="b small${view.order === 'rank' ? ' on' : ''}" type="button" data-vact="order" data-order="rank" data-key="order-rank" aria-pressed="${view.order === 'rank'}">Rank order</button></div>` : '';
@@ -81,7 +80,7 @@ export function commentsStageHtml(room, view) {
     ${showReason ? `<div class="card reason-card"><div class="card-head"><span>${reasonTitle}</span>
       <button class="b small quiet" type="button" data-vact="edit" data-id="reason" data-key="edit-reason" aria-expanded="${reasonEditing}">${reasonEditing ? 'Done' : 'Edit'}</button></div>
       ${reasonEditing ? `<label class="sr-only" for="edit-reason-box">${reasonTitle}</label><textarea id="edit-reason-box" class="card-edit" data-vfield="reason" rows="4">${esc(reason)}</textarea>` : `<div class="card-text">${reason.trim() ? esc(reason) : `<span class="muted">No ${reasonTitle.toLowerCase()} yet.</span>`}</div>`}
-      ${reason.trim() ? `<button class="b${room.reasonCopiedAt ? '' : ' primary'}" type="button" data-vact="copy" data-what="reason" data-key="copy-reason">${room.reasonCopiedAt ? '✓ Copied' : ranked ? 'Copy reason' : 'Copy notes'}</button>` : ''}</div>` : ''}
+      ${reason.trim() ? `<button class="b${room.reasonCopiedAt ? '' : ' primary'}" type="button" data-vact="copy" data-what="reason" data-key="copy-reason">${room.reasonCopiedAt ? '✓ Copied' : 'Copy reason'}</button>` : ''}</div>` : ''}
   </section>`;
 }
 
