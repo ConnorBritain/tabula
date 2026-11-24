@@ -1,0 +1,7 @@
+# No npm packages (vendor/ is pinned by hash, vendor/README.md); this keeps the CI actions up to date.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

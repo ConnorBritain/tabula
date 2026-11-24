@@ -1,0 +1,20 @@
+# Gates on every pull request and on main: the tests and the publish check (.claude/gates.json).
+# No dependencies to install: the app has no package.json, and its libraries are self-hosted in vendor/.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test
+      - run: node check-publish.mjs
