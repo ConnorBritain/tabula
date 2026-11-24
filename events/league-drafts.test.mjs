@@ -1,6 +1,7 @@
 // Shape tests for the draft league profiles (phase P3, docs/events/LEAGUES.md §1). Run with: node --test
-// The drafts live in events/profiles/v2/ and are not published until the profile layer (events/js/profile-layer.js)
-// is on main. These tests read only the JSON files and LEAGUES.md, so they run with or without that module. The
+// The drafts live in events/profiles/drafts/ and are not published yet. They moved out of events/profiles/v2/ at the
+// sprint merge, because events/profile-layer.test.mjs requires every v2/ file to be on the published list, and a
+// published file can never be removed. Publishing a pack = moving its file to v2/ and listing it in published.json. These tests read only the JSON files and LEAGUES.md, so they run with or without that module. The
 // generic v2 schema belongs to events/profile-layer.test.mjs; this file owns league coverage, the doc match and sources.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,9 +16,9 @@ const ROWS = LEAGUES_MD.split('\n')
   .filter((l) => /^\| `[a-z-]+` \|/.test(l))
   .map((l) => l.split('|').slice(1, -1).map((c) => c.trim()))
   .map((c) => ({ id: c[0].replace(/`/g, ''), ranks: c[1], grace: Number(c[4]), effect: ((c[5] || '').match(/`([A-Za-z]+)`/) || [])[1] }));
-// Every v2 file except the generic Tabula presets (their source starts "Tabula preset") is a league draft.
-const DRAFTS = readdirSync(at('profiles/v2/')).filter((f) => f.endsWith('.json'))
-  .map((f) => ({ f: 'v2/' + f, d: readJson('profiles/v2/' + f) }))
+// Every file in drafts/ is a league draft (the filter below still leaves out a generic Tabula preset).
+const DRAFTS = readdirSync(at('profiles/drafts/')).filter((f) => f.endsWith('.json'))
+  .map((f) => ({ f: 'drafts/' + f, d: readJson('profiles/drafts/' + f) }))
   .filter(({ d }) => !/^Tabula preset/.test(d.source || ''))
   .map((x) => ({ ...x, row: ROWS.find((r) => r.id === x.d.id) }));
 
@@ -35,7 +36,7 @@ test('every P3 league has a draft profile listed in LEAGUES.md', () => {
     assert.ok(ids.some((id) => id === league || id.startsWith(league + '-')), league + ' has no row in LEAGUES.md §1');
   }
   assert.equal(new Set(ids).size, ids.length, 'a profile id is listed twice');
-  for (const r of ROWS) assert.ok(DRAFTS.some(({ d }) => d.id === r.id), `LEAGUES.md lists ${r.id} but profiles/v2/ has no file for it`);
+  for (const r of ROWS) assert.ok(DRAFTS.some(({ d }) => d.id === r.id), `LEAGUES.md lists ${r.id} but profiles/drafts/ has no file for it`);
   for (const { f, row } of DRAFTS) assert.ok(row, `${f} has no row in LEAGUES.md §1, so nobody reviewed it`);
 });
 
@@ -44,7 +45,7 @@ test('every draft league profile holds only v1 and §8.5 fields, with valid valu
   for (const { f, d } of DRAFTS) {
     for (const k of Object.keys(d)) assert.ok(V1_KEYS.includes(k) || LAYER_KEYS.includes(k), `${f}: unknown field ${k}`);
     for (const k of V1_KEYS) assert.ok(k in d, `${f}: missing ${k}`);
-    assert.equal(f, `v2/${d.id}.v${d.version}.json`, f + ': file name must match id and version');
+    assert.equal(f, `drafts/${d.id}.v${d.version}.json`, f + ': file name must match id and version');
     assert.ok(isInt(d.version) && d.version >= 1 && nonEmpty(d.name), f);
     assert.ok(['all', 'topN', 'off'].includes(d.ranks), f + ' ranks');
     if (d.ranks === 'topN') assert.ok(isInt(d.topN) && d.topN >= 1, f + ' topN');

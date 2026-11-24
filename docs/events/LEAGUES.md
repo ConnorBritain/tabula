@@ -2,7 +2,7 @@
 
 Checked 2026-11-23 against each league's own current document. Every fact names its source key (list at the end). A fact we could not confirm in a primary source says **not verified**. All rules are summarized in our own words; no rule text is copied.
 
-Draft profile files: `events/profiles/v2/<id>.v1.json`. They are **not** in `events/published.json` yet. The coordinator publishes them after S4 (the profile layer) merges. Event-time changes (for example UIL Prose 7:00) need def v2 files; those are not in this draft (see §15).
+Draft profile files: `events/profiles/drafts/<id>.v1.json`. They are **not** in `events/published.json` yet. S4 (the profile layer) is merged; publishing a pack is an owner decision, because a published file can never be removed. To publish one: move it to `events/profiles/v2/` and list it in `published.json` as `v2/<file>`. Event-time changes (for example UIL Prose 7:00) need def v2 files; those are not in this draft (see §15).
 
 ## 1. How the profiles hold each league
 
