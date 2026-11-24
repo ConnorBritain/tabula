@@ -9,7 +9,7 @@ import { escapeHtml as esc } from '../../core/sheets.js';
 import { parseRoom } from '../js/parse.js';
 import { newId } from '../js/room.js';
 import { congressIO, findChamber, chamberSessions, withChamber, withSession } from './store.js';
-import { CONGRESS_PROFILES, DEFAULT_CONGRESS_PROFILE, SCALE_CHOICES, congressProfile, scaleId, scaleText, unverifiedWords } from './profiles.js';
+import { CONGRESS_PROFILES, DEFAULT_CONGRESS_PROFILE, SCALE_CHOICES, congressProfile, scaleId, scaleText, ranksOnly, unverifiedWords } from './profiles.js';
 import { createChamber, newSession, setStatus, setupChecks, docketLines, houseWord } from './chamber.js';
 import { sessionStatus } from './review.js';
 
@@ -51,9 +51,10 @@ export function setupHtml(prefs) {
 // The line under the rules: the scales and what a source did not confirm.
 export function profileNote(profile, scale) {
   const s = scale || profile.scale;
-  const po = profile.poRule === 'parliScores' ? 'The parliamentarian scores the PO.' : 'PO: ' + scaleText(profile.poScale) + ' for each full hour.';
+  const po = profile.poRule === 'none' ? 'The PO gets no points.' : profile.poRule === 'parliScores' ? 'The parliamentarian scores the PO.' : 'PO: ' + scaleText(profile.poScale) + ' for each full hour.';
   const open = unverifiedWords(profile);
-  return 'Speeches: ' + scaleText(s) + '. ' + po + ' Top ' + profile.topN + '.' + (profile.reasonBelow != null ? ' A score below ' + profile.reasonBelow + ' needs a reason.' : '')
+  const speeches = ranksOnly(profile) ? 'Ranks only: no speech points' + (scale ? ' (the points scale is not used)' : '') : 'Speeches: ' + scaleText(s);
+  return speeches + '. ' + po + ' Top ' + profile.topN + '.' + (profile.reasonBelow != null ? ' A score below ' + profile.reasonBelow + ' needs a reason.' : '')
     + (open.length ? ' Not verified: ' + open.join(', ') + '. Check with the tab room.' : '');
 }
 

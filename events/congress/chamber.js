@@ -26,7 +26,9 @@ export function setupChecks(parsed, docket, profile) {
 }
 
 // A copy of the profile with the scale the judge picked (a whole-number range; anything else keeps the profile's).
+// A ranks-only profile has no scale, so a picked scale is ignored.
 export function frozenProfile(profile, scale) {
+  if (!profile.scale) return Object.freeze(Object.assign({}, profile));
   const s = scale ? pointsRange(scale, profile.scale) : profile.scale;
   return Object.freeze(Object.assign({}, profile, { scale: Object.freeze({ min: s.min, max: s.max }) }));
 }

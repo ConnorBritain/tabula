@@ -275,6 +275,7 @@ hourScores[{hour, points}], partHour: bool
 | `topN` | Scorer rank length | 8 |
 | `rankPool` | Who can be ranked | `'present'` (NSDA default), `'spokeOrPresided'` (Last Chance) |
 | `scoredSpeechCap` | Speeches that get points | 5 (UIL) |
+| `scoring` | Points, or ranks only | `'points'`; `'ranksOnly'` (NCFL, CHSSA: no scale, no PO points, `poRule: 'none'`) |
 | `maxLegislators` | Chamber limit | 30, or 29 at districts |
 | `questionBlockMs` | Question block length | 30000 |
 
@@ -288,7 +289,9 @@ hourScores[{hour, points}], partHour: bool
 | `uil` | Scale 1 to 6, first 5 speeches, parliamentarian ranks all | `reasonBelow`, PO rule |
 | `tfa` | Scale 0 to 6, parliamentarian gives PO points 0 to 6 per hour | `reasonBelow` |
 | `tfa-state` | Scale 1 to 6, parliamentarian gives PO points 1 to 6 at the end of each hour, top 8, max 20 in a prelim chamber, wrong side no more than 3 | `reasonBelow`, rank pool, wrong-side cap (read from the IQT rules) |
-| `ncfl`, `chssa` | None | All |
+| `ncfl` | Ranks only (no points), PO gets no points, parliamentarian ranks all | Rank length in prelims (8 is written for the Grand Final), chamber limit (goal 18; semis 16 to 20), rank pool |
+| `chssa` | Ranks only, top 9 in prelims (unranked = 10), PO is a separate contest | Chamber limit, rank pool |
+| `chssa-elim` | Ranks only, semis and finals: 1st to 15th | Rank length (the same section also says unranked past 9 = 10), chamber limit, rank pool |
 
 ## 8. Build order
 
@@ -351,11 +354,11 @@ Each open fact in §10 was checked against primary sources. A fact that is not c
 | 6 | Scorer rotation | Nationals prelims: scorers rotate between sessions and rank in each session they judge. Districts: at least two scorers for each session; no rotation rule. The app makes a new ballot (session) each session in every league. | [NSDA-HS] | Confirmed (Nationals); none at districts |
 | 7 | UIL | 1 to 6 for each speech; only the first five speeches in a session are scored. PO: "up to six points per clock hour"; the PO form says 2 to 6. No part-hour rule found. A ballot for every member, even those who did not speak. | [UIL-CR27]; [UIL-PO] | Speech confirmed; PO partial (marked) |
 | 8 | TFA | IQTs: 0 to 6 for each speech. The parliamentarian gives 0 to 6 for each PO hour (one line also says "and scorers"). State: 1 to 6 for speeches and PO. A wrong-side speech gets no more than 3 points. | [TFA] | Confirmed; PO rule marked for the wording conflict |
-| 9 | NCFL, CHSSA | No speech-point scale in either rulebook. NCFL: top 8 ranks, unranked students get 9, the parliamentarian ranks all. CHSSA: ranks only; the PO is a separate win/loss contest. No profile written yet. | [NCFL-BY]; [CHSSA-RR] | Confirmed: ranks only |
+| 9 | NCFL, CHSSA | No speech-point scale in either rulebook. NCFL: top 8 ranks, unranked students get 9, the parliamentarian ranks all. CHSSA: ranks only; the PO is a separate win/loss contest. Profiles `ncfl`, `chssa` (prelims, top 9) and `chssa-elim` (1st to 15th) are ranks only: no points grid and no PO prompt. | [NCFL-BY]; [CHSSA-RR] | Confirmed: ranks only. Rank lengths marked where §9 says. |
 | 10 | Times | Speeches up to 3:00. 2:00 of questions after authorship or sponsorship and after the first negative; 1:00 after others. Direct questioning blocks of at most 30 s. | [NSDA-HS] Congress event rules | Confirmed |
 | 11 | TFA State | Scorers give 1 to 6 for each speech. The parliamentarian gives the PO 1 to 6 at the end of each hour. Top 8 ranks by the scorers and the parliamentarian. A prelim chamber has no more than 20; semifinals and Super Congress no more than 16. Scorers change each prelim session. State floor debate points to the IQT rules, so the wrong-side cap of 3 is read from there. | [TFA] State Tournament: Congressional Debate (Chambers, Scoring, Semifinal, Super Congress) | Confirmed; wrong-side cap, `reasonBelow` and rank pool marked |
 
-Still open for the owner: §10 items 3 (rank pool), 4 (parliamentarian full rank, S7), 8 (seat chart), 9 (timekeeper view), 10 (slowest device), plus NCFL and CHSSA rank-only profiles. The TFA State profile (`tfa-state`) is written (row 11 above).
+Still open for the owner: §10 items 3 (rank pool), 4 (parliamentarian full rank, S7), 8 (seat chart), 9 (timekeeper view), 10 (slowest device). The TFA State profile (`tfa-state`) and the rank-only NCFL and CHSSA profiles (`ncfl`, `chssa`, `chssa-elim`) are written (rows 9 and 11).
 
 ## Sources
 

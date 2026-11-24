@@ -5,6 +5,7 @@
 //   - Under poRule 'fullHourOnly' (NSDA), a part hour gets no score: when a term ends with a part hour left over, the
 //     term keeps partHour: true, so the rule has a stored result.
 //   - Under poRule 'parliScores' (TFA), the parliamentarian scores the PO, so the scorer has nothing to score.
+//   - Under poRule 'none' (NCFL, CHSSA), no one gives PO points.
 // A new PO after a recess starts a new term.
 export const HOUR_MS = 3600000;
 
@@ -28,9 +29,9 @@ export function endTerm(session, now) {
 // Full hours a term has run (to its end, or to now while open).
 export const fullHours = (term, now) => Math.floor(Math.max(0, (term.endedAt != null ? term.endedAt : now) - term.startedAt) / HOUR_MS);
 
-// The hours of a term that need a score now: [1..fullHours] with no score yet. Empty under 'parliScores'.
+// The hours of a term that need a score now: [1..fullHours] with no score yet. Empty under 'parliScores' and 'none'.
 export function hoursDue(term, now, profile) {
-  if (profile.poRule === 'parliScores') return [];
+  if (profile.poRule === 'parliScores' || profile.poRule === 'none') return [];
   const out = [];
   for (let h = 1; h <= fullHours(term, now); h++) if (!term.hourScores.some((x) => x.hour === h && x.points != null)) out.push(h);
   return out;

@@ -7,7 +7,7 @@ import { TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS, legislatorLines, p
 import { hoursDue, openTerm, ordinal, fullHours, poLockLine } from './po.js';
 import { rankModel } from './rank.js';
 import { reviewBlocks, rankProblems } from './review.js';
-import { scaleText } from './profiles.js';
+import { scaleText, ranksOnly } from './profiles.js';
 
 const STAGE_WORDS = Object.freeze({ log: 'Log', rank: 'Rank', review: 'Review' });
 const range = (s) => { const out = []; for (let i = s.min; i <= s.max; i++) out.push(i); return out; };
@@ -74,7 +74,7 @@ export function speechCardHtml(chamber, session, speechId, now) {
   const capped = p.scoredSpeechCap && nth > p.scoredSpeechCap;
   const items = chamber.docket.map((d) => `<option value="${esc(d.id)}"${d.id === sp.itemId ? ' selected' : ''}>${esc(d.title)}${d.debatedInSession && d.debatedInSession !== session.number ? ' (done in session ' + esc(d.debatedInSession) + ')' : ''}</option>`).join('');
   const live = session.live && session.live.speechId === sp.id;
-  const pointsRow = range(p.scale).map((n) => `<button class="chip cg-pt${sp.points === n ? ' on' : ''}" type="button" aria-pressed="${sp.points === n}" data-cact="points" data-value="${n}" data-key="pt-${n}">${n}</button>`).join('');
+  const pointsRow = ranksOnly(p) ? '' : range(p.scale).map((n) => `<button class="chip cg-pt${sp.points === n ? ' on' : ''}" type="button" aria-pressed="${sp.points === n}" data-cact="points" data-value="${n}" data-key="pt-${n}">${n}</button>`).join('');
   const note = [];
   if (sp.penalty === 'wrongSide') note.push(p.wrongSideMax != null ? `Wrong side: no more than ${p.wrongSideMax} points. It still counts for precedence.` : `Wrong side: ${p.wrongSideOff} points off (at least). It still counts for precedence.`);
   if (sp.penalty === 'offFloor') note.push('Not on the floor: 0 points. It still counts for precedence.');
@@ -88,10 +88,10 @@ export function speechCardHtml(chamber, session, speechId, now) {
       <div class="field"><span>Side</span>${seg('Side', sp.side, SIDES, SIDE_WORDS)}</div>
       <label class="field"><span>Type</span><select id="cg-type" data-cfield="type" data-key="type">${TYPES.map((t) => `<option value="${t}"${t === sp.type ? ' selected' : ''}>${esc(TYPE_WORDS[t])}</option>`).join('')}</select></label>
     </div>
-    <div class="field"><span>Points <span class="muted">(${esc(scaleText(p.scale))})</span></span>
+    ${ranksOnly(p) ? `<p class="field-help">${esc(p.name)} gives no points. Write the comment, then rank at the end.</p>` : `<div class="field"><span>Points <span class="muted">(${esc(scaleText(p.scale))})</span></span>
       <div class="cg-points" role="group" aria-label="Points">${pointsRow}<button class="chip quiet" type="button" data-cact="points" data-value="" data-key="pt-none">Clear</button></div>
       ${counted != null && counted !== sp.points ? `<p class="field-help">Counts as ${esc(counted)}.</p>` : ''}</div>
-    <div class="chks" role="group" aria-label="Penalties">${Object.keys(PENALTY_WORDS).map((k) => `<button class="chk${sp.penalty === k ? ' flag' : ''}" type="button" aria-pressed="${sp.penalty === k}" data-cact="penalty" data-value="${k}" data-key="pen-${k}">${sp.penalty === k ? '✓ ' : ''}${esc(PENALTY_WORDS[k])}</button>`).join('')}</div>
+    <div class="chks" role="group" aria-label="Penalties">${Object.keys(PENALTY_WORDS).map((k) => `<button class="chk${sp.penalty === k ? ' flag' : ''}" type="button" aria-pressed="${sp.penalty === k}" data-cact="penalty" data-value="${k}" data-key="pen-${k}">${sp.penalty === k ? '✓ ' : ''}${esc(PENALTY_WORDS[k])}</button>`).join('')}</div>`}
     ${note.length ? `<p class="field-help">${note.map(esc).join(' ')}</p>` : ''}
     <label class="field cg-comment"><span>Comment</span><textarea id="cg-comment" data-cfield="comment" data-key="comment" rows="5" placeholder="What worked, what to fix. Name a moment.">${esc(sp.comment)}</textarea></label>
     <p class="cg-reason" id="cg-reason" role="status">${needsReason(sp, p) ? esc(`Below ${p.reasonBelow}: write a specific reason. You can still save.`) : ''}</p>
@@ -117,6 +117,7 @@ export function poCardHtml(chamber, session, now, choosing) {
        <div class="cg-row"><button class="b small" type="button" data-cact="po-end" data-key="po-end">End term</button><button class="b small quiet" type="button" data-cact="po-choose" data-key="po-choose">New PO</button></div>`
     : `<p class="muted">No PO term is open.</p><button class="b small" type="button" data-cact="po-choose" data-key="po-choose">Start a PO term</button>`;
   return `<section class="stage cg-po" aria-labelledby="cg-po-title"><h2 id="cg-po-title" class="cg-h">Presiding officer</h2>
+    ${p.poRule === 'none' ? `<p class="muted">Under ${esc(p.name)} the PO gets no points. Log the term so the speech counts stay right.</p>` : ''}
     ${p.poRule === 'parliScores' ? `<p class="muted">Under ${esc(p.name)} the parliamentarian scores the PO. Log the term so the speech counts stay right.</p>` : ''}
     ${head}${pick}${dueHtml}${scored ? `<ul class="cg-scored">${scored}</ul>` : ''}</section>`;
 }
@@ -124,14 +125,15 @@ export function poCardHtml(chamber, session, now, choosing) {
 // The running view: one row for each legislator, a cell for each speech (its counted points), then count, total and
 // average. On a phone the cells wrap under the code (blocks); on a wide screen it reads as a grid.
 export function gridHtml(chamber, session, selectedId) {
+  const noPts = ranksOnly(chamber.profile);
   const rows = legislatorLines(chamber, session).map((line) => {
     const l = line.legislator;
-    const cells = line.speeches.map((x) => `<button class="cg-cell${x.speech.id === selectedId ? ' on' : ''}${x.speech.points == null && x.speech.penalty !== 'offFloor' ? ' empty' : ''}" type="button" data-cact="select" data-id="${esc(x.speech.id)}" data-key="cell-${esc(x.speech.id)}" aria-label="${esc(l.code)} speech ${x.nth}: ${x.counted == null ? 'no points' : esc(x.counted) + ' points'}">${x.counted == null ? '–' : esc(x.counted)}</button>`).join('');
+    const cells = line.speeches.map((x) => `<button class="cg-cell${x.speech.id === selectedId ? ' on' : ''}${!noPts && x.speech.points == null && x.speech.penalty !== 'offFloor' ? ' empty' : ''}" type="button" data-cact="select" data-id="${esc(x.speech.id)}" data-key="cell-${esc(x.speech.id)}" aria-label="${esc(l.code)} speech ${x.nth}${noPts ? '' : ': ' + (x.counted == null ? 'no points' : esc(x.counted) + ' points')}">${noPts ? x.nth : x.counted == null ? '–' : esc(x.counted)}</button>`).join('');
     return `<li class="cg-line${l.status !== 'present' ? ' is-out' : ''}"><span class="code">${esc(l.code)}</span>
       <span class="cg-cells">${cells || '<span class="muted">No speeches</span>'}</span>
-      <span class="cg-stats">${line.count} · ${line.total}${line.average != null ? ' · avg ' + esc(line.average) : ''}${l.status !== 'present' ? ' · ' + esc(l.status) : ''}</span></li>`;
+      <span class="cg-stats">${line.count}${noPts ? '' : ' · ' + line.total + (line.average != null ? ' · avg ' + esc(line.average) : '')}${l.status !== 'present' ? ' · ' + esc(l.status) : ''}</span></li>`;
   }).join('');
-  return `<section class="cg-grid-wrap" aria-labelledby="cg-grid-title"><h2 id="cg-grid-title" class="cg-h">Chamber <span class="muted">(speeches · total · average)</span></h2><ol class="cg-grid">${rows}</ol></section>`;
+  return `<section class="cg-grid-wrap" aria-labelledby="cg-grid-title"><h2 id="cg-grid-title" class="cg-h">Chamber <span class="muted">(${noPts ? 'speeches' : 'speeches · total · average'})</span></h2><ol class="cg-grid">${rows}</ol></section>`;
 }
 
 // The docket line above the log: the item under debate and "Next item".
@@ -157,14 +159,14 @@ export function rankHtml(chamber, session, now) {
   const ranked = new Set(m.slots.filter(Boolean));
   const pool = m.pool.map((x) => `<li><button class="cg-poolrow${ranked.has(x.legislator.id) ? ' on' : ''}" type="button" data-cact="rank" data-id="${esc(x.legislator.id)}" data-key="pool-${esc(x.legislator.id)}" aria-pressed="${ranked.has(x.legislator.id)}" ${lock ? 'disabled' : ''}>
       <span class="code">${esc(x.legislator.code)}</span><span class="muted">${esc(x.legislator.name || '')}</span>
-      <span class="cg-stats">${x.count} ${x.count === 1 ? 'speech' : 'speeches'} · ${x.total} points${x.poHours.length ? ' · PO ' + x.poHours.join(', ') : ''}</span></button></li>`).join('');
+      <span class="cg-stats">${x.count} ${x.count === 1 ? 'speech' : 'speeches'}${ranksOnly(chamber.profile) ? '' : ' · ' + x.total + ' points'}${x.poHours.length ? ' · PO ' + x.poHours.join(', ') : ''}</span></button></li>`).join('');
   const warn = m.ties.map(([a, b]) => `<li>${esc(codeOf(chamber, a))} and ${esc(codeOf(chamber, b))} have the same points. That is fine if you meant it.</li>`)
     .concat(m.gone.map((id) => `<li>${esc(codeOf(chamber, id))} is ranked but not present now. Their slot is empty.</li>`)).join('');
   return `<section class="cg-rank" aria-labelledby="cg-rank-title"><h2 id="cg-rank-title" class="cg-h">Top ${m.topN}</h2>
-    ${lock ? `<p class="problems" role="status">${esc(lock)} <a class="b small" href="#/round/${esc(session.id)}/log">Back to Log</a></p>` : '<p class="muted">Tap a legislator to fill the next slot. Tap a slot to clear it. Points do not limit the order.</p>'}
+    ${lock ? `<p class="problems" role="status">${esc(lock)} <a class="b small" href="#/round/${esc(session.id)}/log">Back to Log</a></p>` : '<p class="muted">Tap a legislator to fill the next slot. Tap a slot to clear it.' + (ranksOnly(chamber.profile) ? '' : ' Points do not limit the order.') + '</p>'}
     <ol class="cg-slots">${slots}</ol>
     ${warn ? `<ul class="check-list">${warn.replace(/<li>/g, '<li class="check-row">')}</ul>` : ''}
-    <h3 class="cg-h">${chamber.profile.rankPool === 'spokeOrPresided' ? 'Legislators who spoke or presided' : 'Present legislators'}, by points</h3>
+    <h3 class="cg-h">${chamber.profile.rankPool === 'spokeOrPresided' ? 'Legislators who spoke or presided' : 'Present legislators'}${ranksOnly(chamber.profile) ? ', by speeches' : ', by points'}</h3>
     <ol class="cg-pool">${pool}</ol>
     <div class="stage-foot"><a class="b primary" href="#/round/${esc(session.id)}/review">Go to Review</a></div></section>`;
 }

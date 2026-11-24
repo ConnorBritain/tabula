@@ -15,7 +15,7 @@ import { parseRoute, routeHash, roundTarget } from './js/routes.js';
 import { paletteRows } from './js/palette.js';
 import { loadWorkspace } from './js/workspaces.js';
 import { CONGRESS_KEY, migrateCongress, congressIO, withChamber, withSession, findSession, chamberSessions } from './congress/store.js';
-import { CONGRESS_PROFILES, congressProfile, SCALE_CHOICES } from './congress/profiles.js';
+import { CONGRESS_PROFILES, congressProfile, SCALE_CHOICES, ranksOnly } from './congress/profiles.js';
 import { setupChecks, createChamber, newSession, markDebated, setStatus, docketLines } from './congress/chamber.js';
 import { nextDefaults, startSpeech, updateSpeech, startQuestions, endSpeech, timerView, questionMsFor, countedPoints, needsReason, legislatorLines, removeSpeech } from './congress/speech.js';
 import { startTerm, endTerm, hoursDue, setHourScore, poLockLine, HOUR_MS } from './congress/po.js';
@@ -331,8 +331,10 @@ test('the congress workspace has the contract, the stages log, rank, review, and
 // Why: every profile needs a valid scale and PO rule; a broken profile would crash setup at the tournament.
 test('each Congress profile has whole-number scales, a known PO rule and rank pool, and a source', () => {
   for (const p of CONGRESS_PROFILES) {
-    assert.ok(Number.isInteger(p.scale.min) && p.scale.min < p.scale.max, p.id);
-    assert.ok(['fullHourOnly', 'parliScores'].includes(p.poRule), p.id);
+    // Ranks-only profiles (NCFL, CHSSA) have no scale and no PO rule; every other profile keeps the full check.
+    if (p.scoring === 'ranksOnly') assert.deepEqual([p.scale, p.poScale, p.poRule], [null, null, 'none'], p.id);
+    else assert.ok(Number.isInteger(p.scale.min) && p.scale.min < p.scale.max, p.id);
+    if (p.scoring !== 'ranksOnly') assert.ok(['fullHourOnly', 'parliScores'].includes(p.poRule), p.id);
     assert.ok(['present', 'spokeOrPresided'].includes(p.rankPool), p.id);
     assert.ok(p.source && p.version >= 1, p.id);
     for (const f of p.unverified) assert.ok(f in p, p.id + ' marks a field it has: ' + f);
@@ -395,4 +397,33 @@ test('the TFA State profile scores 1 to 6, leaves the PO to the parliamentarian,
   assert.deepEqual(setupChecks(parseRoom(codes(20).join('\n')), ['B'], st), []);
   assert.deepEqual([...st.unverified].sort(), ['rankPool', 'reasonBelow', 'wrongSideMax']);
   assert.equal(congressProfile('tfa').scale.min, 0, 'the IQT profile is unchanged');
+});
+
+// Why: NCFL and CHSSA ballots have no points at all. A points grid there would make a judge invent scores the tab room
+// cannot take, and a PO prompt would lock the rank for a score no one gives.
+test('the NCFL and CHSSA profiles are ranks only: no points, no PO prompt, and the rank length each league sets', () => {
+  const ncfl = congressProfile('ncfl'), ch = congressProfile('chssa'), chE = congressProfile('chssa-elim');
+  for (const p of [ncfl, ch, chE]) assert.equal(ranksOnly(p), true, p.id);
+  assert.equal(ranksOnly(DIST), false);
+  assert.deepEqual([ncfl.topN, ch.topN, chE.topN], [8, 9, 15]);
+  assert.ok(ncfl.unverified.includes('topN') && chE.unverified.includes('topN') && !ch.unverified.includes('topN'), 'only CHSSA prelims (1 to 9) is confirmed');
+  // A picked scale is ignored, so no points can be given.
+  const c = chamberOf(12, ch, { scale: SCALE_CHOICES[1] });
+  assert.equal(c.profile.scale, null);
+  let s = sessionOf(c).session;
+  s = startSpeech(s, c.legislators[0].id, { now: 0, makeId });
+  const card = speechCardHtml(c, s, s.live.speechId, 1000);
+  assert.doesNotMatch(card, /data-cact="points"/, 'no points buttons');
+  assert.doesNotMatch(card, /data-cact="penalty"/, 'no point penalties');
+  assert.equal(countedPoints({ points: 6, penalty: null }, c.profile, 1), null);
+  // The PO term is logged, but no hour ever needs a score, so Rank never locks on it.
+  s = startTerm(endSpeech(s, 200000), c.legislators[1].id, 0);
+  assert.deepEqual(hoursDue(s.poTerms[0], 3 * HOUR_MS, c.profile), []);
+  assert.equal(poLockLine(s, 3 * HOUR_MS, c.profile, () => 'x'), '');
+  // The top 9 fills; Review copies speeches with no points words.
+  for (let i = 0; i < 12; i++) s = toggleRank(c, s, c.legislators[i].id);
+  assert.equal(rankModel(c, s).slots.filter(Boolean).length, 9);
+  assert.deepEqual(rankProblems(c, s, 3 * HOUR_MS), []);
+  assert.doesNotMatch(reviewBlocks(c, s)[0].text, /point/);
+  assert.doesNotMatch(rankHtml(c, s, 3 * HOUR_MS), /points/);
 });

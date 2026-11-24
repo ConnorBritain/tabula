@@ -116,6 +116,7 @@ export function clockText(ms) {
 //   a speech past profile.scoredSpeechCap for its legislator (UIL: 5) -> no points (null).
 // nth: this speech is the legislator's nth (from 1) in the session.
 export function countedPoints(speech, profile, nth) {
+  if (!profile.scale) return null; // a ranks-only profile (NCFL, CHSSA)
   if (profile.scoredSpeechCap && nth > profile.scoredSpeechCap) return null;
   if (speech.penalty === 'offFloor') return 0;
   if (speech.points == null) return null;
