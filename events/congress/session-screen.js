@@ -8,7 +8,7 @@ import { startTerm, endTerm, reopenTerm, setHourScore } from './po.js';
 import { toggleRank } from './rank.js';
 import { reviewBlocks, rankProblems } from './review.js';
 import { markDebated, firstOpenItem, reopenItem, setSubmitted, closeSession } from './chamber.js';
-import { barHtml, logHtml, rankHtml, reviewHtml, sessionClock, enterPick, pickerMatches } from './views.js';
+import { barHtml, logHtml, rankHtml, reviewHtml, sessionClock, enterPick, pickerMatches, poFocusKey } from './views.js';
 import { copyText } from '../js/review-screen.js';
 import { newId } from '../js/room.js';
 
@@ -41,14 +41,17 @@ export function mountSession(el, env, sessionId, stage) {
     if (s && s.live) view.selectedId = s.live.speechId;
   }
 
-  function draw(focusKey) {
+  // focusKey: the data-key of the control to focus after the draw. If that control is gone, the focus goes to the page
+  // title, never to nowhere (a keyboard judge would have to Tab from the top). keep: a draw the judge did not ask for
+  // (the timer tick): put the focus back where it was, or leave it alone.
+  function draw(focusKey, keep) {
     const { s, c } = parts();
     if (!s || !c) { el.innerHTML = '<p class="muted">This session is not on this device.</p><a class="b" href="#/chamber">Chambers</a>'; return; }
     const now = env.now();
     const body = stage === 'log' ? logHtml(c, s, view, now) : stage === 'rank' ? rankHtml(c, s, now) : reviewHtml(c, s, now);
     el.innerHTML = `<div class="cg-screen">${barHtml(c, s, stage, now)}<h1 class="sr-only" id="screen-title" tabindex="-1">${stage === 'log' ? 'Speech log' : stage === 'rank' ? 'Rank' : 'Review and copy'}</h1>${body}</div>`;
     const target = focusKey ? el.querySelector(`[data-key="${CSS.escape(focusKey)}"]`) : null;
-    if (target) target.focus(); else if (!focusKey) el.querySelector('#screen-title').focus({ preventScroll: true });
+    if (target) target.focus(); else if (!keep) el.querySelector('#screen-title').focus({ preventScroll: true });
     if (focusKey === 'search') { const box = el.querySelector('#cg-search'); if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); } }
   }
 
@@ -76,7 +79,8 @@ export function mountSession(el, env, sessionId, stage) {
     if (hourKey !== lastHourKey) {
       const first = !lastHourKey;
       lastHourKey = hourKey;
-      if (!first && stage === 'log' && document.activeElement && document.activeElement.id !== 'cg-comment') draw();
+      const a = document.activeElement;
+      if (!first && stage === 'log' && a && a.id !== 'cg-comment') draw(a && el.contains(a) && a.dataset.key ? a.dataset.key : null, true);
     }
   }, 250);
 
@@ -167,8 +171,8 @@ export function mountSession(el, env, sessionId, stage) {
         } } });
         return undefined;
       }
-      case 'po-score': save(setHourScore(s, Number(b.dataset.term), Number(b.dataset.hour), Number(b.dataset.value), now)); return draw();
-      case 'po-clear': save(setHourScore(s, Number(b.dataset.term), Number(b.dataset.hour), null, now)); return draw();
+      case 'po-score': save(setHourScore(s, Number(b.dataset.term), Number(b.dataset.hour), Number(b.dataset.value), now)); return draw(poFocusKey(a, b.dataset.term, b.dataset.hour));
+      case 'po-clear': save(setHourScore(s, Number(b.dataset.term), Number(b.dataset.hour), null, now)); return draw(poFocusKey(a, b.dataset.term, b.dataset.hour, c.profile.poScale || c.profile.scale));
       case 'rank': case 'unrank': save(toggleRank(c, s, b.dataset.id)); return draw(b.dataset.key);
       case 'copy': copyBlock(b.dataset.id); return undefined;
       case 'submitted': {
@@ -208,6 +212,13 @@ export function mountSession(el, env, sessionId, stage) {
     }
   };
   const onKey = (ev) => {
+    // Esc in the speaker search closes the picker, like Cancel, and the focus goes back to "Next speech".
+    if (ev.target.id === 'cg-search' && ev.key === 'Escape') {
+      ev.preventDefault();
+      const cancel = el.querySelector('[data-cact="cancel-pick"]');
+      if (cancel) act(cancel);
+      return;
+    }
     if (ev.target.id === 'cg-search' && ev.key === 'Enter') {
       ev.preventDefault();
       const { s, c } = parts();

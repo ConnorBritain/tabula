@@ -8,6 +8,7 @@ This file covers the Congress scorer screens that the earlier screen review left
 2. The findings, as one table (§2).
 3. The open rule facts and what the app does with them now (§3).
 4. What is left for later (§4).
+5. The accessibility and keyboard pass (§5).
 
 Rules this review keeps: calm grey chrome, color only for data and status, a word with every color, no stripes (`docs/events/DESIGN.md` §1). The beta tag is a plain outlined pill in words, with no color.
 
@@ -71,3 +72,64 @@ A profile where the source is clear (for example Last Chance: PO 1 to 8, spoke-o
 - F16 to F19 above.
 - A second pass on a slow phone for a 3-hour session (CONGRESS.md §10 item 10).
 - The parliamentarian screens (CONGRESS.md §4.5) are not built, so they are not reviewed.
+
+## 5. Accessibility
+
+An automated check with axe, then a walk with the keyboard only. Fixes are in the same change.
+
+### 5.1 Method
+
+- axe-core **4.10.2** (exact version), installed in a scratch folder outside the repo. It is not a dependency and the app never loads it.
+- The repo root ran on a local static server; Playwright drove the Chromium that is already on the machine and opened `/events/`. Playwright's clock moved time forward for the timer and the PO hour.
+- The script, kept outside the repo, walks one chamber and injects axe at each stop: list → New chamber (empty, then filled with the NSDA district rules, so the PO range and "Who can be ranked" choices with "Check your tournament's rule." show) → Log (empty) → speaker picker → speech card (timer, questions, ended and scored) → 3 speeches → PO chooser → Rank with the PO lock → PO hour due → hour scored → "Next item" toast with Undo → "PO term ended" toast with Undo → Rank (empty, then top 8) → Review → Review after Copy ranks and Mark submitted (toast with Undo) → chamber overview → list. Then a 30-row chamber (NSDA Last Chance allows 30): Log and Rank.
+- 22 screen states, each in light and dark, on a phone (390 × 844) and a laptop (1366 × 768): 88 axe runs. axe's default rules; every impact recorded.
+- Congress has no dialogs of its own. Its pop-ups are the shared toasts with Undo, which were checked as part of each screen.
+- A shared runner for these checks is being built separately; this pass did not use it.
+
+### 5.2 axe results
+
+| Impact | Before | After | Where |
+|---|---|---|---|
+| Critical | 0 | 0 | |
+| Serious | 0 | 0 | Color contrast passed in light and dark on every screen. |
+| Moderate | 1 rule | 1 rule | `region`: the toast text sits outside a page landmark. The toast box is shared page markup, not Congress (A5). |
+| Minor | 1 rule | 0 | `aria-allowed-role`: the speaker picker and the PO chooser put `role="listitem"` on buttons (A1, fixed). |
+
+No page errors. No sideways scroll on the phone with 30 legislators on Rank.
+
+### 5.3 Keyboard walk
+
+One chamber, keyboard only, on a laptop in light and dark: setup → 3 speeches (picker by typing the code and pressing Enter) → PO term and its first hour score → Next item → Rank top 8 → Review → Copy ranks.
+
+- Order: the back link and step bar, then the page title, then the page from top to bottom. On Log: Next item, Next speech (or the speech card), the PO card, then the chamber grid.
+- After each action the focus lands on the next useful control: a pick goes to "Start questions", that goes to "End speech", that goes to the comment box, "Done" goes back to "Next speech", a rank goes to the same pool row, Copy stays on its button.
+- Every stop showed a focus ring in light and dark.
+- No trap: Tab leaves the page after the last control, and the Undo toast can be reached.
+- Esc: see A4. The shared Esc stack (open shared dialogs) still wins over Congress.
+
+Keys that work now:
+
+| Key | Where | What it does |
+|---|---|---|
+| Tab, Shift+Tab | everywhere | Next or last control |
+| Enter, Space | any button | Press it |
+| Enter | speaker search | Gives the floor to the exact code, or the only match. With more than one match it says "More than one code matches." |
+| Esc | speaker search | Closes the picker, like Cancel; the focus goes back to "Next speech" |
+| Arrow keys | Chamber (House or Senate), the selects | Change the choice |
+
+### 5.4 Fixes
+
+| # | Problem | Fix | Test |
+|---|---|---|---|
+| A1 | The speaker picker and the PO chooser buttons had `role="listitem"`, so a screen reader heard a list row, not a button (axe minor). | Real lists: each button sits in its own list item. | `congress-a11y.test.mjs` |
+| A2 | Review's buttons were all named "Copy", so a screen-reader judge could not tell which speech they were copying. | Each button's name is "Copy" plus the card title, for example "Copy 101 · Bill · Aff · Authorship · 6 points". The title is still written once on the page. | `congress-a11y.test.mjs` |
+| A3 | After a PO hour score, and when a full PO hour came up, the focus jumped to the page title, so the judge had to Tab through the log again. When the control to focus was gone, the focus went nowhere. | A score puts the focus on that hour's "Change" button; "Change" puts it on the hour's first score button. The hour redraw keeps the focus on the same control. A focus target that is gone falls back to the page title. | `congress-a11y.test.mjs` |
+| A4 | Esc did nothing in the speaker picker. | Esc in the speaker search closes the picker. | `congress-a11y.test.mjs` |
+
+### 5.5 Open
+
+- A5. The toast box is outside a page landmark (axe moderate `region`). It is shared page markup (`events/index.html`), so a change there belongs to the shared screens, not to Congress.
+- A6. The toast's Undo is the last Tab stop on the page. In a 30-row chamber that is far from "Next item" or "End term". Esc does not close a toast. Both are shared toast behaviour.
+- A7. Esc does not close the PO chooser or the speech card. Not changed: the speech card holds the comment box, and Esc there needs a rule for unsaved text.
+- A8. Shortcut keys a laptop judge would want, which need the shared key registry (not added here): Next speech, Start questions, End speech, points by number keys, Done, Undo for the last toast, Next item. Same as F19.
+- A9. Screen reader on real devices (VoiceOver on iPhone and Mac, TalkBack on Android, NVDA on Windows): waiting for real-device testers.

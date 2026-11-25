@@ -68,7 +68,7 @@ export function pickerHtml(chamber, session, query) {
   return `<div class="cg-picker" id="cg-picker">
     <label class="field"><span>Who has the floor?</span><input id="cg-search" type="search" autocomplete="off" spellcheck="false" placeholder="Type a code" value="${esc(query || '')}"></label>
     <p class="field-help">Fewest speeches first. The small number is how many times each one has spoken. Enter picks an exact code.</p>
-    <div class="cg-pick-list" role="list">${list.map((l) => `<button class="chip cg-pick" type="button" role="listitem" data-cact="pick" data-id="${esc(l.id)}" data-key="pick-${esc(l.id)}" aria-label="${esc(l.code)}${l.name ? ' ' + esc(l.name) : ''}, ${count.get(l.id) || 0} ${(count.get(l.id) || 0) === 1 ? 'speech' : 'speeches'}"><span class="code">${esc(l.code)}</span>${l.name ? ' <span class="muted">' + esc(l.name) + '</span>' : ''} <span class="muted">· ${count.get(l.id) || 0}</span></button>`).join('') || '<p class="muted">No present legislator matches.</p>'}</div>
+    <ul class="cg-pick-list">${list.map((l) => `<li><button class="chip cg-pick" type="button" data-cact="pick" data-id="${esc(l.id)}" data-key="pick-${esc(l.id)}" aria-label="${esc(l.code)}${l.name ? ' ' + esc(l.name) : ''}, ${count.get(l.id) || 0} ${(count.get(l.id) || 0) === 1 ? 'speech' : 'speeches'}"><span class="code">${esc(l.code)}</span>${l.name ? ' <span class="muted">' + esc(l.name) + '</span>' : ''} <span class="muted">· ${count.get(l.id) || 0}</span></button></li>`).join('') || '<li class="muted">No present legislator matches.</li>'}</ul>
     <div class="cg-row"><button class="b quiet" type="button" data-cact="cancel-pick" data-key="cancel-pick">Cancel</button></div>
   </div>`;
 }
@@ -129,6 +129,14 @@ export function speechCardHtml(chamber, session, speechId, now) {
   </section>`;
 }
 
+// Where the keyboard focus goes after a PO hour score changes, so a keyboard judge keeps their place: after a score,
+// the hour's "Change" button; after "Change", the hour's first score button. scale: the PO points scale.
+export function poFocusKey(action, term, hour, scale) {
+  if (action === 'po-score') return `po-clear-${term}-${hour}`;
+  if (action === 'po-clear' && scale) return `po-${term}-${hour}-${scale.min}`;
+  return null;
+}
+
 // The PO card: the open term, its hours due (each with the PO scale), and the term buttons.
 export function poCardHtml(chamber, session, now, choosing) {
   const p = chamber.profile;
@@ -140,7 +148,7 @@ export function poCardHtml(chamber, session, now, choosing) {
       <div class="cg-points" role="group" aria-label="PO points, hour ${h}">${range(scale).map((n) => `<button class="chip cg-pt" type="button" data-cact="po-score" data-term="${i}" data-hour="${h}" data-value="${n}" data-key="po-${i}-${h}-${n}">${n}</button>`).join('')}</div></div>`).join('');
   const scored = session.poTerms.flatMap((t, i) => t.hourScores.map((h) => `<li><span class="code">${esc(codeOf(chamber, t.legislatorId))}</span> hour ${h.hour}: ${esc(h.points)} <button class="b quiet small" type="button" data-cact="po-clear" data-term="${i}" data-hour="${h.hour}" data-key="po-clear-${i}-${h.hour}">Change</button></li>`)
     .concat(t.partHour ? [`<li class="muted"><span class="code">${esc(codeOf(chamber, t.legislatorId))}</span> part hour: no score</li>`] : [])).join('');
-  const pick = choosing ? `<div class="cg-pick-list" role="list">${chamber.legislators.filter((l) => statusIn(session, l) === 'present').map((l) => `<button class="chip" type="button" role="listitem" data-cact="po-start" data-id="${esc(l.id)}" data-key="po-start-${esc(l.id)}"><span class="code">${esc(l.code)}</span></button>`).join('')}</div>` : '';
+  const pick = choosing ? `<ul class="cg-pick-list" aria-label="Who presides?">${chamber.legislators.filter((l) => statusIn(session, l) === 'present').map((l) => `<li><button class="chip" type="button" data-cact="po-start" data-id="${esc(l.id)}" data-key="po-start-${esc(l.id)}"><span class="code">${esc(l.code)}</span></button></li>`).join('')}</ul>` : '';
   const head = term
     ? `<p><span class="code">${esc(codeOf(chamber, term.legislatorId))}</span> presides · ${fullHours(term, now)} full ${fullHours(term, now) === 1 ? 'hour' : 'hours'} so far</p>
        <div class="cg-row"><button class="b small" type="button" data-cact="po-end" data-key="po-end">End term</button><button class="b small quiet" type="button" data-cact="po-choose" data-key="po-choose">New PO</button></div>`
@@ -222,9 +230,11 @@ export function reviewHtml(chamber, session, now) {
   const blocks = reviewBlocks(chamber, session);
   const problems = rankProblems(chamber, session, now);
   const ranks = blocks.find((b) => b.kind === 'ranks');
-  const item = (b) => `<li class="card cg-block" data-block="${esc(b.id)}"><div class="card-head"><span>${esc(b.title)}</span></div>
+  // Each Copy button's spoken name is its own word plus the card title ("Copy 1001 · …"), so a screen-reader judge
+  // knows which speech goes to the ballot; the title is written once on the page.
+  const item = (b) => `<li class="card cg-block" data-block="${esc(b.id)}"><div class="card-head"><span id="cg-blk-${esc(b.id)}">${esc(b.title)}</span></div>
       ${b.detail ? `<pre class="cg-pre">${esc(b.detail)}</pre>` : ''}
-      ${b.text ? `<button class="b${b.copied ? '' : ' primary'} small" type="button" data-cact="copy" data-id="${esc(b.id)}" data-key="copy-${esc(b.id)}">${b.copied ? '✓ Copied' : 'Copy'}</button>` : ''}</li>`;
+      ${b.text ? `<button class="b${b.copied ? '' : ' primary'} small" type="button" data-cact="copy" data-id="${esc(b.id)}" data-key="copy-${esc(b.id)}" id="cg-copy-${esc(b.id)}" aria-labelledby="cg-copy-${esc(b.id)} cg-blk-${esc(b.id)}">${b.copied ? '✓ Copied' : 'Copy'}</button>` : ''}</li>`;
   const speeches = blocks.filter((b) => b.kind === 'speech');
   const po = blocks.filter((b) => b.kind === 'po');
   const open = unscoredLine(unscoredSpeeches(chamber, session));
@@ -239,4 +249,4 @@ export function reviewHtml(chamber, session, now) {
       <div class="stage-foot"><button class="b${session.submittedAt ? '' : ' primary'}" type="button" data-cact="submitted" data-key="submitted" aria-pressed="${Boolean(session.submittedAt)}">${session.submittedAt ? '✓ Submitted' : 'Mark submitted'}</button></div></section>`;
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressViews = Object.freeze({ BETA_TAG, BETA_LINE, statsText, pickerMatches, enterPick, sessionClock, barHtml, pickerHtml, timerHtml, speechCardHtml, poCardHtml, gridHtml, docketHtml, logHtml, rankHtml, reviewHtml });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressViews = Object.freeze({ BETA_TAG, BETA_LINE, statsText, pickerMatches, enterPick, poFocusKey, sessionClock, barHtml, pickerHtml, timerHtml, speechCardHtml, poCardHtml, gridHtml, docketHtml, logHtml, rankHtml, reviewHtml });

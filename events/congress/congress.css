@@ -12,7 +12,7 @@ main:has(.cg-screen) { max-width: 1120px; }
 .cg-next { display: flex; justify-content: center; padding: var(--s5) 0; border: 1px dashed var(--border-ctl); border-radius: var(--r-lg); }
 .cg-next-btn { min-height: 64px; min-width: 14rem; font-size: var(--fs-4); }
 .cg-picker { display: grid; gap: var(--s3); border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); padding: var(--s4); }
-.cg-pick-list { display: flex; flex-wrap: wrap; gap: var(--s2); margin: var(--s2) 0; }
+.cg-pick-list { display: flex; flex-wrap: wrap; gap: var(--s2); margin: var(--s2) 0; padding: 0; list-style: none; }
 .cg-pick { min-height: var(--h-lg); }
 .cg-row { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .cg-card { display: grid; gap: var(--s3); }
