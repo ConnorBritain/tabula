@@ -58,7 +58,7 @@ const SLOT_THEMES = [
 ];
 const SLOT_MAX_THEMES = 4;
 const SLOT_RFD_MAX = 10000;
-const freshSlot = () => ({ code: '', round: null, pts: {}, themes: {}, showName: false, msg: '', busy: false, sent: null });
+const freshSlot = () => ({ code: '', round: null, pts: {}, from: {}, themes: {}, showName: false, msg: '', busy: false, sent: null });
 let slot = freshSlot();
 let slotDlg = null;
 
@@ -90,6 +90,28 @@ function slotErrorText(status, body) {
 }
 
 const slotStudents = () => (slot.round ? [...slot.round.aff, ...slot.round.neg] : []);
+
+// The ballot's points for each student, so the judge does not type them twice: a student gets the points of the speaker
+// on their side whose Round setup name matches; the rest go in order when the counts match. The judge can change any.
+function slotPrefillPoints() {
+  const pts = (R.ballot && R.ballot.pts) || {};
+  for (const side of ['aff', 'neg']) {
+    const speakers = FMT().speakers.filter((sp) => sp.side === side);
+    const students = slot.round[side];
+    const key = (t) => String(t || '').trim().toLowerCase();
+    const pairs = new Map();
+    for (const st of students) {
+      const sp = speakers.find((x) => key(L.speakerName(R, x)) && key(L.speakerName(R, x)) === key(st.name) && ![...pairs.values()].includes(x));
+      if (sp) pairs.set(st, sp);
+    }
+    const restSt = students.filter((st) => !pairs.has(st)), restSp = speakers.filter((x) => ![...pairs.values()].includes(x));
+    if (restSt.length === restSp.length) restSt.forEach((st, i) => pairs.set(st, restSp[i]));
+    for (const [st, sp] of pairs) {
+      const v = pts[sp.id];
+      if (v !== undefined && v !== '' && v !== null) { slot.pts[st.id] = String(v); slot.from[st.id] = sp.label; }
+    }
+  }
+}
 
 // Picks or drops a theme for one student; at most 4.
 function slotToggleTheme(userId, theme) {
@@ -134,7 +156,7 @@ function slotSheetHtml() {
     <button class="b" type="button" data-slot="open"${slot.busy || slot.round ? ' disabled' : ''}>Open</button></div>`;
   if (!slot.round) return head + code + msg + `<div class="ask-btns"><button class="b" type="button" data-slot="no">Not now</button></div>`;
   const student = (s) => `<div class="mt-2" data-slot-student="${escapeHtml(s.id)}"><strong>${escapeHtml(s.name)}</strong>${s.getsBallot ? '' : ' <span class="muted">(no practice ballot)</span>'}
-    <label class="row">Points <input type="number" min="0" max="30" step="0.1" class="w-auto" data-slot-pts="${escapeHtml(s.id)}" value="${escapeHtml(slot.pts[s.id] ?? '')}"></label>
+    <label class="row">Points <input type="number" min="0" max="30" step="0.1" class="w-auto" data-slot-pts="${escapeHtml(s.id)}" value="${escapeHtml(slot.pts[s.id] ?? '')}">${slot.from[s.id] ? ` <span class="muted">from the ballot: ${escapeHtml(slot.from[s.id])}</span>` : ''}</label>
     <div class="row">${SLOT_THEMES.map(([v, label]) => { const on = (slot.themes[s.id] || []).includes(v); return `<button class="b small" type="button" id="${slotChipId(s.id, v)}" aria-pressed="${on}" data-slot-theme="${v}" data-slot-for="${escapeHtml(s.id)}">${escapeHtml(label)}</button>`; }).join('')}</div></div>`;
   const side = (label, list) => `<fieldset class="dlg-set mt-3"><legend>${label}</legend>${list.map(student).join('')}</fieldset>`;
   return head + code + side('Aff', slot.round.aff) + side('Neg', slot.round.neg)
@@ -160,7 +182,7 @@ async function slotOpenRound() {
   const r = await slotCall('open', { code });
   slot.busy = false;
   const ok = r.status === 200 && r.body && Array.isArray(r.body.aff) && Array.isArray(r.body.neg);
-  if (ok) { slot.code = code; slot.round = r.body; } else slot.msg = slotErrorText(r.status, r.body);
+  if (ok) { slot.code = code; slot.round = r.body; slotPrefillPoints(); } else slot.msg = slotErrorText(r.status, r.body);
   drawSlotSheet();
 }
 
@@ -221,7 +243,7 @@ document.addEventListener('input', (e) => {
   const t = e.target;
   if (!t || !t.closest || !t.closest('#slot-card')) return;
   if (t.matches('[data-slot-code]')) { if (!slot.round) slot.code = t.value; }
-  else if (t.matches('[data-slot-pts]')) slot.pts[t.dataset.slotPts] = t.value;
+  else if (t.matches('[data-slot-pts]')) { slot.pts[t.dataset.slotPts] = t.value; delete slot.from[t.dataset.slotPts]; }
 });
 document.addEventListener('change', (e) => {
   const t = e.target;

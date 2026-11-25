@@ -10,6 +10,8 @@ const ROUND = { id: 'round_a', at: 'fixture', format: 'policy',
   neg: [{ id: 'stu_cy', name: 'Cy Neg', getsBallot: true }, { id: 'stu_di', name: 'Di Neg', getsBallot: true }] };
 // Values made inside the page's realm, as plain values of this one (deepEqual compares prototypes).
 const plain = (x) => JSON.parse(JSON.stringify(x ?? null));
+// The policy format's speakers, as FMT() gives them.
+const SPEAKERS = [{ id: '1A', label: '1A', side: 'aff', slot: 'd1' }, { id: '2A', label: '2A', side: 'aff', slot: 'd2' }, { id: '1N', label: '1N', side: 'neg', slot: 'd1' }, { id: '2N', label: '2N', side: 'neg', slot: 'd2' }];
 const PROFILE = { displayName: 'J', programs: [{ id: 'prog_north', name: 'North High', role: 'judge' }] };
 
 class El {
@@ -25,7 +27,7 @@ class El {
 }
 
 // Loads judging.js with the switch as given, a signed-in profile (or none) and a fetch that answers from `replies`.
-function load({ on = false, profile = PROFILE, programId = 'prog_north', replies = [], ballot } = {}) {
+function load({ on = false, profile = PROFILE, programId = 'prog_north', replies = [], ballot, names } = {}) {
   const doc = { ids: {}, listeners: {}, addEventListener(t, fn) { (this.listeners[t] ||= []).push(fn); }, querySelectorAll: () => [],
     getElementById(id) { return this.ids[id] || null; }, createElement(tag) { return new El(this, tag); } };
   doc.body = new El(doc, 'body');
@@ -33,8 +35,10 @@ function load({ on = false, profile = PROFILE, programId = 'prog_north', replies
   const calls = [], dlg = { opened: 0, closed: 0 };
   const ctx = {
     document: doc, acctProfile: profile, console, AbortSignal,
-    R: { programId, ballot: ballot || { winner: 'aff', rfd: 'Aff won the case debate.', affFb: 'Good case.', negFb: 'Slow down.', pts: {} } },
-    L: { judgingFor: (v) => v, judgingLocked: () => false, judgingOptions: () => [] },
+    R: { programId, ballot: ballot || { winner: 'aff', rfd: 'Aff won the case debate.', affFb: 'Good case.', negFb: 'Slow down.', pts: {} },
+      aff: { d1: '', d2: '', ...(names || {}).aff }, neg: { d1: '', d2: '', ...(names || {}).neg } },
+    L: { judgingFor: (v) => v, judgingLocked: () => false, judgingOptions: () => [], speakerName: (r, sp) => String(((r || {})[sp.side] || {})[sp.slot] || '') },
+    FMT: () => ({ speakers: SPEAKERS }),
     store: { get: () => null, set() {} }, save() {}, refreshCaps() {},
     escapeHtml: (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])),
     modalDialog: () => ({ open() { dlg.opened++; }, close() { dlg.closed++; }, isOpen: () => dlg.opened > dlg.closed }),
@@ -172,4 +176,28 @@ test('a theme chip press keeps focus on the pressed chip', async () => {
   T.slotPickTheme('stu_cy', 'weak_weighing');
   assert.equal(doc.activeElement.id, 'slot-th-2-weak_weighing', 'also when the chip is dropped');
   assert.match(card(), /id="slot-th-2-weak_weighing" aria-pressed="false"/);
+});
+
+// Why: if the sheet did not take the ballot's points, the judge would type every score twice and could send different ones.
+test('points come from the ballot: by Round setup name, else in order', async () => {
+  const ballot = { winner: 'neg', rfd: 'Neg won on the DA.', affFb: '', negFb: '', pts: { '1A': 27, '2A': 28.5, '1N': 28, '2N': 29 } };
+  const { T, calls, card } = load({ on: true, ballot, names: { aff: { d1: 'ben aff ', d2: 'Ana Aff' } },
+    replies: [{ status: 200, body: ROUND }, { status: 200, body: { ok: true, sentTo: [], leftOut: [] } }] });
+  T.openSlotSheet(); T.slot.code = 'KQXWMRTZ'; await T.slotOpenRound();
+  assert.match(card(), /data-slot-pts="stu_ana" value="28.5"> <span class="muted">from the ballot: 2A<\/span>/, 'matched by name, not order');
+  assert.match(card(), /data-slot-pts="stu_ben" value="27">/);
+  assert.match(card(), /data-slot-pts="stu_cy" value="28"> <span class="muted">from the ballot: 1N/, 'no names on neg: in order');
+  T.slot.pts.stu_di = '29.5';
+  await T.slotSend();
+  assert.deepEqual(calls[1].body.points, { stu_ana: 28.5, stu_ben: 27, stu_cy: 28, stu_di: 29.5 }, 'an edited value wins');
+});
+
+// Why: a guess by order with unequal counts would put one debater's points on another student's ballot.
+test('no points are guessed when the counts differ and no name matches', async () => {
+  const ballot = { winner: 'aff', rfd: 'Aff.', affFb: '', negFb: '', pts: { '1A': 27, '2A': 28, '1N': 28, '2N': 29 } };
+  const round = { ...ROUND, aff: [ROUND.aff[0]], neg: [...ROUND.neg, { id: 'stu_eve', name: 'Eve Neg', getsBallot: true }] };
+  const { T, card } = load({ on: true, ballot, replies: [{ status: 200, body: round }] });
+  T.openSlotSheet(); T.slot.code = 'KQXWMRTZ'; await T.slotOpenRound();
+  assert.deepEqual(plain(T.slot.pts), {});
+  assert.doesNotMatch(card(), /from the ballot/);
 });
