@@ -4,8 +4,7 @@ The account site is the web console where you sign in, manage your profile, run 
 Its code is not public. This list is.
 
 Everything on this page lives **on our server**, not on your device, except the cookies and a short browser copy of
-photos. The judging app and Speech Events keep their own
-data on your device; see [debate.md](debate.md) and [events.md](events.md).
+photos. The judging app and Speech Events keep their own data on your device; see [debate.md](debate.md) and [events.md](events.md).
 
 Some words used below:
 
@@ -58,7 +57,7 @@ When someone else sees a student's photo, we write a row in the student-data rea
 
 | Data | Why | Who can see it | Export | Delete | How long we keep it | Where it lives |
 |---|---|---|---|---|---|---|
-| Sign-in request: the email you typed (it may have no account), a scrambled copy (hash) of the sign-in link and of the 6-digit code, the page to return to, times, tries (up to 5) | Emails you a sign-in link and code. The sign-in request keeps only scrambled copies. The queued email holds the link and code until it is sent (see Emails we send). | No screen shows it. | Not in the self-service export; ask us | Closing your account deletes these for your email. | A code works for 15 minutes. We delete the request 24 hours after it stops working. | Our server |
+| Sign-in request: the email you typed (it may have no account), a scrambled copy (hash) of the sign-in link and of the 6-digit code, the page to return to, times, tries (up to 5) | Emails you a sign-in link and code. The sign-in request keeps only scrambled copies. The queued email holds the link and code until it is sent or 5 tries fail (see Emails we send). | No screen shows it. | Not in the self-service export; ask us | Closing your account deletes these for your email. | A code works for 15 minutes. We delete the request 24 hours after it stops working. | Our server |
 | Session: times, a scrambled copy of a fresh confirmation code, a sign-in strength level. No IP address, browser name or device. | Keeps you signed in | No screen shows it. | Not in the self-service export; ask us | Sign out, "sign out everywhere", or close your account. | Up to 30 days. It also ends after 30 days without use, or 12 hours without use for staff. We delete it when it ends and is next checked. | Our server (a fast per-person store) |
 | Count of confirmation emails sent | Limits how many confirmation codes we send | No screen shows it. | No | Automatic | 1 hour | Our server (a fast per-person store) |
 | One-time passkey challenge | Passkey sign-in. **This feature is not on yet.** | No screen shows it. | No | Deleted when used | Unused ones that run out: we have no automatic deletion for these yet. | Our server |
@@ -106,7 +105,7 @@ A join code holds no student data.
 | Link between your account and the payment service's customer record | Billing | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
 | Auto-renew consent: person, product, notice version, times | A record that you agreed to automatic renewal (required in California) | No screen shows it. | Not in the self-service export; ask us | No | At least 3 years. We have no automatic deletion for this yet. | Our server |
 
-Checkout without an account is off. When it is on, the checkout record also holds a scrambled copy of a random cookie
+Checkout without an account is off. When it was on, the checkout record also holds a scrambled copy of a random cookie
 value and of the IP address. We keep these records.
 
 ## Buying rounds for someone else
@@ -142,7 +141,7 @@ and the time.
 
 | Data | Why | Who can see it | Export | Delete | How long we keep it | Where it lives |
 |---|---|---|---|---|---|---|
-| Request counters, kept by IP address (sign-in, answer links, checkout without an account) or by account number (AI, export, photo, checkout) | Stops abuse and overload | No screen shows them. | No | Automatic | Each count covers 60 seconds. How the hosting provider stores them: we are confirming this. | Our hosting provider |
+| Request counters, kept by IP address or by account number | Stops abuse and overload | No screen shows them. | No | Automatic | Each count covers 60 seconds. | Our server. Where exactly: we are confirming this. |
 
 ## Security counts
 
