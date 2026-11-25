@@ -119,7 +119,7 @@ Research date: November 2026.
 - Group features by role, like NSDA does: "For judges", "For coaches", "For debaters".
 - Use tabs like Monologue for the three roles. One image per tab.
 - Keep each feature to one heading and one sentence.
-- Add a short "How the AI works" block. Say: bring your own key for free, or use a paid plan with no key. Say program admins can turn AI off for students.
+- Add a short "How the AI works" block. Say: bring your own key for free, or use a paid plan with no key. Say school admins can turn AI off for students.
 
 ### What to avoid
 

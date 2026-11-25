@@ -536,7 +536,7 @@ School Google and Microsoft accounts for students under 18 often need the school
 9. **Next track: novice debater**, after the parent judge track. It needs 3 wave-2 pages: `answering-disadvantages`, `permutations`, `rebuttal-strategy` (as decided 2026-11-19; all 3 were written 2026-11-20, see §2.2).
 10. **Students and judge tracks:** students may read the judge tracks and do their per-step checks, but cannot earn a judge badge for now.
 11. **The retry wait grows.** After several fails in one day: 5 minutes, then 15, then 60. Tries stay unlimited (§5.3).
-12. **The free school space covers badges and tracks only:** join code, assign a track, see done or not done, badges. **Track assignments** are this narrow thing. The full **assignments** of `STUDENT-EDITION.md` §10d (drills, speech redos, case review), the feedback inbox and hosted AI stay in the paid Program (§10g).
+12. **The free school space covers badges and tracks only:** join code, assign a track, see done or not done, badges. **Track assignments** are this narrow thing. Other paid features stay in the paid Program (`STUDENT-EDITION.md` §10g).
 13. **A parent-path account is deleted 12 months after its last sign-in**, with reminders 30 days before, 7 days before and on the day, each with an export link.
 14. **Coaches see a real display name** for each student in a school space. `BUSINESS-PLAN.md` §10 row 11 is amended to match (§6.3).
 15. **Parents get a light account for data rights only:** see what is stored, export, delete, withdraw consent. No progress view, no alerts (§6.4).

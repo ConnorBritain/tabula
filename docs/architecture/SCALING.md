@@ -2,7 +2,7 @@
 
 How Tabula stays cheap when nobody is using it, and safe when everyone is.
 
-This file is public. It shows **costs** only. It has no prices, plan names or margins. Every number is an estimate. Check live provider prices before you build.
+This file is public. It shows the cost **method** and Cloudflare list prices only. It has no prices, plan names, margins or per-round totals. Every number is an estimate. Check live provider prices before you build.
 
 Related: `ARCHITECTURE.md` (the parts), private business plan §3 and §5 (credits and the first hosting sketch).
 
@@ -36,8 +36,8 @@ So the cost problem is the **AI bill**, not hosting. Hosting choices matter for 
 ### 3.1 Assumptions
 
 - A typical policy round: 8 speeches (52 min) plus 4 cross-examinations (12 min), so about 64 minutes of talk, about 68 minutes in all.
-- Transcription: about 8 s clips with 1 s overlap, so 64 min bills about 72 min. Hosted speech-to-text at about $0.10 per audio hour.
-- AI: a cheap "standard" model for all automatic calls, at about $0.10 per million input tokens, $0.01 per million cached input tokens, and $0.50 per million output tokens.
+- Transcription: about 8 s clips with 1 s overlap, so 64 min bills about 72 min. Hosted speech-to-text bills per audio hour at the provider's list rate.
+- AI: a cheap "standard" model for all automatic calls, billed per million input tokens, cached input tokens and output tokens at the provider's list rates (check before build).
 - After the planned token fixes, a typical round sends about 2.5M input tokens. About 70% are cache reads. About 150k output tokens.
 - Requests: about 7.5 transcription requests a minute and 1.3 AI requests a minute, so about 600 Worker requests a round.
 - Cloudflare list prices (check before build): Workers Paid $5/month with 10M requests and 30M CPU-ms included, then $0.30 per million requests and $0.02 per million CPU-ms. Durable Objects: 1M requests included, then $0.15 per million. D1: 50M row writes a month included.
@@ -46,12 +46,11 @@ So the cost problem is the **AI bill**, not hosting. Hosting choices matter for 
 
 | Item | Math | Cost |
 |---|---|---|
-| Transcription | 72 min × $0.10 ÷ 60 | $0.12 |
-| AI input, uncached | 0.75M × $0.10/M | $0.075 |
-| AI input, cache reads | 1.75M × $0.01/M | $0.018 |
-| AI cache writes (premium on first write) | estimate | ~$0.03 |
-| AI output | 0.15M × $0.50/M | $0.075 |
-| **Provider total** | | **≈ $0.32** from these assumptions. Use **$0.38**: the private plan's fuller estimate, which adds the doc-reading and ballot calls. Range about $0.20 (light) to $0.66 (heavy). |
+| Transcription | 72 min × the per-hour rate | Provider bill |
+| AI input, uncached | 0.75M × the uncached rate | Provider bill |
+| AI input, cache reads | 1.75M × the cached rate | Provider bill |
+| AI cache writes (premium on first write) | estimate | Provider bill |
+| AI output | 0.15M × the output rate | Provider bill |
 | Worker requests | 600 × $0.30/M | $0.0002 |
 | Worker CPU | 600 × ~5 ms × $0.02/M ms | $0.0001 |
 | Durable Object meter, requests | ~600 × $0.15/M | $0.0001 |
@@ -60,16 +59,16 @@ So the cost problem is the **AI bill**, not hosting. Hosting choices matter for 
 | D1 writes | ~30 rows (once per speech, plus round start and end) | ~$0 |
 | **Cloudflare total** | | **≈ $0.002** |
 
-**Result:** about **$0.38 a round**, and Cloudflare is under 1% of it. An optional analysis on a stronger model adds about $0.15 to $0.25 per use.
+**Result:** the AI and transcription providers are almost all of the cost of a round. Cloudflare is under 1% of it. An optional analysis on a stronger model adds to the provider bill per use.
 
 **DO duration note.** Durable Objects bill for wall-clock time while active. The design keeps the meter idle between calls: the Worker, not the DO, waits on the provider (`ARCHITECTURE.md` §4). If a meter DO stayed active for a whole 68-minute round instead, it would cost about 510 GB-s a round (about $0.006), about $14 a month at "Launch" and about $370 a month at "Many formats". Still small next to the AI bill, but worth avoiding.
 
-A round with **browser transcription** drops the $0.12. A free user with their own key costs Tabula **$0**.
+A round with **browser transcription** drops the transcription line. A free user with their own key costs Tabula **$0**.
 
 ### 3.3 Other formats and Speech Events
 
-- Cost follows minutes of talk. A policy round is about 64 minutes of talk; LD about 45; PF about 40 (`docs/growth/FORMATS.md`). So an LD or PF round costs roughly **60 to 70%** of a policy round: about $0.25 (est., from the $0.38 policy total in §3.2).
-- Tabula Speech Events uses little hosted AI: no live flow, no transcription in competitive rounds by default, and one "clean up my comments" call per entry. Est. a few cents per room. Its load is small next to debate.
+- Cost follows minutes of talk. A policy round is about 64 minutes of talk; LD about 45; PF about 40 (`docs/growth/FORMATS.md`). So an LD or PF round costs roughly **60 to 70%** of a policy round.
+- Tabula Speech Events uses little hosted AI: no live flow, no transcription in competitive rounds by default, and one "clean up my comments" call per entry. Its cost per room is a small part of a debate round's. Its load is small next to debate.
 - The peak shape is the same: speech events run on the same tournament days.
 
 ## 4. Cost per month at four traffic levels
@@ -84,12 +83,14 @@ A round with **browser transcription** drops the $0.12. A free user with their o
 
 ### 4.2 Table (a busy season month)
 
-| Level | Paying judges | Hosted rounds / month | Peak rounds at once | Peak Worker req/s | AI + transcription | Cloudflare | Other fixed | **Total / month** |
-|---|---|---|---|---|---|---|---|---|
-| Pilot | 50 | 300 | 10 | ~1.5 | $114 | $5 | $0–20 | **≈ $120–140** |
-| Launch | 500 | 3,000 | 100 | ~15 | $1,140 | $5 | $10–30 | **≈ $1,150–1,180** |
-| Growth | 2,000 | 12,000 | 400 | ~60 | $4,560 | ~$6 | $20–50 | **≈ $4,600** |
-| Many formats | 10,000 | 60,000 | 2,000 | ~300 | $22,800 | ~$20 | $50–150 | **≈ $22,900–23,000** |
+| Level | Paying judges | Hosted rounds / month | Peak rounds at once | Peak Worker req/s | Cloudflare | Other fixed |
+|---|---|---|---|---|---|---|
+| Pilot | 50 | 300 | 10 | ~1.5 | $5 | $0–20 |
+| Launch | 500 | 3,000 | 100 | ~15 | $5 | $10–30 |
+| Growth | 2,000 | 12,000 | 400 | ~60 | ~$6 | $20–50 |
+| Many formats | 10,000 | 60,000 | 2,000 | ~300 | ~$20 | $50–150 |
+
+The AI and transcription bill for each level is hosted rounds × the cost of one round (§3). Those totals are not in this public file.
 
 Cloudflare at "Many formats": 36M requests (26M over the included amount, $7.80), about 180M CPU-ms ($3), about 36M DO requests ($5.25), base $5. About $20.
 
@@ -174,9 +175,9 @@ Our accounts now:
 
 | Model | Provider and org | Tier | Requests per minute | Tokens per minute |
 |---|---|---|---|---|
-| gpt-6-luna (main) | OpenAI, Pattern Engine AI org | Build | 5,000 | 2,000,000 |
-| claude-haiku-5-5 (failover) | Anthropic, Pattern Engine LLC | Build | 10,000 | 5M input, 1M output |
-| claude-sonnet-5-5 (deep actions) | Anthropic, Pattern Engine LLC | Build | 10,000 | 5M input, 1M output |
+| gpt-6-luna (main) | OpenAI, company org | Build | 5,000 | 2,000,000 |
+| claude-haiku-5-5 (failover) | Anthropic, company org | Build | 10,000 | 5M input, 1M output |
+| claude-sonnet-5-5 (deep actions) | Anthropic, company org | Build | 10,000 | 5M input, 1M output |
 
 OpenAI tier ladder for gpt-6-luna (from the OpenAI limits page):
 
@@ -188,7 +189,7 @@ OpenAI tier ladder for gpt-6-luna (from the OpenAI limits page):
 | Grow | 30,000 | no cap shown | 180,000,000 | 15,000,000,000 |
 
 Rules:
-- The production OpenAI key must come from the **Pattern Engine AI** org. The owner's "Personal" org is on the Free tier (50 requests a day), which would push almost every call to failover.
+- The production OpenAI key must come from the **company** org. The owner's "Personal" org is on the Free tier (50 requests a day), which would push almost every call to failover.
 - Build gives Luna 4,000 calls a minute after the 80% margin. The app makes one live-flow pass every 30 s per speech, so this is far above the 400-round load test. Ask for Launch before a season where "Growth" traffic is likely.
 - Read both consoles again each August and update `src/ai/prices.ts` and this table together.
 
@@ -226,4 +227,4 @@ Never queue live transcription or the live flow.
 2. **Transcription default for paid users at peak:** hosted first (better text, server load), or on-device first where the device can (no server load, needs the offline engine)?
 3. **Alert channel:** phone push, SMS or email? Who backs you up if you cannot answer on a Saturday?
 4. **Status page:** a hosted status service on its own domain (never a `*.tabulaspeech.com` subdomain, `ARCHITECTURE.md` §3.2), or a static page you edit by hand?
-5. **Load test budget:** the test spends real provider money (est. $100 to $200: 200 full rounds at about $0.38, plus the ramp test). Is that fine?
+5. **Load test budget:** the test spends real provider money (200 full rounds, plus the ramp test). Is that fine?

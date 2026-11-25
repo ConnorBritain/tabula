@@ -243,49 +243,9 @@ The target is two taps plus the room. The same picker serves the coach ("Add to 
 - Add a "Moved to room X" edit.
 - BallotCard holds its own `tournament`. A judge can go to two tournaments in one weekend, so the Day record is not enough.
 
-## 6. Coach assigns practice; student does it
+## 6. Coach and student practice
 
-### 6.1 Coach
-
-- **Team home:** a table of students, with their events, one status word ("Assigned", "Done", "Feedback sent") and the last date active. A side panel shows one student's practice runs and imported ballots, by event.
-- **Assign practice (bulk, across events) [fix]:**
-  - One practice set holds one or more **items**.
-  - Each item names a type, a prompt (an extemp question set, an IMP topic, a PCC topic, or "bring your piece"), a profile, and the students in that event group.
-  - Example: USX questions for 6 students and an HI run-through for 4, in one action.
-  - The set has one due date and one practice-judge role (self, peer, parent or coach).
-- **Set detail:** counts for each item (Not started, Done, Feedback sent) and a row for each student.
-- **Late changes [crit]:** a coach can add a student to an item that was already sent. The app sends that student the same packet. A coach can also mark a student as dropped.
-
-### 6.2 Hand-off with no server copy
-
-[ARCHITECTURE.md](ARCHITECTURE.md) §6.4 puts no names or comments on the server. So the hand-off goes from device to device.
-
-**Coach to student (the assignment).** Three paths:
-
-- a `.tabula-practice` file
-- a link with the payload after `#`. The hash fragment is the part of a URL that the browser never sends to the server.
-- a copy-paste text block, for school devices that cannot save files
-
-The assignment payload holds **no student names and no comments**. The team packet is the same for every student. Each student types their own name on their own device **[AF]**. The coach device keeps the list of who got what.
-
-**Student to coach (the result) [crit].** The result holds comments about a minor. A hash link that someone pastes into a school chat, an email or a browser sync tool can leak them. So:
-
-- The result goes back **by file or by paste only**, never by link.
-- The coach imports it. The app matches it by `setId` and `itemId`, and checks `defVersion`.
-- Option for later: encrypt the result with a short code that the coach reads aloud.
-
-### 6.3 Student
-
-- **To do:** cards with the type pill, the due date and Start. A banner says "2 due this week".
-- **Start** opens `#/round/<id>` in the practice frame. The roster has one entry.
-- **Practice judge intro [crit]:** before the first practice run, a peer or parent sees one screen. It explains the event in plain words (from the type's Guide), what to watch, and how to write a kind, useful comment.
-- At the end, **Send to coach** makes the result. It holds the timing, the rank or rating, the comments and the judge role. v1 sends no audio.
-- **Feedback card:**
-  - the type pill, the time used, and the rank or rating
-  - comments split into Strengths and To work on
-  - one action: **Practice again**
-- **My runs:** all runs. A student can also paste a real ballot to build a ballot history by event **[ET]**.
-- **Who sees what:** the "Reason for rank" goes to the whole room. Comments for one entry go only to that student and the coach.
+The coach and student practice screens are not designed in this public doc. The privacy rules below hold for any coach or student screen.
 
 ### 6.4 Privacy for minors **[crit]**
 
@@ -293,7 +253,7 @@ Coach and student devices hold names and comments about minors.
 
 | Risk | Rule |
 |---|---|
-| Comments leak through a link | Results go back by file or paste only (§6.2) |
+| Comments leak through a link | Results go back by file or paste only, never by link |
 | Shared or school device | A "Shared device" switch clears student data on exit |
 | Data kept forever | A "Delete my data" action in each mode. A prompt on coach devices to clear data after the season. |
 | AI sends a minor's comment to a model | The code scrub runs on every AI call in Practice mode. AI clean-up is off by default in Student mode. |

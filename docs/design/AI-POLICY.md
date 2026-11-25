@@ -22,7 +22,7 @@ Related: `docs/STUDENT-EDITION.md` (§1e judging tools, §5a coach controls, §1
 
 | Role | Who | Can set policy? | Is covered by a policy? |
 |---|---|---|---|
-| **Program admin** | Head coach or the person who owns the program | Yes, for every role in the program | Their own coach policy (they set it) |
+| **Admin** | Head coach or the person who owns the program | Yes, for every role in the program | Their own coach policy (they set it) |
 | **Coach** | Assistant coach | Only if the admin gives them "can edit AI policy" | Yes (coach role) |
 | **Student** | A debater in the program | No | **Yes. This is the main use.** |
 | **Program judge** | A parent, alum or student judge that the program brings, on the program's seats or credit pool | No | Only for the program's pool (see 1a) |
@@ -94,7 +94,7 @@ The master switch **"AI tools: off"** sets all of these to off. "Flow only" is t
 ### 2c. Managed and linked accounts
 
 - **Managed account:** made through the school (students 13 to 17 can only get an account this way or with parent consent; ARCHITECTURE §5). The policy applies to **every round** on that account.
-- **Linked account:** a person's own account (for example an 18-year-old senior with their own plan) that joins a program. The policy applies to **program rounds only**. Their own rounds use their own plan.
+- **Linked account:** a person's own account (for example an 18-year-old senior with their own plan) that joins a program. The policy applies to **rounds opened for the program only**. Their own rounds use their own plan.
 
 ### 2d. How the policy reaches the app
 
@@ -222,7 +222,7 @@ Plus a browser check (the DOM test; no new packages): with `?ai=off`, no id from
 - **Plans:**
   - A "Flow only" program spends no credits on those users. Seat pricing for Flow-only users is a later question (§8, Later).
   - Turning AI off costs nothing to run. **The AI policy is also in the free school space** (owner decision). A school should never have to pay to make the app *less* able. This **amends** STUDENT-EDITION §10g, which lists only join code, track assignments and badges for the free space (decided, §8 item 4).
-  - A linked user's own plan (for example a Pass) is not charged in program rounds where AI is off. What happens to unused personal credits follows the plan's normal rules (private business plan).
+  - A linked user's own plan (for example a Pass) is not charged in rounds opened for the program where AI is off. What happens to unused personal credits follows the plan's normal rules (private business plan).
 
 ---
 
@@ -245,7 +245,7 @@ Plus a browser check (the DOM test; no new packages): with `?ai=off`, no id from
 ### 6c. Own-key user joins a program that bans AI
 
 - **The key is never deleted by Tabula.** It belongs to the user.
-- **While the policy applies** (every round on a managed account; program rounds on a linked account), the app does not load the key into memory, does not show it, and makes no call with it. Settings has no key card.
+- **While the policy applies** (every round on a managed account; rounds opened for the program on a linked account), the app does not load the key into memory, does not show it, and makes no call with it. Settings has no key card.
 - **At join, once:** "Your saved key is paused in {program} rounds. It stays on this device. [Remove it] [Keep it]". Then never again. It names no feature; it is about the user's own property (decided, §8 item 3).
 - **When they leave the program**, or in their own rounds on a linked account, the key works again.
 - Keys are not remembered by default (D1), so most keys are gone at the end of the tab anyway.
@@ -293,7 +293,7 @@ Step 1 changes app files. Slice 4 owns them now, so it waits.
 
 ## 9. New York companion rules (from 2027-01-01)
 
-Source: New York GBL Art. 48 (Laws 2026 ch. 368, signed 2026-10-28, effective 2027-01-01). Research: `private/legal/minors-ai-research/group7-gaps-2026-11-23.md`, item 3. Adopted by the owner and the lawyer on 2026-11-23.
+Source: New York GBL Art. 48 (Laws 2026 ch. 368, signed 2026-10-28, effective 2027-01-01). Adopted by the owner on 2026-11-23.
 
 The law defines a "covered AI companion" broadly. It bans 12 "unsafe features" for users who are not age-checked as adults. Tabula stays outside it by keeping Hosted AI a narrow tool. These rules apply to every Hosted AI feature, for every user, in every state:
 
