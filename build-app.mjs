@@ -2,8 +2,8 @@
 // Copies an ALLOWLIST of the app's public files into dist/app/. A new file in the repo
 // root (a plan, a test, private notes) never ships unless someone adds it here.
 // Then it checks that every local file index.html and about.html link to is in the output.
-// It also writes version.json ({ sha, builtAt }) so anyone can see which commit is live.
-// Run: node build-app.mjs [outDir]
+// It also writes version.json ({ sha, builtAt, mode }) so anyone can see which commit is live.
+// Run: node build-app.mjs [outDir] [--strict]   (a deploy build uses --strict; see versionInfo)
 import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -22,24 +22,45 @@ export const ALLOW = [
 // core/package.json only tells Node that core/ holds ES modules; the page does not need it.
 const BLOCK = [/\.test\.(m?js)$/, /(^|\/)README\.md$/, /\.local\./, /(^|\/)\./, /^core\/package\.json$/];
 
-/**
- * What version.json says: { sha, builtAt }. Other Tabula services use the same field
- * names, so one deploy check can read them all.
- * BUILD_SHA and BUILD_TIME override; else `git rev-parse HEAD` and the clock; else "dev".
- * It never throws: a missing git must not stop a deploy.
- */
-export function versionInfo(env = process.env, now = new Date()) {
-  let sha = (env.BUILD_SHA || '').trim();
-  if (!sha) {
-    try {
-      sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-    } catch { sha = ''; }
-  }
-  const builtAt = (env.BUILD_TIME || '').trim() || now.toISOString();
-  return { sha: sha || 'dev', builtAt };
+const SHA40 = /^[0-9a-f]{40}$/;
+export const MODES = ['prod', 'staging', 'local'];
+
+function git(args) {
+  try { return execFileSync('git', args, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { return null; }
 }
 
-export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW, env = process.env) {
+/**
+ * What version.json says: { sha, builtAt, mode }. Other Tabula hosts use the same fields, so one
+ * deploy check can read them all.
+ *   sha:     BUILD_SHA if it is a full 40-hex commit id, else `git rev-parse HEAD`, else "unknown".
+ *   builtAt: BUILD_TIME, else the clock (ISO 8601).
+ *   mode:    BUILD_MODE ("prod", "staging" or "local"), else "local".
+ * Problems (no usable sha, a working tree with uncommitted changes, an unknown mode) come back in
+ * `warnings`. It never throws: the normal build must not fail for want of git. A deploy build runs
+ * with --strict (or BUILD_STRICT=1), which turns any warning into a failed build.
+ */
+export function versionInfo(env = process.env, now = new Date()) {
+  const warnings = [];
+  const given = (env.BUILD_SHA || '').trim().toLowerCase();
+  let sha = SHA40.test(given) ? given : null;
+  if (given && !sha) warnings.push(`BUILD_SHA "${given}" is not a 40-hex commit id; using git instead`);
+  const head = (git(['rev-parse', 'HEAD']) || '').toLowerCase();
+  if (!sha && SHA40.test(head)) sha = head;
+  // A checkout with uncommitted changes is not exactly the commit it names. (No git here: nothing to check.)
+  if (sha && sha === head && git(['status', '--porcelain', '--untracked-files=no'])) {
+    warnings.push('the working tree has uncommitted changes, so the build is not exactly commit ' + sha);
+  }
+  if (!sha) { sha = 'unknown'; warnings.push('no commit id (set BUILD_SHA or build from a git checkout); version.json says "unknown"'); }
+  let mode = (env.BUILD_MODE || '').trim() || 'local';
+  if (!MODES.includes(mode)) { warnings.push(`BUILD_MODE "${mode}" is not one of ${MODES.join(', ')}; using "local"`); mode = 'local'; }
+  const builtAt = (env.BUILD_TIME || '').trim() || now.toISOString();
+  return { version: { sha, builtAt, mode }, warnings };
+}
+
+export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW, env = process.env, { strict = false } = {}) {
+  const { version, warnings } = versionInfo(env);
+  if (strict && warnings.length) throw new Error('build-app --strict: ' + warnings.join('; '));
+  for (const w of warnings) console.warn('build-app: warning: ' + w);
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
   for (const name of allow) {
@@ -50,7 +71,7 @@ export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW, env = proc
       filter: (p) => !BLOCK.some((re) => re.test(relative(ROOT, p).split('\\').join('/'))),
     });
   }
-  writeFileSync(join(out, 'version.json'), JSON.stringify(versionInfo(env)) + '\n');
+  writeFileSync(join(out, 'version.json'), JSON.stringify(version) + '\n');
   const missing = missingRefs(out);
   if (missing.length) throw new Error(`build-app: a shipped page links to files that are not in the output: ${missing.join(', ')}`);
   return out;
@@ -78,6 +99,8 @@ export function listFiles(dir, base = dir) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const out = build(process.argv[2]);
+  const args = process.argv.slice(2);
+  const strict = args.includes('--strict') || process.env.BUILD_STRICT === '1';
+  const out = build(args.find((a) => !a.startsWith('--')), ALLOW, process.env, { strict });
   console.log(`build-app: ${listFiles(out).length} files in ${relative(ROOT, out) || out}`);
 }
