@@ -251,6 +251,27 @@ events/
 - **Devices:** laptop, iPad and phone. The phone layout is a first-class target, because many lay judges only have a phone.
 - **Keep the screen awake** while a room is open (Screen Wake Lock API, where the browser supports it).
 - **Battery and quiet:** no sounds by default. An optional soft vibration on phones at each signal.
+- **Install:** `events/manifest.webmanifest` (name, relative start URL and scope, standalone, grey colors, 192, 512 and
+  maskable icons in `events/icons/`). `events/index.html` links it with an apple-touch-icon and a grey theme color, so
+  the offline cache holds it too.
+
+### Data safety
+
+Speech Events stores a judge's rounds, ballot cards, comments and settings on the device, in this browser's storage
+under `tabulaEvents.*`. There is no server copy: only text the judge sends to their own AI key for clean-up leaves the
+device. Browsers can clear that storage (Safari may after about a week
+without a visit, unless the app is installed), and school laptops are often shared, so:
+
+- **Ask to keep it.** The first saved round or ballot card asks the browser to keep the data
+  (`navigator.storage.persist()`), once per device (`tabulaEvents.persistAsked.v1`). Settings → Data says in one line
+  whether this browser keeps the rounds. A browser without the API is never asked and never errors.
+- **Backup reminder.** When the judging day is over (today has ballots, none left to judge, not on standby, no Congress
+  chamber in use) and nothing is backed up since the last change, My day shows a "Download backup" reminder with
+  "Not now". The only thing stored for this is the time of the last backup (`tabulaEvents.backupAt.v1`).
+- **Clear this device.** Settings → Data removes every `tabulaEvents.*` value from this browser (and this tab's
+  session storage, where a tab-only AI key lives), after a confirm that says what goes and offers a backup first. The
+  toast's Undo puts it back while the tab is open. The store's prefix guard (`core/store.js`) means it cannot touch
+  Tabula Debate's keys. The offline cache holds only the public app files, so it stays.
 
 ## 11. Security
 

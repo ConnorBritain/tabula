@@ -13,7 +13,9 @@ import { mydayModel, cardEvent, cardEventId, duePill, roomText, upNextItem, canc
 import { roomEvent, present, CUSTOM_EVENT } from './room.js';
 import { dayOf } from './rooms.js';
 import { routeHash } from './routes.js';
-import { ranksDueMinOf } from './settings.js';
+import { ranksDueMinOf, lastChangeAt, backupReminderDue } from './settings.js';
+import { BACKUP_AT_KEY } from './store.js';
+import { downloadBackup } from './settings-screen.js';
 
 export const MD_TOAST_KEY = 'md-card';
 
@@ -118,10 +120,20 @@ export function upNextHtml(v, now, menuOpen) {
     </div></section>`;
 }
 
+// The end-of-day reminder (settings.js backupReminderDue says when): the rounds live only in this browser, so a backup
+// file is the copy that survives a cleared browser or a shared laptop.
+export const backupReminderHtml = () => `<section class="md-backup" aria-labelledby="md-bk-h">
+      <h2 id="md-bk-h">Done for the day?</h2>
+      <p>Your rounds are saved only in this browser. Download a backup so you keep a copy.</p>
+      <div class="md-act"><button class="b" type="button" id="md-backup">Download backup</button>
+        <button class="b quiet" type="button" id="md-backup-later">Not now</button></div>
+    </section>`;
+
 // The whole screen as HTML text. m: mydayModel(...); day: today's Day or null; events: the registry.
 // congress (optional): [{ id, label }], today's Congress chambers (events/congress/store.js congressToday, via env). A Congress chamber in use counts as a ballot, so Standby does not show.
 // menuFor (optional): the key of the item whose "⋯" menu is open.
-export function mydayHtml(m, day, events, now, congress, menuFor) {
+// reminder (optional): true shows the end-of-day backup reminder.
+export function mydayHtml(m, day, events, now, congress, menuFor, reminder) {
   const sub = [dayOf(now), day && day.tournament].filter(Boolean).join(' · ');
   const chambers = Array.isArray(congress) ? congress : [];
   const busy = m.sections[0].items.length + m.sections[1].items.length + chambers.length > 0;
@@ -144,7 +156,7 @@ export function mydayHtml(m, day, events, now, congress, menuFor) {
   const standbyOn = !m.standby && !busy ? '<button class="b" type="button" id="md-standby-on">I am on standby</button>' : '';
   return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">My day</h1><a class="b${next ? '' : ' primary'}" id="md-start" href="${esc(routeHash('pick'))}">${icon('plus')}Start a round</a>${standbyOn}</div>
     ${sub ? `<p class="muted md-sub">${esc(sub)}</p>` : ''}
-    ${standby}${note}${empty}${nextHtml}${secs}${cong}
+    ${standby}${note}${reminder ? backupReminderHtml() : ''}${empty}${nextHtml}${secs}${cong}
     <p class="muted md-foot">Older rounds are in <a href="${esc(routeHash('history'))}">History</a>.</p>`;
 }
 
@@ -153,11 +165,15 @@ export function createMydayScreen(env) {
   const $ = (s) => env.el.querySelector(s);
   let showing = false, tick = null, model = null;
   let menuFor = null; // the key of the item whose "⋯" menu is open
+  let dismissedAt = null; // the last-change time the judge said "Not now" to (this tab only: it shows again after a new change)
 
   function draw(focusKey) {
     const day = env.day.today();
-    model = mydayModel({ day, cards: env.day.cards(), rounds: env.rooms(), now: env.now(), ranksDueMin: ranksDueMinOf(env.settings()) });
-    env.el.innerHTML = mydayHtml(model, day, env.data.events, env.now(), env.congressToday ? env.congressToday(env.now()) : [], menuFor);
+    const cards = env.day.cards(), rounds = env.rooms();
+    model = mydayModel({ day, cards, rounds, now: env.now(), ranksDueMin: ranksDueMinOf(env.settings()) });
+    const chambers = env.congressToday ? env.congressToday(env.now()) : [];
+    const reminder = Boolean(env.store) && backupReminderDue({ model, chambers, lastChange: lastChangeAt(rounds, cards), lastBackupAt: env.store.get(BACKUP_AT_KEY, null), dismissedAt });
+    env.el.innerHTML = mydayHtml(model, day, env.data.events, env.now(), chambers, menuFor, reminder);
     focusItem(focusKey);
   }
   // The item element of a key, found by position (an id never goes in a CSS selector).
@@ -218,6 +234,8 @@ export function createMydayScreen(env) {
   async function onClick(e) {
     const t = e.target;
     if (t.id === 'md-standby-on') { if (env.day.setStandby(true)) { draw(); $('#md-got').focus(); } return; }
+    if (t.id === 'md-backup') { downloadBackup(env, false); draw(null); return; }
+    if (t.id === 'md-backup-later') { dismissedAt = lastChangeAt(env.rooms(), env.day.cards()); draw(null); return; }
     if (t.id === 'md-standby-off') { if (env.day.setStandby(false)) { draw(); const b = $('#md-standby-on') || $('#screen-title'); b.focus(); } return; }
     const b = t.closest('button[data-act]');
     if (!b) return;
@@ -263,4 +281,4 @@ export function createMydayScreen(env) {
   };
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).myday = Object.freeze({ MD_TOAST_KEY, sinceText, itemKey, itemView, dueHtml, cardHtml, upNextHtml, mydayHtml });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).myday = Object.freeze({ MD_TOAST_KEY, backupReminderHtml, sinceText, itemKey, itemView, dueHtml, cardHtml, upNextHtml, mydayHtml });
