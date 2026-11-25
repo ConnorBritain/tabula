@@ -34,7 +34,7 @@ main:has(.cg-screen) { max-width: 1120px; }
 .cg-line .code { font-weight: var(--fw-4); }
 .cg-line.is-out { color: var(--text-3); }
 .cg-cells { display: flex; flex-wrap: wrap; gap: var(--s1); }
-.cg-cell { min-width: 2.25rem; min-height: 2.25rem; border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); font: inherit; font-weight: var(--fw-4); cursor: pointer; }
+.cg-cell { min-width: 2.75rem; min-height: 2.75rem; border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); font: inherit; font-weight: var(--fw-4); cursor: pointer; }
 .cg-cell.empty { color: var(--text-3); border-style: dashed; }
 .cg-cell.on { background: var(--text); color: var(--canvas); border-color: var(--text); }
 .cg-stats { font-size: var(--fs-2); color: var(--text-2); white-space: nowrap; }
@@ -44,7 +44,7 @@ main:has(.cg-screen) { max-width: 1120px; }
 .cg-slot:disabled { border-style: dashed; cursor: default; }
 .cg-slot.on, .cg-poolrow.on { background: var(--sunk); border-color: var(--text); }
 .cg-poolrow:disabled { opacity: .5; cursor: default; }
-.cg-poolrow .cg-stats { margin-left: auto; }
+.cg-poolrow .cg-stats { margin-left: auto; white-space: normal; text-align: right; }
 .cg-pre { margin: var(--s2) 0; white-space: pre-wrap; font-family: var(--font-sans); font-size: var(--fs-2); }
 .cg-house { border: 0; padding: 0; margin: 0; }
 .cg-house legend { padding: 0; margin-bottom: var(--s1); }
@@ -62,3 +62,11 @@ main:has(.cg-screen) { max-width: 1120px; }
   .cg-clock { margin-left: 0; }
 }
 #cg-scale-field[hidden] { display: none; }
+/* Congress scoring is new: a small plain tag in words, no color (DESIGN.md §1: color only for data and status). */
+.cg-beta { font-size: var(--fs-1); font-weight: var(--fw-3); vertical-align: middle; }
+.cg-beta-line { margin: 0 0 var(--s3); font-size: var(--fs-2); color: var(--text-2); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
+/* The values a source did not confirm: a boxed pair of choices with "Check your tournament's rule". */
+.cg-open:empty { display: none; }
+.cg-open { border: 1px solid var(--border-ctl); border-radius: var(--r-md); padding: var(--s3); display: grid; gap: var(--s2); }
+.cg-open-head { margin: 0; font-weight: var(--fw-3); }
+.cg-open-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: var(--s3); }

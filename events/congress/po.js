@@ -26,6 +26,14 @@ export function endTerm(session, now) {
   }) });
 }
 
+// Undo "End term": the last term opens again. Its hour scores stay as they are now (a score given after the term
+// ended is kept). Nothing changes when the last term is still open.
+export function reopenTerm(session) {
+  const last = session.poTerms.length - 1;
+  if (last < 0 || session.poTerms[last].endedAt == null) return session;
+  return Object.assign({}, session, { poTerms: session.poTerms.map((t, i) => (i === last ? Object.assign({}, t, { endedAt: null, partHour: false }) : t)) });
+}
+
 // Full hours a term has run (to its end, or to now while open).
 export const fullHours = (term, now) => Math.floor(Math.max(0, (term.endedAt != null ? term.endedAt : now) - term.startedAt) / HOUR_MS);
 
@@ -71,5 +79,5 @@ export function poHoursBy(session) {
 
 export const openTerm = (session) => session.poTerms.find((t) => t.endedAt == null) || null;
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressPO = Object.freeze({ HOUR_MS, ordinal, startTerm, endTerm, fullHours, hoursDue, setHourScore,
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressPO = Object.freeze({ HOUR_MS, ordinal, startTerm, endTerm, reopenTerm, fullHours, hoursDue, setHourScore,
   firstUnscored, poLockLine, poHoursBy, openTerm });
