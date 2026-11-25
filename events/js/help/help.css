@@ -1,0 +1,17 @@
+/* Speech Events judge help (events/js/help/help.js): the first-room walk card, "What to listen for" in the room and
+   "How to rank" on the Rank screen. Neutral chrome only: panel, border and text tokens (core/tokens.css); no brand
+   green, no status tint, no stripes. The folds use the one fold style in app.css (.fold, .fold-row). */
+.help-room { display: grid; gap: var(--s2); margin: 0 0 var(--s3); }
+.help-walk { padding: var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); }
+.help-walk-count { margin: 0; font-size: var(--fs-1); }
+.help-walk-title { margin: var(--s1) 0; font-size: var(--fs-3); }
+.help-walk-title:focus { outline: none; }
+.help-walk-title:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.help-walk-text { margin: 0 0 var(--s2); line-height: var(--lh-read); }
+.help-walk-acts { display: flex; flex-wrap: wrap; gap: var(--s2); justify-content: flex-end; }
+.help-walk-acts .quiet { margin-right: auto; }
+.help-body { margin: 0; padding: 0 var(--s3) var(--s2); line-height: var(--lh-read); }
+.help-body p { margin: 0 0 var(--s2); }
+.help-body ul, ul.help-body { margin: 0; padding-left: calc(var(--s3) + 1em); }
+.help-body li + li { margin-top: var(--s1); }
+.help-rank { margin: 0 0 var(--s3); }

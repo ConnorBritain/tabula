@@ -17,6 +17,7 @@ import { KEYS_KEY } from './ai-key.js';
 import { keymap } from './keys.js';
 import { checkOffline, CACHE_PREFIX } from './offline.js';
 import { askConnectKey, askForgetKey } from './ai-connect.js';
+import { mountTipsPart } from './help/help-view.js';
 
 const radios = (name, list, picked) => list.map((x) => `<label class="radio"><input type="radio" name="${name}" value="${esc(x.id)}"${x.id === picked ? ' checked' : ''}> ${esc(x.label)}</label>`).join('');
 
@@ -167,6 +168,7 @@ export function createSettingsScreen(env) {
 
   function draw(focusSel) {
     env.el.innerHTML = settingsHtml({ settings: env.settings(), ai: aiView(), keys: keySheetHtml(keymap.shortcutRows(mac(), true)), offline, kept, release: currentRelease() });
+    mountTipsPart(env, env.el);
     const f = focusSel && $(focusSel);
     if (f) f.focus();
   }
