@@ -10,7 +10,7 @@ import {
   applyInput,
 } from './js/comments.js';
 import { sourceText } from './js/cleanup.js';
-import { sheetHtml } from './js/comment-view.js';
+import { sheetHtml, reasonFootHtml } from './js/comment-view.js';
 import { createEventsStore, ROOMS_KEY } from './js/store.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
@@ -100,12 +100,20 @@ test('the sheet shows the event\'s chips, checks with OK or Flag, the private no
   const html = sheetHtml(r, r.entries[0], OO);
   assert.match(html, />Strengths</); assert.match(html, />To work on</);
   assert.equal((html.match(/data-cact="chip"/g) || []).length, OO.tags.length * 2);
-  assert.match(html, /aria-pressed="true" title="[^"]*">Thesis</);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.1: a chip that is on gets a leading check). Old line:
+  //   assert.match(html, /aria-pressed="true" title="[^"]*">Thesis</);
+  assert.match(html, /aria-pressed="true" title="[^"]*"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-check"\/><\/svg>Thesis</);
   assert.equal((html.match(/data-cact="check"/g) || []).length, OO.checks.length);
-  assert.match(html, /Quoting looked within the limit<\/span><span class="pill err">Flag</);
-  assert.match(html, /No visual aids<\/span><span class="pill outline">OK</);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (top 10 #3: a flagged rule check says Flagged with a flag icon). Old line:
+  //   assert.match(html, /Quoting looked within the limit<\/span><span class="pill err">Flag</);
+  assert.match(html, /Quoting looked within the limit<\/span><span class="chk-state"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-flag"\/><\/svg>Flagged</);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (top 10 #3: the nested OK pill goes; each row has a flag button). Old line:
+  //   assert.match(html, /No visual aids<\/span><span class="pill outline">OK</);
+  assert.match(html, /No visual aids<\/span><span class="chk-state"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-flag"\/><\/svg>Flag</);
   assert.match(html, /never on the ballot/);
-  assert.match(html, /Reason for rank/);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (D3-A: the reason for rank leaves the speaker sheet for one room-level field). Old line:
+  //   assert.match(html, /Reason for rank/);
+  assert.match(reasonFootHtml(r, true), /Reason for rank/);
   assert.equal(sheetHtml(r, Object.assign({}, r.entries[1], { status: 'noShow' }), OO), '', 'no sheet for a no-show');
   assert.ok(!sheetHtml(r, Object.assign({}, r.entries[1], { notes: '</textarea><b>x' }), OO).includes('</textarea><b>x'), 'notes are escaped');
   for (const ev of DATA.events.keys().map((k) => DATA.events.get(k.split('@')[0]))) for (const c of ev.checks) assert.ok(CHECK_LABELS[c], ev.id + ' check ' + c + ' has a label');

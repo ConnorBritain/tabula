@@ -28,6 +28,9 @@ import { timerHtml, cardTrack, stickyBarHtml, stoppedResult } from './js/timer-v
 import { timerFace } from './js/timer.js';
 import { sharedFace } from './js/prep.js';
 import { runCardsHtml, nextRunWaits } from './js/runs-view.js';
+import { sheetHtml, reasonFootHtml, promptsHtml, PROMPTS_SHOWN } from './js/comment-view.js';
+import { checklist } from './js/ballot.js';
+import { toggleCheck } from './js/comments.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const CSS = read('./app.css');
@@ -399,4 +402,78 @@ test('timer tools: ±10 s in one quiet track, Reset time quiet with an icon, Set
   assert.match(html, /<span class="tool-group" role="group" aria-label="Correct the time used">\s*<button class="b" type="button" data-tact="minus"[^>]*>−10 s<\/button>\s*<button class="b" type="button" data-tact="plus"[^>]*>\+10 s<\/button><\/span>/);
   assert.match(html, /<button class="b quiet" type="button" data-tact="reset"><svg[^>]*><use href="#i-rotate-ccw"\/><\/svg>Reset time<\/button>/);
   assert.match(html, /data-tact="set">Set time</);
+});
+
+// ---------- ballot and private zones (top 10 #3), prompts open and the room-level reason (D3-A) ----------
+
+// Why: "goes to the student" against "only for me" is the most costly mistake on the screen, and only grey bracket text
+// told them apart. A judge who types a private remark into the ballot box sends it to a teenager.
+test('sheet zones: On the ballot holds chips, prompts and comments; Just for you holds rule checks and the private note', () => {
+  const OO = DATA.events.get('oo');
+  const r = room('oo', 'nsda-district', ['A1']);
+  const html = sheetHtml(r, r.entries[0], OO);
+  const ballot = html.slice(html.indexOf('zone-ballot'), html.indexOf('zone-private'));
+  const priv = html.slice(html.indexOf('zone-private'));
+  assert.match(ballot, /<h3 class="zone-h" id="zone-ballot"><svg[^>]*><use href="#i-message-square"\/><\/svg>On the ballot<\/h3>/);
+  assert.match(ballot, /data-cact="chip"/);
+  assert.match(ballot, /<textarea id="notes"/);
+  assert.doesNotMatch(ballot, /private-note|data-cact="check"/);
+  assert.match(priv, /<h3 class="zone-h" id="zone-private"><svg[^>]*><use href="#i-lock"\/><\/svg>Just for you <span class="muted">never on the ballot<\/span><\/h3>/);
+  assert.match(priv, /data-cact="check"[\s\S]*<textarea id="private-note"/);
+  assert.match(priv, /Flags go in your private note\./);
+  assert.doesNotMatch(html, /\(go on the ballot\)|\(only for you; never on the ballot\)/, 'the zone headings replace the bracket hints');
+  // A flagged check is caution, with a word, not the error color.
+  const flagged = sheetHtml(r, toggleCheck(r.entries[0], OO.checks[0]), OO);
+  assert.match(flagged, /<button class="chk flag"[^>]*><span>[^<]+<\/span><span class="chk-state"><svg[^>]*><use href="#i-flag"\/><\/svg>Flagged<\/span><\/button>/);
+  assert.match(CSS, /\.chk\.flag \{ background: var\(--caution-tint\); border-color: var\(--caution\); \}/);
+  assert.doesNotMatch(CSS, /\.chk\.flag \{[^}]*--error/);
+});
+
+// Why: the prompts help with the act of writing, but behind a sideways triangle most lay judges never opened them. They
+// sit open above the box (three, then "Show all"), and the box points to them for a screen reader.
+test('prompts: open above the comments box, three then "Show all (N)", linked with aria-describedby', () => {
+  const OO = DATA.events.get('oo');
+  const r = room('oo', 'nsda-district', ['A1']);
+  const html = sheetHtml(r, r.entries[0], OO);
+  assert.doesNotMatch(html, /<details/);
+  assert.ok(html.indexOf('id="prompts"') < html.indexOf('<textarea id="notes"'), 'above the box');
+  assert.match(html, /<textarea id="notes"[^>]*aria-describedby="prompts-list"/);
+  const many = ['One', 'Two', 'Three', 'Four', 'Five', 'Six'];
+  const short = promptsHtml(many, false);
+  assert.equal((short.match(/<li>/g) || []).length, PROMPTS_SHOWN);
+  assert.match(short, /data-cact="prompts-all" aria-controls="prompts-list">Show all \(6\)/);
+  const all = promptsHtml(many, true);
+  assert.equal((all.match(/<li>/g) || []).length, 6);
+  assert.doesNotMatch(all, /Show all/);
+  assert.doesNotMatch(promptsHtml(['One', 'Two'], false), /Show all/, 'nothing hidden, no button');
+  assert.equal(promptsHtml([], false), '');
+  const custom = sheetHtml(r, r.entries[0], Object.assign({}, OO, { prompts: [] }));
+  assert.doesNotMatch(custom, /aria-describedby/, 'no prompts, no link to them');
+});
+
+// Why: a whole-room field inside one speaker's card confused judges (and showed on events with no ranks). It is one
+// quiet room-level button that opens the box; once written it stays open, and rules without ranks never show it.
+test('reason for rank: a room-level "+ Add reason for rank", open once written, hidden without ranks', () => {
+  const r = room('hi', 'nsda-district', ['A1']);
+  assert.doesNotMatch(sheetHtml(r, r.entries[0], DATA.events.get('hi')), /reason/i, 'not in the speaker sheet');
+  assert.equal(reasonFootHtml(r, false), '<button class="b quiet" type="button" data-cact="reason-open" data-key="reason-open"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg>Add reason for rank</button>');
+  assert.match(reasonFootHtml(r, true), /<textarea id="reason" rows="3" data-cfield="reason"><\/textarea>/);
+  assert.match(reasonFootHtml(Object.assign({}, r, { reasonForRank: 'A1 was clearest.' }), false), /<textarea id="reason"[^>]*>A1 was clearest\.<\/textarea>/);
+  assert.equal(reasonFootHtml(room('oo', 'rate-only'), true), '', 'a Rate round has its own field on the Rate screen');
+  const crit = Object.assign(prof('nsda-district'), { critiqueOnly: true });
+  assert.equal(reasonFootHtml(room('poi', 'nsda-district', ['A1'], { profile: crit }), true), '', 'comments only: no ranks, no reason');
+  // The room screen draws the room-level part under the grid, not inside the stage.
+  const src = read('./js/room-screen.js');
+  assert.match(src, /<div class="room-grid">[\s\S]*?<\/div>\n\s*<div class="room-foot" id="room-foot"><\/div>/);
+});
+
+// Why: the Review OO checklist said "Notes for the room" while the card said "Reason for rank"; a judge then hunted for
+// a second field. One word, from the profile, in both places.
+test('Review: the checklist and the card use the same word for the whole-room note', () => {
+  const rate = Object.assign(room('oo', 'rate-only'), { reasonForRank: 'All clear.' });
+  assert.ok(checklist(rate).some((c) => c.label === 'Notes for the room written'));
+  assert.match(commentsStageHtml(rate, { order: 'speaking', editing: null }), /<span>Notes for the room<\/span>/);
+  const ranked = Object.assign(room('hi', 'nsda-district'), { reasonForRank: 'A1 first.' });
+  assert.ok(checklist(ranked).some((c) => c.label === 'Reason for rank written'));
+  assert.match(commentsStageHtml(ranked, { order: 'speaking', editing: null }), /<span>Reason for rank<\/span>/);
 });

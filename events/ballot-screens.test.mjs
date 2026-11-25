@@ -217,7 +217,9 @@ test('comments only: no Ranks stage, no Rank order toggle, no "Says why this ran
   const rate = mk('hi', 'rate-only', 2);
   const rateHtml = commentsStageHtml(rate, { order: 'speaking', editing: null });
   assert.doesNotMatch(rateHtml, /Rank order|Says why this rank/);
-  assert.match(rateHtml, /<span>Reason for rank<\/span>/);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§4 repair: one word from the profile, the same as the Review checklist). Old line:
+  //   assert.match(rateHtml, /<span>Reason for rank<\/span>/);
+  assert.match(rateHtml, /<span>Notes for the room<\/span>/);
   // A ranked ballot keeps all three.
   const rk = ranked(mk('oo', 'nsda-district', 2));
   assert.match(commentsStageHtml(rk, { order: 'speaking', editing: null }), /Rank order[\s\S]*Says why this rank[\s\S]*Reason for rank/);

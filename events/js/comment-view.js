@@ -4,41 +4,81 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { KINDS, KIND_TITLE, tagKey, checkLabel, tapChip, toggleCheck, applyInput } from './comments.js';
 import { entryOf, updateEntry, roomEvent } from './room.js';
+import { icon } from './icons.js';
+import { ranksShown } from './profile-layer.js';
 
-// One chip and one rule check as HTML text (the sheet draws them, and a tap redraws just that button).
-export const chipHtml = (t, kind, on) => `<button class="chip${on ? ' on' : ''}" type="button" data-cact="chip" data-kind="${kind}" data-tag="${esc(t.id)}" aria-pressed="${on}" title="${esc(t[kind])}">${esc(t.label)}</button>`;
-export const checkHtml = (c, flag) => `<button class="chk${flag ? ' flag' : ''}" type="button" data-cact="check" data-check="${esc(c)}" aria-pressed="${flag}"><span>${esc(checkLabel(c))}</span><span class="pill${flag ? ' err' : ' outline'}">${flag ? 'Flag' : 'OK'}</span></button>`;
+// One chip and one rule check as HTML text (the sheet draws them, and a tap redraws just that button). A chip that is
+// on gets a check and a 2 px edge, never the solid fill (§5.1 toggle chip). A rule check is a row with a flag button:
+// flagged, it gets the caution tint, a full edge and the word "Flagged" (top 10 #3; a flag is not an error).
+export const chipHtml = (t, kind, on) => `<button class="chip${on ? ' on' : ''}" type="button" data-cact="chip" data-kind="${kind}" data-tag="${esc(t.id)}" aria-pressed="${on}" title="${esc(t[kind])}">${on ? icon('check') : ''}${esc(t.label)}</button>`;
+export const checkHtml = (c, flag) => `<button class="chk${flag ? ' flag' : ''}" type="button" data-cact="check" data-check="${esc(c)}" aria-pressed="${flag}"><span>${esc(checkLabel(c))}</span><span class="chk-state">${flag ? icon('flag', 14) + 'Flagged' : icon('flag', 14) + 'Flag'}</span></button>`;
 // Put a new button in place of the old one and keep the focus on it.
 function swap(old, html) { const t = document.createElement('template'); t.innerHTML = html; const n = t.content.firstElementChild; old.replaceWith(n); n.focus(); }
 
+// The title icon of each chip row (§5.3 "Row title icons"): Strengths and To work on.
+const KIND_ICON = Object.freeze({ strength: 'thumbs-up', toWork: 'arrow-up-right' });
+// How many prompts show before "Show all" (D3-A).
+export const PROMPTS_SHOWN = 3;
+
+// "Things to comment on" (owner D3 A): always open, a short plain list above the comments box, which points to it with
+// aria-describedby. Three prompts show; a quiet "Show all (N)" opens the rest in place. all: the judge opened them.
+export function promptsHtml(prompts, all) {
+  if (!prompts.length) return '';
+  const shown = all ? prompts : prompts.slice(0, PROMPTS_SHOWN);
+  const more = !all && prompts.length > PROMPTS_SHOWN ? `<button class="b small quiet prompts-more" type="button" data-cact="prompts-all" aria-controls="prompts-list">Show all (${prompts.length})${icon('chevron-down')}</button>` : '';
+  return `<div class="prompts" id="prompts"><p class="chip-title" id="prompts-title">Things to comment on</p>
+      <ul id="prompts-list" aria-labelledby="prompts-title">${shown.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>${more}</div>`;
+}
+
 // The comment sheet for one entry as HTML text. event: the room's event file (tags, checks and prompts).
-export function sheetHtml(room, entry, event) {
+// Top 10 #3: two named zones. "On the ballot" (the speech-bubble icon) holds the chips, the prompts and the comments;
+// "Just for you" (the lock icon) holds the rule checks and the private note. The zone headings replace the old bracket
+// hints, so "goes to the student" and "only for me" never look alike. view: { promptsAll } (optional).
+// The reason for rank is not here: it is one room-level field (reasonFootHtml), not part of a speaker's card (D3-A).
+export function sheetHtml(room, entry, event, view) {
   if (entry.status === 'noShow') return '';
+  const v = view || {};
   const tags = (event && event.tags) || [];
   // A Custom event (step E12) has no chips: no empty "Strengths" and "To work on" rows.
   const chips = !tags.length ? '' : KINDS.map((kind) => `<div class="chip-group" role="group" aria-labelledby="chips-${kind}">
-      <p class="chip-title" id="chips-${kind}">${KIND_TITLE[kind]}</p>
+      <p class="chip-title" id="chips-${kind}">${icon(KIND_ICON[kind])}${KIND_TITLE[kind]}</p>
       <div class="chips">${tags.map((t) => chipHtml(t, kind, (entry.tags || []).includes(tagKey(kind, t.id)))).join('')}</div></div>`).join('');
   const checks = ((event && event.checks) || []).map((c) => checkHtml(c, (entry.checks || {})[c] === 'flag')).join('');
-  const prompts = ((event && event.prompts) || []).map((p) => `<li>${esc(p)}</li>`).join('');
+  const prompts = promptsHtml((event && event.prompts) || [], v.promptsAll);
   // The drawn question (step E10) moved to the top of the card, above the timer (design build, review §2.5:
   // quote-view.js), so the sheet no longer has its own field.
   return `<div class="sheet" id="sheet">
-    ${chips}
-    ${checks ? `<div class="chk-group" role="group" aria-labelledby="chk-title"><p class="chip-title" id="chk-title">Rule checks <span class="muted">(tap to flag; a flag goes in your private note)</span></p><div class="chks">${checks}</div></div>` : ''}
-    <label class="field sheet-notes" for="notes"><span>Comments for ${esc(entry.code)} <span class="muted">(go on the ballot)</span></span></label>
-    <textarea id="notes" rows="7" data-cfield="notes" spellcheck="true">${esc(entry.notes || '')}</textarea>
-    ${prompts ? `<details class="prompts"><summary>Things to comment on</summary><ul>${prompts}</ul></details>` : ''}
-    <label class="field" for="private-note"><span>Private note <span class="muted">(only for you; never on the ballot)</span></span></label>
-    <textarea id="private-note" rows="2" data-cfield="private">${esc(entry.privateNote || '')}</textarea>
-    <details class="reason"${room.reasonForRank ? ' open' : ''}><summary>Reason for rank <span class="muted">(whole room)</span></summary>
-      <label class="sr-only" for="reason">Reason for rank</label>
-      <textarea id="reason" rows="3" data-cfield="reason">${esc(room.reasonForRank || '')}</textarea></details>
+    <section class="zone zone-ballot" aria-labelledby="zone-ballot">
+      <h3 class="zone-h" id="zone-ballot">${icon('message-square')}On the ballot</h3>
+      ${chips}
+      ${prompts}
+      <label class="field sheet-notes" for="notes"><span>Comments for ${esc(entry.code)}</span></label>
+      <textarea id="notes" rows="7" data-cfield="notes" spellcheck="true"${prompts ? ' aria-describedby="prompts-list"' : ''}>${esc(entry.notes || '')}</textarea>
+    </section>
+    <section class="zone zone-private" aria-labelledby="zone-private">
+      <h3 class="zone-h" id="zone-private">${icon('lock')}Just for you <span class="muted">never on the ballot</span></h3>
+      ${checks ? `<div class="chk-group" role="group" aria-labelledby="chk-title"><p class="chip-title" id="chk-title">Rule checks</p><p class="field-help">Flags go in your private note.</p><div class="chks">${checks}</div></div>` : ''}
+      <label class="field" for="private-note"><span>Private note</span></label>
+      <textarea id="private-note" rows="2" data-cfield="private">${esc(entry.privateNote || '')}</textarea>
+    </section>
   </div>`;
+}
+
+// The room-level reason for rank (owner D3 A): a quiet "+ Add reason for rank" that opens the box and moves the focus
+// into it. Once the box has text it stays open. Hidden when the rules have no ranks (a Rate round has its own field on
+// the Rate screen; a comments-only round has none). open: the judge opened it in this visit.
+export function reasonFootHtml(room, open) {
+  if (!ranksShown(room.profile)) return '';
+  const text = String(room.reasonForRank || '');
+  if (!open && !text.trim()) return `<button class="b quiet" type="button" data-cact="reason-open" data-key="reason-open">${icon('plus')}Add reason for rank</button>`;
+  return `<label class="field" for="reason"><span>Reason for rank <span class="muted">(whole room)</span></span></label>
+    <textarea id="reason" rows="3" data-cfield="reason">${esc(text)}</textarea>`;
 }
 
 export function createCommentView() {
   let ctx = null;
+  let promptsAll = false; // "Show all" opened in this room visit
+  let reasonOpen = false; // "+ Add reason for rank" opened in this room visit
   const env = () => ctx.env;
   const room = () => ctx.room();
   const event = (r) => roomEvent(env().data.events, r);
@@ -55,6 +95,13 @@ export function createCommentView() {
     const b = ev.target.closest('[data-cact]');
     const r = room();
     if (!b || !r) return;
+    if (b.dataset.cact === 'prompts-all') {
+      promptsAll = true;
+      const box = $('#prompts'); const t = document.createElement('template');
+      t.innerHTML = promptsHtml(((event(r) || {}).prompts) || [], true);
+      if (box) { box.replaceWith(t.content.firstElementChild); const li = $('#prompts-list li:nth-child(' + (PROMPTS_SHOWN + 1) + ')'); if (li) { li.tabIndex = -1; li.focus(); } }
+      return;
+    }
     const e = entryOf(r, r.current);
     if (!e) return;
     if (b.dataset.cact === 'chip') {
@@ -79,11 +126,29 @@ export function createCommentView() {
       env().ui.announce(checkLabel(b.dataset.check) + (flag ? ': flagged, in your private note.' : ': OK.'));
     }
   }
+  // The room-level reason for rank (D3-A): the button opens the box and moves the focus into it.
+  function onFootClick(ev) {
+    const b = ev.target.closest('[data-cact="reason-open"]');
+    const r = room();
+    if (!b || !r) return;
+    reasonOpen = true;
+    const foot = $('#room-foot-reason');
+    if (foot) foot.innerHTML = reasonFootHtml(r, true);
+    const box = $('#reason'); if (box) box.focus();
+  }
   // Remember where the cursor was in the notes box, for the chips (a chip tap moves the focus to the chip).
   const keepCursor = (ev) => { if (ev.target.id === 'notes') ev.target.dataset.cursor = String(ev.target.selectionStart); };
 
   return {
-    stageHtml: (r, e) => sheetHtml(r, e, event(r)),
+    stageHtml: (r, e) => sheetHtml(r, e, event(r), { promptsAll }),
+    // The room-level part under the roster and the stage (room-screen.js footHtml hook).
+    footHtml: (r) => `<div class="room-foot-reason" id="room-foot-reason">${reasonFootHtml(r, reasonOpen)}</div>`,
+    footMounted() {
+      const foot = $('#room-foot-reason');
+      if (!foot) return;
+      foot.addEventListener('click', onFootClick);
+      foot.addEventListener('input', onInput);
+    },
     mounted() {
       const box = $('#sheet');
       if (!box) return;
@@ -91,6 +156,6 @@ export function createCommentView() {
       box.addEventListener('click', onClick);
       for (const t of ['keyup', 'mouseup', 'touchend', 'select', 'input', 'blur']) box.addEventListener(t, keepCursor, true);
     },
-    show(c) { ctx = c; },
+    show(c) { ctx = c; promptsAll = false; reasonOpen = false; },
   };
 }

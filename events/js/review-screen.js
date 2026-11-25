@@ -12,7 +12,7 @@ import { findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf } from './timer.js';
 import { createCleanup } from './cleanup-view.js';
-import { rankStageLabel, ranksShown, layerOf, notRankedText } from './profile-layer.js';
+import { rankStageLabel, ranksShown, layerOf, notRankedText, reasonLabel } from './profile-layer.js';
 import { OVER_GRACE_PILL } from './rank.js';
 
 // A met check is a check circle, an open one an empty circle (§5.3: icons, not the "✓" and "○" characters); the word
@@ -93,7 +93,7 @@ export function commentsStageHtml(room, view) {
   const list = cards(room, ranked ? view.order : 'speaking', view.event);
   const reason = String(room.reasonForRank || '');
   const reasonEditing = view.editing === 'reason';
-  const reasonTitle = 'Reason for rank';
+  const reasonTitle = reasonLabel(room.profile); // the same word as the checklist (§4 repair)
   // Comments only: no reason for rank either, unless one was written before the rules changed (it still copies).
   const showReason = hasRanksStage(room) || reason.trim() || reasonEditing;
   const next = nextCopy(room, list);

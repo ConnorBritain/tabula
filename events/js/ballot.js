@@ -14,7 +14,7 @@ import { boardCtx, ranksOf, isOverGrace } from './board.js';
 import { clockText } from './timer.js';
 import { pieceLine } from './piece.js';
 import { questionOf } from './question.js';
-import { layerOf, layerProblems, ranksShown, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax } from './profile-layer.js';
+import { layerOf, layerProblems, ranksShown, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax, reasonLabel } from './profile-layer.js';
 import { storedRunsLine, topicOf } from './runs.js';
 
 // "Over time" on the ranks line: the sticky over-grace flag (inside grace is still on time, ARCHITECTURE.md §6.2).
@@ -111,7 +111,7 @@ export function checklist(room) {
     const ranked = list.filter((e) => e.rank).length;
     first = { label: ranked + ' of ' + n + ' ranked', ok: ranked === n };
   }
-  return [first, comments, { label: layer.ranks === 'off' ? 'Notes for the room written' : 'Reason for rank written', ok: Boolean(String(room.reasonForRank || '').trim()) }];
+  return [first, comments, { label: reasonLabel(room.profile) + ' written', ok: Boolean(String(room.reasonForRank || '').trim()) }];
 }
 
 // Does this round copy ranks at all? Not under critiqueOnly (step S4): its ballot is comments only.

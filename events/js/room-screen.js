@@ -73,6 +73,8 @@ export function rosterHtml(room, menuFor, extra, sub) {
 // parts: the views that add to this screen (the timer in step E5, the comment sheet in E6). Each may have:
 //   rowExtra(room, entry) -> HTML after a roster row's name     stageHtml(room, entry) -> HTML in the main pane
 //   rowSub(room, entry) -> HTML under a roster row's name
+//   footHtml(room) -> HTML for the whole room, under the grid     footMounted(ctx) after it is drawn (design build, D3-A:
+//                                                                 the room-level reason for rank)
 //   mounted(ctx) after the main pane is drawn                    show(ctx) / hide(ctx) when the screen opens / closes
 //   run(action, ctx) -> true when it ran a shortcut              stopFor(id) stops that entry's running clock
 // ctx: { env, room(), save(room), draw(), drawStage(), drawRoster() } (drawStage and drawRoster redraw one pane only).
@@ -204,10 +206,13 @@ export function createRoomScreen(env, parts) {
           <button class="b" type="button" id="roster-toggle" aria-controls="roster-full" aria-expanded="false">Roster</button>
           ${go}</div>
         ${frameHtml(r)}
-        <div class="room-grid"><nav class="roster" id="roster" aria-label="Roster"></nav><section class="stage" id="stage" aria-labelledby="stage-code"></section></div>`;
+        <div class="room-grid"><nav class="roster" id="roster" aria-label="Roster"></nav><section class="stage" id="stage" aria-labelledby="stage-code"></section></div>
+        <div class="room-foot" id="room-foot"></div>`;
       env.el.addEventListener('click', onClick);
       for (const v of views) if (v.show) v.show(ctx);
+      $('#room-foot').innerHTML = views.map((v) => (v.footHtml ? v.footHtml(r) : '')).join('');
       draw();
+      for (const v of views) if (v.footMounted) v.footMounted(ctx);
       $('#screen-title').focus();
     },
     hide() {
