@@ -112,7 +112,7 @@ test('the local helper serves every core/ file and the hosted build ships core/'
 // Why: the AI gate must hide removed AI tools before the first paint. A head file that turned into a module, or loaded
 // after its reader, would let a removed tool flash on screen, or leave logic/caps.js with no gate at all.
 test('head files: plain scripts with no import or export, loaded in <head> before their readers, giving one global', () => {
-  assert.deepEqual(HEAD, ['core/policy.js'], 'the head files are the ones the plan names (step C11)');
+  assert.deepEqual(HEAD, ['core/policy.js'], 'the only head file is the shared AI gate (core/policy.js)');
   const headEnd = HTML.indexOf('</head>');
   for (const f of HEAD) {
     const src = read(f);

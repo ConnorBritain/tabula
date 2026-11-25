@@ -122,7 +122,7 @@ test('every format file follows the schema', () => {
 });
 
 // Why: the clock times every speech from the file. A wrong number gives debaters the wrong time in a real round.
-test('the speech and prep times add up to the NSDA rules (FORMATS.md §2)', () => {
+test('the speech and prep times add up to the NSDA rules', () => {
   const total = (fmt) => fmt.speeches.reduce((t, s) => t + s.seconds, 0) / 60;
   assert.equal(total(POLICY), 8 * 4 + 3 * 4 + 5 * 4);
   assert.deepEqual(LD.speeches.map((s) => s.id + ' ' + s.minutes), ['AC 6', 'CX-AC 3', 'NC 7', 'CX-NC 3', '1AR 4', 'NR 6', '2AR 3']);
