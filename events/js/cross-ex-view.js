@@ -52,7 +52,7 @@ export function crossExHtml(room, entry, event, now) {
   const lim = cxLimit(room.profile);
   const ph = phases(entry, limitOf(event), lim, now);
   if (!cxOpen(entry, now)) {
-    return `<fieldset class="crossex is-closed" id="crossex"><legend>Cross-ex <span class="muted">(elim round)</span></legend>
+    return `<fieldset class="crossex is-closed" id="crossex"><legend>Cross-ex</legend>
     ${phasesHtml(cxPhaseModel(ph, true), { id: 'cx-phases' })}</fieldset>`;
   }
   const asker = askerOf(room, entry.id);
@@ -60,17 +60,17 @@ export function crossExHtml(room, entry, event, now) {
   const warn = sameSchoolWarning(room, entry.id);
   const face = cxFace(entry, lim, now);
   // Design build (top 10 #1): the cross-ex clock is secondary; the speaker timer's step keeps the room's one primary.
-  return `<fieldset class="crossex" id="crossex"><legend>Cross-ex <span class="muted">(elim round)</span></legend>
+  return `<fieldset class="crossex" id="crossex"><legend>Cross-ex</legend>
     ${phasesHtml(cxPhaseModel(ph, false), { id: 'cx-phases' })}
     <div class="cx-fields">
       <label class="field"><span>Q: asked by</span><select id="cx-asker" data-cxfield="asker">${others.map((o) => `<option value="${esc(o.id)}"${asker && asker.id === o.id ? ' selected' : ''}>Speaker ${esc(o.code)}</option>`).join('')}</select></label>
-      <label class="field"><span>School of ${esc(entry.code)} <span class="muted">(optional)</span></span><input id="cx-school" data-cxfield="school" autocomplete="off" maxlength="60" value="${esc(entry.school || '')}"></label>
+      <label class="field"><span>School</span><input id="cx-school" data-cxfield="school" autocomplete="off" maxlength="60" value="${esc(entry.school || '')}"></label>
     </div>
     ${warn ? `<p class="cx-warn" id="cx-warn" role="status">${esc(warn)}</p>` : ''}
     <div class="cx-clock${face.over ? ' over' : ''}"><span class="cx-digits" id="cx-digits">${esc(face.digits)}</span>${face.over ? ' ' + statusPillHtml('err', 'Over') : ''}
       <button class="b" type="button" data-cxact="startstop" data-key="cx-startstop">${face.running ? 'Stop cross-ex' : face.used ? 'Resume cross-ex' : 'Start cross-ex'}</button>
       ${!face.running && face.used ? '<button class="b quiet" type="button" data-cxact="reset" data-key="cx-reset">Reset</button>' : ''}</div>
-    ${lim ? '' : '<p class="field-help">The cross-ex length is not set in these rules. Follow the tab room.</p>'}
+    ${lim ? '' : '<p class="field-help">No set length. Ask the tab room.</p>'}
   </fieldset>`;
 }
 

@@ -118,7 +118,7 @@ export function summaryHtml(room) {
     <ul class="checklist">${checklist(room).map((c) => done(c.ok, c.label)).join('')}</ul>
     <div class="review-tools" role="group" aria-label="Copy and print the whole ballot"><button class="b quiet" type="button" data-vact="copyall" data-key="copyall">${icon('copy')}Copy all</button>
       <button class="b quiet" type="button" data-vact="print" data-key="print">${icon('printer')}Print / PDF</button></div></div>
-    ${hasRanksStage(room) ? '' : '<p class="muted review-note">These rules are comments only. There are no ranks to submit. Copy each comment below.</p>'}`;
+    ${hasRanksStage(room) ? '' : '<p class="muted review-note">Comments only. No ranks to submit.</p>'}`;
 }
 
 // core/sheets.js copyBlocksHtml is not used here: its blocks have one generic Copy button and a read-only box, while
@@ -172,7 +172,7 @@ export function createReviewScreen(env) {
     if (!(await copyText(text))) { env.ui.toast('This browser blocked copying. Select the text and press Ctrl+C (⌘C on Mac).', { kind: 'error', key: 'copy' }); return; }
     save(markCopied(room(), what, env.now()));
     draw('copy-' + what);
-    env.ui.announce(what === 'ranks' ? 'Ranks copied. Paste them into the online ballot.' : 'Copied.');
+    env.ui.announce(what === 'ranks' ? 'Ranks copied.' : 'Copied.');
   }
 
   async function onClick(ev) {
@@ -192,8 +192,8 @@ export function createReviewScreen(env) {
     }
     if (act === 'copyall') {
       const r = room();
-      if (await copyText(copyAllText(r, event(r)))) env.ui.toast('Everything copied as one block.', { key: 'copy' });
-      else env.ui.toast('This browser blocked copying.', { kind: 'error', key: 'copy' });
+      if (await copyText(copyAllText(r, event(r)))) env.ui.toast('All copied.', { key: 'copy' });
+      else env.ui.toast('This browser blocked copying. Select the text and press Ctrl+C (⌘C on Mac).', { kind: 'error', key: 'copy' });
       return;
     }
     if (act === 'print') {
@@ -238,7 +238,7 @@ export function createReviewScreen(env) {
       roomId = id; view = { order: 'speaking', editing: null };
       if (cleanup) cleanup.reset();
       const ev = event(r);
-      const back = hasRanksStage(r) ? `<a class="b quiet" href="#/rank/${encodeURIComponent(id)}">${icon('chevron-left')}${rankStageLabel(r.profile)}</a>` : `<a class="b quiet" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>`;
+      const back = hasRanksStage(r) ? `<a class="b quiet back" href="#/rank/${encodeURIComponent(id)}">${icon('chevron-left')}${rankStageLabel(r.profile)}</a>` : `<a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>`;
       env.el.innerHTML = `<div class="screen-head">${back}
           <h1 id="screen-title" tabindex="-1">Review · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <div id="review-top"></div><div id="review-ranks"></div><div id="review-comments"></div>`;

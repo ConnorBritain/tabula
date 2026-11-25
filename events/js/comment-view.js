@@ -74,7 +74,7 @@ export function reasonFootHtml(room, open) {
   if (!ranksShown(room.profile)) return '';
   const text = String(room.reasonForRank || '');
   if (!open && !text.trim()) return `<button class="b quiet" type="button" data-cact="reason-open" data-key="reason-open">${icon('plus')}Add reason for rank</button>`;
-  return `<label class="field" for="reason"><span>Reason for rank <span class="muted">(whole room)</span></span></label>
+  return `<label class="field" for="reason"><span>Reason for rank <span class="muted">whole room</span></span></label>
     <textarea id="reason" rows="3" data-cfield="reason">${esc(text)}</textarea>`;
 }
 

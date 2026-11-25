@@ -56,11 +56,11 @@ export function customHtml(grace) {
   return `<fieldset class="setup-custom" id="setup-custom" hidden>
       <legend>Custom event</legend>
       <div class="setup-fields">
-        <label class="field wide"><span>Event name <span class="muted">(optional)</span></span><input id="custom-name" autocomplete="off" placeholder="Custom event" maxlength="60"></label>
-        <label class="field"><span>Time limit <span class="muted">(min:sec)</span></span><input id="custom-limit" autocomplete="off" inputmode="numeric" placeholder="7:00"></label>
-        <label class="field"><span>Grace <span class="muted">(seconds)</span></span><input id="custom-grace" autocomplete="off" inputmode="numeric" value="${esc(grace)}"></label>
+        <label class="field wide"><span>Event name</span><input id="custom-name" autocomplete="off" placeholder="Custom event" maxlength="60"></label>
+        <label class="field"><span>Time limit</span><input id="custom-limit" autocomplete="off" inputmode="numeric" placeholder="7:00"></label>
+        <label class="field"><span>Grace <span class="muted">sec</span></span><input id="custom-grace" autocomplete="off" inputmode="numeric" value="${esc(grace)}"></label>
       </div>
-      <p class="field-help">This room keeps this limit and grace. The app has no rule checks or chips for this event.</p>
+      <p class="field-help">No rule checks for a custom event.</p>
     </fieldset>`;
 }
 
@@ -73,14 +73,14 @@ export function setupHtml(data) {
   const opt = (p) => `<option value="${esc(p.id)}"${p.id === DEFAULT_PROFILE ? ' selected' : ''}>${esc(p.name)}</option>`;
   const shapes = shapeChoices(data);
   const prOpts = shapes.length ? `<optgroup label="League rules">${profileChoices(data).map(opt).join('')}</optgroup><optgroup label="Other ballot shapes">${shapes.map(opt).join('')}</optgroup>` : profileChoices(data).map(opt).join('');
-  return `<div class="screen-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">New room</h1></div>
+  return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">New room</h1></div>
   <form class="setup" id="setup-form" novalidate>
     <div class="setup-fields">
-      <label class="field"><span>Event</span><select id="setup-event"><option value="">Pick the event</option>${evOpts}<option value="${CUSTOM_EVENT}">Custom event (set the time)</option></select></label>
+      <label class="field"><span>Event</span><select id="setup-event"><option value="">Pick the event</option>${evOpts}<option value="${CUSTOM_EVENT}">Custom event</option></select></label>
       <label class="field"><span>Rules</span><select id="setup-profile">${prOpts}</select></label>
       <label class="field"><span>Round</span><input id="setup-round" autocomplete="off" placeholder="Round 1"></label>
-      <label class="field"><span>Flight <span class="muted">(optional)</span></span><input id="setup-flight" autocomplete="off"></label>
-      <label class="field wide"><span>Tournament <span class="muted">(optional)</span></span><input id="setup-tournament" autocomplete="off"></label>
+      <label class="field"><span>Flight</span><input id="setup-flight" autocomplete="off"></label>
+      <label class="field wide"><span>Tournament</span><input id="setup-tournament" autocomplete="off"></label>
     </div>
     <!-- The rare fields (design review §2.3 change 3): closed for a prelim, open when the ballot card says elim. -->
     <details class="setup-more fold" id="setup-more">${foldSummaryHtml('Elim or panel?', foldValueHtml(levelSummary('prelim', '1'), 'setup-more-value'))}
@@ -89,7 +89,7 @@ export function setupHtml(data) {
     <!-- Laptop: the paste box on the left and the live preview on the right. Phone: the preview under the box. -->
     <div class="setup-paste-area">
       <div class="setup-paste-col">
-        <label class="field wide" for="setup-paste"><span>Paste the room from Tabroom or SpeechWire, or type one code per line</span></label>
+        <label class="field wide" for="setup-paste"><span>Paste the room, or type one code per line</span></label>
         <textarea id="setup-paste" rows="8" spellcheck="false" placeholder="1. A12&#10;2. B07&#10;3. C33"></textarea>
         <p class="field-help">Codes are enough. The text stays on this device.</p>
       </div>

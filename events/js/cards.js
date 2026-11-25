@@ -23,7 +23,7 @@ export const STATUS_WORDS = Object.freeze({
   done: 'Done',
   cancelled: 'Cancelled',
 });
-// The My day section for each status (§1.2). "I submitted in Tabroom" moves a card from Now to Done (comments open).
+// The My day section for each status (§1.2). "Mark submitted" moves a card from Now to Done (comments open).
 export const SECTION_OF = Object.freeze({ notStarted: 'later', judging: 'now', ranksIn: 'now', submitted: 'open', done: 'done', cancelled: 'done' });
 export const SECTIONS = Object.freeze([
   { id: 'now', title: 'Now' },
@@ -106,7 +106,7 @@ export function cardStatus(card, round) {
   // A comments-only round (step S4 critiqueOnly) has no ranks to copy: it is done when its comments are copied.
   if (layerOf(round.profile).critiqueOnly) return round.state === 'done' ? 'done' : 'judging';
   // A copied round (state 'done') is never "Judging", even when it has no ranks mark: a round copied before E8 added
-  // ranksCopiedAt has state 'done' only (design review §5 bug 9). Its ranks are in; "I submitted in Tabroom" is next.
+  // ranksCopiedAt has state 'done' only (design review §5 bug 9). Its ranks are in; "Mark submitted" is next.
   if (round.ranksCopiedAt || round.state === 'done') return 'ranksIn';
   return 'judging';
 }

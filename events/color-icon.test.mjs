@@ -28,12 +28,25 @@ import { timerHtml, cardTrack, stickyBarHtml, stoppedResult } from './js/timer-v
 import { timerFace } from './js/timer.js';
 import { sharedFace } from './js/prep.js';
 import { runCardsHtml, nextRunWaits } from './js/runs-view.js';
+import { syncRuns } from './js/runs.js';
+import { mainButton } from './js/timer-view.js';
 import { sheetHtml, reasonFootHtml, promptsHtml, PROMPTS_SHOWN } from './js/comment-view.js';
 import { checklist } from './js/ballot.js';
 import { setupHtml, previewHtml, levelSummary } from './js/setup-screen.js';
 import { parseRoom } from './js/parse.js';
 import { settingsHtml } from './js/settings-screen.js';
 import { foldSummaryHtml } from './js/fold.js';
+import { pickerRows, pickerSections } from './js/picker.js';
+import { pickerListHtml } from './js/picker-screen.js';
+import { overviewHtml } from './congress/chamber-screen.js';
+import { typeHtml, rulesHtml } from './js/type-screen.js';
+import { rubricHtml } from './js/score-view.js';
+import { firstOpenRubric } from './js/ballot-status.js';
+import { rubricToggle } from './js/ballot-nav.js';
+import { boardHtml } from './js/rank-screen.js';
+import { createChamber, newSession, setStatus } from './congress/chamber.js';
+import { congressProfile } from './congress/profiles.js';
+import { migrateCongress, withChamber, withSession } from './congress/store.js';
 import { toggleCheck } from './js/comments.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
@@ -484,8 +497,12 @@ test('reason for rank: a room-level "+ Add reason for rank", open once written, 
 // a second field. One word, from the profile, in both places.
 test('Review: the checklist and the card use the same word for the whole-room note', () => {
   const rate = Object.assign(room('oo', 'rate-only'), { reasonForRank: 'All clear.' });
-  assert.ok(checklist(rate).some((c) => c.label === 'Notes for the room written'));
-  assert.match(commentsStageHtml(rate, { order: 'speaking', editing: null }), /<span>Notes for the room<\/span>/);
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E27, rule W3). Old line:
+  //   assert.ok(checklist(rate).some((c) => c.label === 'Notes for the room written'));
+  assert.ok(checklist(rate).some((c) => c.label === 'Room notes written'));
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E27, rule W3). Old line:
+  //   assert.match(commentsStageHtml(rate, { order: 'speaking', editing: null }), /<span>Notes for the room<\/span>/);
+  assert.match(commentsStageHtml(rate, { order: 'speaking', editing: null }), /<span>Room notes<\/span>/);
   const ranked = Object.assign(room('hi', 'nsda-district'), { reasonForRank: 'A1 first.' });
   assert.ok(checklist(ranked).some((c) => c.label === 'Reason for rank written'));
   assert.match(commentsStageHtml(ranked, { order: 'speaking', editing: null }), /<span>Reason for rank<\/span>/);
@@ -598,18 +615,24 @@ test('D5-A: on rows still judging the submit button moves into ⋯; Up next and 
   const m = mydayModel({ day: DAY, cards: [ca, cb, cc], rounds: [ra, rb, rc], now: NOW });
   const html = mydayHtml(m, DAY, DATA.events, NOW, []);
   const next = html.slice(html.indexOf('class="md-next-card"'), html.indexOf('</section>'));
-  assert.match(next, /data-act="submit">I submitted in Tabroom/, 'Up next keeps it');
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E45, DESIGN.md rule 9). Old line:
+  //   assert.match(next, /data-act="submit">I submitted in Tabroom/, 'Up next keeps it');
+  assert.match(next, /data-act="submit">Mark submitted/, 'Up next keeps it');
   const rows = [...html.matchAll(/<li class="md-row"[^>]*aria-label="([^"]+)">([\s\S]*?)<\/li>/g)];
   const judging = rows.filter((x) => /Judging$/.test(x[1]));
   const ranksIn = rows.filter((x) => /Ranks copied/.test(x[1]));
   assert.ok(judging.length && ranksIn.length, 'both kinds of row are drawn');
   for (const x of judging) assert.doesNotMatch(x[2], /data-act="submit"/, x[1] + ': not on the row');
-  for (const x of ranksIn) assert.match(x[2], /data-act="submit">I submitted in Tabroom/, x[1] + ': on the row');
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E45, DESIGN.md rule 9). Old line:
+  //   for (const x of ranksIn) assert.match(x[2], /data-act="submit">I submitted in Tabroom/, x[1] + ': on the row');
+  for (const x of ranksIn) assert.match(x[2], /data-act="submit">Mark submitted/, x[1] + ': on the row');
   // Opened, a judging row's menu lists it first, with Cancel last.
   const key = judging[0][0].match(/data-item="([^"]+)"/)[1];
   const open = mydayHtml(m, DAY, DATA.events, NOW, [], key);
   const row = open.slice(open.indexOf('data-item="' + key + '"'));
-  assert.match(row.slice(0, row.indexOf('</li>')), /<div class="md-menu"[^>]*>\s*<button class="b small" type="button" data-act="submit">I submitted in Tabroom<\/button>\s*<button[^>]*data-act="room">Change room<\/button>\s*<button class="b small quiet danger-text md-cancel" type="button" data-act="cancel">Cancel round<\/button><\/div>/);
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E45, DESIGN.md rule 9). Old line:
+  //   assert.match(row.slice(0, row.indexOf('</li>')), /<div class="md-menu"[^>]*>\s*<button class="b small" type="button" data-act="submit">I submitted in Tabroom<\/button>\s*<button[^>]*data-act="room">Change room<\/button>\s*<button class="b small quiet danger-text md-cancel" type="button" data-act="cancel">Cancel round<\/button><\/div>/);
+  assert.match(row.slice(0, row.indexOf('</li>')), /<div class="md-menu"[^>]*>\s*<button class="b small" type="button" data-act="submit">Mark submitted<\/button>\s*<button[^>]*data-act="room">Change room<\/button>\s*<button class="b small quiet danger-text md-cancel" type="button" data-act="cancel">Cancel round<\/button><\/div>/);
 });
 
 // Why: §5.1 sets 44 px targets on a phone; a 28 px "Edit" or "Show all" next to other controls is a mis-tap that opens
@@ -617,4 +640,151 @@ test('D5-A: on rows still judging the submit button moves into ⋯; Up next and 
 test('phone targets: every button, small ones too, is at least 44 px under 820 px; the primary is 48 px', () => {
   assert.match(CSS, /@media \(max-width: 820px\) \{\n  a\.b, button\.b, a\.b\.small, button\.b\.small, \.timer-btns \.b \{ min-height: 44px; \}/);
   assert.match(CSS, /  a\.b\.primary, button\.b\.primary, \.timer-btns \.b\.primary \{ min-height: 48px; \}/);
+});
+
+// ---------- §6 screen findings, second pass: the header ----------
+
+// Why: My day was the one screen with no nav link, so a judge deep in History had only the logo to get home; and the
+// current page showed by a tint alone, which is 1.06:1 in dark mode. My day joins the nav and the current page is bold.
+test('header: My day, History and Settings in the nav, the current page tinted and bold', () => {
+  const html = read('./index.html');
+  const nav = html.slice(html.indexOf('<nav class="bar-nav"'), html.indexOf('</nav>'));
+  assert.deepEqual([...nav.matchAll(/id="nav-([a-z]+)" href="([^"]+)"><svg[^>]*><use href="#i-([a-z-]+)"\/><\/svg>([^<]+)</g)].map((m) => m.slice(1).join(' ')),
+    ['myday #/ calendar My day', 'history #/history history History', 'settings #/settings settings Settings']);
+  assert.match(read('./js/app.js'), /\[\['#nav-myday', 'rooms'\], \['#nav-history', 'history'\], \['#nav-settings', 'settings'\]\]/);
+  assert.match(CSS, /\.bar-nav a\.b\[aria-current="page"\] \{ background: var\(--fill-quiet\); color: var\(--text\); font-weight: var\(--fw-4\); \}/);
+});
+
+// Why: on a phone the header took two rows and the back link squeezed the title onto three lines. The header is one row
+// (the name stays for screen readers) and every back link sits on its own 44 px line above the title.
+test('header: one row on a phone, and every back link is on its own line above the title', () => {
+  assert.match(CSS, /@media \(max-width: 560px\) \{\n  \.bar \{ flex-wrap: nowrap;[^}]*\}\n  \.brand > span \{ position: absolute; width: 1px; height: 1px; overflow: hidden;/);
+  assert.match(CSS, /\.screen-head > \.back \{ order: -2; flex-basis: 100%; justify-content: flex-start; min-height: 44px;/);
+  let backs = 0;
+  for (const [f, src] of SOURCES) {
+    // A quiet link that starts with the back chevron is a back link (the Review blocker's "Back to Rate" is a primary).
+    for (const m of src.matchAll(/<a class="(b quiet[^"]*)" href="[^"]*">\$\{icon\('chevron-left'\)\}/g)) { backs++; assert.equal(m[1], 'b quiet back', f); }
+  }
+  assert.ok(backs >= 10, 'the screens have back links');
+});
+
+// ---------- §6 Picker ----------
+
+// Why: a judge with three HI flights wants today's event at the top in one tap, apart from older recent picks; and a
+// "Rank" chip on every card said nothing, so the chips that matter (Title, Prep in room) were harder to see.
+test('picker: a "Judged today" group first, Recent keeps the rest, no Rank chip, a trailing chevron on each card', () => {
+  const rows = pickerRows(DATA);
+  const secs = pickerSections(rows, ['hi', 'oo', 'di'], '', ['hi', 'oo', 'hi']);
+  assert.deepEqual(secs.slice(0, 2).map((s) => [s.title, s.rows.map((r) => r.id)]), [['Judged today', ['hi', 'oo']], ['Recent', ['di']]]);
+  assert.equal(pickerSections(rows, ['di'], '').find((s) => s.id === 'today'), undefined, 'nothing judged today: no empty group');
+  const html = pickerListHtml(secs);
+  assert.ok(html.indexOf('Judged today') < html.indexOf('All events'), 'above All events');
+  assert.doesNotMatch(html, /pk-chip">Rank</);
+  assert.match(html, /<span class="pill outline pk-chip">10:00<\/span><\/span><svg class="i i-16"[^>]*><use href="#i-chevron-right"\/><\/svg>\s*<\/button>/);
+});
+
+// ---------- §6 PCC: the run cards ----------
+
+// Why: the two run cards looked the same ("–", "Not started"), so a lay judge could not tell which run the clock was on
+// or which came next; the main button said only "Start". One card stands out ("Next", then "Live"), and an empty
+// card shows the shared limit.
+test('PCC: Start Pro, the next run card says Next, the run on the clock says Live, an empty card shows "of 10:30"', () => {
+  const pcc = DATA.events.get('pcc');
+  const e0 = room('pcc', 'nsda-invitational', ['A1']).entries[0];
+  const before = runCardsHtml(e0, pcc, T, 630);
+  assert.match(before, /<li class="run-card is-on" data-side="pro">[\s\S]*?of 10:30<\/span>\s*<span class="run-word pill" data-run-word="pro">Next<\/span>/);
+  assert.match(before, /<li class="run-card" data-side="con">[\s\S]*?of 10:30<\/span>\s*<span class="run-word muted" data-run-word="con">Not started<\/span>/);
+  assert.equal(mainButton(timerFace(e0, 630, 30, T), 'Start Pro').label, 'Start Pro');
+  assert.equal(mainButton(timerFace(e0, 630, 30, T)).label, 'Start', 'other events keep Start');
+  const live = syncRuns(runningE(e0, 30, 630), pcc, T, 630);
+  const html = runCardsHtml(live, pcc, T, 630);
+  assert.match(html, /<li class="run-card is-on" data-side="pro">[\s\S]*?<span class="run-word pill live" data-run-word="pro">Live<\/span>/);
+  assert.equal((html.match(/run-card is-on/g) || []).length, 1, 'one card stands out');
+  assert.match(CSS, /\.run-card\.is-on \{ border-color: var\(--text\); border-width: 2px; \}/);
+  // The timer view names the first run before any time ("Start Pro") through its startWord option.
+  assert.match(read('./js/runs-view.js'), /startWord: \(e, ev, now, lim\) => \(runsPhase\(e, ev, now, lim\)\.index === -1 \? 'Start ' \+ eventRuns\(ev\)\[0\]\.label : ''\)/);
+});
+
+// ---------- §6 Chamber overview ----------
+
+// Why: the overview showed about 20 selects of the same weight, so a judge could not scan who was out, and the note
+// "Mark who is absent" sat far below the button it comes before. Absent and Left show as words beside the code,
+// sessions get a status pill, done docket items a check, and the note sits under "Start session N".
+test('chamber overview: session pills, Absent and Left words, done docket items with a check, the note under the primary', () => {
+  const parsed = parseRoom(['1001', '1002', '1003'].join('\n'));
+  let ch = createChamber({ entries: parsed.entries, docket: ['A Bill to Fund Rail'], house: 'house', profile: congressProfile('nsda-district'), now: 0, makeId });
+  ch = setStatus(setStatus(ch, ch.legislators[1].id, 'absent', 1), ch.legislators[2].id, 'left', 1);
+  const made = newSession(ch, [], { now: 0, makeId });
+  const chamber = Object.assign({}, made.chamber, { docket: made.chamber.docket.map((d) => Object.assign({}, d, { debatedInSession: 1 })) });
+  const html = overviewHtml(withSession(withChamber(migrateCongress(null), chamber), made.session), chamber);
+  assert.equal(primaries(html), 1);
+  assert.match(html, /<span class="room-name">Session 1<\/span>\s*<span class="pill"><svg[^>]*><use href="#i-circle"\/><\/svg>Not started<\/span><span class="room-meta">0 speeches<\/span><svg[^>]*><use href="#i-chevron-right"\/><\/svg>/);
+  assert.match(html, /<span class="code">1002<\/span><span class="pill" data-out>Absent<\/span>/);
+  assert.match(html, /<span class="code">1003<\/span><span class="pill" data-out>Left<\/span>/);
+  assert.doesNotMatch(html, /<span class="code">1001<\/span><span class="pill">/, 'present needs no pill');
+  assert.match(html, /<span class="pill live"><svg[^>]*><use href="#i-check"\/><\/svg>Done in session 1<\/span>/);
+  assert.ok(html.indexOf('id="cg-before"') < html.indexOf('Sessions</h2>'), 'the note sits under the primary, before the lists');
+  assert.equal((html.match(/Mark who is absent/g) || []).length, 1);
+});
+
+// ---------- §6 Type page and §5.4 rubric speaker folds ----------
+
+// Why: the type page repeated the same rule lines under every rule set, so the one that differs was hard to find; and a
+// check circle on a rule check reads as "passed". Shared lines show once, today's rules are open, the others are fold
+// rows, rule checks get a neutral square, and the page has one way to start a round.
+test('type page: shared rule lines once, the default rules open, other rule sets as folds, neutral squares, Start a round', () => {
+  const html = typeHtml(DATA, 'hi', []);
+  assert.equal(primaries(html), 1);
+  assert.match(html, /<a class="b primary" id="ty-start" href="#\/new\/hi"><svg[^>]*><use href="#i-plus"\/><\/svg>Start a round<\/a>/);
+  assert.match(html, /<ul class="ty-checks"><li><svg class="i i-16"[^>]*><use href="#i-square"\/><\/svg>/);
+  const profiles = [{ id: 'a', name: 'A rules', rating: 'none' }, { id: 'b', name: 'B rules', rating: 'none', ratingNoTies: true }];
+  const rules = rulesHtml(profiles, 'a');
+  assert.match(rules, /^<h3>Every rule set<\/h3><ul><li>Ranks only, no points\.<\/li>/);
+  assert.equal((rules.match(/Ranks only, no points\./g) || []).length, 1, 'a shared line shows once');
+  assert.match(rules, /<details class="fold ty-rules"><summary class="fold-row"><span class="fold-label">B rules<\/span><span class="fold-value muted">No two speakers can get the same points\.<\/span>/);
+  assert.doesNotMatch(rules, /<details[^>]*>[^]*A rules/, 'the default rules are not folded');
+});
+
+// Why: a 3-speaker rubric page was about 1,600 px on a phone, and a mis-tap that closed a block would hide the grid the
+// judge was scoring. One block per speaker, the first unscored one open; a block closes only when another opens.
+test('rubric folds: one block per speaker with the total as its value, the first unscored open, the bold total gone', () => {
+  const rub = [{ id: 'v', label: 'Voice', min: 1, max: 5 }, { id: 'b', label: 'Body', min: 1, max: 5 }];
+  const prof2 = Object.assign(prof('nsda-district'), { rubric: rub });
+  let r = openBoard(room('di', 'nsda-district', ['A1', 'B2'], { profile: prof2 }), NOW).room;
+  r = withEntry(r, 'A1', (e) => Object.assign({}, e, { rubric: { v: 4, b: 5 } }));
+  assert.equal(firstOpenRubric(r.entries, rub), idOf(r, 'B2'), 'A1 is fully scored');
+  assert.equal(firstOpenRubric([], rub), null);
+  const a1 = r.entries.find((x) => x.code === 'A1');
+  const folded = rubricHtml(a1, rub, false);
+  assert.match(folded, /^<details class="fold rub-fold" data-rubfold="[^"]+"><summary class="fold-row"><span class="fold-label">Rubric for A1<\/span><span class="fold-value muted">Total 9 of 10, all 2 parts added<\/span>/);
+  assert.doesNotMatch(folded, /rub-total/, 'the summary carries the total');
+  assert.match(rubricHtml(a1, rub, true), /<details class="fold rub-fold" data-rubfold="[^"]+" open>/);
+  const board = boardHtml(r, { tapMode: false, limit: 600, event: DATA.events.get('di'), now: NOW, openRub: idOf(r, 'B2') });
+  assert.equal((board.match(/class="fold rub-fold"/g) || []).length, 2);
+  assert.equal((board.match(/rub-fold" data-rubfold="[^"]+" open>/g) || []).length, 1, 'one block open');
+  // Only opening another block closes one (ballot-nav.js rubricToggle), driven here with a small DOM stand-in.
+  const blocks = ['A1', 'B2', 'C3'].map((id) => ({ open: id === 'B2', dataset: { rubfold: id }, matches: (sel) => sel === 'details[data-rubfold]' }));
+  const root = { querySelectorAll: (sel) => (sel === 'details[data-rubfold][open]' ? blocks.filter((b) => b.open) : blocks) };
+  blocks[0].open = true; // the judge opens A1
+  assert.equal(rubricToggle(root, { target: blocks[0] }, 'B2'), 'A1');
+  assert.deepEqual(blocks.map((b) => b.open), [true, false, false], 'opening A1 closed B2');
+  blocks[0].open = false; // the judge closes A1 by hand
+  assert.equal(rubricToggle(root, { target: blocks[0] }, 'A1'), null);
+  assert.equal(rubricToggle(root, { target: { matches: () => false } }, 'C3'), 'C3', 'another toggle (a score tap never toggles) changes nothing');
+});
+
+// Why: in a PCC room with one speaker, after Pro stopped both "Rank the room" and "Pro done · start Con" were solid
+// (found in the browser pass). While a run still waits, the header's Rank button must stay secondary.
+test('room primary: a view that holds the primary (PCC runs) keeps the header Rank button secondary', () => {
+  const r = room('pcc', 'nsda-invitational', ['P1']);
+  assert.equal(primaries(goRankHtml(r, 'other')), 0);
+  assert.match(goRankHtml(r, 'other'), /Rank the room <span class="muted">· 0 of 1<\/span>/);
+  assert.match(read('./js/runs-view.js'), /holdsPrimary: \(r, e\) => nextRunWaits\(e, roomEvent\(env\(\)\.data\.events, r\), env\(\)\.now\(\), limit\(\)\)/);
+  const src = read('./js/room-screen.js');
+  assert.match(src, /const headPrimary = \(r\) => \{ const e = entryOf\(r, r\.current\); return views\.some\(\(v\) => v\.holdsPrimary && v\.holdsPrimary\(r, e\)\) \? 'other' : roomPrimary\(r, e\); \};/);
+  // One answer for the header and the timer card: the timer reads the room screen's ctx.primary.
+  assert.match(src, /primary: \(r\) => headPrimary\(r\) \};/);
+  assert.match(read('./js/timer-view.js'), /const primary = ctx\.primary \? ctx\.primary\(r\) : roomPrimary\(r, e\);/);
+  assert.doesNotMatch(read('./js/runs-view.js') + read('./js/timer-view.js'), /yieldsPrimary/, 'no second hook for the same rule');
+  assert.match(src, /const go = '<a class="b" id="go-rank"><\/a>';/, 'the header waits for the views to be shown');
 });

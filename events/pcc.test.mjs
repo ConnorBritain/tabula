@@ -262,7 +262,9 @@ test('the run parts of the Room screen: topic field, bar, run cards, the Con sta
   // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (top 10 #1: the PCC primary reads "Pro done · start Con"). Old line:
   //   assert.match(cards, /data-ract="next"[^>]*>Con started</);
   assert.match(cards, /data-ract="next"[^>]*>Pro done · start Con<svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"\/><\/svg></);
-  assert.match(cards, /data-run-word="pro">Now</);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§6 PCC: the run on the clock says Live in a pill). Old line:
+  //   assert.match(cards, /data-run-word="pro">Now</);
+  assert.match(cards, /<span class="run-word pill live" data-run-word="pro">Live</);
   assert.match(cards, /data-run-word="con">Not started</);
   assert.match(runsRowHtml(pro, PCC, 40_000, LIMIT), /Pro 0:30/);
   assert.equal(runsRowHtml(base, PCC, 1, LIMIT), '');

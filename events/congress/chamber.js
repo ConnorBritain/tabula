@@ -22,7 +22,7 @@ export function setupChecks(parsed, docket, profile) {
   if (n > max) out.push({ kind: 'tooMany', text: n + ' legislators. ' + profile.name + ' allows ' + max + '. Remove ' + (n - max) + '.', block: true });
   if (n > 0 && n < MIN_CHAMBER) out.push({ kind: 'tooFew', text: 'Only ' + n + ' legislators. A district chamber has at least ' + MIN_CHAMBER + '.', block: false });
   if (!n) out.push({ kind: 'none', text: 'No legislators yet. Paste the chamber list.', block: true });
-  if (!docket.length) out.push({ kind: 'noDocket', text: 'No docket items. Add the bill and resolution titles, one for each line.', block: false });
+  if (!docket.length) out.push({ kind: 'noDocket', text: 'Add bill and resolution titles, one per line.', block: false });
   return out;
 }
 

@@ -182,7 +182,7 @@ async function askClaude(name, task, schema, opts) {
 async function runTool(name, task, schema, opts, store) {
   if (!can('analysis')) return;
   if (!ready()) return toast(noAiText());
-  if (busy[name]) return toast('Still working on the last one. Try again when it finishes.');
+  if (busy[name]) return toast('Still working. Try again soon.');
   busy[name] = true; errs[name] = ''; renderAnalysis();
   try {
     const data = await askClaude(name, task, schema, opts);

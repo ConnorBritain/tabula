@@ -36,8 +36,8 @@ function moreHtml(r) {
 }
 
 // The table as HTML text. rows: historyRows(...) after the filter; columns: historyColumns(...).
-export function historyTableHtml(rows, columns) {
-  if (!rows.length) return '<p class="muted" id="hist-empty">No rounds match. Rounds you judge show here.</p>';
+export function historyTableHtml(rows, columns, noRoundsAtAll) {
+  if (!rows.length) return `<p class="muted" id="hist-empty">${noRoundsAtAll ? 'No rounds yet.' : 'No rounds match.'}</p>`;
   return `<table class="hist-table"><caption class="sr-only">Your rounds, newest first</caption>
     <thead><tr>${columns.map((c) => `<th scope="col">${esc(c.label)}</th>`).join('')}<th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
     <tbody>${rows.map((r) => `<tr data-id="${esc(r.id)}">${columns.map((c) => `<td data-col="${c.key}">${cellHtml(r, c.key)}</td>`).join('')}`
@@ -60,9 +60,9 @@ export function historyHtml(allRows, filter) {
     <button class="b" type="button" id="hist-csv">${icon('download')}Download CSV</button>
     <label class="tick"><input type="checkbox" id="hist-private"> Include names and comments</label>
   </div>
-  <p class="field-help">The copy and the file hold the rounds shown, with entry codes only. Names and comments go in only when you tick the box.</p>
+  <p class="field-help">Codes only, unless you tick the box.</p>
   <p class="muted" id="hist-count" role="status">${rows.length} ${rows.length === 1 ? 'round' : 'rounds'}</p>
-  <div class="hist-wrap" id="hist-table">${historyTableHtml(rows, historyColumns(rows, f))}</div>`;
+  <div class="hist-wrap" id="hist-table">${historyTableHtml(rows, historyColumns(rows, f), !allRows.length)}</div>`;
 }
 
 // env: { el, ui, data, now, rooms(), deleteRound(id, after) }.
@@ -94,7 +94,7 @@ export function createHistoryScreen(env) {
     if (t.length < 2) { env.ui.toast('There is nothing to copy yet.', { key: 'hist' }); return; }
     try {
       await navigator.clipboard.writeText(toTSV(t));
-      env.ui.toast('Copied ' + (t.length - 1) + (t.length === 2 ? ' line' : ' lines') + '. Paste them into a spreadsheet.', { key: 'hist' });
+      env.ui.toast('Copied ' + (t.length - 1) + (t.length === 2 ? ' line' : ' lines') + '.', { key: 'hist' });
     } catch (err) {
       console.warn('Speech Events: the copy did not work.', err);
       env.ui.toast('The copy did not work in this browser. Use Download CSV.', { kind: 'error', key: 'hist' });

@@ -136,7 +136,7 @@ Sections:
 - A small hosted backend (for example a Cloudflare Worker) holds Tabula's own AI keys.
 - Payments through Stripe. Credits are counted per round.
 - **Program accounts**: a coach buys a pool of credits and hands out judge codes. This works as a recruiting perk for judges.
-- Price per round = measured AI cost + a small margin. We measure the real cost per round first.
+- We measure the real cost per round first.
 - **Needed before charging**:
   - Accounts and login.
   - Terms and a privacy policy. These rounds involve **minors' names and voices**, so data handling must be careful: no audio kept, short retention, school-friendly terms.

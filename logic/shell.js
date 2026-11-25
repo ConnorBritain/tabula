@@ -42,7 +42,7 @@
 
   // 5.1 The offline note in the top bar. online: navigator.onLine; was: the last state. Returns the text to show
   // ('' shows nothing): "Offline" while offline, "Back online" for a moment after the network returns.
-  const NET_TIP = 'No internet. Timers, flow and ballot still work. AI waits until you are back online.';
+  const NET_TIP = 'No internet. Clock, flow and ballot still work. AI waits until you are back online.';
   function netNote(online, wasOnline) {
     if (online === false) return 'Offline';
     return wasOnline === false ? 'Back online' : '';

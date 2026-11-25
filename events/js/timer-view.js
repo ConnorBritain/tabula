@@ -92,17 +92,18 @@ function prepButtons(face, primary) {
 }
 
 // The one main button of the card, as { tact, label } (the big button and the sticky bar's button both draw it).
-export function mainButton(face) {
+// startWord (optional; color review §6 PCC): the word before any time, as "Start Pro" (a family names its first part).
+export function mainButton(face, startWord) {
   if (face.phase === 'ready') return { tact: 'prep', label: 'Start prep' };
   if (face.phase && face.phase !== 'speech') return { tact: 'speech', label: 'Speech started' };
-  return { tact: 'startstop', label: face.running ? 'Stop' : face.used ? 'Resume' : 'Start' };
+  return { tact: 'startstop', label: face.running ? 'Stop' : face.used ? 'Resume' : startWord || 'Start' };
 }
 
 // The play or pause icon of the main button (§5.3): pause while a clock runs, play otherwise.
 const goIcon = (face) => icon(face.running ? 'pause' : 'play', 20);
 // The big main button of the card (data-key="startstop": the focus and the Space rule find it first). primary: false
 // when another step holds the room's one solid fill (top 10 #1: Next speaker after a stop, Rank the room at the end).
-const bigButton = (face, primary) => { const b = mainButton(face); return `<button class="b${primary === false ? '' : ' primary'} timer-go" type="button" data-tact="${b.tact}" data-key="startstop">${goIcon(face)}${esc(b.label)}</button>`; };
+const bigButton = (face, primary, startWord) => { const b = mainButton(face, startWord); return `<button class="b${primary === false ? '' : ' primary'} timer-go" type="button" data-tact="${b.tact}" data-key="startstop">${goIcon(face)}${esc(b.label)}</button>`; };
 
 // −10 s and +10 s in one quiet track (top 10 #8): rare fixes, not peers of the primary. what: 'prep' or 'speech'.
 function toolGroup(what) {
@@ -118,8 +119,8 @@ const resetHtml = `<button class="b quiet" type="button" data-tact="reset">${ico
 // stop, "Next speaker". It shows only on a narrow screen while the big card is out of view (the CSS and an
 // IntersectionObserver turn it on). The digits are hidden from screen readers, as on the card (the word says the stage).
 // primary (design build, top 10 #1): which step holds the solid fill, as on the card ('timer' when left out).
-export function stickyBarHtml(face, track, primary) {
-  const b = mainButton(face);
+export function stickyBarHtml(face, track, primary, startWord) {
+  const b = mainButton(face, startWord);
   const p = primary || 'timer';
   const shown = cardFace(face);
   const next = face.stage === 'stopped' && face.used > 0 ? `<button class="b small${p === 'next' ? ' primary' : ''}" type="button" data-act="next">Next speaker</button>` : '';
@@ -133,8 +134,8 @@ export function stickyBarHtml(face, track, primary) {
 // limit: the event's limit (on a prep event, the shared limit for prep and speech). track: cardTrack(...) (optional;
 // without it the card has no signal track and no sticky bar).
 // opts (design build, top 10 #1; optional): { primary: 'timer' | 'next' | 'rank' | 'other' (room-primary.js; 'other':
-// another part of the room holds it, as the F4 run button), nextHtml: the "Next speaker: U2" button }. Left out, the
-// big button is the primary, as before.
+// another part of the room holds it, as the F4 run button), nextHtml: the "Next speaker: U2" button, startWord: the
+// main button's word before any time ("Start Pro") }. Left out, the big button is the primary, as before.
 export function timerHtml(entry, face, limit, grace, track, opts) {
   // Copy trim E8: a pill and the undo button on the card, not directions to the roster menu.
   if (entry.status === 'noShow') return `<p class="timer-none">${statusPillHtml('outline', 'No show')} <button class="b small" type="button" data-act="show" data-id="${esc(entry.id)}" data-key="ns-timer-${esc(entry.id)}">Undo no show</button></p>`;
@@ -145,7 +146,7 @@ export function timerHtml(entry, face, limit, grace, track, opts) {
   const shown = cardFace(face);
   const result = resultPillHtml(face, grace);
   const next = p === 'next' && o.nextHtml ? o.nextHtml : '';
-  const btns = shared && face.phase !== 'speech' ? prepButtons(face, p === 'timer') : `${next}${bigButton(face, p === 'timer')}
+  const btns = shared && face.phase !== 'speech' ? prepButtons(face, p === 'timer') : `${next}${bigButton(face, p === 'timer', o.startWord)}
       ${toolGroup('speech')}
       <button class="b" type="button" data-tact="set">Set time</button>
       ${!face.running && face.used ? resetHtml : ''}`;
@@ -162,7 +163,7 @@ export function timerHtml(entry, face, limit, grace, track, opts) {
     </div>
     <div class="timer-btns">
       ${btns}
-    </div>${track ? stickyBarHtml(face, track, p) : ''}</div>`;
+    </div>${track ? stickyBarHtml(face, track, p, o.startWord) : ''}</div>`;
 }
 
 // The time on a roster row (after the code): the time used (on a prep event, prep and speech), once there is some.
@@ -185,8 +186,7 @@ export function rowTrackLine(entry, used, track) {
 //   syncEntry(entry, event, now, limit) -> entry   runs after every change this view makes to an entry, so data kept
 //                                                 beside the clock (the runs of a PCC entry) follows the clock
 //   resetFields(entry) -> { field: value }         more fields that "Reset time" sets (its Undo puts the old ones back)
-//   yieldsPrimary(entry, event, now, limit) -> bool another part of the room holds the one primary (design build,
-//                                                 top 10 #1; F4: the next run's button), so the big button is secondary
+//   startWord(entry, event, now, limit) -> string  the main button's word before any time ("Start Pro")
 export function createTimerView(opts) {
   const o = opts || {};
   let ctx = null;
@@ -454,10 +454,10 @@ export function createTimerView(opts) {
     stageHtml: (r, e) => {
       const now = env().now();
       const face = faceOf(e, now);
-      // Top 10 #1: the room's one primary. A family part may hold it instead (F4: the next run's button).
-      const yields = o.yieldsPrimary && o.yieldsPrimary(e, event(), now, limit());
-      const primary = yields ? 'other' : roomPrimary(r, e);
-      return timerHtml(e, face, limit(), grace(), cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor), { primary, nextHtml: nextTopHtml(r) });
+      // Top 10 #1: the room's one primary, from the room screen (a family part may hold it: F4's next-run button).
+      const primary = ctx.primary ? ctx.primary(r) : roomPrimary(r, e);
+      const startWord = o.startWord ? o.startWord(e, event(), now, limit()) : '';
+      return timerHtml(e, face, limit(), grace(), cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor), { primary, nextHtml: nextTopHtml(r), startWord });
     },
     mounted() { const box = $('#timer-box'); if (box) box.addEventListener('click', onClick); watchCard(); },
     show(c) {

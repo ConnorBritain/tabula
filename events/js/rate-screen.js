@@ -7,7 +7,7 @@ import { escapeHtml as esc } from '../../core/sheets.js';
 import { statusPillHtml } from './status-pill.js';
 import { icon } from './icons.js';
 import { problemsListHtml, readyHtml, rateRowPill, ballotFootHtml } from './ballot-status.js';
-import { ballotNavClick } from './ballot-nav.js';
+import { ballotNavClick, createRubricFolds } from './ballot-nav.js';
 import { ratingScale, ratingError, ratingTies, overtimeRow } from './rank.js';
 import { boardCtx, ratingsOf } from './board.js';
 import { layerOf, layerProblems } from './profile-layer.js';
@@ -19,7 +19,7 @@ import { totalUsedAt } from './prep.js';
 import { setReason } from './comments.js';
 import { overtimeNote } from './round-frame.js';
 
-// The list of entries to rate, in speaking order, as HTML text. view: { limit, now }.
+// The list of entries to rate, in speaking order, as HTML text. view: { limit, now, openRub (the open rubric block) }.
 export function rateListHtml(room, view) {
   const ctx = boardCtx(room);
   const scale = ratingScale(room.profile);
@@ -36,7 +36,7 @@ export function rateListHtml(room, view) {
         <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ' ' + statusPillHtml('err', ot.pill) : ''}</span>
         ${ot.pill && panel ? `<span class="board-note">${esc(panel)}</span>` : ''}${rateRowPill(e, ratings[e.id], scale, rubric)}</span>
       ${scale.kind !== 'none' ? `<span class="board-rate">${ratingHtml(e, ratings[e.id], scale, err)}</span>` : ''}
-      ${rubricHtml(e, rubric)}
+      ${rubricHtml(e, rubric, view.openRub === e.id)}
     </li>`;
   }).join('');
   return `<ul class="rate-list" id="rate-list" aria-label="Ratings, in speaking order">${rows}</ul>`;
@@ -51,6 +51,7 @@ export function rateProblemsHtml(room) {
 // env: { el, ui, data, now, rooms(), saveRoom(room), go(screen, id) }.
 export function createRateScreen(env) {
   let roomId = null;
+  const folds = createRubricFolds(env.el); // the open rubric block (§5.4)
   const $ = (s) => env.el.querySelector(s);
   const room = () => findRoom(env.rooms(), roomId);
   const event = (r) => roomEvent(env.data.events, r);
@@ -59,7 +60,7 @@ export function createRateScreen(env) {
   function draw(focusKey) {
     const r = room();
     if (!r) return;
-    $('#rate-box').innerHTML = rateListHtml(r, { limit: limitOf(event(r)), now: env.now() });
+    $('#rate-box').innerHTML = rateListHtml(r, { limit: limitOf(event(r)), now: env.now(), openRub: folds.open() });
     $('#problems').innerHTML = rateProblemsHtml(r);
     $('#ballot-foot').innerHTML = ballotFootHtml(r, 'rate'); // the sticky footer (top 10 #6) follows every change
     if (focusKey) { const el = $(`[data-key="${CSS.escape(focusKey)}"]`); if (el && !el.disabled) el.focus(); }
@@ -84,25 +85,27 @@ export function createRateScreen(env) {
       roomId = id;
       if (r.state === 'judging') save(Object.assign({}, r, { state: 'ranking', updatedAt: env.now() }));
       const ev = event(r);
-      env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
+      env.el.innerHTML = `<div class="screen-head"><a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
           <h1 id="screen-title" tabindex="-1">Rate · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <p class="bias">${esc(r.profile.biasNote || 'Judge the performance, not the person.')}</p>
-        <p class="muted board-help">These rules have no ranks. Rate each speaker on their own.</p>
+        <p class="muted board-help">No ranks. Rate each speaker.</p>
         <div id="rate-box"></div>
         <div id="problems"></div>
-        <label class="field" for="rank-reason"><span>Notes for the whole room <span class="muted">(optional)</span></span></label>
+        <label class="field" for="rank-reason"><span>Room notes</span></label>
         <textarea id="rank-reason" rows="3">${esc(r.reasonForRank || '')}</textarea>
         <div class="ballot-foot" id="ballot-foot"></div>`;
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('input', onInput);
       env.el.addEventListener('change', onChange);
       env.el.addEventListener('keydown', onKey);
+      folds.start(r);
       $('#rank-reason').addEventListener('input', (e) => save(setReason(room(), e.target.value, env.now())));
       draw();
       $('#screen-title').focus();
     },
     hide() {
       for (const [t, f] of [['click', onClick], ['input', onInput], ['change', onChange], ['keydown', onKey]]) env.el.removeEventListener(t, f);
+      folds.stop();
       roomId = null;
     },
   };

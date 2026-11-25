@@ -28,6 +28,7 @@
   <label class="mode-menu" id="mode-menu" hidden><span class="sr-only">Mode</span><select id="mode-select"></select></label>
   <nav class="bar-nav" aria-label="Main">
     <span class="pill outline" id="offline-chip" hidden><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-cloud-off"/></svg>Offline. Saved on this device.</span>
+    <a class="b quiet" id="nav-myday" href="#/"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg>My day</a>
     <a class="b quiet" id="nav-history" href="#/history"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-history"/></svg>History</a>
     <a class="b quiet" id="nav-settings" href="#/settings"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg>Settings</a>
   </nav>
@@ -46,7 +47,7 @@
   <div class="palette" id="palette-card" role="dialog" aria-modal="true" aria-label="Search and commands">
     <input id="pal-input" type="text" role="combobox" autocomplete="off" spellcheck="false" aria-expanded="true" aria-controls="pal-list" aria-autocomplete="list" aria-label="Search commands and rounds" placeholder="Search commands and rounds">
     <div class="pal-list" id="pal-list" role="listbox" aria-label="Commands"></div>
-    <p class="muted pal-empty" id="pal-empty" hidden>No match. Try "history", "new" or an event like "HI".</p>
+    <p class="muted pal-empty" id="pal-empty" hidden>No match.</p>
     <p class="muted pal-foot" aria-hidden="true">↑↓ to move · ↵ to run · Esc to close</p>
   </div>
 </div>

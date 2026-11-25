@@ -84,3 +84,10 @@ export function ballotFootHtml(room, stage) {
   return `<span class="bf-progress" id="bf-progress" role="status">${p.open ? icon('circle', 14) : icon('circle-check', 14)}${esc(p.word)}</span>
     <a class="b primary" id="go-review" href="#/review/${encodeURIComponent(room.id)}"${p.open ? ` data-open="${esc(p.open)}"` : ''}>Review and copy${icon('arrow-right', 20)}</a>`;
 }
+
+// The rubric block to open first (§5.4): the first speaker not fully scored, else none. list: the rows in screen order.
+export function firstOpenRubric(list, rubric) {
+  if (!rubric.length) return null;
+  const e = list.find((x) => !rubric.every((c) => rubricScored(x, c)));
+  return e ? e.id : null;
+}

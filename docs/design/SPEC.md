@@ -603,7 +603,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - Each textarea gets `aria-label="{speech} column, sheet {name}"`.
   - **Checks:** every column has the same font size and line height; line 40 sits at the same height in two columns; "Now" shows only on the running column; on iPad, a tap in a column does not change `visualViewport.scale`; zoom is not locked.
 - **V8 Transcript in the drawer only (Q7).** Remove the left-pane transcript (index.html:441-446, 202-207). Rewire the 1.2 view-only label and text to the drawer, so the drawer shows the **viewed** speech's transcript and live text still goes to the running speech. Move the `(?)` and its problem dot into the drawer header. The dot also shows on the round-bar Transcript button [A]. The drawer is `min(42dvh,420px)` with 16 px text. Esc closes it through the Esc stack (it replaces app.js:768).
-  - **Copy:** left pane `aria-label="Speeches and docs"`; Hide button `aria-label="Hide the speeches pane"`; placeholder "Words from the speech show here while the clock runs. You can type or fix them."; tour.js:25 title "Speeches and docs", body "Pick a speech and add its docs. Open the transcript from the round bar. Hide this pane for more room."
+  - **Copy:** left pane `aria-label="Speeches and docs"`; Hide button `aria-label="Hide the speeches pane"`; placeholder "Speech text shows here. You can edit it."; tour.js:25 title "Speeches and docs", body "Pick a speech and add its docs. Open the transcript from the round bar. Hide this pane for more room."
   - **Checks:** a grep finds no `#transcript`, `tr-label` or `transcript-block`; a tour test checks that no step targets a removed element; the 1.2 browser check passes again with the drawer.
 - **V9 Insights folds (Q8).** `L.insightsMode({aiReady, hideRight})` returns one of three modes:
   - `edge-connect`: no AI. This wins over `hideRight`. A 32 px strip with a vertical, outlined small "Connect AI" button (`.b.small`). At 1180 px and below, it is a compact card centred under the grid: the reason "Live insights need AI." and the same button, on `--sunk` with a 1 px `--border` on all four sides and `--r-md`, as wide as its words. No rule above it. The whole card (`#ins-cta`) is hidden in every other mode. (CHANGED 2026-11-20, owner request: the lone underlined link under a full-width line was not elegant. Old text: "A 32 px strip with vertical 'Connect AI' text. At 1180 px and below, it is one line under the grid.")
@@ -651,13 +651,13 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - The "AI draft" tag is plain.
   - The points and ranks tag sits once per speaker row.
   - This has no outside example. Test it in the 5-judge round.
-  - **Copy:** "Yours", "AI draft"; tip "The AI will not change this. Click to let it."; toast "The AI may now change {field}." [Undo]; line under the title "Anything you type is yours. The AI will not change it."
+  - **Copy:** "Yours", "AI draft"; tip "The AI will not change this. Click to let it."; toast "The AI may now change {field}." [Undo]; line under the title "The AI never changes what you type."
 - **4.3 The "Draft with AI" panel (Q9).**
   - Contents, top to bottom:
     1. the line "Writing style: {Expert/Plain}. Change it in Round setup." (see 4.9 for which setting applies);
     2. the picker "What should the AI draft?", with Winner · Points and ranks · Reason for decision · Aff comments · Neg comments (empty and AI fields are checked; yours are unchecked);
     3. "Use Live Eval feedback for the comments";
-    4. "Tell the AI (optional)";
+    4. "Tell the AI";
     5. [Draft] with the hint "Uses AI"; (CHANGED 2026-11-20, owner: "people won't know what a "Call" is, nor that it's AI driven." Old text: "One AI call")
     6. the link "Copy the prompt instead";
     7. "Refill after each speech" (off, D2);
@@ -666,7 +666,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
 
 | State | Text |
 |---|---|
-| No AI | "Connect AI to draft the ballot. The ballot works by hand either way." [Connect AI]. Only the prompt link works. |
+| No AI | "Drafting needs AI." [Connect AI]. Only the prompt link works. |
 | Empty round | "Nothing to draft from yet. The AI needs at least one speech, flow or doc." (`roundHasContent`) |
 | Nothing picked | "Pick at least one thing to draft." |
 | Offline | `aiErrorText('offline')` with the "Ballot draft:" prefix. Draft is disabled. The local helper is not blocked [A]. |
@@ -692,7 +692,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - A waiting review survives a reload, and the button then reads "Draft ready".
   - In the narrow layout, one card at a time: "3 of 5: Neg comments".
   - Inserted fields become "Yours".
-  - Header: "Review the draft" / "Check AI text before you use it. Nothing changes on the ballot until you insert it."
+  - Header: "Review the draft" / "Nothing goes on the ballot until you insert it."
   - `logic.js` gets `wordDiff`, `reviewFromDraft`, `staleReviewCards`, and `applyBallotDraft` with `opts.only` and `opts.range`.
 - **4.5 Stop and Undo.** `callAI` gets a `signal`, combined with its timeouts through `AbortSignal.any`. A fallback ignores late replies [A: check support].
   - After an insert or an auto refill: toast "AI text added to {n} fields." [Undo] → "Ballot put back."
@@ -700,7 +700,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
   - The old "Undo last fill" button goes.
 - **4.6 Auto refill.** It is off (D2). When on, it writes only empty and AI fields. A change to a field with a value goes to review. It never touches "Yours". It does not run on an empty round, offline, with no AI, or while a review waits.
 - **4.7 Points range (Q10).** The Round "Times" card becomes "Times and points". Add "Speaker points range" with "Lowest" (25) and "Highest" (30), whole numbers from 0 to 100 [A].
-  - Help line: "Most leagues use 25–30. Change it if your tournament uses another range."
+  - Help line: "Most leagues use 25–30."
   - Errors: "The lowest score must be less than the highest." / "Use a number from 0 to 100."
   - **Data:** `R.ptsRange` only. There is no Settings control, because Q10 puts the setting in Round setup. "New round" copies the range from the round it replaces. The first round ever uses 25–30.
   - It drives the table header "Points ({min}–{max})", the input limits, `checkBallot({minPts,maxPts})`, and one prompt line when the range is not 25–30: "This tournament uses {min}–{max}. Map the scale above onto that range."
@@ -714,7 +714,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
 - **4.9 Expert / Plain moves (Q15).** Remove it from the top bar (index.html:357) and the "Reading level" card.
   - **One rule for which setting applies:** `reading = R.reading ?? S.reading`. Settings holds the device default, labelled "Default for new rounds". Round setup holds this round's choice. Changing it in Round setup sets `R.reading`.
   - The row is "How the AI writes" (Expert / Plain) in both places.
-  - Help line: "Plain uses short sentences and everyday words, for students and parents. The decision stays the same."
+  - Help line: "Plain: short sentences, everyday words. The decision stays the same."
   - The Settings card is renamed "AI writing and decisions".
   - The paradigm lives in Settings. Analysis shows "Weigh as" with "(yours)" [A].
   - "Tabula rasa" becomes "Blank slate (tabula rasa)".
@@ -724,13 +724,13 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
 - **4.10 Print / PDF (Q20, first).** A dialog, "Print or save as PDF", with these choices: Ballot (always on), "Include the flow", "Include transcripts", "Include AI notes (Live Eval and analysis)", Portrait / Landscape (Landscape when the flow is included).
   - Help line: "To get a PDF, choose "Save as PDF" in the print window."
   - It builds `#print-sheet` from `printModel()`, so long text prints in full, and removes it after printing.
-  - Error toast: "Printing is not available in this browser. Use Copy for the tournament ballot instead."
+  - Error toast: "This browser cannot print. Use Copy instead."
   - Saved ballots in History use the same dialog.
 - **4.11 Copy for the tournament ballot (Q20, second).** A sheet with 4 blocks from `tournamentBlocks()`: Decision, Reason for decision, Aff comments, Neg comments.
   - Each block has a Copy button that turns into "✓ Copied" for 2 s, and a polite message "{Block} copied."
   - An empty block shows "Nothing written yet".
   - On failure, the text is selected and a line reads "Press Ctrl+C (⌘C on Mac) to copy."
-  - Hint: "Paste each block into the matching box on your tournament's ballot site."
+  - Hint: "Paste each block into the matching box."
   - Warning: "This ballot has {n} problems. Fix them first, or copy anyway."
   - `copy()` returns true or false. Callers give the feedback.
 - **4.12 Save to History.** Problems use dialog #15 from 2.4. Saved: the #16 toast. Repeat: "Already in History." Blocked storage: "Not saved: this browser is blocking storage. Use Print / PDF to keep a copy." Full storage: "Not saved: this browser's storage is full. Delete old saved ballots, or use Print / PDF to keep a copy."
@@ -754,7 +754,7 @@ The order inside the slice: V0 → V1–V4 → V5 → V6–V9 → V10 → V11 (w
 - **5.1 Top bar.** From left to right: brand (it links to Flow; change `data-tab-link="setup"`) · nav "Flow · Round · Decide · History" · spacer · corner chip · offline note · ? · gear. Below this row, the 1.6 recording strip row stays.
   - The gear keeps `aria-label="Settings"`, the tooltip "Settings", and no `title`.
   - One row, 52 px. `flex-wrap` stays only in the narrow layout.
-  - The offline note says "Offline", with the tip "No internet. Timers, flow and ballot still work. AI waits until you are back online." It is `role="status"` and says "Back online" when the network returns.
+  - The offline note says "Offline", with the tip "No internet. Clock, flow and ballot still work. AI waits until you are back online." It is `role="status"` and says "Back online" when the network returns.
   - **Files:** index.html:44, 350-371; app.js:86, 599.
   - **Checks:** header row height is 52 px; no `[data-read]` in the header; the recording strip still shows while the mic is on; going offline and back.
 - **5.2 Corner chip.** It shows off Flow while a speech or prep clock runs. The round bar shows only on Flow (open question **Q-1**). `chipText()` gives the text:

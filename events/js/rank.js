@@ -272,7 +272,7 @@ export function checkBoard(board, ctx) {
   // Overtime: noFirst.
   if (overtimeEffect(ctx.profile) === 'noFirst') {
     if (ids.every((id) => isOver(ctx, id))) {
-      out.push("Every speaker went over grace, so no one can be ranked 1st under these rules. Clear the flag on the timer for any time that was wrong.");
+      out.push("Everyone went over grace, so no one can be 1st. Time wrong? Clear the flag on the timer.");
     } else {
       for (const id of ids) if (asText(ranks[id]) === '1' && isOver(ctx, id)) out.push(noFirstMessage(label(id)));
     }

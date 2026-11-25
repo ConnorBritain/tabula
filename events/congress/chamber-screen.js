@@ -7,6 +7,7 @@
 // createChamberScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from '../js/icons.js';
+import { statusPillHtml } from '../js/status-pill.js';
 import { parseRoom } from '../js/parse.js';
 import { newId } from '../js/room.js';
 import { congressIO, findChamber, chamberSessions, withChamber, withSession } from './store.js';
@@ -22,8 +23,8 @@ export function listHtml(state) {
     return `<li><a class="room-link" href="#/chamber/${esc(c.id)}"><span class="room-name">${houseWord(c)}${c.tournament ? ' · ' + esc(c.tournament) : ''}${c.roomLabel ? ' · ' + esc(c.roomLabel) : ''}</span>
       <span class="room-meta">${c.legislators.length} legislators · ${n} ${n === 1 ? 'session' : 'sessions'}</span></a></li>`;
   }).join('');
-  return `<div class="screen-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">Congress chambers</h1><a class="b primary" href="#/chamber/new">New chamber</a></div>
-    ${rows ? `<ul class="room-list">${rows}</ul>` : '<p class="muted">No chambers yet. A Congress chamber you score shows here.</p>'}`;
+  return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">Congress chambers</h1><a class="b primary" href="#/chamber/new">New chamber</a></div>
+    ${rows ? `<ul class="room-list">${rows}</ul>` : '<p class="muted">No chambers yet.</p>'}`;
 }
 
 // The setup form. prefs: the last profile and scale the judge picked.
@@ -31,11 +32,11 @@ export function setupHtml(prefs) {
   const pid = (prefs && prefs.profileId && congressProfile(prefs.profileId)) ? prefs.profileId : DEFAULT_CONGRESS_PROFILE;
   const prOpts = CONGRESS_PROFILES.map((p) => `<option value="${esc(p.id)}"${p.id === pid ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
   const scOpts = `<option value="">The rules' scale</option>` + SCALE_CHOICES.map((s) => `<option value="${s.id}"${prefs && prefs.scale === s.id ? ' selected' : ''}>${esc(scaleText(s))}</option>`).join('');
-  return `<div class="screen-head"><a class="b quiet" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">New Congress chamber</h1></div>
+  return `<div class="screen-head"><a class="b quiet back" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">New Congress chamber</h1></div>
   <form class="setup" id="cg-setup" novalidate>
     <div class="setup-fields">
-      <label class="field"><span>Tournament <span class="muted">(optional)</span></span><input id="cg-tournament" autocomplete="off" maxlength="80"></label>
-      <label class="field"><span>Room <span class="muted">(optional)</span></span><input id="cg-room" autocomplete="off" maxlength="40"></label>
+      <label class="field"><span>Tournament</span><input id="cg-tournament" autocomplete="off" maxlength="80"></label>
+      <label class="field"><span>Room</span><input id="cg-room" autocomplete="off" maxlength="40"></label>
       <!-- House or Senate as a two-option segmented control (design review §2.15, bug 7): the label sits on its option,
            never under the radio. Role is a fixed line, not a label with no control. -->
       <fieldset class="field cg-house"><legend>Chamber</legend><div class="seg"><label class="seg-opt"><input type="radio" name="cg-house" value="house" checked><span>House</span></label><label class="seg-opt"><input type="radio" name="cg-house" value="senate"><span>Senate</span></label></div></fieldset>
@@ -43,7 +44,7 @@ export function setupHtml(prefs) {
       <label class="field"><span>Rules</span><select id="cg-profile">${prOpts}</select></label>
       <label class="field" id="cg-scale-field"><span>Points scale</span><select id="cg-scale">${scOpts}</select></label>
       <p class="field-help wide" id="cg-profile-note"></p>
-      <label class="field wide"><span>Chamber list <span class="muted">(paste from Tabroom, or one code for each line)</span></span><textarea id="cg-paste" rows="8" spellcheck="false"></textarea></label>
+      <label class="field wide"><span>Chamber list <span class="muted">paste the chamber list, or one code per line</span></span><textarea id="cg-paste" rows="8" spellcheck="false"></textarea></label>
       <label class="field wide"><span>Docket <span class="muted">(one bill or resolution for each line, in agenda order)</span></span><textarea id="cg-docket" rows="5"></textarea></label>
     </div>
     <div class="preview" id="cg-preview" aria-live="polite"></div>
@@ -69,22 +70,30 @@ export function previewHtml(parsed, checks) {
     ${checks.length ? `<h3>Check these</h3><ul class="check-list">${checks.map((c) => `<li class="check-row"><p>${esc(c.text)}</p></li>`).join('')}</ul>` : ''}`;
 }
 
+// Absent or Left as a neutral word beside the code (color review §6: absent is not an error, so no status color).
+export const outPill = (status) => (status === 'absent' || status === 'left' ? statusPillHtml('', STATUS_WORDS[status], '', 'data-out') : '');
+
+// A session's status as a pill in words (color review §6 Chamber overview): green once submitted, a quiet tint while
+// in progress, plain before it starts.
+const SESSION_TONE = Object.freeze({ Submitted: ['ok', 'circle-check'], 'Ranks copied': ['live', 'copy'], Ranking: ['live', 'list-ordered'], Scoring: ['live', 'circle-dashed'], 'Not started': ['', 'circle'] });
+export const sessionPill = (s) => { const w = sessionStatus(s); const [tone, ic] = SESSION_TONE[w] || ['', '']; return statusPillHtml(tone, w, ic); };
+
 export function overviewHtml(state, chamber) {
   const sessions = chamberSessions(state, chamber.id);
   const next = sessions.length + 1;
   const p = chamber.profile;
   const srows = sessions.map((s) => `<li><a class="room-link" href="#/round/${esc(s.id)}/log"><span class="room-name">Session ${esc(s.number)}</span>
-      <span class="room-meta">${esc(sessionStatus(s))} · ${s.speeches.length} ${s.speeches.length === 1 ? 'speech' : 'speeches'}</span>${icon('chevron-right')}</a></li>`).join('');
-  const lrows = chamber.legislators.map((l) => `<li class="cg-leg"><span class="code">${esc(l.code)}</span><span class="muted">${esc(l.name || '')}</span>
+      ${sessionPill(s)}<span class="room-meta">${s.speeches.length} ${s.speeches.length === 1 ? 'speech' : 'speeches'}</span>${icon('chevron-right')}</a></li>`).join('');
+  const lrows = chamber.legislators.map((l) => `<li class="cg-leg"><span class="code">${esc(l.code)}</span>${outPill(l.status)}<span class="muted">${esc(l.name || '')}</span>
       <label class="sr-only" for="st-${esc(l.id)}">Status of ${esc(l.code)}</label>
       <select id="st-${esc(l.id)}" data-status="${esc(l.id)}">${Object.keys(STATUS_WORDS).map((k) => `<option value="${k}"${l.status === k ? ' selected' : ''}>${STATUS_WORDS[k]}</option>`).join('')}</select></li>`).join('');
-  const drows = chamber.docket.map((d) => `<li${d.debatedInSession ? ' class="muted"' : ''}>${esc(d.title)}${d.debatedInSession ? ' <span class="pill outline">Done in session ' + esc(d.debatedInSession) + '</span>' : ''}</li>`).join('');
-  return `<div class="screen-head"><a class="b quiet" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">${houseWord(chamber)}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''}</h1>
+  const drows = chamber.docket.map((d) => `<li${d.debatedInSession ? ' class="muted"' : ''}>${esc(d.title)}${d.debatedInSession ? ' ' + statusPillHtml('live', 'Done in session ' + d.debatedInSession, 'check') : ''}</li>`).join('');
+  return `<div class="screen-head"><a class="b quiet back" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">${houseWord(chamber)}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''}</h1>
       <button class="b primary" type="button" data-chact="session" data-key="session">${icon('play', 20)}Start session ${next}</button></div>
+    <p class="cg-before" id="cg-before">${icon('info')}Mark who is absent before a session. Absent legislators are not in the rank pool.</p>
     <p class="muted">${esc(p.name)} · ${esc(profileNote(p))}</p>
     <h2 class="cg-h">Sessions</h2>${srows ? `<ul class="room-list">${srows}</ul>` : '<p class="muted">No sessions yet.</p>'}
     <h2 class="cg-h">Legislators <span class="muted">(${chamber.legislators.length})</span></h2>
-    <p class="muted">Mark who is absent before a session. Absent legislators are not in the rank pool.</p>
     <ul class="room-list cg-legs">${lrows}</ul>
     <h2 class="cg-h">Docket</h2>${drows ? `<ol class="cg-docket-list">${drows}</ol>` : '<p class="muted">No docket items.</p>'}
     <p class="muted">The parliamentarian's full-chamber rank comes in a later step.</p>`;
@@ -147,6 +156,11 @@ export function createChamberScreen(env) {
       if (!sel) return;
       const st = io.read();
       io.write(withChamber(st, setStatus(findChamber(st, id), sel.dataset.status, sel.value, env.now())));
+      // The word beside the code follows the select at once (no redraw, so the focus stays on the select).
+      const row = sel.closest('.cg-leg');
+      const old = row && row.querySelector('[data-out]');
+      if (old) old.remove();
+      if (row) row.querySelector('.code').insertAdjacentHTML('afterend', outPill(sel.value));
       env.ui.announce('Saved.');
     };
     env.el.addEventListener('click', onClick);

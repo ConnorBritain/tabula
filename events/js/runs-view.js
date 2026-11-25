@@ -21,17 +21,22 @@ export function runCardsHtml(entry, event, now, limit) {
   const sides = eventRuns(event);
   const runs = runsAt(entry, event, now, limit);
   const { index } = runsPhase(entry, event, now, limit);
+  const running = Boolean(entry.timing && entry.timing.run);
+  // Color review §6 PCC: one card stands out, with a 2 px edge and a pill: the run on the clock says "Live"; the run to
+  // start next says "Next" (before Pro, and after Pro stops). A run with no time yet shows the shared limit, not "–".
+  const on = running ? index : index < sides.length ? index + 1 : -1;
   const cards = sides.map((s, i) => {
     const r = runs[i];
-    const word = i < index ? 'Done' : i === index ? 'Now' : 'Not started';
-    return `<li class="run-card${i === index ? ' is-on' : ''}" data-side="${esc(s.side)}">
+    const word = i === on ? (running ? 'Live' : 'Next') : i < index || index === sides.length ? 'Done' : i === index ? 'Stopped' : 'Not started';
+    const cls = i === on ? (running ? 'run-word pill live' : 'run-word pill') : 'run-word muted';
+    return `<li class="run-card${i === on ? ' is-on' : ''}" data-side="${esc(s.side)}">
       <span class="run-label">${esc(s.label)}</span>
-      <span class="run-time" data-run-time="${esc(s.side)}">${r ? clockText(Math.floor(r.ms / 1000)) : '–'}</span>
-      <span class="run-word muted" data-run-word="${esc(s.side)}">${esc(word)}</span></li>`;
+      <span class="run-time" data-run-time="${esc(s.side)}">${r ? clockText(Math.floor(r.ms / 1000)) : 'of ' + clockText(limit)}</span>
+      <span class="${cls}" data-run-word="${esc(s.side)}">${esc(word)}</span></li>`;
   }).join('');
   const nextSide = index >= 0 && index < sides.length - 1 ? sides[index + 1] : null;
   // Design build (top 10 #1): while a next run waits, this button is the room's one primary ("Pro done · start Con");
-  // the timer's big button steps down (createRunsParts passes yieldsPrimary).
+  // the timer's big button and the header step down (the cards part's holdsPrimary, read through ctx.primary).
   const btn = nextSide ? `<button class="b primary" type="button" data-ract="next" data-key="run-next">${esc(sides[index].label)} done · start ${esc(nextSide.label)}${icon('arrow-right', 20)}</button>` : '';
   return `<div class="runs" id="runs"><ol class="run-cards" aria-label="Runs">${cards}</ol>
     <p class="field-help">One limit covers every run. Each run shows its own time, with no minimum.</p>
@@ -66,7 +71,7 @@ export function createRunsParts() {
     syncEntry: (e, ev, now, lim) => syncRuns(e, ev, now, lim),
     resetFields: () => resetRunFields(),
     phasesFor: (e, ev, now, lim) => runsBarModel(e, ev, now, lim),
-    yieldsPrimary: (e, ev, now, lim) => nextRunWaits(e, ev, now, lim),
+    startWord: (e, ev, now, lim) => (runsPhase(e, ev, now, lim).index === -1 ? 'Start ' + eventRuns(ev)[0].label : ''),
   });
 
   // While the clock runs, the run times and the roster line follow it (the timer card paints itself, its track and
@@ -113,6 +118,8 @@ export function createRunsParts() {
   }
 
   const cards = {
+    // While a next run waits, its button is the room's one primary, so the header's Rank button stays secondary.
+    holdsPrimary: (r, e) => nextRunWaits(e, roomEvent(env().data.events, r), env().now(), limit()),
     rowExtra: (r, e) => runsRowHtml(e, roomEvent(env().data.events, r), env().now(), limit()),
     stageHtml: (r, e) => runCardsHtml(e, roomEvent(env().data.events, r), env().now(), limit()),
     mounted() { const box = $('#runs'); if (box) box.addEventListener('click', onClick); },

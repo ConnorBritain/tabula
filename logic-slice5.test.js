@@ -26,7 +26,7 @@ test('netNote: Offline, Back online, then nothing; the tip says what still works
   assert.equal(L.netNote(false, false), 'Offline');
   assert.equal(L.netNote(true, false), 'Back online');
   assert.equal(L.netNote(true, true), '');
-  assert.equal(L.NET_TIP, 'No internet. Timers, flow and ballot still work. AI waits until you are back online.');
+  assert.equal(L.NET_TIP, 'No internet. Clock, flow and ballot still work. AI waits until you are back online.');
 });
 
 // Why: on a phone the speech line is the only place that names the speech, its side and its speaker.

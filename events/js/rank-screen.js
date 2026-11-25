@@ -7,14 +7,14 @@ import { escapeHtml as esc } from '../../core/sheets.js';
 import { statusPillHtml } from './status-pill.js';
 import { icon, iconButton } from './icons.js';
 import { problemsListHtml, readyHtml, rateRowPill, ballotFootHtml } from './ballot-status.js';
-import { ballotNavClick } from './ballot-nav.js';
+import { ballotNavClick, createRubricFolds } from './ballot-nav.js';
 import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
   ratingFix, ratingTies, RANK_RATING_ROW, graceLineText,
 } from './rank.js';
 import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks } from './board.js';
 import { attachDrag } from './rank-drag.js';
-import { entryOf, findRoom, roomEvent } from './room.js';
+import { entryOf, findRoom, roomEvent, present } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf, clockText, graceOf } from './timer.js';
 import { rowTrackHtml } from './time-track.js';
@@ -34,7 +34,7 @@ function rowWordsHtml(e) {
     + (first ? `<button class="board-comment" type="button" data-ract="note" data-id="${esc(e.id)}" data-key="note-${esc(e.id)}">${icon('message-square')}<span class="sr-only">Read the comment for ${esc(e.code)}: </span><span class="bc-text">${esc(first)}</span>${icon('chevron-right')}</button>` : '');
 }
 
-// The board as HTML text. view: { tapMode, limit, now }.
+// The board as HTML text. view: { tapMode, limit, now, openRub (the rubric block that is open, §5.4) }.
 // Design build (review top 10 #3, D3-A; Room and timer session): each row with time shows the mini time track
 // (time-track.js rowTrackHtml, the same one the roster uses). view.event: the event file (prep and runs pieces).
 // Step S4 (profile layer): under ranks 'topN' the board still orders everyone and a labelled line falls under rank N
@@ -79,7 +79,7 @@ export function boardHtml(room, view) {
         ${conflict ? `<span class="board-note">${esc(RANK_RATING_ROW)}${fix != null ? ` <button class="b small" type="button" data-ract="fix" data-id="${id}" data-value="${esc(fix)}">Fix: ${esc(fix)}</button>` : ''}</span>` : ''}</span>
       <span class="board-moves">${main}</span>
       ${scale.kind !== 'none' ? `<span class="board-rate">${ratingHtml(e, ratings[id], scale, err)}</span>` : ''}
-      ${rubricHtml(e, layer.rubric)}
+      ${rubricHtml(e, layer.rubric, view.openRub === id)}
       ${i === 0 && graceLine ? `<span class="board-line grace-line">${icon('info')}${esc(graceLine)}</span>` : ''}${cut && i === cut - 1 && cutLine ? `<span class="board-line cut-line">${esc(cutLine)}</span>` : ''}
     </li>`;
   }).join('');
@@ -98,6 +98,7 @@ export function problemsHtml(room) {
 export function createRankScreen(env) {
   let roomId = null;
   let tapMode = false;
+  const folds = createRubricFolds(env.el); // the open rubric block (§5.4)
   let detachDrag = null;
   const $ = (s) => env.el.querySelector(s);
   const room = () => findRoom(env.rooms(), roomId);
@@ -107,7 +108,7 @@ export function createRankScreen(env) {
   function draw(focusKey) {
     const r = room();
     if (!r) return;
-    $('#board-box').innerHTML = boardHtml(r, { tapMode, limit: limitOf(event(r)), event: event(r), now: env.now() });
+    $('#board-box').innerHTML = boardHtml(r, { tapMode, limit: limitOf(event(r)), event: event(r), now: env.now(), openRub: folds.open() });
     $('#problems').innerHTML = problemsHtml(r);
     $('#ballot-foot').innerHTML = ballotFootHtml(r, 'rank'); // the sticky footer (top 10 #6) follows every change
     $('#tap-toggle').textContent = tapMode ? 'Done tapping' : 'Tap in order';
@@ -214,7 +215,7 @@ export function createRankScreen(env) {
     const ranks = ranksOf(r);
     const ctx = boardCtx(r);
     tapMode = false;
-    if (nextRank(ranks, ctx)) { save(withRanks(r, fillRest(ranks, ctx), env.now())); env.ui.announce('The speakers you did not tap keep speaking order after the others.'); }
+    if (nextRank(ranks, ctx)) { save(withRanks(r, fillRest(ranks, ctx), env.now())); env.ui.announce('Speakers you did not tap follow in speaking order.'); }
     draw();
   }
 
@@ -238,22 +239,23 @@ export function createRankScreen(env) {
       if (opened.room !== r0) save(opened.room);
       const r = room();
       const ev = event(r);
-      env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
+      env.el.innerHTML = `<div class="screen-head"><a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
           <h1 id="screen-title" tabindex="-1">Rank · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <p class="bias">${esc(r.profile.biasNote || 'Judge the performance, not the person.')}</p>
         <div class="board-tools"><button class="b" type="button" id="tap-toggle" aria-pressed="false">Tap in order</button>
           <button class="b quiet" type="button" id="restart">Start again</button></div>
-        <p class="muted" id="tap-help" hidden>Tap the speakers from best to last. Tap a ranked speaker again to take the rank off.</p>
+        <p class="muted" id="tap-help" hidden>Tap best to last. Tap again to undo.</p>
         <p class="muted board-help">Best first. Alt+Up and Alt+Down move a row.${layerOf(r.profile).ranks === 'topN' ? ' Only the top ' + layerOf(r.profile).topN + ' are ranked on the ballot.' : ''}</p>
         <div id="board-box"></div>
         <div id="problems"></div>
-        <label class="field" for="rank-reason"><span>Reason for rank <span class="muted">(whole room)</span></span></label>
+        <label class="field" for="rank-reason"><span>Reason for rank</span></label>
         <textarea id="rank-reason" rows="3">${esc(r.reasonForRank || '')}</textarea>
         <div class="ballot-foot" id="ballot-foot"></div>`;
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('input', onInput);
       env.el.addEventListener('change', onChange);
       env.el.addEventListener('keydown', onKey);
+      folds.start(r);
       detachDrag = attachDrag($('#board-box'), { enabled: () => !tapMode, onDrop });
       $('#rank-reason').addEventListener('input', (e) => save(setReason(room(), e.target.value, env.now())));
       draw();
@@ -262,6 +264,7 @@ export function createRankScreen(env) {
     },
     hide() {
       for (const [t, f] of [['click', onClick], ['input', onInput], ['change', onChange], ['keydown', onKey]]) env.el.removeEventListener(t, f);
+      folds.stop();
       if (detachDrag) detachDrag();
       roomId = null;
     },

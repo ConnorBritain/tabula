@@ -73,11 +73,14 @@ export function rosterHtml(room, menuFor, extra, sub) {
 // parts: the views that add to this screen (the timer in step E5, the comment sheet in E6). Each may have:
 //   rowExtra(room, entry) -> HTML after a roster row's name     stageHtml(room, entry) -> HTML in the main pane
 //   rowSub(room, entry) -> HTML under a roster row's name
+//   holdsPrimary(room, entry) -> true while the view holds the room's one primary (F4: the next run's button), so
+//                                the header's Rank button stays secondary (top 10 #1)
 //   footHtml(room) -> HTML for the whole room, under the grid     footMounted(ctx) after it is drawn (design build, D3-A:
 //                                                                 the room-level reason for rank)
 //   mounted(ctx) after the main pane is drawn                    show(ctx) / hide(ctx) when the screen opens / closes
 //   run(action, ctx) -> true when it ran a shortcut              stopFor(id) stops that entry's running clock
-// ctx: { env, room(), save(room), draw(), drawStage(), drawRoster() } (drawStage and drawRoster redraw one pane only).
+// ctx: { env, room(), save(room), draw(), drawStage(), drawRoster(), primary(room) } (drawStage and drawRoster redraw
+// one pane only; primary is 'timer' | 'next' | 'rank' | 'other', where 'other' means a view's holdsPrimary said so).
 export function createRoomScreen(env, parts) {
   const views = parts || [];
   let roomId = null;
@@ -129,8 +132,10 @@ export function createRoomScreen(env, parts) {
   function drawHead() {
     const r = room();
     const go = $('#go-rank');
-    if (r && go) go.outerHTML = goRankHtml(r, roomPrimary(r, entryOf(r, r.current)));
+    if (r && go) go.outerHTML = goRankHtml(r, headPrimary(r));
   }
+  // The room's primary for the header: a view may hold it (F4 runs), else room-primary.js decides.
+  const headPrimary = (r) => { const e = entryOf(r, r.current); return views.some((v) => v.holdsPrimary && v.holdsPrimary(r, e)) ? 'other' : roomPrimary(r, e); };
   function draw() { drawRoster(); drawStage(); drawHead(); }
 
   function pick(id) {
@@ -162,7 +167,7 @@ export function createRoomScreen(env, parts) {
     }
     if (action === 'cross' || action === 'uncross') return crossEntryAction(action, id, { env, room, save, draw, closeMenu: () => { menuFor = null; } });
     if (action === 'add') {
-      const code = await env.ui.ask({ title: 'Add an entry', body: 'A late entry goes at the end of the roster. You can move it after.', input: { label: 'Entry code', placeholder: 'A12', required: true, emptyError: 'Type the entry code.' }, buttons: [{ label: 'Cancel', value: null }, { label: 'Add', value: 'add', kind: 'primary' }] });
+      const code = await env.ui.ask({ title: 'Add an entry', input: { label: 'Entry code', placeholder: 'A12', required: true, emptyError: 'Type the entry code.' }, buttons: [{ label: 'Cancel', value: null }, { label: 'Add', value: 'add', kind: 'primary' }] });
       if (!code) return;
       const res = addEntry(room(), code, '', env.now());
       if (res.error) { env.ui.toast(res.error, { kind: 'error', key: 'add' }); return; }
@@ -187,7 +192,8 @@ export function createRoomScreen(env, parts) {
     if (b && env.el.contains(b)) act(b.dataset.act, b.dataset.id);
   }
 
-  const ctx = { env, room, save, draw, drawStage, drawRoster };
+  // ctx.primary(room): the room's one primary, the same answer for the header and the timer card (top 10 #1).
+  const ctx = { env, room, save, draw, drawStage, drawRoster, primary: (r) => headPrimary(r) };
   const menuOpen = () => roomId !== null && menuFor !== null;
   env.ui.escLayer('row-menu', 40, menuOpen, () => {
     const id = menuFor; menuFor = null; drawRoster();
@@ -201,10 +207,12 @@ export function createRoomScreen(env, parts) {
       const r = findRoom(env.rooms(), id);
       if (!r) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
       roomId = id; menuFor = null; rosterOpen = false; numbers.reset();
-      const go = goRankHtml(r, roomPrimary(r, entryOf(r, r.current)));
+      // A placeholder: draw() below fills it once the views are shown (a view may hold the primary; it needs its
+      // context). draw() must always follow, or the header keeps an empty button.
+      const go = '<a class="b" id="go-rank"></a>';
       // Step S3 (EXPERIENCE.md §1.1): the event pill opens the type page for this round's event.
       const ev = event(r);
-      env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a>
+      env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a>
           <a class="pill md-ev" href="#/type/${encodeURIComponent(r.customEvent ? 'custom' : r.eventId)}" aria-label="${esc('About ' + (ev ? ev.name : 'Custom event'))}">${esc(ev ? ev.short || ev.name : 'Custom')}</a>
           <h1 id="screen-title" tabindex="-1">${esc(roomTitle(r, event(r)))}</h1>
           <button class="b" type="button" id="roster-toggle" aria-controls="roster-full" aria-expanded="false">Roster</button>

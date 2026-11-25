@@ -49,7 +49,7 @@ export function guideModel(def, profile) {
     grace,
     prep: def.timing && def.timing.inRoomPrep ? 'Prep happens in the room. Prep and speech share the ' + limit + ' limit.' : 'No prep in the room.',
     material: MATERIAL[def.material] || '',
-    performers: def.performers === 2 ? 'Two students (a pair)' : 'One student',
+    performers: def.performers === 2 ? 'Two students' : 'One student',
     topic: (def.topic && def.topic.hint) || '',
     checks: (def.checks || []).map((id) => CHECK_LABELS[id] || id),
     prompts: (def.prompts || []).slice(),
