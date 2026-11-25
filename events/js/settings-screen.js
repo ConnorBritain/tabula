@@ -1,6 +1,7 @@
 // Speech Events step S2 (docs/events/EXPERIENCE.md §7, §8.5, §9): the Settings screen, #/settings. Only the parts that
 // work today: Mode, Theme, Ranks due (step S3, the minutes after the last speaker, §5.3), the extemp draw gap (step
-// S4), Connect AI, the keyboard sheet, Ready for offline, and Data (backup and restore).
+// S4), Connect AI, the keyboard sheet, Ready for offline, and Data (whether the browser keeps the data, backup, restore,
+// and Clear this device), and About (the link to the source code).
 // Deferred (EXPERIENCE.md §11.1): league pack and default profile, defaults for each type, Congress scale defaults
 // (S6), Shared device (S8).
 // The rules are in settings.js; the builders at the top are pure (Node tests call them); createSettingsScreen does the
@@ -8,10 +9,11 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { statusPillHtml } from './status-pill.js';
 import { foldSummaryHtml } from './fold.js';
-import { downloadFile } from '../../core/store.js';
+import { createStore, downloadFile } from '../../core/store.js';
 import { isMacPlatform } from '../../core/keys.js';
-import { THEMES, RANKS_DUE_MAX, DRAW_GAPS, withSetting, validRanksDue, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
-import { PREFIX } from './store.js';
+import { THEMES, RANKS_DUE_MAX, DRAW_GAPS, withSetting, validRanksDue, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems, keptText, CLEAR_WHAT } from './settings.js';
+import { PREFIX, BACKUP_AT_KEY, storageKept } from './store.js';
+import { KEYS_KEY } from './ai-key.js';
 import { keymap } from './keys.js';
 import { checkOffline } from './offline.js';
 import { askConnectKey, askForgetKey } from './ai-connect.js';
@@ -38,7 +40,25 @@ export function aiPartHtml(ai) {
 export const offlineHtml = (res) => (!res ? 'Checking…'
   : (res.ready ? statusPillHtml('ok', 'Ready offline', 'circle-check') : statusPillHtml('caution', 'Not ready', 'triangle-alert')) + ' ' + esc(res.text));
 
-// The whole screen as HTML text. v: { settings, ai, keys (keySheetHtml), offline ({ text } or null while checking) }.
+// Download a backup of every tabulaEvents.* value and note the time (BACKUP_AT_KEY), so My day knows the data is safe.
+// env: { store, ui, now() }. includeKeys: put the AI key in the file. Settings and the My day reminder both use it.
+export function downloadBackup(env, includeKeys) {
+  const at = env.now();
+  const now = new Date(at).toISOString();
+  const file = makeBackup(env.store.snapshot(PREFIX), { includeKeys: Boolean(includeKeys), now });
+  downloadFile(backupName(now), JSON.stringify(file, null, 2), 'application/json');
+  env.store.set(BACKUP_AT_KEY, at);
+  env.ui.toast('The backup file is in your downloads.', { key: 'backup' });
+}
+
+// Is the page running as an installed app? (Page only; false where the browser cannot say.)
+const installed = () => {
+  try { return Boolean((globalThis.matchMedia && globalThis.matchMedia('(display-mode: standalone)').matches) || (globalThis.navigator && globalThis.navigator.standalone)); }
+  catch { return false; }
+};
+
+// The whole screen as HTML text. v: { settings, ai, keys (keySheetHtml), offline ({ text } or null while checking),
+// kept (keptText's line, or null while checking) }.
 export function settingsHtml(v) {
   const s = v.settings;
   return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">Settings</h1></div>
@@ -61,10 +81,17 @@ export function settingsHtml(v) {
   </section>
   <section class="set-part" aria-labelledby="set-data-h"><h2 id="set-data-h">Data</h2>
     <p class="field-help">Your rounds stay on this device. A backup lets you keep or move them.</p>
+    <p id="set-kept" role="status">${esc(v.kept || 'Checking…')}</p>
     <div class="set-row"><button class="b" type="button" id="set-backup">Download backup</button>
       <label class="tick"><input type="checkbox" id="set-backup-keys"> Include my AI key</label></div>
     <div class="set-row"><button class="b" type="button" id="set-restore-btn">Restore from a backup</button>
       <input type="file" id="set-restore" accept=".json,application/json" hidden></div>
+    <h3>Shared computer?</h3>
+    <p class="field-help">Clear this device when you are done, so the next person cannot see your rounds.</p>
+    <div class="set-row"><button class="b" type="button" id="set-clear">Clear this device</button></div>
+  </section>
+  <section class="set-part" aria-labelledby="set-about-h"><h2 id="set-about-h">About</h2>
+    <p><a href="https://github.com/TabulaSpeech/tabula" rel="noopener">Source code (AGPL)</a></p>
   </section>`;
 }
 
@@ -72,7 +99,10 @@ export function settingsHtml(v) {
 export function createSettingsScreen(env) {
   const $ = (s) => env.el.querySelector(s);
   let offline = null;
+  let kept = null;
   let shown = false;
+  // The tab-only AI key lives in sessionStorage under the same prefix (page-ai.js), so Clear this device clears it too.
+  const tab = createStore({ prefixes: [PREFIX], storage: globalThis.sessionStorage });
   const mac = () => isMacPlatform(globalThis.navigator && (navigator.userAgentData ? navigator.userAgentData.platform : navigator.platform));
   const aiView = () => {
     const P = globalThis.TabulaCore.policy;
@@ -81,7 +111,7 @@ export function createSettingsScreen(env) {
   };
 
   function draw(focusSel) {
-    env.el.innerHTML = settingsHtml({ settings: env.settings(), ai: aiView(), keys: keySheetHtml(keymap.shortcutRows(mac(), true)), offline });
+    env.el.innerHTML = settingsHtml({ settings: env.settings(), ai: aiView(), keys: keySheetHtml(keymap.shortcutRows(mac(), true)), offline, kept });
     const f = focusSel && $(focusSel);
     if (f) f.focus();
   }
@@ -95,11 +125,50 @@ export function createSettingsScreen(env) {
     if ($('#set-offline')) $('#set-offline').innerHTML = offlineHtml(res);
   }
 
-  function backup() {
-    const now = new Date(env.now()).toISOString();
-    const file = makeBackup(env.store.snapshot(PREFIX), { includeKeys: $('#set-backup-keys').checked, now });
-    downloadFile(backupName(now), JSON.stringify(file, null, 2), 'application/json');
-    env.ui.toast('The backup file is in your downloads.', { key: 'backup' });
+  async function checkKept() {
+    const state = await storageKept();
+    if (!shown) return;
+    kept = keptText(state, installed());
+    if ($('#set-kept')) $('#set-kept').textContent = kept;
+  }
+
+  const backup = () => downloadBackup(env, $('#set-backup-keys') && $('#set-backup-keys').checked);
+
+  // Clear this device: every tabulaEvents.* value in this browser (localStorage and this tab's sessionStorage). The
+  // store's prefix guard (core/store.js) means it can never touch Tabula Debate's keys. The toast's Undo puts it all
+  // back while the tab is open; once the tab closes, the data is gone.
+  async function clearDevice() {
+    const pick = await env.ui.ask({
+      title: 'Clear this device?',
+      body: ['This removes ' + CLEAR_WHAT, 'Download a backup first if you want to keep them. Tabula Debate data on this browser is not touched.'],
+      buttons: [{ label: 'Cancel', value: null }, { label: 'Download backup first', value: 'backup' }, { label: 'Clear this device', value: 'clear', kind: 'danger' }],
+      cancelValue: null,
+    });
+    if (pick === 'backup') { backup(); return; }
+    if (pick !== 'clear') return;
+    const before = env.store.snapshot(PREFIX);
+    const beforeTab = tab.snapshot(PREFIX);
+    const hadKey = KEYS_KEY in before || KEYS_KEY in beforeTab;
+    try {
+      env.ai.own.forget(); // the key in memory goes too, not only the saved copy
+      env.store.replaceAll(PREFIX, {});
+      tab.replaceAll(PREFIX, {});
+    } catch (err) {
+      console.error('Speech Events: Clear this device did not finish.', err);
+      try { env.store.replaceAll(PREFIX, before); tab.replaceAll(PREFIX, beforeTab); } catch (err2) { console.error('Speech Events: the old data did not go back.', err2); }
+      env.ui.toast('Clearing did not finish. Reload the page and try again.', { kind: 'error', key: 'clear' });
+      return;
+    }
+    env.reload(); // the theme, the header and the screen read the empty data (the theme goes back to the default)
+    env.ui.toast('Speech Events data is gone from this browser.', { key: 'clear', action: { label: 'Undo', name: 'Undo: clear this device', run: () => {
+      env.ui.dismissToast('clear');
+      try { env.store.replaceAll(PREFIX, before); tab.replaceAll(PREFIX, beforeTab); }
+      catch (err) { console.error('Speech Events: the data did not go back.', err); env.ui.toast('Your data did not come back. The device storage is full or blocked.', { kind: 'error', key: 'clear' }); return; }
+      // The AI key is read once when the page loads, so a page that had one reloads to pick it up again.
+      if (hadKey && globalThis.location) { globalThis.location.reload(); return; }
+      env.reload();
+      env.ui.toast('Your data is back.', { key: 'clear' });
+    } } });
   }
 
   async function restore(input) {
@@ -125,6 +194,7 @@ export function createSettingsScreen(env) {
       env.ui.toast('The restore did not finish. Your data is as it was.', { kind: 'error', key: 'restore' });
       return;
     }
+    env.store.set(BACKUP_AT_KEY, env.now()); // everything on the device now is in the file the judge just chose
     env.reload();
     env.ui.toast('Backup restored.', { key: 'restore' });
   }
@@ -134,6 +204,7 @@ export function createSettingsScreen(env) {
     if (id === 'set-offline-check') return check();
     if (id === 'set-backup') return backup();
     if (id === 'set-restore-btn') return $('#set-restore').click();
+    if (id === 'set-clear') return clearDevice();
     if (id === 'set-ai-connect') { if (await askConnectKey(env.ui, env.ai.own)) draw('#set-ai-forget'); return; }
     if (id === 'set-ai-forget') { if (await askForgetKey(env.ui, env.ai.own)) { draw('#set-ai-connect'); env.ui.toast('Your AI key is gone from this browser.', { key: 'ai' }); } }
   }
@@ -160,6 +231,7 @@ export function createSettingsScreen(env) {
       env.el.addEventListener('change', onChange);
       draw('#screen-title');
       check();
+      checkKept();
     },
     hide() {
       shown = false;

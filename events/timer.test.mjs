@@ -7,7 +7,9 @@ import {
   maxUsed, graceOf, clockText, parseClock, usedAt, timerFace, startLeft, stoppedTiming, adjustTiming, setUsedTiming,
   clearedTiming, resetTiming, restoreTiming, restoreRoom, signalPoints, crossedSignal,
 } from './js/timer.js';
-import { timerHtml, rowTimeHtml } from './js/timer-view.js';
+// CHANGED (Speech Events cleanup 2026-11-25: the pure card builders moved to timer-card-html.js; same functions). Old line:
+// import { timerHtml, rowTimeHtml } from './js/timer-view.js';
+import { timerHtml, rowTimeHtml } from './js/timer-card-html.js';
 import { keymap } from './js/keys.js';
 
 const L = 300, G = 30; // Expository: 5:00, NSDA grace 0:30

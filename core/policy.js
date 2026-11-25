@@ -1,5 +1,5 @@
 // Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C11): the AI gate. The server
-// answers "what may this user do here?" with one record per product (tabula-cloud docs/platform/CONTRACTS.md §2, §5;
+// answers "what may this user do here?" with one record per product (the server's API contract;
 // docs/design/AI-POLICY.md §3). The app shows what the record allows and removes the rest. With no record, the app is
 // the solo app. A policy only ever removes, so a missing or old record never blocks the core of an app.
 // Generic words only (core-words.test.mjs). No DOM.

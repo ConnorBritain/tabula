@@ -237,7 +237,7 @@ The student edition must never show live judging tools (STUDENT-EDITION §1e). *
 
 The owner decided: the app stays AGPL in the public repo; the server, billing and coach backend may be private.
 
-- **The contract is public.** Publish the API shapes and the server's data rules in the public repo, so schools and families can check them.
+- **The contract is public.** Publish the API shapes and the server's data rules in the public repo, so schools and families can check them. Done: see `docs/contract/`.
 - **Watch the prompt templates.** The server builds prompts. If it copies prompt code from `logic.js`, and `logic.js` has outside AGPL contributions, the server must be AGPL too. Write the server templates fresh, or use a contributor licence agreement (CLA: contributors let the owner relicense) before accepting outside code.
 - The public app must work fully with no server.
 

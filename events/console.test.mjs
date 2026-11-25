@@ -199,6 +199,8 @@ test('the mode menu shows only for Coach or Student, and a bad setting value is 
   assert.equal(modeMenuShown(null), false);
   assert.equal(modeMenuShown({ mode: 'coach' }), true);
   assert.equal(modeMenuShown({ mode: 'student' }), true);
+  // CHANGED (copy trim E46, owner kept the Mode setting removed 2026-11-25). Old line:
+  // assert.equal(modeMenuShown({ mode: 'judge', showModeMenu: true }), true);
   assert.equal(modeMenuShown({ mode: 'judge', showModeMenu: true }), false);
   assert.equal(withSetting({}, 'mode', 'coach').mode, 'coach');
   assert.equal(withSetting({}, 'mode', 'admin').mode, 'judge');
@@ -217,6 +219,8 @@ test('the theme the Settings screen saves is the one the head script reads', () 
   assert.equal(JSON.parse(saved).theme, 'dark', 'theme-boot.js reads settings.theme');
   const view = settingsHtml({ settings: withSetting({}, 'theme', 'dark'), ai: null, keys: '', offline: null });
   assert.match(view, /name="set-theme" value="dark" checked/);
+  // CHANGED (copy trim E46, owner kept the Mode setting removed 2026-11-25). Old line:
+  // assert.match(view, /name="set-mode" value="judge" checked/);
   assert.doesNotMatch(view, /name="set-mode"|id="set-modemenu"/);
 });
 

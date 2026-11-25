@@ -9,7 +9,9 @@ import { createRoom, roomEvent, setupError, CUSTOM_EVENT } from './js/room.js';
 import { customError, customEvent, withGrace, parseGrace } from './js/custom.js';
 import { setupHtml } from './js/setup-screen.js';
 import { limitOf, graceOf, timerFace, signalPoints } from './js/timer.js';
-import { timerHtml } from './js/timer-view.js';
+// CHANGED (Speech Events cleanup 2026-11-25: the pure card builders moved to timer-card-html.js; same functions). Old line:
+// import { timerHtml } from './js/timer-view.js';
+import { timerHtml } from './js/timer-card-html.js';
 import { roomTitle } from './js/room-screen.js';
 import { roomRow } from './js/rooms.js';
 import { sheetHtml } from './js/comment-view.js';
