@@ -88,13 +88,13 @@ export const scaleText = (s) => (s ? s.min + ' to ' + s.max : '');
 //   rankPoolChoices(p)  'present' and 'spokeOrPresided', the profile's own first. Empty when the pool is confirmed.
 export const RANK_POOL_WORDS = Object.freeze({ present: 'Every present legislator', spokeOrPresided: 'Only those who spoke or presided' });
 export function poScaleChoices(p) {
-  if (!p || !p.poScale || p.poRule !== 'fullHourOnly' || !p.unverified.includes('poScale')) return [];
+  if (!p || !p.poScale || p.poRule !== 'fullHourOnly' || !(p.unverified || []).includes('poScale')) return [];
   const out = [p.poScale];
   if (p.scale && scaleId(p.scale) !== scaleId(p.poScale)) out.push(p.scale);
   return out;
 }
 export function rankPoolChoices(p) {
-  if (!p || !p.unverified.includes('rankPool')) return [];
+  if (!p || !(p.unverified || []).includes('rankPool')) return [];
   return [p.rankPool].concat(Object.keys(RANK_POOL_WORDS).filter((k) => k !== p.rankPool));
 }
 
