@@ -136,7 +136,7 @@ Sections:
 - A small hosted backend (for example a Cloudflare Worker) holds Tabula's own AI keys.
 - Payments through Stripe. Credits are counted per round.
 - **Program accounts**: a coach buys a pool of credits and hands out judge codes. This works as a recruiting perk for judges.
-- Price per round = measured AI cost + a small margin. We measure the real cost per round first.
+- We measure the real cost per round first.
 - **Needed before charging**:
   - Accounts and login.
   - Terms and a privacy policy. These rounds involve **minors' names and voices**, so data handling must be careful: no audio kept, short retention, school-friendly terms.
@@ -233,7 +233,7 @@ Spec: tabula-cloud `docs/platform/CONTRACTS.md` §2 and §5, `BUILD-PLAN.md` §3
 - Removed parts carry `data-ai="<feature>"` (or `data-ai-setup` for Connect AI surfaces). CSS hides them from `<html data-ai-off>`. `assets/caps-boot.js` writes that before the first paint. CSS, not the `hidden` attribute, because many of these nodes already use `hidden` for their own open or closed state.
 - Every AI call site calls `can()` before its first fetch. `ai-gate.test.mjs` checks this, with a negative case for each check.
 - Dev switches: `?ai=off` (Flow-only look) and `?caps=<fixture>` (a record from `fixtures/platform-v2.json`, which the hosted build does not ship).
-- `fixtures/platform-v2.json` is a copy of tabula-cloud `contracts/platform-v2.json` (made by the real resolver; branch `claude/platform-1a-6e9ef9`, commit dad450f). Copy it again when the contract changes. Its records expire 14 days after it was made, so `?caps=` shows old fixtures as expired; the tests use a fixed time.
+- `fixtures/platform-v2.json` is a subset of the server's capability contract (the public description is in `docs/contract/`). Copy it again when the contract changes. Its records expire 14 days after it was made, so `?caps=` shows old fixtures as expired; the tests use a fixed time.
 - Choice made here: the key settings (`#conn-card`) show while own AI is allowed, also after a key is in, so a judge can test or remove it. Only the Connect AI invites hide once the device is ready.
 - `#ins-cta` carries both `data-ai="liveEval"` and `data-ai-setup="invite"` (CSS before the first paint), and `applyPanes` also hides it by the Insights mode.
 - Known gap: the app has no hosted AI caller yet. When the school pays (`payer: program`) and the device has no own key, the AI controls show but have no engine. Insights then folds away instead of offering Connect AI. The hosted caller closes this.

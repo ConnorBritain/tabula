@@ -2,8 +2,10 @@
 // Copies an ALLOWLIST of the app's public files into dist/app/. A new file in the repo
 // root (a plan, a test, private notes) never ships unless someone adds it here.
 // Then it checks that every local file index.html and about.html link to is in the output.
+// It also writes version.json: the commit this build came from, so anyone can check which version is live.
 // Run: node build-app.mjs [outDir]
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -20,6 +22,15 @@ export const ALLOW = [
 // core/package.json only tells Node that core/ holds ES modules; the page does not need it.
 const BLOCK = [/\.test\.(m?js)$/, /(^|\/)README\.md$/, /\.local\./, /(^|\/)\./, /^core\/package\.json$/];
 
+/**
+ * The commit this repo is at. A tree with uncommitted changes gets "-dirty", because the
+ * build is then not exactly that commit. No git (a copy of the files) reads "unknown".
+ */
+function gitSha(dir = ROOT) {
+  const git = (...a) => execFileSync('git', a, { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  try { return git('rev-parse', 'HEAD') + (git('status', '--porcelain') ? '-dirty' : ''); } catch { return 'unknown'; }
+}
+
 export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW) {
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
@@ -31,6 +42,8 @@ export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW) {
       filter: (p) => !BLOCK.some((re) => re.test(relative(ROOT, p).split('\\').join('/'))),
     });
   }
+  // The same build serves production and staging, so there is no mode field. _headers caches it for a minute only.
+  writeFileSync(join(out, 'version.json'), JSON.stringify({ sha: gitSha(), builtAt: new Date().toISOString() }) + '\n');
   const missing = missingRefs(out);
   if (missing.length) throw new Error(`build-app: a shipped page links to files that are not in the output: ${missing.join(', ')}`);
   return out;

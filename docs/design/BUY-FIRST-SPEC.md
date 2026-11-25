@@ -1,6 +1,6 @@
 # Buy first, set up later (spec, draft 2)
 
-Status: DRAFT. The owner agreed to the flow on 2026-11-22. Settle the design, then build. Nothing ships before the lawyer answers the brief (private file `private/legal/BUY-FIRST-LAWYER-BRIEF.md`) and the owner says yes.
+Status: DRAFT. The owner agreed to the flow on 2026-11-22. Settle the design, then build. Nothing ships before the legal review and the owner says yes.
 
 Draft 2 changes the core design. Draft 1 kept the Rounds on a "waiting" purchase with no owner. The server cannot do that: renewals, refunds, disputes and the billing portal all need an account (tabula-cloud `src/billing/webhook.ts`; `payments.owner_id` and `subscriptions.user_id` are NOT NULL). Draft 2 gives every purchase an owner from the first second: **the buyer's own account**, made from the checkout email. Setup is then either "the buyer uses it" or "the buyer sends it to someone".
 
@@ -85,7 +85,7 @@ The buyer signs in (from the screen, the setup email, or later with their email)
 4. If the age result allows it, the server sends the purchase:
    - It reserves the setup (`UPDATE purchase_setups SET status='claiming', claimed_by=? WHERE status='open'`).
    - It takes the purchase's unused Rounds back from the buyer account and grants them to the user, with one idempotent ledger reference (`setup:<purchase key>`). A crash between the steps can be retried safely.
-   - The Rounds get new expiry dates, counted from the setup day, not the purchase date (owner decision 2026-11-22, legal update 5 Part B, Terms §6.6). A Weekend Pass or Camp Pass keeps its own rule: its days start when its first Round is committed.
+   - Sent Rounds have no end date: paid Rounds never expire. (Draft 2 said "new expiry dates from the setup day"; dropped 2026-11-23.) A Camp Pass keeps its own rule: its days start when its first Round is committed.
    - Status becomes `sent`.
 5. The buyer gets a "Your purchase was set up by [masked email]" email.
 
@@ -102,7 +102,7 @@ Subscriptions:
 - It comes at the first sign-in of any account, before the Rounds can be used.
 - **The server enforces it.** The Hosted AI and meter routes refuse an account with no date of birth (`age_required`). Today only the page redirect (`landing()`) sends users to the age step, and `requireUser` does not check age.
 - It is neutral: no price and no "18+" words on the screen.
-- A buyer who only uses button 2 ("Send setup to someone else") never gives a date of birth. The buyer confirmed at checkout that they are an adult, and the person who receives the Rounds gives a date of birth. The lawyer must accept this (brief).
+- A buyer who only uses button 2 ("Send setup to someone else") never gives a date of birth. The buyer confirmed at checkout that they are an adult, and the person who receives the Rounds gives a date of birth. This needs legal review.
 - Results:
   - **18 or older (or the adult age in that state):** continue.
   - **13 to 17:** continue. An adult paid (rule 5).
@@ -135,7 +135,7 @@ When the date of birth means the person is under 13:
 2. "No, let me fix it" goes back to the date field. It works once. The server enforces "once", not only the screen: the first under-13 date is stored as a pending date (`users.age_pending_date`) with a fix counter (`users.age_fix_used`). Neither is the saved date of birth yet.
 3. **Confirmation 2:** after "Yes", the person types their birth year again. If it matches, the under-13 path starts. If it does not match, the date field opens again (this counts as the one fix).
 
-The FTC advises an age question that a child cannot simply go back and change. One fix before the date is saved is a small exception. The lawyer must confirm it (brief, question 7).
+The FTC advises an age question that a child cannot simply go back and change. One fix before the date is saved is a small exception. It needs legal review.
 
 ### 7.2 The 7-day hold
 
@@ -197,10 +197,10 @@ A typed setup code is not offered. The link is the only path, and the buyer can 
 |---|---|
 | Refund before the Rounds were sent | The refund takes Rounds back from the buyer account, as today. A subscription refund also cancels the subscription. |
 | Refund after the Rounds were sent | The refund takes back the purchase's unused Rounds from the account that `payment_moves` names. Rounds already used are not taken back, and no balance goes below zero (the take-back is capped at what is left, as today). The buyer is emailed. |
-| Dispute (chargeback) | The billing hold goes on the buyer account only, never on the user. The user's unused Rounds from that purchase are taken back. (Q: the lawyer may drop the dispute hold entirely, brief question 15.) |
+| Dispute (chargeback) | The billing hold goes on the buyer account only, never on the user. The user's unused Rounds from that purchase are taken back. (Open question for legal review: drop the dispute hold entirely.) |
 | The user's account is deleted | Unused Rounds from the purchase go back to the buyer account. The buyer is emailed. |
 | The buyer typed a wrong email at checkout | The receipt and setup link go to a stranger. The buyer contacts support with the order number. Support voids the setup link, moves the purchase to the right email, and sends a new link. |
-| No one ever uses the Rounds | Reminders at 3 and 14 days. The Rounds stay on the buyer account and expire on the normal schedule from the purchase date. If the buyer sends them later, the expiry restarts from the setup day. |
+| No one ever uses the Rounds | Reminders at 3 and 14 days. The Rounds stay on the buyer account. They have no end date (paid Rounds never expire), so a later send changes no date. |
 | A minor used a parent's card without permission | The parent asks for a refund (rule 8). We refund and take back the Rounds. |
 | A Program or school | Not in this spec. Schools pay by invoice (Terms §9). A self-serve team pool is platform work. |
 
@@ -224,7 +224,7 @@ Also: `open` → `replaced` (a new link was made), `open` → `cancelled` (refun
 
 **Settle before the build starts (these can break the design)**
 - Managed Payments allows checkout with no customer, Stripe collecting the email, and `customer_creation: "always"`.
-- `lotFor` can give moved Rounds a new expiry that counts from the setup day (owner decision 2026-11-22).
+- ~~`lotFor` can give moved Rounds a new expiry that counts from the setup day.~~ Moot: paid Rounds never expire (2026-11-23).
 
 **Check during the build**
 - Managed Payments allows refunds by API.
@@ -240,7 +240,7 @@ Also: `open` → `replaced` (a new link was made), `open` → `cancelled` (refun
 
 **Legal**
 - Terms §3, §8, §13 (moving Rounds at setup is allowed; today §13 forbids transfers) and the Refund Policy. The Privacy Policy §3 (accounts made from the checkout email) and §12 (the 7-day hold).
-- The lawyer brief.
+- The legal review.
 
 ## 14. Open questions for the owner
 

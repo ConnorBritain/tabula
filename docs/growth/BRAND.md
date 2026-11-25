@@ -124,7 +124,7 @@ Rule: **one account, one wallet, many products.**
 - **One Tabula account** works in every product line. A coach who judges PF on Saturday and extemp on Sunday signs in once.
 - **Credits are the shared currency.** Hosted-AI credits spend the same in Debate and Speech Events. Do not sell a separate speech-events pass at first. Fewer products means less checkout, support and copy work.
 - **Free stays free in every line.** The same rule as today: the whole app is free; paid plans sell hosted AI without a key.
-- **Programs (coach plans) cover the whole school.** A school buys one Program. Its judges and students use both product lines. Speech-heavy schools then get value from day one.
+- **Programs cover the whole school.** A school buys one Program. Its judges and students use both product lines. Speech-heavy schools then get value from day one.
 - **Student edition rules apply in every line.** No live judging help in a round, in debate or in speech events.
 - **Where data lives:** each product reads and writes its own record types (rounds, ballots, rooms). The account, wallet, backup and Program sit above them. The architecture session should keep "product line" as a field on records and on credit debits, so reports can split revenue by line.
 

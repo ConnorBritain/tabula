@@ -2,7 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { timerHtml } from './js/timer-view.js';
+// CHANGED (Speech Events cleanup 2026-11-25: the pure card builders moved to timer-card-html.js; same functions). Old line:
+// import { timerHtml } from './js/timer-view.js';
+import { timerHtml } from './js/timer-card-html.js';
 import { settingsHtml, aiPartHtml } from './js/settings-screen.js';
 import { levelFieldsHtml } from './js/round-frame.js';
 import { SHORTCUTS } from './js/keys.js';

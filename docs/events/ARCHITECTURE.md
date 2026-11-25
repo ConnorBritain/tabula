@@ -241,7 +241,7 @@ events/
 
 - **Sign-in, wallet, plans:** shared. New on the server for v1: the `productLine` field, the AI task `events.cleanup`, and the round rule chosen in PLAN.md Q2. Q2's pick needs a cloud change: a new commit trigger (the first hosted clean-up call, since rooms have no recorded speech; today a round commits at the first recorded speech, `tabula-cloud/docs/PLAN.md`), and, for option A, a day-window and room cap in the meter.
 - **What one "round" means in Speech Events** is a pricing choice. Clean-up of a 6-speaker room is a small text job, far cheaper than a recorded debate round. See PLAN.md Q2.
-- **Programs:** the private program pricing plan already has a Speech Events add-on (details stay private). The judge's "Judging for" picker (cloud plan step 3) is reused in Room setup.
+- The judge's "Judging for" picker (cloud plan step 3) is reused in Room setup.
 - **Plan rules live on the platform, not in the app.** The shared school and admin platform (design in `~/Code/tabula-cloud/docs/platform/`, owned by another session) serves one capabilities API with `product = "events"`. The app reads it and never decides plan rules itself. Speech Events asked that platform for: shared rules profiles per program (P3), a default league pack per program, a separate `recording` key (practice only, with consent), the task names above, and a round model that can hold a day-window (Q2). The platform has accepted all of these (`tabula-cloud/docs/platform/MODEL.md` §4, §6). The app reads `GET /api/v1/me/capabilities?v=2&product=events` (`CONTRACTS.md` §2, §5). The platform maps `programs.product = "speech"` to API product `events`.
 - **Hired judges and solo judges** use their own account or none. A school's policy never covers them (`docs/design/AI-POLICY.md` §1a).
 
@@ -251,6 +251,27 @@ events/
 - **Devices:** laptop, iPad and phone. The phone layout is a first-class target, because many lay judges only have a phone.
 - **Keep the screen awake** while a room is open (Screen Wake Lock API, where the browser supports it).
 - **Battery and quiet:** no sounds by default. An optional soft vibration on phones at each signal.
+- **Install:** `events/manifest.webmanifest` (name, relative start URL and scope, standalone, grey colors, 192, 512 and
+  maskable icons in `events/icons/`). `events/index.html` links it with an apple-touch-icon and a grey theme color, so
+  the offline cache holds it too.
+
+### Data safety
+
+Speech Events stores a judge's rounds, ballot cards, comments and settings on the device, in this browser's storage
+under `tabulaEvents.*`. There is no server copy: only text the judge sends to their own AI key for clean-up leaves the
+device. Browsers can clear that storage (Safari may after about a week
+without a visit, unless the app is installed), and school laptops are often shared, so:
+
+- **Ask to keep it.** The first saved round or ballot card asks the browser to keep the data
+  (`navigator.storage.persist()`), once per device (`tabulaEvents.persistAsked.v1`). Settings → Data says in one line
+  whether this browser keeps the rounds. A browser without the API is never asked and never errors.
+- **Backup reminder.** When the judging day is over (today has ballots, none left to judge, not on standby, no Congress
+  chamber in use) and nothing is backed up since the last change, My day shows a "Download backup" reminder with
+  "Not now". The only thing stored for this is the time of the last backup (`tabulaEvents.backupAt.v1`).
+- **Clear this device.** Settings → Data removes every `tabulaEvents.*` value from this browser (and this tab's
+  session storage, where a tab-only AI key lives), after a confirm that says what goes and offers a backup first. The
+  toast's Undo puts it back while the tab is open. The store's prefix guard (`core/store.js`) means it cannot touch
+  Tabula Debate's keys. The offline cache holds only the public app files, so it stays.
 
 ## 11. Security
 

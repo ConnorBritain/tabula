@@ -83,6 +83,8 @@
   // The choice is made at round start. Once a speech clock has run, the round keeps it, so one round never mixes
   // two schools' policies and pools.
   function judgingLocked(round) { return Boolean(round && (round.run || Object.keys(round.timeLeft || {}).length)); }
+  // The round's format locks at the same moment (docs/design/FORMAT-PICK.md §3): one rule, so the two locks never drift.
+  const formatLocked = (round) => judgingLocked(round);
 
   // The body of a hosted AI call (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3): the call's own fields, with the round
   // id and the round's program always from the round, so no call can send a different school.
@@ -95,7 +97,7 @@
 
   const api = {
     PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
-    activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody,
+    activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, formatLocked, hostedAiBody,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).account = api;

@@ -8,7 +8,7 @@ Related: `STACK.md` (vendors and solo operations), `SCALING.md` (load and cost),
 
 ## 1. The rule
 
-**The round never needs the server.** The clock, the flow, the ballot, docs, export and on-device transcription work with Wi-Fi off. A server adds things (hosted AI, accounts, badges, coach spaces). It never holds the round hostage.
+**The round never needs the server.** The clock, the flow, the ballot, docs, export and on-device transcription work with Wi-Fi off. A server adds things (hosted AI, accounts, badges, school spaces). It never holds the round hostage.
 
 Three tests for every new feature:
 
@@ -37,7 +37,7 @@ Three tests for every new feature:
 │     stt         hosted transcription: meters billed minutes                  │
 │     billing/*   Stripe Checkout and webhooks                                 │
 │     library/*   badge final check, badges                                    │
-│     coach/*     programs, join codes, assignments, inbox (later)             │
+│     coach/*     school spaces and join codes (later)                         │
 │   On tabulaspeech.com only:                                                  │
 │     /v/:id      badge verify page (server-made HTML, no scripts, noindex)    │
 │                                                                              │
@@ -71,8 +71,7 @@ Three tests for every new feature:
 | Accounts | `auth`, `users` table, live sessions in the user's DO | Paid launch or judge badges, whichever is first |
 | Payments | `billing`, Stripe webhooks, ledger grants | Paid launch |
 | Judge badges | `library`, `/v/:id` | After accounts |
-| Coach and school spaces | `coach` | After accounts (STUDENT-EDITION §10h step 3) |
-| Judge feedback inbox | `coach/inbox`, end-to-end encrypted | Last coach step |
+| School spaces | `coach` | After accounts (STUDENT-EDITION §10h step 3) |
 | Cross-device backup | not planned yet (§6) | Only after an owner decision |
 
 ## 3. Domains and origins
@@ -215,7 +214,7 @@ The student edition must never show live judging tools (STUDENT-EDITION §1e). *
 
 - **Sign-in:** an emailed link and code (no password; sent with Resend, `STACK.md` §2), plus Google and Microsoft by redirect (TRACKS §8.1). Turnstile on the email form only, as the one allowed script (§3.2).
 - **Session:** 30 days, renewed on use, so judges do not sign in at 8 AM in a tournament hallway.
-- **One account system** for hosted AI, badges and coach spaces, on every Tabula app host.
+- **One account system** for hosted AI, badges and school spaces, on every Tabula app host.
 - **Ages:** hosted AI is 18+. Students 13 to 17 only through a school space or parent consent (TRACKS §6). No accounts under 13.
 - **First tables:** `users`, `identities`, `ledger` (integer milli-credits), `usage` (one row per speech; no text, no names), `badges`, `stripe_events` (event ID first, then process inline, so each event runs once). Coach tables come later.
 - **Paid but not yet granted:** after Checkout, the app polls for the grant for up to a minute and says "Payment received, adding your rounds".
@@ -230,7 +229,7 @@ The student edition must never show live judging tools (STUDENT-EDITION §1e). *
 
 ## 7. Coach backend
 
-- Follows STUDENT-EDITION §10h: accounts, then programs and join codes, then assignments, then the encrypted feedback inbox.
+- Follows STUDENT-EDITION §10h: accounts, then school spaces and join codes.
 - Each program's rows carry a `program_id`, and one shared query helper always filters by it.
 - Retention jobs (120 days after the season; 12 and 24 months after last sign-in) run on a daily Cron Trigger and write counts only.
 
@@ -238,7 +237,7 @@ The student edition must never show live judging tools (STUDENT-EDITION §1e). *
 
 The owner decided: the app stays AGPL in the public repo; the server, billing and coach backend may be private.
 
-- **The contract is public.** Publish the API shapes and the server's data rules in the public repo, so schools and families can check them.
+- **The contract is public.** Publish the API shapes and the server's data rules in the public repo, so schools and families can check them. Done: see `docs/contract/`.
 - **Watch the prompt templates.** The server builds prompts. If it copies prompt code from `logic.js`, and `logic.js` has outside AGPL contributions, the server must be AGPL too. Write the server templates fresh, or use a contributor licence agreement (CLA: contributors let the owner relicense) before accepting outside code.
 - The public app must work fully with no server.
 

@@ -1,0 +1,30 @@
+# Response headers for Speech Events on its own host (events.tabulaspeech.com; staging events.tabulaspeech.dev).
+# Workers static assets read this file from the root of the build output; build-events.mjs copies it there.
+# The Content-Security-Policy (CSP) is a browser rule: the page may run only scripts from this site, and may
+# talk only to this site and the AI providers a judge can add their own key for (core/ai.js: Anthropic, OpenAI,
+# xAI, Google, OpenRouter). Judges' own API keys are saved on their device by this page, so a script from
+# anywhere else must never run here.
+# Inline styles are allowed (the page sets style="" on a few elements); inline scripts are not.
+# The page records no audio and uses no camera or location, so all three are off.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self' https://api.anthropic.com https://api.openai.com https://api.x.ai https://generativelanguage.googleapis.com https://openrouter.ai; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: microphone=(), camera=(), geolocation=()
+
+# The page and the service worker files must never come from a stale cache: a new release is found by
+# fetching these, and sw-files.js names every file of the release.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
+/sw-files.js
+  Cache-Control: no-cache
+
+# The install manifest (when the page has one): its standard type, and always checked for a new copy.
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: no-cache

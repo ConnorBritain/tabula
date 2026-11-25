@@ -12,3 +12,7 @@
   Permissions-Policy: microphone=(self), camera=(), geolocation=()
   Strict-Transport-Security: max-age=31536000
   X-Frame-Options: DENY
+
+# version.json names the commit this build came from. A short cache, so it shows a new deploy within a minute.
+/version.json
+  Cache-Control: public, max-age=60

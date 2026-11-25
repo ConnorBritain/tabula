@@ -326,7 +326,9 @@ test('Live Eval feedback reads the debater from the format', () => {
 // there is no way to start an LD round from inside the app.
 test('Round setup has the format pick and relabels the prep and name boxes', () => {
   const html = read('index.html');
-  assert.match(html, /<select id="format-pick"/);
+  // CHANGED 2026-11-24 because the owner approved radio cards for the format pick (docs/design/FORMAT-PICK.md §3). Old check:
+  //   assert.match(html, /<select id="format-pick"/);
+  assert.match(html, /<fieldset class="format-pick" id="format-pick"[^>]*>\s*<legend>Format<\/legend>\s*<div class="fmt-cards" id="format-cards">/);
   assert.match(html, /id="prep-min-label"/);
   assert.match(html, /id="times-note"/);
   const app = readSource('app.js');

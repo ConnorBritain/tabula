@@ -10,6 +10,17 @@
 <script src="../assets/theme-boot.js" data-settings="tabulaEvents.settings.v1"></script>
 <!-- The AI gate (core/policy.js) is a head file: it runs before the first paint, so a removed AI tool never flashes. -->
 <script src="../core/policy.js"></script>
+<!-- Install (Add to Home Screen): Safari keeps an installed app's saved rounds even when it is not opened for a while.
+     The manifest and the page icons are links, so the offline cache (events/build-sw.mjs) holds them. The maskable icon
+     is read only when the browser installs the app, which needs the internet anyway. -->
+<link rel="manifest" href="manifest.webmanifest">
+<!-- The browser bar takes the page's grey canvas (core/tokens.css --canvas), not the brand green: the green shows only
+     in the header mark. -->
+<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1114" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link rel="stylesheet" href="../core/tokens.css">
 <link rel="stylesheet" href="../core/ui.css">
 <link rel="stylesheet" href="app.css">

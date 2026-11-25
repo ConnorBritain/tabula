@@ -257,9 +257,8 @@ The product rule is: **Free is the whole app; paid plans sell hosted AI with no 
 | Consent for under-18 hosted AI | – | – | – | ✓ (school consent) |
 
 Notes:
-- **Students under 18 cannot buy a Pass** (Stripe and ToS need 18+). So the Program plan is the main paid path for students. This makes the Student Edition a strong reason for a school to buy a Program.
+- **Students under 18 cannot buy a Pass** (Stripe and ToS need 18+).
 - **Free + own key** is open to students 13+, as in the judge app. Many students will not have a key. That is an equity issue; see §7.
-- A Program could be priced with a student seat count. Open question (§9).
 - Costs: practice features use the same cheap models as the judge app. A practice drill should cost less than one judged round. Measure before pricing.
 
 ---
@@ -314,7 +313,7 @@ Done check for the MVP (when built): in tournament mode, no AI coaching call can
 3. **SpeechDrop email: DECIDED — send it when upload work starts.** The draft is ready. Upload waits for the maintainer's answer. The manual drop works until then.
 4. **Live transcription in tournament mode: DECIDED — opt-in, off by default.** Only when the debater turns it on, after the consent step, and only where the tournament allows it.
 5. **AI flow cleanup in tournament mode: DECIDED — off by default.** A coach or tournament profile may turn it on.
-6. **Program pricing for students: DECIDED — same Programs, shared pool.** Measure student use before any new plan.
+6. **Pricing for students:** kept out of this public doc. Measure student use before any new plan.
 7. **Judge sees the badge code: DECIDED — yes, in the MVP.** See MVP item 7 (§8). It is built as a tiny server that stores no personal data and deletes entries after 24 hours.
 8. **Age floor: DECIDED — 13+.** No hosted AI under 18 except through a Program with school consent.
 9. **Rules check: DECIDED — the owner reviews §4 every August**, with the yearly provider-tier check.
@@ -323,7 +322,7 @@ Done check for the MVP (when built): in tournament mode, no AI coaching call can
 
 ## 10. Coach edition and connected roles
 
-The Student Edition is a teaching tool. Teaching happens between people: a coach and a student, a judge and a student. So a Coach role, and a link between the three roles, makes sense. This section says what to build and what **not** to digitize.
+The Student Edition is a teaching tool. Teaching happens between people: a coach and a student, a judge and a student. This section says what to build and what **not** to digitize.
 
 ### 10a. Guiding rule
 
@@ -334,11 +333,10 @@ The Student Edition is a teaching tool. Teaching happens between people: a coach
 
 ### 10b. Right and fruitful (build these)
 
-- **Judge feedback that stays with the student over time.** Ballots and RFDs (the judge's "reason for decision") go into the student's own record. The student can read them again before the next tournament.
-- **Coach views of practice rounds.** A coach sees the practice rounds the coach runs, and what the student shares.
-- **Drills a coach assigns, with feedback.** For example "flow this 2NC" or "redo your 1AR". The coach writes the feedback.
-- **Evidence organization.** The locker from §3, shared inside a team when the team wants it.
-- **Case review that asks the student questions.** Socratic questions (§2b) on a case the student wrote. The app asks; the student answers; the coach reads.
+- **Judge feedback that stays with the student over time.** Ballots and RFDs (the judge's "reason for decision") go into the student's own record on the device. The student can read them again before the next tournament.
+- **Coach practice rounds.** A coach runs a practice round in the judge app and gives the student the feedback file.
+- **Evidence organization.** The locker from §3.
+- **Case review that asks the student questions.** Socratic questions (§2b) on a case the student wrote. The app asks; the student answers.
 
 ### 10c. Harmful to digitize (do not build these)
 
@@ -346,96 +344,63 @@ The Student Edition is a teaching tool. Teaching happens between people: a coach
 - **Coaching during a real round.** No live coach view, no messages, no hints. (Same as §4c.)
 - **Rankings or tracking dashboards that watch kids.** No leaderboards, no "least active student" lists, no time-on-app counts, no activity feeds about a student.
 - **Streaks and points that gamify practice.** No streaks, badges for logins, or point totals. Practice is for learning, not for a score. One exception (owner decision, 2026-11-19): a **completion badge** for finishing a Debate Library track is allowed. It means only "finished this track". Student badges are private; an adult judge may share theirs. Streaks, points, levels, login badges and leaderboards stay banned. See `docs/library/TRACKS.md`.
-- **Anything that replaces the talk between coach and student.** The app can hold a note or an assignment. It does not write the coach's feedback, and it does not send automatic "you are behind" messages.
+- **Anything that replaces the talk between coach and student.** The app does not write the coach's feedback, and it does not send automatic "you are behind" messages.
 - **Keeping students' voices stored.** Audio is deleted after transcription (§5b). No audio goes to a coach or a server.
 
 A quick test for a new coach feature: **"Would a good coach do this with a notebook and a conversation?"** If yes, the app may make it easier. If it only exists because software can count things, do not build it.
 
-### 10d. The three roles and how they connect
+### 10d. The three roles
 
 | Role | Has | Can see |
 |---|---|---|
-| **Student** | Their flows, locker, practice results, judge feedback, assignments | Only their own data, plus what their team shares |
-| **Coach** | A program space with team spaces; assignments; notes to a student | Practice rounds they run; what a student shares; assignment answers; team results the coach types in or imports |
+| **Student** | Their flows, locker, practice results, judge feedback | Only their own data |
+| **Coach** | The judge app for practice rounds; a join code for Debate Library tracks (`docs/library/TRACKS.md` §6) | Practice rounds they run; what a student shares; "done or not done" for a track the coach assigned |
 | **Judge** | The judge app (unchanged) | Their own rounds only |
 
-**Judge to student (ballot and RFD):**
-1. After a round, the judge app offers: "Send this feedback to the debaters?" Default: off. The judge chooses for each round.
-2. The judge sends only the written ballot comments and RFD the judge wrote or approved. No audio, no transcript, no AI draft the judge did not approve.
-3. The feedback reaches a student **only if the student has an account and has opted in** to receive judge feedback. The match uses a one-time round code the student gives the judge, or a code in the room's SpeechDrop folder. It never uses a name search.
-4. The student can keep it, hide it, or delete it. The student can choose to share it with the coach.
-5. A judge never sees a student's record. A judge's identity on feedback is shown only if the judge agrees; otherwise it says "Judge, Round 3".
-
-**Coach program and team spaces:**
-- A **program** is one school or club. It has one or more coaches.
-- A **team space** is a partnership or squad inside the program.
-- A student joins with a join code from the coach. A student can leave at any time and take their record with them.
-- Team results (wins, losses, speaker points) are typed in by the coach or student, or imported from Tabroom by the student. The app shows them as a plain list. No charts that rank students against each other.
-
-**Assignments:**
-- A coach makes an assignment: a title, a due date, and the material (a recorded speech to flow, a speech to redo, a case to review with questions).
-- The student does it in Practice mode and turns it in.
-- The coach writes the feedback. The app may show facts next to the work (for example, "3 arguments with no answer on this flow"). It does not grade.
-- No reminders beyond one due-date notice. No "late" flags sent to parents by the app.
+A judge never sees a student's record.
 
 ### 10e. What needs accounts and a server
 
-Everything in §1 to §9 can run on the device. The connected roles cannot. They need accounts and a server.
-
-| Need | Why |
-|---|---|
-| Accounts for coaches, students, and judges who send feedback | To know who may see what. |
-| A program and team directory | To join codes and roles. |
-| A feedback inbox | To carry a ballot or RFD from a judge to a student. |
-| Assignment storage | To carry an assignment to a student and the work back. |
+Everything in §1 to §9 can run on the device. Join codes and school spaces cannot. They need accounts and a server.
 
 **Privacy rules for the server:**
-- **Data minimization.** Store only: account (email, role), program and team membership, assignments, written feedback, and the work a student chooses to turn in. For Debate Library tracks, `docs/library/TRACKS.md` §5.5 (adult judge accounts) and §6.4 (students) list the extra fields (birth year, last sign-in, badges, consent records). **No audio. No full transcripts by default. No locker files** unless a team turns on sharing. No device or activity tracking.
+- **Data minimization.** Store only what the feature needs. For Debate Library tracks, `docs/library/TRACKS.md` §5.5 (adult judge accounts) and §6.4 (students) list the fields (birth year, last sign-in, badges, consent records). **No audio. No full transcripts by default. No locker files.** No device or activity tracking.
 - **Names.** The server needs a display name for coaches to know their students. AI prompts still never get names (§5c).
-- **FERPA.** When a school uses a Program or a free school space (`docs/library/TRACKS.md` §6), student records are education records. Sign the SDPC National DPA. The school controls the program data. Tabula acts as a "school official" under the DPA.
-- **COPPA.** No accounts under 13. Students 13 to 17 join only through a program with school consent, or with parent consent.
+- **FERPA.** When a school uses a Program or a free school space (`docs/library/TRACKS.md` §6), student records are education records. Sign the SDPC National DPA. The school controls the school's data. Tabula acts as a "school official" under the DPA.
+- **COPPA.** No accounts under 13. Students 13 to 17 join a school space only with school consent, or with parent consent.
 - **State student-privacy laws** (SOPIPA, NY Ed Law 2-d, IL SOPPA, and others): no ads, no sale, no profiling, no training on student data. List every subprocessor.
-- **Consent.** Judge feedback needs the judge's choice and the student's opt-in. Recording still needs the consent step in §5b.
-- **Retention and deletion.** Program and free school-space data is deleted 120 days after the season ends (a parent-consent library account is deleted 12 months after its last sign-in; a school-path student whose space ends has 30 days to add parent consent, or the account is deleted; see `docs/library/TRACKS.md` §6), with reminders 30 days before, 7 days before, and on the day (§10i). Anything the student exported stays theirs. A student can delete any item at any time. A school can delete its whole program. Backups expire on a fixed schedule.
-- **Student export.** One click exports the student's whole record (feedback, assignments, flows they saved) as plain files. The student keeps it after they graduate or change schools.
-- **Encryption.** In transit always. At rest on the server. Consider end-to-end encryption for judge feedback so the server cannot read it.
+- **Consent.** Recording still needs the consent step in §5b.
+- **Retention and deletion.** Free school-space data is deleted 120 days after the season ends (a parent-consent library account is deleted 12 months after its last sign-in; a school-path student whose space ends has 30 days to add parent consent, or the account is deleted; see `docs/library/TRACKS.md` §6), with reminders 30 days before, 7 days before, and on the day (§10i). Anything the student exported stays theirs. A student can delete any item at any time. A school can delete its whole space. Backups expire on a fixed schedule.
+- **Student export.** One click exports the student's whole record (feedback, flows they saved, badges) as plain files. The student keeps it after they graduate or change schools.
+- **Encryption.** In transit always. At rest on the server.
 
 ### 10f. Open source and private parts
 
 - The app stays **open source (AGPL)**. The Student, Coach, and Judge roles in the app are all in the public repo.
-- The **server, billing, and coach backend may live in a private repo.** That is the owner's decided stance.
+- The **server and billing may live in a private repo.** That is the owner's decided stance.
 - The app must still work fully with no server. All connected features are add-ons.
 - Publish the server's data rules (what it stores, how long, who can see it) in the public repo, so schools and families can check them.
 
 ### 10g. Fit with the Program plan
 
-- Coach features live in the **Program** plan (the paid plan for schools and clubs). No prices are in this public doc.
-- One exception (owner decision, 2026-11-19): a **free school space** for Debate Library tracks. It has only a join code, track assignments, "done or not done", completion badges, and the AI policy switches (amended 2026-11-20, `docs/design/AI-POLICY.md` §8: turning AI off is free). The paid Program keeps drill assignments, the feedback inbox and hosted AI. See `docs/library/TRACKS.md` §6.
-- **Free:** a student's own record on the device, and export. A judge choosing to send feedback is free.
-- **Program:** coach and team spaces, assignments, the feedback inbox on the server, and hosted AI for practice from a shared pool.
+- Coach features live in the **Program** plan (the paid plan for schools and clubs). No prices or plan details are in this public doc.
+- One exception (owner decision, 2026-11-19): a **free school space** for Debate Library tracks. It has only a join code, track assignments, "done or not done", completion badges, and the AI policy switches (amended 2026-11-20, `docs/design/AI-POLICY.md` §8: turning AI off is free). See `docs/library/TRACKS.md` §6.
+- **Free:** a student's own record on the device, and export.
 - Keep a path for programs with no money (a discount or free seats for UDL and Title I programs), so connected roles do not become a rich-school feature.
 
 ### 10h. Coach MVP (smallest first)
 
-All five steps are on the roadmap (owner decision, §10i). Build in this order. Each step is useful alone.
+Build in this order. Each step is useful alone.
 
 1. **Coach practice round.** A coach runs a practice round in the judge app and saves the RFD and comments to a file the coach gives the student. No server. (Uses the existing judge app.)
 2. **Student record on the device.** The student imports that file and any judge feedback file into a "My feedback" list. Export works. No server.
-3. **Accounts, program, and team join codes.** The first server step. Only membership: no content yet. One school-space entity serves both the paid Program and the free school space (a free-tier flag; `docs/library/TRACKS.md` §6). Narrow Debate Library track assignment comes after this step and before step 4.
-4. **Assignments.** Coach makes one; student turns in practice work; coach writes feedback.
-5. **Judge feedback inbox.** Opt-in on both sides, with the round code. End-to-end encrypted from day one. This comes last because it touches judges outside the program and needs the most privacy care.
-
-Not in the coach MVP: team results lists, shared team lockers, case review assignments, Tabroom import.
+3. **Accounts and school join codes.** The first server step. Only membership: no content yet. One school-space entity serves both the paid Program and the free school space (a free-tier flag; `docs/library/TRACKS.md` §6). Narrow Debate Library track assignment comes after this step.
 
 ### 10i. Decisions (owner, 2026-11-19)
 
-1. **Judge feedback match: DECIDED — a one-time round code** the student gives the judge. It works with no SpeechDrop link.
-2. **Judge names on feedback: DECIDED — the judge's choice, hidden by default** ("Judge, Round 3").
-3. **Retention after the season: DECIDED — 120 days after the season ends** (about one debate season), then delete. The app sends reminders 30 days before, 7 days before, and on the day of deletion, each with an export link.
-4. **Coach view of tournament round logs: DECIDED — only if the student shares them.** Never automatic.
-5. **Parents: DECIDED — no parent dashboard.** Parents ask the student or the school for an export. Exception: for a free Debate Library account made with parent consent (`docs/library/TRACKS.md` §6.1), the consenting parent gets a light account for data rights only: see what is stored, export, delete, withdraw consent. It shows no progress and sends no alerts except the retention reminders, so it is not a parent dashboard.
-6. **End-to-end encryption for judge feedback: DECIDED — design for it now and build it before the judge feedback inbox** (MVP step 5).
-7. **Scope: DECIDED — plan all 5 coach MVP steps now.** All five go on the roadmap. Build order stays smallest first (§10h).
+1. **Retention after the season: DECIDED — 120 days after the season ends** (about one debate season), then delete. The app sends reminders 30 days before, 7 days before, and on the day of deletion, each with an export link.
+2. **Coach view of tournament round logs: DECIDED — only if the student shares them.** Never automatic.
+3. **Parents: DECIDED — no parent dashboard.** Parents ask the student or the school for an export. Exception: for a free Debate Library account made with parent consent (`docs/library/TRACKS.md` §6.1), the consenting parent gets a light account for data rights only: see what is stored, export, delete, withdraw consent. It shows no progress and sends no alerts except the retention reminders, so it is not a parent dashboard.
 
 ---
 
