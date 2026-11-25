@@ -131,7 +131,7 @@ export function settingsHtml(v) {
     <fieldset class="radios"><legend class="sr-only">Extemp draw gap</legend>${radios('set-gap', DRAW_GAPS.map((n) => ({ id: String(n), label: n + ' minutes' })), String(s.drawGapMin))}</fieldset>
     <p class="field-help">How long the room shows "Waiting for next speaker" between Extemp speakers.</p>
   </section>
-  ${timerCueSettingsHtml(s, v.vibrate === undefined ? canVibrate() : v.vibrate)}
+  ${timerCueSettingsHtml(s, Boolean(v.vibrate))}
   ${aiPartHtml(v.ai)}
   <section class="set-part set-keys" aria-labelledby="set-keys-h"><details class="fold">${foldSummaryHtml('<h2 id="set-keys-h">Keyboard</h2>')}${v.keys}</details></section>
   <section class="set-part" aria-labelledby="set-off-h"><h2 id="set-off-h">Ready for offline</h2>
@@ -168,7 +168,7 @@ export function createSettingsScreen(env) {
   };
 
   function draw(focusSel) {
-    env.el.innerHTML = settingsHtml({ settings: env.settings(), ai: aiView(), keys: keySheetHtml(keymap.shortcutRows(mac(), true)), offline, kept, release: currentRelease() });
+    env.el.innerHTML = settingsHtml({ settings: env.settings(), ai: aiView(), keys: keySheetHtml(keymap.shortcutRows(mac(), true)), offline, kept, release: currentRelease(), vibrate: canVibrate() });
     const f = focusSel && $(focusSel);
     if (f) f.focus();
   }

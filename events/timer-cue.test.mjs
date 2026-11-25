@@ -4,26 +4,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CUE_WINDOW, PATTERNS, cueFor, cueStep } from './js/timer-cue.js';
+import { CUE_WINDOW, PATTERNS, cueFor, cueStep, forgetCues } from './js/timer-cue.js';
 import { signalPoints, timerFace, setUsedTiming, adjustTiming } from './js/timer.js';
-import { withSetting } from './js/settings.js';
+import { sharedFace, speechLimit } from './js/prep.js';
+import { withSetting, TIMER_VIBRATE_KEY, TIMER_BIG_KEY } from './js/settings.js';
 import { settingsHtml } from './js/settings-screen.js';
-import {
-  VIBRATE_KEY, BIG_KEY, vibrateOn, bigOn, canVibrate, cueMenuHtml, timerCueSettingsHtml, timerCueSettingChange, cueTick, resetCues,
-} from './js/timer-cue-view.js';
+import { vibrateOn, bigOn, canVibrate, timerCueSettingsHtml, timerCueSettingChange, cueTick, cueMount, resetCues } from './js/timer-cue-view.js';
 
 const L = 300, G = 30; // 5:00, grace 0:30
 const P = signalPoints(L, G);
 
-// Run the cue rules over a list of ticks. Each tick: [left, used?, running?] (used defaults to L - left, running to
-// true). Returns the cue texts in order (null ticks left out) and the last state.
+// Run the cue rules over a list of ticks. Each tick: [left, running?] (running defaults to true). Returns the cue
+// texts in order (null ticks left out) and the last state.
 function run(ticks, opts) {
   const o = Object.assign({ id: 'a', points: P, grace: G, state: null }, opts);
   let state = o.state;
   const out = [];
   for (const t of ticks) {
-    const [left, used = L - left, running = true] = t;
-    const res = cueStep(state, { id: o.id, left, used, running, points: o.points, grace: o.grace });
+    const [left, running = true] = t;
+    const res = cueStep(state, { id: o.id, left, running, points: o.points, grace: o.grace });
     state = res.state;
     if (res.cue) out.push(res.cue.text);
   }
@@ -36,8 +35,8 @@ test('cueFor: the words and kind for each point', () => {
   assert.deepEqual(cueFor({ at: 120 }, G), { at: 120, kind: 'point', text: '2 minutes left', pattern: PATTERNS.point });
   assert.equal(cueFor({ at: 60 }, G).text, '1 minute left');
   assert.equal(cueFor({ at: 30 }, G).text, '30 seconds left');
-  assert.deepEqual([cueFor({ at: 0 }, G).kind, cueFor({ at: 0 }, G).text], ['grace', 'Grace']);
-  assert.deepEqual([cueFor({ at: -G }, G).kind, cueFor({ at: -G }, G).text], ['over', 'Over time']);
+  assert.deepEqual([cueFor({ at: 0 }, G).kind, cueFor({ at: 0 }, G).text], ['grace', 'Grace starts']);
+  assert.deepEqual([cueFor({ at: -G }, G).kind, cueFor({ at: -G }, G).text], ['over', 'Over grace'], 'the card says Over grace too');
   // No grace: the limit is the end, so 0:00 is already over time.
   assert.deepEqual([cueFor({ at: 0 }, 0).kind, cueFor({ at: 0 }, 0).text], ['over', 'Over time']);
 });
@@ -51,7 +50,7 @@ test('the patterns are short and tell grace from over grace without a look', () 
 
 test('a whole speech, one tick a second: each point fires once, in order', () => {
   const { out } = run(secs(L, -G - 20));
-  assert.deepEqual(out, ['4 minutes left', '3 minutes left', '2 minutes left', '1 minute left', '30 seconds left', 'Grace', 'Over time']);
+  assert.deepEqual(out, ['4 minutes left', '3 minutes left', '2 minutes left', '1 minute left', '30 seconds left', 'Grace starts', 'Over grace']);
 });
 
 test('many ticks a second (the driver ticks often): still once per point', () => {
@@ -64,7 +63,7 @@ test('a pause keeps what fired: stopped ticks do nothing, and the resume does no
   let { out, state } = run(secs(125, 119));
   assert.deepEqual(out, ['2 minutes left']);
   // Stopped at 1:59: nothing fires and nothing changes.
-  const stopped = cueStep(state, { id: 'a', left: 119, used: L - 119, running: false, points: P, grace: G });
+  const stopped = cueStep(state, { id: 'a', left: 119, running: false, points: P, grace: G });
   assert.equal(stopped.cue, null);
   assert.equal(stopped.state, state);
   ({ out } = run(secs(119, 100), { state }));
@@ -74,7 +73,7 @@ test('a pause keeps what fired: stopped ticks do nothing, and the resume does no
 test('a pause right on a point: the point still fires after the resume', () => {
   let { out, state } = run(secs(125, 121));
   assert.deepEqual(out, []);
-  ({ out } = run([[121, L - 121, false], [120], [119]], { state }));
+  ({ out } = run([[121, false], [120], [119]], { state }));
   assert.deepEqual(out, ['2 minutes left']);
 });
 
@@ -118,23 +117,33 @@ test('"Set time" far ahead passes several points with no cue, then the next poin
   assert.deepEqual(out, []);
 });
 
-test('a reload or a sleeping phone deep in a speech: no burst of old cues', () => {
-  assert.deepEqual(run([[-40]]).out, [], 'first tick already over grace by 10 s');
-  assert.deepEqual(run([[-31]]).out, ['Over time'], 'first tick 1 s past grace: the point is now');
+test('the first tick seen (the page opened again mid-speech): no cue for points behind it, as the chip', () => {
+  assert.deepEqual(run([[-40]]).out, [], 'deep in over grace: no burst of old cues');
+  assert.deepEqual(run([[118], [117]]).out, [], '2 s after 2:00 (it fired before the reload): not said again');
+  assert.deepEqual(run([[120], [119]]).out, ['2 minutes left'], 'right on the point: it is now');
+  const { out } = run([[118], ...secs(117, 55)]);
+  assert.deepEqual(out, ['1 minute left'], 'the next point still fires');
 });
 
 test('one step past two points inside the window: only the last fires, both are marked', () => {
   const pts = signalPoints(L, 2); // grace 2 s: points at 0 and −2
   const { out, state } = run([[1], [-3]], { points: pts, grace: 2 });
-  assert.deepEqual(out, ['Over time']);
+  assert.deepEqual(out, ['Over grace']);
   assert.ok(state.a.fired.includes(0) && state.a.fired.includes(-2));
 });
 
-test('time used back at 0:00 while running (Reset time, then Start) starts the cues over', () => {
+test('"Reset time" (forgetCues) starts the cues over; −10 s down to 0:00 used does not', () => {
   let { out, state } = run(secs(L, 230));
   assert.deepEqual(out, ['4 minutes left']);
-  ({ out, state } = run([[L, 0], [299, 1], ...secs(298, 238)], { state }));
-  assert.deepEqual(out, ['4 minutes left']);
+  ({ out } = run([[L], ...secs(299, 230)], { state }));
+  assert.deepEqual(out, [], 'back at 0:00 by corrections: still once per speech');
+  const fresh = forgetCues(state, ['a']);
+  assert.deepEqual(Object.keys(fresh), []);
+  assert.deepEqual(run([[L], ...secs(299, 230)], { state: fresh }).out, ['4 minutes left']);
+  // Reset, then "Set time" 1:00, then Start: the speech is new, so its points fire.
+  assert.deepEqual(run([[240], ...secs(239, 170)], { state: fresh }).out, ['4 minutes left', '3 minutes left']);
+  assert.equal(forgetCues(state, ['zzz']), state, 'nothing to forget: the same state');
+  assert.deepEqual(forgetCues(null, ['a']), {});
 });
 
 test('each entry keeps its own list; the state given in is never changed', () => {
@@ -161,6 +170,14 @@ test('a short event (limit under a minute) and no grace', () => {
   assert.deepEqual(run(secs(45, -5), { points: pts, grace: 0 }).out, ['30 seconds left', 'Over time']);
 });
 
+test('a prep event: −10 s that clamps the speech to 0:00 used does not say a point again', () => {
+  const pts = signalPoints(303, G); // 7:00 shared, 1:57 of prep: the speech part has 5:03
+  let { out, state } = run(secs(303, 299), { points: pts });
+  assert.deepEqual(out, ['5 minutes left']);
+  ({ out } = run(secs(303, 290), { points: pts, state }));
+  assert.deepEqual(out, []);
+});
+
 // ---------- the page side ----------
 const envWith = (settings) => {
   const said = [];
@@ -174,37 +191,79 @@ function withNavigator(nav, fn) {
   try { return fn(); } finally { if (before) Object.defineProperty(globalThis, 'navigator', before); else delete globalThis.navigator; }
 }
 const face = (left) => ({ running: true, left, used: L - left });
+const A = { id: 'a', code: '101' };
 
 test('settings: the two switches are booleans, off when missing, and a bad value is refused', () => {
+  assert.equal(TIMER_VIBRATE_KEY, 'timerVibrate');
+  assert.equal(TIMER_BIG_KEY, 'timerBig');
   assert.equal(vibrateOn({}), false);
   assert.equal(bigOn(undefined), false);
-  const s = withSetting({}, VIBRATE_KEY, true);
+  const s = withSetting({}, TIMER_VIBRATE_KEY, true);
   assert.equal(vibrateOn(s), true);
-  assert.equal(bigOn(withSetting(s, BIG_KEY, true)), true);
-  assert.equal(withSetting(s, VIBRATE_KEY, 'yes')[VIBRATE_KEY], true, 'a string is refused; the old value stays');
-  assert.equal(withSetting({}, BIG_KEY, 1)[BIG_KEY], undefined);
+  assert.equal(bigOn(withSetting(s, TIMER_BIG_KEY, true)), true);
+  assert.equal(withSetting(s, TIMER_VIBRATE_KEY, 'yes')[TIMER_VIBRATE_KEY], true, 'a string is refused; the old value stays');
+  assert.equal(withSetting({}, TIMER_BIG_KEY, 1)[TIMER_BIG_KEY], undefined);
 });
 
-test('cueTick: speaks once per point through ui.announce; buzzes only when the switch is on and the browser can', () => {
+test('cueTick: says each point once with the speaker code; buzzes only when the switch is on and the browser can', () => {
   resetCues();
   const buzz = [];
   const nav = { vibrate: (p) => { buzz.push(p); return true; } };
   const off = envWith({});
-  withNavigator(nav, () => { for (const l of [122, 121, 120, 120, 119]) cueTick(off, { id: 'r1' }, { id: 'a' }, face(l), L, G); });
-  assert.deepEqual(off.said, ['2 minutes left']);
+  withNavigator(nav, () => { for (const l of [122, 121, 120, 120, 119]) cueTick(off, { id: 'r1' }, A, face(l), L, G); });
+  assert.deepEqual(off.said, ['101: 2 minutes left']);
   assert.deepEqual(buzz, [], 'Vibrate is off by default');
-  const on = envWith({ [VIBRATE_KEY]: true });
-  withNavigator(nav, () => { for (const l of [2, 1, 0, -1, -29, -30, -31]) cueTick(on, { id: 'r1' }, { id: 'a' }, face(l), L, G); });
-  assert.deepEqual(on.said, ['Grace', 'Over time']);
+  const on = envWith({ [TIMER_VIBRATE_KEY]: true });
+  withNavigator(nav, () => { for (const l of [2, 1, 0, -1, -29, -30, -31]) cueTick(on, { id: 'r1' }, A, face(l), L, G); });
+  assert.deepEqual(on.said, ['101: Grace starts', '101: Over grace']);
   assert.deepEqual(buzz, [[...PATTERNS.grace], [...PATTERNS.over]]);
   // No vibrate in this browser: the spoken line still comes, nothing throws.
-  const noVib = envWith({ [VIBRATE_KEY]: true });
-  withNavigator({}, () => { for (const l of [62, 60, 59]) cueTick(noVib, { id: 'r2' }, { id: 'a' }, face(l), L, G); });
-  assert.deepEqual(noVib.said, ['1 minute left']);
-  // The same entry id in another room has its own list.
+  const noVib = envWith({ [TIMER_VIBRATE_KEY]: true });
+  withNavigator({}, () => { for (const l of [62, 60, 59]) cueTick(noVib, { id: 'r2' }, A, face(l), L, G); });
+  assert.deepEqual(noVib.said, ['101: 1 minute left']);
+  // The same entry id in another room has its own list. A stopped clock says nothing.
   const other = envWith({});
-  withNavigator({}, () => { for (const l of [62, 60]) cueTick(other, { id: 'r3' }, { id: 'a' }, face(l), L, G); });
-  assert.deepEqual(other.said, ['1 minute left']);
+  withNavigator({}, () => { for (const l of [62, 60]) cueTick(other, { id: 'r3' }, A, face(l), L, G); cueTick(other, { id: 'r4' }, A, { running: false, left: 60 }, L, G); });
+  assert.deepEqual(other.said, ['101: 1 minute left']);
+  resetCues();
+});
+
+test('cueTick on a prep event counts the speech part (the limit timer-view passes is lim(e, now))', () => {
+  resetCues();
+  const T0 = 1_800_000_000_000;
+  const shared = 420; // 7:00 for prep and speech
+  // Prep used 1:57; the speech has run 2:02 (so 1:01 left of its 3:03 part).
+  const timing = { prepRun: null, prepMs: 117000, run: { kind: 'speech', endAt: T0 + 61 * 1000, startLeft: 183 }, runs: [], usedMs: 0, overLimit: false, overGrace: false };
+  const e = { id: 'a', code: '101', status: 'speaking', timing };
+  const lim = speechLimit(timing, T0, shared);
+  assert.equal(lim, 303);
+  const env = envWith({});
+  withNavigator({}, () => {
+    for (let k = 0; k <= 3; k += 1) cueTick(env, { id: 'r' }, e, sharedFace(e, shared, G, T0 + k * 1000), lim, G);
+  });
+  assert.deepEqual(env.said, ['101: 1 minute left']);
+  resetCues();
+});
+
+test('cueMount: Big digits on the timer box; a speech with no time (Reset time) starts its cues over', () => {
+  resetCues();
+  const cls = new Set();
+  const box = { classList: { toggle: (c, on) => (on ? cls.add(c) : cls.delete(c)) } };
+  const env = envWith({ [TIMER_BIG_KEY]: true });
+  const room = { id: 'r', entries: [{ id: 'a', code: '101', timing: { run: null, usedMs: 130000 } }] };
+  cueMount(env, box, room);
+  assert.ok(cls.has('cue-big'));
+  withNavigator({}, () => { for (const l of [122, 120]) cueTick(env, room, A, face(l), L, G); });
+  assert.deepEqual(env.said, ['101: 2 minutes left']);
+  cueMount(env, box, room); // a redraw while the speech has time: the list stays
+  withNavigator({}, () => { for (const l of [128, 125, 120]) cueTick(env, room, A, face(l), L, G); });
+  assert.equal(env.said.length, 1, '−10 s and back: not again');
+  room.entries[0].timing = { run: null, runs: [], usedMs: 0 }; // Reset time
+  cueMount(envWith({}), box, room);
+  assert.ok(!cls.has('cue-big'), 'Big digits off: the class goes');
+  withNavigator({}, () => { for (const l of [L, 122, 120]) cueTick(env, room, A, face(l), L, G); });
+  assert.deepEqual(env.said, ['101: 2 minutes left', '101: 2 minutes left'], 'after Reset time the new speech has its cues');
+  cueMount(env, null, null); // a no show: no box, nothing throws
   resetCues();
 });
 
@@ -214,29 +273,20 @@ test('canVibrate: true only where navigator.vibrate is a function', () => {
   assert.equal(canVibrate(null), false);
 });
 
-test('the "⋯" menu: closed, a labelled button, switches with role="switch"; Vibrate only where it works', () => {
-  const html = cueMenuHtml({ [BIG_KEY]: true }, true);
-  assert.match(html, /aria-label="Timer options"/);
-  assert.match(html, /aria-expanded="false"/);
-  assert.match(html, /id="cue-menu"[^>]*hidden/);
-  assert.match(html, /role="switch" data-cue="vibrate">/, 'Vibrate shows, off');
-  assert.match(html, /role="switch" data-cue="big" checked>/, 'Big digits shows, on');
-  assert.doesNotMatch(cueMenuHtml({}, false), /data-cue="vibrate"/);
-});
-
-test('Settings: a Timer part with the switches; Vibrate is hidden where the browser cannot vibrate', () => {
-  const s = withSetting({}, VIBRATE_KEY, true);
+test('Settings: a Timer part with the switches (role="switch"); Vibrate is hidden where the browser cannot vibrate', () => {
+  const s = withSetting({}, TIMER_VIBRATE_KEY, true);
   const html = timerCueSettingsHtml(s, true);
   assert.match(html, /<h2 id="set-timer-h">Timer<\/h2>/);
-  assert.match(html, /id="set-vibrate" checked/);
-  assert.match(html, /id="set-big">/);
+  assert.match(html, /role="switch" id="set-vibrate" checked>/);
+  assert.match(html, /role="switch" id="set-big">/);
   const none = timerCueSettingsHtml(s, false);
   assert.doesNotMatch(none, /set-vibrate|buzz/);
   assert.match(none, /id="set-big"/);
-  // The whole Settings screen carries the part.
-  const page = settingsHtml({ settings: {}, ai: null, keys: '', offline: null, kept: null, release: 'x', vibrate: false });
+  // The whole Settings screen carries the part; the builder stays pure (vibrate comes in v).
+  const page = settingsHtml({ settings: {}, ai: null, keys: '', offline: null, kept: null, release: 'x' });
   assert.match(page, /set-timer-h/);
   assert.doesNotMatch(page, /set-vibrate/);
+  assert.match(settingsHtml({ settings: {}, ai: null, keys: '', offline: null, kept: null, release: 'x', vibrate: true }), /set-vibrate/);
 });
 
 test('Settings: a switch change saves on this device; other inputs are left alone', () => {
@@ -250,18 +300,20 @@ test('Settings: a switch change saves on this device; other inputs are left alon
   assert.equal(env.saved.length, 2);
 });
 
-test('timer-view.js: the hook is one import, one tick call and one mount call; the old double announcements are gone', () => {
+test('timer-view.js: one import, one tick call, one mount call; the signal is no longer spoken twice there', () => {
   const src = readFileSync(new URL('./js/timer-view.js', import.meta.url), 'utf8');
   assert.equal((src.match(/timer-cue-view\.js'/g) || []).length, 1);
   assert.equal((src.match(/\bcueTick\(/g) || []).length, 1);
   assert.equal((src.match(/\bcueMount\(/g) || []).length, 1);
-  assert.doesNotMatch(src, /ui\.announce\(/, 'the signal is spoken once, by the cue module');
+  assert.match(src, /cueTick\(env\(\), r, e, face, lim\(e, now\), grace\(\)\)/, 'the speech part limit, not the shared one');
+  assert.doesNotMatch(src, /announce\(e\.code \+ ': ' \+ label\)/, 'the chip no longer speaks');
+  assert.doesNotMatch(src, /announce\([^)]*face\.word/, 'the stage word no longer speaks');
+  assert.doesNotMatch(src, /data-cue|cue-menu/, 'no menu on the timer card');
 });
 
 test('the cue CSS: no animation or transition, no brand green, and the file is loaded and cached', () => {
   const css = readFileSync(new URL('./js/timer-cue.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-  const outsideReduce = css.replace(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\}\s*\}/g, '');
-  assert.doesNotMatch(outsideReduce, /animation|transition|@keyframes/);
+  assert.doesNotMatch(css, /animation|transition|@keyframes/);
   assert.doesNotMatch(css, /--brand|--green|#[0-9a-f]{3,6}\b/i);
   assert.match(readFileSync(new URL('./index.html', import.meta.url), 'utf8'), /href="js\/timer-cue\.css"/);
   const sw = readFileSync(new URL('./sw-files.js', import.meta.url), 'utf8');

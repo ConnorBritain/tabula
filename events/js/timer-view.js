@@ -339,7 +339,7 @@ export function createTimerView(opts) {
       const startWord = o.startWord ? o.startWord(e, event(), now, limit()) : '';
       return timerHtml(e, face, limit(), grace(), cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor), { primary, nextHtml: nextTopHtml(r), startWord });
     },
-    mounted() { const box = $('#timer-box'); if (box) box.addEventListener('click', onClick); watchCard(); cueMount(env(), box); },
+    mounted() { const box = $('#timer-box'); if (box) box.addEventListener('click', onClick); watchCard(); cueMount(env(), box, room()); },
     show(c) {
       ctx = c; active = true; runId = null; prepId = null; prevLeft = null; lastStage = ''; fromBar = false;
       // A reload: bring back each saved run (timer.js restoreRoom; on a prep event prep.js restoreSharedRoom, which
