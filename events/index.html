@@ -50,7 +50,8 @@
   <p class="muted" id="boot-status" role="status">Loading the events…</p>
   <div id="screen"></div>
 </main>
-<div class="toasts" id="toasts"></div>
+<!-- A labeled region, so a toast and its Undo button sit inside a landmark, where a screen reader finds them. -->
+<div class="toasts" id="toasts" role="region" aria-label="Messages"></div>
 <div class="sr-only" id="toasts-polite" role="status" aria-live="polite"></div>
 <div class="sr-only" id="toasts-alert" role="alert" aria-live="assertive"></div>
 <div class="sr-only" id="sr-status" role="status" aria-live="polite"></div>
