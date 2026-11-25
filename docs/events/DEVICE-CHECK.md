@@ -165,8 +165,8 @@ Fill one row for each device. Use one row for each section letter that failed, w
 
 ## 2. Emulated pass
 
-Run on main at `8dfc458` (the branch adds only `events/tools/`, this page and one test file; no app file differs
-from main). Run it again with:
+Run at branch commit `dab1f82`, whose app files are identical to main at `8dfc458` (the branch adds only
+`events/tools/`, this page and one test file). Run it again with:
 
 ```
 node events/tools/device-pass.mjs                      # all 5 devices, light and dark (about 6 minutes)
