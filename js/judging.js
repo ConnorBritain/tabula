@@ -92,7 +92,8 @@ function slotErrorText(status, body) {
 const slotStudents = () => (slot.round ? [...slot.round.aff, ...slot.round.neg] : []);
 
 // The ballot's points for each student, so the judge does not type them twice: a student gets the points of the speaker
-// on their side whose Round setup name matches; the rest go in order when the counts match. The judge can change any.
+// on their side whose Round setup name matches; speakers with no name go in order when the counts match. A typed name
+// that matches no student is never guessed. The judge can change any.
 function slotPrefillPoints() {
   const pts = (R.ballot && R.ballot.pts) || {};
   for (const side of ['aff', 'neg']) {
@@ -104,7 +105,7 @@ function slotPrefillPoints() {
       const sp = speakers.find((x) => key(L.speakerName(R, x)) && key(L.speakerName(R, x)) === key(st.name) && ![...pairs.values()].includes(x));
       if (sp) pairs.set(st, sp);
     }
-    const restSt = students.filter((st) => !pairs.has(st)), restSp = speakers.filter((x) => ![...pairs.values()].includes(x));
+    const restSt = students.filter((st) => !pairs.has(st)), restSp = speakers.filter((x) => ![...pairs.values()].includes(x) && !key(L.speakerName(R, x)));
     if (restSt.length === restSp.length) restSt.forEach((st, i) => pairs.set(st, restSp[i]));
     for (const [st, sp] of pairs) {
       const v = pts[sp.id];

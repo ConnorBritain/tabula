@@ -201,3 +201,13 @@ test('no points are guessed when the counts differ and no name matches', async (
   assert.deepEqual(plain(T.slot.pts), {});
   assert.doesNotMatch(card(), /from the ballot/);
 });
+
+// Why: a typed Round setup name that matches no student means the judge's names differ from the server's; guessing by order could swap two debaters' points.
+test('no points are guessed for a speaker whose typed name matches no student', async () => {
+  const ballot = { winner: 'aff', rfd: 'Aff.', affFb: '', negFb: '', pts: { '1A': 27, '2A': 28, '1N': 28, '2N': 29 } };
+  const { T, card } = load({ on: true, ballot, names: { aff: { d1: 'Someone Else', d2: 'Ana Aff' } }, replies: [{ status: 200, body: ROUND }] });
+  T.openSlotSheet(); T.slot.code = 'KQXWMRTZ'; await T.slotOpenRound();
+  assert.equal(T.slot.pts.stu_ana, '28', 'the name match still fills');
+  assert.equal(T.slot.pts.stu_ben, undefined, '1A has a typed name that is not Ben');
+  assert.match(card(), /data-slot-pts="stu_ben" value="">/);
+});
