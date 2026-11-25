@@ -7,25 +7,35 @@
 // under the title (round-frame.js), and the head button that follows the profile layer (Rank, Rate, or straight to
 // Review for a comments-only round). The builders at the top are pure (Node tests call them); createRoomScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon, iconButton } from './icons.js';
+import { statusPillHtml } from './status-pill.js';
+import { roomPrimary, goRankHtml } from './room-primary.js';
 import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { crossNote } from './cross-entry.js';
 import { createNumberPicker, crossEntryAction } from './room-actions.js';
 import { frameHtml } from './round-frame.js';
-import { rankStageLabel } from './profile-layer.js';
 
-const pill = (word, cls) => `<span class="pill${cls ? ' ' + cls : ''}">${esc(word)}</span>`;
-// The status pill in words (DESIGN.md §4.1): Speaking is a solid fill, Done a gray outline.
-export const statusPill = (e) => pill(STATUS_LABEL[e.status] || STATUS_LABEL.waiting, { speaking: 'solid', done: 'outline', noShow: 'outline', crossEntered: 'outline' }[e.status] || '');
+// The status pill in words (DESIGN.md §4.1) with a shape (§5.3) and a tint (D2-A): Waiting is plain words with an
+// empty circle, Speaking a quiet tint with a play circle, Done green with a check. A Done speech over grace keeps a
+// neutral check (the review's limit 2): green must not say "all fine" next to the "Over grace" pill.
+const STATUS_LOOK = Object.freeze({ waiting: ['', 'circle'], speaking: ['live', 'circle-play'], done: ['ok', 'circle-check'], noShow: ['outline', ''], crossEntered: ['outline', ''] });
+export const statusPill = (e) => {
+  const [tone, ic] = STATUS_LOOK[e.status] || STATUS_LOOK.waiting;
+  const over = e.status === 'done' && e.timing && e.timing.overGrace;
+  return statusPillHtml(over ? '' : tone, STATUS_LABEL[e.status] || STATUS_LABEL.waiting, over ? 'check' : ic);
+};
 
 // The room's title line: event short name and round.
 export function roomTitle(room, event) {
   return [event ? event.name : 'Custom event', roundLine(room, false)].filter(Boolean).join(' · ');
 }
 
-// One roster row as HTML text. extra(e): optional HTML after the name (the time, from step E5).
+// One roster row as HTML text. The current row says "Now" (§5.1 rule 3) on its own line under the row (CSS wraps it
+// like the F4 run line), so the name keeps its width. extra(e): optional HTML after the name (the time, from step E5). sub(e): optional
+// HTML under the name (design build: the question or topic, quote-view.js, and the mini time track, timer-view.js).
 // menuOpen: this row's menu is open.
-export function rosterRowHtml(room, e, place, menuOpen, extra) {
+export function rosterRowHtml(room, e, place, menuOpen, extra, sub) {
   const cur = room.current === e.id;
   const n = room.entries.length;
   const noShow = e.status === 'noShow';
@@ -39,29 +49,32 @@ export function rosterRowHtml(room, e, place, menuOpen, extra) {
   return `<li class="roster-row${cur ? ' is-current' : ''}${noShow ? ' is-noshow' : ''}">
     <button class="row-pick" type="button" data-act="pick" data-id="${e.id}" data-key="pick-${e.id}"${cur ? ' aria-current="true"' : ''}>
       <span class="row-num" aria-hidden="true">${place}</span>
-      <span class="row-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}</span>
-      ${extra ? extra(e) : ''}${statusPill(e)}</button>
-    <button class="iconbtn row-more" type="button" data-act="menu" data-id="${e.id}" data-key="menu-${e.id}" aria-expanded="${menuOpen}" aria-label="Change ${esc(e.code)}">⋯</button>
+      <span class="row-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}${sub ? sub(e) : ''}</span>
+      ${extra ? extra(e) : ''}${statusPill(e)}${cur ? `<span class="row-now">${statusPillHtml('', 'Now', '', 'data-now')}</span>` : ''}</button>
+    ${iconButton('ellipsis', 'Change ' + e.code, 'iconbtn row-more', `data-act="menu" data-id="${e.id}" data-key="menu-${e.id}" aria-expanded="${menuOpen}"`)}
     ${menu}</li>`;
 }
 
 // The full roster as HTML text, plus the phone strip of code pills.
-export function rosterHtml(room, menuFor, extra) {
+export function rosterHtml(room, menuFor, extra, sub) {
   const done = room.entries.filter((e) => e.status === 'done').length;
   const here = present(room).length;
-  const rows = room.entries.map((e, i) => rosterRowHtml(room, e, i + 1, menuFor === e.id, extra)).join('');
+  const rows = room.entries.map((e, i) => rosterRowHtml(room, e, i + 1, menuFor === e.id, extra, sub)).join('');
   const strip = room.entries.map((e) => `<button class="strip-pill${room.current === e.id ? ' is-current' : ''}" type="button" data-act="pick" data-id="${e.id}"${room.current === e.id ? ' aria-current="true"' : ''}><span class="code">${esc(e.code)}</span> <span class="strip-status">${esc(STATUS_LABEL[e.status] || '')}</span></button>`).join('');
   return `<div class="strip" role="group" aria-label="Speakers">${strip}</div>
     <div class="roster-full" id="roster-full">
       <h2 class="roster-title">Roster <span class="muted">${done} of ${here} done</span></h2>
       <ol class="roster-list">${rows}</ol>
-      <button class="b small" type="button" data-act="add" data-key="add-entry">Add entry</button>
+      <button class="b small" type="button" data-act="add" data-key="add-entry">${icon('plus')}Add entry</button>
     </div>`;
 }
 
 // env: { el, ui, data, now, rooms(), saveRoom(room), go(screen, id) }.
 // parts: the views that add to this screen (the timer in step E5, the comment sheet in E6). Each may have:
 //   rowExtra(room, entry) -> HTML after a roster row's name     stageHtml(room, entry) -> HTML in the main pane
+//   rowSub(room, entry) -> HTML under a roster row's name
+//   footHtml(room) -> HTML for the whole room, under the grid     footMounted(ctx) after it is drawn (design build, D3-A:
+//                                                                 the room-level reason for rank)
 //   mounted(ctx) after the main pane is drawn                    show(ctx) / hide(ctx) when the screen opens / closes
 //   run(action, ctx) -> true when it ran a shortcut              stopFor(id) stops that entry's running clock
 // ctx: { env, room(), save(room), draw(), drawStage(), drawRoster() } (drawStage and drawRoster redraw one pane only).
@@ -83,7 +96,7 @@ export function createRoomScreen(env, parts) {
     if (!r) return;
     const box = $('#roster');
     const key = box.contains(document.activeElement) && document.activeElement.dataset ? document.activeElement.dataset.key : null;
-    box.innerHTML = rosterHtml(r, menuFor, (e) => views.map((v) => (v.rowExtra ? v.rowExtra(r, e) : '')).join(''));
+    box.innerHTML = rosterHtml(r, menuFor, (e) => views.map((v) => (v.rowExtra ? v.rowExtra(r, e) : '')).join(''), (e) => views.map((v) => (v.rowSub ? v.rowSub(r, e) : '')).join(''));
     box.classList.toggle('open', rosterOpen);
     $('#roster-toggle').setAttribute('aria-expanded', String(rosterOpen));
     if (key) {
@@ -105,13 +118,20 @@ export function createRoomScreen(env, parts) {
     stage.innerHTML = e ? `<div class="stage-head"><h2 class="stage-code" id="stage-code">${esc(e.code)}</h2><span class="muted stage-name" id="stage-name">${esc(e.name || '')}</span>${statusPill(e)}</div>`
       + (crossNote(e) ? `<p class="muted cross-note">${esc(crossNote(e))}</p>` : '')
       + views.map((v) => (v.stageHtml ? v.stageHtml(r, e) : '')).join('')
-      + `<div class="stage-foot"><button class="b" type="button" data-act="next" data-key="next">Next speaker</button></div>`
+      // Top 10 #1: when "Next speaker" is the room's primary it sits next to the timer; else it waits here, secondary.
+      + (roomPrimary(r, e) === 'next' ? '' : `<div class="stage-foot"><button class="b" type="button" data-act="next" data-key="next">Next speaker${icon('arrow-right')}</button></div>`)
       : '<p class="muted">Add an entry to start.</p>';
     for (const v of views) if (v.mounted) v.mounted(ctx);
     const back = keep && document.getElementById(keep.id);
     if (back && stage.contains(back)) { back.focus(); if (typeof keep.a === 'number' && back.setSelectionRange) back.setSelectionRange(keep.a, keep.b); }
   }
-  function draw() { drawRoster(); drawStage(); }
+  // The header's Rank button follows the room's primary (top 10 #1): secondary with "· 2 of 6" until nobody waits.
+  function drawHead() {
+    const r = room();
+    const go = $('#go-rank');
+    if (r && go) go.outerHTML = goRankHtml(r, roomPrimary(r, entryOf(r, r.current)));
+  }
+  function draw() { drawRoster(); drawStage(); drawHead(); }
 
   function pick(id) {
     const r = room();
@@ -153,7 +173,11 @@ export function createRoomScreen(env, parts) {
     if (action === 'next') {
       const nx = nextWaiting(r);
       if (!nx) { env.ui.toast('Every speaker has spoken or is a no show. Rank the room when you are ready.', { key: 'next' }); return; }
-      return pick(nx.id);
+      pick(nx.id);
+      // The Next button is gone after the redraw (top 10 #1: it shows only while it is the primary), so a keyboard judge
+      // lands on the new speaker's Start, the next step.
+      const go = $('[data-key="startstop"]'); if (go) go.focus();
+      return;
     }
   }
 
@@ -177,20 +201,22 @@ export function createRoomScreen(env, parts) {
       const r = findRoom(env.rooms(), id);
       if (!r) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
       roomId = id; menuFor = null; rosterOpen = false; numbers.reset();
-      const stageWord = rankStageLabel(r.profile);
-      const go = stageWord ? `<a class="b primary" id="go-rank" href="#/rank/${encodeURIComponent(id)}">${stageWord} the room</a>` : `<a class="b primary" id="go-rank" href="#/review/${encodeURIComponent(id)}">Review and copy</a>`;
+      const go = goRankHtml(r, roomPrimary(r, entryOf(r, r.current)));
       // Step S3 (EXPERIENCE.md §1.1): the event pill opens the type page for this round's event.
       const ev = event(r);
-      env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">‹ My day</a>
+      env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a>
           <a class="pill md-ev" href="#/type/${encodeURIComponent(r.customEvent ? 'custom' : r.eventId)}" aria-label="${esc('About ' + (ev ? ev.name : 'Custom event'))}">${esc(ev ? ev.short || ev.name : 'Custom')}</a>
           <h1 id="screen-title" tabindex="-1">${esc(roomTitle(r, event(r)))}</h1>
           <button class="b" type="button" id="roster-toggle" aria-controls="roster-full" aria-expanded="false">Roster</button>
           ${go}</div>
         ${frameHtml(r)}
-        <div class="room-grid"><nav class="roster" id="roster" aria-label="Roster"></nav><section class="stage" id="stage" aria-labelledby="stage-code"></section></div>`;
+        <div class="room-grid"><nav class="roster" id="roster" aria-label="Roster"></nav><section class="stage" id="stage" aria-labelledby="stage-code"></section></div>
+        <div class="room-foot" id="room-foot"></div>`;
       env.el.addEventListener('click', onClick);
       for (const v of views) if (v.show) v.show(ctx);
+      $('#room-foot').innerHTML = views.map((v) => (v.footHtml ? v.footHtml(r) : '')).join('');
       draw();
+      for (const v of views) if (v.footMounted) v.footMounted(ctx);
       $('#screen-title').focus();
     },
     hide() {

@@ -71,8 +71,8 @@ export const filterRows = (rows, filter) => {
 const BASE_COLUMNS = Object.freeze([
   { key: 'date', label: 'Date' }, { key: 'tournament', label: 'Tournament' }, { key: 'round', label: 'Round' },
   { key: 'flight', label: 'Flight' }, { key: 'level', label: 'Level' }, { key: 'event', label: 'Event' },
-  { key: 'entries', label: 'Entries' }, { key: 'state', label: 'State' }, { key: 'commentsOpen', label: 'Comments open' },
-]);
+  { key: 'entries', label: 'Entries' }, { key: 'state', label: 'State' },
+]); // "Comments open" is a second pill in the State cell, only when true (design review §2.11), not a column
 const FAMILY_COLUMNS = Object.freeze({ f2: [{ key: 'questions', label: 'Questions' }] });
 export function historyColumns(rows, filter) {
   const fam = filter && filter.eventId && rows && rows.length && rows.every((r) => r.family === rows[0].family) ? rows[0].family : '';

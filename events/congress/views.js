@@ -2,6 +2,7 @@
 // and the round bar. Pure: each builder takes records and returns HTML text, so Node tests can check it.
 // session-screen.js draws them and wires the buttons. House design: black, white and gray; no stripes; plain words.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from '../js/icons.js';
 import { legislatorOf, codeOf, itemOf, houseWord } from './chamber.js';
 import { TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS, legislatorLines, precedenceOrder, timerView, clockText, minSec, needsReason, countedPoints } from './speech.js';
 import { hoursDue, openTerm, ordinal, fullHours, poLockLine } from './po.js';
@@ -25,8 +26,8 @@ export function barHtml(chamber, session, stage, now) {
   const steps = [`<li><a href="#/chamber/${esc(chamber.id)}">Setup</a></li>`]
     .concat(['log', 'rank', 'review'].map((s) => `<li${s === stage ? ' class="on" aria-current="step"' : ''}><a href="#/round/${esc(session.id)}/${s}">${STAGE_WORDS[s]}</a></li>`));
   return `<div class="cg-bar">
-    <a class="b quiet" href="#/chamber/${esc(chamber.id)}">‹ Chamber</a>
-    <span class="pill solid">${houseWord(chamber)}</span>
+    <a class="b quiet" href="#/chamber/${esc(chamber.id)}">${icon('chevron-left')}Chamber</a>
+    <span class="pill live">${houseWord(chamber)}</span>
     <span class="cg-bar-title">Session ${esc(session.number)}${chamber.roomLabel ? ' · ' + esc(chamber.roomLabel) : ''}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''}</span>
     <ol class="phase-bar cg-steps" aria-label="Steps">${steps.join('')}</ol>
     <span class="cg-clock" title="Time since the session started"><span class="sr-only">Session time </span><span id="cg-session-clock">${sessionClock(session, now)}</span></span>

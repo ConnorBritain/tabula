@@ -92,6 +92,26 @@ test('every button token pair passes in light and dark', () => {
   }
 });
 
+// Why: Speech Events puts status words, tool tracks and hover on the two quiet tints (EVENTS-COLOR-ICON-REVIEW.md §5.1
+// rule 4); under 4.5:1 a judge cannot read "Judging" or "−10 s" on them, and if a tint ever reached 3:1 against the
+// panel someone could use it as a control's only edge, which the review forbids.
+test('the quiet tints carry text in light, dark and print, and stay too faint to be an edge', () => {
+  const pairs = [
+    ['--text', '--fill-quiet', 4.5], ['--text-2', '--fill-quiet', 4.5], ['--text', '--fill-press', 4.5], ['--text-2', '--fill-press', 4.5],
+  ];
+  for (const [name, set] of [['light', LIGHT], ['dark', DARK], ['print', PRINT]]) {
+    for (const [fg, bg, min] of pairs) {
+      assert.ok(set[fg] && set[bg], `${name}: ${fg} and ${bg} are defined`);
+      const r = ratio(set[fg], set[bg]);
+      assert.ok(r >= min, `${name}: ${fg} on ${bg} is ${r.toFixed(2)}, needs ${min}`);
+    }
+    for (const t of ['--fill-quiet', '--fill-press']) {
+      const r = ratio(set[t], set['--panel']);
+      assert.ok(r < 3, `${name}: ${t} on --panel is ${r.toFixed(2)}; a tint at 3:1 or more would pass as a control edge`);
+    }
+  }
+});
+
 // Why: the contrast test is only as good as its maths; a wrong formula would pass every pair.
 test('the contrast helper matches known WCAG ratios', () => {
   assert.equal(Math.round(ratio('#000', '#fff') * 100) / 100, 21);

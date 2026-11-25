@@ -105,7 +105,9 @@ export function cardStatus(card, round) {
   if (card && card.submittedAt) return round.state === 'done' ? 'done' : 'submitted';
   // A comments-only round (step S4 critiqueOnly) has no ranks to copy: it is done when its comments are copied.
   if (layerOf(round.profile).critiqueOnly) return round.state === 'done' ? 'done' : 'judging';
-  if (round.ranksCopiedAt) return 'ranksIn';
+  // A copied round (state 'done') is never "Judging", even when it has no ranks mark: a round copied before E8 added
+  // ranksCopiedAt has state 'done' only (design review §5 bug 9). Its ranks are in; "I submitted in Tabroom" is next.
+  if (round.ranksCopiedAt || round.state === 'done') return 'ranksIn';
   return 'judging';
 }
 
@@ -126,6 +128,34 @@ export function dueText(due, now) {
   if (!Number.isFinite(due)) return '';
   const s = Math.round((due - now) / 1000);
   return s > 0 ? 'Ranks due in ' + clockText(s) : 'Ranks were due ' + clockText(-s) + ' ago';
+}
+
+// The ranks-due pill in words (design review §2.1 change 3): "Ranks due in 7 min", then the caution tone at 2 minutes
+// or less, then "Ranks 3 min late" in the late tone. No clock digits: "1:39" read as 1 hour 39 or 1 minute 39.
+// Returns { text, tone } with tone '' | 'caution' | 'late', or null when there is no due time.
+export const DUE_CAUTION_SEC = 120;
+export function duePill(due, now) {
+  if (!Number.isFinite(due)) return null;
+  const s = Math.round((due - now) / 1000);
+  if (s > 0) return { text: 'Ranks due in ' + Math.ceil(s / 60) + ' min', tone: s <= DUE_CAUTION_SEC ? 'caution' : '' };
+  const late = Math.floor(-s / 60);
+  return { text: late < 1 ? 'Ranks due now' : 'Ranks ' + late + ' min late', tone: 'late' };
+}
+
+// A room as the judge reads it (design review §5 bug 3): the label as typed ("Room 214", "Library"), with "Room" put
+// in front only of a bare number ("214", "12B"). '' when there is no room.
+export function roomText(label) {
+  const t = String(label == null ? '' : label).trim();
+  if (!t) return '';
+  return /^\d+[a-z]?$/i.test(t) ? 'Room ' + t : t;
+}
+
+// The "Up next" item on My day (owner decision OD2 A): the round being judged now, else one whose ranks are copied,
+// else the first round of Later today. null when none of those exists. m: mydayModel(...).
+export function upNextItem(m) {
+  const now = (m && m.sections && m.sections[0] && m.sections[0].items) || [];
+  const later = (m && m.sections && m.sections[1] && m.sections[1].items) || [];
+  return now.find((x) => x.status === 'judging') || now[0] || later[0] || null;
 }
 
 // The next round name: the last card's round with its last number plus one ("Round 2" -> "Round 3"). With no card
@@ -209,5 +239,5 @@ function item(card, round, c) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).cards = Object.freeze({ STATUS_WORDS, SECTION_OF, SECTIONS, LEVELS, FLIGHTS, RANKS_DUE_DEFAULT,
-  makeDay, dayFor, ensureDay, withStandby, cardEventId, cardEvent, makeCard, cardForRound, cardStatus, ranksDueAt, dueText, nextRoundLabel,
+  makeDay, dayFor, ensureDay, withStandby, cardEventId, cardEvent, makeCard, cardForRound, cardStatus, ranksDueAt, dueText, duePill, DUE_CAUTION_SEC, roomText, upNextItem, nextRoundLabel,
   cancelCard, moveRoom, submitCard, linkRound, linkRoundToCard, undoFields, roundFields, upsert, findById, mydayModel });

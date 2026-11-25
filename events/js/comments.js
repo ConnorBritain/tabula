@@ -42,6 +42,28 @@ export function ballotComment(entry) {
   return c.trim() ? c : String(e.notes || '');
 }
 
+// The first sentence of a comment, for one quiet line on a list row (the Rank board, the room roster; design review
+// 2026-11-24 §2.8): up to the first . ! or ? that ends a sentence, or the first line break; cut at max characters on a
+// word with "…". '' when the text is blank. One helper, so the screens never cut the text two ways.
+const ABBREV = /(?:^|\s)(?:mr|mrs|ms|dr|st|vs|etc|e\.g|i\.e)\.$/i;
+export function firstSentence(text, max = 90) {
+  const t = String(text || '').trim();
+  if (!t) return '';
+  const line = t.split(/\n/)[0].trim();
+  let end = line.length;
+  for (const m of line.matchAll(/[.!?](?=\s|$)/g)) {
+    // "Dr. Lee" and "vs. the" do not end a sentence.
+    if (m[0] === '.' && ABBREV.test(line.slice(0, m.index + 1))) continue;
+    end = m.index + 1;
+    break;
+  }
+  const s = line.slice(0, end).trim();
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max);
+  const sp = cut.lastIndexOf(' ');
+  return (sp > max / 2 ? cut.slice(0, sp) : cut).replace(/[\s,;:]+$/, '') + '…';
+}
+
 // Put a sentence into text at the cursor, as its own sentence: a space before it when the text before does not end
 // in a space or a line break, and a space after it when text follows. Returns { text, cursor } (cursor after it).
 export function insertSentence(text, sentence, cursor) {
@@ -111,6 +133,6 @@ export function applyInput(room, field, value, now) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).comments = Object.freeze({
-  CHECK_LABELS, checkLabel, flagLine, KINDS, KIND_TITLE, tagKey, ballotComment, insertSentence, removeSentence, tapChip,
+  CHECK_LABELS, checkLabel, flagLine, KINDS, KIND_TITLE, tagKey, ballotComment, firstSentence, insertSentence, removeSentence, tapChip,
   toggleCheck, setNotes, setPrivateNote, setReason, applyInput,
 });

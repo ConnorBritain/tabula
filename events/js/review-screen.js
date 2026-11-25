@@ -5,80 +5,120 @@
 // card (cleanup-view.js), built only when the AI gate allows it.
 // The builders at the top are pure (Node tests call them); createReviewScreen does the DOM.
 import { escapeHtml as esc, showPrintSheet, removePrintSheet } from '../../core/sheets.js';
+import { icon } from './icons.js';
+import { statusPillHtml } from './status-pill.js';
 import { ranksBlock, ranksProblems, cards, checklist, statusText, markCopied, setComment, setReasonReview, copyAllText, printModel, hasRanksStage, rubricLine } from './ballot.js';
 import { findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf } from './timer.js';
 import { createCleanup } from './cleanup-view.js';
-import { rankStageLabel } from './profile-layer.js';
+import { rankStageLabel, ranksShown, layerOf, notRankedText, reasonLabel } from './profile-layer.js';
+import { OVER_GRACE_PILL } from './rank.js';
 
-const done = (ok, label) => `<li class="${ok ? 'is-ok' : ''}"><span aria-hidden="true">${ok ? '✓' : '○'}</span> ${esc(label)}${ok ? '' : ' <span class="sr-only">(not yet)</span>'}</li>`;
+// A met check is a check circle, an open one an empty circle (§5.3: icons, not the "✓" and "○" characters); the word
+// and the hidden "(not yet)" carry the meaning.
+// The one next copy step on the Review screen (top 10 #4: one solid fill per view): the ranks first, then each comment
+// card in the order shown, then the reason for rank. Returns 'ranks', a card id, 'reason', or '' when all is copied
+// (or the ranks are blocked: then the blocker's "Back to Rank" is the primary). Pure: list is the cards as shown.
+export function nextCopy(room, list) {
+  if (hasRanksStage(room) && ranksProblems(room).length) return '';
+  if (hasRanksStage(room) && !room.ranksCopiedAt) return 'ranks';
+  const card = list.find((c) => c.comment.trim() && !c.copied);
+  if (card) return card.id;
+  if (String(room.reasonForRank || '').trim() && !room.reasonCopiedAt) return 'reason';
+  return '';
+}
+// A copy button's class: the next step is the primary; a copied one is quiet; the rest are secondary.
+const copyClass = (what, copied, next) => (copied ? 'b quiet' : what === next ? 'b primary' : 'b');
 
-// Stage 1 as HTML text. Step S4 (profile layer): under ranks 'off' it is "Ratings to submit" with no Rank column;
-// a rubric adds a column; under critiqueOnly there is nothing to submit and the stage says so.
+const done = (ok, label) => `<li class="${ok ? 'is-ok' : ''}">${icon(ok ? 'circle-check' : 'circle')} ${esc(label)}${ok ? '' : ' <span class="sr-only">(not yet)</span>'}</li>`;
+// A copy button (§5.3): the copy icon and the word; once copied it goes quiet with a check and "Copied" (top 10 #4:
+// only the next copy step keeps the solid fill).
+export const copyLabel = (copied, word) => (copied ? `${icon('check')}Copied` : `${icon('copy')}${esc(word)}`);
+
+// Stage 1 as HTML text: a narrow card shaped like the online ballot (design review 2026-11-24 §2.10, top 10 #7): the
+// code, rank, rating and rubric of each entry, and an "Over grace" pill only when it is true. The card's header holds
+// the copy button and the copy state. Step S4 (profile layer): under ranks 'off' it is "Ratings to submit" with no
+// Rank column; a rubric adds a column; under critiqueOnly there is nothing to submit, so there is no stage at all
+// (bug 6; the summary says the rules are comments only).
 export function ranksStageHtml(room) {
-  if (!hasRanksStage(room)) {
-    return `<section class="review-stage" aria-labelledby="stage1"><h2 id="stage1">1. Ranks</h2>
-    <p class="muted">These rules are comments only. There are no ranks to submit. Copy each comment below.</p></section>`;
-  }
+  if (!hasRanksStage(room)) return '';
   const { rows, rated, ranked, rubric } = ranksBlock(room);
   const problems = ranksProblems(room);
   const sent = Boolean(room.ranksCopiedAt);
   const word = ranked ? 'ranks' : 'ratings';
   const back = ranked ? 'Rank' : 'Rate';
-  const table = `<table class="ranks-table"><thead><tr><th>Code</th>${ranked ? '<th>Rank</th>' : ''}${rated ? '<th>Rating</th>' : ''}${rubric ? '<th>Rubric</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td>${ranked ? `<td>${esc(r.rank || '–')}</td>` : ''}${rated ? `<td>${esc(r.rating || '–')}</td>` : ''}${rubric ? `<td>${esc(rubricLine(r.rubric))}</td>` : ''}<td>${r.overTime ? 'Yes' : 'No'}</td></tr>`).join('')}</tbody></table>`;
-  const block = problems.length
-    ? `<div class="problems"><h3>Fix these before you copy the ${word}</h3><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul><a class="b" href="#/rank/${encodeURIComponent(room.id)}">Back to ${back}</a></div>`
-    : `<button class="b primary" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${sent ? '✓ Copied. Copy ' + word + ' again' : 'Copy ' + word}</button>`;
-  return `<section class="review-stage" aria-labelledby="stage1"><h2 id="stage1">1. ${ranked ? 'Ranks' : 'Ratings'} to submit</h2>
+  // A top-N ballot: the rows past N say "Not in top N", as the copied text does, not a bare dash.
+  const notRanked = layerOf(room.profile).ranks === 'topN' ? notRankedText(room.profile) : '';
+  const overCell = (r) => (r.overTime ? statusPillHtml('err', OVER_GRACE_PILL) : '<span class="sr-only">No</span>');
+  const table = `<table class="ranks-table"><thead><tr><th>Code</th>${ranked ? '<th>Rank</th>' : ''}${rated ? '<th>Rating</th>' : ''}${rubric ? '<th>Rubric</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td>${ranked ? `<td class="preview-rank">${r.rank ? esc(r.rank) : notRanked ? `<span class="muted preview-out">${esc(notRanked)}</span>` : '–'}</td>` : ''}${rated ? `<td>${r.rating ? esc(r.rating) : statusPillHtml('caution', 'No rating')}</td>` : ''}${rubric ? `<td>${esc(rubricLine(r.rubric))}</td>` : ''}<td>${overCell(r)}</td></tr>`).join('')}</tbody></table>`;
+  const copyBtn = problems.length ? ''
+    : `<button class="${sent ? 'b quiet' : 'b primary'}" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${copyLabel(false, sent ? 'Copy ' + word + ' again' : 'Copy ' + word)}</button>`;
+  // Top 10 #7: a blocked copy says "Not ready" in a caution box above the table, and "Back to Rank" (or Rate) is the
+  // screen's one primary.
+  const fix = problems.length
+    ? `<div class="problems caution" role="status"><h3>${statusPillHtml('caution', 'Not ready', 'triangle-alert')} Fix these before you copy the ${word}</h3><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul><a class="b primary" href="#/rank/${encodeURIComponent(room.id)}">${icon('chevron-left')}Back to ${back}</a></div>` : '';
+  return `<section class="review-stage ballot-preview" aria-labelledby="stage1">
+    <div class="preview-head"><h2 id="stage1">1. ${ranked ? 'Ranks' : 'Ratings'} to submit</h2>
+      ${sent ? statusPillHtml('ok', 'Copied', 'circle-check', 'id="ranks-state"') : statusPillHtml('caution', 'Not sent', 'circle', 'id="ranks-state"')}${copyBtn}</div>
     <p class="muted">Enter these in the online ballot first. Most sites lock ranks when you submit, but keep comments open.</p>
-    ${table}${block}</section>`;
+    ${fix}${table}</section>`;
 }
 
 // One comment card as HTML text. editing: the card shows its edit box. ai: { button, panel } for clean-up (E13), or
 // nothing (AI off: no button and no empty space).
-export function cardHtml(c, editing, ai) {
+export function cardHtml(c, editing, ai, next) {
   const a = ai || { button: '', panel: '' };
   const body = editing
     ? `<label class="sr-only" for="edit-${c.id}">Comment for ${esc(c.code)}</label><textarea id="edit-${c.id}" class="card-edit" data-vfield="comment" data-id="${c.id}" rows="6">${esc(c.comment)}</textarea>`
     : `<div class="card-text">${c.comment ? esc(c.comment) : '<span class="muted">No comment yet.</span>'}</div>`;
   return `<li class="card" data-card="${c.id}">
     <div class="card-head"><span class="code">${esc(c.code)}</span><span class="muted">${[c.ranked === false ? '' : c.rank ? 'Rank ' + esc(c.rank) : 'No rank', c.rating ? 'Rating ' + esc(c.rating) : ''].filter(Boolean).join(' · ')}</span>
-      ${a.button}<button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : 'Edit'}</button></div>
+      ${a.button}<button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : icon('pencil') + 'Edit'}</button></div>
     ${c.name || c.piece ? `<p class="card-piece">${[c.name, c.piece].filter(Boolean).map(esc).join(' · ')}</p>` : ''}
     ${c.question ? `<p class="card-question"><span class="muted">Question:</span> ${esc(c.question)}</p>` : ''}
     ${c.topic ? `<p class="card-question card-topic"><span class="muted">Topic:</span> ${esc(c.topic)}</p>` : ''}
     ${c.runs ? `<p class="card-question card-runs"><span class="muted">Runs:</span> ${esc(c.runs)}</p>` : ''}
     ${body}${a.panel}
     <ul class="critique" aria-label="Comment check for ${esc(c.code)}">${c.critique.map((k) => done(k.ok, k.label)).join('')}</ul>
-    ${c.comment.trim() ? `<button class="b${c.copied ? '' : ' primary'}" type="button" data-vact="copy" data-what="${c.id}" data-key="copy-${c.id}">${c.copied ? '✓ Copied' : 'Copy comment'}</button>` : ''}
+    ${c.comment.trim() ? `<button class="${copyClass(c.id, c.copied, next === undefined ? c.id : next)}" type="button" data-vact="copy" data-what="${c.id}" data-key="copy-${c.id}">${copyLabel(c.copied, 'Copy comment')}</button>` : ''}
   </li>`;
 }
 
 // Stage 2 and the tools as HTML text. view: { order, editing, ai (optional: (card, editing) -> { button, panel }),
 // event (optional: the room's event file, for the PCC run labels) }.
 export function commentsStageHtml(room, view) {
-  const list = cards(room, view.order, view.event);
+  const ranked = ranksShown(room.profile);
+  // No ranks (ranks 'off' or comments only, bug 6): no rank order to sort by, so the cards keep speaking order.
+  const list = cards(room, ranked ? view.order : 'speaking', view.event);
   const reason = String(room.reasonForRank || '');
   const reasonEditing = view.editing === 'reason';
-  return `<section class="review-stage" aria-labelledby="stage2"><h2 id="stage2" tabindex="-1">2. Comments</h2>
-    <div class="order-toggle" role="group" aria-label="Card order">
+  const reasonTitle = reasonLabel(room.profile); // the same word as the checklist (§4 repair)
+  // Comments only: no reason for rank either, unless one was written before the rules changed (it still copies).
+  const showReason = hasRanksStage(room) || reason.trim() || reasonEditing;
+  const next = nextCopy(room, list);
+  const toggle = ranked ? `<div class="order-toggle seg-track" role="group" aria-label="Card order">
       <button class="b small${view.order === 'speaking' ? ' on' : ''}" type="button" data-vact="order" data-order="speaking" data-key="order-speaking" aria-pressed="${view.order === 'speaking'}">Speaking order</button>
-      <button class="b small${view.order === 'rank' ? ' on' : ''}" type="button" data-vact="order" data-order="rank" data-key="order-rank" aria-pressed="${view.order === 'rank'}">Rank order</button></div>
-    <ol class="cards">${list.map((c) => cardHtml(c, view.editing === c.id, view.ai && view.ai(c, view.editing === c.id))).join('')}</ol>
-    <div class="card reason-card"><div class="card-head"><span>Reason for rank</span>
-      <button class="b small quiet" type="button" data-vact="edit" data-id="reason" data-key="edit-reason" aria-expanded="${reasonEditing}">${reasonEditing ? 'Done' : 'Edit'}</button></div>
-      ${reasonEditing ? `<label class="sr-only" for="edit-reason-box">Reason for rank</label><textarea id="edit-reason-box" class="card-edit" data-vfield="reason" rows="4">${esc(reason)}</textarea>` : `<div class="card-text">${reason.trim() ? esc(reason) : '<span class="muted">No reason for rank yet.</span>'}</div>`}
-      ${reason.trim() ? `<button class="b${room.reasonCopiedAt ? '' : ' primary'}" type="button" data-vact="copy" data-what="reason" data-key="copy-reason">${room.reasonCopiedAt ? '✓ Copied' : 'Copy reason'}</button>` : ''}</div>
+      <button class="b small${view.order === 'rank' ? ' on' : ''}" type="button" data-vact="order" data-order="rank" data-key="order-rank" aria-pressed="${view.order === 'rank'}">Rank order</button></div>` : '';
+  return `<section class="review-stage" aria-labelledby="stage2"><h2 id="stage2" tabindex="-1">${hasRanksStage(room) ? '2. ' : ''}Comments</h2>
+    ${toggle}
+    <ol class="cards">${list.map((c) => cardHtml(c, view.editing === c.id, view.ai && view.ai(c, view.editing === c.id), next)).join('')}</ol>
+    ${showReason ? `<div class="card reason-card"><div class="card-head"><span>${reasonTitle}</span>
+      <button class="b small quiet" type="button" data-vact="edit" data-id="reason" data-key="edit-reason" aria-expanded="${reasonEditing}">${reasonEditing ? 'Done' : icon('pencil') + 'Edit'}</button></div>
+      ${reasonEditing ? `<label class="sr-only" for="edit-reason-box">${reasonTitle}</label><textarea id="edit-reason-box" class="card-edit" data-vfield="reason" rows="4">${esc(reason)}</textarea>` : `<div class="card-text">${reason.trim() ? esc(reason) : `<span class="muted">No ${reasonTitle.toLowerCase()} yet.</span>`}</div>`}
+      ${reason.trim() ? `<button class="${copyClass('reason', room.reasonCopiedAt, next)}" type="button" data-vact="copy" data-what="reason" data-key="copy-reason">${copyLabel(room.reasonCopiedAt, 'Copy reason')}</button>` : ''}</div>` : ''}
   </section>`;
 }
 
 // The top of the screen: the status pill and the checklist in words.
+// One toolbar row (design review §2.10): the status, the checklist, then Copy all and Print / PDF. The ranks have
+// their own copy button in the ballot preview card.
 export function summaryHtml(room) {
-  return `<div class="review-summary"><span class="pill${room.state === 'done' ? ' solid' : ''}" id="review-status">${esc(statusText(room))}</span>
+  return `<div class="review-summary">${room.state === 'done' ? statusPillHtml('ok', statusText(room), 'circle-check', 'id="review-status"') : statusPillHtml('live', statusText(room), '', 'id="review-status"')}
     <ul class="checklist">${checklist(room).map((c) => done(c.ok, c.label)).join('')}</ul>
-    <div class="review-tools"><button class="b" type="button" data-vact="copyall" data-key="copyall">Copy all</button>
-      <button class="b" type="button" data-vact="print" data-key="print">Print / PDF</button></div></div>`;
+    <div class="review-tools" role="group" aria-label="Copy and print the whole ballot"><button class="b quiet" type="button" data-vact="copyall" data-key="copyall">${icon('copy')}Copy all</button>
+      <button class="b quiet" type="button" data-vact="print" data-key="print">${icon('printer')}Print / PDF</button></div></div>
+    ${hasRanksStage(room) ? '' : '<p class="muted review-note">These rules are comments only. There are no ranks to submit. Copy each comment below.</p>'}`;
 }
 
 // core/sheets.js copyBlocksHtml is not used here: its blocks have one generic Copy button and a read-only box, while
@@ -176,12 +216,16 @@ export function createReviewScreen(env) {
     if (!old) return;
     const fresh = document.createElement('template');
     // No ai part for a card in edit mode: clean-up is closed while the judge edits (cleanup-view.js view()).
-    fresh.innerHTML = f === 'reason' ? commentsStageHtml(room(), viewNow()) : cardHtml(cards(room(), view.order, event(room())).find((c) => c.id === id), true);
+    const list = cards(room(), view.order, event(room()));
+    const next = nextCopy(room(), list);
+    fresh.innerHTML = f === 'reason' ? commentsStageHtml(room(), viewNow()) : cardHtml(list.find((c) => c.id === id), true, null, next);
     const src = f === 'reason' ? fresh.content.querySelector('.reason-card') : fresh.content.firstElementChild;
     for (const sel of ['.critique', '[data-vact="copy"]']) {
       const a = old.querySelector(sel), b = src.querySelector(sel);
       if (a && b) a.replaceWith(b); else if (a) a.remove(); else if (b) old.append(b);
     }
+    // An edit can change which copy step is next: keep one primary on the screen (top 10 #4).
+    for (const btn of env.el.querySelectorAll('[data-vact="copy"]')) if (!btn.classList.contains('quiet')) btn.className = btn.dataset.what === next ? 'b primary' : 'b';
   }
 
   const afterPrint = () => removePrintSheet();
@@ -194,7 +238,7 @@ export function createReviewScreen(env) {
       roomId = id; view = { order: 'speaking', editing: null };
       if (cleanup) cleanup.reset();
       const ev = event(r);
-      const back = hasRanksStage(r) ? `<a class="b quiet" href="#/rank/${encodeURIComponent(id)}">‹ ${rankStageLabel(r.profile)}</a>` : `<a class="b quiet" href="#/room/${encodeURIComponent(id)}">‹ Room</a>`;
+      const back = hasRanksStage(r) ? `<a class="b quiet" href="#/rank/${encodeURIComponent(id)}">${icon('chevron-left')}${rankStageLabel(r.profile)}</a>` : `<a class="b quiet" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>`;
       env.el.innerHTML = `<div class="screen-head">${back}
           <h1 id="screen-title" tabindex="-1">Review · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <div id="review-top"></div><div id="review-ranks"></div><div id="review-comments"></div>`;

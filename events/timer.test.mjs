@@ -132,7 +132,9 @@ test('the timer card shows words, the flag with its clear button, and the contro
   const html = timerHtml(entry(over, 'done'), face, L, G);
   assert.match(html, /class="timer-card stage-stopped"/);
   assert.match(html, />Done 5:45</);
-  assert.match(html, /<span class="pill err">Over grace<\/span>/);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (top 10 #2: after Stop the card keeps the result as a pill with the amount). Old line:
+  //   assert.match(html, /<span class="pill err">Over grace<\/span>/);
+  assert.match(html, /<span class="pill err" id="timer-result"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-triangle-alert"\/><\/svg>Over grace \+0:45<\/span>/);
   for (const w of ['Clear over grace', 'Resume', '−10 s', '+10 s', 'Set time', 'Reset time']) assert.ok(html.includes('>' + w + '<'), w);
   assert.match(html, /Limit 5:00 · grace 0:30/);
   assert.doesNotMatch(timerHtml(entry(fresh(), 'noShow'), timerFace(entry(fresh()), L, G, T0), L, G), /data-tact="startstop"/);

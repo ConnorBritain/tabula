@@ -47,8 +47,10 @@ main:has(.cg-screen) { max-width: 1120px; }
 .cg-poolrow .cg-stats { margin-left: auto; }
 .cg-pre { margin: var(--s2) 0; white-space: pre-wrap; font-family: var(--font-sans); font-size: var(--fs-2); }
 .cg-house { border: 0; padding: 0; margin: 0; }
-.cg-house label { margin-right: var(--s3); font-weight: var(--fw-2); }
-.cg-static { margin: 0; min-height: var(--h-lg); display: flex; align-items: center; font-weight: var(--fw-2); }
+.cg-house legend { padding: 0; margin-bottom: var(--s1); }
+/* Role is one plain line of text (design review §2.15): no flex, so the space before "(parliamentarian" stays. */
+.cg-role { margin: 0; align-self: end; min-height: var(--h-lg); padding-top: var(--s2); font-size: var(--fs-3); font-weight: var(--fw-2); }
+.cg-role-k { font-weight: var(--fw-3); }
 .cg-codes { display: flex; flex-wrap: wrap; gap: var(--s1); }
 .room-list li.cg-leg { align-items: center; }
 .cg-leg select { margin-left: auto; font: inherit; min-height: var(--h-md); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); }
