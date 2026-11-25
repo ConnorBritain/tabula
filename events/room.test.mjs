@@ -171,7 +171,9 @@ test('setup waits for "Check these", an event and at least one entry', () => {
   const html = previewHtml(parsed);
   assert.match(html, /2 entries, in speaking order/);
   assert.match(html, /<h3>Check these \(1\)<\/h3>/); // design build 2026-11-24: the heading now counts the lines to check (review §2.3)
-  assert.match(html, /Lines left out \(1\)/, 'the heading line is shown, never dropped in silence');
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.4: the fold row has a caution pill with the count in words). Old line:
+  //   assert.match(html, /Lines left out \(1\)/, 'the heading line is shown, never dropped in silence');
+  assert.match(html, /Lines left out<\/span><span class="pill caution">1 left out<\/span>/, 'the heading line is shown, never dropped in silence');
   assert.match(setupHtml(DATA), /<option value="osw">Original Spoken Word Poetry \(5 min\)<\/option>/);
 });
 

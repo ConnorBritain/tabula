@@ -159,8 +159,12 @@ test('setup: the preview counts the entries and the lines to check, and shows ea
 // Why: level, judges and panel note are rare; on the form's first screen they pushed the paste box below the fold.
 test('setup: Level, Judges in the room and Panel note sit in a closed "Elim or panel?" disclosure, and the preview sits beside the paste box', () => {
   const html = setupHtml(DATA);
-  const more = html.slice(html.indexOf('<details class="setup-more" id="setup-more">'), html.indexOf('</details>'));
-  assert.match(more, /<summary>Elim or panel\?<\/summary>/);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.4: the one fold style). Old line:
+  //   const more = html.slice(html.indexOf('<details class="setup-more" id="setup-more">'), html.indexOf('</details>'));
+  const more = html.slice(html.indexOf('<details class="setup-more fold" id="setup-more">'), html.indexOf('</details>'));
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.4: a chevron row with the current value). Old line:
+  //   assert.match(more, /<summary>Elim or panel\?<\/summary>/);
+  assert.match(more, /<summary class="fold-row"><span class="fold-label">Elim or panel\?<\/span><span class="fold-value muted" id="setup-more-value">Prelim · Only me<\/span><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-chevron-down"\/><\/svg><\/summary>/);
   for (const id of ['setup-level', 'setup-panel', 'setup-panel-note']) assert.match(more, new RegExp('id="' + id + '"'), id + ' is in the disclosure');
   assert.doesNotMatch(more, /<details[^>]* open/, 'closed for a prelim');
   assert.match(html, /<div class="setup-paste-area">\s*<div class="setup-paste-col">[\s\S]*id="setup-paste"[\s\S]*<\/div>\s*<div class="preview" id="setup-preview"/);

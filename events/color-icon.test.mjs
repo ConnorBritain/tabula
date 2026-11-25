@@ -30,6 +30,10 @@ import { sharedFace } from './js/prep.js';
 import { runCardsHtml, nextRunWaits } from './js/runs-view.js';
 import { sheetHtml, reasonFootHtml, promptsHtml, PROMPTS_SHOWN } from './js/comment-view.js';
 import { checklist } from './js/ballot.js';
+import { setupHtml, previewHtml, levelSummary } from './js/setup-screen.js';
+import { parseRoom } from './js/parse.js';
+import { settingsHtml } from './js/settings-screen.js';
+import { foldSummaryHtml } from './js/fold.js';
 import { toggleCheck } from './js/comments.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
@@ -435,7 +439,8 @@ test('prompts: open above the comments box, three then "Show all (N)", linked wi
   const OO = DATA.events.get('oo');
   const r = room('oo', 'nsda-district', ['A1']);
   const html = sheetHtml(r, r.entries[0], OO);
-  assert.doesNotMatch(html, /<details/);
+  const ballotZone = html.slice(html.indexOf('zone-ballot'), html.indexOf('zone-private'));
+  assert.doesNotMatch(ballotZone, /<details|<summary/, 'the prompts are not a fold');
   assert.ok(html.indexOf('id="prompts"') < html.indexOf('<textarea id="notes"'), 'above the box');
   assert.match(html, /<textarea id="notes"[^>]*aria-describedby="prompts-list"/);
   const many = ['One', 'Two', 'Three', 'Four', 'Five', 'Six'];
@@ -516,4 +521,52 @@ test('ballot footer: only Rank and Rate draw it, the Room never does, and it pin
   }
   for (const f of ['./js/room-screen.js', './js/timer-view.js']) assert.doesNotMatch(read(f), /ballot-foot/, f);
   assert.match(CSS, /\.ballot-foot \{ position: sticky; bottom: 0; z-index: var\(--z-sticky\);[^}]*border: 1px solid var\(--border-ctl\);/);
+});
+
+// ---------- one chevron fold style (§5.4, top 10 #9) ----------
+
+// Why: the owner asked whether the sideways triangles told judges a row opens; "Elim or panel?" showed no marker at
+// all (a flex summary hides it). Every fold now has one cue: a chevron that points down at the end of a full row.
+test('folds: every details in the app is a fold row with a down chevron; a right chevron never marks a fold', () => {
+  // fold.js builds the summary (its comments name the tags), so it is checked by its output.
+  assert.match(foldSummaryHtml('X'), /^<summary class="fold-row"><span class="fold-label">X<\/span><svg class="i i-20"[^>]*><use href="#i-chevron-down"\/><\/svg><\/summary>$/);
+  for (const [f, src] of SOURCES) {
+    if (f === 'js/fold.js') continue;
+    for (const m of src.matchAll(/<details\b[^>]*>/g)) assert.match(m[0], /class="[^"]*\bfold\b/, f + ': ' + m[0]);
+    for (const m of src.matchAll(/<summary\b[^>]*>/g)) assert.equal(m[0], '<summary class="fold-row">', f + ': ' + m[0]);
+    assert.doesNotMatch(src, /<summary[^]*?icon\('chevron-right'/, f + ': a right chevron in a summary');
+  }
+  assert.match(CSS, /details\.fold > summary \{ list-style: none; \}/);
+  assert.match(CSS, /details\.fold > summary::-webkit-details-marker \{ display: none; \}/);
+  assert.match(CSS, /details\.fold\[open\] > \.fold-row > svg\.i \{ transform: rotate\(180deg\); \}/);
+  assert.match(CSS, /\.fold-row \{ display: flex; align-items: center; gap: var\(--s2\); min-height: 44px;[^}]*border: 1px solid var\(--border-ctl\);/);
+  assert.doesNotMatch(CSS, /\.setup-more > summary \{[^}]*display: flex/, 'the old flex summary that hid the marker is gone');
+  // The turn is cut under reduced motion by the one global rule.
+  assert.match(read('../core/tokens.css'), /@media \(prefers-reduced-motion: reduce\) \{\n  \*, \*::before, \*::after \{[^}]*transition-duration: 0s !important;/);
+});
+
+// Why: a closed fold must still say what is set inside it, or a judge cannot tell an elim from a prelim without opening
+// it; and a lost pasted line must be named in words, not as a bare count.
+test('folds: "Elim or panel?" shows its value, "Lines left out" a caution count, Settings Keyboard is closed and off on touch', () => {
+  assert.equal(levelSummary('prelim', '1'), 'Prelim · Only me');
+  assert.equal(levelSummary('elim', '3'), 'Elim · Panel of 3');
+  assert.match(setupHtml(DATA), /<details class="setup-more fold" id="setup-more"><summary class="fold-row"><span class="fold-label">Elim or panel\?<\/span><span class="fold-value muted" id="setup-more-value">Prelim · Only me<\/span>/);
+  const parsed = parseRoom('Round 1 Room 214\nA12 Ava\nB07 Ben', { max: 8 });
+  assert.match(previewHtml(parsed), /<details class="skipped fold"><summary class="fold-row"><span class="fold-label">Lines left out<\/span><span class="pill caution">1 left out<\/span>/);
+  const set = settingsHtml({ settings: {}, ai: { on: false }, keys: '<dl class="ks-list"></dl>', offline: null });
+  assert.match(set, /<section class="set-part set-keys" aria-labelledby="set-keys-h"><details class="fold"><summary class="fold-row"><span class="fold-label"><h2 id="set-keys-h">Keyboard<\/h2><\/span>/);
+  assert.doesNotMatch(set, /<details class="fold" open>/, 'closed');
+  assert.match(CSS, /@media \(hover: none\) and \(pointer: coarse\) \{ \.set-keys \{ display: none; \} \}/);
+});
+
+// Why: on a phone the rule checks pushed the private note far down; they start as one closed row that says how many
+// are flagged, and open on their own once a flag is set, so a flag is never hidden.
+test('folds: rule checks are closed on a phone until a flag is set, and open on a laptop', () => {
+  const OO = DATA.events.get('oo');
+  const r = room('oo', 'nsda-district', ['A1']);
+  const phone = sheetHtml(r, r.entries[0], OO, { narrow: true });
+  assert.match(phone, /<details class="chk-group fold"><summary class="fold-row"><span class="fold-label"><span id="chk-title">Rule checks<\/span><\/span><span class="fold-value muted">none flagged<\/span>/);
+  const flagged = sheetHtml(r, toggleCheck(r.entries[0], OO.checks[0]), OO, { narrow: true });
+  assert.match(flagged, /<details class="chk-group fold" open>[\s\S]*?>1 flagged</);
+  assert.match(sheetHtml(r, r.entries[0], OO, { narrow: false }), /<details class="chk-group fold" open>/);
 });

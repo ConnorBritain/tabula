@@ -5,6 +5,7 @@ import { escapeHtml as esc } from '../../core/sheets.js';
 import { KINDS, KIND_TITLE, tagKey, checkLabel, tapChip, toggleCheck, applyInput } from './comments.js';
 import { entryOf, updateEntry, roomEvent } from './room.js';
 import { icon } from './icons.js';
+import { foldSummaryHtml, foldValueHtml } from './fold.js';
 import { ranksShown } from './profile-layer.js';
 
 // One chip and one rule check as HTML text (the sheet draws them, and a tap redraws just that button). A chip that is
@@ -33,7 +34,8 @@ export function promptsHtml(prompts, all) {
 // The comment sheet for one entry as HTML text. event: the room's event file (tags, checks and prompts).
 // Top 10 #3: two named zones. "On the ballot" (the speech-bubble icon) holds the chips, the prompts and the comments;
 // "Just for you" (the lock icon) holds the rule checks and the private note. The zone headings replace the old bracket
-// hints, so "goes to the student" and "only for me" never look alike. view: { promptsAll } (optional).
+// hints, so "goes to the student" and "only for me" never look alike. view: { promptsAll, narrow } (optional; narrow:
+// a phone, where the rule checks start as a closed fold "Rule checks · none flagged", §5.4).
 // The reason for rank is not here: it is one room-level field (reasonFootHtml), not part of a speaker's card (D3-A).
 export function sheetHtml(room, entry, event, view) {
   if (entry.status === 'noShow') return '';
@@ -44,6 +46,7 @@ export function sheetHtml(room, entry, event, view) {
       <p class="chip-title" id="chips-${kind}">${icon(KIND_ICON[kind])}${KIND_TITLE[kind]}</p>
       <div class="chips">${tags.map((t) => chipHtml(t, kind, (entry.tags || []).includes(tagKey(kind, t.id)))).join('')}</div></div>`).join('');
   const checks = ((event && event.checks) || []).map((c) => checkHtml(c, (entry.checks || {})[c] === 'flag')).join('');
+  const flags = ((event && event.checks) || []).filter((c) => (entry.checks || {})[c] === 'flag').length;
   const prompts = promptsHtml((event && event.prompts) || [], v.promptsAll);
   // The drawn question (step E10) moved to the top of the card, above the timer (design build, review §2.5:
   // quote-view.js), so the sheet no longer has its own field.
@@ -57,7 +60,7 @@ export function sheetHtml(room, entry, event, view) {
     </section>
     <section class="zone zone-private" aria-labelledby="zone-private">
       <h3 class="zone-h" id="zone-private">${icon('lock')}Just for you <span class="muted">never on the ballot</span></h3>
-      ${checks ? `<div class="chk-group" role="group" aria-labelledby="chk-title"><p class="chip-title" id="chk-title">Rule checks</p><p class="field-help">Flags go in your private note.</p><div class="chks">${checks}</div></div>` : ''}
+      ${checks ? `<details class="chk-group fold"${!v.narrow || flags ? ' open' : ''}>${foldSummaryHtml('<span id="chk-title">Rule checks</span>', foldValueHtml(flags ? flags + ' flagged' : 'none flagged'))}<p class="field-help">Flags go in your private note.</p><div class="chks" role="group" aria-labelledby="chk-title">${checks}</div></details>` : ''}
       <label class="field" for="private-note"><span>Private note</span></label>
       <textarea id="private-note" rows="2" data-cfield="private">${esc(entry.privateNote || '')}</textarea>
     </section>
@@ -140,7 +143,7 @@ export function createCommentView() {
   const keepCursor = (ev) => { if (ev.target.id === 'notes') ev.target.dataset.cursor = String(ev.target.selectionStart); };
 
   return {
-    stageHtml: (r, e) => sheetHtml(r, e, event(r), { promptsAll }),
+    stageHtml: (r, e) => sheetHtml(r, e, event(r), { promptsAll, narrow: typeof matchMedia === 'function' && matchMedia('(max-width: 820px)').matches }),
     // The room-level part under the roster and the stage (room-screen.js footHtml hook).
     footHtml: (r) => `<div class="room-foot-reason" id="room-foot-reason">${reasonFootHtml(r, reasonOpen)}</div>`,
     footMounted() {

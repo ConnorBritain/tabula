@@ -7,6 +7,7 @@
 // DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { statusPillHtml } from './status-pill.js';
+import { foldSummaryHtml } from './fold.js';
 import { downloadFile } from '../../core/store.js';
 import { isMacPlatform } from '../../core/keys.js';
 import { MODES, THEMES, RANKS_DUE_MAX, DRAW_GAPS, withSetting, validRanksDue, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
@@ -58,7 +59,7 @@ export function settingsHtml(v) {
     <p class="field-help">Extemp speakers prep outside after the draw. Between speakers the room shows "Waiting for next speaker" for about this long. Pick what your tournament uses.</p>
   </section>
   ${aiPartHtml(v.ai)}
-  <section class="set-part" aria-labelledby="set-keys-h"><h2 id="set-keys-h">Keyboard</h2>${v.keys}</section>
+  <section class="set-part set-keys" aria-labelledby="set-keys-h"><details class="fold">${foldSummaryHtml('<h2 id="set-keys-h">Keyboard</h2>')}${v.keys}</details></section>
   <section class="set-part" aria-labelledby="set-off-h"><h2 id="set-off-h">Ready for offline</h2>
     <p id="set-offline" role="status">${offlineHtml(v.offline)}</p>
     <button class="b" type="button" id="set-offline-check">Check again</button>
