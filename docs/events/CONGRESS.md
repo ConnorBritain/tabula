@@ -360,7 +360,7 @@ Each open fact in §10 was checked against primary sources. A fact that is not c
 
 Update after the screen review ([CONGRESS-REVIEW.md](CONGRESS-REVIEW.md)): the app no longer decides rows 1 and 5 for the judge. Setup shows each unverified value as a choice with "Check your tournament's rule": the PO points for each full hour (4 to 8 first, or 1 to 8) and who can be ranked (every present legislator first, or only those who spoke or presided). The chamber keeps the pick. UIL's PO range (2 to 6, or 1 to 6) gets the same choice. Congress shows a "Beta" tag.
 
-Owner answers on rows 1 and 5: the district PO default stays 4 to 8 for each full hour, and the NSDA rank pool default stays every present legislator. Both show "Check your tournament's rule" and both can be changed at setup.
+Owner-confirmed defaults for rows 1 and 5: the district PO default is 4 to 8 for each full hour, and the NSDA rank pool default is every present legislator. Both show "Check your tournament's rule" and both can be changed at setup.
 
 Still open for the owner: §10 items 4 (parliamentarian full rank, S7), 8 (seat chart), 9 (timekeeper view), 10 (slowest device). The TFA State profile (`tfa-state`) and the rank-only NCFL and CHSSA profiles (`ncfl`, `chssa`, `chssa-elim`) are written (rows 9 and 11).
 
