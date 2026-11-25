@@ -70,7 +70,7 @@ AI is optional. You can flow and fill a ballot with no AI.
 | ChatGPT subscription (through Codex, with `node bridge.mjs`) | yes | no |
 | Browser speech recognition (Chrome) | no | yes, free |
 
-Paste a key in **AI + Keys → Connect AI**. The app finds the provider, tests the key, and picks a model from the provider's live model list. The key stays in your browser. With a key, AI calls go straight to the provider you chose. Before a call, the app puts roles (for example 1A, 2N) in place of debater names.
+Paste a key in **AI + Keys → Connect AI**. The app finds the provider, tests the key, and picks a model from the provider's live model list. The key is saved only in this browser. With a key, AI calls go straight to the provider you chose. In the text it sends, the app puts roles (for example 1A, 2N) in place of debater names. PDFs and audio go to the provider as they are.
 
 The hosted sites can also offer AI through a Tabula account. That server is not in this repository.
 
@@ -96,8 +96,8 @@ The maintainers run the hosted sites. This repository has no deploy steps for co
 | `assets/` | Logos, fonts, theme and boot scripts for the Debate app |
 | `core/` | Shared modules used by both apps (store, clock, ranks, points, AI providers, tokens) |
 | `demo/` | Sample rounds for the Debate app demo |
-| `docs/` | Design notes, architecture notes, and Debate Library source text |
-| `evals/` | Scripts that measure AI output quality (eval data is never committed) |
+| `docs/` | Project notes and Debate Library source text |
+| `evals/` | Scripts that measure AI output quality (raw eval data is not committed) |
 | `events/` | Tabula Speech Events: app, event files, ballot profiles, tests |
 | `fixtures/` | Test fixtures |
 | `formats/` | Debate format files (Policy, LD, PF) |
@@ -106,7 +106,7 @@ The maintainers run the hosted sites. This repository has no deploy steps for co
 | `logic/` | Debate app pure logic (no DOM, no network) |
 | `vendor/` | Self-hosted third-party libraries (see `vendor/README.md`) |
 
-For more detail, read the notes in [`docs/`](docs/).
+For more detail, read [`docs/architecture/`](docs/architecture/) and [`docs/library/`](docs/library/).
 
 ## Security
 
