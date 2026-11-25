@@ -34,7 +34,7 @@ const SOURCES = {
   'events/prototype/index.html': readSource('events/prototype/index.html'),
   'events/prototype/proto.css': readSource('events/prototype/proto.css'),
   'events/prototype/proto.js': readSource('events/prototype/proto.js'),
-  // Added in step E1: the Speech Events page and its styles.
+  // The Speech Events page and its styles.
   'events/index.html': readSource('events/index.html'),
   'events/app.css': readSource('events/app.css'),
   // Every file in core/, shared by both apps.
