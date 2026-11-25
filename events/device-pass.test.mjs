@@ -124,3 +124,9 @@ test('the walk lists every screen type a judge meets, Congress included', () => 
 test('the pass output folder is gitignored', () => {
   assert.match(readFileSync(new URL('./tools/.gitignore', import.meta.url), 'utf8'), /^out\/$/m);
 });
+
+// Why: the device tools serve files and drive a browser; shipped to the judge site, they would be dead weight at best.
+test('the events build never copies events/tools', async () => {
+  const { ALLOW } = await import('../build-events.mjs');
+  for (const name of ALLOW) assert.ok(!/^events\/tools(\/|$)/.test(name) && name !== 'events', `build-events.mjs ALLOW ships ${name}`);
+});

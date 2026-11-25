@@ -58,7 +58,7 @@ async function walk(browser, engine, profile, theme, server, log, trace) {
   page.on('console', (m) => { if (m.type() === 'error') pending.push({ problem: 'console error', detail: m.text().slice(0, 200) }); });
   page.on('pageerror', (e) => pending.push({ problem: 'uncaught exception', detail: String(e.message).slice(0, 200) }));
   let n = 0;
-  const covered = [];
+  const covered = trace.covered;
   const base = server.url + '/events/';
   const hash = () => page.evaluate(() => location.hash);
   const go = async (h) => { await page.evaluate((x) => { location.hash = x; }, h); await sleep(350); };
@@ -166,11 +166,14 @@ async function walk(browser, engine, profile, theme, server, log, trace) {
     if (await page.isVisible('[data-cact=close]')) { await click('[data-cact=close]'); await sleep(150); }
   }
   await click('[data-cact=po-choose]'); await sleep(200);
-  await click('[data-cact=po-start] >> nth=0'); await sleep(200);
+  await click('[data-cact=po-start] >> nth=0');
+  // The chamber's 1-second tick must see the new term once before the hour passes (that first look is its baseline).
+  await sleep(1500);
   await page.clock.fastForward('01:01:00'); await sleep(400);
-  await check('Congress PO hour', 'the PO hour asks for a score after one hour', async () => page.isVisible('[data-cact=po-score]'));
+  await check('Congress PO hour', 'the PO hour asks for a score after one hour',
+    async () => page.waitForSelector('[data-cact=po-score]', { timeout: 3000 }).then(() => true, () => false));
   await shot('Congress PO hour');
-  await click('[data-cact=po-score][data-value="7"]'); await sleep(200);
+  if (await page.isVisible('[data-cact=po-score]')) { await click('[data-cact=po-score][data-value="7"]'); await sleep(200); }
   await go(`#/round/${chamberId}/rank`);
   for (let i = 0; i < 8; i++) { await click('.cg-poolrow:not(.on) >> nth=0').catch(() => {}); await sleep(120); }
   await shot('Congress rank');
@@ -214,11 +217,12 @@ async function main() {
         const t0 = Date.now();
         let covered = [];
         // One stuck step must not stall the whole pass: each walk gets 5 minutes.
-        const trace = { step: 'start' };
+        const trace = { step: 'start', covered: [] };
         const limit = new Promise((_, no) => setTimeout(() => no(new Error('walk took over 5 minutes')), 300000).unref());
         try { covered = await Promise.race([walk(browsers[engine], engine, profile, theme, server, log, trace), limit]); } catch (e) {
           log.push({ screen: 'walk', device: profile.id, theme, problem: 'walk stopped', detail: `at "${trace.step}": ${String(e.message).split('\n')[0].slice(0, 200)}` });
         }
+        covered = trace.covered;
         runs.push({ device: profile.id, name: profile.name, theme, engine, wanted: profile.engine, screens: covered.length });
         console.log(`${covered.length} screens, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
       }
