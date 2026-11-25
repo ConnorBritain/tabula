@@ -2,6 +2,8 @@
 
 What changes for judges in each Speech Events release, newest first.
 
+**Status:** the beta code is on main and the hosting config is ready. The app is not live yet.
+
 ## How a release is named
 
 Each build gets a release id. Settings, About shows it, and the "Send feedback" email and the backup file carry it.
