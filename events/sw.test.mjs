@@ -21,6 +21,7 @@ const FETCHERS = {
   'events/js/app.js': 'readJson: reads only the files loadEventData asks for, which the build lists',
   'events/js/ai-key.js': 'the judge\'s own AI key: only the AI provider hosts (another host), never a file of this site',
   'events/js/page-ai.js': 'passes the browser fetch to ai-key.js: only the AI provider hosts (another host)',
+  'events/js/settings-screen.js': 'reads version.json (the release id) past the cache; never cached on purpose, and offline it falls back to the worker cache name',
 };
 
 // Why: the crawl can only follow static imports and the event loader; a dynamic import() or an unlisted fetch() would

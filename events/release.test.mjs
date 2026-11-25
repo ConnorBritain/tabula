@@ -41,7 +41,9 @@ test('the lookup reads version.json past the cache, and falls back to the worker
   const fetchOk = async (url, init) => { asked = { url, init }; return { ok: true, json: async () => VERSION }; };
   assert.equal(await lookupRelease({ fetch: fetchOk, caches, online: () => true }), '1a2b3c4 2026-11-25');
   assert.equal(asked.init.cache, 'no-store');
-  assert.match(asked.url, /\/version\.json$/);
+  // Read relative to the module (events/js/), so it is the events folder's version.json: /version.json on the events
+  // host, /events/version.json in the repo, never the debate app's /version.json.
+  assert.equal(asked.url, new URL('./version.json', import.meta.url).href);
   // Offline: no fetch at all.
   const never = async () => { throw new Error('fetched while offline'); };
   assert.equal(await lookupRelease({ fetch: never, caches, online: () => false }), 'offline 387a7ee');
