@@ -185,6 +185,43 @@
     return { round: name, ballots: Array.isArray(log) ? log.length : 0, docs: (b.docs || []).length, keys: b.includesKeys };
   }
 
+  // The day-end backup reminder, in two parts (the second has the same shape as the shared backup rule, so Debate can
+  // switch to it later). Times are in ms; a missing one is null.
+  // backupDayOver: does the judging look finished for now? The last save is at least 2 hours old, or was on an earlier
+  // day (the device's own calendar day).
+  const BACKUP_QUIET_MS = 2 * 3600 * 1000;
+  function backupDayOver(lastSavedAt, now) {
+    const saved = Number(lastSavedAt), t = Number(now);
+    if (!Number.isFinite(saved) || !Number.isFinite(t) || saved <= 0) return false;
+    return t - saved >= BACKUP_QUIET_MS || new Date(t).toDateString() !== new Date(saved).toDateString();
+  }
+  // backupDue: the day is over, something changed since the last backup, and the judge has not said "Not now" to it.
+  function backupDue(v) {
+    const o = v || {};
+    const changed = Number(o.lastChange);
+    if (!o.dayOver || !Number.isFinite(changed) || changed <= 0) return false;
+    if (o.dismissedAt === changed) return false;
+    return !(Number.isFinite(o.lastBackupAt) && o.lastBackupAt >= changed);
+  }
+  // A restored backup was itself a backup: its settings (raw JSON) get lastBackupAt = the file's export time when that is
+  // later, so the reminder does not ask for a backup of what was just restored. Bad JSON comes back unchanged.
+  function stampRestoredBackup(raw, exportedAt) {
+    const t = Date.parse(exportedAt);
+    if (!Number.isFinite(t) || typeof raw !== 'string') return raw;
+    try {
+      const s = JSON.parse(raw);
+      if (!s || typeof s !== 'object' || Array.isArray(s)) return raw;
+      if (!(Number.isFinite(s.lastBackupAt) && s.lastBackupAt >= t)) s.lastBackupAt = t;
+      return JSON.stringify(s);
+    } catch { return raw; }
+  }
+  // Debate's reminder: ballots saved since the last backup, and the judging looks finished.
+  // o: { lastSavedAt, lastBackupAt, dismissedAt, now }.
+  function backupReminderDue(o) {
+    const v = o || {};
+    return backupDue({ dayOver: backupDayOver(v.lastSavedAt, v.now), lastChange: v.lastSavedAt, lastBackupAt: v.lastBackupAt, dismissedAt: v.dismissedAt });
+  }
+
   // ---------- round documents (speech docs, case files) ----------
   const DOC_SIDES = { aff: 'AFF', neg: 'NEG', other: 'OTHER' };
   const DOC_NOTE = 'Speech documents from the debaters are attached above. Use them to read card tags, authors and evidence text. '
@@ -237,7 +274,7 @@
 
   const api = { parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, orderInUse,
     buildRoundFile, parseRoundFile, roundFileName, KEYS_ENTRY, OLD_KEY_ENTRIES, buildBackup, parseBackup,
-    backupSummary, DOC_SIDES, DOC_NOTE, docSpeech, docsForSpeech, DOC_FLOW_NOTE, docTitle, buildDocBlocks,
+    backupSummary, backupDayOver, backupDue, backupReminderDue, stampRestoredBackup, DOC_SIDES, DOC_NOTE, docSpeech, docsForSpeech, DOC_FLOW_NOTE, docTitle, buildDocBlocks,
     buildUserContent };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).files = api;
