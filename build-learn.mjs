@@ -273,7 +273,7 @@ function siteHeader(slug, up, lib) {
 
 function siteFooter(lib) {
   return `<footer class="site-foot"><div class="wrap">
-  <nav class="foot-nav" aria-label="Tabula sites"><a href="${SITE}/">Tabula Debate</a><a href="${lib}">Library</a><a href="${SITE}/coaches/">Coaches</a><a href="${SITE}/school-it/">School IT</a><a href="${FAMILY}/plans/">Plans</a><a href="${FAMILY}/trust/">Your data</a><a href="${FAMILY}/about/">About</a></nav>
+  <nav class="foot-nav" aria-label="Tabula sites"><a href="${SITE}/">Tabula Debate</a><a href="${lib}">Library</a><a href="${SITE}/coaches/">Coaches</a><a href="${SITE}/school-it/">School IT</a><a href="${FAMILY}/pricing/">Pricing</a><a href="${FAMILY}/trust/">Your data</a><a href="${FAMILY}/about/">About</a></nav>
   <p>All evidence cards and authors in examples are invented for teaching.</p>
   <p>From the <a href="${lib}">Tabula Debate Library</a>. Text licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>. © 2026 Pattern Engine LLC.</p>
   <p>Found a mistake? <a href="mailto:support@tabulaspeech.com">Email us</a>.</p>

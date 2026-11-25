@@ -199,12 +199,33 @@ test('demoReply gives a fresh copy, and nothing for a job the demo does not have
 test('the nudge opens the Plans page, and the buy button is behind a flag that is off', () => {
   assert.equal(L.flagOn('demoBuy', {}), false);
   assert.equal(L.flagOn('demoBuy', { search: '?flags=demoBuy:on', local: false }), false, 'the website cannot turn it on');
-  assert.equal(L.plansUrl('debate.tabulaspeech.com'), 'https://tabulaspeech.com/plans/');
-  assert.equal(L.plansUrl('debate.tabulaspeech.dev'), 'https://tabulaspeech.dev/plans/');
+  // CHANGED: pricing page moved; old:
+  //   assert.equal(L.plansUrl('debate.tabulaspeech.com'), 'https://tabulaspeech.com/plans/');
+  //   assert.equal(L.plansUrl('debate.tabulaspeech.dev'), 'https://tabulaspeech.dev/plans/');
+  assert.equal(L.plansUrl('debate.tabulaspeech.com'), 'https://tabulaspeech.com/pricing/');
+  assert.equal(L.plansUrl('debate.tabulaspeech.dev'), 'https://tabulaspeech.dev/pricing/');
   assert.deepEqual(L.demoCtaButtons({ last: true, buyOn: L.flagOn('demoBuy', {}) }), { plans: true, buy: false }, 'the end card, as shipped');
   assert.deepEqual(L.demoCtaButtons({ last: true, buyOn: true }), { plans: true, buy: true });
   assert.deepEqual(L.demoCtaButtons({ last: false, buyOn: true }), { plans: false, buy: false }, 'only on the last step');
   assert.match(read('js/demo.js'), /\$\('#demo-plans'\)\.href = L\.plansUrl\(location\.hostname\)/);
+});
+
+// Why: the pricing page moved to /pricing/. A link to the old /plans/ URL costs a redirect hop and breaks if the
+// redirect is removed, so the app nudge and every built Library page must point at the new URL.
+test('the pricing link goes to /pricing/ on the app site, and no Library page links to /plans/', () => {
+  assert.equal(L.plansUrl('debate.tabulaspeech.com'), 'https://tabulaspeech.com/pricing/');
+  assert.equal(L.plansUrl('debate.tabulaspeech.dev'), 'https://tabulaspeech.dev/pricing/');
+  const pages = [];
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(path.join(__dirname, dir), { withFileTypes: true })) {
+      const rel = path.join(dir, e.name);
+      if (e.isDirectory()) walk(rel); else if (e.name.endsWith('.html')) pages.push(rel);
+    }
+  };
+  walk('learn');
+  assert.ok(pages.length > 0, 'learn/ has built pages');
+  const old = pages.filter((f) => /\/plans\//.test(read(f)));
+  assert.deepEqual(old, [], 'these Library pages still link to /plans/');
 });
 
 // One function's source whose parameters may hold braces (callAI destructures its argument): the body starts at ') {'.

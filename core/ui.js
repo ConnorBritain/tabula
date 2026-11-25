@@ -157,9 +157,12 @@ export function createUI({ behind }) {
   //         input: { label, value, placeholder, maxLength, required, emptyError },
   //         buttons: [{ label, value, kind: 'primary'|'danger'|'plain'|'link', desc }], cancelValue,
   //         focus (the value of the button that gets focus first), backdrop (false: a click on the dim layer does nothing),
-  //         variant ('choices': buttons with a desc show as large choice cards) }.
+  //         variant ('choices': buttons with a desc show as large choice cards),
+  //         radios: { legend, name, options: [{ value, label }], value } (one pick shown under the body) }.
   // A 'link' button shows as a quiet line, its desc then a text link (the welcome's help line), in every variant.
   // With an input, the primary button resolves with the typed text (trimmed); other buttons resolve with their value.
+  // With radios, a button other than the cancel one resolves with { value, choice } (choice: the picked radio's value);
+  // cancel still gives cancelValue, so a caller tests the cancel case first.
   // Esc, × and a click on the dim layer give cancelValue. Focus is trapped and returns to the opener. One at a time.
   let askState = null, askChain = Promise.resolve();
   function ask(opts) { const p = askChain.then(() => askOpen(opts || {})); askChain = p.catch(() => {}); return p; }
@@ -179,6 +182,22 @@ export function createUI({ behind }) {
         for (const line of o.list) { const li = document.createElement('li'); li.textContent = line; ul.append(li); }
         body.append(ul);
       }
+      // The radio group: one pick the caller gets back with the button (the format for a new round).
+      const rad = o.radios && o.radios.options && o.radios.options.length ? o.radios : null;
+      const radioEls = [];
+      if (rad) {
+        const fs = document.createElement('fieldset'); fs.className = 'ask-radios';
+        const lg = document.createElement('legend'); lg.textContent = rad.legend || ''; fs.append(lg);
+        for (const opt of rad.options) {
+          const lab = document.createElement('label'); lab.className = 'ask-radio';
+          const r = document.createElement('input'); r.type = 'radio'; r.name = rad.name || 'ask-radio'; r.value = opt.value;
+          r.checked = opt.value === rad.value;
+          const t = document.createElement('span'); t.textContent = opt.label;
+          lab.append(r, t); fs.append(lab); radioEls.push(r);
+        }
+        body.append(fs);
+      }
+      const choiceOf = () => { const on = radioEls.find((r) => r.checked); return on ? on.value : rad.value; };
       // The text box: label, field and an inline error line under it.
       const field = $('#ask-field'), input = $('#ask-input'), err = $('#ask-err');
       const inp = o.input || null;
@@ -237,7 +256,7 @@ export function createUI({ behind }) {
           if (!st.ok) { showErr(st.error); input.focus(); return; }
           return done(st.text);
         }
-        done(b.value);
+        done(rad && b.value !== cancelValue ? { value: b.value, choice: choiceOf() } : b.value);
       }
       const onInput = () => { const st = check(); if (st && st.ok) showErr(''); };
       const onEnter = (e) => {
@@ -250,7 +269,8 @@ export function createUI({ behind }) {
       behindEls.forEach((el) => { el.inert = true; });
       const trap = (e) => {
         if (e.key !== 'Tab') return;
-        const f = [...card.querySelectorAll('button, input')].filter((el) => !el.closest('[hidden]'));
+        // A radio group is one Tab stop (the picked radio), as in a native form; arrow keys move inside it.
+        const f = [...card.querySelectorAll('button, input')].filter((el) => !el.closest('[hidden]') && (el.type !== 'radio' || el.checked));
         e.preventDefault(); f[trapNext(f.indexOf(document.activeElement), f.length, e.shiftKey)].focus();
       };
       const onBackdrop = (e) => { if (e.target === wrap && o.backdrop !== false) done(cancelValue); };
