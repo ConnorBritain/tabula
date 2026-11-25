@@ -44,9 +44,19 @@ test('the app links to the About page from the help menu and the footer', () => 
 });
 
 // Why: the user required the Pattern Engine LLC credit and the GitHub link; a later rewrite of the page could drop them without anyone noticing.
-test('About page credits Pattern Engine LLC and links the GitHub profile', () => {
+// CHANGED: the GitHub link now goes to the project repo, not a personal profile. Old check:
+//   assert.match(about, /https:\/\/github\.com\/ConnorBritain/);
+test('About page credits Pattern Engine LLC and links the project repo', () => {
   assert.match(about, /Pattern Engine LLC/);
-  assert.match(about, /https:\/\/github\.com\/ConnorBritain/);
+  assert.match(about, /<a href="https:\/\/github\.com\/TabulaSpeech\/tabula" rel="noopener">Source code \(AGPL\)<\/a>/);
+  assert.match(about, /<a href="https:\/\/www\.gnu\.org\/licenses\/agpl-3\.0\.html"/);
+  assert.match(about, /<a href="https:\/\/github\.com\/TabulaSpeech\/tabula\/issues"/);
+});
+
+// Why: the old personal GitHub links send visitors away from the project repo, where the code, license and issues are.
+test('About page has no link to the old personal GitHub account', () => {
+  assert.doesNotMatch(about, /github\.com\/ConnorBritain/i);
+  assert.doesNotMatch(about, /Find me on GitHub/);
 });
 
 // Why: a placeholder link that looks real sends visitors nowhere; placeholders must not be clickable.
@@ -82,9 +92,11 @@ test('About hero has no personal GitHub button and no placeholder box', () => {
   assert.doesNotMatch(hero, /class="btn[^"]*"[^>]*href="https:\/\/github\.com/);
   assert.doesNotMatch(about, /class="shot"|Screenshot placeholder|goes here/i);
   assert.doesNotMatch(aboutStyle, /\.shot\b/);
-  // The founder story and its GitHub link in the body text stay.
+  // The founder story stays, and the body text links the project repo.
   assert.match(about, /<h2 id="about-me">Who made it<\/h2>/);
-  assert.match(about, /Find me on GitHub at <a href="https:\/\/github\.com\/ConnorBritain"/);
+  // CHANGED: the body link now goes to the project repo. Old check:
+  //   assert.match(about, /Find me on GitHub at <a href="https:\/\/github\.com\/ConnorBritain"/);
+  assert.match(about, /<a href="https:\/\/github\.com\/TabulaSpeech\/tabula" rel="noopener">Source code \(AGPL\)<\/a> is at github\.com\/TabulaSpeech\/tabula/);
 });
 
 // Why: the picture is the only view of the app a visitor gets before opening it; with no label a screen-reader user hears nothing, and with the wrong name visitors cannot tell which product it is.
