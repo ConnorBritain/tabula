@@ -13,7 +13,7 @@ import { statusPillHtml } from '../js/status-pill.js';
 
 // Congress scoring is new, so every Congress screen says so in a small plain tag, and the screens where a judge starts
 // or hands in a ballot add one line. Shared with chamber-screen.js.
-export const BETA_TAG = '<span class="pill outline cg-beta">Beta</span>';
+export const BETA_TAG = statusPillHtml('outline', 'Beta', '', { cls: 'cg-beta' });
 export const BETA_LINE = 'Congress scoring is new. Check the totals before you hand in your ballot.';
 export const betaNoteHtml = () => `<p class="cg-beta-line">${BETA_LINE}</p>`;
 // The line for a value a source did not confirm.
