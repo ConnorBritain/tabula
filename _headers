@@ -4,11 +4,14 @@
 # so a script from anywhere else must never run here.
 # The libraries the app needs are self-hosted in vendor/ (see vendor/README.md).
 # Inline styles are allowed (the app uses style="" attributes); inline scripts are not.
+# HSTS: this host gets none from the apex (no includeSubDomains there), and API keys live here, so it sends its own.
 /*
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://api.anthropic.com https://api.openai.com https://api.x.ai https://generativelanguage.googleapis.com https://openrouter.ai; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   Permissions-Policy: microphone=(self), camera=(), geolocation=()
+  Strict-Transport-Security: max-age=31536000
+  X-Frame-Options: DENY
 
 # version.json names the commit this build came from. Never cached, so a check right after a deploy reads the new one.
 /version.json
