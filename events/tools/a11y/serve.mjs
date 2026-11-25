@@ -15,6 +15,8 @@ export function serve(root) {
   const base = resolve(root);
   const server = createServer(async (req, res) => {
     try {
+      // Only this computer's own address: a web page that points another name at 127.0.0.1 gets nothing.
+      if (req.headers.host !== '127.0.0.1:' + server.address().port) { res.writeHead(403).end(); return; }
       let path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
       if (path.endsWith('/')) path += 'index.html';
       const file = resolve(base, '.' + path);
