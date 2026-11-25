@@ -15,22 +15,19 @@ The app is `index.html`, with page code in `js/` and pure logic in `logic/`. It 
 - Lincoln-Douglas (LD)
 - Public Forum (PF)
 
-Tabs:
+Places in the app:
 
-- **Setup**: round info, reading level, round documents, prep length.
-- **Timer + Transcript**: speech and prep clocks, transcription while the clock runs.
-- **Flow**: your flow, and an optional AI flow.
-- **Live Eval**: leaning, key issues, what to listen for.
-- **Analysis**: Paradigm Lens, Impact Calculus, Round Map.
-- **AI + Keys**: connections, settings, decision draft.
-- **Ballot**: points, ranks, RFD, comment boxes. The AI ballot filler never overwrites fields you typed.
-- **History**: saved ballots, copy for Google Sheets.
+- **Flow**: your flow, an optional AI flow, speech and prep clocks, and transcription while the clock runs.
+- **Round**: round info, AI writing style, round documents, prep length.
+- **Decide**: Live Eval (leaning, key issues), Analysis (Paradigm Lens, Impact Calculus, Round Map), and Ballot (points, ranks, RFD, comment boxes). The AI ballot filler never overwrites fields you typed.
+- **History**: saved ballots, copy for a spreadsheet, download as CSV.
+- **Settings** (gear button): AI connections and app settings.
 
 The Debate Library is a set of static pages in `learn/`, built from Markdown in `docs/library/` by `node build-learn.mjs`.
 
 ## Tabula Speech Events
 
-Speech Events is a separate app in `events/` (`events/index.html`). It does not load Debate app files. It shares code from `core/`.
+Speech Events is a separate app in `events/` (`events/index.html`). It does not load the Debate app code in `js/`, `logic/` or `formats/`. It shares `core/`, and the theme script and fonts in `assets/`.
 
 - Events are data files in `events/defs/`: Original Oratory, Informative, United States Extemp, International Extemp, Dramatic Interp, Humorous Interp, Duo Interp, Program Oral Interp, Extemporaneous Commentary, Prose, Poetry, Expository, Impromptu, Storytelling, Original Spoken Word Poetry, Declamation, Mixed Extemp, and Pro Con Challenge. A Custom event form covers local events.
 - Ballot rules (ranks, ratings) are profile files in `events/profiles/`.
@@ -45,15 +42,15 @@ You need Node.js. In the repository folder:
 node bridge.mjs
 ```
 
-Then open http://localhost:8765 for Tabula Debate. The bridge listens only on 127.0.0.1. It serves the Debate app and lets it use a Claude or ChatGPT subscription (see below).
+Then open http://localhost:8765 for Tabula Debate. The bridge listens only on 127.0.0.1. It serves the Debate app, lets it use a Claude or ChatGPT subscription (see below), and helps the SpeechDrop document import.
 
 `bridge.mjs` does not serve `events/`. To run Speech Events, use any static file server from the repository folder, for example:
 
 ```bash
-python3 -m http.server 8765
+python3 -m http.server 8000
 ```
 
-Then open http://localhost:8765/events/. (This server also runs the Debate app, but without subscriptions.)
+Then open http://localhost:8000/events/. (This server also runs the Debate app, but without subscriptions or SpeechDrop import.)
 
 ## AI: keys or subscriptions
 
@@ -70,7 +67,7 @@ AI is optional. You can flow and fill a ballot with no AI.
 | ChatGPT subscription (through Codex, with `node bridge.mjs`) | yes | no |
 | Browser speech recognition (Chrome) | no | yes, free |
 
-Paste a key in **AI + Keys → Connect AI**. The app finds the provider, tests the key, and picks a model from the provider's live model list. The key is saved only in this browser. With a key, AI calls go straight to the provider you chose. In the text it sends, the app puts roles (for example 1A, 2N) in place of debater names. PDFs and audio go to the provider as they are.
+Paste a key in **Settings → Connect AI**. The app finds the provider, tests the key, and picks a model from the provider's live model list. The key is saved only in this browser. With a key, AI calls go straight to the provider you chose. In the text it sends, the app puts roles (for example 1A, 2N) in place of debater names. PDFs and audio go to the provider as they are.
 
 The hosted sites can also offer AI through a Tabula account. That server is not in this repository.
 
@@ -93,7 +90,8 @@ The maintainers run the hosted sites. This repository has no deploy steps for co
 
 | Folder | What it holds |
 |---|---|
-| `assets/` | Logos, fonts, theme and boot scripts for the Debate app |
+| `.claude/` | Settings for AI coding tools used on this repository |
+| `assets/` | Logos, fonts, theme script, and Debate app boot scripts |
 | `core/` | Shared modules used by both apps (store, clock, ranks, points, AI providers, tokens) |
 | `demo/` | Sample rounds for the Debate app demo |
 | `docs/` | Project notes and Debate Library source text |
