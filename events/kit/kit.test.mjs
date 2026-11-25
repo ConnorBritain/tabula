@@ -49,7 +49,7 @@ test('a typed line is trimmed to one short line', () => {
 test('the card has the app name, the mark, the link, five steps and the two required lines', () => {
   assert.match(html, /<span class="kc-app">Tabula Speech Events<\/span>/);
   assert.match(html, /class="kc-mark"[^>]*><use href="#kit-mark"\/>/);
-  assert.match(html, /<figcaption class="kc-url">events\.tabulaspeech\.com<\/figcaption>/);
+  assert.match(html, /<figcaption class="kc-url" aria-hidden="true">events\.tabulaspeech\.com<\/figcaption>/);
   const steps = /<ol class="kc-steps">([\s\S]*?)<\/ol>/.exec(html)[1].match(/<li>[^<]+<\/li>/g);
   assert.equal(steps.length, 5);
   assert.match(steps[0], /Scan/);

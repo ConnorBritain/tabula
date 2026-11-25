@@ -48,8 +48,11 @@
   .kc-steps { font-size: 14pt; min-width: 0; }
   .kc-help { font-size: 14pt; }
   .kc-foot { font-size: 10pt; margin-top: 0.3in; }
-  /* Two cards: each about 4.6 in tall, a dashed outline to cut along. */
-  .two-up .kit-card { border: 1px dashed #000; height: 4.65in; padding: 0.25in 0.3in; overflow: hidden; }
+  /* Two cards: each about 4.6 in tall, a dashed outline to cut along. The typed lines stay on one line (with "…"), so
+     long text never pushes the two required lines off the card. */
+  .two-up .kit-card { border: 1px dashed #000; height: 4.65in; padding: 0.25in 0.3in; display: flex; flex-direction: column; }
+  .two-up .kc-event, .two-up .kc-help { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+  .two-up .kc-foot { margin-top: auto; padding-top: 0.06in; }
   .two-up .kc-head { font-size: 14pt; }
   .two-up .kc-mark { width: 30px; height: 25px; }
   .two-up .kc-event { font-size: 13pt; margin-top: 0.04in; }
@@ -60,5 +63,5 @@
   .two-up .kc-steps { font-size: 11pt; }
   .two-up .kc-steps li { margin-bottom: 0.04in; }
   .two-up .kc-help { font-size: 11pt; margin-top: 0.08in; }
-  .two-up .kc-foot { font-size: 9pt; margin-top: 0.08in; }
+  .two-up .kc-foot { font-size: 9pt; }
 }

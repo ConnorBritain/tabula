@@ -151,6 +151,34 @@ test('every forced mask still reads back', () => {
   for (let mask = 0; mask < 8; mask++) assert.equal(readQr(encodeQr(URL_TEXT, { mask }).modules).text, URL_TEXT);
 });
 
+test('both format copies agree, and version 7 carries the standard version bits', () => {
+  for (const level of ['L', 'M', 'Q', 'H']) {
+    const m = encodeQr('x'.repeat(level === 'H' ? 60 : 90), { level, mask: 5 }).modules;
+    const n = m.length;
+    let a = 0, b = 0;
+    for (let i = 0; i <= 5; i++) a |= (m[i][8] ? 1 : 0) << i;
+    a |= (m[7][8] ? 1 : 0) << 6; a |= (m[8][8] ? 1 : 0) << 7; a |= (m[8][7] ? 1 : 0) << 8;
+    for (let i = 9; i < 15; i++) a |= (m[8][14 - i] ? 1 : 0) << i;
+    for (let i = 0; i < 8; i++) b |= (m[8][n - 1 - i] ? 1 : 0) << i;
+    for (let i = 8; i < 15; i++) b |= (m[n - 15 + i][8] ? 1 : 0) << i;
+    assert.equal(a, b, level);
+    assert.equal(a, formatBits(level, 5), level);
+    assert.equal(m[n - 8][8], true, 'the dark module');
+  }
+  // Version 7 (ISO/IEC 18004 table D.1): 000111 110010 010100, in both 6 x 3 blocks.
+  const qr = encodeQr('x'.repeat(110), { level: 'M' });
+  assert.equal(qr.version, 7);
+  const n = qr.size;
+  let top = 0, left = 0;
+  for (let i = 0; i < 18; i++) {
+    const r = Math.floor(i / 3), c = n - 11 + (i % 3);
+    top |= (qr.modules[r][c] ? 1 : 0) << i;
+    left |= (qr.modules[c][r] ? 1 : 0) << i;
+  }
+  assert.equal(top, 0x07c94);
+  assert.equal(left, 0x07c94);
+});
+
 test('format bits match the standard table', () => {
   assert.equal(formatBits('M', 0), 0b101010000010010);
   assert.equal(formatBits('L', 0), 0b111011111000100);
