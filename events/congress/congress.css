@@ -19,7 +19,8 @@ main:has(.cg-screen) { max-width: 1120px; }
 .cg-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); }
 .cg-seg { display: flex; flex-wrap: wrap; gap: var(--s1); }
 .cg-points { display: flex; flex-wrap: wrap; gap: var(--s1); }
-.cg-pt { min-width: var(--h-lg); min-height: var(--h-lg); font-size: var(--fs-3); font-weight: var(--fw-4); }
+/* Points and PO score chips: 44 px, the smallest tap target a judge can hit fast on a phone (device check). */
+.cg-pt { min-width: 2.75rem; min-height: 2.75rem; font-size: var(--fs-3); font-weight: var(--fw-4); }
 .chip.quiet { border-color: transparent; background: transparent; color: var(--text-2); }
 .cg-reason { margin: 0; min-height: 1.2em; font-size: var(--fs-2); color: var(--text); font-weight: var(--fw-3); }
 .cg-timer .timer-digits { font-size: var(--fs-6, 2.75rem); }

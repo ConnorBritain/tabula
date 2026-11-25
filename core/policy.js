@@ -1,4 +1,4 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C11): the AI gate. The server
+// Shared code for Tabula Debate and Tabula Speech Events: the AI gate. The server
 // answers "what may this user do here?" with one record per product (the server's API contract;
 // docs/design/AI-POLICY.md §3). The app shows what the record allows and removes the rest. With no record, the app is
 // the solo app. A policy only ever removes, so a missing or old record never blocks the core of an app.
@@ -52,7 +52,7 @@
 
   const sameProgram = (a, b) => (a || null) === (b || null);
 
-  // The gate for this round or session (CONTRACTS §5 rule 6). st: { record (cached, may be old), profile (cached
+  // The gate for this round or session (the server's gate rule: fail closed). st: { record (cached, may be old), profile (cached
   // /me/profile), programId (the "Judging for" choice), now, off (a dev switch) }. Checked only at app start and when a
   // round or session starts, never in the middle. Returns { mode, features }:
   //   'record': the record for this round, not expired, is the answer.
@@ -62,7 +62,7 @@
     const s = st || {};
     if (s.off) return { mode: 'none', features: {} };
     const rec = s.record || null;
-    // A managed account has no picker: its own round is covered by its managed school's record (CONTRACTS §3 step 1).
+    // A managed account has no picker: its own round is covered by its managed school's record.
     const forRound = rec && (sameProgram(rec.subject.programId, s.programId) || (rec.subject.managed && !s.programId));
     if (forRound && rec.expiresAt > s.now) return { mode: 'record', features: rec.features, aiSetup: rec.aiSetup, hosted: rec.account.hosted };
     if (s.programId) {
@@ -79,7 +79,7 @@
   function payerOf(gate, f) { return gate.mode === 'solo' ? 'self' : (gate.features && gate.features[f] ? gate.features[f].payer : null); }
   // The key settings (key paste, provider list, subscription buttons) may show: own AI is allowed and no hosted plan.
   function setupAllowed(gate) { return gate.mode === 'solo' || (gate.mode === 'record' && gate.aiSetup && !gate.hosted); }
-  // The "Connect AI" invites may show (CONTRACTS §5): setup is allowed and the device is not ready yet.
+  // The "Connect AI" invites may show (the server's gate rules): setup is allowed and the device is not ready yet.
   // ready: the device has a key or a subscription helper connected, or the record says a hosted plan.
   function showSetupFor(gate, ready) { return setupAllowed(gate) && !ready && !(gate.mode === 'record' && gate.hosted); }
 

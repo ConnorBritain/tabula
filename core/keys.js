@@ -1,4 +1,4 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C5): the keyboard rules and
+// Shared code for Tabula Debate and Tabula Speech Events: the keyboard rules and
 // the palette search. Each app passes in its own shortcut list (registry), its scopes and its palette rows; nothing
 // here names an app's command. Generic words only (core-words.test.mjs). No DOM. Loaded as described in core/defs.js.
 
@@ -135,6 +135,57 @@ export function createKeymap(registry) {
   return Object.freeze({ matchKey, keyAction, shortcutRows });
 }
 
+// ---------- one registry that several parts of an app add to ----------
+// Two shortcuts clash when they can fire on the same key press: the same key (Meta and Control count as one, since
+// keyMatches accepts either) on either platform, in scopes that can show together ('global' overlaps every scope).
+const comboId = (combo) => {
+  const { mods, key } = parseCombo(combo);
+  const m = [...new Set(mods.map((x) => (x === 'Control' ? 'Meta' : x)))].sort();
+  return m.concat(m.length ? key.toLowerCase() : key).join('+');
+};
+const scopeOf = (s) => (s.scope && s.scope !== 'global' ? s.scope : 'global');
+export function shortcutsClash(a, b) {
+  const sa = scopeOf(a), sb = scopeOf(b);
+  if (sa !== sb && sa !== 'global' && sb !== 'global') return false;
+  return ['mac', 'other'].some((p) => comboId(a.keys[p]) === comboId(b.keys[p]));
+}
+// Every problem with a list of shortcuts, as sentences: a repeated id, a clash, or a key the browser or the keyboard
+// layout already owns. An empty list means the list is good.
+export function shortcutProblems(list) {
+  const out = [];
+  const all = list || [];
+  all.forEach((s, i) => {
+    if (all.findIndex((x) => x.id === s.id) !== i) out.push(`"${s.id}" is used twice`);
+    if (isReservedCombo(s.keys.mac, 'mac') || isReservedCombo(s.keys.other, 'other')) out.push(`"${s.id}" uses a key the browser or keyboard owns`);
+    for (let j = 0; j < i; j++) if (shortcutsClash(all[j], s)) out.push(`"${s.id}" and "${all[j].id}" use the same key in the same place`);
+  });
+  return out;
+}
+// createShortcutRegistry(base) -> a keymap (matchKey, keyAction, shortcutRows, as createKeymap) over base plus every list a part
+// of the app adds later, for example one workspace's own shortcuts.
+//   add(list) -> remove(): adds the list, or throws with every problem and adds nothing. remove() takes the list out
+//                again (a workspace that unmounts). Adding a list again before removing it throws (the ids repeat).
+//   list() -> the shortcuts now in force, base first, then each added list in the order it was added.
+export function createShortcutRegistry(base) {
+  const live = [];
+  const first = shortcutProblems(base || []);
+  if (first.length) throw new Error('shortcut registry: ' + first.join('; '));
+  live.push(...(base || []));
+  const keymap = createKeymap(live);
+  function add(list) {
+    const more = list || [];
+    const problems = shortcutProblems(live.concat(more));
+    if (problems.length) throw new Error('shortcut registry: ' + problems.join('; '));
+    live.push(...more);
+    let gone = false;
+    return function remove() {
+      if (gone) return; gone = true;
+      for (const s of more) { const i = live.indexOf(s); if (i >= 0) live.splice(i, 1); }
+    };
+  }
+  return Object.freeze({ ...keymap, add, list: () => live.slice() });
+}
+
 // ---------- the palette search ----------
 // rows: [{ label, alias }] in the app's group order. Prefix match first, then word match, then alias, then fuzzy (the
 // letters in order). Inside each tier the rows keep their order. An empty query gives every row.
@@ -165,4 +216,4 @@ export function searchCommands(query, rows) {
 }
 
 (globalThis.TabulaCore = globalThis.TabulaCore || {}).keys = Object.freeze({ parseCombo, isReservedCombo, focusKind, keyMatches, allowed,
-  isMacPlatform, formatKeys, shortcutKeys, createKeymap, searchCommands });
+  isMacPlatform, formatKeys, shortcutKeys, createKeymap, shortcutsClash, shortcutProblems, createShortcutRegistry, searchCommands });

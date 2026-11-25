@@ -103,12 +103,16 @@ export function minSec(ms) {
   const m = Math.floor(t / 60), s = t % 60;
   return m ? m + ' min ' + String(s).padStart(2, '0') : s + ' s';
 }
-// "2:51" (or "−0:12" when over) for the timer face.
+// "2:51" (or "−0:12" when over) for the timer face. The minus shows only once a whole second is past the limit, so
+// the limit itself reads "0:00", never "−0:00".
 export function clockText(ms) {
-  const neg = ms < 0;
   const t = Math.floor(Math.abs(ms) / 1000);
+  const neg = ms < 0 && t > 0;
   return (neg ? '−' : '') + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
 }
+// Over time on the timer face: from one whole second past the limit, the same moment the minus shows, so the color and
+// the digits always agree.
+export const isOver = (ms) => ms <= -1000;
 
 // ---------- points (§5.2, §5.3) ----------
 // The points that count for one speech, after the fixed penalties and the scored-speech cap:
@@ -169,5 +173,5 @@ export function precedenceOrder(chamber, session) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressSpeech = Object.freeze({ SPEECH_MS, TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS,
-  questionMsFor, nextDefaults, POINTS_ACTIONS, refusesAction, startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, timerView, minSec, clockText, countedPoints, needsReason,
+  questionMsFor, nextDefaults, POINTS_ACTIONS, refusesAction, startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, timerView, minSec, clockText, isOver, countedPoints, needsReason,
   legislatorLines, openCount, precedenceOrder });
