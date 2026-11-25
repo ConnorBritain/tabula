@@ -82,7 +82,7 @@ export function mountSession(el, env, sessionId, stage) {
       // Focus inside the screen goes back to the same control (or the page title if it has none); focus outside is left alone.
       const a = document.activeElement;
       const inside = Boolean(a && el.contains(a));
-      if (!first && stage === 'log' && a && a.id !== 'cg-comment') draw(inside && a.dataset.key ? a.dataset.key : null, !inside);
+      if (!first && stage === 'log' && a && a.id !== 'cg-comment') draw(inside ? (a.id === 'cg-search' ? 'search' : a.dataset.key || null) : null, !inside);
     }
   }, 250);
 

@@ -98,7 +98,7 @@ No page errors. No sideways scroll on the phone with 30 legislators on Rank.
 
 ### 5.3 Keyboard walk
 
-One chamber, keyboard only, on a laptop in light and dark: setup → 3 speeches (picker by typing the code and pressing Enter) → PO term and its first hour score → Next item → Rank top 8 → Review → Copy ranks.
+One chamber, driven by keys (Tab, Enter, typing, Esc; the script jumped straight to the page title or the comment box in a few places to save Tab presses), on a laptop in light and dark: setup → 3 speeches (picker by typing the code and pressing Enter) → PO term and its first hour score → Next item → Rank top 8 → Review → Copy ranks.
 
 - Order: the back link and step bar, then the page title, then the page from top to bottom. On Log: Next item, Next speech (or the speech card), the PO card, then the chamber grid.
 - After each action the focus lands on the next useful control: a pick goes to "Start questions", that goes to "End speech", that goes to the comment box, "Done" goes back to "Next speech", a rank goes to the same pool row, Copy stays on its button.
@@ -122,7 +122,7 @@ Keys that work now:
 |---|---|---|---|
 | A1 | The speaker picker and the PO chooser buttons had `role="listitem"`, so a screen reader heard a list row, not a button (axe minor). | Real lists: each button sits in its own list item. | `congress-a11y.test.mjs` |
 | A2 | Review's buttons were all named "Copy", so a screen-reader judge could not tell which speech they were copying. | Each button's name is "Copy" plus the card title, for example "Copy 101 · Bill · Aff · Authorship · 6 points". The title is still written once on the page. | `congress-a11y.test.mjs` |
-| A3 | After a PO hour score, and when a full PO hour came up, the focus jumped to the page title, so the judge had to Tab through the log again. When the control to focus was gone, the focus went nowhere. | A score puts the focus on that hour's "Change" button; "Change" puts it on the hour's first score button. The hour redraw keeps the focus on the same control (or the page title if that control has no place in the redraw). A focus target that is gone falls back to the page title. | `congress-a11y.test.mjs` |
+| A3 | After a PO hour score, and when a full PO hour came up, the focus jumped to the page title, so the judge had to Tab through the log again. When the control to focus was gone, the focus went nowhere. | A score puts the focus on that hour's "Change" button; "Change" puts it on the hour's first score button. The hour redraw keeps the focus on the same control, the speaker search included (or the page title if that control has no place in the redraw). A focus target that is gone falls back to the page title. | `congress-a11y.test.mjs` |
 | A4 | Esc did nothing in the speaker picker. | Esc in the speaker search closes the picker. | `congress-a11y.test.mjs` |
 
 ### 5.5 Open
