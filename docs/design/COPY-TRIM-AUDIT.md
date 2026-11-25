@@ -16,15 +16,15 @@ Base commit: `8e89d6b` (debate repo). Programs: see §3 for its repo and commit.
 
 | # | Now | Where | Proposed | Why |
 |---|---|---|---|---|
-| E1 | "Rule checks (tap to flag; a flag goes in your private note)" | `events/js/comment-view.js:30` | "Rule checks" | The chips look tappable. The flag already says where it goes in the live message (`comment-view.js:82`). |
-| E2 | "Private note (only for you; never on the ballot)" | `events/js/comment-view.js:34` | "Private note" + a small grey pill "Not on ballot" | Keeps the privacy rule. The pill is one glance, not a sentence. |
-| E3 | "Comments for A12 (go on the ballot)" | `events/js/comment-view.js:31` | "Ballot comments · A12" | The label says it. The parenthesis goes. |
+| E1 | "Rule checks (tap to flag; a flag goes in your private note)" | `events/js/comment-view.js:30` | "Rule checks" | The chips look tappable. The flag already says where it goes in the live message (`comment-view.js:82`). **Done by the design merge** (zones "On the ballot" / "Just for you"). |
+| E2 | "Private note (only for you; never on the ballot)" | `events/js/comment-view.js:34` | "Private note" + a small grey pill "Not on ballot" | Keeps the privacy rule. The pill is one glance, not a sentence. **Done by the design merge** (zones "On the ballot" / "Just for you"). |
+| E3 | "Comments for A12 (go on the ballot)" | `events/js/comment-view.js:31` | "Ballot comments · A12" | The label says it. The parenthesis goes. **Done by the design merge** (zones "On the ballot" / "Just for you"). |
 | E4 | "Reason for rank (whole room)" | `events/js/comment-view.js:36` | "Reason for rank", under a small "Whole room" divider that splits it from the speaker fields | The layout shows it is not per speaker. |
-| E5 | "Question drawn (stays on this device)" | `events/js/comment-view.js:26` | "Question drawn" | "Stays on this device" shows 4 times in one round (also E6, E7, E20). Say it once, on setup (E20). |
-| E6 | "(the student's pick; stays on this device)" after the topic label | `events/js/runs-view.js:23` | Cut | Same as E5. The judge knows the student picked the topic. |
-| E7 | "(optional; stays on this device)" after "Piece" | `events/js/piece-view.js:19` | Cut | Same as E5. See rule W6 for "optional". |
-| E8 | "No show. Undo it in the roster menu to time this speaker." | `events/js/timer-view.js:48` | "No show" + an "Undo no show" button on the timer card | A button beats directions to another menu. |
-| E9 | Toast: "Every speaker has spoken or is a no show. Rank the room when you are ready." | `events/js/room-screen.js:155` | "Everyone is done. Rank the room." | Half the words. Same facts. |
+| E5 | "Question drawn (stays on this device)" | `events/js/comment-view.js:26` | "Question drawn" | "Stays on this device" shows 4 times in one round (also E6, E7, E20). Say it once, on setup (E20). **Done.** |
+| E6 | "(the student's pick; stays on this device)" after the topic label | `events/js/runs-view.js:23` | Cut | Same as E5. The judge knows the student picked the topic. **Done.** |
+| E7 | "(optional; stays on this device)" after "Piece" | `events/js/piece-view.js:19` | Cut | Same as E5. See rule W6 for "optional". **Done.** |
+| E8 | "No show. Undo it in the roster menu to time this speaker." | `events/js/timer-view.js:48` | "No show" + an "Undo no show" button on the timer card | A button beats directions to another menu. **Done.** |
+| E9 | Toast: "Every speaker has spoken or is a no show. Rank the room when you are ready." | `events/js/room-screen.js:155` | "Everyone is done. Rank the room." | Half the words. Same facts. **Done.** |
 | E10 | Dialog: "A late entry goes at the end of the roster. You can move it after." | `events/js/room-screen.js:145` | Cut the body | The new row shows at the end. "Move up" is in its menu. |
 | E11 | Dialog: "The student is in another event now and speaks here later. They stay on the ballot." | `events/js/room-actions.js:40` | "Speaks here later. Stays on the ballot." | Same two facts. |
 | E12 | Placeholder: "For example: in Room 204 for IX" | `events/js/room-actions.js:40` | "Room 204, IX" | Placeholders are examples already. |
@@ -41,7 +41,7 @@ Base commit: `8e89d6b` (debate repo). Programs: see §3 for its repo and commit.
 
 | # | Now | Where | Proposed | Why |
 |---|---|---|---|---|
-| E19 | "Best first. Drag the handle, use the arrows, or press Alt+Up and Alt+Down on a row." + "Only the top N get a rank on the ballot. Put the rest in any order." | `events/js/rank-screen.js:210` | "Best first. Only the top N are ranked on the ballot." | The handles and arrows are on screen. The keys live in the keyboard sheet. Keep the top-N rule. |
+| E19 | "Best first. Drag the handle, use the arrows, or press Alt+Up and Alt+Down on a row." + "Only the top N get a rank on the ballot. Put the rest in any order." | `events/js/rank-screen.js:210` | "Best first. Only the top N are ranked on the ballot." | The handles and arrows are on screen. The keys live in the keyboard sheet. Keep the top-N rule. **Done.** |
 | E21 | "Tap the speakers from best to last. Tap a ranked speaker again to take the rank off." | `events/js/rank-screen.js:209` | "Tap best to last. Tap again to undo." | Same two facts. |
 | E22 | "The speakers you did not tap keep speaking order after the others." | `events/js/rank-screen.js:180` | "Speakers you did not tap follow in speaking order." | Shorter. |
 | E23 | "Reason for rank (whole room)" | `events/js/rank-screen.js:213` | "Reason for rank" | On the Rank screen it is clearly for the room. |
@@ -58,7 +58,7 @@ Base commit: `8e89d6b` (debate repo). Programs: see §3 for its repo and commit.
 
 | # | Now | Where | Proposed | Why |
 |---|---|---|---|---|
-| E30 | "Enter these in the online ballot first. Most sites lock ranks when you submit, but keep comments open." | `events/js/review-screen.js:34` | "Enter ranks first. Ranks lock on submit. Comments stay open." | Keeps the lock rule, in three short facts. |
+| E30 | "Enter these in the online ballot first. Most sites lock ranks when you submit, but keep comments open." | `events/js/review-screen.js:34` | "Enter ranks first. Ranks lock on submit. Comments stay open." | Keeps the lock rule, in three short facts. **Done.** |
 | E31 | "These rules are comments only. There are no ranks to submit. Copy each comment below." | `events/js/review-screen.js:22` | "Comments only. No ranks to submit." | "Copy each comment below" says what the buttons show. |
 | E32 | Toast: "Ranks copied. Paste them into the online ballot." | `events/js/review-screen.js:135` | "Ranks copied." | The judge knows where to paste. E30 already says it. |
 | E33 | Toast: "Everything copied as one block." | `events/js/review-screen.js:155` | "All copied." | Matches the "Copy all" button (rule W1). |
@@ -71,11 +71,11 @@ Base commit: `8e89d6b` (debate repo). Programs: see §3 for its repo and commit.
 
 | # | Now | Where | Proposed | Why |
 |---|---|---|---|---|
-| E36 | "Comments still open." + "Tabroom keeps comments open until the tournament ends. Finish them before you go." | `events/js/myday-screen.js:84` | "Comments still open. Finish them before you leave." | Keeps the nudge. Drops the vendor name (DESIGN.md rule 9). |
-| E37 | "No ballots yet today. When you get one, tap Start a round." | `events/js/myday-screen.js:90` | "No ballots yet today." | "Start a round" is the big button below. |
-| E38 | "No ballot yet. When the tab room sends you one, add it here." | `events/js/myday-screen.js:79` | "No ballot yet." | "I got a ballot" is the button below. |
+| E36 | "Comments still open." + "Tabroom keeps comments open until the tournament ends. Finish them before you go." | `events/js/myday-screen.js:84` | "Comments still open. Finish them before you leave." | Keeps the nudge. Drops the vendor name (DESIGN.md rule 9). **Done.** |
+| E37 | "No ballots yet today. When you get one, tap Start a round." | `events/js/myday-screen.js:90` | "No ballots yet today." | "Start a round" is the big button below. **Done.** |
+| E38 | "No ballot yet. When the tab room sends you one, add it here." | `events/js/myday-screen.js:79` | "No ballot yet." | "I got a ballot" is the button below. **Done.** |
 | E39 | "Paste the room from Tabroom or SpeechWire, or type one code per line" | `events/js/setup-screen.js:77` | "Paste the room, or type one code per line" | Vendor names (DESIGN.md rule 9). Matches the error in `room.js:151`. |
-| E20 | "The text stays on this device. Codes are enough; names are optional." | `events/js/setup-screen.js:79` | "Codes are enough. Nothing leaves this device." | The one place that says "stays on this device" for the round (see E5–E7). |
+| E20 | "The text stays on this device. Codes are enough; names are optional." | `events/js/setup-screen.js:79` | "Codes are enough. The text stays on this device." | The one place that says "stays on this device" for the round (see E5–E7). **Done.** |
 | E40 | "This room keeps this limit and grace. The app has no rule checks or chips for this event." | `events/js/setup-screen.js:56` | "No rule checks for a custom event." | The limit and grace fields are right above. |
 | E41 | "Custom event (set the time)" | `events/js/setup-screen.js:69` | "Custom event" | The time fields appear when it is picked. |
 | E42 | "Event name (optional)", "Flight (optional)", "Tournament (optional)" | `events/js/setup-screen.js:52`, `:72`, `:73`; `events/js/picker-screen.js:61` | Drop "(optional)" | Rule W6. |
@@ -87,7 +87,7 @@ Base commit: `8e89d6b` (debate repo). Programs: see §3 for its repo and commit.
 
 | # | Now | Where | Proposed | Why |
 |---|---|---|---|---|
-| E46 | "Coach and Student screens come in a later version. For now, the mode only shows the mode menu." (+ the whole Mode block) | `events/js/settings-screen.js:38-41` | Cut the Mode block until those screens ship | A setting that does nothing, with a help line that says so. |
+| E46 | "Coach and Student screens come in a later version. For now, the mode only shows the mode menu." (+ the whole Mode block) | `events/js/settings-screen.js:38-41` | Cut the Mode block until those screens ship | A setting that does nothing, with a help line that says so. **Done.** |
 | E47 | "The copy and the file hold the rounds shown, with entry codes only. Names and comments go in only when you tick the box." | `events/js/history-screen.js:47` | "Codes only, unless you tick the box." | Keeps the privacy fact. The box label already says "Include names and comments". |
 | E48 | "No rounds match. Rounds you judge show here." | `events/js/history-screen.js:24` | Two states: "No rounds yet." (empty) and "No rounds match." (filtered) | One string tries to be two states. |
 | E49 | Toast: "… Paste them into a spreadsheet." | `events/js/history-screen.js:81` | Cut the second sentence | The button says "Copy as TSV". |

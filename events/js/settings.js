@@ -49,12 +49,10 @@ export const withRecentEvent = (settings, eventId) => {
   return withSetting(s, 'recentEvents', [eventId].concat(old).slice(0, RECENT_MAX));
 };
 
-// Does the header show the mode menu? Only after someone picks Coach or Student, or turns the menu on (§1.1: a parent
-// who judges once never sees it).
-export const modeMenuShown = (settings) => {
-  const s = migrateSettings(settings);
-  return s.mode !== 'judge' || s.showModeMenu === true;
-};
+// Does the header show the mode menu? Only when a saved mode is Coach or Student (§1.1: a parent who judges once never
+// sees it). Copy trim E46: Settings has no Mode part until those screens ship, so the old "Show the mode menu" switch is
+// gone and no longer counts; a judge left in Coach or Student uses this menu to go back to Judge, and then it hides.
+export const modeMenuShown = (settings) => migrateSettings(settings).mode !== 'judge';
 
 // The settings with one change. A value that is not on the list is refused (the settings come back unchanged), so a
 // bad value from the page can never be saved.
@@ -62,6 +60,7 @@ export function withSetting(settings, key, value) {
   const s = migrateSettings(settings);
   if (key === 'mode' && !MODES.some((m) => m.id === value)) return s;
   if (key === 'theme' && !THEMES.some((t) => t.id === value)) return s;
+  // showModeMenu is retired (copy trim E46): still accepted so old backups load, but modeMenuShown no longer reads it.
   if (key === 'showModeMenu' && typeof value !== 'boolean') return s;
   if (key === 'ranksDueMin' && !validRanksDue(value)) return s;
   if (key === 'recentEvents' && !(Array.isArray(value) && value.length <= RECENT_MAX && value.every((x) => typeof x === 'string' && /^[a-z0-9-]{1,20}$/.test(x)))) return s;

@@ -127,12 +127,12 @@ export function mydayHtml(m, day, events, now, congress, menuFor) {
   const busy = m.sections[0].items.length + m.sections[1].items.length + chambers.length > 0;
   const standby = m.standby && !chambers.length ? `<section class="md-standby" aria-labelledby="md-sb-h">
       <h2 id="md-sb-h">On standby</h2>
-      <p>No ballot yet. When the tab room sends you one, add it here.</p>
+      <p>No ballot yet.</p>
       ${Number.isFinite(day.checkInAt) ? `<p class="muted">Checked in <span data-since="${day.checkInAt}">${esc(sinceText(day.checkInAt, now))}</span>.</p>` : ''}
       <div class="md-act"><a class="b primary" href="${esc(routeHash('pick'))}" id="md-got">I got a ballot</a>
         <button class="b quiet" type="button" id="md-standby-off">Leave standby</button></div>
     </section>` : '';
-  const note = m.commentsNote ? `<p class="md-note" role="note"><strong>Comments still open.</strong> Tabroom keeps comments open until the tournament ends. Finish them before you go.</p>` : '';
+  const note = m.commentsNote ? `<p class="md-note" role="note"><strong>Comments still open.</strong> Finish them before you leave.</p>` : '';
   const next = upNextItem(m);
   const nextHtml = next ? upNextHtml(itemView(next, events), now, menuFor === itemKey(next)) : '';
   const secs = m.sections.map((s) => Object.assign({}, s, { items: s.items.filter((it) => it !== next) })).filter((s) => s.items.length).map((s) => `<section class="md-sec" aria-labelledby="md-h-${s.id}">
@@ -140,7 +140,7 @@ export function mydayHtml(m, day, events, now, congress, menuFor) {
       <ul class="md-list">${s.items.map((it) => cardHtml(itemView(it, events), now, menuFor === itemKey(it))).join('')}</ul></section>`).join('');
   const cong = chambers.length ? `<section class="md-sec" aria-labelledby="md-h-congress"><h2 id="md-h-congress">Congress <span class="muted">${chambers.length}</span></h2>
       <ul class="md-list">${chambers.map((c) => `<li class="md-row"><span class="pill md-ev">Congress</span><a class="md-row-main" href="${esc(routeHash('chamber', c.id))}" aria-label="${esc('Open ' + c.label)}"><span class="md-title">${esc(c.label)}</span></a></li>`).join('')}</ul></section>` : '';
-  const empty = !m.items.length && !m.standby && !chambers.length ? '<p class="muted md-empty">No ballots yet today. When you get one, tap Start a round.</p>' : '';
+  const empty = !m.items.length && !m.standby && !chambers.length ? '<p class="muted md-empty">No ballots yet today.</p>' : '';
   const standbyOn = !m.standby && !busy ? '<button class="b" type="button" id="md-standby-on">I am on standby</button>' : '';
   return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">My day</h1><a class="b${next ? '' : ' primary'}" id="md-start" href="${esc(routeHash('pick'))}">${icon('plus')}Start a round</a>${standbyOn}</div>
     ${sub ? `<p class="muted md-sub">${esc(sub)}</p>` : ''}

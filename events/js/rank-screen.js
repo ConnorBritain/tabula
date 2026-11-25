@@ -244,7 +244,7 @@ export function createRankScreen(env) {
         <div class="board-tools"><button class="b" type="button" id="tap-toggle" aria-pressed="false">Tap in order</button>
           <button class="b quiet" type="button" id="restart">Start again</button></div>
         <p class="muted" id="tap-help" hidden>Tap the speakers from best to last. Tap a ranked speaker again to take the rank off.</p>
-        <p class="muted board-help">Best first. Drag the handle, use the arrows, or press Alt+Up and Alt+Down on a row.${layerOf(r.profile).ranks === 'topN' ? ' Only the top ' + layerOf(r.profile).topN + ' get a rank on the ballot. Put the rest in any order.' : ''}</p>
+        <p class="muted board-help">Best first. Alt+Up and Alt+Down move a row.${layerOf(r.profile).ranks === 'topN' ? ' Only the top ' + layerOf(r.profile).topN + ' are ranked on the ballot.' : ''}</p>
         <div id="board-box"></div>
         <div id="problems"></div>
         <label class="field" for="rank-reason"><span>Reason for rank <span class="muted">(whole room)</span></span></label>

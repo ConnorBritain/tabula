@@ -10,7 +10,7 @@ import { statusPillHtml } from './status-pill.js';
 import { foldSummaryHtml } from './fold.js';
 import { downloadFile } from '../../core/store.js';
 import { isMacPlatform } from '../../core/keys.js';
-import { MODES, THEMES, RANKS_DUE_MAX, DRAW_GAPS, withSetting, validRanksDue, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
+import { THEMES, RANKS_DUE_MAX, DRAW_GAPS, withSetting, validRanksDue, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
 import { PREFIX } from './store.js';
 import { keymap } from './keys.js';
 import { checkOffline } from './offline.js';
@@ -42,11 +42,6 @@ export const offlineHtml = (res) => (!res ? 'Checking…'
 export function settingsHtml(v) {
   const s = v.settings;
   return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">Settings</h1></div>
-  <section class="set-part" aria-labelledby="set-mode-h"><h2 id="set-mode-h">Mode</h2>
-    <fieldset class="radios"><legend class="sr-only">Mode</legend>${radios('set-mode', MODES, s.mode)}</fieldset>
-    <label class="tick"><input type="checkbox" id="set-modemenu"${s.showModeMenu ? ' checked' : ''}> Show the mode menu in the header</label>
-    <p class="field-help">Coach and Student screens come in a later version. For now, the mode only shows the mode menu.</p>
-  </section>
   <section class="set-part" aria-labelledby="set-theme-h"><h2 id="set-theme-h">Theme</h2>
     <fieldset class="radios"><legend class="sr-only">Theme</legend>${radios('set-theme', THEMES, s.theme)}</fieldset>
   </section>
@@ -144,13 +139,11 @@ export function createSettingsScreen(env) {
   }
   function onChange(e) {
     const t = e.target;
-    if (t.name === 'set-mode') env.saveSettings(withSetting(env.settings(), 'mode', t.value));
     if (t.id === 'set-due') {
       const n = Number(t.value);
       if (validRanksDue(n)) { env.saveSettings(withSetting(env.settings(), 'ranksDueMin', n)); env.ui.toast('Ranks are due ' + n + ' min after the last speaker.', { key: 'due' }); }
       else { t.value = String(ranksDueMinOf(env.settings())); env.ui.toast('Type a whole number of minutes from 1 to ' + RANKS_DUE_MAX + '.', { kind: 'error', key: 'due' }); }
     }
-    if (t.id === 'set-modemenu') env.saveSettings(withSetting(env.settings(), 'showModeMenu', t.checked));
     if (t.name === 'set-gap') env.saveSettings(withSetting(env.settings(), 'drawGapMin', Number(t.value)));
     if (t.name === 'set-theme') {
       env.saveSettings(withSetting(env.settings(), 'theme', t.value));

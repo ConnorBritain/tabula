@@ -61,7 +61,7 @@ export function ranksStageHtml(room) {
   return `<section class="review-stage ballot-preview" aria-labelledby="stage1">
     <div class="preview-head"><h2 id="stage1">1. ${ranked ? 'Ranks' : 'Ratings'} to submit</h2>
       ${sent ? statusPillHtml('ok', 'Copied', 'circle-check', 'id="ranks-state"') : statusPillHtml('caution', 'Not sent', 'circle', 'id="ranks-state"')}${copyBtn}</div>
-    <p class="muted">Enter these in the online ballot first. Most sites lock ranks when you submit, but keep comments open.</p>
+    <p class="muted">Enter ranks first. Ranks lock on submit. Comments stay open.</p>
     ${fix}${table}</section>`;
 }
 

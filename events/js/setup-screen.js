@@ -91,7 +91,7 @@ export function setupHtml(data) {
       <div class="setup-paste-col">
         <label class="field wide" for="setup-paste"><span>Paste the room from Tabroom or SpeechWire, or type one code per line</span></label>
         <textarea id="setup-paste" rows="8" spellcheck="false" placeholder="1. A12&#10;2. B07&#10;3. C33"></textarea>
-        <p class="field-help">The text stays on this device. Codes are enough; names are optional.</p>
+        <p class="field-help">Codes are enough. The text stays on this device.</p>
       </div>
       <div class="preview" id="setup-preview" aria-live="polite"></div>
     </div>

@@ -73,7 +73,7 @@ const readSettings = () => migrateSettings(store.get(SETTINGS_KEY, {}));
 function renderHeader(screen) {
   const s = readSettings();
   const menu = $('#mode-menu'), sel = $('#mode-select');
-  menu.hidden = !modeMenuShown(s);
+  menu.hidden = !modeMenuShown(s); // Shows only for a saved Coach or Student mode (copy trim E46); Settings cannot set one now.
   if (!sel.options.length) sel.innerHTML = MODES.map((m) => `<option value="${esc(m.id)}">${esc(m.label)}</option>`).join('');
   sel.value = s.mode;
   for (const [id, name] of [['#nav-history', 'history'], ['#nav-settings', 'settings']]) {

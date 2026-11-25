@@ -34,7 +34,7 @@ Related files:
 
 - There are three modes: **Judge** (the default), **Coach** and **Student**. A mode is a device setting (`settings.mode`). It is not an account.
 - The app asks no first-run question **[AF][fix]**. It opens in Judge mode. The mode switch is in Settings.
-- The header shows a mode menu only after someone turns on Coach or Student. So a parent who judges once never sees it.
+- The header shows a mode menu only when a saved mode is Coach or Student. So a parent who judges once never sees it. Settings has no Mode part until the Coach and Student screens ship (copy trim E46, 2026-11-24); the menu then lets a judge left in Coach or Student go back to Judge.
 - **Header (all screens):** brand (a link to the home of the current mode), mode menu (hidden by default), History, Settings, and an offline chip. No underline tabs (house rule, [DESIGN.md](DESIGN.md) §1).
 - **Round bar (inside a round):** event pill ("HI"), round, flight, room, the stage stepper, and a back arrow. A tap on the event pill opens the console page for that type **[ET]**.
 
@@ -311,7 +311,7 @@ This section maps the Tabula Debate console to Speech Events.
 | History, TSV, CSV | `#/history`: one row per round (date, tournament, round, flight, level, event, entries, state, "comments open"). Filter by type and tournament. A filter for one family adds that family's columns: questions (F2), runs (F4), sessions and speech counts (Congress) **[AF]**. Copy as TSV and download CSV, with **codes only and no comments** unless the judge picks them. |
 | Backup and restore | Settings → Data: one file through `core/store` `buildBackup` / `parseBackup` under `tabulaEvents.*`. AI keys are left out unless picked. |
 | Room delete | Delete with Undo through the toast |
-| Settings | Mode; theme; default profile and league pack; defaults for each type (signals, grace); Connect AI (moved from the Review invite; hosted after E14); keyboard sheet; F2 draw gap; ranks-due minutes; Congress scale defaults; Shared device; Ready for offline. |
+| Settings | Theme (Mode comes back with the Coach and Student screens); default profile and league pack; defaults for each type (signals, grace); Connect AI (moved from the Review invite; hosted after E14); keyboard sheet; F2 draw gap; ranks-due minutes; Congress scale defaults; Shared device; Ready for offline. |
 | Palette | ⌘K through `core/keys` `searchCommands`: "New HI round", "Open R3", "Copy ranks", "Guide: Duo" |
 
 **Type console page `#/type/<eventId>` [ET].** It is one page that scrolls. It is not a second nav system **[fix]**.
@@ -375,7 +375,7 @@ Add new schema tests for PracticePayload and PracticeResult. They check `v` and 
 
 **Def v2** adds `family`, `timing.total?`, `timing.prepMax?`, `timing.window?`, `performers {min, max}`, `maxEntries?`, and `fields[]` (the picker chips). There is **no** `timing.minPerRun`, because PCC has no minimum.
 
-**Settings** adds `mode, showModeMenu, theme, defaultProfile, leaguePack, recentEvents[], eventDefaults{}, drawGapMin, ranksDueMin, sharedDevice`.
+**Settings** adds `mode, showModeMenu (retired 2026-11-24: kept so old backups still load; nothing reads it), theme, defaultProfile, leaguePack, recentEvents[], eventDefaults{}, drawGapMin, ranksDueMin, sharedDevice`.
 
 **Server (opt-in, later):** a round summary (event, round, date, count) and an assignment shell with a status only. No codes, no names, no comments.
 

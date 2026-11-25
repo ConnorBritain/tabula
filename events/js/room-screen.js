@@ -172,7 +172,7 @@ export function createRoomScreen(env, parts) {
     }
     if (action === 'next') {
       const nx = nextWaiting(r);
-      if (!nx) { env.ui.toast('Every speaker has spoken or is a no show. Rank the room when you are ready.', { key: 'next' }); return; }
+      if (!nx) { env.ui.toast('Everyone is done. Rank the room.', { key: 'next' }); return; }
       pick(nx.id);
       // The Next button is gone after the redraw (top 10 #1: it shows only while it is the primary), so a keyboard judge
       // lands on the new speaker's Start, the next step.

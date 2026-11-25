@@ -136,7 +136,8 @@ export function stickyBarHtml(face, track, primary) {
 // another part of the room holds it, as the F4 run button), nextHtml: the "Next speaker: U2" button }. Left out, the
 // big button is the primary, as before.
 export function timerHtml(entry, face, limit, grace, track, opts) {
-  if (entry.status === 'noShow') return '<p class="muted timer-none">No show. Undo it in the roster menu to time this speaker.</p>';
+  // Copy trim E8: a pill and the undo button on the card, not directions to the roster menu.
+  if (entry.status === 'noShow') return `<p class="timer-none">${statusPillHtml('outline', 'No show')} <button class="b small" type="button" data-act="show" data-id="${esc(entry.id)}" data-key="ns-timer-${esc(entry.id)}">Undo no show</button></p>`;
   const o = opts || {};
   const p = o.primary || 'timer';
   const over = overGraceHtml(face);

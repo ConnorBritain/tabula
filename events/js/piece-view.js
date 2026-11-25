@@ -39,7 +39,7 @@ export function pieceHtml(entry, event, editing) {
       <button class="b quiet small" type="button" data-pact="edit" data-key="piece-edit" aria-label="Edit the ${what}">Edit</button></p>` : '';
   if (!open.length) return `<div class="piece is-folded" id="piece">${line}</div>`;
   return `<fieldset class="piece" id="piece">
-    <legend>${pair ? 'Performers and piece' : 'Piece'} <span class="muted">(optional; stays on this device)</span></legend>
+    <legend>${pair ? 'Performers and piece' : 'Piece'}</legend>
     ${line}<div class="piece-fields">
       ${open.map((g) => g.html).join('')}
     </div></fieldset>`;

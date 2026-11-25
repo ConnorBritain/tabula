@@ -35,7 +35,7 @@ export function quoteHtml(entry, event, editing) {
       <button class="b quiet small" type="button" data-qact="edit" data-key="quote-edit" aria-label="Edit the ${esc(k.label.toLowerCase())}">Edit</button></div>`;
   }
   const raw = k.field === 'question' ? entry.question || '' : entry.topic || '';
-  return `<div class="quote" id="quote"><label class="field quote-field" for="${k.field}"><span>${esc(k.label)} <span class="muted">(stays on this device)</span></span>
+  return `<div class="quote" id="quote"><label class="field quote-field" for="${k.field}"><span>${esc(k.label)}</span>
       <input id="${k.field}" data-qfield="${k.field}" maxlength="${k.max}" autocomplete="off" placeholder="${esc(k.placeholder)}" value="${esc(raw)}"></label></div>`;
 }
 
