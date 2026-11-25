@@ -11,9 +11,15 @@
 // (D3-A) and drops its time while the speaker speaks (the card shows it). On a phone the sticky compact bar (OD1 A)
 // pins to the top while the big card is out of view: it is a second render of the same face, and its button sends
 // the same data-tact action to the same handler. It adds no driver, no tick and no key binding.
+// The speaker view (speaker-view.js) is off until the judge taps "Speaker view" under the card. It is a third render of
+// the same face, fed from the same tick (paint), and its Start / Stop calls the same main action: no second clock.
+// The screen wake lock is the shared helper in wake-lock.js.
 import { roomPrimary, nextTopHtml } from './room-primary.js';
 import { trackParts, miniTrackHtml, rowTrackHtml } from './time-track.js';
+import { trackHtml } from './time-track.js';
 import { overGraceHtml, cardFace, cardTrack, timerHtml, rosterTimeHtml, rowTrackLine } from './timer-card-html.js';
+import { createWakeLock } from './wake-lock.js';
+import { createSpeakerView, speakerModel, showSpeakerButton, speakerButtonHtml } from './speaker-view.js';
 import { createDriver } from '../../core/clock.js';
 import {
   limitOf, graceOf, clockText, parseClock, usedAt, timerFace, startLeft, stoppedTiming, adjustTiming, setUsedTiming,
@@ -77,7 +83,8 @@ export function createTimerView(opts) {
   let prevLeft = null;
   let lastStage = '';
   let chipUntil = 0;
-  let lock = null;
+  let speaker = null; // the speaker view, made on the first show (it needs the page's Esc stack)
+  const speakerOpen = () => Boolean(speaker && speaker.isOpen());
   const env = () => ctx.env;
   const room = () => ctx.room();
   const event = () => roomEvent(env().data.events, room());
@@ -123,17 +130,10 @@ export function createTimerView(opts) {
     now: () => (ctx ? env().now() : Date.now()),
   });
 
-  // Keep the screen awake while a clock runs (ARCHITECTURE.md §10), where the browser allows it. The browser drops
-  // the lock when the tab is hidden, so it is asked for again when the tab comes back.
-  let wanted = false;
-  async function wake(on) {
-    wanted = on;
-    try {
-      if (on && !lock && navigator.wakeLock) { lock = await navigator.wakeLock.request('screen'); lock.addEventListener('release', () => { lock = null; }); }
-      if (!on && lock) { const l = lock; lock = null; await l.release(); }
-    } catch { lock = null; }
-  }
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wanted && active) wake(true); });
+  // Keep the screen awake while a clock runs (ARCHITECTURE.md §10), where the browser allows it (wake-lock.js asks
+  // again when the tab comes back into view).
+  const awake = createWakeLock();
+  const wake = (on) => (on ? awake.request() : awake.release());
 
   // Every tick: the running entry's flags (sticky), its signal, its roster time, and the card when it is on screen.
   function tick() {
@@ -170,13 +170,15 @@ export function createTimerView(opts) {
     chipUntil = now + 3000;
     const chip = $('#signal-chip');
     if (chip && room().current === e.id) { chip.textContent = label; chip.hidden = false; }
-    env().ui.announce(e.code + ': ' + label);
+    // In the speaker view its own live region says the phase; one voice at a time.
+    if (!speakerOpen()) env().ui.announce(e.code + ': ' + label);
   }
 
   // Update the card in place (no redraw, so the notes box keeps its cursor).
   function paint(now) {
     const r = room();
     const e = r && entryOf(r, r.current);
+    if (e && speakerOpen()) paintSpeaker(e, now);
     const card = $('#timer-card');
     if (!e || !card) return;
     const face = faceOf(e, now);
@@ -200,7 +202,7 @@ export function createTimerView(opts) {
     const flagBox = $('#timer-flagbox');
     if (flagBox && face.overGrace !== Boolean(flagBox.firstElementChild)) flagBox.innerHTML = overGraceHtml(face);
     // Screen readers hear the stage when it changes, not every second.
-    if (face.stage !== lastStage && face.running && (face.stage === 'last' || face.stage === 'grace' || face.stage === 'over')) env().ui.announce(e.code + ': ' + face.word.replace(/ \+.*/, ''));
+    if (face.stage !== lastStage && face.running && !speakerOpen() && (face.stage === 'last' || face.stage === 'grace' || face.stage === 'over')) env().ui.announce(e.code + ': ' + face.word.replace(/ \+.*/, ''));
     lastStage = face.stage;
   }
 
@@ -273,9 +275,37 @@ export function createTimerView(opts) {
   let fromBar = false;
   // Design build (top 10 #1): after a stop with speakers left, the focus goes to "Next speaker", the room's primary.
   const focusGo = () => {
+    if (speakerOpen()) { speaker.focusMain(); return; }
     const b = fromBar ? $('#timer-mini [data-tact]') : ($('.timer-btns .next-top') || $('[data-tact="startstop"]'));
     if (b) b.focus({ preventScroll: fromBar });
   };
+
+  // The speaker view's model and track, from the same face and track as the card. The track has no phase row there
+  // (the view says the phase in words), so no id is drawn twice on the page.
+  function speakerFor(e, now) {
+    const face = faceOf(e, now);
+    const model = speakerModel(face, { points: signalPoints(lim(e, now), grace()), grace: grace(), code: e.code, startWord: o.startWord ? o.startWord(e, event(), now, limit()) : '' });
+    return { model, track: cardTrack(e, event(), face, limit(), grace(), now, null).model };
+  }
+  function paintSpeaker(e, now) {
+    const s = speakerFor(e, now);
+    speaker.update(s.model);
+    patchTrack(speaker.trackEl(), trackParts(s.track, { phases: '' }));
+  }
+  function openSpeaker() {
+    const r = room();
+    const e = r && entryOf(r, r.current);
+    if (!e || !speaker) return;
+    const s = speakerFor(e, env().now());
+    speaker.open(s.model, trackHtml(s.track, { id: 'sv-track' }));
+  }
+  // Start / Stop from the speaker view: the card's own main action, then one paint so the view shows the change at once.
+  function speakerMain() {
+    fromBar = false;
+    const r = room();
+    if (r && r.current) mainAction(r.current);
+    paint(env().now());
+  }
 
   // The card's buttons, one handler each. e: the entry on screen.
   const correct = (e, delta, t) => {
@@ -337,11 +367,18 @@ export function createTimerView(opts) {
       // Top 10 #1: the room's one primary, from the room screen (a family part may hold it: F4's next-run button).
       const primary = ctx.primary ? ctx.primary(r) : roomPrimary(r, e);
       const startWord = o.startWord ? o.startWord(e, event(), now, limit()) : '';
-      return timerHtml(e, face, limit(), grace(), cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor), { primary, nextHtml: nextTopHtml(r), startWord });
+      return timerHtml(e, face, limit(), grace(), cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor), { primary, nextHtml: nextTopHtml(r), startWord })
+        + (showSpeakerButton(e, face) ? speakerButtonHtml() : '');
     },
-    mounted() { const box = $('#timer-box'); if (box) box.addEventListener('click', onClick); watchCard(); },
+    mounted() {
+      const box = $('#timer-box'); if (box) box.addEventListener('click', onClick);
+      const sv = $('[data-sv="open"]'); if (sv) sv.addEventListener('click', openSpeaker);
+      watchCard();
+    },
     show(c) {
       ctx = c; active = true; runId = null; prepId = null; prevLeft = null; lastStage = ''; fromBar = false;
+      // Back from the speaker view, the focus goes to its button on the card (or the card's main button).
+      if (!speaker) speaker = createSpeakerView({ onMain: speakerMain, escLayer: c.env.ui && c.env.ui.escLayer, onClose: () => { if (!active) return; const b = $('[data-sv="open"]') || $('[data-key="startstop"]'); if (b) b.focus(); } });
       // A reload: bring back each saved run (timer.js restoreRoom; on a prep event prep.js restoreSharedRoom, which
       // brings back the prep runs too; only one clock may run).
       const res = shared() ? restoreSharedRoom(room(), env().now(), limit(), grace()) : restoreRoom(room(), env().now(), limit(), grace());
@@ -353,7 +390,7 @@ export function createTimerView(opts) {
       if (runId || prepId) wake(true);
     },
     // Leave the screen: the tick stops (get() reads nothing while not active); the run stays saved and keeps time.
-    hide() { active = false; driver.follow(); prepDriver.follow(); wake(false); unwatch(); barOn = false; },
+    hide() { active = false; if (speaker) speaker.close(); driver.follow(); prepDriver.follow(); wake(false); unwatch(); barOn = false; },
     stopFor(id) { if (runId === id) driver.stop(); if (prepId === id) prepDriver.stop(); },
     run(action) { if (action !== 'startStop') return false; fromBar = false; const r = room(); if (r && r.current) mainAction(r.current); return true; },
   };

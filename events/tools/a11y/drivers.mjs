@@ -101,6 +101,14 @@ export const DRIVERS = {
     await page.locator('#roster .row-more').first().click();
     await settle(page);
   },
+  async 'room-speaker'(page) {
+    await newRoom(page, 'oo');
+    await page.click('#stage [data-sv="open"]');
+    await page.waitForSelector('.speaker-view [data-sv="main"]');
+    await page.click('.speaker-view [data-sv="main"]'); // starts the clock from the speaker view
+    await page.waitForTimeout(1100);
+    await settle(page);
+  },
   async rank(page) {
     const id = await newRoom(page, 'oo');
     await hearAll(page);
