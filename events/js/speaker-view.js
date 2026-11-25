@@ -95,6 +95,8 @@ export function speakerViewHtml(m, track) {
 //   doc, nav     the page's document and navigator (tests pass stand-ins)
 //   host         where the dialog goes (document.body when left out)
 //   escLayer     core/ui.js escLayer, so Esc closes this before anything under it (optional)
+//   behind       a CSS selector for the page parts made inert while the view is open ('header, main' when left out,
+//                the same parts the page's own dialogs make inert)
 // Returns { open(model, track), update(model), close(), isOpen(), focusMain(), trackEl() }.
 export function createSpeakerView(opts) {
   const o = opts || {};
@@ -103,6 +105,7 @@ export function createSpeakerView(opts) {
   let root = null;
   let shown = null; // the last model written
   let wentFull = false;
+  let inerted = []; // [element, was it inert before]
   const q = (s) => (root ? root.querySelector(s) : null);
 
   function onKey(ev) {
@@ -120,7 +123,8 @@ export function createSpeakerView(opts) {
       const next = ev.shiftKey ? (at <= 0 ? list[list.length - 1] : list[at - 1]) : (at === -1 || at === list.length - 1 ? list[0] : list[at + 1]);
       if (next) { ev.preventDefault(); next.focus(); }
     }
-    // Room shortcuts (number keys, Space on the card) must not reach the page behind.
+    // Room shortcuts (number keys, Space on the card, the palette) must not reach the page behind, wherever the focus
+    // is (a tap on the digits can leave it on the page body). This runs on the document in the capture phase.
     if (typeof ev.stopPropagation === 'function') ev.stopPropagation();
   }
   function onClick(ev) {
@@ -164,12 +168,18 @@ export function createSpeakerView(opts) {
     root.setAttribute('role', 'dialog');
     root.setAttribute('aria-modal', 'true');
     root.setAttribute('aria-labelledby', 'sv-title');
+    root.setAttribute('tabindex', '-1'); // a tap inside keeps the focus in the view
     root.innerHTML = speakerViewHtml(model, track);
     shown = model;
-    root.addEventListener('keydown', onKey);
     root.addEventListener('click', onClick);
     (o.host || d.body).appendChild(root);
-    try { d.addEventListener('fullscreenchange', onFull); d.addEventListener('webkitfullscreenchange', onFull); } catch { /* no events */ }
+    // The page behind can not be reached by Tab or a screen reader while the view is open.
+    try { inerted = [...d.querySelectorAll(o.behind || 'header, main')].filter((el) => el !== root).map((el) => [el, el.inert]); } catch { inerted = []; }
+    for (const [el] of inerted) el.inert = true;
+    try {
+      d.addEventListener('keydown', onKey, true);
+      d.addEventListener('fullscreenchange', onFull); d.addEventListener('webkitfullscreenchange', onFull);
+    } catch { /* no events */ }
     goFull();
     awake.request();
     focusMain();
@@ -179,6 +189,8 @@ export function createSpeakerView(opts) {
     if (!root || !model) return;
     const cls = 'speaker-view stage-' + model.stage;
     if (root.className !== cls) root.className = cls;
+    const title = q('#sv-title');
+    if (title && (!shown || shown.code !== model.code)) title.innerHTML = `<span class="sr-only">Speaker view: </span>${esc(model.code)}`;
     const dg = q('#sv-digits'); if (dg && dg.textContent !== model.digits) dg.textContent = model.digits;
     const sb = q('#sv-sub'); if (sb && sb.textContent !== model.sub) sb.textContent = model.sub;
     if (!shown || shown.phase.key !== model.phase.key) {
@@ -196,8 +208,12 @@ export function createSpeakerView(opts) {
     if (!root) return;
     const d = doc();
     leaveFull();
-    try { d.removeEventListener('fullscreenchange', onFull); d.removeEventListener('webkitfullscreenchange', onFull); } catch { /* no events */ }
-    root.removeEventListener('keydown', onKey);
+    try {
+      d.removeEventListener('keydown', onKey, true);
+      d.removeEventListener('fullscreenchange', onFull); d.removeEventListener('webkitfullscreenchange', onFull);
+    } catch { /* no events */ }
+    for (const [el, was] of inerted) el.inert = was;
+    inerted = [];
     root.removeEventListener('click', onClick);
     root.remove();
     root = null; shown = null; wentFull = false;

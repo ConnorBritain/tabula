@@ -21,7 +21,7 @@ const modelAt = (left) => speakerModel(timerFace(running(left), L, G, T0), { poi
 
 // ---------- small stand-ins for the page ----------
 class El {
-  constructor(doc, tag) { this.doc = doc; this.tagName = String(tag || 'div').toUpperCase(); this.attrs = {}; this.listeners = {}; this.parts = new Map(); this.html = ''; this.text = ''; this.className = ''; this.removed = false; this.parent = null; this.writes = 0; }
+  constructor(doc, tag) { this.doc = doc; this.tagName = String(tag || 'div').toUpperCase(); this.attrs = {}; this.listeners = {}; this.parts = new Map(); this.html = ''; this.text = ''; this.className = ''; this.removed = false; this.parent = null; this.writes = 0; this.inert = false; }
   set innerHTML(v) { this.html = String(v); this.writes++; }
   get innerHTML() { return this.html; }
   set textContent(v) { this.text = String(v); this.writes++; }
@@ -44,8 +44,10 @@ function fakeDoc({ full = true } = {}) {
   doc.exitFullscreen = () => { doc.exited++; doc.fullscreenElement = null; return Promise.resolve(); };
   doc.addEventListener = (t, fn) => { (doc.listeners[t] ||= []).push(fn); };
   doc.removeEventListener = (t, fn) => { doc.listeners[t] = (doc.listeners[t] || []).filter((f) => f !== fn); };
-  doc.fire = (t) => { for (const fn of [...(doc.listeners[t] || [])]) fn({}); };
+  doc.fire = (t, ev = {}) => { const e = Object.assign({ target: doc.body, defaultPrevented: false, stopped: false, preventDefault() { e.defaultPrevented = true; }, stopPropagation() { e.stopped = true; } }, ev); for (const fn of [...(doc.listeners[t] || [])]) fn(e); return e; };
   doc.body = new El(doc, 'body');
+  doc.main = new El(doc, 'main'); // the page behind (header, main)
+  doc.querySelectorAll = () => [doc.main];
   return doc;
 }
 function fakeNav() {
@@ -236,7 +238,8 @@ test('Esc, Back and leaving full screen return to the judge view and give the fo
     assert.equal(doc.fullscreenElement, root, 'full screen where the browser has it');
     await flush();
     assert.equal(nav.asked, 1, 'the screen stays awake');
-    if (how === 'esc') root.fire('keydown', { key: 'Escape' });
+    assert.equal(doc.main.inert, true, 'the page behind is inert while the view is open');
+    if (how === 'esc') doc.fire('keydown', { key: 'Escape', target: root });
     if (how === 'back') root.fire('click', { target: root.querySelector('[data-sv="back"]') });
     if (how === 'layer') { assert.equal(layers[0][2](), true); layers[0][3](); } // the page's Esc stack
     if (how === 'fullscreen') { doc.fullscreenElement = null; doc.fire('fullscreenchange'); }
@@ -246,6 +249,8 @@ test('Esc, Back and leaving full screen return to the judge view and give the fo
     assert.equal(doc.fullscreenElement, null, how);
     await flush();
     assert.equal(nav.released, 1, how + ': the wake lock is let go');
+    assert.equal(doc.main.inert, false, how + ': the page behind is back');
+    assert.equal((doc.listeners.keydown || []).length, 0, how + ': no key listener left behind');
     assert.equal(mains, 0);
   }
 });
@@ -257,14 +262,45 @@ test('Space starts or stops, except on a button, where it presses that button', 
   const sv = createSpeakerView({ doc, nav: {}, onMain: () => { mains++; } });
   sv.open(modelAt(200), '');
   const root = doc.added[0];
-  const ev = root.fire('keydown', { key: ' ', target: root });
+  assert.equal(root.getAttribute('tabindex'), '-1', 'a tap inside keeps the focus in the view');
+  const ev = doc.fire('keydown', { key: ' ', target: root });
   assert.equal(mains, 1);
   assert.equal(ev.defaultPrevented, true);
-  root.fire('keydown', { key: ' ', target: root.querySelector('[data-sv="back"]') });
+  doc.fire('keydown', { key: ' ', target: root.querySelector('[data-sv="back"]') });
   assert.equal(mains, 1, 'native Space on a button');
-  root.fire('keydown', { key: 'Tab', target: root });
-  root.fire('keydown', { key: 'Tab', target: root });
+  doc.fire('keydown', { key: 'Tab', target: root });
+  doc.fire('keydown', { key: 'Tab', target: root });
   assert.equal(doc.activeElement, root.querySelector('[data-sv="main"]'), 'Tab stays inside the view');
+  sv.close();
+});
+
+// Why: a number key that reaches the room behind picks another speaker, and the big Start then times the wrong one.
+test('keys pressed with the focus on the page body stay in the view', () => {
+  const doc = fakeDoc();
+  let mains = 0;
+  const sv = createSpeakerView({ doc, nav: {}, onMain: () => { mains++; } });
+  sv.open(modelAt(200), '');
+  const one = doc.fire('keydown', { key: '1', target: doc.body });
+  assert.equal(one.stopped, true, 'a number key does not reach the room shortcuts');
+  const k = doc.fire('keydown', { key: 'k', ctrlKey: true, target: doc.body });
+  assert.equal(k.stopped, true, 'nor the palette');
+  doc.fire('keydown', { key: ' ', target: doc.body });
+  assert.equal(mains, 1, 'Space on the body is Start / Stop');
+  doc.fire('keydown', { key: 'Tab', target: doc.body });
+  assert.equal(doc.activeElement, doc.added[0].querySelector('[data-sv="back"]'), 'Tab from the body comes back into the view');
+  sv.close();
+  const after = doc.fire('keydown', { key: '1', target: doc.body });
+  assert.equal(after.stopped, false, 'closed: the room shortcuts work again');
+});
+
+// Why: if the current speaker changes, a title with the old code tells the room the wrong name.
+test('the title follows the current entry', () => {
+  const doc = fakeDoc();
+  const sv = createSpeakerView({ doc, nav: {} });
+  sv.open(modelAt(200), '');
+  const next = Object.assign({}, modelAt(200), { code: 'B07' });
+  sv.update(next);
+  assert.match(doc.added[0].querySelector('#sv-title').innerHTML, /B07/);
   sv.close();
 });
 
