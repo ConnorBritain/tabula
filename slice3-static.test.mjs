@@ -46,6 +46,8 @@ test('the left-pane transcript is gone from the page and the app', () => {
   }
   assert.match(HTML, /<section class="tab pane pane-left" id="tab-timer" aria-label="Speeches and docs">/);
   assert.match(HTML, /aria-label="Hide the speeches pane"/);
+  // CHANGED (copy trim audit 2026-11-24: the transcript placeholder copy was cut; same check, new words). Old line:
+  // assert.match(HTML, /placeholder="Words from the speech show here while the clock runs\. You can type or fix them\."/);
   assert.match(HTML, /placeholder="Speech text shows here\. You can edit it\."/);
   // The (?) about transcription and its problem dot moved into the drawer header.
   assert.match(HTML, /<div class="tr-drawer-head">[\s\S]*?aria-controls="rec-note"[\s\S]*?<\/div>/);
