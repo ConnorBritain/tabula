@@ -2,8 +2,10 @@
 // Copies an ALLOWLIST of the app's public files into dist/app/. A new file in the repo
 // root (a plan, a test, private notes) never ships unless someone adds it here.
 // Then it checks that every local file index.html and about.html link to is in the output.
+// It also writes version.json ({ sha, builtAt }) so anyone can see which commit is live.
 // Run: node build-app.mjs [outDir]
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -20,7 +22,24 @@ export const ALLOW = [
 // core/package.json only tells Node that core/ holds ES modules; the page does not need it.
 const BLOCK = [/\.test\.(m?js)$/, /(^|\/)README\.md$/, /\.local\./, /(^|\/)\./, /^core\/package\.json$/];
 
-export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW) {
+/**
+ * What version.json says: { sha, builtAt }. The field names match the server's health
+ * route and the marketing sites, so one check reads all three.
+ * BUILD_SHA and BUILD_TIME override; else `git rev-parse HEAD` and the clock; else "dev".
+ * It never throws: a missing git must not stop a deploy.
+ */
+export function versionInfo(env = process.env, now = new Date()) {
+  let sha = (env.BUILD_SHA || '').trim();
+  if (!sha) {
+    try {
+      sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+    } catch { sha = ''; }
+  }
+  const builtAt = (env.BUILD_TIME || '').trim() || now.toISOString();
+  return { sha: sha || 'dev', builtAt };
+}
+
+export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW, env = process.env) {
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
   for (const name of allow) {
@@ -31,6 +50,7 @@ export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW) {
       filter: (p) => !BLOCK.some((re) => re.test(relative(ROOT, p).split('\\').join('/'))),
     });
   }
+  writeFileSync(join(out, 'version.json'), JSON.stringify(versionInfo(env)) + '\n');
   const missing = missingRefs(out);
   if (missing.length) throw new Error(`build-app: a shipped page links to files that are not in the output: ${missing.join(', ')}`);
   return out;
