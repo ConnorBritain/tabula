@@ -5,11 +5,13 @@
 //     (rankPool 'spokeOrPresided', Last Chance);
 //   - the pool is sorted by total counted points, then speech count, then chamber order;
 //   - NO rank-rating rule: a legislator with fewer points can rank higher ("quality is more important than quantity");
-//   - a tie in points between two ranked legislators is a warning, not a block.
+//   - a tie in points between ranked legislators is a note, not a block (one line for each group, not each pair);
+//   - a closed session (an earlier one) reads the statuses it ended with (chamber.js statusIn).
 import { moveRank } from '../../core/ranks.js';
-import { legislatorLines } from './speech.js';
+import { legislatorLines, openCount } from './speech.js';
 import { poHoursBy } from './po.js';
 import { ranksOnly } from './profiles.js';
+import { statusIn } from './chamber.js';
 
 const fromMap = (map, ids, cap) => {
   const out = [];
@@ -17,13 +19,13 @@ const fromMap = (map, ids, cap) => {
   return out;
 };
 
-// The rank pool: [{ legislator, total, count, average, poHours }] in pool order.
+// The rank pool: [{ legislator, total, count, average, open (speeches with no counted points), poHours }] in pool order.
 export function rankPool(chamber, session) {
   const po = poHoursBy(session);
   const presided = new Set(session.poTerms.map((t) => t.legislatorId));
   return legislatorLines(chamber, session)
-    .map((line, i) => ({ legislator: line.legislator, total: line.total, count: line.count, average: line.average, poHours: po[line.legislator.id] || [], presided: presided.has(line.legislator.id), i }))
-    .filter((x) => x.legislator.status === 'present')
+    .map((line, i) => ({ legislator: line.legislator, total: line.total, count: line.count, average: line.average, open: openCount(line, chamber.profile), poHours: po[line.legislator.id] || [], presided: presided.has(line.legislator.id), i }))
+    .filter((x) => statusIn(session, x.legislator) === 'present')
     .filter((x) => chamber.profile.rankPool !== 'spokeOrPresided' || x.count > 0 || x.presided)
     .sort((a, b) => b.total - a.total || b.count - a.count || a.i - b.i);
 }
@@ -64,8 +66,8 @@ function trimEnd(arr) {
   return out;
 }
 
-// Where the rank stands: { slots: [legislatorId|null] (length topN or the pool size), complete, ties: [[idA, idB]]
-// (ranked legislators with the same total points: a warning), gone: [ids ranked who left the pool (absent)] }.
+// Where the rank stands: { slots: [legislatorId|null] (length topN or the pool size), complete, ties: [[ids]]
+// (each group of ranked legislators with the same total points: a note), gone: [ids ranked who left the pool (absent)] }.
 export function rankModel(chamber, session) {
   const pool = rankPool(chamber, session);
   const ids = pool.map((x) => x.legislator.id);
@@ -75,8 +77,13 @@ export function rankModel(chamber, session) {
   const totals = new Map(pool.map((x) => [x.legislator.id, x.total]));
   const ties = [];
   const ranked = slots.filter(Boolean);
-  // A ranks-only profile has no points, so a points tie means nothing there.
-  if (!ranksOnly(chamber.profile)) for (let i = 0; i < ranked.length; i++) for (let j = i + 1; j < ranked.length; j++) if (totals.get(ranked[i]) === totals.get(ranked[j])) ties.push([ranked[i], ranked[j]]);
+  // A ranks-only profile has no points, so a points tie means nothing there. One group for each total that two or more
+  // ranked legislators share, in rank order (a 6-way tie is one line, not 15 pairs).
+  if (!ranksOnly(chamber.profile)) {
+    const groups = new Map();
+    for (const id of ranked) { const t = totals.get(id); if (!groups.has(t)) groups.set(t, []); groups.get(t).push(id); }
+    for (const g of groups.values()) if (g.length > 1) ties.push(g);
+  }
   return { pool, slots, topN: n, complete: n > 0 && slots.every(Boolean), ties, gone };
 }
 

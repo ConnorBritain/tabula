@@ -1,14 +1,14 @@
 # Buy first, set up later (spec, draft 2)
 
-Status: DRAFT. The owner agreed to the flow on 2026-11-22. Settle the design, then build. Nothing ships before the lawyer answers the brief (private file `private/legal/BUY-FIRST-LAWYER-BRIEF.md`) and the owner says yes.
+Status: DRAFT. The owner agreed to the flow on 2026-11-22. Settle the design, then build. It needs owner sign-off before it ships.
 
-Draft 2 changes the core design. Draft 1 kept the Rounds on a "waiting" purchase with no owner. The server cannot do that: renewals, refunds, disputes and the billing portal all need an account (tabula-cloud `src/billing/webhook.ts`; `payments.owner_id` and `subscriptions.user_id` are NOT NULL). Draft 2 gives every purchase an owner from the first second: **the buyer's own account**, made from the checkout email. Setup is then either "the buyer uses it" or "the buyer sends it to someone".
+Draft 2 changes the core design. Draft 1 kept the Rounds on a "waiting" purchase with no owner. The server cannot do that: renewals, refunds, disputes and the billing portal all need an account (in the server, `payments.owner_id` and `subscriptions.user_id` are NOT NULL). Draft 2 gives every purchase an owner from the first second: **the buyer's own account**, made from the checkout email. Setup is then either "the buyer uses it" or "the buyer sends it to someone".
 
 ## 1. Goal
 
 Anyone can buy a Paid Plan right away, with no sign-in. The Rounds are active at once. The person who will use them sets up later, or the buyer sends the setup to them.
 
-Why: admins, coaches, parents and judges often want to pay first. Today the server needs a signed-in account with a date of birth before it opens checkout (tabula-cloud `src/billing/routes.ts:20-26`).
+Why: admins, coaches, parents and judges often want to pay first. Today the server needs a signed-in account with a date of birth before it opens checkout (in the server).
 
 ## 2. Rules (owner decisions, 2026-11-22)
 
@@ -35,13 +35,13 @@ Why: admins, coaches, parents and judges often want to pay first. Today the serv
 ### 4.1 Buy
 
 1. The visitor clicks Buy. No sign-in.
-2. Our server makes a Stripe Checkout Session with no user. Stripe asks for the email. The server also sets `customer_creation: "always"` for one-time purchases, so that every charge has a Stripe customer (today this is set only on the `customer_email` branch, `src/billing/routes.ts`).
+2. Our server makes a Stripe Checkout Session with no user. Stripe asks for the email. The server also sets `customer_creation: "always"` for one-time purchases, so that every charge has a Stripe customer (today this is set only on the `customer_email` branch in the server).
 3. Abuse controls on this open endpoint: Stripe Radar, a Turnstile check on the Buy click, and a per-IP cap that allows a school network (for example, 30 sessions per IP per hour).
 4. If the visitor is already signed in, the server works as today, except that it no longer needs a date of birth first. The purchase belongs to their account.
 
 ### 4.2 After payment (server)
 
-1. The webhook arrives. The server calls `findOrCreateUser(email)` (exists in `src/auth/email.ts`) with the normalized buyer email (`normalizeEmail`). That is the buyer account.
+1. The webhook arrives. The server calls `findOrCreateUser(email)` (already exists in the server) with the normalized buyer email (`normalizeEmail`). That is the buyer account.
    - The buyer account is **unverified** until someone signs in with that email. An unverified account shows nothing to anyone.
    - If `findOrCreateUser` refuses (for example, a deleted account), the webhook flags the event for review (`ctx.review`) and returns success, so Stripe does not retry for ever.
 2. The grant runs as today, to the buyer account.
@@ -85,7 +85,7 @@ The buyer signs in (from the screen, the setup email, or later with their email)
 4. If the age result allows it, the server sends the purchase:
    - It reserves the setup (`UPDATE purchase_setups SET status='claiming', claimed_by=? WHERE status='open'`).
    - It takes the purchase's unused Rounds back from the buyer account and grants them to the user, with one idempotent ledger reference (`setup:<purchase key>`). A crash between the steps can be retried safely.
-   - The Rounds get new expiry dates, counted from the setup day, not the purchase date (owner decision 2026-11-22, legal update 5 Part B, Terms §6.6). A Weekend Pass or Camp Pass keeps its own rule: its days start when its first Round is committed.
+   - Sent Rounds have no end date: paid Rounds never expire. (Draft 2 said "new expiry dates from the setup day"; dropped 2026-11-23.) A Camp Pass keeps its own rule: its days start when its first Round is committed.
    - Status becomes `sent`.
 5. The buyer gets a "Your purchase was set up by [masked email]" email.
 
@@ -102,7 +102,7 @@ Subscriptions:
 - It comes at the first sign-in of any account, before the Rounds can be used.
 - **The server enforces it.** The Hosted AI and meter routes refuse an account with no date of birth (`age_required`). Today only the page redirect (`landing()`) sends users to the age step, and `requireUser` does not check age.
 - It is neutral: no price and no "18+" words on the screen.
-- A buyer who only uses button 2 ("Send setup to someone else") never gives a date of birth. The buyer confirmed at checkout that they are an adult, and the person who receives the Rounds gives a date of birth. The lawyer must accept this (brief).
+- A buyer who only uses button 2 ("Send setup to someone else") never gives a date of birth. The buyer confirmed at checkout that they are an adult, and the person who receives the Rounds gives a date of birth. This needs owner sign-off before it ships.
 - Results:
   - **18 or older (or the adult age in that state):** continue.
   - **13 to 17:** continue. An adult paid (rule 5).
@@ -135,14 +135,14 @@ When the date of birth means the person is under 13:
 2. "No, let me fix it" goes back to the date field. It works once. The server enforces "once", not only the screen: the first under-13 date is stored as a pending date (`users.age_pending_date`) with a fix counter (`users.age_fix_used`). Neither is the saved date of birth yet.
 3. **Confirmation 2:** after "Yes", the person types their birth year again. If it matches, the under-13 path starts. If it does not match, the date field opens again (this counts as the one fix).
 
-The FTC advises an age question that a child cannot simply go back and change. One fix before the date is saved is a small exception. The lawyer must confirm it (brief, question 7).
+The FTC advises an age question that a child cannot simply go back and change. One fix before the date is saved is a small exception. It needs owner sign-off before it ships.
 
 ### 7.2 The 7-day hold
 
 After confirmation 2:
 
 1. The account is on hold. The server refuses every request from it except "sign out" (a check in `requireUser`). A new `age_hold_until` column holds the hold state.
-2. We keep only: the account email, the date of birth, and the time. We collect nothing else. This is a change from today, where nothing is kept (`src/age-routes.ts`). The Privacy Policy §12 needs a line for it.
+2. We keep only: the account email, the date of birth, and the time. We collect nothing else. This is a change from today, where nothing is kept. The Privacy Policy §12 needs a line for it.
 3. The block cookie is set at once, as today, so that this browser cannot try again with another date.
 4. Nothing moves. If this account was a user receiving a purchase, the Rounds stay on the buyer account. The setup link goes back to `open`.
 5. We email the **buyer** (if the buyer is a different account): "The person who used your setup link gave a date of birth under 13. Tabula is not for children under 13. Your Rounds are still on your account." Choices:
@@ -197,10 +197,10 @@ A typed setup code is not offered. The link is the only path, and the buyer can 
 |---|---|
 | Refund before the Rounds were sent | The refund takes Rounds back from the buyer account, as today. A subscription refund also cancels the subscription. |
 | Refund after the Rounds were sent | The refund takes back the purchase's unused Rounds from the account that `payment_moves` names. Rounds already used are not taken back, and no balance goes below zero (the take-back is capped at what is left, as today). The buyer is emailed. |
-| Dispute (chargeback) | The billing hold goes on the buyer account only, never on the user. The user's unused Rounds from that purchase are taken back. (Q: the lawyer may drop the dispute hold entirely, brief question 15.) |
+| Dispute (chargeback) | The billing hold goes on the buyer account only, never on the user. The user's unused Rounds from that purchase are taken back. (Open question; needs owner sign-off before it ships: drop the dispute hold entirely.) |
 | The user's account is deleted | Unused Rounds from the purchase go back to the buyer account. The buyer is emailed. |
 | The buyer typed a wrong email at checkout | The receipt and setup link go to a stranger. The buyer contacts support with the order number. Support voids the setup link, moves the purchase to the right email, and sends a new link. |
-| No one ever uses the Rounds | Reminders at 3 and 14 days. The Rounds stay on the buyer account and expire on the normal schedule from the purchase date. If the buyer sends them later, the expiry restarts from the setup day. |
+| No one ever uses the Rounds | Reminders at 3 and 14 days. The Rounds stay on the buyer account. They have no end date (paid Rounds never expire), so a later send changes no date. |
 | A minor used a parent's card without permission | The parent asks for a refund (rule 8). We refund and take back the Rounds. |
 | A Program or school | Not in this spec. Schools pay by invoice (Terms §9). A self-serve team pool is platform work. |
 
@@ -211,8 +211,8 @@ Also: `open` → `replaced` (a new link was made), `open` → `cancelled` (refun
 
 ## 13. What changes where
 
-**tabula-cloud**
-- New module `src/billing/setups.ts` for setups, sends and holds. New mail templates in `src/billing/mailer.ts`. Do not grow `webhook.ts` or `setBirthDate`.
+**The server**
+- A new billing module for setups, sends and holds. New mail templates. Do not grow `webhook.ts` or `setBirthDate`.
 - Checkout with no user: remove the sign-in and date-of-birth gate (keep the billing-hold check for signed-in buyers). Add Turnstile and the per-IP cap. Set `customer_creation: "always"`.
 - Webhook: find or create the buyer account from the email when there is no user ID.
 - One migration adds: `purchase_setups`, `payment_moves`, `stripe_customers`, `mail_outbox`, and on `users`: `age_hold_until`, `age_pending_date`, `age_fix_used`, and a "verified" time (first sign-in).
@@ -224,13 +224,13 @@ Also: `open` → `replaced` (a new link was made), `open` → `cancelled` (refun
 
 **Settle before the build starts (these can break the design)**
 - Managed Payments allows checkout with no customer, Stripe collecting the email, and `customer_creation: "always"`.
-- `lotFor` can give moved Rounds a new expiry that counts from the setup day (owner decision 2026-11-22).
+- ~~`lotFor` can give moved Rounds a new expiry that counts from the setup day.~~ Moot: paid Rounds never expire (2026-11-23).
 
 **Check during the build**
 - Managed Payments allows refunds by API.
 - `applyTakeBack` works on an account that `closeAccount` has closed.
 
-**tabula-sites and the app**
+**The site repo and the app**
 - Plans page: Buy works signed out, with the line under each Buy button.
 - The "purchase active" screen, the setup screen, the neutral date-of-birth screen, the two under-13 confirmations, the hold screen.
 - Sign-in page link (section 9).
@@ -240,7 +240,7 @@ Also: `open` → `replaced` (a new link was made), `open` → `cancelled` (refun
 
 **Legal**
 - Terms §3, §8, §13 (moving Rounds at setup is allowed; today §13 forbids transfers) and the Refund Policy. The Privacy Policy §3 (accounts made from the checkout email) and §12 (the 7-day hold).
-- The lawyer brief.
+- Owner sign-off before it ships.
 
 ## 14. Open questions for the owner
 

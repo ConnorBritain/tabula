@@ -11,8 +11,9 @@ import { statusPillHtml } from '../js/status-pill.js';
 import { parseRoom } from '../js/parse.js';
 import { newId } from '../js/room.js';
 import { congressIO, findChamber, chamberSessions, withChamber, withSession } from './store.js';
-import { CONGRESS_PROFILES, DEFAULT_CONGRESS_PROFILE, SCALE_CHOICES, congressProfile, scaleId, scaleText, ranksOnly, unverifiedWords } from './profiles.js';
-import { createChamber, newSession, setStatus, setupChecks, docketLines, houseWord } from './chamber.js';
+import { CONGRESS_PROFILES, DEFAULT_CONGRESS_PROFILE, SCALE_CHOICES, RANK_POOL_WORDS, congressProfile, scaleId, scaleText, ranksOnly, unverifiedWords, poScaleChoices, rankPoolChoices } from './profiles.js';
+import { BETA_TAG, betaNoteHtml, CHECK_RULE } from './views.js';
+import { createChamber, newSession, setStatus, setupChecks, docketLines, houseWord, closeSession, sessionsToClose } from './chamber.js';
 import { sessionStatus } from './review.js';
 
 const STATUS_WORDS = Object.freeze({ present: 'Present', absent: 'Absent', left: 'Left' });
@@ -23,7 +24,8 @@ export function listHtml(state) {
     return `<li><a class="room-link" href="#/chamber/${esc(c.id)}"><span class="room-name">${houseWord(c)}${c.tournament ? ' · ' + esc(c.tournament) : ''}${c.roomLabel ? ' · ' + esc(c.roomLabel) : ''}</span>
       <span class="room-meta">${c.legislators.length} legislators · ${n} ${n === 1 ? 'session' : 'sessions'}</span></a></li>`;
   }).join('');
-  return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">Congress chambers</h1><a class="b primary" href="#/chamber/new">New chamber</a></div>
+  return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">Congress chambers ${BETA_TAG}</h1><a class="b primary" href="#/chamber/new">New chamber</a></div>
+    ${betaNoteHtml()}
     ${rows ? `<ul class="room-list">${rows}</ul>` : '<p class="muted">No chambers yet.</p>'}`;
 }
 
@@ -32,7 +34,8 @@ export function setupHtml(prefs) {
   const pid = (prefs && prefs.profileId && congressProfile(prefs.profileId)) ? prefs.profileId : DEFAULT_CONGRESS_PROFILE;
   const prOpts = CONGRESS_PROFILES.map((p) => `<option value="${esc(p.id)}"${p.id === pid ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
   const scOpts = `<option value="">The rules' scale</option>` + SCALE_CHOICES.map((s) => `<option value="${s.id}"${prefs && prefs.scale === s.id ? ' selected' : ''}>${esc(scaleText(s))}</option>`).join('');
-  return `<div class="screen-head"><a class="b quiet back" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">New Congress chamber</h1></div>
+  return `<div class="screen-head"><a class="b quiet back" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">New Congress chamber ${BETA_TAG}</h1></div>
+  ${betaNoteHtml()}
   <form class="setup" id="cg-setup" novalidate>
     <div class="setup-fields">
       <label class="field"><span>Tournament</span><input id="cg-tournament" autocomplete="off" maxlength="80"></label>
@@ -43,6 +46,7 @@ export function setupHtml(prefs) {
       <p class="cg-role"><span class="cg-role-k">Role:</span> Scorer <span class="muted">(parliamentarian tools come later)</span></p>
       <label class="field"><span>Rules</span><select id="cg-profile">${prOpts}</select></label>
       <label class="field" id="cg-scale-field"><span>Points scale</span><select id="cg-scale">${scOpts}</select></label>
+      <div class="wide cg-open" id="cg-open"></div>
       <p class="field-help wide" id="cg-profile-note"></p>
       <label class="field wide"><span>Chamber list <span class="muted">paste the chamber list, or one code per line</span></span><textarea id="cg-paste" rows="8" spellcheck="false"></textarea></label>
       <label class="field wide"><span>Docket <span class="muted">(one bill or resolution for each line, in agenda order)</span></span><textarea id="cg-docket" rows="5"></textarea></label>
@@ -52,6 +56,22 @@ export function setupHtml(prefs) {
   </form>`;
 }
 
+// The choices for the values a source did not confirm (the PO points range, who can be ranked), each with "Check
+// your tournament's rule". The app does not decide these: the rules' value comes first and the judge can change it.
+// picks: { poScale?: '4-8', rankPool?: 'present' } (the current form values, so a redraw keeps them).
+export function openFactsHtml(profile, picks = {}) {
+  const po = poScaleChoices(profile);
+  const pool = rankPoolChoices(profile);
+  if (!po.length && !pool.length) return '';
+  const opt = (v, words, on) => `<option value="${esc(v)}"${on ? ' selected' : ''}>${esc(words)}</option>`;
+  const poCur = picks.poScale && po.some((c) => scaleId(c) === picks.poScale) ? picks.poScale : (po[0] ? scaleId(po[0]) : '');
+  const poolCur = picks.rankPool && pool.includes(picks.rankPool) ? picks.rankPool : pool[0];
+  return `<p class="cg-open-head">Not settled in the rules we found. ${CHECK_RULE}</p><div class="cg-open-fields">`
+    + (po.length ? `<label class="field"><span>PO points for each full hour</span><select id="cg-po-scale">${po.map((c) => opt(scaleId(c), scaleText(c), scaleId(c) === poCur)).join('')}</select></label>` : '')
+    + (pool.length ? `<label class="field"><span>Who can be ranked</span><select id="cg-rank-pool">${pool.map((k) => opt(k, RANK_POOL_WORDS[k], k === poolCur)).join('')}</select></label>` : '')
+    + '</div>';
+}
+
 // The line under the rules: the scales and what a source did not confirm.
 export function profileNote(profile, scale) {
   const s = scale || profile.scale;
@@ -59,14 +79,15 @@ export function profileNote(profile, scale) {
   const open = unverifiedWords(profile);
   const speeches = ranksOnly(profile) ? 'Ranks only: no speech points' : 'Speeches: ' + scaleText(s);
   return speeches + '. ' + po + ' Top ' + profile.topN + '.' + (profile.reasonBelow != null ? ' A score below ' + profile.reasonBelow + ' needs a reason.' : '')
-    + (open.length ? ' Not verified: ' + open.join(', ') + '. Check with the tab room.' : '');
+    + (profile.rankPool === 'spokeOrPresided' ? ' Only those who spoke or presided can be ranked.' : '')
+    + (open.length ? ' Not verified: ' + open.join(', ') + '. ' + CHECK_RULE : '');
 }
 
 // The preview: the legislators found and the "Check these" lines.
 export function previewHtml(parsed, checks) {
   const n = parsed.entries.length;
   return `<h2 class="preview-title">${n ? n + (n === 1 ? ' legislator' : ' legislators') : 'No legislators yet'}</h2>
-    ${n ? `<p class="cg-codes">${parsed.entries.map((e) => `<span class="pill outline code">${esc(e.code)}</span>`).join(' ')}</p>` : ''}
+    ${n ? `<p class="cg-codes">${parsed.entries.map((e) => statusPillHtml('outline', e.code, '', { cls: 'code' })).join(' ')}</p>` : ''}
     ${checks.length ? `<h3>Check these</h3><ul class="check-list">${checks.map((c) => `<li class="check-row"><p>${esc(c.text)}</p></li>`).join('')}</ul>` : ''}`;
 }
 
@@ -82,21 +103,39 @@ export function overviewHtml(state, chamber) {
   const sessions = chamberSessions(state, chamber.id);
   const next = sessions.length + 1;
   const p = chamber.profile;
+  // While the latest session is not handed in, the judge most likely wants to go back to it, so that is the primary
+  // action, and "Start session N" is a plain button (one stray tap no longer opens a new ballot mid-session).
+  const last = sessions[sessions.length - 1];
+  const open = last && !last.submittedAt ? last : null;
+  const startBtn = `<button class="b${open ? '' : ' primary'}" type="button" data-chact="session" data-key="session">${icon('play', 20)}Start session ${next}</button>`;
+  const head = open ? `<div class="cg-row"><a class="b primary" href="#/round/${esc(open.id)}/log">Open session ${esc(open.number)}</a>${startBtn}</div>` : startBtn;
+  const picked = (p.picked || []).map((f) => (f === 'poScale' ? 'PO points ' + scaleText(p.poScale) : 'who can be ranked: ' + RANK_POOL_WORDS[p.rankPool].toLowerCase()));
   const srows = sessions.map((s) => `<li><a class="room-link" href="#/round/${esc(s.id)}/log"><span class="room-name">Session ${esc(s.number)}</span>
       ${sessionPill(s)}<span class="room-meta">${s.speeches.length} ${s.speeches.length === 1 ? 'speech' : 'speeches'}</span>${icon('chevron-right')}</a></li>`).join('');
   const lrows = chamber.legislators.map((l) => `<li class="cg-leg"><span class="code">${esc(l.code)}</span>${outPill(l.status)}<span class="muted">${esc(l.name || '')}</span>
       <label class="sr-only" for="st-${esc(l.id)}">Status of ${esc(l.code)}</label>
       <select id="st-${esc(l.id)}" data-status="${esc(l.id)}">${Object.keys(STATUS_WORDS).map((k) => `<option value="${k}"${l.status === k ? ' selected' : ''}>${STATUS_WORDS[k]}</option>`).join('')}</select></li>`).join('');
   const drows = chamber.docket.map((d) => `<li${d.debatedInSession ? ' class="muted"' : ''}>${esc(d.title)}${d.debatedInSession ? ' ' + statusPillHtml('live', 'Done in session ' + d.debatedInSession, 'check') : ''}</li>`).join('');
-  return `<div class="screen-head"><a class="b quiet back" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">${houseWord(chamber)}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''}</h1>
-      <button class="b primary" type="button" data-chact="session" data-key="session">${icon('play', 20)}Start session ${next}</button></div>
-    <p class="cg-before" id="cg-before">${icon('info')}Mark who is absent before a session. Absent legislators are not in the rank pool.</p>
-    <p class="muted">${esc(p.name)} · ${esc(profileNote(p))}</p>
+  return `<div class="screen-head"><a class="b quiet back" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">${houseWord(chamber)}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''} ${BETA_TAG}</h1>
+      ${head}</div>
+    <p class="cg-before" id="cg-before">${icon('info')}Mark who is absent before a session. Absent legislators are not in the rank pool. A session whose ranks are copied or submitted keeps its own list.</p>
+    <p class="muted">${esc(p.name)} · ${esc(profileNote(p))}${picked.length ? ' Set at setup: ' + esc(picked.join('; ')) + '.' : ''}</p>
     <h2 class="cg-h">Sessions</h2>${srows ? `<ul class="room-list">${srows}</ul>` : '<p class="muted">No sessions yet.</p>'}
     <h2 class="cg-h">Legislators <span class="muted">(${chamber.legislators.length})</span></h2>
     <ul class="room-list cg-legs">${lrows}</ul>
     <h2 class="cg-h">Docket</h2>${drows ? `<ol class="cg-docket-list">${drows}</ol>` : '<p class="muted">No docket items.</p>'}
     <p class="muted">The parliamentarian's full-chamber rank comes in a later step.</p>`;
+}
+
+// A status change from the overview, as a new Congress state. Before the chamber changes, each session that must not
+// follow it (every earlier session, and the latest once its ranks are copied or it is submitted: chamber.js
+// sessionsToClose) keeps a copy of the statuses it had. So a change never empties a slot on a ballot handed in.
+export function statusChange(state, chamberId, legislatorId, status, now) {
+  const c = findChamber(state, chamberId);
+  if (!c) return state;
+  let st = state;
+  for (const s of sessionsToClose(chamberSessions(state, chamberId))) st = withSession(st, closeSession(s, c));
+  return withChamber(st, setStatus(c, legislatorId, status, now));
 }
 
 // env: { el, ui, store, now, go }.
@@ -113,12 +152,23 @@ export function createChamberScreen(env) {
       const sc = ranksOnly(profile) ? null : SCALE_CHOICES.find((s) => s.id === $('#cg-scale').value) || null;
       const parsed = parseRoom($('#cg-paste').value);
       const docket = docketLines($('#cg-docket').value);
-      return { profile, sc, parsed, docket, checks: setupChecks(parsed, docket, profile) };
+      const poSel = $('#cg-po-scale');
+      const poolSel = $('#cg-rank-pool');
+      const open = { poScale: poSel ? (poScaleChoices(profile).find((c) => scaleId(c) === poSel.value) || null) : null, rankPool: poolSel ? poolSel.value : null };
+      return { profile, sc, open, parsed, docket, checks: setupChecks(parsed, docket, profile) };
     };
+    let shownFor = null;
     const update = () => {
+      // The open-fact choices belong to one rules profile: draw them again only when the rules change, so a pick holds.
+      const pid = $('#cg-profile').value;
+      if (pid !== shownFor) {
+        shownFor = pid;
+        $('#cg-open').innerHTML = openFactsHtml(congressProfile(pid) || congressProfile(DEFAULT_CONGRESS_PROFILE));
+      }
       const r = read();
       $('#cg-scale-field').hidden = ranksOnly(r.profile);
-      $('#cg-profile-note').textContent = profileNote(r.profile, r.sc);
+      const shown = Object.assign({}, r.profile, r.open.poScale ? { poScale: r.open.poScale } : {}, r.open.rankPool ? { rankPool: r.open.rankPool } : {});
+      $('#cg-profile-note').textContent = profileNote(shown, r.sc);
       $('#cg-preview').innerHTML = previewHtml(r.parsed, r.checks);
       $('#cg-create').disabled = r.checks.some((c) => c.block);
     };
@@ -128,7 +178,7 @@ export function createChamberScreen(env) {
       if (r.checks.some((c) => c.block)) { update(); return; }
       const now = env.now();
       const chamber = createChamber({ entries: r.parsed.entries, docket: r.docket, house: (form.querySelector('input[name="cg-house"]:checked') || {}).value,
-        profile: r.profile, scale: r.sc, tournament: $('#cg-tournament').value.trim(), roomLabel: $('#cg-room').value.trim(), now, makeId: newId });
+        profile: r.profile, scale: r.sc, open: r.open, tournament: $('#cg-tournament').value.trim(), roomLabel: $('#cg-room').value.trim(), now, makeId: newId });
       const made = newSession(chamber, [], { now, makeId: newId });
       let st = withSession(withChamber(io.read(), made.chamber), made.session);
       st = Object.assign({}, st, { prefs: { profileId: r.profile.id, scale: r.sc ? scaleId(r.sc) : '' } });
@@ -148,14 +198,18 @@ export function createChamberScreen(env) {
       if (!b) return;
       const st = io.read();
       const c = findChamber(st, id);
-      const made = newSession(c, chamberSessions(st, id), { now: env.now(), makeId: newId });
-      if (io.write(withSession(withChamber(st, made.chamber), made.session))) location.hash = '#/round/' + made.session.id + '/log';
+      const earlier = chamberSessions(st, id);
+      const made = newSession(c, earlier, { now: env.now(), makeId: newId });
+      // Each earlier session keeps the statuses it ended with, so marking someone absent for this session never
+      // changes the rank pool of a ballot already scored (chamber.js closeSession).
+      let next = withChamber(st, made.chamber);
+      for (const old of earlier) next = withSession(next, closeSession(old, c));
+      if (io.write(withSession(next, made.session))) location.hash = '#/round/' + made.session.id + '/log';
     };
     const onChange = (ev) => {
       const sel = ev.target.closest('select[data-status]');
       if (!sel) return;
-      const st = io.read();
-      io.write(withChamber(st, setStatus(findChamber(st, id), sel.dataset.status, sel.value, env.now())));
+      io.write(statusChange(io.read(), id, sel.dataset.status, sel.value, env.now()));
       // The word beside the code follows the select at once (no redraw, so the focus stays on the select).
       const row = sel.closest('.cg-leg');
       const old = row && row.querySelector('[data-out]');

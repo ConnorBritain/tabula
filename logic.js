@@ -9,7 +9,7 @@
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./logic/' + name + '.js') : root.PolicyLogicParts[name]);
   const { FORMAT_FILES, FORMAT_IDS, DEFAULT_FORMAT_ID, OLD_ROUND, getFormat, formatOf, formatKnown, formatFields,
-    formatFromSearch, speechOf, columnOf, speakerOf, speechSpeakers, sideLabel, isCoinFlip, speakersOn, speakerTag, speakerName,
+    formatFromSearch, labelOf, speechOf, columnOf, speakerOf, speechSpeakers, sideLabel, isCoinFlip, speakersOn, speakerTag, speakerName,
     prepClocks, fullPrep, formatCopy } = part('format');
   const { SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS,
     PARADIGMS, BALLOT_HEADER, LOG_COLUMNS, formatClock, sheetSafe, csvCell, toCSV, toTSV, ballotRow, checkBallot,
@@ -45,7 +45,7 @@
   const { FEATURE_KEYS, APP_FEATURES, STORE_KEYS, capsRequest, parseCaps, capsOutcome, gateFor, canUse, payerOf, setupAllowed,
     showSetupFor, offTokens, visibleTourSteps, keyNoticeDue, KEY_NOTICE } = part('caps');
   const { PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
-    activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody } = part('account');
+    activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, formatLocked, hostedAiBody } = part('account');
   const { limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
     roundMode, consentStep, consentAsk, roundsLeftText, consentLine } = part('limits');
   const { BUY_URL, accountUrl, plansUrl, signinUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPays, selfPaidHosted, hasHostedPlan, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
@@ -86,20 +86,20 @@
     stepSpeechState, studyOn, studyMark, studyResult,
     // Roles plan step 3: the account paradigm and "Judging for"
     PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
-    activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody,
+    activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, formatLocked, hostedAiBody,
     // Platform phase 1B: the AI gate
     FEATURE_KEYS, APP_FEATURES, STORE_KEYS, capsRequest, parseCaps, capsOutcome, gateFor, canUse, payerOf, setupAllowed,
     showSetupFor, offTokens, visibleTourSteps, keyNoticeDue, KEY_NOTICE,
     // Formats as data (ARCHITECTURE.md §9): the format files, a round's format, and the format-keyed lists and prompts
     FORMAT_FILES, FORMAT_IDS, DEFAULT_FORMAT_ID, OLD_ROUND, getFormat, formatOf, formatKnown, formatFields, formatFromSearch,
-    speechOf, columnOf, speakerOf, speechSpeakers, sideLabel, isCoinFlip, speakersOn, speakerTag, speakerName,
+    labelOf, speechOf, columnOf, speakerOf, speechSpeakers, sideLabel, isCoinFlip, speakersOn, speakerTag, speakerName,
     prepClocks, fullPrep, formatCopy, ballotFields, ptsFields,
     draftGroups, promptsFor, readingLevels,
     // Round import by paste (docs/research/TABROOM.md, Option D)
     parseRoundPaste, roundPasteChanges, swapSides,
     // Feature flags (logic/flags.js)
     FLAGS, FLAG_GROUP, flagOn,
-    // Hosted AI calls (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3) and their round limits (Terms §6.4)
+    // Hosted AI calls (the server API's app client contract) and their round limits (Terms §6.4)
     limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
     roundMode, consentStep, consentAsk, roundsLeftText, consentLine,
     BUY_URL, accountUrl, plansUrl, signinUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPays, selfPaidHosted, hostedState, hostedRequest, readSse, sseStep, hostedError,

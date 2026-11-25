@@ -1066,12 +1066,12 @@ The existing tests that must pass unchanged: logic.test.js:29-55, 119-121, 383-3
 ---
 
 **Sources:**
-- /Users/dahlia/Code/debate/docs/design/DECISIONS.md
-- /Users/dahlia/Code/debate/docs/design/UX-RESEARCH.md
+- docs/design/DECISIONS.md
+- docs/design/UX-RESEARCH.md
 - the five slice drafts (round safety, copy and dialogs, visual system, Decide and ballot, shell and reach)
 - the spec check against DECISIONS.md and the code (app.js, index.html, clipqueue.js, .claude/gates.json)
 
-The files this spec will touch are in /Users/dahlia/Code/debate: index.html, app.js, logic.js, tour.js, about.html, docs/library/learn.css, build-learn.mjs. The new files will be assets/tokens.css, assets/theme-boot.js, keys.js, and the new test files listed in 6.1.
+The files this spec will touch are in this repo: index.html, app.js, logic.js, tour.js, about.html, docs/library/learn.css, build-learn.mjs. The new files will be assets/tokens.css, assets/theme-boot.js, keys.js, and the new test files listed in 6.1.
 
 ---
 

@@ -1,5 +1,5 @@
 // Tests for the hosted AI caller: AI features call the Tabula server (POST /api/v1/ai/<task>) when the account has
-// hosted access. Spec: tabula-cloud docs/APP-CLIENT-PROPOSAL.md §2, §3 and §3a. Run with: node --test
+// hosted access. Spec: the server API's app client contract. Run with: node --test
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -113,7 +113,7 @@ test('readSse and sseStep: events split across chunks, the done frame, and the e
   assert.deepEqual(L.readSse('data: not json\n\n: comment\n\ndata: {"t":"x"}').events, [], 'bad lines are skipped; a part event waits');
 });
 
-// Why: each server refusal needs a different reaction (APP-CLIENT-PROPOSAL §3 error table). A wrong mapping shows an
+// Why: each server refusal needs a different reaction (the server API's error table). A wrong mapping shows an
 // error for a policy change that must be quiet, blocks a judge whose own key would work, or hides the Buy rounds link.
 test('hostedError: what the app does with each server refusal', () => {
   const e = (s, c) => L.hostedError(s, c);
@@ -407,7 +407,7 @@ test('signed out with no own key: the toast offers Sign in on the same site', as
   assert.equal(w.signedOut(), 1, 'the top-bar Sign in was not told the session ended');
 });
 
-// ---------- reading level and points range (tabula-cloud contracts/ai-replies-v1, note ai-json-replies.md) ----------
+// ---------- reading level and points range (the server API's AI reply contract, v1) ----------
 
 // Why: the server writes in plain words only if the app sends the reading key, and scores points on the tournament's
 // scale only if it gets the range. Without them a plain-words judge gets expert text, and a 1-30 tournament gets
@@ -474,6 +474,17 @@ test('hostedState: a Lincoln-Douglas round sends its own speeches and flow colum
   assert.match(st.flow, /\[NC\]\nNC answers the value\./);
   assert.doesNotMatch(st.transcript + st.flow, /1AC|1NC/);
   assert.equal(L.hostedState('flow', r, [], { speech: 'AC' }).transcript, 'Value is justice.');
+});
+
+// Why: an account on the under-13 hold (BUY-FIRST-SPEC §7.2) may do nothing but sign out. If the app read the 403 as
+// "AI not allowed for this round" or offered the judge's own key, a held child could go on using AI tools in the app.
+test('the under-13 hold sends the person to the account page, with no own-key fallback and no word about age', () => {
+  const page = L.accountUrl('debate.tabulaspeech.com');
+  const held = L.hostedError(403, 'age_hold', page);
+  assert.equal(held.kind, 'accountHold');
+  assert.deepEqual([held.link.label, held.link.url, held.fallback, held.retryable], ['Open account', page, false, false]);
+  assert.doesNotMatch(held.text, /\b(13|age|aged|child|birth)\b/i);
+  assert.equal(L.hostedError(403, 'billing_hold', page).kind, 'billingHold', 'the billing hold is unchanged');
 });
 
 // Why: under the new Terms (§3, 2026-11-21) a teen may use hosted AI once a date of birth is on the account, and a state

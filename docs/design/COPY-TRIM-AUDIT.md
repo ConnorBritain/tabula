@@ -6,7 +6,7 @@ Status: **report only.** Written 2026-11-24. No app file changed. The owner pick
 
 **How to read the tables:** each table is ranked by how much the cut helps a judge (or a coach) in the middle of the work. "Cut" means remove the string. "Pin" in the Why column means a test or a design rule holds the exact words today, so a change must update that test or rule in the same commit.
 
-Base commit: `8e89d6b` (debate repo). Programs: see §3 for its repo and commit.
+Base commit: `8e89d6b` (debate repo).
 
 ---
 
@@ -65,7 +65,7 @@ Base commit: `8e89d6b` (debate repo). Programs: see §3 for its repo and commit.
 | E34 | Toast: "This browser blocked copying." (short form) | `events/js/review-screen.js:156` | Use the long form from `review-screen.js:132` | Two strings for one error. The long one says what to do. **Done.** |
 | E35 | "AI rewrote your words. Check them before you copy." **and** live message "The clean version is ready. Check it, then choose Use this or Keep mine." | `events/js/cleanup-view.js:48`, `:94` | Keep line 48. Live message: "Clean version ready." | Line 94 repeats line 48 for screen readers. The buttons are named already. **Done.** |
 
-**Keep as is:** the clean-up privacy note (`cleanup-view.js:33`). It says what leaves the device. A shorter form is possible, but the owner and the lawyer should pick it, not this audit.
+**Keep as is:** the clean-up privacy note (`cleanup-view.js:33`). It says what leaves the device. A shorter form is possible, but the owner should sign off on it, not this audit.
 
 ### 1.4 My day, setup, picker
 
@@ -172,7 +172,7 @@ Base commit: `8e89d6b` (debate repo). Programs: see §3 for its repo and commit.
 | D39 | "Your paradigm is saved in your Tabula account, so every device you sign in on uses it. …" | `js/account.js:105` | "Saved in your account for every device. Used for "My own paradigm"." | Shorter. **Done.** |
 | D40 | Tour steps (`tour.js:14`, `:16`, `:20`, `:21`), each near the 45-word cap | `tour.js:14-21` | 14: "Type the round, teams and debaters. They fill the ballot." 16: "Start and pause the speech clock: ⌘↵ (Ctrl+↵), or Space. Prep clocks are on the right." 20: "Type the ballot, or let the AI draft it. You check each AI field first, and what you type stays yours. Then print or copy it." 21: "Click ? to replay this tour or tour this page. Connect AI with the gear. The clock, flow and ballot work without it." | `tour.test.js:16` checks only a word cap. Keep "Open the transcript from the round bar" (pin: `tour.test.js:72`). **Done.** |
 
-**Word fights in Debate** (feed rules W11–W18 below):
+**Word fights in Debate** (feed rules W13–W18 below):
 
 - **Run / Update / Draw** for one button: `index.html:1116` ("Run"), `js/insights.js:286` ("Draw"), `index.html:1094`, `tour.js:30`, `js/insights.js:206` ("Update").
 - **Clock vs timers:** "clock, flow and ballot" (`index.html:1211`, `:1215`, `js/help.js:162`) vs "timers, flow and ballot" (`tour.js:21`, `logic/shell.js:45`).
@@ -189,58 +189,13 @@ Base commit: `8e89d6b` (debate repo). Programs: see §3 for its repo and commit.
 
 ---
 
-## 3. Programs (school and team console)
+## 3. Other apps
 
-**Where it lives:** the Programs app is **not in this repo**. `private/programs/ARCHITECTURE.md` says the Team and Season area is planned inside my.tabulaspeech.com, and nothing for it is built yet. The screens that coaches use today are the school console in the `tabula-sites` repo (`shared/console*.js`, `shared/*-words.js`, `sites/my/pages/schools.html`). This section audits those screens, read from `tabula-sites` `origin/main` at commit `7527409`. Every path in this section is in that repo. Nothing there was changed.
-
-Ranked by how often a coach sees the string each day.
-
-| # | Now | Where (tabula-sites) | Proposed | Why |
-|---|---|---|---|---|
-| P1 | "Nothing needs you right now." | `sites/my/pages/schools.html:32` | "All set." | Shown on Overview every day. |
-| P2 | "We could not load your team. Reload the page to try again." (10 copies of the same pattern) | `shared/console-people.js:35`; also `console.js:81,180,203,346`, `console-people.js:194`, `console-students.js:29,95,181`, `console-rounds.js:103` | "Could not load your team. Reload the page." | "To try again" is implied. One shared helper, not 10 strings. |
-| P3 | "Paste one or more addresses. Put each on its own line or use commas." | `sites/my/pages/schools.html:59` | "Use commas or new lines." | The "Emails" label says what goes in the box. |
-| P4 | "Invite sent again to NAME." / "Invite for NAME cancelled." | `shared/console-people.js:220`, `:232` | "Sent again." / "Cancelled." | The row already names the person. |
-| P5 | "No students yet. Make a join code on the Join codes tab, then give it to your students." | `shared/console-students.js:46` | "No students yet. Make a join code to add them." | The tab is right beside it. |
-| P6 | "No groups yet. A group keeps students together, like Novice or Varsity." | `shared/console-students.js:96` | "No groups yet. For example: Novice, Varsity." | The examples carry the meaning. |
-| P7 | "A student types the code to join your team." | `sites/my/pages/schools.html:89` | Cut | The heading "Make a join code" says it. |
-| P8 | "How many students can use it" + "From 1 to 1,000. Leave it empty for 100." | `sites/my/pages/schools.html:92-93` | "Uses" + "1 to 1,000. Empty means 100." | Label and help say the same thing twice. |
-| P9 | "Days until it stops working" + "From 1 to 365. Leave it empty for 30." | `sites/my/pages/schools.html:95-96` | "Days open" + "1 to 365. Empty means 30." | Same as P8. |
-| P10 | "We show this code only now. Copy it before you leave this page. If you lose it, turn it off and make a new one." | `sites/my/pages/schools.html:105` | "Copy it now. You will not see it again." | Keeps the warning in two short sentences. |
-| P11 | "The code is selected. Press Ctrl+C (Cmd+C on a Mac) to copy it." | `shared/console-students.js:300` | "Selected. Press Ctrl+C or Cmd+C." | Shorter. Pin: `my.test.mjs:821`. |
-| P12 | "Deleted GROUP. Its join codes no longer work." | `shared/console-students.js:123` | "Deleted GROUP." | The confirm before it (`:113`) already said so. Keep that confirm. |
-| P13 | "Choose how each group can use AI in your school's rounds." (twice) | `sites/my/pages/schools.html:173`; `shared/console.js:222` | "How each group may use AI." (once) | One copy is enough. |
-| P14 | "Saved. Phones and laptops pick this up at the start of their next round." | `shared/console-words.js:68` | "Saved. Starts next round." | Same fact. |
-| P15 | "Only admins and coaches with the right to change AI rules can change these." | `shared/console-words.js:71` | "View only. You need the Changes AI rules right." | Uses the right's real name. Pin: `build.test.mjs:474`. |
-| P16 | "Right now coaches have X and admins have Y. Saving sets both." | `shared/console-words.js:46` | "Coaches: X. Admins: Y. Saving sets both." | Label form. Pin: `build.test.mjs:431`, `:661`. |
-| P17 | "No AI. Students see a complete flow tool with no AI anywhere." | `shared/console-words.js:22` | "No AI anywhere." | The card title "Flow only" carries the rest. |
-| P18 | "A school never turns off a judge's own AI. Judges judge for the tournament." | `shared/console-words.js:12` | "Your school cannot turn off a judge's own AI." | Keeps the rule. The second sentence is filler. |
-| P19 | "Set how many rounds each group may use from the pool. Leave a box empty for no limit." | `shared/console-rounds.js:173` | "Rounds each group may use." | The box placeholder already says "No limit". |
-| P20 | "Use a whole number, or leave the box empty for no limit." | `shared/console-rounds.js:106` | "Use a whole number." | Same as P19. `my.test.mjs:1224` checks only the start, so it still passes. |
-| P21 | "A rounds pool is a set of AI rounds your school buys for the term. …" (3 sentences) | `sites/my/pages/schools.html:115` | "AI rounds your school buys for the term. You set how many each group may use." | Keeps who pays. |
-| P22 | "Every change to your school's settings, newest first." | `sites/my/pages/schools.html:178` | "Newest first." | The tab is named Activity. |
-| P23 | "See plans for schools" + "See prices and what each plan includes on our page for schools." + "Plans for schools" | `sites/my/pages/schools.html:148`, `:152`, `:153`; `shared/console-plan.js:27` | One link: "Plans and prices" | Three strings, one idea. |
-| P24 | "Buying in the console opens soon. Until then, these buttons stay off." / "Your invoices show here after your first payment." / "This part of the console is coming in a later update." | `sites/my/pages/schools.html:159`, `:163`, `:192`; `shared/console-plan.js:28` | "Buying opens soon." / "No invoices yet." / "Coming soon." | An empty state is one line. |
-| P25 | "Write your paradigm, so debaters know how you judge" | `shared/onboarding-words.js:40` | "Write your paradigm" | The help line in `app-home.js:31` already says why. |
-| P26 | "Leave this team" | `shared/teams.js:76` | "Leave" | Pin: `my.test.mjs:1534`. |
-| P27 | "8 letters and numbers. Dashes and spaces do not matter." | `sites/my/pages/join.html:13` | "8 letters and numbers." | The form ignores dashes and spaces (the string says so), so a user who types them is not stopped. |
-
-**Keep as is:** "Remove NAME from your school? Their account stays. …" (`console-people.js:49`, the user gets an email). Deleting a group stops its join codes (`console-students.js:113`). Turning off a code (`console-students.js:204`, pin: `my.test.mjs:1136`). Rejoin only with a new invite (`teams.js:78`). Adults only (`app-home.js:274`, `app-plan.js:110`). An empty pool pauses school-paid AI (`schools.html:122`). Only a first name or nickname (`join.html:16`).
-
-**Word fights in Programs** (feed rules W11–W15 below):
-
-- **School vs team.** "Your schools" (`schools.html:5`) vs "Your teams" (`teams.html:11`). "Start a school" (`sites/my/pages/index.html:45`) vs "Start your school's team" (`app-home.js:44`). "Remove … from your school?" (`console-people.js:49`) vs "No one is on your team yet" (`schools.html:53`).
-- **People vs members.** Nav "People" (`console.js:18`) vs tab "Members" (`schools.html:41`) vs "Find a member" (`console-rounds.js:244`).
-- **Invite vs add.** "Add a second admin" (`console-words.js:164`, pins in `build.test.mjs:493`, `:549`, `my.test.mjs:1539`) next to "Invite people" (`schools.html:57`).
-- **AI rules vs AI settings.** `team-words.js:41` and `console-words.js:71` say "AI rules". `schools.html:183` and `console.js:203` say "AI settings".
-- **Make vs start vs create; heading vs button.** "Make a group" → button "Make the group" (`schools.html:77`, `:80`). "Make a join code" → button "Make a code" (`:88`, `:98`).
-- **Top up vs add vs buy rounds.** `console.js:282`, `schools.html:157` vs `schools.html:122` vs `app-home.js:83`.
-- **Permission vs right.** "You do not have permission to do that." (`team-words.js:13`). Every other screen says "right".
-- **Pool.** "rounds pool" (`console-words.js:25`) vs "pool" vs "school-paid AI" (`schools.html:122`).
+Not covered in this public file.
 
 ---
 
-## 4. Word rules for all three apps
+## 4. Word rules for all apps
 
 One word for one idea. When two words fight, the left one wins.
 
@@ -257,16 +212,12 @@ One word for one idea. When two words fight, the left one wins.
 | W9 | One string per error. The same error gets the same words in every app | "This browser blocked copying." vs the long form | Events `review-screen.js:132` vs `:156`; `congress/session-screen.js:89` |
 | W10 | No parenthesis in a label. Use a unit, a placeholder, or a divider | "(min:sec)", "(seconds)", "(whole room)", "(elim round)" | Events §1.4, §1.1 |
 
-| W11 | **Owner pick:** one noun for the organization, **school** or **team**. This audit leans to school (the console and the plans say school) | "school's team", "Your teams" for the same thing | Programs `schools.html:5` vs `teams.html:11`; `app-home.js:44` |
-| W12 | **People** for everyone in a school; **member** nowhere on screen | "Members", "Find a member" | Programs `console.js:18` vs `schools.html:41`; `console-rounds.js:244` |
 | W13 | One lock line in every app: **"The AI never changes what you type."** | "will not change it", "your edits stick", "stays yours" | Debate `index.html:1254`, `tour.js:18`, `tour.js:20`, `js/flow.js:216` |
 | W14 | Call a place by its nav name, exactly | "Round setup" when the nav says "Round" | Debate `index.html:1186`, `js/ai.js:23` |
-| W15 | Button words match the heading: "Make a group" → **Make group** | "Make the group", "Make a code" | Programs `schools.html:77-98` |
 | W16 | **Run** for an AI action, always. Do not rename it after the first run | "Update", "Draw" | Debate `index.html:1094`, `js/insights.js:286`, `tour.js:30` |
 | W17 | **Clock**, not timer | "timers" | Debate `tour.js:21`, `logic/shell.js:45` |
-| W18 | **Right**, not permission; **AI rules**, not "AI settings"; **Connect AI** for first setup only ("Turn AI back on" is fine after a pause) | mixed | Programs `team-words.js:13`; Debate `index.html:1373`; Programs `console.js:203` |
-| W19 | **Empty means N** for every "leave blank" hint | "Leave it empty for 100", "Leave a box empty for no limit" | Programs `schools.html:93`, `console-rounds.js:173`, `:290` |
-| W20 | A toast that confirms an action names the result, not the person or the next step: "Copied.", "Sent again.", "Cancelled." | "Ranks copied. Paste them…", "Invite for NAME cancelled." | Events E32; Programs P4 |
+| W18 | **Right**, not permission; **AI rules**, not "AI settings"; **Connect AI** for first setup only ("Turn AI back on" is fine after a pause) | mixed | Debate `index.html:1373` |
+| W20 | A toast that confirms an action names the result, not the person or the next step: "Copied.", "Sent again.", "Cancelled." | "Ranks copied. Paste them…", "Invite for NAME cancelled." | Events E32 |
 
 ## 5. Bugs found on the way
 

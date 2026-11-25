@@ -1,4 +1,4 @@
-// The Tabula account in the app (roles plan step 3, tabula-cloud docs/ACCOUNTS-AND-ROLES.md §5a and §6): the
+// The Tabula account in the app (roles plan step 3, per the server's accounts and roles plan): the
 // "Judging for" choice at round start, and the account paradigm as the one source when the judge is signed in.
 // Only the profile (name, paradigm, schools) goes to or comes from the server. Round content never does.
 // One part of logic.js (pure logic, no DOM). logic.js joins the parts into one API; index.html loads the parts first.
@@ -8,9 +8,9 @@
   const F = part('format');
 
   const PROFILE_URL = '/api/v1/me/profile';
-  // The server's limit for the paradigm (tabula-cloud src/profile.ts MAX_PARADIGM).
+  // The server's limit for the paradigm.
   const MAX_PARADIGM = 5000;
-  // The server's program id rule (tabula-cloud src/ai/proxy.ts ID_RE). Another id would be ignored as "Just me".
+  // The server's program id rule. Another id would be ignored as "Just me".
   const PROGRAM_ID = /^[A-Za-z0-9_-]{8,64}$/;
 
   // GET /api/v1/me/profile -> { displayName, paradigm, photo, programs: [{ id, name, role }] }. Returns a clean
@@ -83,8 +83,10 @@
   // The choice is made at round start. Once a speech clock has run, the round keeps it, so one round never mixes
   // two schools' policies and pools.
   function judgingLocked(round) { return Boolean(round && (round.run || Object.keys(round.timeLeft || {}).length)); }
+  // The round's format locks at the same moment (docs/design/FORMAT-PICK.md §3): one rule, so the two locks never drift.
+  const formatLocked = (round) => judgingLocked(round);
 
-  // The body of a hosted AI call (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3): the call's own fields, with the round
+  // The body of a hosted AI call (the server API's app client contract): the call's own fields, with the round
   // id and the round's program always from the round, so no call can send a different school.
   // format and formatVersion also come from the round, never from the call: the server builds the rules text from its
   // own copy of that format version (ARCHITECTURE.md §9), so the client never sends rules text.
@@ -95,7 +97,7 @@
 
   const api = {
     PROFILE_URL, MAX_PARADIGM, parseProfile, profileOutcome, profileGet, profilePut, cleanParadigm, paradigmError,
-    activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, hostedAiBody,
+    activeParadigm, shouldOfferParadigmCopy, judgingOptions, judgingFor, judgingLocked, formatLocked, hostedAiBody,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).account = api;

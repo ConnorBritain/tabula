@@ -10,9 +10,9 @@ Research behind this file (shared notes folder, `speech-events/`): `events-resea
 
 How to read the columns:
 
-- **App:** **SE** = Tabula Speech Events. **TD** = Tabula Debate. The rule for the split is in [SEASON.md](SEASON.md) §4: an event goes to the app whose room shape it has.
+- **App:** **SE** = Tabula Speech Events. **TD** = Tabula Debate. The rule for the split: an event goes to the app whose room shape it has.
 - **Family:** the event families in [MODELS.md](MODELS.md) §1 (F1 prepared, F2 limited prep outside, F3 limited prep inside, F4 two runs, F5 other ballot shapes, F6 Congress, F7 group).
-- **In defs:** **Yes** = a file is in `events/defs/` today. **Pack** = a league pack file later (PLAN.md P3). **Custom** = works now through the Custom event form. **—** = not in this app.
+- **In defs:** **Yes** = a file is in `events/defs/` today. **Pack** = a league pack file later. **Custom** = works now through the Custom event form. **—** = not in this app.
 - **New primitive:** what code it needs past v1. "None" means data only.
 
 ## 1. Short answer
@@ -23,7 +23,7 @@ How to read the columns:
   - §2 has 18 NSDA speech events. 17 have data files today.
   - §3 has 8 debate events for Tabula Debate.
   - §4 has Congress: chambers, roles and league variants.
-  - §5 has 35 rows of state and league events. Same-shape events share a row. About half are data only. The rest need a pack primitive (LANDING.md §4.2), need group entries, or are out of scope.
+  - §5 has 35 rows of state and league events. Same-shape events share a row. About half are data only. The rest need a pack primitive, need group entries, or are out of scope.
 - **NSDA has no consolation events in 2026-27.** Students cut early from a main event at Nationals may enter supplemental events instead [NSDA-HS].
 
 ## 2. NSDA speech events (Speech Events app)
@@ -46,22 +46,22 @@ How to read the columns:
 | Poetry | POE | Interp | SE | Yes | F1 | None | Supplemental, pattern B |
 | Storytelling | STO | Interp | SE | Yes | F1 | None | Supplemental, pattern B |
 | Declamation (middle school manual) | DEC | Interp / public address | SE | Yes | F1 | None | Also CHSSA, OSDA; NCFL Oratorical Declamation |
-| Mixed Extemp (middle school manual) | MX | Limited prep | SE | Yes | F2 | Drawn-question field | v1 file kept; see PLAN.md Q11 note in §7 |
+| Mixed Extemp (middle school manual) | MX | Limited prep | SE | Yes | F2 | Drawn-question field | v1 file kept; see the note in §7 |
 | Pro Con Challenge | PCC | Public address | SE | Pack | F4 | Two runs in one entry | Not confirmed at Nationals 2027 |
 
 ## 3. Debate events (Tabula Debate app)
 
-These have two sides and a flow. They stay in Tabula Debate, whatever day or season they run ([SEASON.md](SEASON.md) §3–§4). Source: [NSDA-HS] unless noted.
+These have two sides and a flow. They stay in Tabula Debate, whatever day or season they run. Source: [NSDA-HS] unless noted.
 
 | Event | Category | App | Tabula Debate status | Ballot shape | New code in Tabula Debate |
 |---|---|---|---|---|---|
 | Policy (CX) | Team debate, 2 v 2 | TD | **Live** (`formats/policy-hs.v1.js`) | Win or loss, speaker points, speaker ranks | — |
 | Lincoln-Douglas (LD) | Solo debate, 1 v 1 | TD | **Merged on main** (`formats/ld.v1.js`) | Win or loss, speaker points | — |
-| Public Forum (PF) | Team debate, 2 v 2 | TD | Next in the owner's order | Win or loss (points at Nationals not confirmed) | Coin-flip order, crossfire rows (FORMATS.md §4) |
+| Public Forum (PF) | Team debate, 2 v 2 | TD | Next in the owner's order | Win or loss (points at Nationals not confirmed) | Coin-flip order, crossfire rows |
 | World Schools (WSD) | Team debate, 3 speakers of 3–5 | TD | Not planned yet | Per-speaker scores for style, content and strategy (60–80 per speech, 30–40 for the reply, unverified for 2027); higher team total wins | Points of information, reply speech, prepared and impromptu motions |
 | Big Questions (BQ) | Solo or pair debate | TD | Not planned yet | Win or loss, speaker points | Question periods; one topic a year |
 | Extemp Debate (XDB) | Solo debate, 1 v 1 | TD | Not planned yet | Win or loss only, no comments | Short speeches; nearly data only |
-| Parliamentary (CHSSA, Oregon OSAA, NPDA-style) | Team debate | TD | Later (FORMATS.md) | Win or loss, speaker points | Points of information |
+| Parliamentary (CHSSA, Oregon OSAA, NPDA-style) | Team debate | TD | Later | Win or loss, speaker points | Points of information |
 | Spontaneous Argumentation (SPAR) | Solo debate | TD | Not planned | Varies by tournament | Custom format |
 
 Congress is debate in content but a speech room in shape. It is in §4.
@@ -135,18 +135,18 @@ College events (AFA, NFA) fit the same primitives as a league pack. They are not
 
 | The owner named | Covered? | Where it lives |
 |---|---|---|
-| Congress | **Not built.** Model ready (MODELS.md §4.6); steps K1–K8 (LANDING.md §4.3). | Speech Events |
-| LD ("a Friday event during the spring") | Built in Tabula Debate. The spring part holds only in Texas UIL, Oklahoma and Missouri; the speech-event part holds nowhere (SEASON.md §3). | Tabula Debate |
+| Congress | **Not built.** Model ready (MODELS.md §4.6). | Speech Events |
+| LD ("a Friday event during the spring") | Built in Tabula Debate. The spring part holds only in Texas UIL, Oklahoma and Missouri; the speech-event part holds nowhere. | Tabula Debate |
 | FX and DX | Data done (`ix`, `usx`). | Speech Events |
 | Impromptu | Data done (`imp`). | Speech Events |
 | Oration | Data done (`oo`). | Speech Events |
 | Humorous and Dramatic Interp | Data done (`hi`, `di`). | Speech Events |
-| Poetry, Prose | Data done (`poe`, `pro`), high school limits (PLAN.md Q11). | Speech Events |
+| Poetry, Prose | Data done (`poe`, `pro`), high school limits. | Speech Events |
 | "Others that I'm missing" | §2–§5 above. | Both apps |
 
 ## 7. Notes and open points
 
-- **Mixed Extemp and Declamation come from the NSDA middle school manual.** After PLAN.md Q11 (v1 is high school only), the files stay: Declamation is also a high school event in CHSSA, OSDA, IHSA and NCFL. Mixed Extemp stays as a v1 file because it is a plain extemp shape and costs nothing. If the owner wants v1 strictly high school by source, Mixed Extemp can leave the v1 list; that is a one-line data change, listed here for the owner, not decided.
+- **Mixed Extemp and Declamation come from the NSDA middle school manual.** After the decision that v1 is high school only, the files stay: Declamation is also a high school event in CHSSA, OSDA, IHSA and NCFL. Mixed Extemp stays as a v1 file because it is a plain extemp shape and costs nothing. If the owner wants v1 strictly high school by source, Mixed Extemp can leave the v1 list; that is a one-line data change, listed here for the owner, not decided.
 - **World Schools and Big Questions** are real NSDA events that a debate judge meets at districts and Nationals. They belong in Tabula Debate's format list, after PF. This file only records them.
 - **Could not verify:** NCFL Congress point scale; CHSSA Congress scoring; UIL Congress rules newer than 2024-25; a 2027 World Schools manual; whether PF gets speaker points at Nationals; whether Pro Con Challenge runs at Nationals 2027.
 

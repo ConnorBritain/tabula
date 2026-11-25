@@ -35,7 +35,7 @@ export const shapeChoices = (data) => allProfiles(data).filter(isBallotShape);
 // (design review §2.3 change 2, DESIGN.md §4.8).
 export function previewHtml(parsed) {
   const n = parsed.entries.length, k = parsed.check.length;
-  const rows = parsed.entries.map((e) => `<li><span class="code">${esc(e.code)}</span>${e.name ? ` <span class="pv-name">${esc(e.name)}</span>` : ''}${e.title ? ` <span class="muted pv-title">${esc(e.title)}</span>` : ''}${e.late ? ' <span class="pill">Late add</span>' : ''}</li>`).join('');
+  const rows = parsed.entries.map((e) => `<li><span class="code">${esc(e.code)}</span>${e.name ? ` <span class="pv-name">${esc(e.name)}</span>` : ''}${e.title ? ` <span class="muted pv-title">${esc(e.title)}</span>` : ''}${e.late ? ' ' + statusPillHtml('', 'Late add') : ''}</li>`).join('');
   const checks = parsed.check.map((c, i) => `<li class="check-row">
       <p class="mono">${esc(c.line)}</p><p class="muted">${esc(c.why)}</p>
       <div class="check-act"><label class="sr-only" for="chk-${i}">Code for this line</label>

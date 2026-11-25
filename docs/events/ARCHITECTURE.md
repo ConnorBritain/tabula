@@ -2,9 +2,9 @@
 
 Status: plan for owner approval, 2026-11-20. No code is built. Nothing in Cloudflare, Stripe or DNS changed.
 
-Related files in this folder: [EVENTS.md](EVENTS.md) (which events, their rules), [SHARED-VS-NEW.md](SHARED-VS-NEW.md) (reuse and new parts), [DESIGN.md](DESIGN.md) (look and components), [PLAN.md](PLAN.md) (phases, risks, questions).
+Related files in this folder: [EVENTS.md](EVENTS.md) (which events, their rules), [SHARED-VS-NEW.md](SHARED-VS-NEW.md) (reuse and new parts), [DESIGN.md](DESIGN.md) (look and components).
 
-Base documents: `docs/growth/FORENSICS.md` (first scope), `docs/growth/BRAND.md` (names, domains, marks), `docs/architecture/ARCHITECTURE.md` §10 (the app's place in the stack), `docs/design/AI-POLICY.md` (AI off switches), and the cloud plan in `~/Code/tabula-cloud/docs/`.
+Base documents: `docs/architecture/ARCHITECTURE.md` §10 (the app's place in the stack), `docs/design/AI-POLICY.md` (AI off switches), and the server's plan.
 
 ## 1. What the app is
 
@@ -36,7 +36,7 @@ Three tests for every feature:
 
 | Part | Address | Note |
 |---|---|---|
-| The app (PWA) | **`events.tabulaspeech.com`** (recommended; see PLAN.md Q1) | Fixed forever from its first public day. Browser storage belongs to one address. |
+| The app (PWA) | **`events.tabulaspeech.com`** (recommended) | Fixed forever from its first public day. Browser storage belongs to one address. |
 | Marketing and learning pages | `tabulaforensics.com` | A "coming later" page now. Judge guides per event later. |
 | Account, sign-in, plans | `tabulaspeech.com` | The same account and wallet as Tabula Debate. |
 | Hosted API | `/api/v1/` on the app's own host | Same Worker as debate. The Worker will serve `events.` once it is added to the host and return-URL lists (planned in `docs/architecture/ARCHITECTURE.md` §3.2). |
@@ -68,7 +68,7 @@ debate.tabulaspeech.com  events.tabulaspeech.com   student.tabulaspeech.com (lat
 ```
 
 - **One account, one wallet.** Rounds bought in Tabula Debate spend in Speech Events. Every debit carries `productLine: 'events'` (`docs/architecture/ARCHITECTURE.md` §9), so revenue splits by line.
-- **One program, both products.** A school's program has `product` = `debate`, `speech` or `both` (cloud plan `ACCOUNTS-AND-ROLES.md` §2). A judge invited by a speech program lands on the account page and sees "Open Speech Events".
+- **One program, both products.** A school's program has `product` = `debate`, `speech` or `both` (the server's roles plan). A judge invited by a speech program lands on the account page and sees "Open Speech Events".
 - **One AI policy.** The same `can(feature)` gate and the same resolved feature set. Speech Events adds two feature keys (§7).
 - **Separate device storage.** Each app keeps its own rooms or rounds, settings and keys on its own origin. Nothing is shared through the browser.
 
@@ -81,12 +81,12 @@ Seven screens in v1. The flow is a straight line: set up, judge, rank, review.
 | 1 | **Rooms** (home) | Sees today's rooms and past rooms. Starts a new room. | A list grouped by tournament day. Each row: event, round, entries, state (set up, judging, ranked, copied). |
 | 2 | **Room setup** | Picks the event, round and flight. Adds entries by code, in speaking order. | Paste from the Tabroom or SpeechWire assignment text. One screen. The event sets the time limit, grace and checks. |
 | 3 | **Room** (the main screen) | Taps a speaker, starts the timer, writes notes, adds quick tags, marks the time. Moves to the next speaker. | Roster on the side (or top on a phone); the current speaker's timer and comment sheet in the center. |
-| 4 | **Speaker view** | Turns the screen to the speaker to show time signals. | Full screen, huge numbers or signal card. Optional; off by default (PLAN.md Q4). |
+| 4 | **Speaker view** | Turns the screen to the speaker to show time signals. | Full screen, huge numbers or signal card. Optional; off by default. |
 | 5 | **Rank** | Puts the speakers in order 1 to N. Adds ratings if the tournament uses them. | Drag, or tap a rank. No ties possible. An over-grace speaker cannot sit at rank 1 (where that rule applies). |
 | 6 | **Review and copy** | First copies the **ranks and ratings** (the tournament wants these about 5–10 minutes after the last speaker). Then reads each speaker's card (comments, reason for rank) and copies each into the online ballot. Prints. | Two stages, because Tabroom and SpeechWire lock ranks on submit but keep comments open until the tournament ends. "Clean up my comments" (AI, optional) lives here, one speaker at a time, with review before it goes in. |
 | 7 | **Settings** | AI, account, theme, tournament rules profile. | From the shared shell. |
 
-Phase P4 adds **Practice** (coach and student timer, recording, transcript, time-use report) and the **Ballot box** (past comments by student and event). Phase P5 adds the **Congress grid**; it comes right after v1, before P3 and P4 (PLAN.md Q13 B). See PLAN.md.
+Phase P4 adds **Practice** (coach and student timer, recording, transcript, time-use report) and the **Ballot box** (past comments by student and event). Phase P5 adds the **Congress grid**; it comes right after v1, before P3 and P4.
 
 ## 6. Data
 
@@ -130,7 +130,7 @@ Rules that change by tournament, not by event:
 | `rankRatingRule` | off, or "a better rank needs an equal or higher rating" | off |
 | `overtime.grace` | Seconds | 30 |
 | `overtime.effect` | `noFirst` (NSDA: the judge may not rank an over-grace speaker 1st) or `flagOnly` (the tab room applies any penalty; the app shows the flag and a note) | `noFirst` |
-| `biasNote` | Text of the tournament's reminder, pasted by the judge or coach; our own short neutral line if empty (PLAN.md Q5) | our line |
+| `biasNote` | Text of the tournament's reminder, pasted by the judge or coach; our own short neutral line if empty | our line |
 
 Ranks always run 1 to N for the room (truncation is the tab room's job). Every room has comments per speaker plus a reason for rank. In every case the app records the time and an "over time" flag, because Tabroom has an overtime box.
 
@@ -180,8 +180,8 @@ Entry {
 |---|---|---|
 | Account, membership, program, AI policy | Yes | Already in D1. |
 | Usage per AI call: room ID (a random ID with no tournament name in it), task, tokens, credits | Yes | Billing. No text, no codes, no names. |
-| The text for "Clean up my comments" | **Processed, never stored.** It passes through our Worker to an AI provider (logging off) and back. | Hosted AI path, same as debate (`docs/architecture/ARCHITECTURE.md` §4). Before the call, the app replaces codes with "Speaker 1..N" and also scrubs any name, title or author the judge typed in setup for that room. Free text can still hold a name the judge typed only in the notes; the clean-up screen says so. For middle school events, hosted clean-up is off by default (own key or none), pending the legal read in PLAN.md Q7. |
-| Room summary (event, round, date, entry count) | Opt-in later | Matches the debate "round summaries" decision (`ACCOUNTS-AND-ROLES.md` §7.1). No codes, no names, no comments. |
+| The text for "Clean up my comments" | **Processed, never stored.** It passes through our Worker to an AI provider (logging off) and back. | Hosted AI path, same as debate (`docs/architecture/ARCHITECTURE.md` §4). Before the call, the app replaces codes with "Speaker 1..N" and also scrubs any name, title or author the judge typed in setup for that room. Free text can still hold a name the judge typed only in the notes; the clean-up screen says so. For middle school events, hosted clean-up is off by default (own key or none). |
+| Room summary (event, round, date, entry count) | Opt-in later | Matches the same opt-in rule for debate rounds (the server's roles plan). No codes, no names, no comments. |
 | Stored comments, names, codes, audio, transcripts | **Never stored** | Minors. Same promise as debate. |
 
 ## 7. AI in Speech Events
@@ -199,7 +199,7 @@ Hard rules, in the code and in the server prompt templates:
 
 1. **No AI ranking, rating or "who won".** No prompt may ask for a rank or a comparison between speakers.
 2. **No AI in the room while a speaker speaks.** Clean-up runs on the Review screen, after ranking.
-3. **No recording in competitive rooms in v1.** Recording is for practice only, with consent (PLAN.md Q3).
+3. **No recording in competitive rooms in v1.** Recording is for practice only, with consent.
 4. **Policy removes, never adds** (`docs/design/AI-POLICY.md` §0). With AI off, the Review screen simply has no AI button, and no hole.
 
 Prompt templates are written fresh for Speech Events. No debate prompt is reused (license note in `docs/architecture/ARCHITECTURE.md` §8). **One source, no drift:** the templates live in `events/prompts/` and the event files in `events/defs/`. The server copy is generated from those files at deploy, as debate does for format files (`docs/architecture/ARCHITECTURE.md` §9). The client sends `task`, `eventId` and `eventVersion`, never prompt text. A drift test compares the two copies. An unknown version gets "Reload the app".
@@ -233,16 +233,16 @@ events/
 
 - **Order of work** (from `docs/architecture/ARCHITECTURE.md` §10.3): pull out `core/` only when `events/` starts. Use the seams the debate format refactor makes.
 - **A static test** checks `core/` against an explicit banned-word list. Debate words: `aff`, `neg`, `flow`, debate speech IDs (`1AC`, `2NR` and so on). Events words: `room`, `entry`. Generic words such as `rank`, `points`, `feature` are allowed, because both products use them.
-- **How `core/` loads, with no build step:** this is decided in P0 (PLAN.md Q10). Today the app is classic scripts sharing globals.
-- **Moving today's app into `debate/`** changes the live host's paths, `check-publish.mjs` and the `learn/` links. It is optional: `core/` can be lifted while the debate app stays at the repo root. PLAN.md R1 covers it.
+- **How `core/` loads, with no build step:** this is decided in P0. Today the app is classic scripts sharing globals.
+- **Moving today's app into `debate/`** changes the live host's paths, `check-publish.mjs` and the `learn/` links. It is optional: `core/` can be lifted while the debate app stays at the repo root.
 - **The no-stripes test** and the tokens test also run on `events/`.
 
 ## 9. Accounts, billing and programs
 
-- **Sign-in, wallet, plans:** shared. New on the server for v1: the `productLine` field, the AI task `events.cleanup`, and the round rule chosen in PLAN.md Q2. Q2's pick needs a cloud change: a new commit trigger (the first hosted clean-up call, since rooms have no recorded speech; today a round commits at the first recorded speech, `tabula-cloud/docs/PLAN.md`), and, for option A, a day-window and room cap in the meter.
-- **What one "round" means in Speech Events** is a pricing choice. Clean-up of a 6-speaker room is a small text job, far cheaper than a recorded debate round. See PLAN.md Q2.
-- **Programs:** the private program pricing plan already has a Speech Events add-on (details stay private). The judge's "Judging for" picker (cloud plan step 3) is reused in Room setup.
-- **Plan rules live on the platform, not in the app.** The shared school and admin platform (design in `~/Code/tabula-cloud/docs/platform/`, owned by another session) serves one capabilities API with `product = "events"`. The app reads it and never decides plan rules itself. Speech Events asked that platform for: shared rules profiles per program (P3), a default league pack per program, a separate `recording` key (practice only, with consent), the task names above, and a round model that can hold a day-window (Q2). The platform has accepted all of these (`tabula-cloud/docs/platform/MODEL.md` §4, §6). The app reads `GET /api/v1/me/capabilities?v=2&product=events` (`CONTRACTS.md` §2, §5). The platform maps `programs.product = "speech"` to API product `events`.
+- **Sign-in, wallet, plans:** shared. New on the server for v1: the `productLine` field, the AI task `events.cleanup`, and a round rule for Speech Events. That rule needs a cloud change: a new commit trigger (the first hosted clean-up call, since rooms have no recorded speech; today a round commits at the first recorded speech, per the server's plan), and, if one round covers a judging day, a day-window and room cap in the meter.
+- **What one "round" means in Speech Events** is a pricing choice. Clean-up of a 6-speaker room is a small text job, far cheaper than a recorded debate round.
+- The judge's "Judging for" picker (cloud plan step 3) is reused in Room setup.
+- **Plan rules live on the platform, not in the app.** The shared school and admin platform (designed in the server's spec, owned by another session) serves one capabilities API with `product = "events"`. The app reads it and never decides plan rules itself. Speech Events asked that platform for: shared rules profiles per program (P3), a default league pack per program, a separate `recording` key (practice only, with consent), the task names above, and a round model that can hold a day-window. The platform has accepted all of these (the server's spec). The app reads `GET /api/v1/me/capabilities?v=2&product=events` (the server's API spec). The platform maps `programs.product = "speech"` to API product `events`.
 - **Hired judges and solo judges** use their own account or none. A school's policy never covers them (`docs/design/AI-POLICY.md` §1a).
 
 ## 10. Offline, install and devices
@@ -251,6 +251,27 @@ events/
 - **Devices:** laptop, iPad and phone. The phone layout is a first-class target, because many lay judges only have a phone.
 - **Keep the screen awake** while a room is open (Screen Wake Lock API, where the browser supports it).
 - **Battery and quiet:** no sounds by default. An optional soft vibration on phones at each signal.
+- **Install:** `events/manifest.webmanifest` (name, relative start URL and scope, standalone, grey colors, 192, 512 and
+  maskable icons in `events/icons/`). `events/index.html` links it with an apple-touch-icon and a grey theme color, so
+  the offline cache holds it too.
+
+### Data safety
+
+Speech Events stores a judge's rounds, ballot cards, comments and settings on the device, in this browser's storage
+under `tabulaEvents.*`. There is no server copy: only text the judge sends to their own AI key for clean-up leaves the
+device. Browsers can clear that storage (Safari may after about a week
+without a visit, unless the app is installed), and school laptops are often shared, so:
+
+- **Ask to keep it.** The first saved round or ballot card asks the browser to keep the data
+  (`navigator.storage.persist()`), once per device (`tabulaEvents.persistAsked.v1`). Settings → Data says in one line
+  whether this browser keeps the rounds. A browser without the API is never asked and never errors.
+- **Backup reminder.** When the judging day is over (today has ballots, none left to judge, not on standby, no Congress
+  chamber in use) and nothing is backed up since the last change, My day shows a "Download backup" reminder with
+  "Not now". The only thing stored for this is the time of the last backup (`tabulaEvents.backupAt.v1`).
+- **Clear this device.** Settings → Data removes every `tabulaEvents.*` value from this browser (and this tab's
+  session storage, where a tab-only AI key lives), after a confirm that says what goes and offers a backup first. The
+  toast's Undo puts it back while the tab is open. The store's prefix guard (`core/store.js`) means it cannot touch
+  Tabula Debate's keys. The offline cache holds only the public app files, so it stays.
 
 ## 11. Security
 
@@ -270,6 +291,6 @@ The same rules as every `*.tabulaspeech.com` host (`docs/architecture/ARCHITECTU
 
 ## Sources
 
-- Base plans: `docs/growth/FORENSICS.md`, `docs/growth/BRAND.md`, `docs/architecture/ARCHITECTURE.md`, `docs/design/AI-POLICY.md`, `~/Code/tabula-cloud/docs/ACCOUNTS-AND-ROLES.md`, `~/Code/tabula-cloud/docs/PLAN.md`.
+- Base plans: `docs/architecture/ARCHITECTURE.md`, `docs/design/AI-POLICY.md`, and the server's roles plan and project plan.
 - Event rules: see EVENTS.md.
 - Screen Wake Lock API: https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API

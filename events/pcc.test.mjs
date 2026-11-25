@@ -17,7 +17,9 @@ import { runCardsHtml, runsRowHtml } from './js/runs-view.js';
 // quote line at the top of the card) and the phase bar moved into the timer card's signal track (timer-view.js
 // cardTrack). The old head assertions below now read those two places, with the same strictness.
 import { quoteHtml } from './js/quote-view.js';
-import { cardTrack } from './js/timer-view.js';
+// CHANGED (Speech Events cleanup 2026-11-25: the pure card builders moved to timer-card-html.js; same functions). Old line:
+// import { cardTrack } from './js/timer-view.js';
+import { cardTrack } from './js/timer-card-html.js';
 import { migrateRoom, migrateRooms } from './js/migrate.js';
 import { ranksBlock, cards, printModel, copyAllText } from './js/ballot.js';
 import { cardHtml } from './js/review-screen.js';

@@ -2,7 +2,7 @@
 // here is a fixed number. GET /api/v1/ai/round/limits answers
 //   { v: 1, now, limits: { timeLimitMin, idleMin, coverRounds }, round: null | round state }
 // and the same round state comes on the stream's done frame and on the refusals round_idle, free_mode, round_closed
-// and extras_spent (shape agreed with tabula-cloud's round budget, branch claude/round-budget-f09d94).
+// and extras_spent (shape agreed with the server's round budget).
 // One part of logic.js (pure logic, no DOM, no network). logic.js joins the parts into one API.
 (function (root) {
   'use strict';
@@ -32,7 +32,7 @@
     if (!limits.timeLimitMin && !limits.idleMin && !limits.coverRounds) return null;
     return { limits, round: parseRound(j.round), skew: posNum(j.now) && posNum(deviceNow) ? j.now - deviceNow : 0, roundsLeft: roundsLeftOf(j.roundsLeft) };
   }
-  // The person's own rounds left (tabula-cloud adds roundsLeft to the limits answer), or null when unknown. Unknown
+  // The person's own rounds left (the server adds roundsLeft to the limits answer), or null when unknown. Unknown
   // shows no number, never 0 (docs/design/AI-ROUND-CONSENT.md §3).
   function roundsLeftOf(n) { return Number.isInteger(n) && n >= 0 ? n : null; }
 
