@@ -71,9 +71,10 @@ Each has at most 2 options and my pick. **Q2, Q5, Q6 and Q7 touch legal or busin
 - **Decided 2026-11-20 (owner): A.** Confirmed 2026-11-24 (owner): keep `events.tabulaspeech.com` as the one app address, and add `forensics.tabulaspeech.com` as a redirect to it, so coaches who type the coach word still land in the app. The redirect is part of launch; it needs the owner's yes before any DNS or Cloudflare change.
 
 **Q2. What a "round" buys in Speech Events.** Clean-up of a 6-speaker room is a small text job. A judge often judges 4–6 rooms a day.
-- A. **One round covers one tournament day of rooms** (up to a cap, for example 8 rooms or 12 hours from the first AI call), for hosted clean-up. Same single round price and the same passes. This needs an exception to the live Terms limit on hosted AI per round (3 hours, 20 minutes idle; see the server's plan), because a judging day is longer.
+- A. **One round covers one tournament day of rooms** (up to a cap, for example 8 rooms or 12 hours from the first AI call), for hosted clean-up. Same $2 single round and the same passes. This needs an exception to the live Terms limit on hosted AI per round (3 hours, 20 minutes idle; `tabula-cloud/docs/PLAN.md`), because a judging day is longer.
 - B. One round per room (simple, but a 6-room day costs as much as 6 recorded debate rounds for far less AI).
 - **Decided 2026-11-20 (owner): A.** It is fair and easy to say: "A round is your judging day."
+- **Business and legal note:** either option changes published terms. Today a round is defined around a recorded debate speech (reserve at start, commit at the first recorded speech; `tabula-cloud/docs/PLAN.md`), round counts are public (`docs/marketing/LEGAL-FACTS.md`), and BRAND.md §5 says no separate speech pass at first. Speech Events rooms have no recorded speech, so the commit rule needs a new trigger (for example the first hosted clean-up). The Terms and refund pages need a lawyer-checked update before hosted AI opens in Speech Events.
 
 **Q3. Recording in competitive rooms.**
 - A. Never in v1. Recording and transcripts are for practice only, with consent (P4). NSDA Nationals has banned recording without written consent (seen in the 2023-24 manual; unverified for 2026-27); some tournaments ban it; interp texts are copyrighted; speakers are minors.
@@ -128,7 +129,7 @@ Each has at most 2 options and my pick. **Q2, Q5, Q6 and Q7 touch legal or busin
 - **Decided 2026-11-21 (owner): B.** Congress (P5) comes right after v1, before league packs (P3). This changes Q8 and the phase table.
 
 **Follow-ups outside this folder (this session may not edit them):**
-- The server's plan: the cloud session must add the Speech Events round rule (commit trigger, day-window, the time-limit exception) once Q2 is answered.
+- `tabula-cloud/docs/PLAN.md`: the cloud session must add the Speech Events round rule (commit trigger, day-window, the time-limit exception) once Q2 is answered.
 - `docs/design/AI-POLICY.md` §2a: add `coachSummary`, and widen or split `practiceAI`, before P4.
 - `docs/architecture/ARCHITECTURE.md` §10: event files live at `events/defs/<id>.json` (not `events/<id>.json`); the move of today's app into `debate/` is optional.
 
@@ -144,7 +145,7 @@ Each has at most 2 options and my pick. **Q2, Q5, Q6 and Q7 touch legal or busin
 
 ## 7. How this plan was made
 
-- Base documents in the repo and in the server were read first (listed in ARCHITECTURE.md).
+- Base documents in the repo and in `tabula-cloud` were read first (listed in ARCHITECTURE.md).
 - Four research helpers ran in parallel and left full notes in the shared notes folder (`speech-events/`):
   - league and event rules from 2026-27 rulebooks (`events-research.md`);
   - ballots, signals, critiques and privacy flags (`ballot-judging-research.md`);

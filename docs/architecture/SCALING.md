@@ -67,7 +67,7 @@ A round with **browser transcription** drops the transcription line. A free user
 
 ### 3.3 Other formats and Speech Events
 
-- Cost follows minutes of talk. A policy round is about 64 minutes of talk; LD about 45; PF about 40 (`docs/growth/FORMATS.md`). So an LD or PF round costs roughly **60 to 70%** of a policy round.
+- Cost follows minutes of talk. A policy round is about 64 minutes of talk; LD about 45; PF about 40 (`docs/formats/FORMATS.md`). So an LD or PF round costs roughly **60 to 70%** of a policy round.
 - Tabula Speech Events uses little hosted AI: no live flow, no transcription in competitive rounds by default, and one "clean up my comments" call per entry. Its cost per room is a small part of a debate round's. Its load is small next to debate.
 - The peak shape is the same: speech events run on the same tournament days.
 

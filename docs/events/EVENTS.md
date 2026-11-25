@@ -11,8 +11,8 @@ Full research with every source key: shared notes folder, `speech-events/events-
 - **Events are data, not code.** Almost every event is "one or two performers, one timer, one ranked ballot". What changes is the time limit, the grace rule, the material rule and the checks. Each of those is a field in an event file ([ARCHITECTURE.md](ARCHITECTURE.md) §6.1).
 - **So the v1 cut is about primitives, not events.** v1 ships every event that fits the core primitives. Events that need a new primitive wait.
 - **v1 (17 events + Custom):** the 8 NSDA main events, 7 NSDA supplemental speech events, NSDA middle school Declamation and Mixed Extemp, and a **Custom event** form for any local event.
-- **Phase P3 (see PLAN.md):** state and league packs (California CHSSA, Texas UIL and TFA, Illinois, Kansas, Minnesota, Ohio, Michigan, Iowa, NCFL, NCFCA, Stoa) as preset files, plus extemp cross-ex, Pro Con Challenge, and rating-only ballots.
-- **Later or never:** Radio (audio-only window), large-group events, Discussion, Extemp Debate (it is a debate), Congress (phase P5, its own grid, right after v1 by PLAN.md Q13 B).
+- **Phase P3:** state and league packs (California CHSSA, Texas UIL and TFA, Illinois, Kansas, Minnesota, Ohio, Michigan, Iowa, NCFL, NCFCA, Stoa) as preset files, plus extemp cross-ex, Pro Con Challenge, and rating-only ballots.
+- **Later or never:** Radio (audio-only window), large-group events, Discussion, Extemp Debate (it is a debate), Congress (phase P5, its own grid, right after v1).
 
 ## 2. Rules every event shares (what the ballot holds)
 
@@ -38,7 +38,7 @@ From the ballot research ([Tabroom judge guides](https://www.speechanddebate.org
 
 **Time signals (NSDA).** Not set by the rules. Competitors should be ready to time themselves; a missing signal cannot be protested at Nationals [NSDA-HS]. The usual custom is fingers counting down by the minute, a bent finger or "C" at 30 s, a fist at time (unverified as a rule; common in judge guides).
 
-**Bias reminder.** NSDA district ballots must carry a short bias-awareness statement; online rounds add a note to disregard video and home setting [NSDA-HS]. The app shows the tournament's own wording if the judge pastes it, and a short neutral reminder otherwise (PLAN.md Q5).
+**Bias reminder.** NSDA district ballots must carry a short bias-awareness statement; online rounds add a note to disregard video and home setting [NSDA-HS]. The app shows the tournament's own wording if the judge pastes it, and a short neutral reminder otherwise.
 
 **AI-written material (2026-27).** NSDA bans AI-written text in original speeches and AI-written material in interp [NSDA-HS]. This becomes a check for original events ("Possible AI-written text: flag"). The judge only flags.
 
@@ -132,7 +132,7 @@ AFA National Speech Tournament and NFA: prepared events run 10:00, interp holds 
 
 ## 6. Congress (phase P5, right after v1)
 
-Congressional Debate is not an individual speech event in shape. It needs its own grid (primitive N14 in [SHARED-VS-NEW.md](SHARED-VS-NEW.md)). Scorers give points for each speech: 1–8 at NSDA districts and Last Chance, 3–9 at Nationals. The presiding officer gets a score for each full hour (the district PO scale, 1–8 or 4–8, is still open). The 1–6 figure in the manual is merit points, a different conversion, not the scorer scale (corrected 2026-11-22; see [CONGRESS.md](CONGRESS.md) §5). Each scorer ranks a top 8. See `docs/growth/FORENSICS.md` §2 and the ballot research §6.
+Congressional Debate is not an individual speech event in shape. It needs its own grid (primitive N14 in [SHARED-VS-NEW.md](SHARED-VS-NEW.md)). Scorers give points for each speech: 1–8 at NSDA districts and Last Chance, 3–9 at Nationals. The presiding officer gets a score for each full hour (the district PO scale, 1–8 or 4–8, is still open). The 1–6 figure in the manual is merit points, a different conversion, not the scorer scale (corrected 2026-11-22; see [CONGRESS.md](CONGRESS.md) §5). Each scorer ranks a top 8.
 
 ## 7. Rule checks the app knows (v1 list)
 
