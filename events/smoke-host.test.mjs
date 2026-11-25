@@ -20,14 +20,12 @@ function headersFor(path, text = read('_headers')) {
   return out;
 }
 
-// Why: the smoke check and the headers file must agree; if _headers drifted from what the check wants, the deployer
-// would get a red smoke run on a good deploy, or (worse) a weak header would ship unnoticed.
+// Why: the smoke check and the headers file must agree; if _headers drifted from what the check wants, the deployer would get a red smoke run on a good deploy, or (worse) a weak header would ship unnoticed.
 test('the shipped _headers passes the smoke check header rules', () => {
   assert.deepEqual(headerProblems(headersFor('/*')), []);
 });
 
-// Why: the page talks to the AI providers in core/ai.js with the judge's own key. A provider missing from connect-src
-// breaks that judge's AI help; an extra host would let the page send data somewhere no judge chose.
+// Why: the page talks to the AI providers in core/ai.js with the judge's own key. A provider missing from connect-src breaks that judge's AI help; an extra host would let the page send data somewhere no judge chose.
 test('connect-src allows this site plus exactly the AI hosts core/ai.js calls', () => {
   const csp = headersFor('/*')['Content-Security-Policy'];
   const allowed = csp.match(/connect-src ([^;]+)/)[1].trim().split(/\s+/);
@@ -81,8 +79,7 @@ test('typeProblem flags an HTML reply for a non-HTML file', () => {
   assert.match(typeProblem('https://h.test/index.html', 'application/octet-stream'), /expected text\/html/);
 });
 
-// Why: old links to the forensics host must land on the same screen; a redirect that dropped the path or query, or
-// was temporary, would send judges to the wrong place or keep the old host alive in search.
+// Why: old links to the forensics host must land on the same screen; a redirect that dropped the path or query, or was temporary, would send judges to the wrong place or keep the old host alive in search.
 test('redirectProblem wants a 301 to the same path and query on the events host', () => {
   const from = 'https://forensics.tabulaspeech.com/a/b?x=1';
   assert.equal(redirectProblem(from, 301, PROD + '/a/b?x=1'), null);

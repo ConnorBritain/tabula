@@ -19,31 +19,27 @@ before(() => {
   cached = swFiles(readFileSync(join(out, 'sw-files.js'), 'utf8')).map((p) => new URL(p, 'https://h.invalid/sw.js').pathname.slice(1));
 });
 
-// Why: the host serves the page at /; without index.html at the root of the output, judges opening the events site
-// would get no page at all.
+// Why: the host serves the page at /; without index.html at the root of the output, judges opening the events site would get no page at all.
 test('the page is index.html at the root of the output, with its core and assets beside it', () => {
   for (const f of ['index.html', 'sw.js', 'sw-files.js', '_headers', 'core/ui.js', 'assets/theme-boot.js', 'js/app.js']) assert.ok(files.includes(f), f);
   assert.equal(outPath('events/js/app.js'), 'js/app.js');
   assert.equal(outPath('core/ui.js'), 'core/ui.js');
 });
 
-// Why: the page links ../core/ and ../assets/; if any of those links did not land on a shipped file at the host root,
-// the page would load without its styles or scripts and a judge could not score a round.
+// Why: the page links ../core/ and ../assets/; if any of those links did not land on a shipped file at the host root, the page would load without its styles or scripts and a judge could not score a round.
 test('every file index.html links to is in the output', () => {
   const refs = pageRefs(readFileSync(join(out, 'index.html'), 'utf8'));
   assert.ok(refs.includes('core/policy.js') && refs.includes('assets/theme-boot.js'), refs.join(', '));
   assert.deepEqual(refs.filter((r) => !files.includes(r)), []);
 });
 
-// Why: the service worker installs a release only if every listed file loads; one missing file means the page never
-// works offline, so a judge in a room with no signal loses the tool.
+// Why: the service worker installs a release only if every listed file loads; one missing file means the page never works offline, so a judge in a room with no signal loses the tool.
 test('every file sw-files.js lists is in the output', () => {
   assert.ok(cached.length > 50);
   assert.deepEqual(cached.filter((f) => !files.includes(f)), []);
 });
 
-// Why: the host is public. Only what the page loads may ship; anything else (drafts of unpublished league rules,
-// tests, notes, dev scripts) would go on the open web the moment someone added it to an allowed folder.
+// Why: the host is public. Only what the page loads may ship; anything else (drafts of unpublished league rules, tests, notes, dev scripts) would go on the open web the moment someone added it to an allowed folder.
 test('ships only the files the page loads, plus the worker files, the headers and the font licence', () => {
   const extras = new Set(['sw.js', 'sw-files.js', '_headers', 'assets/fonts/LICENSE.txt']);
   assert.deepEqual(files.filter((f) => !cached.includes(f) && !extras.has(f)), []);
@@ -56,8 +52,7 @@ test('ships no tests, READMEs, dotfiles, dev scripts, prototype or fixtures', ()
   assert.ok(!ALLOW.some((n) => /^events\/(prototype|fixtures)(\/|$)/.test(n)), 'ALLOW names the prototype or fixtures');
 });
 
-// Why: the events host must stay its own product; if debate app files shipped there, judges would see the wrong tool
-// and the debate app's settings could clash with the events page on one host.
+// Why: the events host must stay its own product; if debate app files shipped there, judges would see the wrong tool and the debate app's settings could clash with the events page on one host.
 test('ships no debate-only app files', () => {
   // Names both apps use (_headers, index.html, core/, assets/, js/) are checked by source below, not by name.
   const shared = ['_headers', 'index.html', 'core', 'assets', 'js'];
@@ -75,8 +70,7 @@ test('refuses to build when a needed file is left out', () => {
   assert.throws(() => build(tmp(), ALLOW.filter((n) => n !== 'events/congress')), /not in the output: .*congress\//);
 });
 
-// Why: the CSP header is what keeps judges' own API keys safe from outside scripts; without _headers at the output
-// root, the live events page would run with no CSP.
+// Why: the CSP header is what keeps judges' own API keys safe from outside scripts; without _headers at the output root, the live events page would run with no CSP.
 test('ships the security headers file at the root', () => {
   const h = readFileSync(join(out, '_headers'), 'utf8');
   assert.match(h, /Content-Security-Policy: default-src 'self'; script-src 'self';/);

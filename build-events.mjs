@@ -42,6 +42,11 @@ export const outPath = (path) => (path.startsWith('events/') ? path.slice('event
 const posix = (p) => p.split('\\').join('/');
 
 export function build(out = join(ROOT, 'dist', 'events'), allow = ALLOW) {
+  // core/ is shared with the debate app: ship only the core files the events page loads (the service worker list),
+  // so a core file only the debate app uses never ships here.
+  const coreUsed = new Set(swFiles(readFileSync(join(ROOT, 'events', 'sw-files.js'), 'utf8'))
+    .map((p) => toOut(p, 'sw.js')).filter((p) => p.startsWith('core/')));
+  const skip = (path) => BLOCK.some((re) => re.test(path)) || (/^core\/.+\.[a-z0-9]+$/i.test(path) && !coreUsed.has(path));
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
   for (const name of allow) {
@@ -49,7 +54,7 @@ export function build(out = join(ROOT, 'dist', 'events'), allow = ALLOW) {
     if (!existsSync(src)) throw new Error(`build-events: allowed file is missing: ${name}`);
     cpSync(src, join(out, outPath(name)), {
       recursive: true,
-      filter: (p) => !BLOCK.some((re) => re.test(posix(relative(ROOT, p)))),
+      filter: (p) => !skip(posix(relative(ROOT, p))),
     });
   }
   const missing = missingRefs(out);
