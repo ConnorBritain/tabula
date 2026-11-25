@@ -70,6 +70,9 @@ export function previewHtml(parsed, checks) {
     ${checks.length ? `<h3>Check these</h3><ul class="check-list">${checks.map((c) => `<li class="check-row"><p>${esc(c.text)}</p></li>`).join('')}</ul>` : ''}`;
 }
 
+// Absent or Left as a neutral word beside the code (color review §6: absent is not an error, so no status color).
+export const outPill = (status) => (status === 'absent' || status === 'left' ? statusPillHtml('', STATUS_WORDS[status], '', 'data-out') : '');
+
 // A session's status as a pill in words (color review §6 Chamber overview): green once submitted, a quiet tint while
 // in progress, plain before it starts.
 const SESSION_TONE = Object.freeze({ Submitted: ['ok', 'circle-check'], 'Ranks copied': ['live', 'copy'], Ranking: ['live', 'list-ordered'], Scoring: ['live', 'circle-dashed'], 'Not started': ['', 'circle'] });
@@ -81,7 +84,7 @@ export function overviewHtml(state, chamber) {
   const p = chamber.profile;
   const srows = sessions.map((s) => `<li><a class="room-link" href="#/round/${esc(s.id)}/log"><span class="room-name">Session ${esc(s.number)}</span>
       ${sessionPill(s)}<span class="room-meta">${s.speeches.length} ${s.speeches.length === 1 ? 'speech' : 'speeches'}</span>${icon('chevron-right')}</a></li>`).join('');
-  const lrows = chamber.legislators.map((l) => `<li class="cg-leg"><span class="code">${esc(l.code)}</span>${l.status === 'absent' || l.status === 'left' ? statusPillHtml('', STATUS_WORDS[l.status]) : ''}<span class="muted">${esc(l.name || '')}</span>
+  const lrows = chamber.legislators.map((l) => `<li class="cg-leg"><span class="code">${esc(l.code)}</span>${outPill(l.status)}<span class="muted">${esc(l.name || '')}</span>
       <label class="sr-only" for="st-${esc(l.id)}">Status of ${esc(l.code)}</label>
       <select id="st-${esc(l.id)}" data-status="${esc(l.id)}">${Object.keys(STATUS_WORDS).map((k) => `<option value="${k}"${l.status === k ? ' selected' : ''}>${STATUS_WORDS[k]}</option>`).join('')}</select></li>`).join('');
   const drows = chamber.docket.map((d) => `<li${d.debatedInSession ? ' class="muted"' : ''}>${esc(d.title)}${d.debatedInSession ? ' ' + statusPillHtml('live', 'Done in session ' + d.debatedInSession, 'check') : ''}</li>`).join('');
@@ -153,6 +156,11 @@ export function createChamberScreen(env) {
       if (!sel) return;
       const st = io.read();
       io.write(withChamber(st, setStatus(findChamber(st, id), sel.dataset.status, sel.value, env.now())));
+      // The word beside the code follows the select at once (no redraw, so the focus stays on the select).
+      const row = sel.closest('.cg-leg');
+      const old = row && row.querySelector('[data-out]');
+      if (old) old.remove();
+      if (row) row.querySelector('.code').insertAdjacentHTML('afterend', outPill(sel.value));
       env.ui.announce('Saved.');
     };
     env.el.addEventListener('click', onClick);

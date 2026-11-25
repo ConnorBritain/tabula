@@ -119,6 +119,8 @@ export function createRunsParts() {
   }
 
   const cards = {
+    // While a next run waits, its button is the room's one primary, so the header's Rank button stays secondary.
+    holdsPrimary: (r, e) => nextRunWaits(e, roomEvent(env().data.events, r), env().now(), limit()),
     rowExtra: (r, e) => runsRowHtml(e, roomEvent(env().data.events, r), env().now(), limit()),
     stageHtml: (r, e) => runCardsHtml(e, roomEvent(env().data.events, r), env().now(), limit()),
     mounted() { const box = $('#runs'); if (box) box.addEventListener('click', onClick); },

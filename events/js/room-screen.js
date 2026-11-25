@@ -73,6 +73,8 @@ export function rosterHtml(room, menuFor, extra, sub) {
 // parts: the views that add to this screen (the timer in step E5, the comment sheet in E6). Each may have:
 //   rowExtra(room, entry) -> HTML after a roster row's name     stageHtml(room, entry) -> HTML in the main pane
 //   rowSub(room, entry) -> HTML under a roster row's name
+//   holdsPrimary(room, entry) -> true while the view holds the room's one primary (F4: the next run's button), so
+//                                the header's Rank button stays secondary (top 10 #1)
 //   footHtml(room) -> HTML for the whole room, under the grid     footMounted(ctx) after it is drawn (design build, D3-A:
 //                                                                 the room-level reason for rank)
 //   mounted(ctx) after the main pane is drawn                    show(ctx) / hide(ctx) when the screen opens / closes
@@ -129,8 +131,10 @@ export function createRoomScreen(env, parts) {
   function drawHead() {
     const r = room();
     const go = $('#go-rank');
-    if (r && go) go.outerHTML = goRankHtml(r, roomPrimary(r, entryOf(r, r.current)));
+    if (r && go) go.outerHTML = goRankHtml(r, headPrimary(r));
   }
+  // The room's primary for the header: a view may hold it (F4 runs), else room-primary.js decides.
+  const headPrimary = (r) => { const e = entryOf(r, r.current); return views.some((v) => v.holdsPrimary && v.holdsPrimary(r, e)) ? 'other' : roomPrimary(r, e); };
   function draw() { drawRoster(); drawStage(); drawHead(); }
 
   function pick(id) {
@@ -201,7 +205,8 @@ export function createRoomScreen(env, parts) {
       const r = findRoom(env.rooms(), id);
       if (!r) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
       roomId = id; menuFor = null; rosterOpen = false; numbers.reset();
-      const go = goRankHtml(r, roomPrimary(r, entryOf(r, r.current)));
+      // A placeholder: draw() fills it once the views are shown (a view may hold the primary; it needs its context).
+      const go = '<a class="b" id="go-rank"></a>';
       // Step S3 (EXPERIENCE.md §1.1): the event pill opens the type page for this round's event.
       const ev = event(r);
       env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a>

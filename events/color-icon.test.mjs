@@ -708,8 +708,8 @@ test('chamber overview: session pills, Absent and Left words, done docket items 
   const html = overviewHtml(withSession(withChamber(migrateCongress(null), chamber), made.session), chamber);
   assert.equal(primaries(html), 1);
   assert.match(html, /<span class="room-name">Session 1<\/span>\s*<span class="pill"><svg[^>]*><use href="#i-circle"\/><\/svg>Not started<\/span><span class="room-meta">0 speeches<\/span><svg[^>]*><use href="#i-chevron-right"\/><\/svg>/);
-  assert.match(html, /<span class="code">1002<\/span><span class="pill">Absent<\/span>/);
-  assert.match(html, /<span class="code">1003<\/span><span class="pill">Left<\/span>/);
+  assert.match(html, /<span class="code">1002<\/span><span class="pill" data-out>Absent<\/span>/);
+  assert.match(html, /<span class="code">1003<\/span><span class="pill" data-out>Left<\/span>/);
   assert.doesNotMatch(html, /<span class="code">1001<\/span><span class="pill">/, 'present needs no pill');
   assert.match(html, /<span class="pill live"><svg[^>]*><use href="#i-check"\/><\/svg>Done in session 1<\/span>/);
   assert.ok(html.indexOf('id="cg-before"') < html.indexOf('Sessions</h2>'), 'the note sits under the primary, before the lists');
@@ -753,4 +753,16 @@ test('rubric folds: one block per speaker with the total as its value, the first
   assert.equal((board.match(/rub-fold" data-rubfold="[^"]+" open>/g) || []).length, 1, 'one block open');
   // Closing on a score tap cannot happen: only the toggle of another block closes one (ballot-nav.js rubricToggle).
   assert.match(read('./js/ballot-nav.js'), /if \(d\.open\) \{ for \(const x of root\.querySelectorAll\('details\[data-rubfold\]\[open\]'\)\) if \(x !== d\) x\.open = false;/);
+});
+
+// Why: in a PCC room with one speaker, after Pro stopped both "Rank the room" and "Pro done · start Con" were solid
+// (found in the browser pass). While a run still waits, the header's Rank button must stay secondary.
+test('room primary: a view that holds the primary (PCC runs) keeps the header Rank button secondary', () => {
+  const r = room('pcc', 'nsda-invitational', ['P1']);
+  assert.equal(primaries(goRankHtml(r, 'other')), 0);
+  assert.match(goRankHtml(r, 'other'), /Rank the room <span class="muted">· 0 of 1<\/span>/);
+  assert.match(read('./js/runs-view.js'), /holdsPrimary: \(r, e\) => nextRunWaits\(e, roomEvent\(env\(\)\.data\.events, r\), env\(\)\.now\(\), limit\(\)\)/);
+  const src = read('./js/room-screen.js');
+  assert.match(src, /const headPrimary = \(r\) => \{ const e = entryOf\(r, r\.current\); return views\.some\(\(v\) => v\.holdsPrimary && v\.holdsPrimary\(r, e\)\) \? 'other' : roomPrimary\(r, e\); \};/);
+  assert.match(src, /const go = '<a class="b" id="go-rank"><\/a>';/, 'the header waits for the views to be shown');
 });
