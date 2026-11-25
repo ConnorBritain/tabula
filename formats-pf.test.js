@@ -29,14 +29,14 @@ test('policy and LD rounds give exactly what they gave before PF (fixtures/forma
 
 // Why: the clock times every speech from the file. A wrong time or order gives PF debaters the wrong time in a real
 // round, and a wrong debater on a speech puts the transcript and the points under the wrong student.
-test('PF: NSDA times, order, debaters and prep (FORMATS.md §2)', () => {
+test('PF: NSDA times, order, debaters and prep', () => {
   assert.deepEqual(proFirst.speeches.map((s) => s.id + ' ' + s.minutes), ['Const1 4', 'Const2 4', 'CF1 3', 'Reb1 4', 'Reb2 4', 'CF2 3',
     'Sum1 3', 'Sum2 3', 'GCF 3', 'FF1 2', 'FF2 2']);
   assert.deepEqual(proFirst.speeches.filter((s) => s.kind === 'speech').map((s) => s.speaker),
     ['Pro1', 'Con1', 'Pro2', 'Con2', 'Pro1', 'Con1', 'Pro2', 'Con2']);
   assert.deepEqual([PF.prep.seconds, PF.prep.mode], [180, 'perTeam']);
   assert.deepEqual(L.prepClocks(PF).map((c) => c.id + ' ' + c.label), ['aff Pro', 'neg Con']);
-  assert.equal(PF.ballot.speakerRanks, false, 'FORMATS.md §2: win/loss and points, no ranks');
+  assert.equal(PF.ballot.speakerRanks, false, 'PF ballots: win/loss and points, no ranks');
   assert.deepEqual(PF.defaultSheets, ['Pro case', 'Con case']);
 });
 

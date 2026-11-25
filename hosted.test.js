@@ -10,7 +10,7 @@ const P = require('./providers.js');
 const AI_SRC = ['js/ai.js', 'js/limits.js'].map((f) => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
 const PROG = 'prog_lincoln01';
 
-// A capability record (CONTRACTS §2, v2) for a round judged for PROG. hosted: the account's own credits.
+// A capability record (the server's v2 shape) for a round judged for PROG. hosted: the account's own credits.
 function record(features, hosted) {
   return L.parseCaps({
     v: 2, product: 'debate', edition: 'judge', aiSetup: true,
