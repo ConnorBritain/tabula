@@ -221,7 +221,7 @@ The student edition must never show live judging tools (STUDENT-EDITION §1e). *
 
 ## 6. Backup and sync
 
-**Recommendation now: the user's own export file.** It already fits the data rules: nothing is stored on the server.
+**Recommendation now: the user's own export file.** It already fits the data rules: round content stays on the device. A signed-in account keeps account, usage and purchase records on the server.
 
 - A round has one writer: one judge on one device. Live multi-device merge is not needed.
 - Moving to a new device: **Export all**, then **Import** (§3.1).
