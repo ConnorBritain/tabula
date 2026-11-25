@@ -3,7 +3,7 @@
 // root (a plan, a test, private notes) never ships unless someone adds it here.
 // Then it checks that every local file index.html and about.html link to is in the output.
 // It also writes version.json ({ sha, builtAt, mode }) so anyone can see which commit is live.
-// Run: node build-app.mjs [outDir] [--strict]   (a deploy build uses --strict; see versionInfo)
+// Run: node build-app.mjs [outDir] [--strict] [--mode=prod|staging|local]   (a deploy build is strict; see versionInfo)
 import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -37,9 +37,10 @@ function git(args) {
  *   mode:    BUILD_MODE ("prod", "staging" or "local"), else "local".
  * Problems (no usable sha, a working tree with uncommitted changes, an unknown mode) come back in
  * `warnings`. It never throws: the normal build must not fail for want of git. A deploy build runs
- * with --strict (or BUILD_STRICT=1), which turns any warning into a failed build.
+ * with --strict (or BUILD_STRICT=1; wrangler.app.jsonc does this), which also requires BUILD_MODE and
+ * turns any warning into a failed build.
  */
-export function versionInfo(env = process.env, now = new Date()) {
+export function versionInfo(env = process.env, now = new Date(), { strict = false } = {}) {
   const warnings = [];
   const given = (env.BUILD_SHA || '').trim().toLowerCase();
   let sha = SHA40.test(given) ? given : null;
@@ -51,14 +52,17 @@ export function versionInfo(env = process.env, now = new Date()) {
     warnings.push('the working tree has uncommitted changes, so the build is not exactly commit ' + sha);
   }
   if (!sha) { sha = 'unknown'; warnings.push('no commit id (set BUILD_SHA or build from a git checkout); version.json says "unknown"'); }
-  let mode = (env.BUILD_MODE || '').trim() || 'local';
+  let mode = (env.BUILD_MODE || '').trim();
+  if (!mode) { if (strict) warnings.push('BUILD_MODE is not set (a deploy build must say prod or staging)'); mode = 'local'; }
   if (!MODES.includes(mode)) { warnings.push(`BUILD_MODE "${mode}" is not one of ${MODES.join(', ')}; using "local"`); mode = 'local'; }
-  const builtAt = (env.BUILD_TIME || '').trim() || now.toISOString();
+  let builtAt = (env.BUILD_TIME || '').trim();
+  if (builtAt && Number.isNaN(Date.parse(builtAt))) { warnings.push(`BUILD_TIME "${builtAt}" is not a date; using the clock`); builtAt = ''; }
+  builtAt = builtAt || now.toISOString();
   return { version: { sha, builtAt, mode }, warnings };
 }
 
 export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW, env = process.env, { strict = false } = {}) {
-  const { version, warnings } = versionInfo(env);
+  const { version, warnings } = versionInfo(env, new Date(), { strict });
   if (strict && warnings.length) throw new Error('build-app --strict: ' + warnings.join('; '));
   for (const w of warnings) console.warn('build-app: warning: ' + w);
   rmSync(out, { recursive: true, force: true });
@@ -100,7 +104,13 @@ export function listFiles(dir, base = dir) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
+  for (const a of args) if (a.startsWith('--') && a !== '--strict' && !a.startsWith('--mode=')) console.warn('build-app: warning: unknown option ' + a);
   const strict = args.includes('--strict') || process.env.BUILD_STRICT === '1';
-  const out = build(args.find((a) => !a.startsWith('--')), ALLOW, process.env, { strict });
+  // --mode=prod is the same as BUILD_MODE=prod, and works in every shell (wrangler.app.jsonc uses it).
+  const modeArg = args.find((a) => a.startsWith('--mode='));
+  const env = modeArg ? { ...process.env, BUILD_MODE: modeArg.slice('--mode='.length) } : process.env;
+  let out;
+  try { out = build(args.find((a) => !a.startsWith('--')), ALLOW, env, { strict }); }
+  catch (err) { console.error(err.message); process.exit(1); }
   console.log(`build-app: ${listFiles(out).length} files in ${relative(ROOT, out) || out}`);
 }

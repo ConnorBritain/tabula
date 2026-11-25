@@ -94,6 +94,22 @@ test('an unknown BUILD_MODE falls back to "local" with a warning', () => {
   assert.ok(warnings.some((w) => w.includes('BUILD_MODE')));
 });
 
+// Why: a deploy that is not strict would ship "unknown" or the wrong mode with only a warning in the log.
+test('each deploy build in wrangler.app.jsonc is strict and names its mode', () => {
+  const cfg = JSON.parse(readFileSync(new URL('./wrangler.app.jsonc', import.meta.url), 'utf8').replace(/^\s*\/\/.*$/gm, ''));
+  assert.match(cfg.build.command, /node --test && node check-publish\.mjs && node build-app\.mjs --strict --mode=prod$/);
+  assert.match(cfg.env.staging.build.command, /node --test && node check-publish\.mjs && node build-app\.mjs --strict --mode=staging$/);
+});
+
+// Why: a strict build with no mode, or a bad BUILD_TIME, would publish a misleading version.json.
+test('strict needs BUILD_MODE; a BUILD_TIME that is not a date is not used', () => {
+  assert.ok(versionInfo({ BUILD_SHA: SHA }, new Date(), { strict: true }).warnings.some((w) => w.includes('BUILD_MODE is not set')));
+  assert.equal(versionInfo({ BUILD_SHA: SHA }).warnings.some((w) => w.includes('BUILD_MODE')), false, 'a normal build may leave it unset');
+  const t = versionInfo({ BUILD_SHA: SHA, BUILD_TIME: 'yesterday' }, new Date('2026-01-01T00:00:00Z'));
+  assert.equal(t.version.builtAt, '2026-01-01T00:00:00.000Z');
+  assert.ok(t.warnings.some((w) => w.includes('BUILD_TIME')));
+});
+
 // Why: a cached version.json would show the old commit and make a failed deploy look fine.
 test('version.json is served uncached', () => {
   assert.match(readFileSync(join(out, '_headers'), 'utf8'), /\/version\.json\n\s+Cache-Control: no-store/);
