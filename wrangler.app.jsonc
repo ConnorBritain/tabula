@@ -16,8 +16,9 @@
   "name": "tabula-app",
   "account_id": "36bbd78435b2291e928a50731e703509",
   "compatibility_date": "2026-10-01",
+  // The deploy build is strict: version.json must name exactly one commit and its mode, or the deploy stops.
   "build": {
-    "command": "node --test && node check-publish.mjs && node build-app.mjs"
+    "command": "node --test && node check-publish.mjs && node build-app.mjs --strict --mode=prod"
   },
   "assets": {
     "directory": "./dist/app"
@@ -30,6 +31,9 @@
   "env": {
     "staging": {
       "name": "tabula-app-staging",
+      "build": {
+        "command": "node --test && node check-publish.mjs && node build-app.mjs --strict --mode=staging"
+      },
       "routes": [{ "pattern": "debate.tabulaspeech.dev", "custom_domain": true }],
       "workers_dev": false,
       "preview_urls": false
