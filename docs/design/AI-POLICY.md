@@ -75,7 +75,7 @@ One master switch per role, plus per-feature switches under "More choices".
 | `coachSummary` | Coach ballot summary in Speech Events: repeat themes across a student's past ballots ("4 judges said pace") | Coach role only. Speech Events phase P4. Never ranks or compares students (`docs/events/ARCHITECTURE.md` §7 rule 1). |
 | `libraryAI` | Any later AI in the Debate Library | None exists today. See 2e. |
 
-**`recording` is a separate setting, not an AI feature key.** Recording is keeping audio. `transcription` is turning speech into text. In Speech Events, recording is for practice only, with consent. Competitive rooms never record in v1 (`docs/events/PLAN.md` Q3). The platform holds it as a per-role setting (`off` / `practice` / `on`; `tabula-cloud/docs/platform/MODEL.md` §6). Like the keys above, a policy can only turn it down, never past what the product allows.
+**`recording` is a separate setting, not an AI feature key.** Recording is keeping audio. `transcription` is turning speech into text. In Speech Events, recording is for practice only, with consent. Competitive rooms never record in v1. The platform holds it as a per-role setting (`off` / `practice` / `on`; see the server's spec). Like the keys above, a policy can only turn it down, never past what the product allows.
 
 The new keys follow §0 rule 1: a policy only removes. No admin can turn on `coachSummary`, `practiceAI` or `recording` where the edition or a product rule forbids it.
 
@@ -93,7 +93,7 @@ The master switch **"AI tools: off"** sets all of these to off. "Flow only" is t
 
 ### 2c. Managed and linked accounts
 
-- **Managed account:** made through the school (students 13 to 17 can only get an account this way or with parent consent; ARCHITECTURE §5). The policy applies to **every round** on that account.
+- **Managed account:** made through the school (one way for a student aged 13 to 17 to have an account; a student can also have their own account; ARCHITECTURE §5). The policy applies to **every round** on that account.
 - **Linked account:** a person's own account (for example an 18-year-old senior with their own plan) that joins a program. The policy applies to **rounds opened for the program only**. Their own rounds use their own plan.
 
 ### 2d. How the policy reaches the app
@@ -304,4 +304,4 @@ The law defines a "covered AI companion" broadly. It bans 12 "unsafe features" f
 5. **No memory of the person.** No use of personal facts from earlier sessions. Each round starts fresh.
 6. **No engagement hooks.** No streaks, no "come back" prompts from the AI, no push notifications to known minors.
 
-Before any new Hosted AI feature ships, check it against this list. If Tabula ever adds free chat with the AI, the legal session must re-check New York Art. 48 first.
+Before any new Hosted AI feature ships, check it against this list. If Tabula ever adds free chat with the AI, it needs owner sign-off before it ships, with New York Art. 48 checked first.

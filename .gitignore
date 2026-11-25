@@ -18,3 +18,9 @@ private/
 
 # Build output (build-app.mjs). Deployed, never committed.
 dist/
+
+# Local secrets (wrangler dev, tools). Never commit.
+.dev.vars
+.dev.vars.*
+.env
+.env.*

@@ -5,7 +5,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
-import { ALLOW, OPTIONAL, build, listFiles, outPath, swFiles, pageRefs, manifestLinks, manifestIcons, missingRefs } from './build-events.mjs';
+import { ALLOW, OPTIONAL, build, gitSha, listFiles, outPath, swFiles, pageRefs, manifestLinks, manifestIcons, missingRefs } from './build-events.mjs';
 import { ALLOW as APP_ALLOW } from './build-app.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -41,7 +41,7 @@ test('every file sw-files.js lists is in the output', () => {
 
 // Why: the host is public. Only what the page loads may ship; anything else (drafts of unpublished league rules, tests, notes, dev scripts) would go on the open web the moment someone added it to an allowed folder.
 test('ships only the files the page loads, plus the worker files, the headers and the font licence', () => {
-  const extras = new Set(['sw.js', 'sw-files.js', '_headers', 'assets/fonts/LICENSE.txt']);
+  const extras = new Set(['sw.js', 'sw-files.js', '_headers', 'version.json', 'assets/fonts/LICENSE.txt']);
   // The install manifest the page links, and every icon it names (some are read only at install, so not cached).
   const html = readFileSync(join(out, 'index.html'), 'utf8');
   for (const m of manifestLinks(html)) { extras.add(m); for (const i of manifestIcons(readFileSync(join(out, m), 'utf8'), m)) extras.add(i); }
@@ -57,12 +57,18 @@ test('ships no tests, READMEs, dotfiles, dev scripts, prototype or fixtures', ()
 
 // Why: the events host must stay its own product; if debate app files shipped there, judges would see the wrong tool and the debate app's settings could clash with the events page on one host.
 test('ships no debate-only app files', () => {
-  // Names both apps use (_headers, index.html, core/, assets/, js/) are checked by source below, not by name.
-  const shared = ['_headers', 'index.html', 'core', 'assets', 'js'];
+  // Names both apps use (_headers, index.html, core/, assets/, js/, and each app's own sw.js and manifest.webmanifest)
+  // are checked by source below, not by name.
+  const shared = ['_headers', 'index.html', 'core', 'assets', 'js', 'sw.js', 'manifest.webmanifest'];
   const debateOnly = APP_ALLOW.filter((n) => !shared.includes(n));
   assert.deepEqual(files.filter((f) => debateOnly.some((n) => f === n || f.startsWith(n + '/'))), []);
   // Every shipped js/ file is the events page's own (events/js/), never the debate app's root js/.
   assert.deepEqual(files.filter((f) => f.startsWith('js/') && !existsSync(join(ROOT, 'events', f))), []);
+  // The shipped service worker and manifest are the events page's own (events/), never the debate app's root copies.
+  for (const f of ['sw.js', 'manifest.webmanifest']) {
+    if (files.includes(f)) assert.equal(readFileSync(join(out, f), 'utf8'), readFileSync(join(ROOT, 'events', f), 'utf8'), f + ' is not the events copy');
+  }
+  assert.ok(files.includes('sw.js'), 'the events service worker ships');
   assert.match(readFileSync(join(out, 'index.html'), 'utf8'), /<title>Tabula Speech Events<\/title>/);
   for (const f of ['about.html', 'app.js', 'logic.js', 'providers.js', 'tour.js', 'assets/tokens.css', 'assets/brand.js']) assert.ok(!files.includes(f), f);
 });
@@ -112,4 +118,24 @@ test('the missing-file check reports a linked manifest or a manifest icon that i
   assert.deepEqual(missingRefs(dir), ['icons/b.png']);
   writeFileSync(join(dir, 'icons', 'b.png'), '');
   assert.deepEqual(missingRefs(dir), []);
+});
+
+// Why: when a judge reports a problem, the team must know which version the judge had; without version.json in the build, nobody can tell which release is live on the events host.
+test('writes version.json with the commit and the build time, in the same shape as the debate build', () => {
+  const v = JSON.parse(readFileSync(join(out, 'version.json'), 'utf8'));
+  assert.deepEqual(Object.keys(v).sort(), ['builtAt', 'sha']);
+  assert.match(v.sha, /^([0-9a-f]{40}(-dirty)?|unknown)$/);
+  assert.ok(!Number.isNaN(Date.parse(v.builtAt)) && v.builtAt === new Date(v.builtAt).toISOString(), v.builtAt);
+});
+
+// Why: a build from a plain copy of the files (no git) must still finish and say "unknown", not stop the release or invent a commit.
+test('gitSha says "unknown" where there is no git repo', () => {
+  assert.equal(gitSha(mkdtempSync(join(tmpdir(), 'events-nogit-'))), 'unknown');
+});
+
+// Why: if the browser or the service worker kept an old version.json, Settings would show a judge the wrong release, and feedback would name a version they do not have.
+test('version.json is never cached: no-cache in _headers and not in the worker list', () => {
+  const h = readFileSync(join(out, '_headers'), 'utf8');
+  assert.match(h, /^\/version\.json\n  Cache-Control: no-cache$/m);
+  assert.ok(!cached.includes('version.json'), 'the service worker lists version.json');
 });

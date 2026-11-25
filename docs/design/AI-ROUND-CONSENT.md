@@ -38,7 +38,7 @@ Two choices, as radio rows with one help line each (Mobbin cue: Fresha "Transfer
 - Several AI calls at once (for example, live flow and Live Eval) share one question.
 
 ## 3. Rounds left, always clear
-- Source: `roundsLeft` on `GET /api/v1/ai/round/limits` (tabula-cloud branch `claude/limits-rounds-left`). Null means
+- Source: `roundsLeft` on `GET /api/v1/ai/round/limits` (server). Null means
   unknown: the app then shows no number, never 0.
 - **Top bar pill** (Mobbin cue: Railway "23 days or $4.88 left"): "5 rounds left". A click opens Settings.
   At 0 it reads "No rounds left" and the click opens the Buy rounds page.

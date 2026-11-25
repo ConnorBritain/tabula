@@ -16,10 +16,10 @@ const LOGIC_FILES = [...scriptSrcs().filter((s) => s.startsWith('logic/')), 'log
 function readSource(f) {
   if (f === 'app.js') return APP_FILES.map(read).join('\n');
   if (f === 'logic.js') return LOGIC_FILES.map(read).join('\n');
-  // ui.js builds the toast, ask() and modalDialog from core/ui.js (step C3), so a check on ui.js reads both.
+  // ui.js builds the toast, ask() and modalDialog from core/ui.js, so a check on ui.js reads both.
   // A new test that means one file only should read that file directly.
   if (f === 'ui.js') return ['core/ui.js', 'ui.js'].map(read).join('\n');
-  // providers.js wraps the shared AI layer in core/ai.js (step C13), so a check on providers.js reads both.
+  // providers.js wraps the shared AI layer in core/ai.js, so a check on providers.js reads both.
   if (f === 'providers.js') return ['core/ai.js', 'providers.js'].map(read).join('\n');
   return read(f);
 }

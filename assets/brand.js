@@ -1,5 +1,5 @@
 // The product name and the footer year, in one place (owner, 2026-11-20).
-// Tabula Speech is the parent brand; this app is the product "Tabula Debate" (docs/growth/BRAND.md).
+// Tabula Speech is the parent brand; this app is the product "Tabula Debate".
 // One place at run time: the HTML also holds the same words as a no-script fallback, so a name change edits
 // PRODUCT here and the static text next to each data-brand-* attribute (brand-footer-start.test.mjs checks they agree).
 // It must be a file, not an inline script: the security rule only runs scripts from this site (script-src 'self').

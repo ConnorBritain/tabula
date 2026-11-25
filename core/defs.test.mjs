@@ -1,4 +1,4 @@
-// Tests for the shared definition registry, core/defs.js (docs/events/LANDING.md §3, step C1). Run with: node --test
+// Tests for the shared definition registry, core/defs.js. Run with: node --test
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRegistry, defKey } from './defs.js';
