@@ -122,7 +122,7 @@ Sections:
 3. **How it works**: timer → flow → decide; works with or without AI.
 4. **Privacy**: data stays in your browser; AI calls go only to the provider you pick; no audio is stored.
 5. **About Connor**: 7 years of debate, political work, years as a software developer, built during real rounds to keep serving the next generation. A link to your judging paradigm.
-6. **Open source**: link to github.com/ConnorBritain.
+6. **Open source**: link to https://github.com/TabulaSpeech/tabula.
 7. **Support**: "Buy me a coffee" button.
 8. Footer: © Pattern Engine LLC.
 
@@ -217,7 +217,7 @@ Each step: tests, a browser check in light and dark mode at laptop and phone wid
 
 ## 9. Accounts in the app (roles plan step 3, built 2026-11-20)
 
-The roles plan is in the private tabula-cloud repo (docs/ACCOUNTS-AND-ROLES.md §5a, §6, §9).
+The roles plan is in the server's spec.
 
 - **Judging for**: a signed-in judge who belongs to a school picks "Judging for: <school>" or "Just me" in Round setup or on the start screen. The device remembers the last choice. The choice locks when the first speech clock runs. Signed out, or with no school: no picker. Code: `js/judging.js`, `logic/account.js`.
 - **Paradigm**: signed in, the account paradigm is the one source. Settings → Your paradigm edits and saves it (`PUT /api/v1/me/profile`). The Analysis box shows it read-only. Signed out, the paradigm on this device works as before. On the first sign-in, the app offers once to copy the device paradigm up. Code: `js/account.js`.
@@ -226,7 +226,7 @@ The roles plan is in the private tabula-cloud repo (docs/ACCOUNTS-AND-ROLES.md �
 
 ## 10. The AI gate (platform phase 1B, built 2026-11-20)
 
-Spec: tabula-cloud `docs/platform/CONTRACTS.md` §2 and §5, `BUILD-PLAN.md` §3 1B, and `docs/design/AI-POLICY.md` §3 and §6.
+Spec: the public API contract (`docs/contract/`), the server's spec, and `docs/design/AI-POLICY.md` §3 and §6.
 
 - One check, `can(feature)` (`js/caps.js`, rules in `logic/caps.js`). The record comes from `GET /api/v1/me/capabilities?v=2&product=debate[&programId=…]` at app start, sign-in, and when "Judging for" changes before the first speech. New rounds reload the page, so they start there too. The gate never changes mid-round.
 - With no record, a "Just me" round is today's app. A school round as coach, admin or student, or a managed account, hides all AI until a record arrives. A judge keeps their own AI.

@@ -118,7 +118,7 @@ The app link change touches `index.html` and `app.js`. Another session owns thos
 | `tabula-home` | `tabulaspeech.com` (+ `www` redirect) | `node --test && node check-publish.mjs && node build-home.mjs` | `dist/home/` |
 | `tabula-events-site` | `tabulaforensics.com` | none (one static page) | `sites/forensics/` |
 
-- **CHANGED 2026-11-20 (as built):** the app is not a Pages project. It is an assets-only Worker, `tabula-app`, on the route `debate.tabulaspeech.com/*` (config `wrangler.app.jsonc`; its build command runs `node --test`, `check-publish.mjs` and `build-app.mjs` before every deploy). `/api/v1/*` on that host stays on the `tabula-cloud` Worker. No DNS record was changed. The rest of this table is still the plan.
+- **CHANGED 2026-11-20 (as built):** the app is not a Pages project. It is an assets-only Worker, `tabula-app`, on the route `debate.tabulaspeech.com/*` (config `wrangler.app.jsonc`; its build command runs `node --test`, `check-publish.mjs` and `build-app.mjs` before every deploy). `/api/v1/*` on that host stays on the server Worker. No DNS record was changed. The rest of this table is still the plan.
 - `build-site.mjs` and `build-home.mjs` do not exist yet (`build-app.mjs` does). They are small copy scripts with an **allowlist** of files. Today the repo root has tests, docs and plans. An allowlist means only the right files go out, even if a new file appears.
 - The gates run in the build. A red test stops the deploy.
 - Production branch: `main`. Other branches get preview URLs. Previews send `X-Robots-Tag: noindex`.

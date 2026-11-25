@@ -75,7 +75,7 @@ One master switch per role, plus per-feature switches under "More choices".
 | `coachSummary` | Coach ballot summary in Speech Events: repeat themes across a student's past ballots ("4 judges said pace") | Coach role only. Speech Events phase P4. Never ranks or compares students (`docs/events/ARCHITECTURE.md` §7 rule 1). |
 | `libraryAI` | Any later AI in the Debate Library | None exists today. See 2e. |
 
-**`recording` is a separate setting, not an AI feature key.** Recording is keeping audio. `transcription` is turning speech into text. In Speech Events, recording is for practice only, with consent. Competitive rooms never record in v1 (`docs/events/PLAN.md` Q3). The platform holds it as a per-role setting (`off` / `practice` / `on`; `tabula-cloud/docs/platform/MODEL.md` §6). Like the keys above, a policy can only turn it down, never past what the product allows.
+**`recording` is a separate setting, not an AI feature key.** Recording is keeping audio. `transcription` is turning speech into text. In Speech Events, recording is for practice only, with consent. Competitive rooms never record in v1 (`docs/events/PLAN.md` Q3). The platform holds it as a per-role setting (`off` / `practice` / `on`; see the server's spec). Like the keys above, a policy can only turn it down, never past what the product allows.
 
 The new keys follow §0 rule 1: a policy only removes. No admin can turn on `coachSummary`, `practiceAI` or `recording` where the edition or a product rule forbids it.
 

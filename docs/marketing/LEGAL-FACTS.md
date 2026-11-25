@@ -13,7 +13,7 @@ History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) publishe
 - Refunds: purchases are final, except where the law requires a refund or Link gives one under its own rules (for example within 60 days in certain cases). Refunds run automatically, with no manual approval step (owner, 2026-11-22; review the refund count one month after the first sale).
 - No free trials. The free app works with no account and no card.
 - Who can use and buy: 13 or older to have an Account. Users 13 to 17 can use Hosted AI on their own. Only adults can buy (18 or older in most states). A parent or guardian can buy for a minor's Account. Date of birth is asked at sign-up.
-- Prices on the live Pricing page (checked 2026-11-25): Single $2 (1 Round); Trio $5 (3 Rounds); Weekend Pass $10 (8 Rounds); Circuit $19 (16 Rounds); Monthly $15 (13 Rounds a month, roll-over cap 39); Season $59 a year (60 Rounds); All-Access $149 a year (165 Rounds). Prices are in US dollars; sales tax is added at checkout.
+- Prices and Round counts: see the Pricing page. Prices are in US dollars; sales tax is added at checkout.
 - Checkout is not open yet: the Pricing page says "Email us to buy" (checked 2026-11-25).
 
 ## Legal choices in the pages
@@ -63,11 +63,11 @@ History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) publishe
 
 ## Wording fixes for the next legal update
 
-- **"Plans page" becomes "Pricing page".** The site nav and footer say "Pricing" (owner, pricing chat, 2026-11-23). The URL moves to /pricing/ (tabula-sites PR 21; /plans/ redirects there). In the Terms (§6.1 twice, "Payment") and the Refund Policy (§4), say "the Pricing page (tabulaspeech.com/pricing/)" at first use, then "the Pricing page". This is a name change only.
+- **"Plans page" becomes "Pricing page".** The site nav and footer say "Pricing" (owner decision). The URL moves to /pricing/ (tabula-sites PR 21; /plans/ redirects there). In the Terms (§6.1 twice, "Payment") and the Refund Policy (§4), say "the Pricing page (tabulaspeech.com/pricing/)" at first use, then "the Pricing page". This is a name change only.
 
 ## Watch list
 
-- **Federal KIDS Act / COPPA 2.0.** None has passed (2026-11-23). If a version that covers age 13 passes, 13-year-olds need a parent's consent or a school agreement. The per-state consent switch in `src/age.ts` can be used.
+- **Federal KIDS Act / COPPA 2.0.** None has passed (2026-11-23). If a version that covers age 13 passes, 13-year-olds need a parent's consent or a school agreement. The per-state consent switch in the server can be used.
 - **New York GBL Art. 48** from 2027-01-01: product rules in `docs/design/AI-POLICY.md` §9.
 - **Pennsylvania:** re-check in December 2026 that no added session day passed a bill.
 

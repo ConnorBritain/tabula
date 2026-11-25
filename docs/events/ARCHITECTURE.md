@@ -4,7 +4,7 @@ Status: plan for owner approval, 2026-11-20. No code is built. Nothing in Cloudf
 
 Related files in this folder: [EVENTS.md](EVENTS.md) (which events, their rules), [SHARED-VS-NEW.md](SHARED-VS-NEW.md) (reuse and new parts), [DESIGN.md](DESIGN.md) (look and components), [PLAN.md](PLAN.md) (phases, risks, questions).
 
-Base documents: `docs/growth/FORENSICS.md` (first scope), `docs/growth/BRAND.md` (names, domains, marks), `docs/architecture/ARCHITECTURE.md` §10 (the app's place in the stack), `docs/design/AI-POLICY.md` (AI off switches), and the cloud plan in `~/Code/tabula-cloud/docs/`.
+Base documents: `docs/growth/FORENSICS.md` (first scope), `docs/growth/BRAND.md` (names, domains, marks), `docs/architecture/ARCHITECTURE.md` §10 (the app's place in the stack), `docs/design/AI-POLICY.md` (AI off switches), and the server's plan.
 
 ## 1. What the app is
 
@@ -68,7 +68,7 @@ debate.tabulaspeech.com  events.tabulaspeech.com   student.tabulaspeech.com (lat
 ```
 
 - **One account, one wallet.** Rounds bought in Tabula Debate spend in Speech Events. Every debit carries `productLine: 'events'` (`docs/architecture/ARCHITECTURE.md` §9), so revenue splits by line.
-- **One program, both products.** A school's program has `product` = `debate`, `speech` or `both` (cloud plan `ACCOUNTS-AND-ROLES.md` §2). A judge invited by a speech program lands on the account page and sees "Open Speech Events".
+- **One program, both products.** A school's program has `product` = `debate`, `speech` or `both` (the server's roles plan). A judge invited by a speech program lands on the account page and sees "Open Speech Events".
 - **One AI policy.** The same `can(feature)` gate and the same resolved feature set. Speech Events adds two feature keys (§7).
 - **Separate device storage.** Each app keeps its own rooms or rounds, settings and keys on its own origin. Nothing is shared through the browser.
 
@@ -181,7 +181,7 @@ Entry {
 | Account, membership, program, AI policy | Yes | Already in D1. |
 | Usage per AI call: room ID (a random ID with no tournament name in it), task, tokens, credits | Yes | Billing. No text, no codes, no names. |
 | The text for "Clean up my comments" | **Processed, never stored.** It passes through our Worker to an AI provider (logging off) and back. | Hosted AI path, same as debate (`docs/architecture/ARCHITECTURE.md` §4). Before the call, the app replaces codes with "Speaker 1..N" and also scrubs any name, title or author the judge typed in setup for that room. Free text can still hold a name the judge typed only in the notes; the clean-up screen says so. For middle school events, hosted clean-up is off by default (own key or none), pending the legal read in PLAN.md Q7. |
-| Room summary (event, round, date, entry count) | Opt-in later | Matches the debate "round summaries" decision (`ACCOUNTS-AND-ROLES.md` §7.1). No codes, no names, no comments. |
+| Room summary (event, round, date, entry count) | Opt-in later | Matches the debate "round summaries" decision (the server's roles plan). No codes, no names, no comments. |
 | Stored comments, names, codes, audio, transcripts | **Never stored** | Minors. Same promise as debate. |
 
 ## 7. AI in Speech Events
@@ -239,10 +239,10 @@ events/
 
 ## 9. Accounts, billing and programs
 
-- **Sign-in, wallet, plans:** shared. New on the server for v1: the `productLine` field, the AI task `events.cleanup`, and the round rule chosen in PLAN.md Q2. Q2's pick needs a cloud change: a new commit trigger (the first hosted clean-up call, since rooms have no recorded speech; today a round commits at the first recorded speech, `tabula-cloud/docs/PLAN.md`), and, for option A, a day-window and room cap in the meter.
+- **Sign-in, wallet, plans:** shared. New on the server for v1: the `productLine` field, the AI task `events.cleanup`, and the round rule chosen in PLAN.md Q2. Q2's pick needs a cloud change: a new commit trigger (the first hosted clean-up call, since rooms have no recorded speech; today a round commits at the first recorded speech, per the server's plan), and, for option A, a day-window and room cap in the meter.
 - **What one "round" means in Speech Events** is a pricing choice. Clean-up of a 6-speaker room is a small text job, far cheaper than a recorded debate round. See PLAN.md Q2.
 - The judge's "Judging for" picker (cloud plan step 3) is reused in Room setup.
-- **Plan rules live on the platform, not in the app.** The shared school and admin platform (design in `~/Code/tabula-cloud/docs/platform/`, owned by another session) serves one capabilities API with `product = "events"`. The app reads it and never decides plan rules itself. Speech Events asked that platform for: shared rules profiles per program (P3), a default league pack per program, a separate `recording` key (practice only, with consent), the task names above, and a round model that can hold a day-window (Q2). The platform has accepted all of these (`tabula-cloud/docs/platform/MODEL.md` §4, §6). The app reads `GET /api/v1/me/capabilities?v=2&product=events` (`CONTRACTS.md` §2, §5). The platform maps `programs.product = "speech"` to API product `events`.
+- **Plan rules live on the platform, not in the app.** The shared school and admin platform (designed in the server's spec, owned by another session) serves one capabilities API with `product = "events"`. The app reads it and never decides plan rules itself. Speech Events asked that platform for: shared rules profiles per program (P3), a default league pack per program, a separate `recording` key (practice only, with consent), the task names above, and a round model that can hold a day-window (Q2). The platform has accepted all of these (the server's spec). The app reads `GET /api/v1/me/capabilities?v=2&product=events` (the public API contract, `docs/contract/`). The platform maps `programs.product = "speech"` to API product `events`.
 - **Hired judges and solo judges** use their own account or none. A school's policy never covers them (`docs/design/AI-POLICY.md` §1a).
 
 ## 10. Offline, install and devices
@@ -270,6 +270,6 @@ The same rules as every `*.tabulaspeech.com` host (`docs/architecture/ARCHITECTU
 
 ## Sources
 
-- Base plans: `docs/growth/FORENSICS.md`, `docs/growth/BRAND.md`, `docs/architecture/ARCHITECTURE.md`, `docs/design/AI-POLICY.md`, `~/Code/tabula-cloud/docs/ACCOUNTS-AND-ROLES.md`, `~/Code/tabula-cloud/docs/PLAN.md`.
+- Base plans: `docs/growth/FORENSICS.md`, `docs/growth/BRAND.md`, `docs/architecture/ARCHITECTURE.md`, `docs/design/AI-POLICY.md`, and the server's roles plan and plan.
 - Event rules: see EVENTS.md.
 - Screen Wake Lock API: https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API

@@ -2,13 +2,13 @@
 
 Status: DRAFT. The owner agreed to the flow on 2026-11-22. Settle the design, then build. Nothing ships before the legal review and the owner says yes.
 
-Draft 2 changes the core design. Draft 1 kept the Rounds on a "waiting" purchase with no owner. The server cannot do that: renewals, refunds, disputes and the billing portal all need an account (tabula-cloud `src/billing/webhook.ts`; `payments.owner_id` and `subscriptions.user_id` are NOT NULL). Draft 2 gives every purchase an owner from the first second: **the buyer's own account**, made from the checkout email. Setup is then either "the buyer uses it" or "the buyer sends it to someone".
+Draft 2 changes the core design. Draft 1 kept the Rounds on a "waiting" purchase with no owner. The server cannot do that: renewals, refunds, disputes and the billing portal all need an account (in the server, `payments.owner_id` and `subscriptions.user_id` are NOT NULL). Draft 2 gives every purchase an owner from the first second: **the buyer's own account**, made from the checkout email. Setup is then either "the buyer uses it" or "the buyer sends it to someone".
 
 ## 1. Goal
 
 Anyone can buy a Paid Plan right away, with no sign-in. The Rounds are active at once. The person who will use them sets up later, or the buyer sends the setup to them.
 
-Why: admins, coaches, parents and judges often want to pay first. Today the server needs a signed-in account with a date of birth before it opens checkout (tabula-cloud `src/billing/routes.ts:20-26`).
+Why: admins, coaches, parents and judges often want to pay first. Today the server needs a signed-in account with a date of birth before it opens checkout (in the server).
 
 ## 2. Rules (owner decisions, 2026-11-22)
 
@@ -35,13 +35,13 @@ Why: admins, coaches, parents and judges often want to pay first. Today the serv
 ### 4.1 Buy
 
 1. The visitor clicks Buy. No sign-in.
-2. Our server makes a Stripe Checkout Session with no user. Stripe asks for the email. The server also sets `customer_creation: "always"` for one-time purchases, so that every charge has a Stripe customer (today this is set only on the `customer_email` branch, `src/billing/routes.ts`).
+2. Our server makes a Stripe Checkout Session with no user. Stripe asks for the email. The server also sets `customer_creation: "always"` for one-time purchases, so that every charge has a Stripe customer (today this is set only on the `customer_email` branch in the server).
 3. Abuse controls on this open endpoint: Stripe Radar, a Turnstile check on the Buy click, and a per-IP cap that allows a school network (for example, 30 sessions per IP per hour).
 4. If the visitor is already signed in, the server works as today, except that it no longer needs a date of birth first. The purchase belongs to their account.
 
 ### 4.2 After payment (server)
 
-1. The webhook arrives. The server calls `findOrCreateUser(email)` (exists in `src/auth/email.ts`) with the normalized buyer email (`normalizeEmail`). That is the buyer account.
+1. The webhook arrives. The server calls `findOrCreateUser(email)` (already exists in the server) with the normalized buyer email (`normalizeEmail`). That is the buyer account.
    - The buyer account is **unverified** until someone signs in with that email. An unverified account shows nothing to anyone.
    - If `findOrCreateUser` refuses (for example, a deleted account), the webhook flags the event for review (`ctx.review`) and returns success, so Stripe does not retry for ever.
 2. The grant runs as today, to the buyer account.
@@ -142,7 +142,7 @@ The FTC advises an age question that a child cannot simply go back and change. O
 After confirmation 2:
 
 1. The account is on hold. The server refuses every request from it except "sign out" (a check in `requireUser`). A new `age_hold_until` column holds the hold state.
-2. We keep only: the account email, the date of birth, and the time. We collect nothing else. This is a change from today, where nothing is kept (`src/age-routes.ts`). The Privacy Policy §12 needs a line for it.
+2. We keep only: the account email, the date of birth, and the time. We collect nothing else. This is a change from today, where nothing is kept. The Privacy Policy §12 needs a line for it.
 3. The block cookie is set at once, as today, so that this browser cannot try again with another date.
 4. Nothing moves. If this account was a user receiving a purchase, the Rounds stay on the buyer account. The setup link goes back to `open`.
 5. We email the **buyer** (if the buyer is a different account): "The person who used your setup link gave a date of birth under 13. Tabula is not for children under 13. Your Rounds are still on your account." Choices:
@@ -211,8 +211,8 @@ Also: `open` → `replaced` (a new link was made), `open` → `cancelled` (refun
 
 ## 13. What changes where
 
-**tabula-cloud**
-- New module `src/billing/setups.ts` for setups, sends and holds. New mail templates in `src/billing/mailer.ts`. Do not grow `webhook.ts` or `setBirthDate`.
+**The server**
+- A new billing module for setups, sends and holds. New mail templates. Do not grow `webhook.ts` or `setBirthDate`.
 - Checkout with no user: remove the sign-in and date-of-birth gate (keep the billing-hold check for signed-in buyers). Add Turnstile and the per-IP cap. Set `customer_creation: "always"`.
 - Webhook: find or create the buyer account from the email when there is no user ID.
 - One migration adds: `purchase_setups`, `payment_moves`, `stripe_customers`, `mail_outbox`, and on `users`: `age_hold_until`, `age_pending_date`, `age_fix_used`, and a "verified" time (first sign-in).

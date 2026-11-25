@@ -32,7 +32,7 @@ This file is public. Approved prices live in `layout.mjs` (`LINKS.priceMonth`, `
 | URL | Page | Status in draft 1 |
 |---|---|---|
 | `/` | The Tabula family: what we make, products, one account, trust, open source | Built |
-| `/plans/` | Free; Pass $5 a month or $50 a year (owner-approved); Round packs coming soon; Programs and the two-app plan as rows; trial line; comparison table; FAQ | Built |
+| `/plans/` | Free; Pass (prices: see the Pricing page); Round packs coming soon; Programs and the two-app plan as rows; trial line; comparison table; FAQ | Built |
 | `/trust/` | Privacy and student data: what we keep, what we never keep, AI controls for admins | Built |
 | `/about/` | Who makes it, the company, the rules we keep | Built |
 | `/signin/` | Sign-in entry. Accounts are not open yet, so it says so and links to the free app | Built (placeholder) |
