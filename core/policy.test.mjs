@@ -1,4 +1,4 @@
-// Tests for the shared AI gate, core/policy.js (docs/events/LANDING.md §3, step C11). Run with: node --test
+// Tests for the shared AI gate, core/policy.js. Run with: node --test
 // Debate's gate rules keep their tests (ai-gate.test.mjs, ai-gate-dom.test.mjs, caps.test.js); they run through this file.
 import test from 'node:test';
 import assert from 'node:assert/strict';

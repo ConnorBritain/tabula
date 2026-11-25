@@ -107,7 +107,7 @@ test('the security rule allows exactly the AI hosts the app calls', () => {
   const csp = read('_headers').match(/Content-Security-Policy: (.+)/)[1];
   const directive = (name) => (csp.match(new RegExp('(?:^|; )' + name + ' ([^;]+)')) || [])[1].split(' ');
   const called = new Set();
-  // The provider hosts moved from providers.js to core/ai.js in step C13; both are read.
+  // The provider hosts moved from providers.js to core/ai.js; both are read.
   for (const f of ['app.js', 'providers.js', 'core/ai.js']) for (const m of read(f).matchAll(/['"`](https:\/\/(?:api\.[a-z0-9.-]+|generativelanguage\.googleapis\.com|openrouter\.ai))\//g)) called.add(m[1]);
   assert.deepEqual(directive('connect-src').filter((h) => h.startsWith('https://')).sort(), [...called].sort());
   assert.deepEqual(directive('script-src'), ["'self'"], 'scripts only from this site (no blob:, no inline)');

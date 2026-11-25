@@ -1,4 +1,4 @@
-// Tests for the shared AI layer, core/ai.js (docs/events/LANDING.md §3, step C13). Run with: node --test
+// Tests for the shared AI layer, core/ai.js. Run with: node --test
 // Debate's provider, hosted and key tests (providers.test.js, hosted.test.js, cost.test.js) run through this file now.
 import test from 'node:test';
 import assert from 'node:assert/strict';

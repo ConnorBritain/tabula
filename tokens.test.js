@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const L = require('./logic.js');
 
 const read = (f) => fs.readFileSync(path.join(__dirname, f), 'utf8');
-// The tokens a page gets: core/tokens.css (shared, step C4), then assets/tokens.css (debate's side colours), which
+// The tokens a page gets: core/tokens.css (shared), then assets/tokens.css (debate's side colours), which
 // imports the core file first.
 const CSS_PARTS = [read('core/tokens.css'), read('assets/tokens.css')];
 

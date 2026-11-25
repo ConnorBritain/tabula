@@ -1,5 +1,5 @@
 // Tabula Debate's keyboard map: its one registry of shortcuts and its palette commands. The rules that decide if a key
-// press runs an entry, the key names and the palette search are shared code in core/keys.js (step C5); this file
+// press runs an entry, the key names and the palette search are shared code in core/keys.js; this file
 // passes debate's entries in and turns debate's place and tab into scopes. No DOM here, so Node tests can check every
 // rule. app.js reads the page state and asks keyAction().
 // Slice 0/1 holds the round-safety keys (spec 4.1); Slice 5 adds ⌘K, ?, ], \ and the palette commands (5.4).
