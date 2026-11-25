@@ -190,6 +190,33 @@ test('the speaker view uses the room timer\'s one driver: no second interval, th
   } finally { globalThis.document = prevDoc; globalThis.setInterval = prevSet; globalThis.clearInterval = prevClear; }
 });
 
+// Why: if the open view stops following the room tick, the speaker sees frozen digits while the judge's clock runs on.
+test('the open speaker view follows the room timer\'s tick', () => {
+  const doc = fakeDoc();
+  const prevDoc = globalThis.document, prevSet = globalThis.setInterval, prevClear = globalThis.clearInterval;
+  let tickFn = null;
+  const prevCss = globalThis.CSS;
+  globalThis.CSS = { escape: (x) => String(x) }; // the tick looks up the roster row by id
+  globalThis.document = doc;
+  globalThis.setInterval = (fn) => { tickFn = fn; return 1; };
+  globalThis.clearInterval = () => {};
+  try {
+    const t = rig();
+    t.view.mounted();
+    t.el.querySelector('[data-sv="open"]').fire('click');
+    const sv = doc.added[0];
+    sv.fire('click', { target: sv.querySelector('[data-sv="main"]') }); // Start
+    assert.equal(typeof tickFn, 'function', 'the room driver ticks');
+    t.tick(65_000);
+    tickFn();
+    assert.equal(sv.querySelector('#sv-digits').textContent, '3:55', '5:00 limit, 1:05 used');
+    t.tick(10_000);
+    tickFn();
+    assert.equal(sv.querySelector('#sv-digits').textContent, '3:45');
+    t.view.hide();
+  } finally { globalThis.CSS = prevCss; globalThis.document = prevDoc; globalThis.setInterval = prevSet; globalThis.clearInterval = prevClear; }
+});
+
 // ---------- Esc, Space, fullscreen, focus ----------
 
 // Why: a judge who cannot get back to the ballot mid-round (or who shows the speaker the notes) is stuck in front of
