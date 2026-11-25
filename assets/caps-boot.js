@@ -1,4 +1,4 @@
-// Hides the AI parts the gate removes before the page paints (AI-POLICY §3d step 2, CONTRACTS §5 rule 3), so a
+// Hides the AI parts the gate removes before the page paints (AI-POLICY §3d step 2), so a
 // removed tool never flashes on screen. It reads the cached capabilities record, profile and round, asks the same
 // rule the app uses (logic/caps.js, loaded just before this file), and writes <html data-ai-off="...">.
 // CSS in index.html hides [data-ai] and [data-ai-setup] by those words. js/caps.js writes it again once the page runs.

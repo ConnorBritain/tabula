@@ -60,7 +60,7 @@ test('gateFor: a fresh record for this round is the answer', () => {
   assert.equal(L.payerOf(hidden, 'liveEval'), null);
 });
 
-// Why: CONTRACTS §5 rule 6. With no usable record, a coach, admin or student round must hide all AI (fail closed for
+// Why: the gate fails closed. With no usable record, a coach, admin or student round must hide all AI (fail closed for
 // students), while a judge keeps their own AI (a judge's own AI is never removed).
 test('gateFor: no usable record in a school round hides all AI unless the role there is judge', () => {
   for (const role of ['coach', 'admin', 'student']) assert.equal(L.gateFor({ record: null, programId: P, now: NOW, profile: profileAs(role) }).mode, 'none', role);

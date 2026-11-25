@@ -135,7 +135,6 @@ Sections:
 **Round packs** (later, for judges who do not want keys):
 - A small hosted backend (for example a Cloudflare Worker) holds Tabula's own AI keys.
 - Payments through Stripe. Credits are counted per round.
-- **Program accounts**: a coach buys a pool of credits and hands out judge codes. This works as a recruiting perk for judges.
 - We measure the real cost per round first.
 - **Needed before charging**:
   - Accounts and login.
@@ -237,5 +236,5 @@ Spec: the server's API spec and `docs/design/AI-POLICY.md` §3 and §6.
 - Choice made here: the key settings (`#conn-card`) show while own AI is allowed, also after a key is in, so a judge can test or remove it. Only the Connect AI invites hide once the device is ready.
 - `#ins-cta` carries both `data-ai="liveEval"` and `data-ai-setup="invite"` (CSS before the first paint), and `applyPanes` also hides it by the Insights mode.
 - Known gap: the app has no hosted AI caller yet. When the school pays (`payer: program`) and the device has no own key, the AI controls show but have no engine. Insights then folds away instead of offering Connect AI. The hosted caller closes this.
-- Open questions for the platform architect: CONTRACTS §5 says `applyCapabilities` sets `hidden` (here: CSS from `data-ai-off`), and that `showSetup()` hides the key card once the device is ready (here: only the invites hide; the key card stays so a judge can manage the key).
+- Open questions for the server spec. It says `applyCapabilities` sets `hidden` (here: CSS from `data-ai-off`), and that `showSetup()` hides the key card once the device is ready (here: only the invites hide; the key card stays so a judge can manage the key).
 - The "Judging for" help line now says "rules and credits", not "AI rules and credits", so it names no AI to a role whose AI is hidden.

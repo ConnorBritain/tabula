@@ -94,7 +94,7 @@ The maintainers run the hosted sites. This repository has no deploy steps for co
 | `assets/` | Logos, fonts, theme script, and Debate app boot scripts |
 | `core/` | Shared modules used by both apps (store, clock, ranks, points, AI providers, tokens) |
 | `demo/` | Sample rounds for the Debate app demo |
-| `docs/` | Project notes and Debate Library source text |
+| `docs/` | Project notes and Debate Library source text; start at [`docs/README.md`](docs/README.md) |
 | `evals/` | Scripts that measure AI output quality (raw eval data is not committed) |
 | `events/` | Tabula Speech Events: app, event files, ballot profiles, tests |
 | `fixtures/` | Test fixtures |

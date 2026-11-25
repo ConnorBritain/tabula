@@ -70,7 +70,7 @@ const aiReady = () => {
 // The "No AI" line (L.NO_AI) is muted, with a button to Settings (spec 2.2).
 // L.NO_AI (it asks to connect AI) only while the Connect AI invite may show; else a plain line.
 const noAiText = () => (showSetup() ? L.NO_AI : 'AI is not available right now.');
-// The link to Settings shows only while the Connect AI invite may (CONTRACTS §5 rule 5); else the line is plain.
+// The link to Settings shows only while the Connect AI invite may (the server's gate rules); else the line is plain.
 const noAiHtml = (extra, label) => '<span class="is-quiet">' + escapeHtml(noAiText()) + (showSetup() ? ' <button class="linkish" type="button" data-tab-go="ai" data-ai-setup="invite">' + escapeHtml(label || 'Open Settings') + '</button>' : '') + (extra ? ' ' + escapeHtml(extra) : '') + '</span>';
 // An AI error line: orange, except "offline", which is muted (it is not the judge's fault, spec 2.3).
 const errColor = (msg) => (msg === L.aiErrorText('offline') ? 'quiet' : 'error'); // a tone() name: offline is calm, not an error

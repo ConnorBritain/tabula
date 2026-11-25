@@ -24,7 +24,7 @@ const AI_IDS = {
   ballotDraft: ['draft-open', 'draft-panel', 'auto-ballot', 'dp-go', 'ballot-input'],
   any: ['writing-card', 'writing-settings', 'mini-rec', 'paradigm-pick'],
 };
-// The Connect AI surfaces: each must sit under data-ai-setup (CONTRACTS §5 rule 1).
+// The Connect AI surfaces: each must sit under data-ai-setup (the server's gate rules).
 const SETUP_IDS = ['ins-cta', 'conn-card', 'key-paste', 'key-connect', 'prov-list', 'remember-keys', 'remember-help', 'ai-engine', 'tr-engine', 'sub-box', 'sub-body', 'backup-keys', 'show-welcome'];
 // Every network or start call site, and the gate call it must make before its first fetch (R4).
 const CALL_SITES = [
@@ -148,7 +148,7 @@ test('the Insights mode and its Connect AI row follow the gate', () => {
   assert.match(core, /L\.insightsMode\(\{ allowed: can\('liveEval'\), setup: showSetup\(\),/);
   assert.match(core, /\$\('#ins-cta'\)\.hidden = mode !== 'edge-connect';/);
 });
-// Why: CONTRACTS §4. The app must use only keys the server's contract file has; a key it invents is never sent, so its tool
+// Why: the app must use only keys the server's contract file has; a key it invents is never sent, so its tool
 // would vanish for everyone.
 test('every gate key in the code is in the contract fixture file', () => {
   const used = new Set();
@@ -158,7 +158,7 @@ test('every gate key in the code is in the contract fixture file', () => {
   for (const k of used) if (k !== 'any' && k !== 'setup') assert.ok(FIXTURE.features.includes(k), k + ' is not in fixtures/platform-v2.json');
 });
 
-// Why: CONTRACTS §4. The gate's own key lists must match the contract: a key the debate judge edition does not have
+// Why: the gate's own key lists must match the contract: a key the debate judge edition does not have
 // could never be granted, so its control would stay hidden for everyone.
 test('the gate\'s key lists match the contract file', () => {
   assert.deepEqual(L.FEATURE_KEYS, FIXTURE.features);
