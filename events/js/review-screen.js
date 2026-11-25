@@ -1,7 +1,7 @@
 // Speech Events step E8: the Review and copy screen (ARCHITECTURE.md §5 screen 6; DESIGN.md §4.4, §4.7; N11, N12).
 // Stage 1 "Ranks to submit": the ranks and ratings, one Copy ranks button (the tab room wants these first).
 // Stage 2: one card per entry with its comment and its own Copy comment button, then the reason for rank. Copy all
-// (one block) and Print / PDF (core/sheets.js print sheet). The rules are in ballot.js. Step E13 adds "Clean up" on each
+// (one block) and Print / PDF (core/sheets.js print sheet). Last, "Save a copy": Save as PDF, the primary step once all is copied. The rules are in ballot.js. Step E13 adds "Clean up" on each
 // card (cleanup-view.js), built only when the AI gate allows it.
 // The builders at the top are pure (Node tests call them); createReviewScreen does the DOM.
 import { escapeHtml as esc, showPrintSheet, removePrintSheet } from '../../core/sheets.js';
@@ -121,6 +121,17 @@ export function summaryHtml(room) {
     ${hasRanksStage(room) ? '' : '<p class="muted review-note">Comments only. No ranks to submit.</p>'}`;
 }
 
+// The last step on the screen: save the ballot as a PDF (the core/sheets.js print sheet: the codes and what the judge
+// entered). It becomes the one primary button once every copy step is done (nextCopy says ''), so after the ranks and
+// comments are copied the judge sees one clear next step. The rounds live only on this device; a PDF is a copy that
+// lasts. next: nextCopy(room, cards as shown).
+export function saveStageHtml(room, next) {
+  const ready = next === '' && !(hasRanksStage(room) && ranksProblems(room).length);
+  return `<section class="review-stage review-save" aria-labelledby="stage-save"><h2 id="stage-save">${hasRanksStage(room) ? '3. ' : ''}Save a copy</h2>
+    <p class="muted">${ready ? 'All copied. ' : ''}Your ballot is saved only on this device. Save it as a PDF to keep a copy: in the print window, choose "Save as PDF".</p>
+    <button class="b${ready ? ' primary' : ''}" type="button" data-vact="print" data-key="print-save">${icon('printer')}Save as PDF</button></section>`;
+}
+
 // core/sheets.js copyBlocksHtml is not used here: its blocks have one generic Copy button and a read-only box, while
 // DESIGN.md §4.7 asks for cards with Edit, a "Copied" state and the critique list.
 // Copy text to the clipboard. Returns true when it worked. A browser that refuses the clipboard API gets the older
@@ -155,6 +166,7 @@ export function createReviewScreen(env) {
     $('#review-top').innerHTML = summaryHtml(r);
     $('#review-ranks').innerHTML = ranksStageHtml(r);
     $('#review-comments').innerHTML = commentsStageHtml(r, viewNow());
+    $('#review-save').innerHTML = saveStageHtml(r, nextCopy(r, cards(r, view.order, event(r))));
     // An element with that id first (the edit box), else the control with that data-key.
     if (focusKey) { const el = document.getElementById(focusKey) || $(`[data-key="${CSS.escape(focusKey)}"]`); if (el) el.focus(); }
   }
@@ -226,6 +238,7 @@ export function createReviewScreen(env) {
     }
     // An edit can change which copy step is next: keep one primary on the screen (top 10 #4).
     for (const btn of env.el.querySelectorAll('[data-vact="copy"]')) if (!btn.classList.contains('quiet')) btn.className = btn.dataset.what === next ? 'b primary' : 'b';
+    $('#review-save').innerHTML = saveStageHtml(room(), next);
   }
 
   const afterPrint = () => removePrintSheet();
@@ -241,7 +254,7 @@ export function createReviewScreen(env) {
       const back = hasRanksStage(r) ? `<a class="b quiet back" href="#/rank/${encodeURIComponent(id)}">${icon('chevron-left')}${rankStageLabel(r.profile)}</a>` : `<a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>`;
       env.el.innerHTML = `<div class="screen-head">${back}
           <h1 id="screen-title" tabindex="-1">Review · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
-        <div id="review-top"></div><div id="review-ranks"></div><div id="review-comments"></div>`;
+        <div id="review-top"></div><div id="review-ranks"></div><div id="review-comments"></div><div id="review-save"></div>`;
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('input', onInput);
       window.addEventListener('afterprint', afterPrint);

@@ -14,9 +14,12 @@ import { mydayModel, cardEvent, cardEventId, duePill, roomText, upNextItem, canc
 import { roomEvent, present, CUSTOM_EVENT } from './room.js';
 import { dayOf } from './rooms.js';
 import { routeHash } from './routes.js';
-import { ranksDueMinOf, lastChangeAt, backupReminderDue } from './settings.js';
-import { BACKUP_AT_KEY } from './store.js';
+import { ranksDueMinOf, lastChangeAt, backupReminderDue, congressDay } from './settings.js';
+import { BACKUP_AT_KEY, storageKept } from './store.js';
 import { downloadBackup } from './settings-screen.js';
+import { congressIO } from '../congress/store.js';
+import { isStandalone } from '../../core/install-hint.js';
+import { KEEP_BANNER_KEY, pageHint, sheetDue, bannerDue, keepBannerHtml, createInstallSheet } from './install-sheet.js';
 
 export const MD_TOAST_KEY = 'md-card';
 
@@ -134,7 +137,8 @@ export const backupReminderHtml = () => `<section class="md-backup" aria-labelle
 // congress (optional): [{ id, label }], today's Congress chambers (events/congress/store.js congressToday, via env). A Congress chamber in use counts as a ballot, so Standby does not show.
 // menuFor (optional): the key of the item whose "⋯" menu is open.
 // reminder (optional): true shows the end-of-day backup reminder.
-export function mydayHtml(m, day, events, now, congress, menuFor, reminder) {
+// keep (optional): HTML text shown first, the "may clear" banner (install-sheet.js keepBannerHtml).
+export function mydayHtml(m, day, events, now, congress, menuFor, reminder, keep) {
   const sub = [dayOf(now), day && day.tournament].filter(Boolean).join(' · ');
   const chambers = Array.isArray(congress) ? congress : [];
   const busy = m.sections[0].items.length + m.sections[1].items.length + chambers.length > 0;
@@ -157,7 +161,7 @@ export function mydayHtml(m, day, events, now, congress, menuFor, reminder) {
   const standbyOn = !m.standby && !busy ? '<button class="b" type="button" id="md-standby-on">I am on standby</button>' : '';
   return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">My day</h1><a class="b${next ? '' : ' primary'}" id="md-start" href="${esc(routeHash('pick'))}">${icon('plus')}Start a round</a>${standbyOn}</div>
     ${sub ? `<p class="muted md-sub">${esc(sub)}</p>` : ''}
-    ${standby}${note}${reminder ? backupReminderHtml() : ''}${empty}${nextHtml}${secs}${cong}
+    ${keep || ''}${standby}${note}${reminder ? backupReminderHtml() : ''}${empty}${nextHtml}${secs}${cong}
     <p class="muted md-foot">Older rounds are in <a href="${esc(routeHash('history'))}">History</a>.</p>`;
 }
 
@@ -167,14 +171,23 @@ export function createMydayScreen(env) {
   let showing = false, tick = null, model = null;
   let menuFor = null; // the key of the item whose "⋯" menu is open
   let dismissedAt = null; // the last-change time the judge said "Not now" to (this tab only: it shows again after a new change)
+  let kept = 'unknown'; // storageKept's answer, read each time My day shows
+  const sheet = createInstallSheet(env, () => downloadBackup(env, false));
+  const congressState = () => (env.store ? congressIO(env.store).read() : null);
+  const hasWork = () => lastChangeAt(env.rooms(), env.day.cards(), congressState()) > 0;
 
   function draw(focusKey) {
     const day = env.day.today();
     const cards = env.day.cards(), rounds = env.rooms();
     model = mydayModel({ day, cards, rounds, now: env.now(), ranksDueMin: ranksDueMinOf(env.settings()) });
-    const chambers = env.congressToday ? env.congressToday(env.now()) : [];
-    const reminder = Boolean(env.store) && backupReminderDue({ model, chambers, lastChange: lastChangeAt(rounds, cards), lastBackupAt: env.store.get(BACKUP_AT_KEY, null), dismissedAt });
-    env.el.innerHTML = mydayHtml(model, day, env.data.events, env.now(), chambers, menuFor, reminder);
+    // Today's Congress chambers, each marked open until its sessions today are handed in (settings.js congressDay), so
+    // a Congress-only day gets the backup reminder too.
+    const cong = congressState();
+    const chambers = cong ? congressDay(cong, env.now()) : env.congressToday ? env.congressToday(env.now()) : [];
+    const reminder = Boolean(env.store) && backupReminderDue({ model, chambers, lastChange: lastChangeAt(rounds, cards, cong), lastBackupAt: env.store.get(BACKUP_AT_KEY, null), dismissedAt });
+    const keep = Boolean(env.store) && bannerDue({ kept, standalone: isStandalone(), dismissedDay: env.store.get(KEEP_BANNER_KEY, null), now: env.now() })
+      ? keepBannerHtml(Boolean(pageHint())) : '';
+    env.el.innerHTML = mydayHtml(model, day, env.data.events, env.now(), chambers, menuFor, reminder, keep);
     focusItem(focusKey);
   }
   // The item element of a key, found by position (an id never goes in a CSS selector).
@@ -236,7 +249,10 @@ export function createMydayScreen(env) {
     const t = e.target;
     if (t.id === 'md-standby-on') { if (env.day.setStandby(true)) { draw(); $('#md-got').focus(); } return; }
     if (t.id === 'md-backup') { downloadBackup(env, false); draw(null); return; }
-    if (t.id === 'md-backup-later') { dismissedAt = lastChangeAt(env.rooms(), env.day.cards()); draw(null); return; }
+    if (t.id === 'md-backup-later') { dismissedAt = lastChangeAt(env.rooms(), env.day.cards(), congressState()); draw(null); return; }
+    if (t.id === 'md-keep-backup') { downloadBackup(env, false); draw(); const k = $('#md-keep-backup'); if (k) k.focus(); return; }
+    if (t.id === 'md-keep-how') { sheet.open(pageHint(), { hasWork: hasWork(), auto: false }); return; }
+    if (t.id === 'md-keep-later') { env.store.set(KEEP_BANNER_KEY, dayOf(env.now())); draw(null); return; }
     if (t.id === 'md-standby-off') { if (env.day.setStandby(false)) { draw(); const b = $('#md-standby-on') || $('#screen-title'); b.focus(); } return; }
     const b = t.closest('button[data-act]');
     if (!b) return;
@@ -271,6 +287,19 @@ export function createMydayScreen(env) {
       env.el.addEventListener('click', onClick);
       draw(null);
       tick = setInterval(update, 1000);
+      // The browser's answer on keeping the data comes later; the banner appears only if it changes what shows, and
+      // focus is not moved.
+      storageKept().then((state) => {
+        if (state === kept) return;
+        kept = state;
+        if (!showing) return;
+        const inside = env.el.contains(document.activeElement), was = inside ? document.activeElement.id : '';
+        draw();
+        if (inside) { const el = was && document.getElementById(was); (el || $('#screen-title')).focus(); }
+      }).catch(() => {});
+      // Safari on iPhone and iPad: the "Add to Home Screen" sheet, at most once a day.
+      const hint = pageHint();
+      if (env.store && sheetDue({ hint, standalone: isStandalone(), pref: sheet.pref(), now: env.now() })) sheet.open(hint, { hasWork: hasWork(), auto: true });
     },
     hide() {
       showing = false;

@@ -26,7 +26,16 @@ optional and uses the judge's own key.
 - **Keep my rounds.** The page asks the browser to keep its data, and Settings says plainly whether the browser keeps
   it.
 - **Backup reminder.** When the judging day is over and something changed since the last backup, My day offers to
-  download one.
+  download one. A Congress-only day counts too: the day is over once every session today has its ranks copied or is
+  marked submitted.
+- **Add to Home Screen (iPhone and iPad).** In Safari, My day shows three short steps to add the app to the Home
+  Screen, because Safari can delete a site's data after about 7 days without a visit. It shows at most once a day and
+  has a "Don't show again" choice. A judge with rounds already saved is told to download a backup and restore it in
+  the Home Screen app, which keeps its own copy.
+- **May delete warning.** When the browser says it may delete the saved data, My day shows one line with "Download a
+  backup" and, where it helps, "How to keep it". "Not today" hides it until the next day.
+- **Save as PDF.** The Review screen ends with "Save a copy". Once the ranks and comments are copied, "Save as PDF" is
+  the one main button. The PDF holds the entry codes and what the judge typed, not student names.
 - **Clear this device.** Settings removes every Speech Events value on a shared computer, with an Undo while the tab
   is open. Tabula Debate data is not touched.
 - **Congress (beta).** Chambers and sessions for Student Congress, marked as beta.

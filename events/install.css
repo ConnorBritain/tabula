@@ -1,0 +1,10 @@
+/* Keeping the judge's device copy safe (events/js/install-sheet.js): the "may delete" banner on My day and the
+   "Add to Home Screen" sheet. Only shared tokens (core/tokens.css); the sheet reuses the core/ui.css overlay card. */
+.md-keep { border: 1px solid var(--caution); border-radius: var(--r-lg); background: var(--caution-tint); padding: var(--s3) var(--s4); margin-bottom: var(--s4); }
+.md-keep p { margin: 0 0 var(--s2); }
+.ins-card h2 { margin: 0 var(--s6) var(--s2) 0; }
+.ins-why { margin: 0 0 var(--s3); }
+.ins-steps { margin: 0 0 var(--s3); padding-left: var(--s5); display: grid; gap: var(--s2); }
+.ins-note { margin: 0; font-size: var(--fs-2); }
+.review-save { margin-top: var(--s4); }
+.review-save p { margin: 0 0 var(--s2); }
