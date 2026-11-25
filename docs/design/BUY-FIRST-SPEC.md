@@ -202,7 +202,7 @@ A typed setup code is not offered. The link is the only path, and the buyer can 
 | The buyer typed a wrong email at checkout | The receipt and setup link go to a stranger. The buyer contacts support with the order number. Support voids the setup link, moves the purchase to the right email, and sends a new link. |
 | No one ever uses the Rounds | Reminders at 3 and 14 days. The Rounds stay on the buyer account. They have no end date (paid Rounds never expire), so a later send changes no date. |
 | A minor used a parent's card without permission | The parent asks for a refund (rule 8). We refund and take back the Rounds. |
-| A Program or school | Not in this spec. Schools pay by invoice (Terms §9). A self-serve team pool is platform work. |
+| A school | Not in this spec. Schools pay by invoice (Terms §9). Self-serve team billing is platform work. |
 
 ## 12. States of a setup
 

@@ -202,14 +202,14 @@ Allowed = fine in a competitive round where devices are allowed. Practice-only =
 
 ## 5. Coach and program controls, consent, privacy
 
-### 5a. Coach controls (Program plan)
+### 5a. Coach controls (school plan)
 
-- A coach links students with a Program code (the same code system the judge app's Program plan will use).
+- A coach links students with a school code (the same code system the judge app will use for schools).
 - Per student or per team, the coach sets:
   - Which modes are open: Tournament only, or Tournament + Practice.
   - Is live transcription allowed in tournament mode? (Default: no.)
   - Are AI clerk features (AI flow cleanup, AI search) allowed in tournament mode? (Default: no.)
-  - Is hosted AI on, and how many credits from the pool?
+  - Is hosted AI on, and how many of the school's credits can the student use?
 - The coach can view **round logs** (events only) a student chooses to share. The coach **cannot** see flows, transcripts, or audio unless the student shares a file.
 - A coach can set a **tournament profile** for a given tournament (for example "NCFL 2027: transcription off, AI tools off"). Students load it with one tap.
 
@@ -220,7 +220,7 @@ Allowed = fine in a competitive round where devices are allowed. Practice-only =
   1. The app asks: "Did everyone in the room agree to be recorded?" It shows a one-line script to read aloud.
   2. A visible "transcribing" light shows while the mic is on.
   3. The app logs "consent given" with a time, on the device only.
-- For students under 18 using recording features: **school or parent consent through a Program code** (the same rule the judge app uses for student judges).
+- For students under 18 using recording features: **school or parent consent through a school code** (the same rule the judge app uses for student judges).
 - Hosted AI: students aged 13 and over may use it on their own account, with or without a school.
 - Under 13: not allowed (COPPA). No marketing to middle-school students until a privacy check is done.
 - All-party consent states (CA, FL, IL, MD, MA, MT, NV, NH, PA, WA and others): the app shows a stronger warning there. No-audio mode is always one tap away.
@@ -231,7 +231,7 @@ Allowed = fine in a competitive round where devices are allowed. Practice-only =
 - **Names stay out of AI prompts.** Use the judge app's anonymize step (`L.anonymize` / `L.deanonymize` in `logic.js`): debater names become 1A/2A/1N/2N, team names become "the Aff team"/"the Neg team", and names go back in on the device.
 - Extend it to the locker: school names and author-of-file fields are stripped from text sent to AI.
 - The server keeps only account, ledger, and usage counts. No audio, no transcripts, no flows, no locker files. No student names in usage rows, AI prompts or logs. Full field list: §10e and `docs/library/TRACKS.md` §5.5 and §6.4.
-- FERPA and state student-privacy laws: have the SDPC National DPA ready before any school signs a Program.
+- FERPA and state student-privacy laws: have the SDPC National DPA ready before any school signs up for a school plan.
 - No training on student data. No ads. No sale of data.
 - Voiceprints (telling speakers apart): not in the Student Edition. Biometric law risk (IL BIPA, TX CUBI, WA).
 
@@ -241,7 +241,7 @@ Allowed = fine in a competitive round where devices are allowed. Practice-only =
 
 The product rule is: **Free is the whole app; paid plans sell hosted AI with no key.** The Student Edition keeps that rule. Prices and plan details live in the private business plan, not in this public doc.
 
-| Feature | Free | Free + own key | Pass (18+ only) | Program (coach code) |
+| Feature | Free | Free + own key | Pass (18+ only) | School plan (school code) |
 |---|---|---|---|---|
 | Tournament mode, badge, round log | ✓ | ✓ | ✓ | ✓ |
 | Manual flow, timers, No-audio mode | ✓ | ✓ | ✓ | ✓ |
@@ -249,10 +249,10 @@ The product rule is: **Free is the whole app; paid plans sell hosted AI with no 
 | SpeechDrop: open room, list files, copy/drop file | ✓ | ✓ | ✓ | ✓ |
 | SpeechDrop upload (after maintainer talk) | ✓ | ✓ | ✓ | ✓ |
 | Browser transcription (Chrome) | ✓ | ✓ | ✓ | ✓ |
-| AI flow cleanup, AI locker search | – | ✓ | credits | pool |
-| Practice: drills, feedback, Socratic questions, post-mortem after closure | – | ✓ | credits | pool |
+| AI flow cleanup, AI locker search | – | ✓ | credits | school credits |
+| Practice: drills, feedback, Socratic questions, post-mortem after closure | – | ✓ | credits | school credits |
 | Evidence playbooks | ✓ | ✓ | ✓ | ✓ |
-| Hosted transcription | – | own key | credits | pool |
+| Hosted transcription | – | own key | credits | school credits |
 | Encrypted locker sync between devices | – | – | yearly | ✓ |
 | Coach controls, tournament profiles, shared logs | – | – | – | ✓ |
 | Hosted AI for students 13 to 17 through the school | – | – | – | ✓ |
@@ -295,7 +295,7 @@ Notes:
 5. **Evidence playbooks v1**: save, name and reuse sets of the student's own cards; save a speech doc as a playbook. No AI.
 6. **Post-mortem v1**: after the student confirms the round is closed and the decision is in, a "What did I drop?" list with pointers to the flow, next to the judge's feedback. BYOK only at first.
 7. **Badge check for judges** (owner decision, §9 item 7). A judge on Tabula sees that a debater in the round is in tournament mode, with the same badge code and start time.
-   - **DECIDED (owner): a tiny server.** The student's app posts only `{badge code, mode, start time, end time}`. No names, no school, no content, no account. The judge's app looks up the code the student shows. Entries are deleted 24 hours after the round.
+   - **DECIDED (owner): a tiny server.** The student's app posts only `{badge code, mode, start time, end time}`. No names, no school, no content, no account. The judge's app looks up the code the student shows. Automatic deletion of entries after a set time is planned with this feature. It is not in place today.
    - It must handle peak Saturdays and must never block a round: if the server is down, the badge still shows on the student's screen, and the judge app says "cannot check right now".
    - Rejected: a signed receipt file in the SpeechDrop room. It needs no server, but it depends on SpeechDrop and a manual drop.
    - Honest limit: this shows the mode is on in this app on this device. It cannot prove the student uses no other device (§7).
@@ -316,7 +316,7 @@ Done check for the MVP (when built): in tournament mode, no AI coaching call can
 4. **Live transcription in tournament mode: DECIDED — opt-in, off by default.** Only when the debater turns it on, after the consent step, and only where the tournament allows it.
 5. **AI flow cleanup in tournament mode: DECIDED — off by default.** A coach or tournament profile may turn it on.
 6. **Pricing for students:** kept out of this public doc. Measure student use before any new plan.
-7. **Judge sees the badge code: DECIDED — yes, in the MVP.** See MVP item 7 (§8). It is built as a tiny server that stores no personal data and deletes entries after 24 hours.
+7. **Judge sees the badge code: DECIDED — yes, in the MVP.** See MVP item 7 (§8). It will be built as a tiny server that stores no personal data. Automatic deletion of entries after a set time is planned with this feature. It is not in place today.
 8. **Age floor: DECIDED — 13+.** Students aged 13 to 17 may use hosted AI on their own account, with or without a school. No accounts under 13.
 9. **Rules check: DECIDED — the owner reviews §4 every August**, with the yearly provider-tier check.
 
@@ -368,11 +368,11 @@ Everything in §1 to §9 can run on the device. Join codes and school spaces can
 **Privacy rules for the server:**
 - **Data minimization.** Store only what the feature needs. For Debate Library tracks, `docs/library/TRACKS.md` §5.5 (adult judge accounts) and §6.4 (students) list the fields (birth year, last sign-in, badges, consent records). **No audio. No full transcripts by default. No locker files.** No device or activity tracking.
 - **Names.** The server needs a display name for coaches to know their students. AI prompts still never get names (§5c).
-- **FERPA.** When a school uses a Program or a free school space (`docs/library/TRACKS.md` §6), student records are education records. Sign the SDPC National DPA. The school controls the school's data. Tabula acts as a "school official" under the DPA.
+- **FERPA.** When a school uses a school plan or a free school space (`docs/library/TRACKS.md` §6), student records are education records. Sign the SDPC National DPA. The school controls the school's data. Tabula acts as a "school official" under the DPA.
 - **COPPA.** No accounts under 13. Students 13 to 17 join a school space only with school consent, or with parent consent.
 - **State student-privacy laws** (SOPIPA, NY Ed Law 2-d, IL SOPPA, and others): no ads, no sale, no profiling, no training on student data. List every subprocessor.
 - **Consent.** Recording still needs the consent step in §5b.
-- **Retention and deletion.** Free school-space data is deleted 120 days after the season ends (a parent-consent library account is deleted 12 months after its last sign-in; a school-path student whose space ends has 30 days to add parent consent, or the account is deleted; see `docs/library/TRACKS.md` §6), with reminders 30 days before, 7 days before, and on the day (§10i). Anything the student exported stays theirs. A student can delete any item at any time. A school can delete its whole space. Backups expire on a fixed schedule.
+- **Retention and deletion.** Automatic deletion after a set time is planned. It is not in place today. Anything the student exported stays theirs. A student can delete any item at any time. When school spaces are built, a school can delete its whole space. Backups that expire on a fixed schedule are planned. They are not in place today.
 - **Student export.** One click exports the student's whole record (feedback, flows they saved, badges) as plain files. The student keeps it after they graduate or change schools.
 - **Encryption.** In transit always. At rest on the server.
 
@@ -383,12 +383,12 @@ Everything in §1 to §9 can run on the device. Join codes and school spaces can
 - The app must still work fully with no server. All connected features are add-ons.
 - Publish the server's data rules (what it stores, how long, who can see it) in the public repo, so schools and families can check them.
 
-### 10g. Fit with the Program plan
+### 10g. Fit with the school plan
 
-- Coach features live in the **Program** plan (the paid plan for schools and clubs). No prices or plan details are in this public doc.
+- Coach features live in a paid **school plan** (for schools and clubs). No prices or plan details are in this public doc.
 - One exception (owner decision): a **free school space** for Debate Library tracks. It has only a join code, track assignments, "done or not done", completion badges, and the AI policy switches (see `docs/design/AI-POLICY.md` §8: turning AI off is free). See `docs/library/TRACKS.md` §6.
 - **Free:** a student's own record on the device, and export.
-- Keep a path for programs with no money (a discount or free seats for UDL and Title I programs), so connected roles do not become a rich-school feature.
+- Keep a path for programs with no money (a discount or free access for UDL and Title I programs), so connected roles do not become a rich-school feature.
 
 ### 10h. Coach MVP (smallest first)
 
@@ -396,13 +396,13 @@ Build in this order. Each step is useful alone.
 
 1. **Coach practice round.** A coach runs a practice round in the judge app and saves the RFD and comments to a file the coach gives the student. No server. (Uses the existing judge app.)
 2. **Student record on the device.** The student imports that file and any judge feedback file into a "My feedback" list. Export works. No server.
-3. **Accounts and school join codes.** The first server step. Only membership: no content yet. One school-space entity serves both the paid Program and the free school space (a free-tier flag; `docs/library/TRACKS.md` §6). Narrow Debate Library track assignment comes after this step.
+3. **Accounts and school join codes.** The first server step. Only membership: no content yet. One school-space entity serves both the paid school plan and the free school space (a free-tier flag; `docs/library/TRACKS.md` §6). Narrow Debate Library track assignment comes after this step.
 
 ### 10i. Decisions (owner)
 
-1. **Retention after the season: DECIDED — 120 days after the season ends** (about one debate season), then delete. The app sends reminders 30 days before, 7 days before, and on the day of deletion, each with an export link.
+1. **Retention after the season: planned.** Automatic deletion after a set time is planned. It is not in place today.
 2. **Coach view of tournament round logs: DECIDED — only if the student shares them.** Never automatic.
-3. **Parents: DECIDED — no parent dashboard.** Parents ask the student or the school for an export. Exception: for a free Debate Library account made with parent consent (`docs/library/TRACKS.md` §6.1), the consenting parent gets a light account for data rights only: see what is stored, export, delete, withdraw consent. It shows no progress and sends no alerts except the retention reminders, so it is not a parent dashboard.
+3. **Parents: DECIDED — no parent dashboard.** Parents ask the student or the school for an export. Exception: for a free Debate Library account made with parent consent (`docs/library/TRACKS.md` §6.1), the consenting parent gets a light account for data rights only: see what is stored, export, delete, withdraw consent. It shows no progress and sends no alerts except the planned retention reminders, so it is not a parent dashboard.
 
 ---
 
