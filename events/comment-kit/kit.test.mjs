@@ -19,12 +19,14 @@ const DATA = await loadEventData(async (p) => JSON.parse(readFileSync(new URL('.
 const view0 = read('kit-view.js');
 const cats = (text) => checkComment(text).map((h) => h.category);
 
+// Why: Stale generated data would hide approved starters or use an old warning list in the room.
 test('kit-data.js is up to date with starters.json and words.json (if not: run node events/comment-kit/build-data.mjs)', () => {
   assert.equal(read('kit-data.js'), kitDataSource());
 });
 
 // ---------- Starters ----------
 
+// Why: Long or unclear starters slow a judge who must write comments while listening.
 test('starters.json: each family has 6 to 10 short, plain starters for Strength, To work on and Reason for rank', () => {
   assert.equal(STARTERS.version, 1);
   const want = ['interp', 'platform', 'limitedPrep', 'twoRuns', 'congress', 'general'];
@@ -47,12 +49,14 @@ test('starters.json: each family has 6 to 10 short, plain starters for Strength,
   }
 });
 
+// Why: A starter that triggers its own warning teaches judges to ignore the performance check.
 test('no starter sets off the performance check', () => {
   for (const [key, fam] of Object.entries(STARTERS.families)) {
     for (const kind of STARTER_KINDS) for (const s of fam[kind]) assert.deepEqual(checkComment(s + ' the second point.'), [], `${key}.${kind}: "${s}"`);
   }
 });
 
+// Why: The wrong starter family gives a judge prompts that do not fit the event.
 test('each event picks its family of starters', () => {
   const want = {
     di: 'interp', hi: 'interp', duo: 'interp', poi: 'interp', pro: 'interp', poe: 'interp', sto: 'interp',
@@ -72,6 +76,7 @@ test('each event picks its family of starters', () => {
   assert.deepEqual(startersFor(DATA.events.get('oo'), 'nope'), []);
 });
 
+// Why: A misplaced starter can overwrite or join existing feedback and change what the judge meant.
 test('a starter goes in at the cursor as a new sentence, with one space after it for the judge to go on', () => {
   assert.deepEqual(insertStarter('', 'I believed you most when', 0), { text: 'I believed you most when ', cursor: 25 });
   assert.deepEqual(insertStarter('Great intro.', 'Try slowing down when', 12), { text: 'Great intro. Try slowing down when ', cursor: 35 });
@@ -92,6 +97,7 @@ test('a starter goes in at the cursor as a new sentence, with one space after it
   assert.equal(insertStarter('Good pace\n', 'Try X', 10).text, 'Good pace\nTry X ');
 });
 
+// Why: Missing labels or controls stop a judge from finding and using a sentence starter.
 test('the starter rows draw each starter as a button with "…", escaped, and nothing for an empty kind', () => {
   const html = starterRowHtml(DATA.events.get('oo'), 'strength', 'kit');
   assert.equal((html.match(/class="chip kit-chip"/g) || []).length, STARTERS.families.platform.strength.length);
@@ -108,6 +114,7 @@ test('the starter rows draw each starter as a button with "…", escaped, and no
 
 // ---------- Performance check: the data ----------
 
+// Why: A broken word list can miss a harmful comment or warn about the wrong words.
 test('words.json: seven categories, each term a word or phrase, no repeats, and each term finds itself', () => {
   assert.equal(WORDS.version, 1);
   assert.deepEqual(CHECK_CATEGORIES, ['looks', 'body', 'clothes', 'voiceType', 'accent', 'identity', 'harsh']);
@@ -134,24 +141,31 @@ test('words.json: seven categories, each term a word or phrase, no repeats, and 
 
 // ---------- Performance check: one test per category ----------
 
+// Why: Comments about appearance can hurt a student when the judge means to discuss the performance.
 test('looks: words about how a student looks get the note', () => {
   for (const t of ['Your hair was in your face the whole time.', 'You are cute up there!', 'Your acne was distracting.', 'Such a handsome young man.']) assert.deepEqual(cats(t), ['looks'], t);
 });
+// Why: Comments about a student's body can cause harm unrelated to the performance.
 test('body: words about a student\'s body get the note', () => {
   for (const t of ['You might want to lose weight.', 'You are so skinny.', 'You\'re short, so stand on a step.', 'You gained weight.']) assert.deepEqual(cats(t), ['body'], t);
 });
+// Why: Comments about clothing can replace useful feedback about the student's performance.
 test('clothes: words about what a student wore get the note', () => {
   for (const t of ['Your outfit was nice!', 'Your skirt was too short.', 'You were well dressed today.', 'Your tie was crooked.']) assert.deepEqual(cats(t), ['clothes'], t);
 });
+// Why: Comments about a student's own voice can cause harm when the judge means to assess delivery.
 test('voice type: words about the student\'s own voice get the note', () => {
   for (const t of ['Your squeaky voice was hard to hear.', 'You sound so nasally.', 'Your stutter got in the way.', 'Your whiny voice did not help.']) assert.deepEqual(cats(t), ['voiceType'], t);
 });
+// Why: Comments about a student's accent can target identity instead of the performance.
 test('accent: words about the student\'s own accent get the note', () => {
   for (const t of ['Your thick accent made it hard to follow.', 'I could not understand your accent.', 'You have an accent.', 'Where are you from?']) assert.deepEqual(cats(t), ['accent'], t);
 });
+// Why: Identity-based feedback can hurt a student and must prompt the judge to check it.
 test('identity: words about who a student is get the note', () => {
   for (const t of ['Good job for a girl.', 'Very mature for your age.', 'Man up next time.', 'That is so gay.']) assert.deepEqual(cats(t), ['identity'], t);
 });
+// Why: Harsh labels can hurt a student without explaining how to improve.
 test('harsh labels get the note ("bad", "boring", "annoying" and more)', () => {
   for (const t of ['That was bad.', 'It was boring.', 'Your pauses were annoying.', 'Honestly it was cringe.', 'Pretty dull overall.']) assert.deepEqual(cats(t), ['harsh'], t);
   assert.deepEqual(cats('Boring, annoying, and bad.'), ['harsh', 'harsh', 'harsh']);
@@ -159,6 +173,7 @@ test('harsh labels get the note ("bad", "boring", "annoying" and more)', () => {
 
 // ---------- Performance check: no false hits ----------
 
+// Why: Warnings on normal performance feedback make judges distrust the check.
 test('normal performance words do not set off the note', () => {
   const ok = [
     'Good pace in the intro, and your volume filled the room.',
@@ -197,6 +212,7 @@ test('normal performance words do not set off the note', () => {
   for (const t of ok) assert.deepEqual(checkComment(t), [], t);
 });
 
+// Why: A character reference must not hide a separate harmful comment about the student.
 test('a role word turns off the role-safe checks only in its own clause', () => {
   // Hurtful words after a comma or "but" still get the note, even when the sentence names a character.
   for (const [t, cat] of [
@@ -209,17 +225,20 @@ test('a role word turns off the role-safe checks only in its own clause', () => 
   for (const t of ['The annoying little brother character was so fun.', 'Your villain was terrible and scary.']) assert.deepEqual(cats(t), [], t);
 });
 
+// Why: Warnings on praise such as not bad can make judges ignore later useful warnings.
 test('a harsh word after "not", "never" or a word with n\'t is not a hit', () => {
   for (const t of ['Not so bad.', 'Not that bad.', 'It wasn\'t bad at all.', 'This was not annoying.', 'Not boring at all.', 'Never dull.']) assert.deepEqual(cats(t), [], t);
   assert.deepEqual(cats('So boring, and not good.'), ['harsh'], 'a "not" in another clause does not count');
 });
 
+// Why: Warnings on speech topics or common phrases interrupt useful feedback without protecting the student.
 test('common phrases and speech topics are not hits', () => {
   for (const t of ['Your speech on fat shaming was strong.', 'Clothing waste is a great topic.', 'Breathe from your stomach, not your chest.',
     'Your teeth were chattering in the cold scene.', 'The terrible twos bit was funny.', 'The ugly duckling line landed.', 'Fat chance, the brother says.',
     'Skinny jeans joke worked.', 'Your stats on trash in the ocean were clear.', 'You are pretty good at eye contact.', 'You\'re pretty clear in the intro.']) assert.deepEqual(cats(t), [], t);
 });
 
+// Why: Missed direct comments about a student can reach the ballot without a prompt to check them.
 test('clear phrases in each category are hits', () => {
   for (const [t, cat] of [
     ['Your accent is hard to understand.', 'accent'], ['Your voice is too high.', 'voiceType'], ['You are pretty.', 'looks'],
@@ -227,6 +246,7 @@ test('clear phrases in each category are hits', () => {
   ]) assert.deepEqual(cats(t), [cat], t);
 });
 
+// Why: A warning that flashes before a phrase is complete distracts the judge while writing.
 test('while typing, a hit the next word may cancel waits for it, so the note does not flash ("the bad " before "guy")', () => {
   assert.deepEqual(settledHits('Then the bad ', false), []);
   assert.deepEqual(settledHits('Then the bad guy came in. ', false), []);
@@ -236,10 +256,12 @@ test('while typing, a hit the next word may cancel waits for it, so the note doe
   assert.deepEqual(settledHits('Strong accent work. ', false), []);
 });
 
+// Why: Matching part of a harmless word would produce false warnings that reduce trust.
 test('a word inside a longer word is not a hit ("badge", "fatal", "outfitted" are fine)', () => {
   assert.deepEqual(checkComment('Your badge story was fatal to the plot, and the boringly named file was fine.'), []);
 });
 
+// Why: Capital letters or curly apostrophes must not let a harmful comment escape the check.
 test('the check finds a hit in any letter case and with a curly apostrophe, and gives its place', () => {
   const text = 'Great energy. You’re CUTE.';
   const hits = checkComment(text);
@@ -248,6 +270,7 @@ test('the check finds a hit in any letter case and with a curly apostrophe, and 
   assert.deepEqual(hitWords(text, hits), ['You’re CUTE']);
 });
 
+// Why: Repeated warnings for the same words distract the judge from improving the comment.
 test('a longer term covers a shorter one in the same place, and words are named once', () => {
   const text = 'Your whiny voice. Boring. boring.';
   const hits = checkComment(text);
@@ -256,12 +279,14 @@ test('a longer term covers a shorter one in the same place, and words are named 
   assert.deepEqual(hitKeys(hits), ['boring', 'whiny voice']);
 });
 
+// Why: Checking an unfinished word can warn about text the judge has not finished writing.
 test('while typing, a word at the very end waits for the next space or mark ("dull" on the way to "dullness")', () => {
   assert.deepEqual(settledHits('It was dull', false), []);
   assert.equal(settledHits('It was dull ', false).length, 1);
   assert.equal(settledHits('It was dull', true).length, 1, 'once the judge leaves the box');
 });
 
+// Why: A revised word list must affect the check without requiring a code change that could be missed.
 test('the check can run on a given list (the data drives it, not the code)', () => {
   const data = { roleWords: ['role'], categories: [{ id: 'x', label: 'x', roleSafe: true, terms: ['zap'] }] };
   assert.equal(checkComment('A zap.', data).length, 1);
@@ -270,6 +295,7 @@ test('the check can run on a given list (the data drives it, not the code)', () 
 
 // ---------- The note and the length note ----------
 
+// Why: A warning without clear words and a choice leaves the judge unable to act on it.
 test('the note says the plain words, names the words to check (escaped), and offers Edit and Keep; nothing with no hits', () => {
   assert.equal(NOTE_TEXT, 'Is this about the performance? Comments about how a student looks or who they are can hurt.');
   const text = 'So <b>boring</b>.';
@@ -281,6 +307,7 @@ test('the note says the plain words, names the words to check (escaped), and off
   assert.equal(noteHtml('Fine.', []), '');
 });
 
+// Why: A judge needs context for a long comment without losing feedback to a hidden length limit.
 test('the length note is a quiet count from a long comment on, with no limit', () => {
   assert.equal(lengthNote(''), '');
   assert.equal(lengthNote('x'.repeat(LONG_AT - 1)), '');
@@ -290,8 +317,7 @@ test('the length note is a quiet count from a long comment on, with no limit', (
 
 // ---------- The note never blocks ----------
 
-// Why: the check only warns; if a flagged word could hold back the ranks or the copy, a judge with a fair comment
-// that trips the list ("dull ending") could not finish the ballot the tab room is waiting for.
+// Why: the check only warns; if a flagged word could hold back the ranks or the copy, a judge with a fair comment that trips the list ("dull ending") could not finish the ballot the tab room is waiting for.
 test('a flagged comment never blocks ranking, review or copy: the ballot checks read the same with or without a hit', async () => {
   const { createRoom } = await import('../js/room.js');
   const { ranksProblems, checklist, cards, statusText } = await import('../js/ballot.js');
@@ -317,6 +343,7 @@ test('a flagged comment never blocks ranking, review or copy: the ballot checks 
 
 // ---------- The hooks stay small ----------
 
+// Why: Missing screen hooks leave comment boxes without help, and network calls would expose private feedback.
 test('each screen hooks the kit with one import and one call per box, and the kit never calls the network', () => {
   const hooks = [
     ['../js/comment-view.js', ['mountCommentKit(', 'mountRoomReasonKit(']],
@@ -338,8 +365,7 @@ test('each screen hooks the kit with one import and one call per box, and the ki
   for (const f of ['kit.js', 'kit-view.js', 'kit-data.js']) assert.doesNotMatch(read(f), /\bfetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|localStorage|indexedDB/, f);
 });
 
-// Why: the kit's look lives in its own stylesheet so a stricter style rule cannot break it, and its chrome must stay
-// neutral (the note is a question, not an error): a status tint or the brand green on it would read as a verdict.
+// Why: the kit's look lives in its own stylesheet so a stricter style rule cannot break it, and its chrome must stay neutral (the note is a question, not an error): a status tint or the brand green on it would read as a verdict.
 test('the kit styles live in kit.css, linked once by the page, in neutral chrome only', () => {
   assert.doesNotMatch(read('kit-view.js'), /style=/, 'no inline styles');
   const html = read('../index.html');

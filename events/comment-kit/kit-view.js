@@ -48,14 +48,6 @@ let startersOpen = true; // the fold, for this page visit
 // moves a button (Private note, Flag, Next speaker) out from under the judge's finger.
 const BLUR_WAIT = 400;
 
-// A message for screen readers through the page's one status line (#sr-status), the same way core/ui.js announce
-// does: clear it, then set it, so the same words are read again when they come back.
-function announce(doc, text) {
-  const r = doc.getElementById('sr-status');
-  if (!r) return;
-  r.textContent = '';
-  setTimeout(() => { r.textContent = text; }, 60);
-}
 // Add or take out one id in an aria-describedby list, keeping the ids already there (the prompts list).
 function describedBy(box, id, on) {
   const ids = (box.getAttribute('aria-describedby') || '').split(/\s+/).filter((x) => x && x !== id);
@@ -78,8 +70,28 @@ function attach(box, def, key, startersBefore, startersHtml) {
   box.after(note, count);
 
   let shown = []; // the hits the note names now
+  let blurTimer = null, announceTimer = null;
+  function cancelPending() {
+    clearTimeout(blurTimer); clearTimeout(announceTimer);
+    blurTimer = null; announceTimer = null;
+  }
+  // Only the box still on the page may speak. Remember a message once it was delivered, so a cancelled one can
+  // still be read when the judge finishes the word later.
+  function announce(said) {
+    const r = doc.getElementById('sr-status');
+    if (!r) return;
+    r.textContent = '';
+    announceTimer = setTimeout(() => {
+      announceTimer = null;
+      if (!box.isConnected || note.hidden) return;
+      r.textContent = 'Check this comment. ' + NOTE_TEXT;
+      told.set(key, said);
+    }, 60);
+  }
   // done: the judge left the box (a word at the end counts); first: the screen just drew the box (no announcement).
   function update(done, first) {
+    clearTimeout(announceTimer); announceTimer = null;
+    if (!box.isConnected) return;
     const text = box.value;
     const hits = settledHits(text, done);
     const keys = hitKeys(hits);
@@ -93,8 +105,8 @@ function attach(box, def, key, startersBefore, startersHtml) {
     note.hidden = !show;
     describedBy(box, nid, show);
     const said = show ? keys.join('|') : '';
-    if (!first && said && told.get(key) !== said) announce(doc, 'Check this comment. ' + NOTE_TEXT);
-    told.set(key, said);
+    if (!first && said && told.get(key) !== said) announce(said);
+    if (first || !said) told.set(key, said);
     const len = lengthNote(text);
     count.textContent = len;
     count.hidden = !len;
@@ -116,6 +128,19 @@ function attach(box, def, key, startersBefore, startersHtml) {
     box.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
+  // Native focus can leave a starter only partly visible in the phone's horizontal strip. Reveal its nearest edge
+  // in that strip only; scrolling the page or moving focus here would interrupt the judge's writing path.
+  function revealStarter(ev) {
+    const button = ev.target.closest('[data-kit-i]');
+    if (!button) return;
+    const strip = button.closest('.chips');
+    if (!strip || strip.scrollWidth <= strip.clientWidth) return;
+    const b = button.getBoundingClientRect(), s = strip.getBoundingClientRect();
+    const left = s.left + strip.clientLeft, right = left + strip.clientWidth;
+    if (b.left < left) strip.scrollLeft += b.left - left;
+    else if (b.right > right) strip.scrollLeft += b.right - right;
+  }
+
   function onNote(ev) {
     const b = ev.target.closest('[data-kit-act]');
     if (!b) return;
@@ -132,11 +157,20 @@ function attach(box, def, key, startersBefore, startersHtml) {
 
   if (starters) {
     starters.addEventListener('click', onStarter);
+    starters.addEventListener('focusin', revealStarter);
     starters.addEventListener('toggle', () => { startersOpen = starters.open; });
   }
   note.addEventListener('click', onNote);
-  box.addEventListener('input', () => update(false));
-  box.addEventListener('blur', () => { box.dataset.kitCursor = String(box.selectionStart); setTimeout(() => update(true), BLUR_WAIT); });
+  box.addEventListener('focus', cancelPending);
+  box.addEventListener('input', () => { cancelPending(); update(false); });
+  box.addEventListener('blur', () => {
+    cancelPending();
+    box.dataset.kitCursor = String(box.selectionStart);
+    blurTimer = setTimeout(() => {
+      blurTimer = null;
+      if (box.isConnected && doc.activeElement !== box) update(true);
+    }, BLUR_WAIT);
+  });
   update(true, true);
   return update;
 }
