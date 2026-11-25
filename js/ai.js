@@ -165,7 +165,7 @@ function withStop(signal, ms) {
   if (!signal) return t;
   return typeof AbortSignal.any === 'function' ? AbortSignal.any([signal, t]) : t;
 }
-// ---------- hosted AI (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3) ----------
+// ---------- hosted AI (the server API's app client contract) ----------
 // With hosted access (own credits, or the school pays for the feature), AI calls go to the Tabula server, which owns
 // the prompts and the prices. The page sends round state only, with names swapped for roles. A problem becomes one
 // error with plain words (L.hostedError); "out of rounds" also shows a toast with a Buy rounds link.
@@ -232,7 +232,7 @@ async function callHosted({ job, extra, signal, feature }) {
   return acc.text;
 }
 // The answer as the caller wants it: JSON for a schema, else text; names put back.
-// KNOWN GAP (2026-11-21): the server's task templates (tabula-cloud src/ai/tasks.ts) still ask for plain text, so a
+// KNOWN GAP (2026-11-21): the server's task templates still ask for plain text, so a
 // feature with a schema shows badReply until each task answers in that feature's schema (LIVE_FLOW_SCHEMA, EVAL_SCHEMA,
 // LENS_SCHEMA, IMPACT_SCHEMA, MAP_SCHEMA, BALLOT_SCHEMA in logic/prompts.js). That is a server change.
 function hostedResult(text, schema) {

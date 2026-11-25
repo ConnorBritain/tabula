@@ -1,4 +1,4 @@
-// The AI gate (platform phase 1B; tabula-cloud docs/platform/CONTRACTS.md §2 and §5, docs/design/AI-POLICY.md §3):
+// The AI gate (platform phase 1B; the server API contracts §2 and §5, docs/design/AI-POLICY.md §3):
 // what this person may use in this round. The server answers one question, "what may this user do here?", with one
 // record. The app shows what the record allows and removes the rest. With no record, the app is today's solo app.
 // A policy only ever removes, so a missing or old record never blocks the clock, flow or ballot.
