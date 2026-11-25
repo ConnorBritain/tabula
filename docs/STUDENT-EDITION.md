@@ -241,7 +241,7 @@ Allowed = fine in a competitive round where devices are allowed. Practice-only =
 
 The product rule is: **Free is the whole app; paid plans sell hosted AI with no key.** The Student Edition keeps that rule. Prices and plan details live in the private business plan, not in this public doc.
 
-| Feature | Free | Free + own key | Pass (18+ only) | School plan (coach code) |
+| Feature | Free | Free + own key | Pass (18+ only) | School plan (school code) |
 |---|---|---|---|---|
 | Tournament mode, badge, round log | ✓ | ✓ | ✓ | ✓ |
 | Manual flow, timers, No-audio mode | ✓ | ✓ | ✓ | ✓ |

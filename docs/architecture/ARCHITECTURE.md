@@ -2,7 +2,7 @@
 
 How Tabula grows from a local static app into a hosted app with accounts, paid hosted AI, a coach backend and backup. The local-first core stays.
 
-This file is public. It has no prices, plan names or margins. Those live in the private business plan. Its hosting sketch (§5) and roadmap row C1 are the base. This file lists only what it adds or changes.
+This file is public. It has no prices, plan names or margins.
 
 Related: `STACK.md` (vendors and solo operations), `SCALING.md` (load and cost), `docs/STUDENT-EDITION.md` §10 (coach roles), `docs/library/TRACKS.md` §5 and §8 (badges and accounts).
 

@@ -98,7 +98,7 @@ The master switch **"AI tools: off"** sets all of these to off. "Flow only" is t
 
 ### 2d. How the policy reaches the app
 
-1. The server **resolves** one feature set per user and role. It is the intersection (AND) of the layers in §4: edition, tournament profile (later), program policy for the role, plan or key.
+1. The server **resolves** one feature set per user and role. It is the intersection (AND) of the layers in §4: edition, tournament profile (later), school policy for the role, plan or key.
 2. The app gets it with the session, as a small record:
    `{ features: ["aiFlow", ...], programId, role, policyVersion, issuedAt, expiresAt }`. No names.
 3. The app caches it in its own origin storage, under the account, for offline use.
@@ -262,7 +262,7 @@ Plus a browser check (the DOM test; no new packages): with `?ai=off`, no id from
 - Server table `policy_events`: `program_id`, actor account ID, time, role, feature, old value, new value, `policyVersion`. No student names, no content.
 - **Admins and coaches** of the program can read the log: who changed what, and when.
 - **Students** can see their own current feature set only through the app itself. They see no log.
-- Automatic deletion after a set time is planned. It is not in place today. It holds no student data, so schools can ask for a longer period.
+- Automatic deletion after a set time is planned. It is not in place today. The log holds no student data, so schools can ask to keep it longer, when a later decision sets the period.
 - Each resolved feature set carries `policyVersion`, so a support question ("Why did AI vanish on Tuesday?") maps to one log line.
 
 ---
