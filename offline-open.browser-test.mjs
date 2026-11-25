@@ -1,5 +1,6 @@
 // Offline open, end to end: build the app, serve it, load it once, cut the network, reload, and judge a round to a
-// saved decision through the normal flow. Uses the preinstalled Playwright and Chromium. Run with: node --test
+// saved decision through the normal flow. Needs Playwright and Chromium. Plain `node --test` runs it (CI, before each
+// merge); the deploy build runs only the *.test.* files, which need no browser (see wrangler.app.jsonc).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -50,9 +51,13 @@ test('after one visit, the app opens offline and a round can be judged to a save
 
     // 1. One online visit: the worker installs the whole release and becomes active.
     await page.goto(url);
+    // Wait for the real condition: the worker is 'activated' (ready alone can resolve while it is still activating).
     const cache = await page.evaluate(async () => {
-      const ready = await Promise.race([navigator.serviceWorker.ready, new Promise((ok) => setTimeout(ok, 20000))]);
-      return ready ? caches.keys() : ['no service worker became active'];
+      const reg = await Promise.race([navigator.serviceWorker.ready, new Promise((ok) => setTimeout(ok, 20000))]);
+      if (!reg) return ['no service worker became active'];
+      const sw = reg.active;
+      if (sw.state !== 'activated') await new Promise((ok) => sw.addEventListener('statechange', () => sw.state === 'activated' && ok()));
+      return caches.keys();
     });
     assert.ok(cache.some((k) => k.startsWith('tabula-app-' + sha + '-')), 'the release cache is named after the sha: ' + cache);
 
@@ -62,18 +67,20 @@ test('after one visit, the app opens offline and a round can be judged to a save
     assert.equal(await page.evaluate(() => navigator.onLine), false);
     assert.ok(await page.evaluate(() => Boolean(navigator.serviceWorker.controller)), 'the page is served by the worker');
     await page.getByRole('button', { name: 'Start judging' }).click();
+    // A first visit always offers the tour 400 ms after "Start judging" (js/help.js). Wait for it and close it, so it
+    // never appears later on top of a control the test is about to click.
+    await page.locator('#tour-offer-no').click();
 
     // API calls are never cached: offline, they fail visibly instead of returning an old answer.
     assert.equal(await page.evaluate(() => fetch('/api/health').then(() => 'answered', () => 'failed')), 'failed');
 
     // 3. A round through the normal flow: start flowing, write on the flow, run the clock, move to the next speech.
-    if (await page.locator('#tour-offer-no').isVisible()) await page.click('#tour-offer-no');
     await page.click('#start-flow');
     const first = page.getByPlaceholder('Type here').first();
     await first.fill('1AC: inherency, plan, solvency');
-    await page.uncheck('#rec-on').catch(() => {});
+    await page.uncheck('#rec-on'); // no microphone in the test: the clock runs without transcription
     await page.click('#t-start');
-    await page.waitForTimeout(1200);
+    await page.waitForFunction(() => document.querySelector('#clock').textContent.trim() !== '8:00'); // the clock runs
     await page.click('#t-start');
     await page.click('#t-next');
 

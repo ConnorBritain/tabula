@@ -2,7 +2,7 @@
 // answers. The browser run is in offline-open.test.mjs. Run with: node --test
 import test, { before } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, existsSync } from 'node:fs';
+import { appendFileSync, cpSync, existsSync, mkdtempSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import vm from 'node:vm';
@@ -47,18 +47,26 @@ test('the cached file list covers every file index.html loads', () => {
   assert.ok(files.has('manifest.webmanifest') && files.has('index.html'));
 });
 
-// Why: the worker swaps releases without reloading an open page, so a file the page loads later must not change between releases, or an open page would mix old and new code.
-test('the page loads nothing later except version-named vendor files', () => {
-  const late = [];
+// Why: a file the page loads after boot (a library, the audio worklet when recording starts) that is not cached would fail offline mid-round.
+test('every file the page loads later is shipped and cached (except the AI-only and map libraries)', () => {
+  const late = new Set();
   for (const f of listFiles(out).filter((x) => /^(app\.js|js\/|logic\/|core\/|assets\/).*\.m?js$/.test(x) || /^[a-z]+\.js$/.test(x))) {
-    for (const m of read(f).matchAll(/\bimport\(\s*['"`]([^'"`]+)|\.src\s*=\s*['"`]([^'"`]+)/g)) {
-      const r = m[1] || m[2];
-      // Paths are read from the page (index.html), as the app writes them; the check is about the file name.
-      if (local(r)) late.push(norm(r, 'index.html'));
+    for (const m of read(f).matchAll(/\bimport\(\s*['"`]([^'"`]+)|\.src\s*=\s*['"`]([^'"`]+)|\baddModule\(\s*['"`]([^'"`]+)|\bnew\s+(?:Shared)?Worker\(\s*['"`]([^'"`]+)/g)) {
+      const r = m[1] || m[2] || m[3] || m[4];
+      // Paths are read from the page (index.html), as the app writes them.
+      if (local(r)) late.add(norm(r, 'index.html'));
     }
   }
-  assert.ok(late.length > 0, 'found the late loads');
-  for (const r of late) assert.match(r, /^vendor\/[a-z-]+-\d+\.\d+\.\d+[.\w]*\.m?js$/, r + ' is loaded after boot but has no version in its name');
+  assert.ok(late.has('tap.js'), 'the scan finds the audio worklet (addModule)');
+  for (const r of late) {
+    assert.ok(existsSync(join(out, r)), r + ' is loaded later but not shipped');
+    if (!/^vendor\/(mermaid|anthropic-sdk)-/.test(r)) assert.ok(files.has(r), r + ' is loaded later but not cached');
+  }
+});
+
+// Why: if a new release took over an open page, that page could load a late file (tap.js) from the new release beside its old code.
+test('a new release never takes over an open page', () => {
+  assert.doesNotMatch(swSrc, /skipWaiting\s*\(|clients\.claim\s*\(/);
 });
 
 // Why: each deploy needs a new cache name, or browsers keep serving the old release forever.
@@ -79,6 +87,26 @@ test('an "unknown" sha still gives a release name, and new files give a new one'
   assert.notEqual(releaseName(out, list.slice(1), 'unknown'), name, 'a different file set gives a different name');
 });
 
+// Why: with an "unknown" sha, a change to the worker's code alone must still give a new release, or browsers keep the old worker's cache rules.
+test('a change to sw.js alone gives a new release name', () => {
+  const copy = join(mkdtempSync(join(tmpdir(), 'app-sw-')), 'app');
+  cpSync(out, copy, { recursive: true });
+  const before = releaseName(copy, [...files], 'unknown');
+  appendFileSync(join(copy, 'sw.js'), '\n// changed\n');
+  assert.notEqual(releaseName(copy, [...files], 'unknown'), before);
+});
+
+// Why: the deploy runs the tests that need no browser and CI runs all of them; if the split drifted, a test would run nowhere or the deploy would need a browser.
+test('the deploy runs every *.test file; only the browser test is left to the full run', () => {
+  const cfg = JSON.parse(readFileSync(new URL('./wrangler.app.jsonc', import.meta.url), 'utf8').replace(/^\s*\/\/.*$/gm, ''));
+  const cmds = [cfg.build.command, ...Object.values(cfg.env || {}).map((e) => e.build && e.build.command).filter(Boolean)];
+  for (const c of cmds) assert.match(c, /^node --test "\*\*\/\*\.test\.\*js" && node check-publish\.mjs && node build-app\.mjs/, c);
+  // Files plain `node --test` runs that the deploy pattern does not: the *-test.*js files at the root.
+  const rootOnly = readdirSync(new URL('./', import.meta.url)).filter((f) => /-test\.[cm]?js$/.test(f));
+  assert.deepEqual(rootOnly, ['offline-open.browser-test.mjs']);
+  assert.ok(!/\.test\.[cm]?js$/.test(rootOnly[0]), 'the deploy pattern does not list the browser test');
+});
+
 // Why: caching the AI SDK, the Library or host files would waste judges' storage; caching sw.js itself would freeze updates.
 test('host files, the Library and AI-only libraries are not cached', () => {
   for (const f of files) assert.doesNotMatch(f, /^(learn\/|sw\.js$|_headers$|version\.json$|vendor\/(mermaid|anthropic))|\.test\./, f);
@@ -92,7 +120,7 @@ function worker(src, netFetch = null, origin = 'https://debate.example') {
     Response: class { constructor(b, o) { this.body = b; Object.assign(this, o); } },
     caches: {
       open: async (name) => { if (!store.has(name)) store.set(name, new Map()); const m = store.get(name); return { put: async (k, v) => m.set(k, v), match: async (k) => m.get(k) }; },
-      keys: async () => [...store.keys()], delete: async (k) => store.delete(k),
+      keys: async () => [...store.keys()], delete: async (k) => store.delete(k), has: async (k) => store.has(k),
     },
     fetch: netFetch || (async (req) => { net.push(req.url); return { ok: true, redirected: false, url: req.url, body: 'net:' + req.url }; }),
   };
@@ -112,7 +140,7 @@ test('the worker answers listed files from its cache and leaves the API and othe
   const w = worker(swSrc);
   w.store.set('tabula-app-old', new Map());
   await w.fire('install');
-  assert.ok(w.skipped(), 'takes over only after the whole release is stored');
+  assert.ok(!w.skipped(), 'waits until no tab uses the old release');
   await w.fire('activate');
   const names = [...w.store.keys()];
   assert.equal(names.length, 1); assert.match(names[0], new RegExp('^tabula-app-' + esc(sha) + '-'));
@@ -141,6 +169,19 @@ test('a redirected file is stored as a plain response', async () => {
   const page = cache.get('https://debate.example/index.html');
   assert.equal(page.redirected, undefined, 'not marked as redirected');
   assert.equal(page.body, 'bytes');
+});
+
+// Why: a failed install (storage full, a dropped file) must leave no half release, and must never delete a cache already in use.
+test('a failed install deletes only the cache it started', async () => {
+  const failing = async (r) => (r.url.endsWith('/js/flow.js') ? { ok: false, status: 503, url: r.url } : { ok: true, redirected: false, url: r.url, body: 'x' });
+  const fresh = worker(swSrc, failing);
+  await assert.rejects(fresh.fire('install'));
+  assert.equal(fresh.store.size, 0, 'no half release left');
+  const again = worker(swSrc, failing);
+  const name = 'tabula-app-' + swSrc.match(/TABULA_APP_RELEASE = "([^"]+)"/)[1];
+  again.store.set(name, new Map([['kept', 1]]));
+  await assert.rejects(again.fire('install'));
+  assert.ok(again.store.has(name), 'a cache that existed before the install is kept');
 });
 
 // Why: the repo copy has no file list; if it cached or answered anything, a dev server would serve stale files.

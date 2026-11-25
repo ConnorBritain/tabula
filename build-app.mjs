@@ -45,9 +45,9 @@ export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW) {
   }
   // The same build serves production and staging, so there is no mode field. _headers caches it for a minute only.
   writeFileSync(join(out, 'version.json'), JSON.stringify({ sha: gitSha(), builtAt: new Date().toISOString() }) + '\n');
-  writeWorker(out);
   const missing = missingRefs(out);
   if (missing.length) throw new Error(`build-app: a shipped page links to files that are not in the output: ${missing.join(', ')}`);
+  writeWorker(out);
   return out;
 }
 
@@ -76,12 +76,13 @@ export function shellFiles(out) {
 }
 
 /**
- * The cache release name: the sha from version.json plus a hash of the cached files. So each deploy gets a
- * new cache, and so does a build whose sha says "unknown" or "-dirty" when any cached file changed.
+ * The cache release name: the sha from version.json plus a hash of the cached files and of sw.js itself. So
+ * each deploy gets a new cache, and so does a build whose sha says "unknown" or "-dirty" when any cached file
+ * or the worker's code changed.
  */
 export function releaseName(out, files, sha) {
   const h = createHash('sha256');
-  for (const f of files) h.update(f + '\0').update(readFileSync(join(out, f))).update('\0');
+  for (const f of [...files, 'sw.js']) h.update(f + '\0').update(readFileSync(join(out, f))).update('\0');
   return (String(sha).replace(/[^0-9A-Za-z._-]/g, '') || 'unknown') + '-' + h.digest('hex').slice(0, 12);
 }
 

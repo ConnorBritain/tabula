@@ -6,7 +6,10 @@
 //
 // One release = one cache, named 'tabula-app-' + the release. A release is installed whole or not at all.
 //   install:  fetch every listed file past the HTTP cache into the new cache. One failure fails the install,
-//             and the old release stays in use. Only then does the new worker take over (skipWaiting).
+//             deletes the half-filled cache, and the old release stays in use.
+//   waiting:  a new release does not take over open pages (no skipWaiting). It takes over once no tab still uses
+//             the old one, the browser's own rule. So an open page is always served by the release it loaded from,
+//             even for files it loads late, such as the audio worklet (tap.js) when recording starts.
 //   activate: delete older tabula-app-* caches. Other caches on this host are not touched.
 //   fetch:    a listed file comes from this release's cache. Everything else (the API, sign-in, the hosted AI,
 //             other hosts, POST, files not listed) goes to the network as if no worker were here, so it fails
@@ -15,12 +18,11 @@
 // Strategy: stale-while-revalidate, applied to the whole release instead of file by file. Every page load is
 // served at once from the release on this device (fast on weak tournament Wi-Fi, and it works with none), while
 // the browser checks sw.js in the background. A new release installs completely beside the old one and is used
-// from the next page load. Network-first would make every load wait on a slow network, and per-file
+// once every Tabula tab has been closed (a reload alone keeps the old one, by browser rule). Network-first would make every load wait on a slow network, and per-file
 // revalidation could mix an old index.html with new scripts.
 //
-// The worker never reloads a page. A page that is open keeps running the code it loaded at boot. The app loads
-// all its code at boot; the only files it loads later are vendor files with the version in their names, so
-// they do not change between releases (app-sw.test.mjs checks this).
+// The worker never reloads a page and never takes over an open page, so a page never mixes two releases.
+// Every file the page loads later is in the cached list, so it works offline too (app-sw.test.mjs checks this).
 
 const PREFIX = 'tabula-app-';
 const RELEASE = self.TABULA_APP_RELEASE;
@@ -55,15 +57,15 @@ async function plain(res) {
 self.addEventListener('install', (event) => {
   if (!CACHE) return;
   event.waitUntil((async () => {
+    const existed = await caches.has(CACHE);
     try {
       const got = await Promise.all(URLS.map((u) => fetch(new Request(u, { cache: 'reload' })).then(plain)));
       const cache = await caches.open(CACHE);
       await Promise.all(got.map((res, i) => cache.put(URLS[i], res)));
     } catch (err) {
-      await caches.delete(CACHE); // never keep half a release (for example when storage is full)
+      if (!existed) await caches.delete(CACHE); // never keep half a release (for example when storage is full)
       throw err;
     }
-    await self.skipWaiting();
   })());
 });
 

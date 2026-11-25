@@ -16,8 +16,10 @@
   "name": "tabula-app",
   "account_id": "36bbd78435b2291e928a50731e703509",
   "compatibility_date": "2026-10-01",
+  // The deploy runs every test that needs no browser (*.test.js / *.test.mjs). The browser test
+  // (offline-open.browser-test.mjs) runs with the full `node --test` before each merge, in CI.
   "build": {
-    "command": "node --test && node check-publish.mjs && node build-app.mjs"
+    "command": "node --test \"**/*.test.*js\" && node check-publish.mjs && node build-app.mjs"
   },
   "assets": {
     "directory": "./dist/app"
