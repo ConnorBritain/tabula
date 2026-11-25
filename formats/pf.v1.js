@@ -1,7 +1,7 @@
 // Format file: NSDA high school Public Forum (PF), version 1. Data only, no code (docs/architecture/ARCHITECTURE.md §9).
 // A published version never changes: a round renders with the version it was judged under. To change the format,
 // copy this file to pf.v2.js, raise "version", and add the new file to logic/format.js and formats.test.js.
-// Times from docs/growth/FORMATS.md §2: constructive 4 + 4, crossfire 3, rebuttal 4 + 4, crossfire 3, summary 3 + 3,
+// Speech times: constructive 4 + 4, crossfire 3, rebuttal 4 + 4, crossfire 3, summary 3 + 3,
 // grand crossfire 3, final focus 2 + 2; 3 minutes prep per team.
 (function (root) {
   'use strict';

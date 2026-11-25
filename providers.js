@@ -1,5 +1,5 @@
 // AI provider layer for Tabula Debate. The provider help, model picks, request building and reply reading are shared
-// code in core/ai.js (step C13, an ES module: the page runs it before this file; Node requires it). This file adds
+// code in core/ai.js (an ES module: the page runs it before this file; Node requires it). This file adds
 // debate's output caps by kind of call and keeps the window.Providers name the page code uses.
 (function (root) {
   'use strict';

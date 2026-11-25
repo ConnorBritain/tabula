@@ -59,7 +59,7 @@ test('Insights and the Live Eval tab show one waiting line until the round is re
   assert.match(INS, /const INS_WAIT = 'Insights start after the first speech\.';/);
   assert.match(fnSource(INS, 'renderInsights'), /if \(!L\.insightsReady\(R, DOCS\)\) \{ box\.innerHTML = '<p class="muted ins-msg" id="ins-wait">' \+ INS_WAIT/);
   assert.match(fnSource(INS, 'renderEvalStatus'), /const empty = !L\.insightsReady\(R, DOCS\);/);
-  // Since step C7 the start runs through the shared clock driver: startSpeech starts it, and its start hook
+  // The start runs through the shared clock driver: startSpeech starts it, and its start hook
   // (speechStarted) does what startSpeech did after the clock started.
   const CLOCK = read('js/clock.js');
   assert.match(fnSource(CLOCK, 'startSpeech'), /SPEECH_CLOCK\.start\(/);

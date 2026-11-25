@@ -1,4 +1,4 @@
-// Tests for shared points, core/points.js (docs/events/LANDING.md §3, step C9). Run with: node --test
+// Tests for shared points, core/points.js. Run with: node --test
 // Debate's points rules keep their tests in logic.test.js and logic-slice4.test.js; they run through this file now.
 import test from 'node:test';
 import assert from 'node:assert/strict';

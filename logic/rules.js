@@ -12,7 +12,7 @@
   const { OVER_LIMIT, restoreTimer, prepWins, beepDecision, leftAt } = typeof module !== 'undefined' && module.exports ? require('../core/clock.js') : root.TabulaCore.clock;
 
   // ---------- Slice 1: round safety (docs/design/SPEC.md §3.1) ----------
-  // The clock math (OVER_LIMIT, restoreTimer, prepWins, beepDecision) is shared code in core/clock.js (step C6).
+  // The clock math (OVER_LIMIT, restoreTimer, prepWins, beepDecision) is shared code in core/clock.js.
   // These wrappers find the speech or the prep clock in the round's format and pass its length in.
 
   // 1.1 The speech clock after a reload, a crash or sleep. run = { id, endAt, ... } as saved with the round.
