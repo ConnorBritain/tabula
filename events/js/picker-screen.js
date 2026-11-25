@@ -25,7 +25,7 @@ const rowHtml = (r) => `<li class="pk-row">
 
 // The list as HTML text. sections: pickerSections(...).
 export function pickerListHtml(sections) {
-  if (!sections.length) return '<p class="muted" id="pk-none">No event matches. Try another word, or pick Custom event.</p>';
+  if (!sections.length) return '<p class="muted" id="pk-none">No match. Pick Custom event?</p>';
   let html = '', allShown = false, congressShown = false;
   for (const s of sections) {
     const group = s.id !== 'recent' && s.id !== 'results';
@@ -62,7 +62,7 @@ export function sheetHtml(v) {
       <label class="field"><span>Round</span><input id="cf-round" autocomplete="off" maxlength="40" value="${esc(v.round)}"></label>
       <fieldset class="radios cf-radios"><legend>Flight</legend>${radios('cf-flight', FLIGHTS.map((f) => ({ id: f, label: f || 'None' })), '')}</fieldset>
       <fieldset class="radios cf-radios"><legend>Level</legend>${radios('cf-level', LEVELS, 'prelim')}</fieldset>
-      <label class="field wide"><span>Tournament <span class="muted">(optional)</span></span><input id="cf-tour" autocomplete="off" maxlength="80" value="${esc(v.tournament)}"></label>
+      <label class="field wide"><span>Tournament</span><input id="cf-tour" autocomplete="off" maxlength="80" value="${esc(v.tournament)}"></label>
     </div>
     <p class="form-err" id="cf-err" role="status"></p>
     <div class="ask-btns"><button class="b" type="button" data-cf="later">Save for later</button><button class="b primary" type="submit" data-cf="start">Paste the room</button></div>`;

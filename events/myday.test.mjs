@@ -302,7 +302,9 @@ test('My day cards offer the right action for their status, and escape every tex
   const html = mydayHtml(m, DAY, DATA.events, NOW);
   assert.ok(!html.includes('<b>R2</b>'));
   assert.match(html, /href="#\/start\/c/, 'a not-started card has Start');
-  assert.match(html, /data-act="submit">I submitted in Tabroom/);
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E45, DESIGN.md rule 9). Old line:
+  //   assert.match(html, /data-act="submit">I submitted in Tabroom/);
+  assert.match(html, /data-act="submit">Mark submitted/);
   assert.match(html, /href="#\/type\/hi"/, 'the event pill opens the type page');
   const v = itemView(m.sections[1].items[0], DATA.events);
   assert.equal(v.canSubmit, false, 'nothing to submit before the round starts');

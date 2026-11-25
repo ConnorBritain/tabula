@@ -28,8 +28,8 @@ export function keySheetHtml(groups) {
 export function aiPartHtml(ai) {
   if (!ai || !ai.allowed) return '';
   const body = ai.connected
-    ? `<p>Connected: ${esc(ai.providerName)}. Clean-up on the Review screen uses this key.</p><button class="b" type="button" id="set-ai-forget">Forget my key</button>`
-    : `<p class="field-help">Clean-up on the Review screen can use your own API key. The key stays in this browser.</p><button class="b" type="button" id="set-ai-connect">Connect AI</button>`;
+    ? `<p>Connected: ${esc(ai.providerName)}.</p><button class="b" type="button" id="set-ai-forget">Forget my key</button>`
+    : `<p class="field-help">Use your own AI key for Clean-up. The key stays in this browser.</p><button class="b" type="button" id="set-ai-connect">Connect AI</button>`;
   return `<section class="set-part" aria-labelledby="set-ai-h"><h2 id="set-ai-h">AI clean-up</h2>${body}</section>`;
 }
 
@@ -47,11 +47,11 @@ export function settingsHtml(v) {
   </section>
   <section class="set-part" aria-labelledby="set-due-h"><h2 id="set-due-h">Ranks due</h2>
     <label class="field set-due"><span>Minutes after the last speaker</span><input id="set-due" type="number" inputmode="numeric" min="1" max="${RANKS_DUE_MAX}" step="1" value="${esc(ranksDueMinOf(s))}"></label>
-    <p class="field-help">My day counts down to this time, so you send your ranks to Tabroom on time.</p>
+    <p class="field-help">My day counts down to this time.</p>
   </section>
   <section class="set-part" aria-labelledby="set-gap-h"><h2 id="set-gap-h">Extemp draw gap</h2>
     <fieldset class="radios"><legend class="sr-only">Extemp draw gap</legend>${radios('set-gap', DRAW_GAPS.map((n) => ({ id: String(n), label: n + ' minutes' })), String(s.drawGapMin))}</fieldset>
-    <p class="field-help">Extemp speakers prep outside after the draw. Between speakers the room shows "Waiting for next speaker" for about this long. Pick what your tournament uses.</p>
+    <p class="field-help">How long the room shows "Waiting for next speaker" between Extemp speakers.</p>
   </section>
   ${aiPartHtml(v.ai)}
   <section class="set-part set-keys" aria-labelledby="set-keys-h"><details class="fold">${foldSummaryHtml('<h2 id="set-keys-h">Keyboard</h2>')}${v.keys}</details></section>
@@ -60,7 +60,7 @@ export function settingsHtml(v) {
     <button class="b" type="button" id="set-offline-check">Check again</button>
   </section>
   <section class="set-part" aria-labelledby="set-data-h"><h2 id="set-data-h">Data</h2>
-    <p class="field-help">Your rounds stay on this device. A backup is one file you can keep or move to another device.</p>
+    <p class="field-help">Your rounds stay on this device. A backup lets you keep or move them.</p>
     <div class="set-row"><button class="b" type="button" id="set-backup">Download backup</button>
       <label class="tick"><input type="checkbox" id="set-backup-keys"> Include my AI key</label></div>
     <div class="set-row"><button class="b" type="button" id="set-restore-btn">Restore from a backup</button>

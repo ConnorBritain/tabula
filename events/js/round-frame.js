@@ -61,7 +61,7 @@ export function levelFieldsHtml(picked) {
   const lv = p.level === 'elim' ? 'elim' : 'prelim';
   return `<label class="field"><span>Level</span><select id="setup-level">${LEVELS.map((l) => `<option value="${l.id}"${l.id === lv ? ' selected' : ''}>${l.label}</option>`).join('')}</select></label>
       <label class="field"><span>Judges in the room</span><select id="setup-panel">${PANEL_SIZES.map((n) => `<option value="${n}"${n === (p.panelSize || 1) ? ' selected' : ''}>${n === 1 ? 'Only me' : 'Panel of ' + n}</option>`).join('')}</select></label>
-      <label class="field wide" id="setup-panel-note-box" hidden><span>Panel note <span class="muted">(optional, for you only)</span></span><input id="setup-panel-note" autocomplete="off" maxlength="${PANEL_NOTE_MAX}" placeholder="For example: judges in seats 1 to 3"></label>`;
+      <label class="field wide" id="setup-panel-note-box" hidden><span>Panel note <span class="pill outline">Not on ballot</span></span><input id="setup-panel-note" autocomplete="off" maxlength="${PANEL_NOTE_MAX}" placeholder="Seats 1–3"></label>`;
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).roundFrame = Object.freeze({

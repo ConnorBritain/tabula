@@ -234,7 +234,7 @@ The target is two taps plus the room. The same picker serves the coach ("Add to 
 
 - Add `BallotCard.ranksDueAt?`. The default is the end of the last speaker plus 10 minutes. The 10 minutes is a setting.
 - The Now card shows a countdown.
-- Add a manual tick, "I submitted in Tabroom" (`submittedAt`). It moves the card to Done (comments open).
+- Add a manual tick, "Mark submitted" (`submittedAt`; copy trim E45, was "I submitted in Tabroom"). It moves the card to Done (comments open).
 - At the end of the day, show a "Comments still open" reminder. Tabroom keeps comments open until the tournament ends.
 
 ### 5.4 Changes to a card **[crit]**

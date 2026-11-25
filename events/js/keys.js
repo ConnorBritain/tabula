@@ -14,8 +14,8 @@ export const SHORTCUTS = Object.freeze([
   ...[1, 2, 3, 4, 5, 6, 7, 8].map(digit),
   // Step S4 (EXPERIENCE.md §2.5): a room over 8 types the place number, then Enter (number-pick.js). 9 and 0 only
   // count in such a room. Enter runs only when digits wait; otherwise it keeps its own job (room-screen.js run).
-  { id: 'num9', keys: { mac: '9', other: '9' }, single: true, scope: 'room', action: 'num9', label: 'Type 9 (rooms over 8)', group: 'Room' },
-  { id: 'num0', keys: { mac: '0', other: '0' }, single: true, scope: 'room', action: 'num0', label: 'Type 0 (rooms over 8)', group: 'Room' },
+  { id: 'num9', keys: { mac: '9', other: '9' }, single: true, scope: 'room', action: 'num9', label: 'Type 9 in rooms over 8', group: 'Room' },
+  { id: 'num0', keys: { mac: '0', other: '0' }, single: true, scope: 'room', action: 'num0', label: 'Type 0 in rooms over 8', group: 'Room' },
   { id: 'numEnter', keys: { mac: 'Enter', other: 'Enter' }, single: true, scope: 'room', action: 'numEnter', label: 'Pick the speaker number you typed', group: 'Room' },
   // Step S2 (EXPERIENCE.md §7): the palette, on every screen. typing: it also opens from a text box (it is a modifier
   // combo, so it never types a character). ⌘K on Mac, Ctrl+K elsewhere; core/keys.js accepts either.

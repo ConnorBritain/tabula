@@ -66,8 +66,8 @@ export function ranksShown(profile) {
 }
 
 // The name of the whole-room note (one word everywhere, from the profile; color review §4 repair): "Reason for rank"
-// under ranks, "Notes for the room" when the rules turn ranks off.
-export const reasonLabel = (profile) => (layerOf(profile).ranks === 'off' ? 'Notes for the room' : 'Reason for rank');
+// under ranks, "Room notes" when the rules turn ranks off.
+export const reasonLabel = (profile) => (layerOf(profile).ranks === 'off' ? 'Room notes' : 'Reason for rank');
 
 export function rankStageLabel(profile) {
   if (layerOf(profile).critiqueOnly) return '';

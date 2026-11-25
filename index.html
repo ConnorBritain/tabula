@@ -898,12 +898,12 @@
     <div class="format-row">
       <label for="format-pick">Format</label>
       <select id="format-pick" class="w-auto" aria-describedby="format-help"></select>
-      <p class="muted field-help" id="format-help">A round keeps its format. Picking another one starts a new round.</p>
+      <p class="muted field-help" id="format-help">Changing it starts a new round.</p>
     </div>
     <div class="format-row" id="first-side-row" hidden>
       <label for="first-side">Speaks first</label>
       <select id="first-side" class="w-auto" aria-describedby="first-side-help"><option value="aff">Aff</option><option value="neg">Neg</option></select>
-      <p class="muted field-help" id="first-side-help">After the coin flip, pick the side that gives the first speech. The speech order and flow columns follow it.</p>
+      <p class="muted field-help" id="first-side-help">Pick after the coin flip.</p>
     </div>
     <div class="judging-row" data-judging-row hidden>
       <label for="judging-for">Judging for</label>
@@ -924,7 +924,7 @@
     <div class="mt-3"><label>Resolution</label><input data-bind="topic" placeholder="Resolved: The United States federal government should…"></div>
     <details class="mt-3 noprint" id="paste-round" data-flag="pasteRound" hidden>
       <summary class="muted">Paste the round from the tournament site</summary>
-      <p class="muted field-help" id="paste-round-help">On the tournament site, select your round on your judge page or in the pairings, copy it, and paste it here. Tabula reads the text in this browser. It does not connect to the tournament site.</p>
+      <p class="muted field-help" id="paste-round-help">Copy your round from your judge page or the pairings, and paste it here. Tabula reads it in this browser. It does not connect to the tournament site.</p>
       <textarea id="paste-round-text" class="mt-2" rows="5" aria-label="Round text from the tournament site" aria-describedby="paste-round-help" spellcheck="false" placeholder="Round 3&#10;Aff: Lincoln AB  Alex Smith &amp; Bo Jones&#10;Neg: Westfield CD  Cam Lee &amp; Dee Park"></textarea>
       <div id="paste-round-found" class="mt-2" aria-live="polite"></div>
       <div class="row mt-2">
@@ -952,11 +952,11 @@
   <div class="card" id="writing-card" data-ai="any">
     <h2>AI writing</h2>
     <div class="row"><span class="row-label" id="read-round-label">How the AI writes</span><div class="seg" role="group" aria-labelledby="read-round-label" aria-describedby="read-round-help"><button data-read="expert" data-read-scope="round">Expert</button><button data-read="plain" data-read-scope="round">Plain</button></div></div>
-    <p class="muted field-help" id="read-round-help">Plain uses short sentences and everyday words, for students and parents. The decision stays the same. This choice is for this round; the default for new rounds is in Settings.</p>
+    <p class="muted field-help" id="read-round-help">Plain: short sentences, everyday words. The decision stays the same. Set the default in Settings.</p>
   </div>
   <div class="card" id="docs-card">
     <h2>Round documents</h2>
-    <p class="muted">Add speech docs or case files (PDF, Word .docx, or text). Pick the speech each doc belongs to. <span data-ai="aiFlow">The AI reads them for the live flow and the decision: it maps each doc onto that speech's flow column right away, and fills gaps in the transcript from it (marked [doc]).</span> Docs stay in this browser until you start a new round.</p>
+    <p class="muted">Add speech docs (PDF, .docx or text) and pick each doc's speech. <span data-ai="aiFlow">The AI maps each doc onto that speech's column and fills transcript gaps from it (marked [doc]).</span> Docs stay in this browser until a new round.</p>
     <div class="row">
       <select id="doc-side" class="w-auto" aria-label="Doc side"><option value="aff" data-side-word="aff" data-side-after=" doc">Aff doc</option><option value="neg" data-side-word="neg" data-side-after=" doc">Neg doc</option><option value="other">Other</option></select>
       <input type="file" id="doc-file" class="w-auto" multiple accept=".pdf,.docx,.txt,.md,application/pdf" aria-label="Add round documents">
@@ -973,14 +973,14 @@
           <div class="seg" role="group" aria-label="Prep presets"><button data-prep-min="4">4</button><button data-prep-min="5">5</button><button data-prep-min="8">8</button><button data-prep-min="10">10</button></div></div>
       </div>
     </div>
-    <p class="muted" id="times-note">NSDA uses 8-3-5 speeches and 8 minutes prep. Many local leagues use 4 or 5. Tabula remembers your choice for new rounds.</p>
+    <p class="muted" id="times-note">NSDA uses 8-3-5 speeches and 8 minutes prep. Many local leagues use 4 or 5.</p>
     <fieldset class="range-pick mt-3" aria-describedby="range-help">
       <legend>Speaker points range</legend>
       <div class="row">
         <div><label for="pts-min">Lowest</label><input type="number" id="pts-min" class="num-sm" min="0" max="100" step="1" inputmode="numeric" aria-describedby="range-err"></div>
         <div><label for="pts-max">Highest</label><input type="number" id="pts-max" class="num-sm" min="0" max="100" step="1" inputmode="numeric" aria-describedby="range-err"></div>
       </div>
-      <p class="muted field-help" id="range-help">Most leagues use 25–30. Change it if your tournament uses another range.</p>
+      <p class="muted field-help" id="range-help">Most leagues use 25–30.</p>
       <p class="field-err" id="range-err" aria-live="polite"></p>
     </fieldset>
   </div>
@@ -988,7 +988,7 @@
     <button class="b" id="new-round">New round (clear all)</button>
     <button class="b" id="round-save">Save round file (.tab)</button>
     <button class="b" id="setup-open" type="button" aria-controls="round-open">Open round file…</button>
-    <span class="muted">Everything saves in this browser as you type. A .tab file holds this whole round, with its docs, to keep or move.</span>
+    <span class="muted">Saves in this browser as you type. A .tab file holds this round and its docs.</span>
   </div>
 </section>
 
@@ -1022,7 +1022,7 @@
     <div class="row docbar">
       <select class="doc-quick-side w-auto" aria-label="Doc side"><option value="aff" data-side-word="aff" data-side-after=" doc">Aff doc</option><option value="neg" data-side-word="neg" data-side-after=" doc">Neg doc</option><option value="other">Other</option></select>
       <input type="file" class="doc-quick w-auto" multiple accept=".pdf,.docx,.txt,.md,application/pdf" aria-label="Add speech docs">
-      <span class="muted doc-quick-status">Or drop files anywhere on the page.</span>
+      <span class="muted doc-quick-status">Or drop files.</span>
     </div>
     <div class="sd-mount"></div>
   </details>
@@ -1032,7 +1032,6 @@
   <div class="start-panel" id="start-panel" hidden>
     <img src="assets/tabula-mark-black.png" alt="" width="48" height="39" class="start-mark on-light"><img src="assets/tabula-mark-white.png" alt="" width="48" height="39" class="start-mark on-dark">
     <h2>Ready for a round</h2>
-    <p class="muted">Set up the teams first, or open a round you saved. You can also just start flowing and fill in the names later.</p>
     <div class="start-actions">
       <button class="b primary" id="start-new" type="button">Set up a new round</button>
       <button class="b" id="start-flow" type="button">Just start flowing</button>
@@ -1047,7 +1046,7 @@
   <input type="file" id="round-open" accept=".tab,application/json" hidden>
   <div class="flowbar"><button class="b small" id="speeches-btn" type="button" aria-expanded="false" aria-controls="tab-timer" hidden>Speeches</button><div class="flowtabs" id="flow-tabs"></div>
     <span class="tip-wrap"><button class="tip" type="button" aria-label="About the flow columns" aria-expanded="false" aria-controls="flow-legend">?</button>
-      <span class="tip-box" id="flow-legend" role="tooltip" hidden><span data-side-word="aff">Aff</span> columns are blue and <span data-side-word="neg">Neg</span> columns are red; each column header names its speech. Keep each argument on the same line across columns so the clash lines up. "Now" marks the speech the clock is timing. Some typed marks get a light shade: * or "dropped", "conc", "ext", "turn" or L/T, and O/W.</span></span></div>
+      <span class="tip-box" id="flow-legend" role="tooltip" hidden><span data-side-word="aff">Aff</span> blue, <span data-side-word="neg">Neg</span> red. Keep each argument on one line across columns. "Now" is the timed speech. Shaded marks: *, dropped, conc, ext, turn, L/T, O/W.</span></span></div>
   <div class="flow" id="flow"></div>
 </section>
 <aside class="pane pane-right" id="insights" aria-label="Insights" data-mode="open" data-ai="liveEval">
@@ -1069,7 +1068,7 @@
         <button class="b primary" id="eval-go" aria-describedby="eval-cost eval-status">Run</button><span class="muted" id="eval-cost">Uses AI</span>
       </div>
     </div>
-    <p class="muted help-line">A read of the round so far, from the transcripts, flows and docs. It is advice for you, not a decision. <span id="eval-meta"></span></p>
+    <p class="muted help-line">Advice from the transcripts, flows and docs. Not a decision. <span id="eval-meta"></span></p>
     <p id="eval-status" class="status-line" role="status" aria-live="polite"></p>
   </div>
   <div id="eval-body"></div>
@@ -1091,9 +1090,9 @@
         <button class="b primary" id="lens-go">Run</button>
       </div>
     </div>
-    <p class="muted help-line">Weigh the round as a judge with this paradigm would. Each paradigm keeps its own saved answer, so switching is free. It only runs again when you click Update. "(yours)" marks the paradigm set in Settings.</p>
+    <p class="muted help-line">Each paradigm keeps its own answer, so switching is free. "(yours)" is your Settings paradigm.</p>
     <details id="lens-custom-box" class="mt-3">
-      <summary class="muted">My own paradigm (paste the full text)</summary>
+      <summary class="muted">My own paradigm</summary>
       <textarea id="lens-custom" class="mt-2" rows="6" aria-label="My own paradigm" placeholder="Paste your judging paradigm here." aria-describedby="lens-custom-note"></textarea>
       <p class="muted field-help" id="lens-custom-note" hidden>This is the paradigm in your Tabula account. To change it, go to Settings.</p>
     </details>
@@ -1116,7 +1115,7 @@
         <button class="b" id="map-add">+ Argument</button><button class="b" id="map-copy">Copy Mermaid code</button><button class="b" id="map-go" data-ai="analysis">Run</button>
       </div>
     </div>
-    <p class="muted help-line" id="map-legend">Each row follows one argument across the speeches. <span class="mk">↩ answers</span> <span class="mk">↻ turns</span> <span class="mk">→ extends</span> <span class="mk">= concedes</span> <span class="chip drop">Dropped</span> marks an argument the other side never answered.</p>
+    <p class="muted help-line" id="map-legend"><span class="mk">↩ answers</span> <span class="mk">↻ turns</span> <span class="mk">→ extends</span> <span class="mk">= concedes</span> <span class="chip drop">Dropped</span> marks an argument the other side never answered.</p>
     <p id="map-status" class="status-line" role="status" aria-live="polite"></p>
     <div id="map-out" class="scroll mt-3"></div>
   </div>
@@ -1128,9 +1127,9 @@
       <h2>Connect AI</h2>
       <button class="b" id="show-welcome">Show the welcome again</button>
     </div>
-    <p class="muted" style="margin:var(--s2) 0 var(--s3)">Paste a key from any provider below. The app works out which one it is and checks that it works.</p>
+    <p class="muted" style="margin:var(--s2) 0 var(--s3)">Paste a key from any provider. Tabula finds which one and checks it.</p>
     <div class="row nowrap">
-      <input type="password" id="key-paste" placeholder="Paste an API key here (starts with AIza…, sk-…, sk-ant-…, xai-… or sk-or-…)" autocomplete="off" aria-label="API key">
+      <input type="password" id="key-paste" placeholder="Paste an API key" autocomplete="off" aria-label="API key">
       <button class="b primary" id="key-connect">Connect</button>
     </div>
     <label class="row remember-row"><input type="checkbox" id="remember-keys" aria-describedby="remember-help"> Remember this key on this computer</label>
@@ -1138,7 +1137,7 @@
     <p id="key-msg" class="status-line" role="status" aria-live="polite"></p>
     <div id="prov-list" class="mt-3"></div>
     <div class="grid mt-3">
-      <div><label for="ai-engine">AI tools (flow, Live Eval, analysis, decision) use</label><select id="ai-engine"></select></div>
+      <div><label for="ai-engine">AI uses</label><select id="ai-engine"></select></div>
       <div><label for="tr-engine">Transcription uses</label><select id="tr-engine"></select></div>
     </div>
     <div class="sub-pick" id="sub-box" data-ai-setup>
@@ -1160,7 +1159,7 @@
       </div>
       <div><label for="mic-pick">Microphone</label>
         <div class="row nowrap"><select id="mic-pick"></select><button class="b" id="mic-refresh">Refresh</button></div>
-        <p class="muted help-line">Used when a key you connected does the transcription. Free browser transcription always uses Chrome's default mic and its own sound settings, so the mic choice and the room/Zoom setting do not apply to it, and it shows no level meter.</p>
+        <p class="muted help-line">Only for a connected key. Free browser transcription uses the browser's default mic and sound settings, with no level meter.</p>
       </div>
     </div>
     <div class="row mt-3">
@@ -1183,7 +1182,7 @@
   <div class="card" id="writing-settings" data-ai="any">
     <h2>AI writing and decisions</h2>
     <div class="row"><span class="row-label" id="read-device-label">How the AI writes</span><div class="seg" role="group" aria-labelledby="read-device-label" aria-describedby="read-device-help"><button data-read="expert" data-read-scope="device">Expert</button><button data-read="plain" data-read-scope="device">Plain</button></div><span class="muted">Default for new rounds</span></div>
-    <p class="muted field-help" id="read-device-help">Plain uses short sentences and everyday words, for students and parents. The decision stays the same. Change it for one round in Round setup.</p>
+    <p class="muted field-help" id="read-device-help">Plain: short sentences, everyday words. The decision stays the same. Change it per round in Round.</p>
     <div class="grid mt-3">
       <div><label for="paradigm-pick">Paradigm for the decision</label>
         <select id="paradigm-pick" data-bind="ai.paradigm">
@@ -1205,7 +1204,7 @@
     <p class="rounds-big"><span id="rounds-left-num"></span> <a id="rounds-buy" target="_blank" rel="noopener">Buy rounds</a></p>
     <fieldset class="theme-pick round-mode" aria-describedby="round-mode-help">
       <legend>When a round starts</legend>
-      <label class="row check-row"><input type="radio" name="round-mode" value="ask"> <span><strong>Ask me first</strong><span class="muted field-help">Before AI runs in a round, Tabula asks you. Nothing is used until you say yes.</span></span></label>
+      <label class="row check-row"><input type="radio" name="round-mode" value="ask"> <span><strong>Ask me first</strong><span class="muted field-help">Tabula asks first. No round is used until you say yes.</span></span></label>
       <label class="row check-row"><input type="radio" name="round-mode" value="auto"> <span><strong>Use AI automatically</strong><span class="muted field-help">Your AI settings run on their own. Each round with AI uses 1 round.</span></span></label>
     </fieldset>
     <p class="muted field-help" id="round-mode-help">The clock, flow and ballot are always free.</p>
@@ -1251,7 +1250,7 @@
           <h2 id="ballot-title">Ballot</h2>
           <button class="b" id="draft-open" data-ai="ballotDraft" type="button" aria-expanded="false" aria-controls="draft-panel">Draft with AI</button>
         </div>
-        <p class="muted ballot-note" data-ai="ballotDraft">Anything you type is yours. The AI will not change it.</p>
+        <p class="muted ballot-note" data-ai="ballotDraft">The AI never changes what you type.</p>
         <fieldset class="b-winner">
           <legend class="b-legend">Winner <span class="b-tag" data-tag="winner"></span></legend>
           <label class="win-card aff"><input type="radio" name="winner" value="aff"> <span class="aff" data-side-word="aff" data-side-after=" wins">Aff wins</span> <span id="w-aff" class="muted"></span></label>
@@ -1262,7 +1261,7 @@
           <tbody id="pts-body"></tbody>
         </table>
         <p class="muted b-totals">Team totals: <span class="aff" id="sum-aff">–</span> · <span class="neg" id="sum-neg">–</span> <span class="ranks-set" id="ranks-set"></span></p>
-        <div class="b-field"><div class="b-label"><label for="b-rfd">Reason for decision (RFD), goes to everyone</label><span class="b-tag" data-tag="rfd"></span></div><textarea id="b-rfd" data-bind="ballot.rfd" rows="6"></textarea></div>
+        <div class="b-field"><div class="b-label"><label for="b-rfd">RFD · everyone sees it</label><span class="b-tag" data-tag="rfd"></span></div><textarea id="b-rfd" data-bind="ballot.rfd" rows="6"></textarea></div>
         <div class="b-comments">
           <div class="b-field"><div class="b-label"><label for="b-affFb" class="aff"><span data-side-word="aff" data-side-after=" team comments">Aff team comments</span> <span id="fb-aff-code"></span></label><span class="b-tag" data-tag="affFb"></span></div><textarea id="b-affFb" data-bind="ballot.affFb" rows="5"></textarea></div>
           <div class="b-field"><div class="b-label"><label for="b-negFb" class="neg"><span data-side-word="neg" data-side-after=" team comments">Neg team comments</span> <span id="fb-neg-code"></span></label><span class="b-tag" data-tag="negFb"></span></div><textarea id="b-negFb" data-bind="ballot.negFb" rows="5"></textarea></div>
@@ -1276,7 +1275,7 @@
         <p class="muted dp-style" id="dp-style"></p>
         <fieldset class="dp-picks" id="dp-picks"><legend>What should the AI draft?</legend></fieldset>
         <label class="row check-row"><input type="checkbox" id="dp-feedback"> Use Live Eval feedback for the comments</label>
-        <label for="ballot-input" class="mt-3">Tell the AI (optional)</label>
+        <label for="ballot-input" class="mt-3">Tell the AI</label>
         <textarea id="ballot-input" data-bind="ballotInput" rows="3" placeholder="Example: I'm voting aff on the perm. 2N was the best speaker. Be kind to the 1A." aria-keyshortcuts="Meta+Enter Control+Enter"></textarea>
         <div class="row mt-2"><button class="b primary" id="dp-go" type="button" aria-describedby="dp-cost">Draft</button><span class="muted" id="dp-cost">Uses AI</span></div>
         <p id="dp-status" class="status-line" role="status" aria-live="polite"></p>
@@ -1307,7 +1306,7 @@
   </div>
   <div class="card" id="backup-card">
     <h2>Back up and restore</h2>
-    <p class="muted" style="margin:0 0 var(--s3)">Everything you do is saved in this browser only. A backup file holds all of it: the round, flows, transcripts, analysis, ballots, saved ballots, settings and documents. Keep one before you clear the browser or switch computers.</p>
+    <p class="muted" style="margin:0 0 var(--s3)">Everything is saved in this browser only. Download a backup before you clear the browser or switch computers.</p>
     <div class="row">
       <button class="b primary" id="backup-go">Download backup</button>
       <label class="row check-row" data-ai-setup><input type="checkbox" id="backup-keys"> Include my API keys (keep that file private)</label>
@@ -1316,7 +1315,6 @@
     <div class="row mt-3">
       <label for="restore-file" class="b">Restore from a backup…</label>
       <input type="file" id="restore-file" accept=".json,application/json" hidden>
-      <span class="muted">Replaces what is in this browser now. Your current data is downloaded first, just in case.</span>
     </div>
     <p id="backup-status" class="status-line" role="status" aria-live="polite"></p>
   </div>
@@ -1329,7 +1327,7 @@
     <span class="tip-wrap"><button class="tip" type="button" aria-label="About transcription" aria-expanded="false" aria-controls="rec-note">?</button>
       <span class="tip-box" id="rec-note" role="tooltip" hidden></span></span>
     <button class="b small" id="tr-drawer-close" aria-label="Hide the transcript">Hide</button></div>
-  <textarea id="transcript-big" placeholder="Words from the speech show here while the clock runs. You can type or fix them." aria-labelledby="tr-drawer-title"></textarea>
+  <textarea id="transcript-big" placeholder="Speech text shows here. You can edit it." aria-labelledby="tr-drawer-title"></textarea>
 </section>
 <!-- The shortcut sheet (spec 5.5): a non-modal side panel built from the key registry (keys.js). -->
 <aside class="keys-sheet noprint" id="keys-sheet" aria-labelledby="ks-title" hidden>
@@ -1430,7 +1428,7 @@
     <button class="iconbtn ask-x" id="print-x" type="button" aria-label="Close">×</button>
     <fieldset class="dlg-set">
       <legend>What to print</legend>
-      <label class="row check-row"><input type="checkbox" checked disabled aria-describedby="print-always"> Ballot <span class="muted" id="print-always">(always included)</span></label>
+      <label class="row check-row"><input type="checkbox" checked disabled> Ballot</label>
       <div id="print-extras">
         <label class="row check-row"><input type="checkbox" id="print-flow"> Include the flow</label>
         <label class="row check-row"><input type="checkbox" id="print-tr"> Include transcripts</label>
@@ -1453,7 +1451,7 @@
   <div class="overlay-card ask-card copy-card" id="copy-card" role="dialog" aria-modal="true" aria-labelledby="copy-title" aria-describedby="copy-hint">
     <h2 id="copy-title">Copy for the tournament ballot</h2>
     <button class="iconbtn ask-x" id="copy-x" type="button" aria-label="Close">×</button>
-    <p class="muted" id="copy-hint">Paste each block into the matching box on your tournament's ballot site.</p>
+    <p class="muted" id="copy-hint">Paste each block into the matching box.</p>
     <p class="warn" id="copy-warn" hidden></p>
     <div id="copy-blocks"></div>
     <div class="ask-btns"><button class="b" id="copy-done" type="button">Done</button></div>

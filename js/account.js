@@ -76,7 +76,7 @@ async function maybeOfferParadigmCopy() {
   store.set(COPY_OFFERED, true);
   const ok = await ask({
     title: 'Copy your paradigm to your account?',
-    body: 'Your Tabula account has no paradigm yet. This device has one. Copy it to your account, so every device you sign in on uses it. You can change it later in Settings.',
+    body: 'Your account has no paradigm yet. Copy this device\'s paradigm to it, so every device uses it?',
     buttons: [{ label: 'Not now', value: false, kind: 'plain' }, { label: 'Copy it', value: true, kind: 'primary' }], cancelValue: false,
   });
   if (!ok) return;
@@ -102,7 +102,7 @@ function renderAccount() {
   if (custom) custom.textContent = on ? 'My own paradigm (from my Tabula account)' : 'My own paradigm (paste it in Decide → Analysis)';
   if (!on) return;
   const who = acctProfile.displayName ? 'Signed in as ' + acctProfile.displayName + '. ' : 'Signed in. ';
-  $('#acct-who').textContent = who + 'Your paradigm is saved in your Tabula account, so every device you sign in on uses it. Tabula uses it for "My own paradigm".';
+  $('#acct-who').textContent = who + 'Saved in your account for every device. Used for "My own paradigm".';
   const box = $('#acct-paradigm');
   if (!acctDirty && document.activeElement !== box) box.value = acctProfile.paradigm;
   renderAcctCount();

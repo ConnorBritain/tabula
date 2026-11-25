@@ -11,14 +11,14 @@
     main: {
       title: 'Tour of Tabula',
       steps: [
-        { place: 'setup', target: '#round-card', title: 'Set up the round', body: 'Type the round, the teams and the debaters. It takes half a minute, and it fills the ballot later.' },
+        { place: 'setup', target: '#round-card', title: 'Set up the round', body: 'Type the round, teams and debaters. They fill the ballot.' },
         { place: 'setup', target: '#docs-card', title: 'Add speech docs', body: 'Add the aff case or any speech doc (PDF, Word or text). The AI reads them and puts them on the flow. When a speech has no transcript, its doc counts as the speech.', mentions: 'aiFlow', plainBody: 'Add the aff case or any speech doc (PDF, Word or text). Pick the speech each doc belongs to.' },
-        { place: 'flow', target: '.rb-ctl', title: 'Run the clock', body: 'Start and pause the speech clock here. On Flow, press ⌘↵ (Ctrl+↵ on Windows) any time, or Space when nothing is selected. Prep clocks for each team sit on the right.' },
+        { place: 'flow', target: '.rb-ctl', title: 'Run the clock', body: 'Start and pause the speech clock: ⌘↵ (Ctrl+↵), or Space when nothing is selected. Prep clocks are on the right.' },
         { place: 'flow', target: '.rb-rec', feature: 'transcription', title: 'Record the speech', body: 'Tick Transcribe. Recording runs only while the speech clock runs. A short bar shows the mic level, and a note warns you if no words come through.' },
-        { place: 'flow', target: '#tab-flow', title: 'Flow the round', body: '"My flow" is yours to type. "AI flow" fills itself from the transcript and docs. You can edit any AI cell, and your edits stick.', mentions: 'aiFlow', plainBody: 'Type the flow here. Keep each argument on one line across the columns, so the clash lines up.' },
+        { place: 'flow', target: '#tab-flow', title: 'Flow the round', body: '"My flow" is yours to type. "AI flow" fills itself from the transcript and docs. You can edit any AI cell. The AI never changes what you type.', mentions: 'aiFlow', plainBody: 'Type the flow here. Keep each argument on one line across the columns, so the clash lines up.' },
         { place: 'eval', target: '#subnav', title: 'Decide', body: 'After the round: the Live Eval, deeper analysis and the ballot. Each one works with or without AI.', mentions: 'liveEval', plainBody: 'After the round: the round at a glance, the round map and the ballot.' },
-        { place: 'ballot', target: '#draft-open', feature: 'ballotDraft', title: 'Fill the ballot', body: 'Type the ballot yourself, or let the AI draft it. You check each AI field before it goes in, and anything you type stays yours. Then print it, or copy each box into the tournament ballot.' },
-        { place: null, target: '#help-btn', title: 'Help is always here', body: 'Click ? to replay this tour, or to get a short tour of the page you are on. Connect AI any time with the gear; without AI, the timers, flow and ballot still work.', mentions: 'setup', plainBody: 'Click ? to replay this tour, or to get a short tour of the page you are on.' },
+        { place: 'ballot', target: '#draft-open', feature: 'ballotDraft', title: 'Fill the ballot', body: 'Type the ballot, or let the AI draft it. You check each AI field first. The AI never changes what you type. Then print or copy it.' },
+        { place: null, target: '#help-btn', title: 'Help is always here', body: 'Click ? to replay this tour or tour this page. Connect AI with the gear. The clock, flow and ballot work without it.', mentions: 'setup', plainBody: 'Click ? to replay this tour, or to get a short tour of the page you are on.' },
       ],
     },
     flow: {
@@ -27,7 +27,7 @@
         { place: 'flow', target: '#tab-timer', title: 'Speeches and docs', body: 'Pick a speech and add its docs. Open the transcript from the round bar. Hide this pane for more room.', mentions: 'transcription', plainBody: 'Pick a speech and add its docs. Hide this pane for more room.' },
         { place: 'flow', target: '#flow-tabs', title: 'Your flow and the AI flow', body: 'Switch between your flow and the AI flow. Sheets hold one argument each. Brief, Standard and Detailed change how much the AI flow shows.', mentions: 'aiFlow', plainBody: 'Sheets hold one argument each. Add, rename and switch sheets here.' },
         { place: 'flow', target: '#tab-flow', title: 'Edit anything', body: 'Type in any cell. An edited AI cell gets an "Edited" mark. If the AI writes something newer, you choose "Use AI" or "Keep mine".', mentions: 'aiFlow', plainBody: 'Type in any cell. Everything saves in this browser as you type.' },
-        { place: 'flow', target: '#insights', feature: 'liveEval', title: 'Insights', body: 'The current leaning and what to listen for next. Click Update for a fresh read.' },
+        { place: 'flow', target: '#insights', feature: 'liveEval', title: 'Insights', body: 'The current leaning and what to listen for next. Click Update with AI for a fresh read.' },
       ],
     },
     decide: {
@@ -51,7 +51,7 @@
       steps: [
         { place: 'setup', target: '#round-card', title: 'Round details', body: 'The tournament, round, judge and resolution. They show on the ballot and in History.' },
         { place: 'setup', target: '#docs-card', title: 'Round documents', body: 'Add speech docs and pick which speech each one belongs to. The AI maps them onto that speech on the flow.', mentions: 'aiFlow', plainBody: 'Add speech docs and pick which speech each one belongs to.' },
-        { place: 'setup', target: '#writing-card', feature: 'any', title: 'How the AI writes', body: 'Expert writes like a college judge. Plain uses short sentences and everyday words, for students and parents. The decision stays the same.' },
+        { place: 'setup', target: '#writing-card', feature: 'any', title: 'How the AI writes', body: 'Expert writes like a college judge. Plain: short sentences, everyday words. The decision stays the same.' },
         { place: 'setup', target: '#times-card', title: 'Times and points', body: 'Prep time for each team, and the speaker points range your tournament uses. Most leagues use 25–30.' },
       ],
     },

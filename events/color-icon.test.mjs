@@ -484,8 +484,12 @@ test('reason for rank: a room-level "+ Add reason for rank", open once written, 
 // a second field. One word, from the profile, in both places.
 test('Review: the checklist and the card use the same word for the whole-room note', () => {
   const rate = Object.assign(room('oo', 'rate-only'), { reasonForRank: 'All clear.' });
-  assert.ok(checklist(rate).some((c) => c.label === 'Notes for the room written'));
-  assert.match(commentsStageHtml(rate, { order: 'speaking', editing: null }), /<span>Notes for the room<\/span>/);
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E27, rule W3). Old line:
+  //   assert.ok(checklist(rate).some((c) => c.label === 'Notes for the room written'));
+  assert.ok(checklist(rate).some((c) => c.label === 'Room notes written'));
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E27, rule W3). Old line:
+  //   assert.match(commentsStageHtml(rate, { order: 'speaking', editing: null }), /<span>Notes for the room<\/span>/);
+  assert.match(commentsStageHtml(rate, { order: 'speaking', editing: null }), /<span>Room notes<\/span>/);
   const ranked = Object.assign(room('hi', 'nsda-district'), { reasonForRank: 'A1 first.' });
   assert.ok(checklist(ranked).some((c) => c.label === 'Reason for rank written'));
   assert.match(commentsStageHtml(ranked, { order: 'speaking', editing: null }), /<span>Reason for rank<\/span>/);
@@ -598,18 +602,24 @@ test('D5-A: on rows still judging the submit button moves into ⋯; Up next and 
   const m = mydayModel({ day: DAY, cards: [ca, cb, cc], rounds: [ra, rb, rc], now: NOW });
   const html = mydayHtml(m, DAY, DATA.events, NOW, []);
   const next = html.slice(html.indexOf('class="md-next-card"'), html.indexOf('</section>'));
-  assert.match(next, /data-act="submit">I submitted in Tabroom/, 'Up next keeps it');
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E45, DESIGN.md rule 9). Old line:
+  //   assert.match(next, /data-act="submit">I submitted in Tabroom/, 'Up next keeps it');
+  assert.match(next, /data-act="submit">Mark submitted/, 'Up next keeps it');
   const rows = [...html.matchAll(/<li class="md-row"[^>]*aria-label="([^"]+)">([\s\S]*?)<\/li>/g)];
   const judging = rows.filter((x) => /Judging$/.test(x[1]));
   const ranksIn = rows.filter((x) => /Ranks copied/.test(x[1]));
   assert.ok(judging.length && ranksIn.length, 'both kinds of row are drawn');
   for (const x of judging) assert.doesNotMatch(x[2], /data-act="submit"/, x[1] + ': not on the row');
-  for (const x of ranksIn) assert.match(x[2], /data-act="submit">I submitted in Tabroom/, x[1] + ': on the row');
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E45, DESIGN.md rule 9). Old line:
+  //   for (const x of ranksIn) assert.match(x[2], /data-act="submit">I submitted in Tabroom/, x[1] + ': on the row');
+  for (const x of ranksIn) assert.match(x[2], /data-act="submit">Mark submitted/, x[1] + ': on the row');
   // Opened, a judging row's menu lists it first, with Cancel last.
   const key = judging[0][0].match(/data-item="([^"]+)"/)[1];
   const open = mydayHtml(m, DAY, DATA.events, NOW, [], key);
   const row = open.slice(open.indexOf('data-item="' + key + '"'));
-  assert.match(row.slice(0, row.indexOf('</li>')), /<div class="md-menu"[^>]*>\s*<button class="b small" type="button" data-act="submit">I submitted in Tabroom<\/button>\s*<button[^>]*data-act="room">Change room<\/button>\s*<button class="b small quiet danger-text md-cancel" type="button" data-act="cancel">Cancel round<\/button><\/div>/);
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E45, DESIGN.md rule 9). Old line:
+  //   assert.match(row.slice(0, row.indexOf('</li>')), /<div class="md-menu"[^>]*>\s*<button class="b small" type="button" data-act="submit">I submitted in Tabroom<\/button>\s*<button[^>]*data-act="room">Change room<\/button>\s*<button class="b small quiet danger-text md-cancel" type="button" data-act="cancel">Cancel round<\/button><\/div>/);
+  assert.match(row.slice(0, row.indexOf('</li>')), /<div class="md-menu"[^>]*>\s*<button class="b small" type="button" data-act="submit">Mark submitted<\/button>\s*<button[^>]*data-act="room">Change room<\/button>\s*<button class="b small quiet danger-text md-cancel" type="button" data-act="cancel">Cancel round<\/button><\/div>/);
 });
 
 // Why: §5.1 sets 44 px targets on a phone; a 28 px "Edit" or "Show all" next to other controls is a mis-tap that opens

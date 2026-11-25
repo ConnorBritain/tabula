@@ -73,7 +73,7 @@ function renderFormatSetup() {
   $('#prep-min-label').textContent = fmt.prep.mode === 'perDebater' ? 'Prep per debater (minutes)' : 'Prep per team (minutes)';
   $('#prep-min').value = Math.round(R.prepSeconds / 60);
   renderPrepPresets();
-  $('#times-note').textContent = fmt.timesNote + ' Tabula remembers your choice for new rounds.';
+  $('#times-note').textContent = fmt.timesNote;
   // Hints in shared boxes follow the format, so an LD round does not show policy words ("federal government", "plan").
   const copy = L.formatCopy(fmt);
   document.querySelector('[data-bind="topic"]').placeholder = copy.topicHint;

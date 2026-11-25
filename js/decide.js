@@ -86,7 +86,7 @@ function renderDraftPanel() {
   const el = $('#dp-status');
   tone(el);
   if (st === 'loading') el.innerHTML = busyHtml(draftUi.busyText || 'Drafting… usually 20–60 seconds');
-  else if (st === 'noAI') el.innerHTML = showSetup() ? '<span class="is-quiet">Connect AI to draft the ballot. The ballot works by hand either way. <button class="linkish" type="button" data-tab-go="ai" data-ai-setup="invite">Connect AI</button></span>' : '<span class="is-quiet">The ballot works by hand.</span>';
+  else if (st === 'noAI') el.innerHTML = showSetup() ? '<span class="is-quiet">Drafting needs AI. <button class="linkish" type="button" data-tab-go="ai" data-ai-setup="invite">Connect AI</button></span>' : '<span class="is-quiet">The ballot works by hand.</span>';
   else if (st === 'offline') { tone(el, 'quiet'); el.textContent = L.AI_ERROR_PREFIX.ballot + ' ' + L.aiErrorText('offline'); }
   else if (st === 'error') { tone(el, errColor(draftUi.err)); el.innerHTML = escapeHtml(L.AI_ERROR_PREFIX.ballot + ' ' + draftUi.err) + ' <button class="b small" type="button" id="dp-retry">Try again</button>'; }
   else if (STATE_TEXT[st]) { tone(el, 'quiet'); el.textContent = STATE_TEXT[st]; }
@@ -220,7 +220,7 @@ function renderReview() {
   const st = draftState();
   const busy = st === 'loading';
   box.innerHTML = `<div class="rv-head"><h3 id="rv-title" tabindex="-1">Review the draft</h3>
-      <p class="muted">Check AI text before you use it. Nothing changes on the ballot until you insert it.</p></div>
+      <p class="muted">Nothing goes on the ballot until you insert it.</p></div>
     ${stale ? `<p class="warn rv-stale">A speech ended after this draft. <button class="b small" type="button" id="rv-redo-all" aria-describedby="rv-cost"${busy ? ' disabled' : ''}>Redo all</button></p>` : ''}
     <p class="status-line" id="rv-status" role="status" aria-live="polite">${busy ? busyHtml(draftUi.busyText || 'Drafting…') : draftUi.err ? '<span class="is-error">' + escapeHtml(L.AI_ERROR_PREFIX.ballot + ' ' + draftUi.err) + '</span>' : draftUi.stopped ? '<span class="is-quiet">' + STATE_TEXT.stopped + '</span>' : ''}</p>
     ${narrow && n > 1 ? `<div class="rv-pager"><button class="b small" type="button" id="rv-prev"${draftUi.idx === 0 ? ' disabled' : ''}>Previous</button><p class="rv-count" aria-live="polite">${draftUi.idx + 1} of ${n}: ${escapeHtml(rv.cards[draftUi.idx].label)}</p><button class="b small" type="button" id="rv-next"${draftUi.idx === n - 1 ? ' disabled' : ''}>Next</button></div>` : ''}
@@ -575,7 +575,7 @@ $('#copy-blocks').addEventListener('click', async (e) => {
 const printDlg = modalDialog($('#print-dialog'), $('#print-card'), { name: 'print', rank: 85 });
 let printSaved = null; // a saved ballot from History, or null for the round on screen
 function openPrintDialog(saved) {
-  if (typeof window.print !== 'function') return toast('Printing is not available in this browser. Use Copy for the tournament ballot instead.', { kind: 'error' });
+  if (typeof window.print !== 'function') return toast('This browser cannot print. Use Copy instead.', { kind: 'error' });
   printSaved = saved || null;
   $('#print-extras').hidden = Boolean(saved);
   $('#print-saved-note').hidden = !saved;
@@ -606,7 +606,7 @@ $('#print-go').addEventListener('click', () => {
   buildPrintSheet(model);
   // A frame later, so the dialog is gone and focus is back before the print window opens.
   setTimeout(() => {
-    try { window.print(); } catch { removePrintSheet(); toast('Printing is not available in this browser. Use Copy for the tournament ballot instead.', { kind: 'error' }); }
+    try { window.print(); } catch { removePrintSheet(); toast('This browser cannot print. Use Copy instead.', { kind: 'error' }); }
   }, 50);
 });
 // The browser's own Print menu still prints the full ballot (the sheet is built just before, then removed).

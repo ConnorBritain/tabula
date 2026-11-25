@@ -170,7 +170,7 @@ function flowStatusHtml() {
   if (!ready()) return noAiHtml();
   if (navigator.onLine === false) return '<span class="is-quiet">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + L.aiErrorText('offline')) + '</span>';
   if (lastFlowErr) return '<span class="is-error">' + escapeHtml(L.AI_ERROR_PREFIX.flow + ' ' + lastFlowErr) + '</span>';
-  if (!S.liveFlow) return '<span class="is-quiet">Live AI flow is off. When on, it uses AI while a speech runs. <button class="linkish" type="button" data-tab-go="ai">Turn it on in Settings</button></span>';
+  if (!S.liveFlow) return '<span class="is-quiet">Live AI flow is off (uses AI). <button class="linkish" type="button" data-tab-go="ai">Turn it on in Settings</button></span>';
   return '';
 }
 // Keep the status line and "updated" time fresh without redrawing the flow.

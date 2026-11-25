@@ -37,7 +37,7 @@ export function createNumberPicker() {
 export async function crossEntryAction(action, id, ctx) {
   const { env } = ctx;
   if (action === 'cross') {
-    const note = await env.ui.ask({ title: 'Cross-entered', body: 'The student is in another event now and speaks here later. They stay on the ballot.', input: { label: 'Note (optional)', placeholder: 'For example: in Room 204 for IX', required: false, maxLength: 120 }, buttons: [{ label: 'Cancel', value: null }, { label: 'Mark cross-entered', value: 'ok', kind: 'primary' }] });
+    const note = await env.ui.ask({ title: 'Cross-entered', body: 'Speaks here later. Stays on the ballot.', input: { label: 'Note', placeholder: 'Room 204, IX', required: false, maxLength: 120 }, buttons: [{ label: 'Cancel', value: null }, { label: 'Mark cross-entered', value: 'ok', kind: 'primary' }] });
     if (note == null) return;
     const res = markCrossEntered(ctx.room(), id, note, env.now());
     if (res.refused) { env.ui.toast(res.refused, { kind: 'error', key: 'roster' }); return; }
