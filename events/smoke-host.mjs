@@ -9,7 +9,7 @@
 // Exit code 0 = all good, 1 = a problem (each one is printed).
 // The pure helpers below are unit-tested in smoke-host.test.mjs; only main() touches the network.
 import { fileURLToPath } from 'node:url';
-import vm from 'node:vm';
+import { swFiles } from '../build-events.mjs';
 
 export const PROD = 'https://events.tabulaspeech.com';
 export const FORENSICS = 'https://forensics.tabulaspeech.com';
@@ -38,13 +38,8 @@ export function headerProblems(headers) {
 /** True when a Cache-Control value makes the browser check with the host before it uses a copy. */
 export const revalidates = (v) => /\bno-cache\b|\bno-store\b|\bmax-age=0\b/.test(v || '');
 
-/** The file list in a sw-files.js source, read the way the worker reads it. */
-export function swFileList(source) {
-  const self = {};
-  vm.runInNewContext(source, { self });
-  if (!Array.isArray(self.TABULA_EVENTS_FILES)) throw new Error('sw-files.js: no TABULA_EVENTS_FILES list');
-  return Array.from(self.TABULA_EVENTS_FILES, String); // a plain array of this realm, not the sandbox's
-}
+/** The file list in a sw-files.js source, read the way the worker reads it (shared with the build). */
+export const swFileList = swFiles;
 
 /** The URL of each sw-files entry on a host (entries are relative to /sw.js). */
 export const fileUrls = (base, list) => list.map((p) => new URL(p, new URL('/sw.js', base)).href);
@@ -111,4 +106,7 @@ async function main(base) {
   return problems.length ? 1 : 0;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) process.exitCode = await main(process.argv[2]);
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  try { process.exitCode = await main(process.argv[2]); }
+  catch (e) { console.log('PROBLEM the check could not finish: ' + e.message); process.exitCode = 1; }
+}
