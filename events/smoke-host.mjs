@@ -107,6 +107,7 @@ async function main(base) {
     const r = await get(url);
     if (r.status !== 200) { problems.push(`${url}: expected 200, got ${r.status}`); continue; }
     const t = manifestTypeProblem(url, r.headers.get('content-type')); if (t) problems.push(t);
+    if (!revalidates(r.headers.get('cache-control'))) problems.push(`${url}: Cache-Control must be no-cache, got ${r.headers.get('cache-control')}`);
     for (const i of manifestIcons(await r.text(), m)) {
       const ir = await get(new URL('/' + i, base).href);
       if (ir.status !== 200) problems.push(`/${i}: expected 200, got ${ir.status}`);

@@ -1,11 +1,11 @@
 // Tests for the Speech Events builder (build-events.mjs). Run with: node --test
 import test, { before } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
-import { ALLOW, OPTIONAL, build, listFiles, outPath, swFiles, pageRefs, manifestLinks, manifestIcons } from './build-events.mjs';
+import { ALLOW, OPTIONAL, build, listFiles, outPath, swFiles, pageRefs, manifestLinks, manifestIcons, missingRefs } from './build-events.mjs';
 import { ALLOW as APP_ALLOW } from './build-app.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -98,4 +98,18 @@ test('reads the manifest the page links and the icons it names, relative to the 
 test('optional paths are only the manifest and its icons', () => {
   assert.deepEqual([...OPTIONAL].sort(), ['events/icons', 'events/manifest.webmanifest']);
   for (const o of OPTIONAL) assert.ok(ALLOW.includes(o), o);
+});
+
+// Why: if the page links a manifest, or the manifest names an icon, that the output lacks, the build must stop; otherwise a judge's installed app would break.
+test('the missing-file check reports a linked manifest or a manifest icon that is not in the output', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'events-refs-'));
+  writeFileSync(join(dir, 'index.html'), '<link rel="manifest" href="manifest.webmanifest">');
+  writeFileSync(join(dir, 'sw-files.js'), 'self.TABULA_EVENTS_FILES = ["index.html"];');
+  assert.deepEqual(missingRefs(dir), ['manifest.webmanifest']);
+  writeFileSync(join(dir, 'manifest.webmanifest'), JSON.stringify({ icons: [{ src: 'icons/a.png' }, { src: 'icons/b.png' }] }));
+  mkdirSync(join(dir, 'icons'));
+  writeFileSync(join(dir, 'icons', 'a.png'), '');
+  assert.deepEqual(missingRefs(dir), ['icons/b.png']);
+  writeFileSync(join(dir, 'icons', 'b.png'), '');
+  assert.deepEqual(missingRefs(dir), []);
 });
