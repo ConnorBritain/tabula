@@ -7,9 +7,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parseRoom } from './js/parse.js';
 import { congressProfile, poScaleChoices, rankPoolChoices } from './congress/profiles.js';
-import { createChamber, newSession, setStatus, closeSession, frozenProfile, sessionsToClose, setSubmitted, markDebated, reopenItem } from './congress/chamber.js';
+import { createChamber, newSession, setStatus, closeSession, frozenProfile, sessionsToClose, handedIn, setSubmitted, markDebated, reopenItem } from './congress/chamber.js';
 import { startSpeech, endSpeech, updateSpeech, legislatorLines } from './congress/speech.js';
 import { startTerm, endTerm, reopenTerm, setHourScore, HOUR_MS } from './congress/po.js';
+import { summary } from './congress/workspace.js';
 import { rankPool, toggleRank, rankModel } from './congress/rank.js';
 import { reviewBlocks, unscoredSpeeches, unscoredLine } from './congress/review.js';
 import { BETA_LINE, CHECK_RULE, barHtml, rankHtml, reviewHtml, poCardHtml, gridHtml, statsText, enterPick } from './congress/views.js';
@@ -135,6 +136,43 @@ test('marking someone absent before the next session leaves earlier and submitte
   assert.doesNotMatch(gridHtml(c2, kept, null), /is-out/);
   assert.deepEqual(sessionsToClose([{ number: 1 }, { number: 2 }]).map((x) => x.number), [1]);
   assert.deepEqual(sessionsToClose([{ number: 1 }, { number: 2, submittedAt: 3 }]).map((x) => x.number), [1, 2]);
+});
+
+// Why: a judge who copies session 1's ranks, then marks a ranked student absent and starts session 2, must not lose a slot.
+test('copied ranks lock a session\'s list: mark absent, then start session 2, with no "Mark submitted"', () => {
+  const c = chamberOf(10);
+  let s1 = newSession(c, [], { now: 0, makeId }).session;
+  for (let i = 0; i < 8; i++) s1 = toggleRank(c, s1, c.legislators[i].id);
+  s1 = Object.assign({}, closeSession(s1, c), { copiedAt: 3 }); // what Copy ranks saves
+  assert.equal(handedIn(s1), true);
+  let st = withSession(withChamber(migrateCongress(null), c), s1);
+  st = statusChange(st, c.id, c.legislators[0].id, 'absent', 4);
+  const c2 = findChamber(st, c.id);
+  const made = newSession(c2, [findSession(st, s1.id)], { now: 5, makeId });
+  st = withSession(withChamber(withSession(st, closeSession(findSession(st, s1.id), c2)), made.chamber), made.session);
+  const kept = findSession(st, s1.id);
+  assert.equal(rankModel(c2, kept).complete, true);
+  assert.deepEqual(rankModel(c2, kept).gone, []);
+  assert.equal(summary(kept, c2).total, 10, 'the session summary counts its own list');
+  assert.equal(summary(made.session, c2).total, 9);
+  // Not copied and not submitted: the session is still in progress, so the change reaches it.
+  let s3 = newSession(c, [], { now: 0, makeId }).session;
+  for (let i = 0; i < 8; i++) s3 = toggleRank(c, s3, c.legislators[i].id);
+  const live = statusChange(withSession(withChamber(migrateCongress(null), c), s3), c.id, c.legislators[0].id, 'left', 4);
+  assert.equal(rankModel(findChamber(live, c.id), findSession(live, s3.id)).complete, false);
+});
+
+// Why: taking back "submitted" after a status change must not empty a slot on the ballot that was handed in.
+test('taking back "submitted" keeps the copy when a status changed since, or the ranks were copied', () => {
+  const c = chamberOf(10);
+  let s = newSession(c, [], { now: 0, makeId }).session;
+  for (let i = 0; i < 8; i++) s = toggleRank(c, s, c.legislators[i].id);
+  s = setSubmitted(s, c, true, 5, true);
+  const later = setStatus(c, c.legislators[0].id, 'absent', 6);
+  const back = setSubmitted(s, later, false, 7, true);
+  assert.ok(back.statuses);
+  assert.equal(rankModel(later, back).complete, true);
+  assert.ok(setSubmitted(Object.assign({}, s, { copiedAt: 4 }), c, false, 7, true).statuses, 'copied ranks keep the copy');
 });
 
 // Why: after "Mark submitted" then Undo, the latest session stayed frozen, so a student who left stayed rankable.
@@ -279,6 +317,7 @@ test('the session page wires Undo, the Enter pick and the submitted copy to the 
   assert.match(src, /save\(reopenTerm\(cur\)\)/);
   assert.match(src, /enterPick\(c, s, q\)/);
   assert.match(src, /save\(setSubmitted\(s, c, !was, now, latest\(\)\)\)/);
+  assert.match(src, /if \(id === 'ranks'\) save\(Object\.assign\(\{\}, closeSession\(fresh, parts\(\)\.c\), \{ copiedAt: env\.now\(\) \}\)\);/);
   assert.match(src, /save\(setSubmitted\(cur\.s, cur\.c, false, env\.now\(\), latest\(\)\)\)/);
   const cs = read('./congress/chamber-screen.js');
   assert.match(cs, /io\.write\(statusChange\(io\.read\(\), id, sel\.dataset\.status, sel\.value, env\.now\(\)\)\)/);

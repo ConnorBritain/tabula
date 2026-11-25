@@ -118,7 +118,7 @@ export function overviewHtml(state, chamber) {
   const drows = chamber.docket.map((d) => `<li${d.debatedInSession ? ' class="muted"' : ''}>${esc(d.title)}${d.debatedInSession ? ' ' + statusPillHtml('live', 'Done in session ' + d.debatedInSession, 'check') : ''}</li>`).join('');
   return `<div class="screen-head"><a class="b quiet back" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">${houseWord(chamber)}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''} ${BETA_TAG}</h1>
       ${head}</div>
-    <p class="cg-before" id="cg-before">${icon('info')}Mark who is absent before a session. Absent legislators are not in the rank pool.</p>
+    <p class="cg-before" id="cg-before">${icon('info')}Mark who is absent before a session. Absent legislators are not in the rank pool. A session whose ranks are copied or submitted keeps its own list.</p>
     <p class="muted">${esc(p.name)} · ${esc(profileNote(p))}${picked.length ? ' Set at setup: ' + esc(picked.join('; ')) + '.' : ''}</p>
     <h2 class="cg-h">Sessions</h2>${srows ? `<ul class="room-list">${srows}</ul>` : '<p class="muted">No sessions yet.</p>'}
     <h2 class="cg-h">Legislators <span class="muted">(${chamber.legislators.length})</span></h2>
@@ -128,8 +128,8 @@ export function overviewHtml(state, chamber) {
 }
 
 // A status change from the overview, as a new Congress state. Before the chamber changes, each session that must not
-// follow it (every earlier session, and a submitted latest one: chamber.js sessionsToClose) keeps a copy of the
-// statuses it had. So "mark who is absent before a session" never empties a slot on a ballot already scored.
+// follow it (every earlier session, and the latest once its ranks are copied or it is submitted: chamber.js
+// sessionsToClose) keeps a copy of the statuses it had. So a change never empties a slot on a ballot handed in.
 export function statusChange(state, chamberId, legislatorId, status, now) {
   const c = findChamber(state, chamberId);
   if (!c) return state;

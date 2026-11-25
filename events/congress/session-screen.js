@@ -7,7 +7,7 @@ import { startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, tim
 import { startTerm, endTerm, reopenTerm, setHourScore } from './po.js';
 import { toggleRank } from './rank.js';
 import { reviewBlocks, rankProblems } from './review.js';
-import { markDebated, firstOpenItem, reopenItem, setSubmitted } from './chamber.js';
+import { markDebated, firstOpenItem, reopenItem, setSubmitted, closeSession } from './chamber.js';
 import { barHtml, logHtml, rankHtml, reviewHtml, sessionClock, enterPick, pickerMatches } from './views.js';
 import { copyText } from '../js/review-screen.js';
 import { newId } from '../js/room.js';
@@ -88,7 +88,8 @@ export function mountSession(el, env, sessionId, stage) {
     if (!b || !b.text) return;
     if (!(await copyText(b.text))) { env.ui.toast('This browser blocked copying. Select the text and press Ctrl+C (⌘C on Mac).', { kind: 'error', key: 'copy' }); return; }
     const fresh = parts().s;
-    if (id === 'ranks') save(Object.assign({}, fresh, { copiedAt: env.now() }));
+    // Copying the ranks hands the ballot in: the session keeps the statuses it has now (chamber.js closeSession).
+    if (id === 'ranks') save(Object.assign({}, closeSession(fresh, parts().c), { copiedAt: env.now() }));
     else if (b.kind === 'speech') save(Object.assign({}, fresh, { speeches: fresh.speeches.map((x) => (x.id === id ? Object.assign({}, x, { copiedAt: env.now() }) : x)) }));
     draw('copy-' + id);
     env.ui.announce(id === 'ranks' ? 'Ranks copied. Paste them into the online ballot.' : 'Copied.');
@@ -144,11 +145,11 @@ export function mountSession(el, env, sessionId, stage) {
         const item = firstOpenItem(chamber);
         save(Object.assign({}, s, { itemId: item ? item.id : null }), chamber);
         draw('next-item');
-        env.ui.toast(item ? 'Next item: ' + item.title : 'No items left on the docket.', { key: 'cg-undo', action: { label: 'Undo', name: 'Undo: next item', run: () => {
+        env.ui.toast(item ? 'Next item: ' + item.title : 'No items left on the docket.', { key: 'cg-undo', action: before ? { label: 'Undo', name: 'Undo: next item', run: () => {
           const cur = parts();
-          if (cur.s && cur.c && before) { const back = reopenItem(cur.c, cur.s, before); save(back.session, back.chamber); }
+          if (cur.s && cur.c) { const back = reopenItem(cur.c, cur.s, before); save(back.session, back.chamber); }
           draw('next-item');
-        } } });
+        } } : undefined });
         return undefined;
       }
       case 'po-choose': view.choosingPO = !view.choosingPO; return draw('po-choose');

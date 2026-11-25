@@ -96,22 +96,27 @@ export function closeSession(session, chamber) {
   return Object.assign({}, session, { statuses });
 }
 
+// A session is handed in once its ranks are copied or it is marked submitted. From then on its statuses are its own.
+export const handedIn = (s) => Boolean(s && (s.submittedAt || s.copiedAt));
+
 // The sessions whose statuses must not follow a change made now: every session but the latest, and the latest too
-// once it is marked submitted. The latest open session follows the chamber (someone can leave in the middle of it).
+// once it is handed in. The latest session that is not handed in follows the chamber (someone can leave mid-session).
 export const sessionsToClose = (sessions) => {
   const sorted = (sessions || []).slice().sort((a, b) => a.number - b.number);
-  return sorted.filter((s, i) => i < sorted.length - 1 || s.submittedAt);
+  return sorted.filter((s, i) => i < sorted.length - 1 || handedIn(s));
 };
 
 const withoutKey = (o, k) => { const out = Object.assign({}, o); delete out[k]; return out; };
 
 // Mark a session submitted (on: true) or not. Submitted keeps the statuses it has now (closeSession). Taking it back
-// on the latest session drops that copy, so the session follows the chamber again (someone who leaves still drops
-// out). An earlier session keeps its copy: a later session has started since.
+// drops that copy only when nothing depends on it: the session is the latest, its ranks were never copied, and no
+// status changed since it was submitted. Then it follows the chamber again. Otherwise the copy stays, so a slot on a
+// ballot already handed in never empties.
 export function setSubmitted(session, chamber, on, now, isLatest) {
   if (on) return Object.assign({}, closeSession(session, chamber), { submittedAt: now });
-  const out = Object.assign({}, isLatest ? withoutKey(session, 'statuses') : session, { submittedAt: null });
-  return out;
+  const changedSince = chamber.legislators.some((l) => Number.isFinite(l.statusAt) && session.submittedAt != null && l.statusAt > session.submittedAt);
+  const drop = isLatest && !session.copiedAt && !changedSince;
+  return Object.assign({}, drop ? withoutKey(session, 'statuses') : session, { submittedAt: null });
 }
 
 // Undo "Next item": the item is open again and back under debate. Only that item changes on the docket.
@@ -134,4 +139,4 @@ export const itemOf = (chamber, id) => chamber.docket.find((d) => d.id === id) |
 export const houseWord = (chamber) => (chamber.house === 'senate' ? 'Senate' : 'House');
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressChamber = Object.freeze({ MIN_CHAMBER, docketLines, setupChecks, frozenProfile, createChamber,
-  firstOpenItem, newSession, setStatus, statusIn, closeSession, sessionsToClose, setSubmitted, reopenItem, markDebated, legislatorOf, codeOf, itemOf, houseWord });
+  firstOpenItem, newSession, setStatus, statusIn, closeSession, handedIn, sessionsToClose, setSubmitted, reopenItem, markDebated, legislatorOf, codeOf, itemOf, houseWord });
