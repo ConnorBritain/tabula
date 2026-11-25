@@ -17,6 +17,7 @@ export const SCREENS = Object.freeze([
   { id: 'room-extemp', label: 'Room: extemp with a question (USX)', group: 'room' },
   { id: 'room-impromptu', label: 'Room: impromptu with prep (IMP)', group: 'room' },
   { id: 'room-roster', label: 'Room: roster open, entry menu open', group: 'room' },
+  { id: 'room-speaker', label: 'Room: speaker view, clock running', group: 'room' },
   { id: 'rank', label: 'Rank board', group: 'ballot' },
   { id: 'rate-points', label: 'Rate: points (rate only)', group: 'ballot' },
   { id: 'rate-words', label: 'Rate: word scale', group: 'ballot' },
