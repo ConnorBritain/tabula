@@ -228,6 +228,19 @@ test('cueTick: says each point once with the speaker code; buzzes only when the 
   resetCues();
 });
 
+test('cueTick while another view speaks (quiet): no spoken line, the buzz still comes, the point is not said later', () => {
+  resetCues();
+  const buzz = [];
+  const env = envWith({ [TIMER_VIBRATE_KEY]: true });
+  withNavigator({ vibrate: (p) => { buzz.push(p); return true; } }, () => {
+    for (const l of [122, 121, 120]) cueTick(env, { id: 'q' }, A, face(l), L, G, true); // the speaker view is open
+    for (const l of [119, 118, 62, 61, 60]) cueTick(env, { id: 'q' }, A, face(l), L, G, false); // closed again
+  });
+  assert.deepEqual(env.said, ['101: 1 minute left'], 'open: silent here; closed: this module speaks');
+  assert.deepEqual(buzz, [[...PATTERNS.point], [...PATTERNS.point]]);
+  resetCues();
+});
+
 test('cueTick on a prep event counts the speech part (the limit timer-view passes is lim(e, now))', () => {
   resetCues();
   const T0 = 1_800_000_000_000;

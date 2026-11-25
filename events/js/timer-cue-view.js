@@ -53,10 +53,12 @@ const keyOf = (room, entry) => (room && room.id ? room.id + '/' : '') + entry.id
 /**
  * Each tick of a running speech clock: fire the cue for a signal point once (timer-cue.js). env: { settings(), ui }.
  * room, entry: the room and the running entry. face: timer.js timerFace (or prep.js sharedFace). limit: the speech
- * part's own limit (on a prep event, what prep left of the shared limit); grace in seconds.
+ * part's own limit (on a prep event, what prep left of the shared limit); grace in seconds. quiet: true while another
+ * view speaks the signals itself (the speaker view, while it is open): the point is still marked and the buzz still
+ * comes, but nothing is spoken here, so a screen reader hears one line per signal.
  * Returns the cue that fired, or null.
  */
-export function cueTick(env, room, entry, face, limit, grace) {
+export function cueTick(env, room, entry, face, limit, grace, quiet) {
   if (!entry || !face) return null;
   const res = cueStep(cueState, { id: keyOf(room, entry), running: face.running, left: face.left, points: signalPoints(limit, grace), grace });
   cueState = res.state;
@@ -64,7 +66,7 @@ export function cueTick(env, room, entry, face, limit, grace) {
   if (!cue) return null;
   const s = env.settings ? env.settings() : null;
   if (vibrateOn(s) && canVibrate()) vibrate(cue.pattern.slice());
-  env.ui.announce(entry.code + ': ' + cue.text);
+  if (!quiet) env.ui.announce(entry.code + ': ' + cue.text);
   return cue;
 }
 
