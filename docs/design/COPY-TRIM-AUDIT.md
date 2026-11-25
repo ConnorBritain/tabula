@@ -172,7 +172,7 @@ Base commit: `8e89d6b` (debate repo).
 | D39 | "Your paradigm is saved in your Tabula account, so every device you sign in on uses it. …" | `js/account.js:105` | "Saved in your account for every device. Used for "My own paradigm"." | Shorter. **Done.** |
 | D40 | Tour steps (`tour.js:14`, `:16`, `:20`, `:21`), each near the 45-word cap | `tour.js:14-21` | 14: "Type the round, teams and debaters. They fill the ballot." 16: "Start and pause the speech clock: ⌘↵ (Ctrl+↵), or Space. Prep clocks are on the right." 20: "Type the ballot, or let the AI draft it. You check each AI field first, and what you type stays yours. Then print or copy it." 21: "Click ? to replay this tour or tour this page. Connect AI with the gear. The clock, flow and ballot work without it." | `tour.test.js:16` checks only a word cap. Keep "Open the transcript from the round bar" (pin: `tour.test.js:72`). **Done.** |
 
-**Word fights in Debate** (feed rules W11–W18 below):
+**Word fights in Debate** (feed rules W13–W18 below):
 
 - **Run / Update / Draw** for one button: `index.html:1116` ("Run"), `js/insights.js:286` ("Draw"), `index.html:1094`, `tour.js:30`, `js/insights.js:206` ("Update").
 - **Clock vs timers:** "clock, flow and ballot" (`index.html:1211`, `:1215`, `js/help.js:162`) vs "timers, flow and ballot" (`tour.js:21`, `logic/shell.js:45`).
