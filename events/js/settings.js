@@ -10,6 +10,10 @@ import { buildBackup, parseBackup } from '../../core/store.js';
 import { PREFIX, ROOMS_KEY, SETTINGS_KEY, DAYS_KEY, CARDS_KEY } from './store.js';
 import { KEYS_KEY } from './ai-key.js';
 import { migrateRooms, migrateSettings, migrateDays, migrateCards, RANKS_DUE_DEFAULT } from './migrate.js';
+import { backupDue } from '../../core/keep-data.js';
+import { congressToday, chamberSessions } from '../congress/store.js';
+import { handedIn } from '../congress/chamber.js';
+import { dayOf } from './rooms.js';
 
 // The F2 draw gaps in minutes (step S4, EXPERIENCE.md §3: 7 or 10, not confirmed, so the judge picks) and the gap of a
 // settings record (an unknown value reads as the first, the migration default).
@@ -138,31 +142,61 @@ export function keptText(state, installed) {
   return 'This browser may clear your rounds if you do not open the app for a while. Install it or download a backup.';
 }
 
-// The latest time any round or ballot card changed (ms), or 0 when there are none. Rounds carry updatedAt; a card
-// changes when it is made, submitted or cancelled.
-export function lastChangeAt(rounds, cards) {
+// The latest time any round, ballot card or Congress record changed (ms), or 0 when there are none. Rounds carry
+// updatedAt; a card changes when it is made, submitted or cancelled. congress (optional): the migrated Congress value;
+// every time stamp in it counts (a name ending in "At": createdAt, startedAt, copiedAt, submittedAt, statusAt ...).
+export function lastChangeAt(rounds, cards, congress) {
   let t = 0;
   const take = (v) => { if (Number.isFinite(v) && v > t) t = v; };
   for (const r of Array.isArray(rounds) ? rounds : []) if (r && typeof r === 'object') { take(r.createdAt); take(r.updatedAt); }
   for (const c of Array.isArray(cards) ? cards : []) if (c && typeof c === 'object') { take(c.createdAt); take(c.submittedAt); take(c.cancelledAt); }
+  const walk = (x, depth) => {
+    if (!x || typeof x !== 'object' || depth > 4) return;
+    if (Array.isArray(x)) { for (const y of x) walk(y, depth + 1); return; }
+    for (const k of Object.keys(x)) { if (/At$/.test(k)) take(x[k]); else walk(x[k], depth + 1); }
+  };
+  if (congress && typeof congress === 'object') { walk(congress.chambers, 0); walk(congress.sessions, 0); }
   return t;
 }
 
-// Does My day show the "download a backup" reminder? Only when the judging day is over and something changed since the
-// last backup. The day is over when today has ballots, none of them is still to judge (Now or Later today), the judge
-// is not on standby for another ballot, and no Congress chamber is in use.
-// v: { model (cards.js mydayModel), chambers (today's Congress chambers), lastChange (lastChangeAt), lastBackupAt
-// (ms or null), dismissedAt (the lastChange value the judge said "Not now" to, or null) }.
+// Today's Congress chambers (congress/store.js congressToday), each with open: true while the chamber still has work
+// today. A chamber is done for the day once it has a session today and every session today is handed in (ranks copied
+// or marked submitted). A chamber made today with no session yet is still open. state: the migrated Congress value.
+export function congressDay(state, now) {
+  const today = dayOf(now);
+  const on = (t) => Number.isFinite(t) && dayOf(t) === today;
+  return congressToday(state, now).map((c) => {
+    const todays = chamberSessions(state, c.id).filter((x) => on(x.startedAt) || on(x.createdAt) || on(x.updatedAt));
+    return Object.assign({}, c, { open: !todays.length || todays.some((x) => !handedIn(x)) });
+  });
+}
+
+// Is the judging day over? Today has ballots or Congress chambers; no ballot is still to judge (Now or Later today);
+// the judge is not on standby for another ballot; and every Congress chamber today is done (open: false; a chamber
+// without that flag counts as still open). A Congress-only day is over once its sessions are handed in.
+// v: { model (cards.js mydayModel), chambers ([{ id, label, open }], congressDay) }.
+export function eventsDayOver(v) {
+  const o = v || {};
+  const m = o.model && typeof o.model === 'object' ? o.model : null;
+  const items = m && Array.isArray(m.items) ? m.items : [];
+  const chambers = Array.isArray(o.chambers) ? o.chambers : [];
+  if (!items.length && !chambers.length) return false;
+  if (m && m.standby) return false;
+  if (items.length) {
+    if (!Array.isArray(m.sections)) return false;
+    const left = m.sections.filter((s) => s.id === 'now' || s.id === 'later').reduce((n, s) => n + s.items.length, 0);
+    if (left) return false;
+  }
+  return !chambers.some((c) => !c || c.open !== false);
+}
+
+// Does My day show the "download a backup" reminder? When the judging day is over (eventsDayOver) and something
+// changed since the last backup (core/keep-data.js backupDue).
+// v: { model, chambers (congressDay), lastChange (lastChangeAt), lastBackupAt (ms or null), dismissedAt (the
+// lastChange value the judge said "Not now" to, or null) }.
 export function backupReminderDue(v) {
   const o = v || {};
-  const m = o.model;
-  if (!m || !Array.isArray(m.items) || !m.items.length || !Array.isArray(m.sections)) return false;
-  const left = m.sections.filter((s) => s.id === 'now' || s.id === 'later').reduce((n, s) => n + s.items.length, 0);
-  if (left || m.standby || (Array.isArray(o.chambers) && o.chambers.length)) return false;
-  const changed = Number.isFinite(o.lastChange) ? o.lastChange : 0;
-  if (!changed) return false;
-  if (o.dismissedAt === changed) return false;
-  return !(Number.isFinite(o.lastBackupAt) && o.lastBackupAt >= changed);
+  return backupDue({ dayOver: eventsDayOver(o), lastChange: o.lastChange, lastBackupAt: o.lastBackupAt, dismissedAt: o.dismissedAt });
 }
 
 // What "Clear this device" removes, for the confirm dialog: every saved value under tabulaEvents.*, in plain words.
@@ -217,5 +251,5 @@ export function feedbackMailto(v) {
   return 'mailto:' + FEEDBACK_TO + '?subject=' + encodeURIComponent(FEEDBACK_SUBJECT) + '&body=' + encodeURIComponent(body);
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ keptText, lastChangeAt, backupReminderDue, CLEAR_WHAT, BACKUP_APP, MODES, THEMES, RANKS_DUE_MAX, RECENT_MAX, DRAW_GAPS, drawGapOf, validRanksDue, ranksDueMinOf, withRecentEvent, modeMenuShown, withSetting,
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ keptText, lastChangeAt, congressDay, eventsDayOver, backupReminderDue, CLEAR_WHAT, BACKUP_APP, MODES, THEMES, RANKS_DUE_MAX, RECENT_MAX, DRAW_GAPS, drawGapOf, validRanksDue, ranksDueMinOf, withRecentEvent, modeMenuShown, withSetting,
   makeBackup, backupName, readBackup, restoreItems, releaseId, browserFamily, feedbackMailto, FEEDBACK_TO, FEEDBACK_SUBJECT, KNOWN_ISSUES_URL });
