@@ -304,4 +304,4 @@ The law defines a "covered AI companion" broadly. It bans 12 "unsafe features" f
 5. **No memory of the person.** No use of personal facts from earlier sessions. Each round starts fresh.
 6. **No engagement hooks.** No streaks, no "come back" prompts from the AI, no push notifications to known minors.
 
-Before any new Hosted AI feature ships, check it against this list. If Tabula ever adds free chat with the AI, the legal session must re-check New York Art. 48 first.
+Before any new Hosted AI feature ships, check it against this list. If Tabula ever adds free chat with the AI, it needs owner sign-off before it ships, with New York Art. 48 checked first.
