@@ -24,12 +24,16 @@ import { problemTarget, rateRowPill, ballotProgress, ballotFootHtml } from './js
 import { offlineHtml } from './js/settings-screen.js';
 import { ratingScale } from './js/rank.js';
 import { roomPrimary, goRankHtml, nextTopHtml } from './js/room-primary.js';
-import { timerHtml, cardTrack, stickyBarHtml, stoppedResult } from './js/timer-view.js';
+// CHANGED (Speech Events cleanup 2026-11-25: the pure card builders moved to timer-card-html.js; same functions). Old line:
+// import { timerHtml, cardTrack, stickyBarHtml, stoppedResult } from './js/timer-view.js';
+import { timerHtml, cardTrack, stickyBarHtml, stoppedResult } from './js/timer-card-html.js';
 import { timerFace } from './js/timer.js';
 import { sharedFace } from './js/prep.js';
 import { runCardsHtml, nextRunWaits } from './js/runs-view.js';
 import { syncRuns } from './js/runs.js';
-import { mainButton } from './js/timer-view.js';
+// CHANGED (Speech Events cleanup 2026-11-25: the pure card builders moved to timer-card-html.js; same functions). Old line:
+// import { mainButton } from './js/timer-view.js';
+import { mainButton } from './js/timer-card-html.js';
 import { sheetHtml, reasonFootHtml, promptsHtml, PROMPTS_SHOWN } from './js/comment-view.js';
 import { checklist } from './js/ballot.js';
 import { setupHtml, previewHtml, levelSummary } from './js/setup-screen.js';

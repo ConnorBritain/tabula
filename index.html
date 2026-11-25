@@ -330,6 +330,22 @@
   .judging-row[hidden] { display: none; }
   .judging-row select { max-width: 100%; }
   .format-row { margin: 0 0 var(--s3); }
+  /* The format pick (docs/design/FORMAT-PICK.md §3): every format shows at once, one card each, so a judge sees what
+     they did not pick. Native radios in a fieldset; after the first speech they are disabled. */
+  .format-pick { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .format-pick legend { padding: 0; margin-bottom: var(--s1); font-size: var(--fs-2); font-weight: var(--fw-2); color: var(--text-2); }
+  .fmt-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--s2); }
+  .fmt-card { display: grid; grid-template-columns: auto 1fr; gap: var(--s0) var(--s2); align-items: start; margin: 0; padding: var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); background: var(--panel); color: var(--text); cursor: pointer; }
+  .fmt-card input { margin: 3px 0 0; }
+  .fmt-card .fmt-name { font-size: var(--fs-3); font-weight: var(--fw-3); }
+  .fmt-card .fmt-blurb { grid-column: 2; color: var(--text-2); font-size: var(--fs-2); font-weight: var(--fw-4); }
+  .fmt-card:has(input:checked) { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); }
+  .fmt-card:has(input:disabled) { cursor: default; }
+  .fmt-card:has(input:disabled:not(:checked)) { opacity: 0.6; }
+  .fmt-card:not(:has(input:disabled)):hover { background: var(--sunk); }
+  .start-panel .start-format { margin: 0 0 var(--s4); color: var(--text-2); }
+  .start-panel .start-format strong { color: var(--text); }
+  .start-panel .start-format .linkish { margin-left: var(--s1); }
   .start-panel .start-judging { margin: var(--s4) 0 0; }
   .start-panel .start-judging p { margin: var(--s1) 0 0; }
   label.b { display: inline-flex; align-items: center; margin: 0; cursor: pointer; color: var(--text); font-size: var(--fs-2); font-weight: var(--fw-3); }
@@ -469,6 +485,11 @@
   .ask-card h2 { font-family: var(--font-display); font-size: var(--fs-4); font-weight: var(--fw-5); margin: 0 0 var(--s3); padding-right: 40px; }
   .ask-body p { margin: 0 0 var(--s2); color: var(--text-2); }
   .ask-foot { margin: var(--s3) 0 0; }
+  /* An ask() radio group (core/ui.js radios): the format for a new round. */
+  .ask-radios { border: 0; margin: var(--s3) 0 0; padding: 0; min-width: 0; }
+  .ask-radios legend { padding: 0; margin-bottom: var(--s1); font-size: var(--fs-2); font-weight: var(--fw-2); color: var(--text-2); }
+  .ask-radio { display: flex; align-items: center; gap: var(--s2); min-height: var(--h-md); margin: 0; color: var(--text); font-size: var(--fs-3); font-weight: var(--fw-4); cursor: pointer; }
+  .ask-radio input { margin: 0; }
   .ask-foot:empty { display: none; }
   .ask-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2); margin-top: var(--s4); }
   .ask-x { position: absolute; top: var(--s3); right: var(--s3); }
@@ -674,6 +695,11 @@
   .clock-chip { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--h-md); padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); font-variant-numeric: tabular-nums; white-space: nowrap; cursor: pointer; flex: none; }
   .clock-chip:hover { background: var(--sunk); border-color: var(--text-2); }
   .clock-chip[hidden] { display: none; }
+  /* The format chip: always on, quiet, the same pill shape. It opens Round setup; it never changes the format itself. */
+  .fmt-chip { display: inline-flex; align-items: center; min-height: var(--h-md); padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: none; color: var(--text-2); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); white-space: nowrap; cursor: pointer; flex: none; }
+  .fmt-chip:hover { background: var(--sunk); border-color: var(--text-2); color: var(--text); }
+  .fmt-chip .fmt-short { display: none; }
+  @media (max-width: 479.98px) { .fmt-chip .fmt-full { display: none; } .fmt-chip .fmt-short { display: inline; } }
   /* Rounds left (docs/design/AI-ROUND-CONSENT.md §3): the same pill as the clock chip, quiet text. */
   .rounds-pill { font-weight: var(--fw-2); color: var(--text-2); }
   .signin-pill { text-decoration: none; }
@@ -771,6 +797,7 @@
   @media (max-width: 819.98px) {
     .hrow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto auto; grid-template-rows: calc(var(--h-lg) + var(--s2)) var(--h-lg); grid-template-areas: "brand spacer chip net help gear" "nav nav nav nav nav nav"; gap: 0 var(--s2); padding: 0 var(--s3); }
     .hrow .brand { grid-area: brand; margin: 0; } .hrow .spacer { grid-area: spacer; } .hrow .clock-chip { grid-area: chip; }
+    .hrow .fmt-chip { grid-area: spacer; justify-self: end; min-height: 44px; padding: 0 var(--s2); }
     .hrow .net-note { grid-area: net; } .hrow .help-wrap { grid-area: help; } .hrow #settings-btn { grid-area: gear; }
     .hrow nav { grid-area: nav; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .hrow nav button { min-height: var(--h-lg); padding: 0 var(--s1); }
@@ -846,6 +873,7 @@
   </a>
   <nav id="nav" aria-label="Main"></nav>
   <span class="spacer"></span>
+  <button class="fmt-chip" id="format-chip" type="button" aria-label="Format: Policy. Opens Round setup."><span class="fmt-full" id="format-chip-full" aria-hidden="true">Policy</span><span class="fmt-short" id="format-chip-short" aria-hidden="true">Policy</span></button>
   <button class="clock-chip" id="clock-chip" type="button" hidden><span class="chip-dot" aria-hidden="true"></span><span id="clock-chip-text" aria-hidden="true"></span></button>
   <span class="net-note" id="net-note" role="status"></span>
   <button class="clock-chip rounds-pill" id="rounds-pill" type="button" hidden></button>
@@ -896,9 +924,11 @@
   <div class="card" id="round-card">
     <h2>Round</h2>
     <div class="format-row">
-      <label for="format-pick">Format</label>
-      <select id="format-pick" class="w-auto" aria-describedby="format-help"></select>
-      <p class="muted field-help" id="format-help">Changing it starts a new round.</p>
+      <fieldset class="format-pick" id="format-pick" aria-describedby="format-help">
+        <legend>Format</legend>
+        <div class="fmt-cards" id="format-cards"></div>
+        <p class="muted field-help" id="format-help">Pick the event on your ballot. A round keeps its format.</p>
+      </fieldset>
     </div>
     <div class="format-row" id="first-side-row" hidden>
       <label for="first-side">Speaks first</label>
@@ -1032,6 +1062,7 @@
   <div class="start-panel" id="start-panel" hidden>
     <img src="assets/tabula-mark-black.png" alt="" width="48" height="39" class="start-mark on-light"><img src="assets/tabula-mark-white.png" alt="" width="48" height="39" class="start-mark on-dark">
     <h2>Ready for a round</h2>
+    <p class="start-format">Format: <strong id="start-format-name">Policy</strong><span id="start-format-from"></span> · <button class="linkish" id="start-format-change" type="button">Change</button></p>
     <div class="start-actions">
       <button class="b primary" id="start-new" type="button">Set up a new round</button>
       <button class="b" id="start-flow" type="button">Just start flowing</button>
@@ -1320,7 +1351,7 @@
   </div>
 </section>
 
-  <p class="app-foot noprint"><a href="about.html" target="_blank" rel="noopener" data-brand-text="About {name}">About Tabula Debate</a> · © <span data-year>2026</span> <span data-brand-text="{parent}">Tabula Speech</span></p>
+  <p class="app-foot noprint"><a href="about.html" target="_blank" rel="noopener" data-brand-text="About {name}">About Tabula Debate</a> · © <span data-year>2026</span> <span data-brand-text="{parent}">Tabula Speech</span> · <a href="https://github.com/TabulaSpeech/tabula" target="_blank" rel="noopener">Source code (AGPL)</a></p>
 </main>
 <section class="tr-drawer noprint" id="tr-drawer" data-ai="transcription" aria-label="Transcript" hidden>
   <div class="tr-drawer-head"><h2 id="tr-drawer-title">Transcript: <span id="tr-drawer-label"></span></h2>

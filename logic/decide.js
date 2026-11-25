@@ -189,11 +189,11 @@
     };
   }
 
-  // The name of a round's format for a coach: 'Lincoln-Douglas (LD)', or 'id vN' for a format this copy does not have
-  // (a ballot saved by a newer Tabula), so it is never passed off as the policy fallback.
+  // The name of a round's format for a coach: 'Lincoln-Douglas' (F.labelOf, docs/design/FORMAT-PICK.md §2), or 'id vN'
+  // for a format this copy does not have (a ballot saved by a newer Tabula), so it is never passed off as the policy fallback.
   function formatLabel(round) {
     const r = round || {};
-    if (F.formatKnown(r)) return F.formatOf(r).name;
+    if (F.formatKnown(r)) return F.labelOf(F.formatOf(r));
     return String(r.format) + (r.formatVersion == null ? '' : ' v' + r.formatVersion);
   }
   // The History export (Download CSV, Copy for Google Sheets) and the History table: { header, rows, formats,

@@ -10,8 +10,12 @@ import { createRoom, updateEntry, entryOf } from './js/room.js';
 import { limitOf, timerFace, signalPoints } from './js/timer.js';
 import { sharedFace } from './js/prep.js';
 import { markNextRun, syncRuns, runsBarModel } from './js/runs.js';
-import { trackModel, trackHtml, miniTrackHtml, piecesFor, tickLabel, zoneAt, trackLabel, overShown } from './js/time-track.js';
-import { timerHtml, cardTrack, mainButton, stickyBarHtml, rosterTimeHtml, rowTrackLine } from './js/timer-view.js';
+// CHANGED (cleanup: overShown is no longer exported; it is private to time-track.js). Old line:
+// import { trackModel, trackHtml, miniTrackHtml, piecesFor, tickLabel, zoneAt, trackLabel, overShown } from './js/time-track.js';
+import { trackModel, trackHtml, miniTrackHtml, piecesFor, tickLabel, zoneAt, trackLabel } from './js/time-track.js';
+// CHANGED (Speech Events cleanup 2026-11-25: the pure card builders moved to timer-card-html.js; same functions). Old line:
+// import { timerHtml, cardTrack, mainButton, stickyBarHtml, rosterTimeHtml, rowTrackLine } from './js/timer-view.js';
+import { timerHtml, cardTrack, mainButton, stickyBarHtml, rosterTimeHtml, rowTrackLine } from './js/timer-card-html.js';
 import { rosterRowHtml } from './js/room-screen.js';
 import { boardHtml } from './js/rank-screen.js';
 import { quoteKind, quoteHtml, rowQuoteHtml, ROW_QUOTE_MAX } from './js/quote-view.js';
@@ -40,7 +44,10 @@ const pct = (html, cls) => Number((new RegExp('class="' + cls + '" style="left:(
 // signal card at the wrong moment or read a speech inside grace as over.
 test('the track: speech, grace and over zones, a tick at each signal point, and the now dot at the time used', () => {
   const m = trackModel({ limit: 600, grace: 30, pieces: [{ sec: 300 }], points: signalPoints(600, 30) });
-  assert.equal(m.span, 600 + 30 + overShown(30));
+  // CHANGED (cleanup: overShown is private now, so the test spells out its value: the over zone is the grace
+  // length, at least 30 s, so 30 here; the assertion checks the same number). Old line:
+  // assert.equal(m.span, 600 + 30 + overShown(30));
+  assert.equal(m.span, 600 + 30 + 30);
   assert.deepEqual(m.zones.map((z) => [z.kind, z.from, z.to]), [['speech', 0, 600], ['grace', 600, 630], ['over', 630, 660]]);
   assert.deepEqual(m.ticks.map((t) => t.pos), [300, 360, 420, 480, 540, 570, 600, 630], 'Show 5 at 5:00 used … grace end at 10:30');
   assert.deepEqual(m.ticks.map((t) => t.label), ['5', '4', '3', '2', '1', '0:30', '0', '+0:30']);
