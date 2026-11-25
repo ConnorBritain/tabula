@@ -105,7 +105,7 @@ A join code holds no student data.
 | Link between your account and the payment service's customer record | Billing | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
 | Auto-renew consent: person, product, notice version, times | A record that you agreed to automatic renewal (required in California) | No screen shows it. | Not in the self-service export; ask us | No | At least 3 years. We have no automatic deletion for this yet. | Our server |
 
-Checkout without an account is off. When it was on, the checkout record also holds a scrambled copy of a random cookie
+Checkout without an account is off. When it was on, the checkout record also held a scrambled copy of a random cookie
 value and of the IP address. We keep these records.
 
 ## Buying rounds for someone else
