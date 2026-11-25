@@ -42,8 +42,8 @@ export function mountSession(el, env, sessionId, stage) {
   }
 
   // focusKey: the data-key of the control to focus after the draw. If that control is gone, the focus goes to the page
-  // title, never to nowhere (a keyboard judge would have to Tab from the top). keep: a draw the judge did not ask for
-  // (the timer tick): put the focus back where it was, or leave it alone.
+  // title, never to nowhere (a keyboard judge would have to Tab from the top). keep: the focus was outside this screen
+  // (a timer-tick draw), so leave it alone.
   function draw(focusKey, keep) {
     const { s, c } = parts();
     if (!s || !c) { el.innerHTML = '<p class="muted">This session is not on this device.</p><a class="b" href="#/chamber">Chambers</a>'; return; }
@@ -79,8 +79,10 @@ export function mountSession(el, env, sessionId, stage) {
     if (hourKey !== lastHourKey) {
       const first = !lastHourKey;
       lastHourKey = hourKey;
+      // Focus inside the screen goes back to the same control (or the page title if it has none); focus outside is left alone.
       const a = document.activeElement;
-      if (!first && stage === 'log' && a && a.id !== 'cg-comment') draw(a && el.contains(a) && a.dataset.key ? a.dataset.key : null, true);
+      const inside = Boolean(a && el.contains(a));
+      if (!first && stage === 'log' && a && a.id !== 'cg-comment') draw(inside && a.dataset.key ? a.dataset.key : null, !inside);
     }
   }, 250);
 

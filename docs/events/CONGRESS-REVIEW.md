@@ -84,7 +84,6 @@ An automated check with axe, then a walk with the keyboard only. Fixes are in th
 - The script, kept outside the repo, walks one chamber and injects axe at each stop: list → New chamber (empty, then filled with the NSDA district rules, so the PO range and "Who can be ranked" choices with "Check your tournament's rule." show) → Log (empty) → speaker picker → speech card (timer, questions, ended and scored) → 3 speeches → PO chooser → Rank with the PO lock → PO hour due → hour scored → "Next item" toast with Undo → "PO term ended" toast with Undo → Rank (empty, then top 8) → Review → Review after Copy ranks and Mark submitted (toast with Undo) → chamber overview → list. Then a 30-row chamber (NSDA Last Chance allows 30): Log and Rank.
 - 22 screen states, each in light and dark, on a phone (390 × 844) and a laptop (1366 × 768): 88 axe runs. axe's default rules; every impact recorded.
 - Congress has no dialogs of its own. Its pop-ups are the shared toasts with Undo, which were checked as part of each screen.
-- A shared runner for these checks is being built separately; this pass did not use it.
 
 ### 5.2 axe results
 
@@ -123,7 +122,7 @@ Keys that work now:
 |---|---|---|---|
 | A1 | The speaker picker and the PO chooser buttons had `role="listitem"`, so a screen reader heard a list row, not a button (axe minor). | Real lists: each button sits in its own list item. | `congress-a11y.test.mjs` |
 | A2 | Review's buttons were all named "Copy", so a screen-reader judge could not tell which speech they were copying. | Each button's name is "Copy" plus the card title, for example "Copy 101 · Bill · Aff · Authorship · 6 points". The title is still written once on the page. | `congress-a11y.test.mjs` |
-| A3 | After a PO hour score, and when a full PO hour came up, the focus jumped to the page title, so the judge had to Tab through the log again. When the control to focus was gone, the focus went nowhere. | A score puts the focus on that hour's "Change" button; "Change" puts it on the hour's first score button. The hour redraw keeps the focus on the same control. A focus target that is gone falls back to the page title. | `congress-a11y.test.mjs` |
+| A3 | After a PO hour score, and when a full PO hour came up, the focus jumped to the page title, so the judge had to Tab through the log again. When the control to focus was gone, the focus went nowhere. | A score puts the focus on that hour's "Change" button; "Change" puts it on the hour's first score button. The hour redraw keeps the focus on the same control (or the page title if that control has no place in the redraw). A focus target that is gone falls back to the page title. | `congress-a11y.test.mjs` |
 | A4 | Esc did nothing in the speaker picker. | Esc in the speaker search closes the picker. | `congress-a11y.test.mjs` |
 
 ### 5.5 Open

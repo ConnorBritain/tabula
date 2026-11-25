@@ -75,7 +75,8 @@ test('a draw never leaves the focus nowhere, and the timer tick keeps it where i
   const src = read('./congress/session-screen.js');
   assert.match(src, /function draw\(focusKey, keep\)/);
   assert.match(src, /if \(target\) target\.focus\(\); else if \(!keep\) el\.querySelector\('#screen-title'\)\.focus/, 'a missing key falls back to the title');
-  assert.match(src, /draw\(a && el\.contains\(a\) && a\.dataset\.key \? a\.dataset\.key : null, true\)/, 'the tick redraw puts the focus back on the same control');
+  assert.match(src, /const inside = Boolean\(a && el\.contains\(a\)\);/);
+  assert.match(src, /draw\(inside && a\.dataset\.key \? a\.dataset\.key : null, !inside\)/, 'the tick redraw puts the focus back on the same control, or the title; focus outside the screen is left alone');
   assert.equal((src.match(/return draw\(\);/g) || []).length, 0, 'no action redraws without saying where the focus goes');
 });
 
