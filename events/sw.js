@@ -40,6 +40,10 @@ self.addEventListener('install', (event) => {
   const firstInstall = !(self.registration && self.registration.active);
   event.waitUntil(caches.open(CACHE)
     .then((cache) => cache.addAll(URLS.map((u) => new Request(u, { cache: 'reload' }))))
+    // An older release that started while this one installed deletes every other cache, this one too. Then fail the
+    // install, so the browser tries again later, and never start with an empty cache.
+    .then(() => caches.keys())
+    .then((keys) => { if (!keys.includes(CACHE)) throw new Error('the release cache was deleted during install'); })
     .then(() => (firstInstall ? self.skipWaiting() : undefined)));
 });
 

@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { decideUpdate, mayStartUpdate, DECISIONS, pageBusy, clockRunning, QUIET_SCREENS, watchUpdates, NOTICE_TEXT, START_MESSAGE } from './js/update-gate.js';
 import { lookupRelease } from './js/settings-screen.js';
+import { parseRoute } from './js/routes.js';
 
 const ROOT = new URL('../', import.meta.url);
 const read = (p) => readFileSync(new URL(p, ROOT), 'utf8');
@@ -51,6 +52,15 @@ test('a round, a chamber, the setup form and an unknown screen are busy; My day,
   assert.ok(QUIET_SCREENS.includes('rooms') && QUIET_SCREENS.includes('settings') && QUIET_SCREENS.includes('history'));
 });
 
+test('the real addresses map to busy and quiet as the page sees them (app.js passes parseRoute(location.hash).screen)', () => {
+  for (const hash of ['#/round/r1', '#/round/r1/rank', '#/room/r1', '#/review/r1', '#/chamber/c1', '#/new', '#/start/c1']) {
+    assert.equal(pageBusy({ screen: parseRoute(hash).screen }).roundOpen, true, hash);
+  }
+  for (const hash of ['', '#/', '#/history', '#/settings', '#/pick']) {
+    assert.equal(pageBusy({ screen: parseRoute(hash).screen }).roundOpen, false, hash);
+  }
+});
+
 test('a speech, prep or cross-ex clock, or a live Congress speech, counts as a running timer on any screen', () => {
   const room = (entry) => [{ entries: [{ timing: { run: null, runs: [] } }, entry] }];
   assert.equal(clockRunning(room({ timing: { run: null } }), null), false);
@@ -77,6 +87,7 @@ function runWorker({ active }) {
       return { async addAll(reqs) { for (const r of reqs) m.set(r.url, 'x'); }, async match(k) { return m.get(k); } };
     },
     async keys() { return [...stores.keys()]; },
+    async has(name) { return stores.has(name); },
     async delete(name) { return stores.delete(name); },
   };
   class Request { constructor(url) { this.url = String(url); } }
@@ -94,8 +105,16 @@ function runWorker({ active }) {
     listeners[type]({ data, waitUntil: (p) => { until = p; } });
     await until;
   };
-  return { fire, stores, skips: () => skips, release: ctx.self.TABULA_EVENTS_RELEASE };
+  return { fire, stores, caches, skips: () => skips, release: ctx.self.TABULA_EVENTS_RELEASE };
 }
+
+test('the worker: an install whose cache another release deleted meanwhile fails, so it never starts empty', async () => {
+  const w = runWorker({ active: true });
+  const open = w.caches.open;
+  w.caches.open = async (name) => { const c = await open(name); return Object.assign({}, c, { async addAll(r) { await c.addAll(r); w.stores.delete(name); } }); };
+  await assert.rejects(w.fire('install'), /deleted during install/);
+  assert.equal(w.skips(), 0);
+});
 
 test('the worker: a first install takes over at once; an update waits, keeps the old cache, and starts only when asked', async () => {
   const first = runWorker({ active: false });
@@ -193,6 +212,19 @@ test('Reload asks the worker to take over, and this tab reloads only after it ha
   assert.equal(p.reloads(), 0, 'no reload before the new release runs');
   p.swL.controllerchange();
   assert.equal(p.reloads(), 1);
+});
+
+test('a tab that asked but opened a round before the new release took over is not reloaded', async () => {
+  const p = fakePage();
+  await p.settle();
+  await p.gate.start();
+  p.state.busy = { roundOpen: true };
+  p.swL.controllerchange();
+  assert.equal(p.reloads(), 0, 'never reload during a round');
+  p.state.busy = { roundOpen: false };
+  p.winL.hashchange();
+  assert.ok(p.note(), 'back on a quiet screen it offers the reload again');
+  assert.equal(p.reloads(), 0);
 });
 
 test('Reload re-checks first: a round opened since the notice showed stops it, and nothing reloads', async () => {

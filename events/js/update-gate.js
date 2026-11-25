@@ -13,7 +13,9 @@
 // module loaded at boot (events/sw.js, "Rule for the page"), so it needs no file from the new release, and it shows the
 // notice once it is quiet.
 //
-// The first install is not gated: no release runs the page yet, so the worker starts at once (events/sw.js).
+// The first install is not gated: no release runs the page yet, so the worker starts at once. events/sw.js makes that
+// check itself (it cannot load this ES module); decideUpdate states the same rule so the tests can hold both to it.
+// Offline does not change the decision: it is an input so the rule says so in one place, and the tests prove it.
 
 // The decisions. 'activate': start now (first install only). 'offer': show the notice; Reload starts it. 'wait': a new
 // release is ready, but a round is open or a clock runs, so show nothing. 'none': no new release is ready.
@@ -158,7 +160,9 @@ export function watchUpdates(regPromise, busy, deps = {}) {
   }
 
   sw.addEventListener('controllerchange', () => {
-    if (asked) { win.location.reload(); return; } // only the tab that asked reloads, and it asked from a quiet screen
+    // Only the tab that asked reloads, and only if it is still quiet (a round may have opened since it asked).
+    if (asked && !isBusy()) { win.location.reload(); return; }
+    asked = false;
     replaced = true; // another tab started it: offer a reload here too, but only when this tab is quiet
     check();
   });
