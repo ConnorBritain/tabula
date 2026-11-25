@@ -17,4 +17,8 @@ jobs:
         with:
           node-version: 22
       - run: node --test
+      # The leak guard reads its private term list from the LEAK_TERMS secret. With no secret it skips with a note.
+      # In CI it prints file:line and a term number only, never the term text.
       - run: node check-publish.mjs
+        env:
+          TABULA_LEAK_TERMS_TEXT: ${{ secrets.LEAK_TERMS }}
