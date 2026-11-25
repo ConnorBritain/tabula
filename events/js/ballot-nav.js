@@ -1,5 +1,8 @@
 // The clicks that move the judge to a row on the Rank and Rate screens (design build 2026-11-24; color review top 10 #6
 // and #7). DOM helpers; the pure builders they serve are in ballot-status.js.
+import { firstOpenRubric } from './ballot-status.js';
+import { present } from './room.js';
+import { layerOf } from './profile-layer.js';
 
 // A click on a "Before you review" item: scroll its row into view and move the focus there. Returns true when the
 // click was on such an item. root: the screen element.
@@ -40,4 +43,16 @@ export function rubricToggle(root, ev, openId) {
   if (!d.matches || !d.matches('details[data-rubfold]')) return openId;
   if (d.open) { for (const x of root.querySelectorAll('details[data-rubfold][open]')) if (x !== d) x.open = false; return d.dataset.rubfold; }
   return openId === d.dataset.rubfold ? null : openId;
+}
+
+// The rubric-fold state of one screen (Rank and Rate share it). start(room): open the first unscored speaker and
+// listen; stop(): stop listening; open(): the id now open (the screen passes it to its builder on every redraw).
+export function createRubricFolds(root) {
+  let openId = null;
+  const onToggle = (ev) => { openId = rubricToggle(root, ev, openId); };
+  return {
+    open: () => openId,
+    start(room) { openId = firstOpenRubric(present(room), layerOf(room.profile).rubric); root.addEventListener('toggle', onToggle, true); },
+    stop() { root.removeEventListener('toggle', onToggle, true); openId = null; },
+  };
 }

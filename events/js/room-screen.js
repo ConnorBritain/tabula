@@ -79,7 +79,8 @@ export function rosterHtml(room, menuFor, extra, sub) {
 //                                                                 the room-level reason for rank)
 //   mounted(ctx) after the main pane is drawn                    show(ctx) / hide(ctx) when the screen opens / closes
 //   run(action, ctx) -> true when it ran a shortcut              stopFor(id) stops that entry's running clock
-// ctx: { env, room(), save(room), draw(), drawStage(), drawRoster() } (drawStage and drawRoster redraw one pane only).
+// ctx: { env, room(), save(room), draw(), drawStage(), drawRoster(), primary(room) } (drawStage and drawRoster redraw
+// one pane only; primary is 'timer' | 'next' | 'rank' | 'other', where 'other' means a view's holdsPrimary said so).
 export function createRoomScreen(env, parts) {
   const views = parts || [];
   let roomId = null;
@@ -191,7 +192,8 @@ export function createRoomScreen(env, parts) {
     if (b && env.el.contains(b)) act(b.dataset.act, b.dataset.id);
   }
 
-  const ctx = { env, room, save, draw, drawStage, drawRoster };
+  // ctx.primary(room): the room's one primary, the same answer for the header and the timer card (top 10 #1).
+  const ctx = { env, room, save, draw, drawStage, drawRoster, primary: (r) => headPrimary(r) };
   const menuOpen = () => roomId !== null && menuFor !== null;
   env.ui.escLayer('row-menu', 40, menuOpen, () => {
     const id = menuFor; menuFor = null; drawRoster();
@@ -205,7 +207,8 @@ export function createRoomScreen(env, parts) {
       const r = findRoom(env.rooms(), id);
       if (!r) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
       roomId = id; menuFor = null; rosterOpen = false; numbers.reset();
-      // A placeholder: draw() fills it once the views are shown (a view may hold the primary; it needs its context).
+      // A placeholder: draw() below fills it once the views are shown (a view may hold the primary; it needs its
+      // context). draw() must always follow, or the header keeps an empty button.
       const go = '<a class="b" id="go-rank"></a>';
       // Step S3 (EXPERIENCE.md §1.1): the event pill opens the type page for this round's event.
       const ev = event(r);

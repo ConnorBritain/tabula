@@ -187,8 +187,6 @@ export function rowTrackLine(entry, used, track) {
 //                                                 beside the clock (the runs of a PCC entry) follows the clock
 //   resetFields(entry) -> { field: value }         more fields that "Reset time" sets (its Undo puts the old ones back)
 //   startWord(entry, event, now, limit) -> string  the main button's word before any time ("Start Pro")
-//   yieldsPrimary(entry, event, now, limit) -> bool another part of the room holds the one primary (design build,
-//                                                 top 10 #1; F4: the next run's button), so the big button is secondary
 export function createTimerView(opts) {
   const o = opts || {};
   let ctx = null;
@@ -456,9 +454,8 @@ export function createTimerView(opts) {
     stageHtml: (r, e) => {
       const now = env().now();
       const face = faceOf(e, now);
-      // Top 10 #1: the room's one primary. A family part may hold it instead (F4: the next run's button).
-      const yields = o.yieldsPrimary && o.yieldsPrimary(e, event(), now, limit());
-      const primary = yields ? 'other' : roomPrimary(r, e);
+      // Top 10 #1: the room's one primary, from the room screen (a family part may hold it: F4's next-run button).
+      const primary = ctx.primary ? ctx.primary(r) : roomPrimary(r, e);
       const startWord = o.startWord ? o.startWord(e, event(), now, limit()) : '';
       return timerHtml(e, face, limit(), grace(), cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor), { primary, nextHtml: nextTopHtml(r), startWord });
     },

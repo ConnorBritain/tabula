@@ -21,7 +21,7 @@ export const GROUPS = Object.freeze([
 
 // The chips for one event file: facts in normal case, read as words, not as code (design review §2.2 change 2). The
 // time chip shows the limit the way the timer does ("10:00"). Color review §6 Picker: no "Rank" chip on every card
-// (every room event is ranked, so it said nothing); a "No ranks" chip would show only where it applies.
+// (every room event is ranked, so it said nothing).
 export function chipsOf(def) {
   if (!def) return ['Timer you set'];
   const out = [];

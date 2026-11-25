@@ -6,8 +6,8 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { statusPillHtml } from './status-pill.js';
 import { icon, iconButton } from './icons.js';
-import { problemsListHtml, readyHtml, rateRowPill, ballotFootHtml, firstOpenRubric } from './ballot-status.js';
-import { ballotNavClick, rubricToggle } from './ballot-nav.js';
+import { problemsListHtml, readyHtml, rateRowPill, ballotFootHtml } from './ballot-status.js';
+import { ballotNavClick, createRubricFolds } from './ballot-nav.js';
 import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
   ratingFix, ratingTies, RANK_RATING_ROW, graceLineText,
@@ -79,7 +79,7 @@ export function boardHtml(room, view) {
         ${conflict ? `<span class="board-note">${esc(RANK_RATING_ROW)}${fix != null ? ` <button class="b small" type="button" data-ract="fix" data-id="${id}" data-value="${esc(fix)}">Fix: ${esc(fix)}</button>` : ''}</span>` : ''}</span>
       <span class="board-moves">${main}</span>
       ${scale.kind !== 'none' ? `<span class="board-rate">${ratingHtml(e, ratings[id], scale, err)}</span>` : ''}
-      ${rubricHtml(e, layer.rubric, layer.rubric.length ? { open: view.openRub === id } : null)}
+      ${rubricHtml(e, layer.rubric, view.openRub === id)}
       ${i === 0 && graceLine ? `<span class="board-line grace-line">${icon('info')}${esc(graceLine)}</span>` : ''}${cut && i === cut - 1 && cutLine ? `<span class="board-line cut-line">${esc(cutLine)}</span>` : ''}
     </li>`;
   }).join('');
@@ -98,8 +98,7 @@ export function problemsHtml(room) {
 export function createRankScreen(env) {
   let roomId = null;
   let tapMode = false;
-  let openRub = null; // the open rubric block (§5.4)
-  const onToggle = (ev) => { openRub = rubricToggle(env.el, ev, openRub); };
+  const folds = createRubricFolds(env.el); // the open rubric block (§5.4)
   let detachDrag = null;
   const $ = (s) => env.el.querySelector(s);
   const room = () => findRoom(env.rooms(), roomId);
@@ -109,7 +108,7 @@ export function createRankScreen(env) {
   function draw(focusKey) {
     const r = room();
     if (!r) return;
-    $('#board-box').innerHTML = boardHtml(r, { tapMode, limit: limitOf(event(r)), event: event(r), now: env.now(), openRub });
+    $('#board-box').innerHTML = boardHtml(r, { tapMode, limit: limitOf(event(r)), event: event(r), now: env.now(), openRub: folds.open() });
     $('#problems').innerHTML = problemsHtml(r);
     $('#ballot-foot').innerHTML = ballotFootHtml(r, 'rank'); // the sticky footer (top 10 #6) follows every change
     $('#tap-toggle').textContent = tapMode ? 'Done tapping' : 'Tap in order';
@@ -240,7 +239,6 @@ export function createRankScreen(env) {
       if (opened.room !== r0) save(opened.room);
       const r = room();
       const ev = event(r);
-      openRub = firstOpenRubric(present(r), layerOf(r.profile).rubric);
       env.el.innerHTML = `<div class="screen-head"><a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
           <h1 id="screen-title" tabindex="-1">Rank · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <p class="bias">${esc(r.profile.biasNote || 'Judge the performance, not the person.')}</p>
@@ -257,7 +255,7 @@ export function createRankScreen(env) {
       env.el.addEventListener('input', onInput);
       env.el.addEventListener('change', onChange);
       env.el.addEventListener('keydown', onKey);
-      env.el.addEventListener('toggle', onToggle, true);
+      folds.start(r);
       detachDrag = attachDrag($('#board-box'), { enabled: () => !tapMode, onDrop });
       $('#rank-reason').addEventListener('input', (e) => save(setReason(room(), e.target.value, env.now())));
       draw();
@@ -266,7 +264,7 @@ export function createRankScreen(env) {
     },
     hide() {
       for (const [t, f] of [['click', onClick], ['input', onInput], ['change', onChange], ['keydown', onKey]]) env.el.removeEventListener(t, f);
-      env.el.removeEventListener('toggle', onToggle, true);
+      folds.stop();
       if (detachDrag) detachDrag();
       roomId = null;
     },

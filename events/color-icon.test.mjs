@@ -42,6 +42,7 @@ import { overviewHtml } from './congress/chamber-screen.js';
 import { typeHtml, rulesHtml } from './js/type-screen.js';
 import { rubricHtml } from './js/score-view.js';
 import { firstOpenRubric } from './js/ballot-status.js';
+import { rubricToggle } from './js/ballot-nav.js';
 import { boardHtml } from './js/rank-screen.js';
 import { createChamber, newSession, setStatus } from './congress/chamber.js';
 import { congressProfile } from './congress/profiles.js';
@@ -744,15 +745,22 @@ test('rubric folds: one block per speaker with the total as its value, the first
   assert.equal(firstOpenRubric(r.entries, rub), idOf(r, 'B2'), 'A1 is fully scored');
   assert.equal(firstOpenRubric([], rub), null);
   const a1 = r.entries.find((x) => x.code === 'A1');
-  const folded = rubricHtml(a1, rub, { open: false });
+  const folded = rubricHtml(a1, rub, false);
   assert.match(folded, /^<details class="fold rub-fold" data-rubfold="[^"]+"><summary class="fold-row"><span class="fold-label">Rubric for A1<\/span><span class="fold-value muted">Total 9 of 10, all 2 parts added<\/span>/);
   assert.doesNotMatch(folded, /rub-total/, 'the summary carries the total');
-  assert.match(rubricHtml(a1, rub, { open: true }), /<details class="fold rub-fold" data-rubfold="[^"]+" open>/);
+  assert.match(rubricHtml(a1, rub, true), /<details class="fold rub-fold" data-rubfold="[^"]+" open>/);
   const board = boardHtml(r, { tapMode: false, limit: 600, event: DATA.events.get('di'), now: NOW, openRub: idOf(r, 'B2') });
   assert.equal((board.match(/class="fold rub-fold"/g) || []).length, 2);
   assert.equal((board.match(/rub-fold" data-rubfold="[^"]+" open>/g) || []).length, 1, 'one block open');
-  // Closing on a score tap cannot happen: only the toggle of another block closes one (ballot-nav.js rubricToggle).
-  assert.match(read('./js/ballot-nav.js'), /if \(d\.open\) \{ for \(const x of root\.querySelectorAll\('details\[data-rubfold\]\[open\]'\)\) if \(x !== d\) x\.open = false;/);
+  // Only opening another block closes one (ballot-nav.js rubricToggle), driven here with a small DOM stand-in.
+  const blocks = ['A1', 'B2', 'C3'].map((id) => ({ open: id === 'B2', dataset: { rubfold: id }, matches: (sel) => sel === 'details[data-rubfold]' }));
+  const root = { querySelectorAll: (sel) => (sel === 'details[data-rubfold][open]' ? blocks.filter((b) => b.open) : blocks) };
+  blocks[0].open = true; // the judge opens A1
+  assert.equal(rubricToggle(root, { target: blocks[0] }, 'B2'), 'A1');
+  assert.deepEqual(blocks.map((b) => b.open), [true, false, false], 'opening A1 closed B2');
+  blocks[0].open = false; // the judge closes A1 by hand
+  assert.equal(rubricToggle(root, { target: blocks[0] }, 'A1'), null);
+  assert.equal(rubricToggle(root, { target: { matches: () => false } }, 'C3'), 'C3', 'another toggle (a score tap never toggles) changes nothing');
 });
 
 // Why: in a PCC room with one speaker, after Pro stopped both "Rank the room" and "Pro done · start Con" were solid
@@ -764,5 +772,9 @@ test('room primary: a view that holds the primary (PCC runs) keeps the header Ra
   assert.match(read('./js/runs-view.js'), /holdsPrimary: \(r, e\) => nextRunWaits\(e, roomEvent\(env\(\)\.data\.events, r\), env\(\)\.now\(\), limit\(\)\)/);
   const src = read('./js/room-screen.js');
   assert.match(src, /const headPrimary = \(r\) => \{ const e = entryOf\(r, r\.current\); return views\.some\(\(v\) => v\.holdsPrimary && v\.holdsPrimary\(r, e\)\) \? 'other' : roomPrimary\(r, e\); \};/);
+  // One answer for the header and the timer card: the timer reads the room screen's ctx.primary.
+  assert.match(src, /primary: \(r\) => headPrimary\(r\) \};/);
+  assert.match(read('./js/timer-view.js'), /const primary = ctx\.primary \? ctx\.primary\(r\) : roomPrimary\(r, e\);/);
+  assert.doesNotMatch(read('./js/runs-view.js') + read('./js/timer-view.js'), /yieldsPrimary/, 'no second hook for the same rule');
   assert.match(src, /const go = '<a class="b" id="go-rank"><\/a>';/, 'the header waits for the views to be shown');
 });

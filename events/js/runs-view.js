@@ -36,7 +36,7 @@ export function runCardsHtml(entry, event, now, limit) {
   }).join('');
   const nextSide = index >= 0 && index < sides.length - 1 ? sides[index + 1] : null;
   // Design build (top 10 #1): while a next run waits, this button is the room's one primary ("Pro done · start Con");
-  // the timer's big button steps down (createRunsParts passes yieldsPrimary).
+  // the timer's big button and the header step down (the cards part's holdsPrimary, read through ctx.primary).
   const btn = nextSide ? `<button class="b primary" type="button" data-ract="next" data-key="run-next">${esc(sides[index].label)} done · start ${esc(nextSide.label)}${icon('arrow-right', 20)}</button>` : '';
   return `<div class="runs" id="runs"><ol class="run-cards" aria-label="Runs">${cards}</ol>
     <p class="field-help">One limit covers every run. Each run shows its own time, with no minimum.</p>
@@ -71,7 +71,6 @@ export function createRunsParts() {
     syncEntry: (e, ev, now, lim) => syncRuns(e, ev, now, lim),
     resetFields: () => resetRunFields(),
     phasesFor: (e, ev, now, lim) => runsBarModel(e, ev, now, lim),
-    yieldsPrimary: (e, ev, now, lim) => nextRunWaits(e, ev, now, lim),
     startWord: (e, ev, now, lim) => (runsPhase(e, ev, now, lim).index === -1 ? 'Start ' + eventRuns(ev)[0].label : ''),
   });
 

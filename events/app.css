@@ -344,7 +344,6 @@ a.pk-pick { text-decoration: none; } /* the Congress row is a link (step S6) */
 .rub-label { min-width: 9rem; font-size: var(--fs-2); }
 .rub-num { width: 3.2rem; text-align: center; font: inherit; min-height: var(--h-md); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); }
 .rub-num[aria-invalid="true"] { border-color: var(--error); }
-.rub-total { margin: 0; font-size: var(--fs-2); font-weight: var(--fw-4); }
 .rate-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: var(--r-md); }
 .rate-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s2) var(--s3); align-items: center; padding: var(--s2) var(--s3); border-top: 1px solid var(--border); }
 .rate-row:first-child { border-top: 0; }
