@@ -17,6 +17,7 @@ import { KEYS_KEY } from './ai-key.js';
 import { keymap } from './keys.js';
 import { checkOffline, CACHE_PREFIX } from './offline.js';
 import { askConnectKey, askForgetKey } from './ai-connect.js';
+import { timerCueSettingsHtml, timerCueSettingChange, canVibrate } from './timer-cue-view.js';
 
 const radios = (name, list, picked) => list.map((x) => `<label class="radio"><input type="radio" name="${name}" value="${esc(x.id)}"${x.id === picked ? ' checked' : ''}> ${esc(x.label)}</label>`).join('');
 
@@ -130,6 +131,7 @@ export function settingsHtml(v) {
     <fieldset class="radios"><legend class="sr-only">Extemp draw gap</legend>${radios('set-gap', DRAW_GAPS.map((n) => ({ id: String(n), label: n + ' minutes' })), String(s.drawGapMin))}</fieldset>
     <p class="field-help">How long the room shows "Waiting for next speaker" between Extemp speakers.</p>
   </section>
+  ${timerCueSettingsHtml(s, v.vibrate === undefined ? canVibrate() : v.vibrate)}
   ${aiPartHtml(v.ai)}
   <section class="set-part set-keys" aria-labelledby="set-keys-h"><details class="fold">${foldSummaryHtml('<h2 id="set-keys-h">Keyboard</h2>')}${v.keys}</details></section>
   <section class="set-part" aria-labelledby="set-off-h"><h2 id="set-off-h">Ready for offline</h2>
@@ -284,6 +286,7 @@ export function createSettingsScreen(env) {
       if (globalThis.TabulaTheme) globalThis.TabulaTheme.set(t.value);
     }
     if (t.id === 'set-restore') restore(t);
+    timerCueSettingChange(env, t);
   }
 
   return {

@@ -1,0 +1,14 @@
+/* Timer cues (timer-cue-view.js): the timer's "⋯" menu with the Vibrate and Big digits switches, and the
+   big digits. Neutral chrome only: no brand green, no fill on the switches. No animation or transition here; the
+   global reduced-motion rule (core/tokens.css) covers the rest of the page. */
+.cue-more { position: relative; margin-left: auto; }
+.cue-menu { position: absolute; right: 0; top: calc(100% + var(--s1)); z-index: var(--z-bar); display: flex; flex-direction: column; gap: var(--s1); min-width: 13rem; padding: var(--s2) var(--s3); background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: 0 6px 18px rgb(0 0 0 / .14); }
+.cue-menu[hidden] { display: none; }
+.cue-switch { white-space: nowrap; }
+/* Big digits: the card's time fills more of the width; the sticky phone bar grows a little and stays one line. */
+.timer-box.cue-big .timer-card .timer-digits { font-size: clamp(88px, 22vw, 240px); }
+.timer-box.cue-big .timer-card .timer-word { font-size: var(--fs-5); }
+.timer-box.cue-big .tm-digits { font-size: var(--fs-clock-bar); }
+@media (prefers-reduced-motion: reduce) {
+  .cue-menu, .timer-box.cue-big .timer-digits { transition: none; animation: none; }
+}

@@ -65,7 +65,8 @@ export function withSetting(settings, key, value) {
   if (key === 'ranksDueMin' && !validRanksDue(value)) return s;
   if (key === 'recentEvents' && !(Array.isArray(value) && value.length <= RECENT_MAX && value.every((x) => typeof x === 'string' && /^[a-z0-9-]{1,20}$/.test(x)))) return s;
   if (key === 'drawGapMin' && !DRAW_GAPS.includes(value)) return s;
-  if (!['mode', 'theme', 'showModeMenu', 'ranksDueMin', 'recentEvents', 'drawGapMin'].includes(key)) return s;
+  if ((key === 'timerVibrate' || key === 'timerBigDigits') && typeof value !== 'boolean') return s; // timer-cue-view.js
+  if (!['mode', 'theme', 'showModeMenu', 'ranksDueMin', 'recentEvents', 'drawGapMin', 'timerVibrate', 'timerBigDigits'].includes(key)) return s;
   return Object.assign({}, s, { [key]: Array.isArray(value) ? value.slice() : value });
 }
 

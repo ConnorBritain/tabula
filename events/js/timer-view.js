@@ -15,6 +15,7 @@ import { roomPrimary, nextTopHtml } from './room-primary.js';
 import { trackParts, miniTrackHtml, rowTrackHtml } from './time-track.js';
 import { overGraceHtml, cardFace, cardTrack, timerHtml, rosterTimeHtml, rowTrackLine } from './timer-card-html.js';
 import { createDriver } from '../../core/clock.js';
+import { cueTick, cueMount } from './timer-cue-view.js';
 import {
   limitOf, graceOf, clockText, parseClock, usedAt, timerFace, startLeft, stoppedTiming, adjustTiming, setUsedTiming,
   clearedTiming, resetTiming, restoreRoom, signalPoints, crossedSignal,
@@ -151,6 +152,7 @@ export function createTimerView(opts) {
       const sig = crossedSignal(prevLeft, face.left, signalPoints(lim(e, now), grace()));
       prevLeft = face.left;
       if (sig) showChip(e, sig.label, now);
+      cueTick(env(), r, e, face, lim(e, now), grace()); // the buzz and the one spoken line at a signal point (timer-cue.js)
       rowTime(runId, totalUsedAt(e.timing, now, limit()));
     }
     if (prepId) {
@@ -170,7 +172,6 @@ export function createTimerView(opts) {
     chipUntil = now + 3000;
     const chip = $('#signal-chip');
     if (chip && room().current === e.id) { chip.textContent = label; chip.hidden = false; }
-    env().ui.announce(e.code + ': ' + label);
   }
 
   // Update the card in place (no redraw, so the notes box keeps its cursor).
@@ -199,8 +200,7 @@ export function createTimerView(opts) {
     // The flag line changes in place: a redraw of the main pane would take the cursor out of the notes box.
     const flagBox = $('#timer-flagbox');
     if (flagBox && face.overGrace !== Boolean(flagBox.firstElementChild)) flagBox.innerHTML = overGraceHtml(face);
-    // Screen readers hear the stage when it changes, not every second.
-    if (face.stage !== lastStage && face.running && (face.stage === 'last' || face.stage === 'grace' || face.stage === 'over')) env().ui.announce(e.code + ': ' + face.word.replace(/ \+.*/, ''));
+    // Screen readers hear each signal point once from cueTick (timer-cue-view.js), not every second.
     lastStage = face.stage;
   }
 
@@ -339,7 +339,7 @@ export function createTimerView(opts) {
       const startWord = o.startWord ? o.startWord(e, event(), now, limit()) : '';
       return timerHtml(e, face, limit(), grace(), cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor), { primary, nextHtml: nextTopHtml(r), startWord });
     },
-    mounted() { const box = $('#timer-box'); if (box) box.addEventListener('click', onClick); watchCard(); },
+    mounted() { const box = $('#timer-box'); if (box) box.addEventListener('click', onClick); watchCard(); cueMount(env(), box); },
     show(c) {
       ctx = c; active = true; runId = null; prepId = null; prevLeft = null; lastStage = ''; fromBar = false;
       // A reload: bring back each saved run (timer.js restoreRoom; on a prep event prep.js restoreSharedRoom, which
