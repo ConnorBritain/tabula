@@ -46,7 +46,7 @@ async function hearAll(page) {
 
 export const DRIVERS = {
   async myday(page) {
-    // A day with one round started and one card saved for later, so the rows, Up next and the menus show.
+    // A day with one round started, so its row, Up next and the row menu show.
     await newRoom(page, 'oo');
     await go(page, '#/');
     await page.waitForSelector('#md-start');
@@ -81,20 +81,19 @@ export const DRIVERS = {
   async 'room-speech'(page) { await newRoom(page, 'oo'); },
   async 'room-interp'(page) {
     await newRoom(page, 'poi', PASTE_INTERP);
-    await page.fill('#piece-title', 'The Raven').catch(() => {});
-    await page.fill('#piece-author', 'Edgar Allan Poe').catch(() => {});
+    await page.fill('#piece-title', 'The Raven');
+    await page.fill('#piece-author', 'Edgar Allan Poe');
   },
   async 'room-duo'(page) { await newRoom(page, 'duo', PASTE_DUO); },
   async 'room-extemp'(page) {
     await newRoom(page, 'usx');
-    const q = page.locator('#question, #stage input[id*="question"], #stage textarea[id*="question"]').first();
-    if (await q.count()) await q.fill('Will the Fed cut rates before spring?');
+    const q = page.locator('#stage', { hasText: 'Question drawn' }).locator('input, textarea').first();
+    await q.fill('Will the Fed cut rates before spring?'); // fails if the question box moves
   },
   async 'room-impromptu'(page) {
     await newRoom(page, 'imp');
-    const start = page.locator('#stage button', { hasText: /prep/i }).first();
-    if (await start.count()) await start.click();
-    await page.waitForTimeout(50);
+    await page.locator('#stage button.timer-go:visible').first().click(); // starts the prep clock
+    await page.waitForSelector('#stage button:visible >> text=Speech started');
   },
   async 'room-roster'(page) {
     await newRoom(page, 'oo');

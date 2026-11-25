@@ -77,7 +77,9 @@ export async function main(argv = process.argv.slice(2)) {
   const screens = pickScreens(a.only);
   const all = [...SIZES, NARROW];
   const sizes = a.sizes ? String(a.sizes).split(',').map((id) => all.find((s) => s.id === id) || (() => { throw new Error('Unknown size: ' + id); })()) : SIZES;
-  const themes = a.themes ? String(a.themes).split(',').filter((t) => THEMES.includes(t)) : THEMES;
+  const themes = a.themes ? String(a.themes).split(',').map((t) => t.trim()) : THEMES;
+  const badTheme = themes.filter((t) => !THEMES.includes(t));
+  if (badTheme.length) throw new Error('Unknown theme: ' + badTheme.join(', '));
   const axe = await axeSource();
   const { chromium } = createRequire(import.meta.url)('playwright'); // the preinstalled Playwright; never installed here
   await mkdir(join(HERE, 'out'), { recursive: true });
@@ -113,6 +115,7 @@ export async function main(argv = process.argv.slice(2)) {
   for (const o of sum.overflow) console.log('  scrolls sideways: ' + o);
   for (const e of sum.errors) console.log('  error: ' + e);
   if (a.table) console.log('\n' + screenTable(results, screens, themes, sizes).join('\n'));
+  if (!results.length) { console.log('Nothing was run.'); return 1; }
   return sum.failed ? 1 : 0;
 }
 

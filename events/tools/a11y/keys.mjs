@@ -25,8 +25,14 @@ const MAX_STOPS = 160;
 const focusInfo = (page) => page.evaluate(() => {
   const a = document.activeElement;
   if (!a || a === document.body || a === document.documentElement) return null;
-  const c = getComputedStyle(a);
-  const ring = (c.outlineStyle !== 'none' && parseFloat(c.outlineWidth) > 0) || (c.boxShadow && c.boxShadow !== 'none');
+  // A ring is an outline, or a box-shadow that the element does not have when it is not focused (a static shadow is
+  // not a focus ring). Blur and focus again: the last input was a key, so Chromium keeps :focus-visible.
+  const look = (e) => { const c = getComputedStyle(e); return { ol: c.outlineStyle !== 'none' && parseFloat(c.outlineWidth) > 0, sh: c.boxShadow, olc: c.outlineStyle + c.outlineWidth + c.outlineColor }; };
+  const on = look(a);
+  a.blur();
+  const off = look(a);
+  a.focus({ preventScroll: true });
+  const ring = (on.ol && on.olc !== off.olc) || (on.sh !== 'none' && on.sh !== off.sh);
   const name = (a.getAttribute('aria-label') || a.labels?.[0]?.textContent || a.textContent || a.placeholder || a.id || a.tagName).trim().replace(/\s+/g, ' ').slice(0, 40);
   const r = a.getBoundingClientRect();
   return { key: a.tagName + '#' + a.id + '|' + name + '|' + Math.round(r.top + scrollY) + ',' + Math.round(r.left), name, tag: a.tagName.toLowerCase(), ring, shown: r.width > 0 && r.height > 0 };
@@ -111,8 +117,10 @@ async function oneFamily(page, base, fam, problems, notes) {
     if (fam.event === 'imp') {
       // Impromptu: Space runs the prep clock first; the speech starts with its own button.
       await page.keyboard.press('Space'); await page.waitForTimeout(300);
-      const sp = page.locator('#stage button:visible', { hasText: /Speech started/ }).first();
-      if (await sp.count()) { await sp.focus(); await page.keyboard.press('Enter'); }
+      await page.evaluate(() => document.querySelector('#stage-code').setAttribute('tabindex', '-1'));
+      await page.focus('#stage-code');
+      if (!(await tabTo(page, '#stage button.primary', 30)) || !/Speech started/.test(await activeName(page))) bad('impromptu: Tab never reached Speech started');
+      else await page.keyboard.press('Enter');
       await page.evaluate(() => document.activeElement && document.activeElement.blur());
     } else {
       await page.keyboard.press('Space');
@@ -120,8 +128,9 @@ async function oneFamily(page, base, fam, problems, notes) {
     await page.waitForTimeout(1100);
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await page.keyboard.press('Space'); await settle(page);
-    const status = await page.evaluate(() => (document.querySelector('#stage .pill') || {}).textContent || '');
-    if (i === 1) say('Space started and stopped the clock; status now "' + status.trim() + '"');
+    const status = (await page.evaluate(() => (document.querySelector('#stage .pill') || {}).textContent || '')).trim();
+    if (status !== 'Done') bad('speaker ' + i + ': Space did not stop the clock (status "' + status + '")');
+    else if (i === 1) say('Space started and stopped the clock; status now "Done"');
     // Notes: Tab to the comment box and type.
     await page.focus('#stage-code').catch(() => {});
     if (!(await tabTo(page, '#notes', 60))) bad('room: Tab never reached the comment box');
@@ -136,15 +145,21 @@ async function oneFamily(page, base, fam, problems, notes) {
   report('rank', await tabWalk(page), bad, say);
   await page.evaluate(() => document.querySelector('#main').focus());
   if (await tabTo(page, '[data-ract="down"]:not([disabled])', 80)) {
+    const before = await activeName(page);
     await page.keyboard.press('Enter'); await settle(page);
-    say('Move down by Enter; focus stays on ' + await activeName(page));
+    const after = await activeName(page);
+    if (!/down/i.test(after)) bad('rank: after Move down, focus went to "' + after + '" (was "' + before + '")');
+    else say('Move down by Enter; focus stays on ' + after);
   } else bad('rank: Tab never reached a Move down button');
   // The restart dialog: Esc closes it and focus comes back.
-  await page.focus('#restart'); await page.keyboard.press('Enter');
+  await page.evaluate(() => document.querySelector('#main').focus());
+  if (!(await tabTo(page, '#restart', 80))) bad('rank: Tab never reached Start again');
+  await page.keyboard.press('Enter');
   await page.waitForSelector('#ask:not([hidden])');
   await page.keyboard.press('Escape'); await settle(page);
   if (await page.locator('#ask:not([hidden])').count()) bad('rank: Esc did not close Start again?');
-  else say('Esc closes "Start the ranks again?"; focus back on ' + await activeName(page));
+  else if (await activeName(page) !== 'restart') bad('rank: after Esc, focus is on "' + await activeName(page) + '", not Start again');
+  else say('Esc closes "Start the ranks again?"; focus back on Start again');
   // Copy: the review screen, Copy ranks by keyboard.
   await page.evaluate(() => document.querySelector('#main').focus());
   if (!(await tabTo(page, '#go-review', 80))) bad('rank: Tab never reached Review and copy');
@@ -156,14 +171,44 @@ async function oneFamily(page, base, fam, problems, notes) {
   await page.evaluate(() => document.querySelector('#main').focus());
   if (await tabTo(page, '[data-key="ranks"], button.primary', 80)) {
     await page.keyboard.press('Enter'); await settle(page);
-    say('copy by Enter: focus then on ' + await activeName(page));
+    const f = await page.evaluate(() => { const a = document.activeElement; return a && a.matches('button') ? a.textContent.trim() : ''; });
+    if (!/Cop/.test(f)) bad('review: after Copy ranks, focus left the copy button ("' + f + '")');
+    else say('copy by Enter: focus stays on the copy button, now "' + f + '"');
   } else bad('review: Tab never reached a copy button');
   // The palette: Ctrl+K opens, Esc closes and gives focus back.
+  const opener = await page.evaluate(() => { const a = document.activeElement; return a ? a.outerHTML.slice(0, 80) : ''; });
   await page.keyboard.press('Control+k');
   if (!(await page.locator('#palette:not([hidden])').count())) bad('Ctrl+K did not open the palette');
   await page.keyboard.press('Escape'); await settle(page);
   if (await page.locator('#palette:not([hidden])').count()) bad('Esc did not close the palette');
+  else if (await page.evaluate(() => { const a = document.activeElement; return a ? a.outerHTML.slice(0, 80) : ''; }) !== opener) bad('Esc on the palette did not give focus back');
+  else say('Ctrl+K opens the palette; Esc closes it and gives focus back');
   say('end at ' + await hashOf(page));
+}
+
+// The room keys from the keyboard sheet that a 3-speaker room never uses: 4 to 8 in an 8-speaker room, and in a room
+// over 8 the place number then Enter (9, 0 and Enter).
+async function bigRoomKeys(page, base, problems, notes) {
+  const bad = (s) => { problems.push('keys: ' + s); notes.push('keys: PROBLEM ' + s); };
+  const codes = Array.from({ length: 10 }, (_, i) => 'S' + (i + 1));
+  const make = async (n, profile) => {
+    await page.goto(base + '/events/#/new/oo'); await ready(page);
+    await page.waitForSelector('#setup-paste');
+    if (profile) await page.selectOption('#setup-profile', profile);
+    await page.fill('#setup-paste', codes.slice(0, n).map((c, i) => (i + 1) + '. ' + c).join('\n'));
+    await page.click('#setup-start'); await page.waitForSelector('#stage'); await settle(page);
+  };
+  const press = async (...keys) => { await page.evaluate(() => document.activeElement && document.activeElement.blur()); for (const k of keys) await page.keyboard.press(k); await settle(page); };
+  const shown = () => page.evaluate(() => ((document.querySelector('#stage-code') || {}).textContent || '').trim());
+  await page.goto(base + '/events/'); await ready(page);
+  await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+  await make(8);
+  for (let n = 4; n <= 8; n++) { await press(String(n)); if (await shown() !== 'S' + n) bad('key ' + n + ' did not pick speaker ' + n + ' in an 8-speaker room'); }
+  await make(10, 'elim-large');
+  await press('9', 'Enter'); if (await shown() !== 'S9') bad('9 then Enter did not pick speaker 9 in a 10-speaker room');
+  await press('1', '0', 'Enter'); if (await shown() !== 'S10') bad('1, 0, Enter did not pick speaker 10');
+  await press('4', 'Enter'); if (await shown() !== 'S4') bad('4 then Enter did not pick speaker 4 in a 10-speaker room');
+  notes.push('keys: 4 to 8 pick in an 8-speaker room; in a 10-speaker room 9 Enter, 1 0 Enter and 4 Enter pick 9, 10 and 4');
 }
 
 function report(where, w, bad, say) {
@@ -176,12 +221,17 @@ function report(where, w, bad, say) {
 export async function main(argv = process.argv.slice(2)) {
   const phone = argv.includes('--phone');
   const only = (argv.find((a) => a.startsWith('--only=')) || '').slice(7);
+  const ids = only ? only.split(',').map((x) => x.trim()).filter(Boolean) : FAMILIES.map((f) => f.event);
+  const unknown = ids.filter((id) => !FAMILIES.some((f) => f.event === id));
+  if (unknown.length) throw new Error('Unknown family: ' + unknown.join(', '));
   const { chromium } = createRequire(import.meta.url)('playwright');
   const server = await serve(ROOT);
   const browser = await chromium.launch();
   const problems = [], notes = [];
+  let walked = 0;
   try {
-    for (const fam of FAMILIES.filter((f) => !only || only.split(',').includes(f.event))) {
+    for (const fam of FAMILIES.filter((f) => ids.includes(f.event))) {
+      walked++;
       const context = await browser.newContext({ viewport: phone ? { width: 390, height: 844 } : { width: 1366, height: 768 } });
       context.setDefaultTimeout(8000);
       await context.grantPermissions(['clipboard-read', 'clipboard-write']);
@@ -189,9 +239,15 @@ export async function main(argv = process.argv.slice(2)) {
       try { await oneFamily(page, server.url, fam, problems, notes); } catch (e) { problems.push(fam.event + ': stopped: ' + String(e.message || e).split('\n')[0]); }
       await context.close();
     }
+    const context = await browser.newContext({ viewport: phone ? { width: 390, height: 844 } : { width: 1366, height: 768 } });
+    context.setDefaultTimeout(8000);
+    const page = await context.newPage();
+    try { await bigRoomKeys(page, server.url, problems, notes); } catch (e) { problems.push('keys: stopped: ' + String(e.message || e).split('\n')[0]); }
+    await context.close();
   } finally { await browser.close(); await server.close(); }
   for (const n of notes) console.log(n);
   console.log('\n' + (problems.length ? problems.length + ' problem(s):\n  ' + problems.join('\n  ') : 'No keyboard problem found.'));
+  if (!walked) { console.log('Nothing was walked.'); return 1; }
   return problems.length ? 1 : 0;
 }
 
