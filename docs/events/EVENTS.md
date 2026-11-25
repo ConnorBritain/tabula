@@ -132,7 +132,7 @@ AFA National Speech Tournament and NFA: prepared events run 10:00, interp holds 
 
 ## 6. Congress (phase P5, right after v1)
 
-Congressional Debate is not an individual speech event in shape. It needs its own grid (primitive N14 in [SHARED-VS-NEW.md](SHARED-VS-NEW.md)). Scorers give points for each speech: 1–8 at NSDA districts and Last Chance, 3–9 at Nationals. The presiding officer gets a score for each full hour (the district PO scale, 1–8 or 4–8, is still open). The 1–6 figure in the manual is merit points, a different conversion, not the scorer scale (corrected 2026-11-22; see [CONGRESS.md](CONGRESS.md) §5). Each scorer ranks a top 8.
+Congressional Debate is not an individual speech event in shape. It needs its own grid (primitive N14 in [SHARED-VS-NEW.md](SHARED-VS-NEW.md)). Scorers give points for each speech: 1–8 at NSDA districts and Last Chance, 3–9 at Nationals. The presiding officer gets a score for each full hour; a part hour gets no score. At districts the app uses 4–8 for each full hour (District Congress Officials) and marks it not verified, because the same manual's merit-points line says 1–8; the judge sees both at setup with "Check your tournament's rule" and picks one (see [CONGRESS.md](CONGRESS.md) §11 row 1 and [CONGRESS-REVIEW.md](CONGRESS-REVIEW.md) §3). The 1–6 figure in the manual is merit points, a different conversion, not the scorer scale (corrected 2026-11-22; see [CONGRESS.md](CONGRESS.md) §5). Each scorer ranks a top 8. Who can be ranked at NSDA districts is not settled (the app's default is every present legislator; the scorer sheets say spoke or presided), so it is also a setup choice.
 
 ## 7. Rule checks the app knows (v1 list)
 

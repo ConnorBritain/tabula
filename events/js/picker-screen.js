@@ -11,10 +11,11 @@ import { cardEventId, nextRoundLabel, FLIGHTS, LEVELS, ROOM_MAX } from './cards.
 import { CUSTOM_EVENT } from './room.js';
 import { routeHash } from './routes.js';
 import { withRecentEvent } from './settings.js';
+import { statusPillHtml } from './status-pill.js';
 
 // One row. The chips are grey pills in normal case; "Guide" is a plain text button, not an unlabeled "i"
 // (design review §2.2 changes 1 and 2).
-const chipsHtml = (chips) => `<span class="pk-chips">${chips.map((c) => `<span class="pill outline pk-chip">${esc(c)}</span>`).join('')}</span>`;
+const chipsHtml = (chips) => `<span class="pk-chips">${chips.map((c) => statusPillHtml('outline', c, '', { cls: 'pk-chip' })).join('')}</span>`;
 const rowHtml = (r) => `<li class="pk-row">
     <button class="pk-pick" type="button" data-id="${esc(r.id)}">
       <span class="pk-name">${esc(r.name)} <span class="muted">${esc(r.short)}</span></span>
@@ -42,7 +43,7 @@ export function pickerListHtml(sections) {
 // (#/chamber/new) instead of the confirm sheet. It shows with the family groups, never in search results.
 function congressHtml() {
   return `<section class="pk-sec" aria-labelledby="pk-h-congress"><h3 id="pk-h-congress">Congress</h3><ul class="pk-list"><li class="pk-row">
-    <a class="pk-pick" href="${esc(routeHash('chamber', 'new'))}"><span class="pk-name">Congressional Debate <span class="muted">Congress</span></span>
+    <a class="pk-pick" href="${esc(routeHash('chamber', 'new'))}"><span class="pk-name">Congressional Debate <span class="muted">Congress</span> ${statusPillHtml('outline', 'Beta')}</span>
       <span class="pk-line">Students give short speeches on bills and answer questions. You score each speech and rank the chamber.</span>
       ${chipsHtml(['Points per speech', 'Top 8'])}${icon('chevron-right')}</a></li></ul></section>`;
 }

@@ -24,8 +24,11 @@ test('History export: a policy-only history keeps the old columns in the old pla
   const e = L.savedBallotEntry(policyRound, 'now', range);
   const t = L.historyTable([e, L.ballotRow(policyRound, 'then')]);
   assert.deepEqual(t.header, [...L.BALLOT_HEADER, 'Format']);
-  assert.deepEqual(t.rows[0], [...L.savedBallotRow(e), 'Policy (CX)']);
-  assert.equal(t.rows[1][t.header.indexOf('Format')], 'Policy (CX)', 'an old entry with no format is a policy ballot');
+  // CHANGED 2026-11-24 because the owner approved plain format names (docs/design/FORMAT-PICK.md §2 rule 7). Old check:
+  //   assert.deepEqual(t.rows[0], [...L.savedBallotRow(e), 'Policy (CX)']);
+  //   assert.equal(t.rows[1][t.header.indexOf('Format')], 'Policy (CX)', 'an old entry with no format is a policy ballot');
+  assert.deepEqual(t.rows[0], [...L.savedBallotRow(e), 'Policy']);
+  assert.equal(t.rows[1][t.header.indexOf('Format')], 'Policy', 'an old entry with no format is a policy ballot');
   assert.deepEqual(L.historyColumns(t).map((i) => t.header[i]), L.LOG_COLUMNS.map((i) => L.BALLOT_HEADER[i]));
 });
 
@@ -37,7 +40,8 @@ test('History export: LD rows use the LD speaker labels and have no rank columns
     'Winner', 'Winning team', 'RFD', 'Format']);
   const col = (n) => t.rows[0][t.header.indexOf(n)];
   assert.deepEqual([col('Aff'), col('Aff pts'), col('Neg'), col('Neg pts'), col('Winner'), col('Winning team'), col('Format')],
-    ['Ann Lee', '28.4', 'Cy Ro', '28.7', 'NEG', 'Hill CD', 'Lincoln-Douglas (LD)']);
+    // CHANGED 2026-11-24 because the owner approved plain format names (FORMAT-PICK.md §2 rule 7). Old last value: 'Lincoln-Douglas (LD)'.
+    ['Ann Lee', '28.4', 'Cy Ro', '28.7', 'NEG', 'Hill CD', 'Lincoln-Douglas']);
   assert.deepEqual(L.historyColumns(t).map((i) => t.header[i]), ['Saved at', 'Round', 'Aff team', 'Neg team', 'Winner', 'Aff pts', 'Neg pts']);
 });
 
@@ -48,8 +52,11 @@ test('History export: a mixed history is one table; each row fills only its own 
   const col = (r, n) => t.rows[r][t.header.indexOf(n)];
   assert.equal(new Set(t.header).size, t.header.length, 'no column name twice');
   assert.ok(t.header.indexOf('2A rank') < t.header.indexOf('Aff') && t.header.indexOf('Aff pts') < t.header.indexOf('Neg team'), 'each speaker sits under its side');
-  assert.deepEqual([col(0, '1A pts'), col(0, 'Aff pts'), col(0, 'Format')], [28.5, '', 'Policy (CX)']);
-  assert.deepEqual([col(1, '1A pts'), col(1, '1N pts'), col(1, 'Aff pts'), col(1, 'Neg pts'), col(1, 'Format')], ['', '', '28.4', '28.7', 'Lincoln-Douglas (LD)']);
+  // CHANGED 2026-11-24 because the owner approved plain format names (docs/design/FORMAT-PICK.md §2 rule 7). Old check:
+  //   assert.deepEqual([col(0, '1A pts'), col(0, 'Aff pts'), col(0, 'Format')], [28.5, '', 'Policy (CX)']);
+  //   assert.deepEqual([col(1, '1A pts'), col(1, '1N pts'), col(1, 'Aff pts'), col(1, 'Neg pts'), col(1, 'Format')], ['', '', '28.4', '28.7', 'Lincoln-Douglas (LD)']);
+  assert.deepEqual([col(0, '1A pts'), col(0, 'Aff pts'), col(0, 'Format')], [28.5, '', 'Policy']);
+  assert.deepEqual([col(1, '1A pts'), col(1, '1N pts'), col(1, 'Aff pts'), col(1, 'Neg pts'), col(1, 'Format')], ['', '', '28.4', '28.7', 'Lincoln-Douglas']);
   assert.ok(t.rows.every((r) => r.length === t.header.length));
   assert.deepEqual(L.historyColumns(t).map((i) => t.header[i]),
     ['Saved at', 'Round', 'Aff team', 'Neg team', 'Winner', '1A pts', '2A pts', 'Aff pts', '1N pts', '2N pts', 'Neg pts', 'Format']);
@@ -64,7 +71,9 @@ test('History export: a ballot in an unknown format is labeled by its id and ver
   Object.assign(e[L.BALLOT_HEADER.length], { format: 'parli', formatVersion: 2 });
   const t = L.historyTable([L.savedBallotEntry(policyRound, 'a', range), e]);
   const col = (r, n) => t.rows[r][t.header.indexOf(n)];
-  assert.equal(col(0, 'Format'), 'Policy (CX)');
+  // CHANGED 2026-11-24 because the owner approved plain format names (docs/design/FORMAT-PICK.md §2 rule 7). Old check:
+  //   assert.equal(col(0, 'Format'), 'Policy (CX)');
+  assert.equal(col(0, 'Format'), 'Policy');
   assert.equal(col(1, 'Format'), 'parli v2');
   assert.ok(L.historyColumns(t).map((i) => t.header[i]).includes('Format'), 'the History page shows the Format column');
   const noVersion = L.savedBallotEntry(policyRound, 'later', range);

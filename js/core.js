@@ -169,7 +169,7 @@ function showTab(id) {
   if (place === 'ai') $('#settings-btn').setAttribute('aria-current', 'page'); else $('#settings-btn').removeAttribute('aria-current');
   if (id === 'ballot') renderBallot();
   if (id === 'log') { renderLog(); renderBackup(); }
-  if (id === 'setup') renderJudging(); // a speech may have run since: the school is then set for the round
+  if (id === 'setup') { renderJudging(); renderFormatSetup(); } // a speech may have run since: the school and format are then set for the round
   if (id === 'flow') { renderFlow(); renderInsights(); }
   if (id === 'eval') renderEval();
   if (id === 'analysis') renderAnalysis();
@@ -388,12 +388,16 @@ function startNewRound(fmt) {
   docStore.clearRound(oldId).finally(() => location.reload());
 }
 const NEW_ROUND_BODY = 'This clears the flow, clocks, docs and any audio not yet transcribed. Saved ballots stay in History.';
+// "New round" is where a judge resets the format for a new tournament or event (docs/design/FORMAT-PICK.md §3): the
+// dialog shows every format with this round's already picked, so carrying it over is one click and changing it is two.
 $('#new-round').addEventListener('click', async () => {
-  const ok = await ask({
+  const res = await ask({
     title: 'Start a new round?',
     body: NEW_ROUND_BODY,
+    radios: { legend: 'Format for the new round', name: 'new-round-format', value: FMT().id,
+      options: L.FORMAT_IDS.map((id) => ({ value: id, label: L.labelOf(L.getFormat(id)) })) },
     buttons: [{ label: 'Cancel', value: false, kind: 'plain' }, { label: 'Clear and start new', value: true, kind: 'danger' }], cancelValue: false,
   });
-  if (!ok) return;
-  startNewRound();
+  if (!res || !res.value) return;
+  startNewRound(L.getFormat(res.choice) || undefined);
 });

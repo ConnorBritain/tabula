@@ -17,7 +17,7 @@ import { hasRuns, runsAt } from './runs.js';
 
 // How much "over" the track shows past the end of grace: the grace length, at least 30 s. A time past the end of the
 // track pins the fill and the dot to the right edge.
-export const overShown = (grace) => Math.max(30, Number(grace) || 0);
+const overShown = (grace) => Math.max(30, Number(grace) || 0);
 
 // A signal point's short tick label: "5" (whole minutes left), "0:30", "0" (time), "+0:30" (the end of grace).
 export function tickLabel(at) {
@@ -92,15 +92,24 @@ function barHtml(m, withTicks) {
   return `<span class="track-bar">${zones}${fills}${ticks}${dot}</span>`;
 }
 
-// The full track under the timer digits. opts: { id, phases (HTML from phase-bar.js phasesHtml, shown inside the box) }.
-export function trackHtml(model, opts) {
+// The parts of the full track, each as text, so a view that ticks can update only the parts that changed (cleanup
+// 2026-11-25: the timer card keeps its role="img" node, see timer-view.js patchTrack). opts: { phases }.
+// out: { label (the screen-reader label, plain text), bar (barHtml), ticks (the tick labels' HTML), phases (HTML) }.
+export function trackParts(model, opts) {
   const o = opts || {};
   const m = model;
   // The tick labels: whole minutes and "0" only. The 0:30 and grace-end ticks sit too close to "0" for a label at
   // any width; the grace zone's tint marks them, and the screen-reader label names every signal.
-  const labels = m.ticks.filter((t) => t.at >= 0 && t.at % 60 === 0).map((t) => `<span class="track-tlabel" style="left:${pct(m, t.pos)}">${esc(t.label)}</span>`).join('');
-  return `<div class="track"${o.id ? ` id="${esc(o.id)}"` : ''}><div class="track-img" role="img" aria-label="${esc(trackLabel(m))}">`
-    + `${barHtml(m, true)}<span class="track-ticks" aria-hidden="true">${labels}</span></div>${o.phases || ''}</div>`;
+  const ticks = m.ticks.filter((t) => t.at >= 0 && t.at % 60 === 0).map((t) => `<span class="track-tlabel" style="left:${pct(m, t.pos)}">${esc(t.label)}</span>`).join('');
+  return { label: trackLabel(m), bar: barHtml(m, true), ticks, phases: o.phases || '' };
+}
+
+// The full track under the timer digits. opts: { id, phases (HTML from phase-bar.js phasesHtml, shown inside the box) }.
+export function trackHtml(model, opts) {
+  const o = opts || {};
+  const p = trackParts(model, o);
+  return `<div class="track"${o.id ? ` id="${esc(o.id)}"` : ''}><div class="track-img" role="img" aria-label="${esc(p.label)}">`
+    + `${p.bar}<span class="track-ticks" aria-hidden="true">${p.ticks}</span></div>${p.phases}</div>`;
 }
 
 // The mini track's state class: where the time ended, or empty before any time.

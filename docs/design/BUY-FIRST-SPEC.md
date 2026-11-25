@@ -85,7 +85,7 @@ The buyer signs in (from the screen, the setup email, or later with their email)
 4. If the age result allows it, the server sends the purchase:
    - It reserves the setup (`UPDATE purchase_setups SET status='claiming', claimed_by=? WHERE status='open'`).
    - It takes the purchase's unused Rounds back from the buyer account and grants them to the user, with one idempotent ledger reference (`setup:<purchase key>`). A crash between the steps can be retried safely.
-   - The Rounds get new expiry dates, counted from the setup day, not the purchase date (owner decision 2026-11-22, Terms §6.6). A Weekend Pass or Camp Pass keeps its own rule: its days start when its first Round is committed.
+   - Sent Rounds have no end date: paid Rounds never expire. (Draft 2 said "new expiry dates from the setup day"; dropped 2026-11-23.) A Camp Pass keeps its own rule: its days start when its first Round is committed.
    - Status becomes `sent`.
 5. The buyer gets a "Your purchase was set up by [masked email]" email.
 
@@ -200,7 +200,7 @@ A typed setup code is not offered. The link is the only path, and the buyer can 
 | Dispute (chargeback) | The billing hold goes on the buyer account only, never on the user. The user's unused Rounds from that purchase are taken back. (Open question; needs owner sign-off before it ships: drop the dispute hold entirely.) |
 | The user's account is deleted | Unused Rounds from the purchase go back to the buyer account. The buyer is emailed. |
 | The buyer typed a wrong email at checkout | The receipt and setup link go to a stranger. The buyer contacts support with the order number. Support voids the setup link, moves the purchase to the right email, and sends a new link. |
-| No one ever uses the Rounds | Reminders at 3 and 14 days. The Rounds stay on the buyer account and expire on the normal schedule from the purchase date. If the buyer sends them later, the expiry restarts from the setup day. |
+| No one ever uses the Rounds | Reminders at 3 and 14 days. The Rounds stay on the buyer account. They have no end date (paid Rounds never expire), so a later send changes no date. |
 | A minor used a parent's card without permission | The parent asks for a refund (rule 8). We refund and take back the Rounds. |
 | A Program or school | Not in this spec. Schools pay by invoice (Terms §9). A self-serve team pool is platform work. |
 
@@ -224,7 +224,7 @@ Also: `open` → `replaced` (a new link was made), `open` → `cancelled` (refun
 
 **Settle before the build starts (these can break the design)**
 - Managed Payments allows checkout with no customer, Stripe collecting the email, and `customer_creation: "always"`.
-- `lotFor` can give moved Rounds a new expiry that counts from the setup day (owner decision 2026-11-22).
+- ~~`lotFor` can give moved Rounds a new expiry that counts from the setup day.~~ Moot: paid Rounds never expire (2026-11-23).
 
 **Check during the build**
 - Managed Payments allows refunds by API.

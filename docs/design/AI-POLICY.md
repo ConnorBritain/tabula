@@ -93,7 +93,7 @@ The master switch **"AI tools: off"** sets all of these to off. "Flow only" is t
 
 ### 2c. Managed and linked accounts
 
-- **Managed account:** made through the school (students 13 to 17 can only get an account this way or with parent consent; ARCHITECTURE §5). The policy applies to **every round** on that account.
+- **Managed account:** made through the school (one way for a student aged 13 to 17 to have an account; a student can also have their own account; ARCHITECTURE §5). The policy applies to **every round** on that account.
 - **Linked account:** a person's own account (for example an 18-year-old senior with their own plan) that joins a program. The policy applies to **rounds opened for the program only**. Their own rounds use their own plan.
 
 ### 2d. How the policy reaches the app

@@ -1,5 +1,5 @@
-// Tests for the AI gate's pure rules (platform phase 1B). Spec: tabula-cloud docs/platform/CONTRACTS.md §2 and §5,
-// docs/platform/BUILD-PLAN.md §3 1B, and docs/design/AI-POLICY.md §3 and §6. Run with: node --test
+// Tests for the AI gate's pure rules (platform phase 1B). Spec: the server API contracts (§2 and §5),
+// the server's plan for phase 1B, and docs/design/AI-POLICY.md §3 and §6. Run with: node --test
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -7,7 +7,7 @@ const path = require('node:path');
 const L = require('./logic.js');
 const K = require('./keys.js');
 
-// tabula-cloud's contract file (made by the real resolver): fixtures.<name> = { note, record }.
+// The server API's contract file (made by the real resolver): fixtures.<name> = { note, record }.
 const FIX = Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/platform-v2.json'), 'utf8')).fixtures).map(([k, v]) => [k, v.record]));
 const rec = (name) => L.parseCaps(FIX[name]);
 const NOW = 1795300000000;
