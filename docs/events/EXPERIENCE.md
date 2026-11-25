@@ -2,7 +2,7 @@
 
 Status: draft 1, 2026-11-22. Owner accepted the four picks in §12 on 2026-11-22. No code changed.
 
-This file is the final experience design for Tabula Speech Events after steps E1 to E13. It covers the home screens, the router that picks a workspace for each round type, the per-type console, the floater flow, coach practice, and the data that these need.
+This file is the final experience design for Tabula Speech Events after steps E1 to E13. It covers the home screens, the router that picks a workspace for each round type, the per-type console, the floater flow, and the data that these need.
 
 It starts from the **role-first** design (the top score in review, 90.4). It adds the best parts of the assignment-first and event-type-first designs. Then a fact-check and a completeness critic changed it. Tags show where a part came from:
 
@@ -43,8 +43,8 @@ Related files:
 | Mode | Home | Sections |
 |---|---|---|
 | Judge | **My day** | Now, Later today, Done (comments open), Done **[AF]**. A Standby card when no ballot is active. |
-| Coach | **Team** | A student table first (events, one status word, last active). Below it: Practice sets with counts. |
-| Student | **To do** | Assigned to you, My runs, Feedback. |
+| Coach | Later | Not designed in this public doc. |
+| Student | Later | Not designed in this public doc. |
 
 ### 1.3 Routes
 
@@ -53,13 +53,12 @@ The app uses hash routes. `routes.js` grows.
 | Route | Screen |
 |---|---|
 | `#/` | Home of the current mode |
-| `#/pick` | Type picker (floater, "Start a round", coach assign, student practice) |
+| `#/pick` | Type picker (floater, "Start a round") |
 | `#/round/<id>` and `#/round/<id>/<stage>` | **Round-type router.** One route shape for every family, Congress included **[fix]**. |
 | `#/chamber/<id>` | Congress chamber overview: sessions and the full-chamber rank |
 | `#/type/<eventId>` | Console page for one type: Guide, Rules, Rounds **[ET]** |
 | `#/history` | Table of all rounds |
 | `#/settings` | Settings |
-| `#/coach/student/<sid>`, `#/coach/set/<setId>` | Coach detail pages |
 | `#/student/feedback/<roundId>` | One feedback card |
 
 Old routes stay as aliases, so bookmarks and live rooms keep working:
@@ -149,7 +148,7 @@ Each workspace module exports these members:
 | Frame | Shows |
 |---|---|
 | Judge | Tournament, round, flight, level (prelim or elim), panel note, and "Judging for" (later) |
-| Practice | "Practice · from Coach · due Fri". No tournament fields. With one entry, Rank is hidden. |
+| Practice | "Practice". No tournament fields. With one entry, Rank is hidden. |
 
 ## 3. Per-family workspaces
 
@@ -179,7 +178,6 @@ In speech, a student often has two events in the same round slot. The student ru
 - Add `Entry.crossEntry?: {note, expectedAt?}`.
 - Add a status "Cross-entered: speaks later", next to `waiting`. It is **not** a no-show.
 - Let `parse.js` read the Tabroom double-entry mark, if Tabroom gives one.
-- In Coach mode, one student can have two or more events in the same practice set. The app warns when two items share a due slot.
 
 ### 3.2 Elims and panels **[crit]**
 
@@ -224,7 +222,7 @@ It reuses `parse.js`, the comment sheet, AI clean-up, `core/points`, `core/ranks
 5. **Confirm sheet:** room, round (the last number plus one; the judge can change it), **flight (A or B, optional)** **[fix]**, and level (prelim or elim) **[crit]**. Rounds may come in any order.
 6. The app makes a ballot card and a round. It opens `#/round/<id>` at once, not a console page **[fix]**.
 
-The target is two taps plus the room. The same picker serves the coach ("Add to practice set") and the student ("Practice"). Only the confirm sheet changes.
+The target is two taps plus the room.
 
 **"Start a round"** on My day uses the same path. A card is optional. So a judge who never adds cards is never blocked **[AF]**.
 
@@ -245,9 +243,7 @@ The target is two taps plus the room. The same picker serves the coach ("Add to 
 
 ## 6. Coach and student practice
 
-The coach and student practice screens are not designed in this public doc. The privacy rules below hold for any coach or student screen.
-
-### 6.4 Privacy for minors **[crit]**
+The coach and student practice screens are not designed in this public doc. These privacy rules hold for any coach or student screen. **[crit]**
 
 Coach and student devices hold names and comments about minors.
 
@@ -279,7 +275,6 @@ This section maps the Tabula Debate console to Speech Events.
 - **Guide:** "What this event is", in plain words, for a nervous first-time parent. It lists the checks, with examples of good comments. The same text shows at round setup and from the picker.
 - **Rules:** the default profile (scale, grace, overtime effect, signals). It shows the frozen copy and says that a change affects only new rounds.
 - **Rounds:** the rounds of this type, grouped as Now, Later today and Done, with a link to the filtered History.
-- **Practice** (Coach mode only): the items of this type and their counts.
 
 ## 8. Data model changes
 
@@ -297,29 +292,19 @@ All records stay on the device under `tabulaEvents.*`. Names and comments never 
 
 The `rooms.v1` key and its shape stay. The record gets wider:
 
-- `family` (derived), `mode: 'tournament'|'practice'`, `level: 'prelim'|'elim'`, `panel? {size, note}`, `dayId?`, `cardId?`, `practice? {setId, itemId}`, `roomLabel?`, `programId?` (never shown in Student mode).
+- `family` (derived), `mode: 'tournament'|'practice'`, `level: 'prelim'|'elim'`, `panel? {size, note}`, `dayId?`, `cardId?`, `roomLabel?`, `programId?` (never shown in Student mode).
 - **Entry** adds `runs?[{side, startedAt, ms}]` (F4), `topic?` (F3, F4), `school?` (F2 cross-ex warning), `groupName?` (F7), `crossEntry? {note, expectedAt?}`.
 
-### 8.3 Day, card and practice records
+### 8.3 Day and card records
 
 **Day** (`days.v1`): `id, date, tournament?, leaguePack?, checkInAt?, standby: bool`.
 
-**BallotCard** (`cards.v1`, judge side) **[AF][fix]**. Its name is "card", not "assignment", so it does not clash with coach practice.
+**BallotCard** (`cards.v1`, judge side) **[AF][fix]**. Its name is "card", not "assignment".
 
 - `id, dayId, tournament?, eventKey|null` (null for a floater on standby), `role: 'judge'|'scorer'|'parli', round, flight?, level?, roomLabel?, startsAt?, ranksDueAt?, submittedAt?, roundId?`
 - `status: 'standby'|'notStarted'|'judging'|'ranksIn'|'done'|'cancelled'`.
 - The judge sees only these words: Not started, Judging, Ranks copied (comments open), Submitted, Done, Cancelled.
 
-**PracticeSet** (`practice.v1`, coach device):
-`id, title, dueAt?, judgeRole: 'self'|'peer'|'parent'|'coach', items[{id, eventKey, profileKey, prompt {kind: 'question'|'topic'|'piece'|'none', text|questions[]}, students[{studentId, status, resultId?}]}], createdAt`.
-
-**Student** (`students.v1`, coach device): `id, code, displayName?, events[], note?`.
-
-**PracticePayload** (file, hash or text; no names, no comments): `v, defVersion, setId, itemId, eventKey, profile, prompt, dueAt, from` (the coach's label).
-
-**PracticeResult** (file or text only): `v, defVersion, setId, itemId, studentLabel, roundSnapshot {entries, timing, rank?, rating?, comment}, judgeRole, ranAt`.
-
-Add new schema tests for PracticePayload and PracticeResult. They check `v` and the def key **[crit]**.
 
 ### 8.4 Congress
 
@@ -337,7 +322,7 @@ Add new schema tests for PracticePayload and PracticeResult. They check `v` and 
 
 **Settings** adds `mode, showModeMenu (retired 2026-11-24: kept so old backups still load; nothing reads it), theme, defaultProfile, leaguePack, recentEvents[], eventDefaults{}, drawGapMin, ranksDueMin, sharedDevice`.
 
-**Server (opt-in, later):** a round summary (event, round, date, count) and an assignment shell with a status only. No codes, no names, no comments.
+**Server (opt-in, later):** a round summary (event, round, date, count). No codes, no names, no comments.
 
 ## 9. Offline **[crit]**
 
@@ -347,7 +332,7 @@ The app must work at a school with no wifi. A route that loads by `import()` can
 - Add a gate test: each module in the registry is in the service worker list.
 - AI clean-up offline: disable the button and show "Clean up needs internet. Your comments are saved."
 - Settings shows a "Ready for offline" check.
-- Copy and paste work offline. The text-block hand-off for practice works with no network. Files work if the device can save them.
+- Copy and paste work offline. Files work if the device can save them.
 
 ## 10. Mobbin references for each key screen
 
@@ -362,9 +347,6 @@ You must sign in to Mobbin to open these links. Take the layout and the interact
 | PCC run cards | Runna https://mobbin.com/screens/ea07706a-2073-44c7-8672-f939616ec99d |
 | Rubric steppers | Equinox+ https://mobbin.com/screens/359a1e58-2d23-47c2-aac5-226dc11ba371 |
 | Congress screens | See [CONGRESS.md](CONGRESS.md) §9 |
-| Coach team table and student page | SchoolAI https://mobbin.com/screens/14950322-bbc7-4cea-90ed-66e9909b8468 · Kajabi https://mobbin.com/screens/1227af09-4d68-457a-a7ea-a5596e2c3e4f |
-| Assign practice and set counts | ClassDojo https://mobbin.com/flows/3e47c23f-4ccc-480a-81fd-74e661fe45eb · Uxcel https://mobbin.com/flows/33eee57a-a6ff-4852-afc6-95ee2e9200ed · Canva https://mobbin.com/screens/a6c52d6d-1308-49a7-83d4-3542beed7fc2 |
-| Student To do | ClassDojo https://mobbin.com/flows/f2574e2a-ba5d-4d49-b9af-f1f2291b5fb2 · Coursera https://mobbin.com/screens/90125678-ffcd-4a5e-8256-3a73434ee7c7 |
 | Feedback card and run list | Babbel https://mobbin.com/screens/d8896ff2-ac14-40cd-8439-b9567a989262 · Coursera grades https://mobbin.com/screens/35b8baea-dca0-422b-83ee-01dd411da127 |
 
 The chrome stays black, white and gray, with no stripes and no underline tabs.
@@ -383,7 +365,7 @@ Each step needs green gates (`.claude/gates.json`). Each new test needs a one-li
 | **S4 Profile layer and elims** | Ranks off, top N, rubric, critique only, `maxEntries`, `level` and panel note, the F2 cross-ex in elims, cross-entry status. |
 | **S5 PCC** | v2 def with a new test, `runs[]`, the phase bar. |
 | **S6 Congress scorer**, then **S7 parliamentarian** | After the open Congress facts are checked. See [CONGRESS.md](CONGRESS.md) §8. |
-| **S8 Coach and Student** | Practice sets with items, the hand-off paths, To do, feedback, the practice-judge intro, the privacy rules in §6.4. Build after a test with one real team. |
+| **S8 Coach and Student** | Later. Follows the privacy rules in §6. Build after a test with one real team. |
 | **S9 Later** | PO queue, Discussion, Radio and Group data, server status sync. |
 
 ### 11.2 Risks
@@ -394,8 +376,8 @@ Each step needs green gates (`.claude/gates.json`). Each new test needs a one-li
 4. **Schema gate.** Never edit the v1 key assertions. `family` goes only in v2 defs, under a new test.
 5. **Room cap.** Moving `MAX_ENTRIES` into data must keep the default test green.
 6. **Congress size.** 30 rows and sessions of 3 hours or more. Save after each speech, and run a memory test.
-7. **Privacy drift.** Coach devices hold the names of minors. Section 6.4 sets the rules.
-8. **Hand-off friction.** Test the file, link and paste paths with one coach before S8 grows.
+7. **Privacy drift.** Coach devices hold the names of minors. Section 6 sets the rules.
+8. **Coach and student screens.** Test with one real team before S8 grows.
 9. **Cold offline routes.** The gate test in §9 guards this.
 
 ## 12. Decisions for the owner
@@ -404,7 +386,7 @@ Each step needs green gates (`.claude/gates.json`). Each new test needs a one-li
 
 1. **Where does the type console live?** (a) A page `#/type/<id>`, reached from the round pill, the picker and History. (b) Type tiles on the home. **Pick (a).** Tiles bring back a home that makes a judge browse every event.
 2. **Is a ballot card required to judge?** (a) No: "Start a round" makes a card. (b) Yes. **Pick (a).** It keeps a fast path for judges who will not add cards.
-3. **Which practice hand-off ships first?** (a) File, hash link and paste for the assignment; file and paste for the result. (b) File only. **Pick (a).** Many school devices cannot save files.
+3. **Coach and student screens:** not decided in this public doc.
 4. **Congress before coach and student?** (a) Congress scorer first (S6, S7), then practice (S8). (b) Practice first. **Pick (a).** Judges are the main users today.
 5. **Elim cross-ex earlier?** The critic moves the F2 cross-ex from S9 to S4, with the level field. **Pick yes**, because elim rules depend on it.
 
@@ -416,11 +398,11 @@ These critic items and facts are not folded in. Each needs an owner choice or a 
 2. **Judge who also coaches.** Two modes on one device. The coach's student list must not show in judge room views. Add an optional conflict flag for each entry ("conflict: tell the tab room"), shown in Review as a reminder only.
 3. **Out-of-scope roles.** Name tab-room and league staff in an explicit out-of-scope list. Design the "Judging for" frame (`programId`) or drop it.
 4. **Recorded rounds for every family.** Add `delivery: 'live'|'recorded'`. A recorded round turns the timer into "Type the time".
-5. **PF and LD practice.** PF just landed in Tabula Debate (commit 54b3719). A coach who assigns PF practice next to HI has no path. Option: a practice item that points to a Tabula Debate format with a hand-off link.
+5. **PF and LD practice.** PF just landed in Tabula Debate (commit 54b3719). Practice for PF and LD next to speech events has no path yet.
 6. **"Paste my judge assignments".** A paste of the judge's full Tabroom day could make many cards at once with `parse.js`. The format is not studied yet.
 7. **Middle-school, NCFL and CHSSA variants.** Probably data only. Say so when the league packs are written. NCFL and CHSSA Congress formats need a check.
 8. **State-level time changes** for Storytelling, Prose and Poetry. Data only, with a league pack.
-9. **Encrypted results.** A short-code encryption for practice results. Decide if file and paste are enough.
+9. **Encrypted results.** Decide later, with the coach and student screens.
 10. **FERPA and COPPA review.** Open, before S8 ships.
 11. **Facts to check before profiles are written.** PCC grace length; the Radio window; Discussion ranks; the district PO scale; NCFL and CHSSA scales; the `reasonBelow` value for each Congress profile. [VENN.md](VENN.md) §7 lists them all.
 12. **EVENTS.md §6 is wrong** about the Congress scorer scale ("1 to 6 per speech"). The real scales are 1 to 8 at districts and 3 to 9 at Nationals. This file does not edit EVENTS.md. Fix it in a separate change.

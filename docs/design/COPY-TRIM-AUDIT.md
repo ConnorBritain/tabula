@@ -212,15 +212,11 @@ One word for one idea. When two words fight, the left one wins.
 | W9 | One string per error. The same error gets the same words in every app | "This browser blocked copying." vs the long form | Events `review-screen.js:132` vs `:156`; `congress/session-screen.js:89` |
 | W10 | No parenthesis in a label. Use a unit, a placeholder, or a divider | "(min:sec)", "(seconds)", "(whole room)", "(elim round)" | Events §1.4, §1.1 |
 
-| W11 | **Owner pick:** one noun for the organization, **school** or **team** | "school's team", "Your teams" for the same thing | — |
-| W12 | **People** for everyone in a school; **member** nowhere on screen | "Members", "Find a member" | — |
 | W13 | One lock line in every app: **"The AI never changes what you type."** | "will not change it", "your edits stick", "stays yours" | Debate `index.html:1254`, `tour.js:18`, `tour.js:20`, `js/flow.js:216` |
 | W14 | Call a place by its nav name, exactly | "Round setup" when the nav says "Round" | Debate `index.html:1186`, `js/ai.js:23` |
-| W15 | Button words match the heading: "Make a group" → **Make group** | "Make the group", "Make a code" | — |
 | W16 | **Run** for an AI action, always. Do not rename it after the first run | "Update", "Draw" | Debate `index.html:1094`, `js/insights.js:286`, `tour.js:30` |
 | W17 | **Clock**, not timer | "timers" | Debate `tour.js:21`, `logic/shell.js:45` |
 | W18 | **Right**, not permission; **AI rules**, not "AI settings"; **Connect AI** for first setup only ("Turn AI back on" is fine after a pause) | mixed | Debate `index.html:1373` |
-| W19 | **Empty means N** for every "leave blank" hint | "Leave it empty for 100", "Leave a box empty for no limit" | — |
 | W20 | A toast that confirms an action names the result, not the person or the next step: "Copied.", "Sent again.", "Cancelled." | "Ranks copied. Paste them…", "Invite for NAME cancelled." | Events E32 |
 
 ## 5. Bugs found on the way

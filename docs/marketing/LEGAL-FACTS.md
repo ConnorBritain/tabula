@@ -1,4 +1,4 @@
-# Legal pages: business facts (checked against the live pages on 2026-11-23)
+# Legal pages: business facts (checked against the live pages on 2026-11-23; prices re-checked 2026-11-25)
 
 The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/privacy/ and https://tabulaspeech.com/refunds/. They say "Effective November 23, 2026". These are the business facts and legal choices inside them for the live Debate app and sites. Change the pages and this file together. Source files: `~/Code/tabula-sites/sites/speech/pages/{terms,privacy,refunds}.html`.
 
