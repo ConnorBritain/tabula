@@ -27,9 +27,9 @@ optional and uses the judge's own key.
   it.
 - **Backup reminder.** When the judging day is over and something changed since the last backup, My day offers to
   download one.
-- **Data lifetime.** Settings, Data can auto-delete old rounds 7, 30 or 90 days after the round (off by default). It
-  keeps a round not yet marked submitted, a round with comments open, and a Congress chamber still open, and shows
-  Undo while the tab is open. **Check a backup** lists what a backup file holds before any restore. **Wrap up the
+- **Data lifetime.** Settings, Data can auto-delete old rounds 7, 30 or 90 days after the round (off by default), and a
+  past day left with no rounds. It keeps a round not yet marked submitted, a round with comments open, and a Congress
+  chamber still open, and shows Undo while the tab is open. **Check a backup** lists what a backup file holds before any restore. **Wrap up the
   season** saves a backup, asks whether it saved, then offers Clear this device.
 - **Clear this device.** Settings removes every Speech Events value on a shared computer, with an Undo while the tab
   is open. Tabula Debate data is not touched.

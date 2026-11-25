@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import '../core/policy.js'; // a head file: it sets globalThis.TabulaCore.policy, which the Settings screen reads
 import { createEventsStore, PREFIX, ROOMS_KEY, CARDS_KEY, DAYS_KEY, SETTINGS_KEY, BACKUP_AT_KEY } from './js/store.js';
 import { CONGRESS_KEY } from './congress/store.js';
+import { dayOf } from './js/rooms.js';
 import { makeBackup, readBackup, CLEAR_WHAT } from './js/settings.js';
 import { createSettingsScreen, settingsHtml, checkHtml, AUTO_DELETE_CHOICES } from './js/settings-screen.js';
 import { LIFETIME_KEY, AUTO_DELETE_TOAST_KEY, pendingPutBack, forgetRemoved, putBackRemoved, AUTO_DELETE_DAYS, autoDeleteDaysOf, lifetimeValue, calendarDays, pickOld, removeOld, putBack, removedText, autoDeleteAtStart,
@@ -533,4 +534,35 @@ test('Settings shows "Put them back" while removed rounds wait, and it brings th
   assert.equal(rig.reloads, 1);
   assert.doesNotMatch(rig.html, /set-putback/);
   assert.equal(AUTO_DELETE_TOAST_KEY, 'auto-delete');
+});
+
+// Why: a day with no rounds left is clutter that still names a tournament; but a day still in use, or today, must stay.
+test('a day emptied by auto-delete goes with its round-less cards, inside the same Undo; a day in use or today stays', () => {
+  const D = (d) => dayOf(ago(d));
+  const rooms = [round('r1', ago(40)), round('r2', ago(40)), round('r3', ago(40), { state: 'judging' }), round('r4', ago(40))];
+  const cards = [
+    card('c1', 'r1', ago(40), { dayId: 'dOld' }), card('cx', null, null, { dayId: 'dOld' }), // emptied: the day and its round-less card go
+    card('c2', 'r2', ago(40), { dayId: 'dMixed' }), card('c3', 'r3', ago(40), { dayId: 'dMixed' }), // r3 still open: the day stays
+    card('c4', 'r4', ago(40), { dayId: 'dToday' }), // a round from long ago on a day dated today: the day stays
+  ];
+  const dayList = [{ id: 'dOld', date: D(40) }, { id: 'dMixed', date: D(40) }, { id: 'dToday', date: D(0) }, { id: 'dHand', date: D(0) }];
+  const p = pick({ rooms, cards, dayList });
+  assert.deepEqual(p.roundIds, ['r1', 'r2', 'r4']);
+  assert.deepEqual(p.dayIds, ['dOld']);
+  assert.deepEqual(p.cardIds.sort(), ['c1', 'c2', 'c4', 'cx']);
+  assert.deepEqual(pick({ rooms, cards, dayList: [{ id: 'dOld', date: 'bad' }] }).dayIds, [], 'a day with a bad date stays');
+
+  const rig = startRig({ [ROOMS_KEY]: JSON.stringify(rooms), [CARDS_KEY]: JSON.stringify(cards), [DAYS_KEY]: JSON.stringify(dayList) });
+  assert.equal(autoDeleteAtStart(rig.deps), 3);
+  const ids = (k) => JSON.parse(rig.local.dump()[k]).map((x) => x.id);
+  assert.deepEqual(ids(DAYS_KEY), ['dMixed', 'dToday', 'dHand']);
+  assert.deepEqual(ids(CARDS_KEY), ['c3']);
+  rig.ui.toasts[0].opts.action.run();
+  assert.deepEqual(ids(DAYS_KEY).sort(), ['dHand', 'dMixed', 'dOld', 'dToday'], 'Undo brings the day back');
+  assert.deepEqual(ids(CARDS_KEY).sort(), ['c1', 'c2', 'c3', 'c4', 'cx']);
+  // With no day emptied, the days value is not rewritten.
+  const quiet = startRig({ [DAYS_KEY]: '[{"id":"dHand","date":"2026-11-25"}]' });
+  autoDeleteAtStart(quiet.deps);
+  assert.equal(quiet.local.dump()[DAYS_KEY], '[{"id":"dHand","date":"2026-11-25"}]');
+  forgetRemoved();
 });
