@@ -36,6 +36,9 @@ optional and uses the judge's own key.
 - **Release id.** Settings, About shows which release the device runs, and backup files name it.
 - **Safe updates.** A new release waits while a round is open or a clock runs. When the page is quiet, it says
   "Update ready. It starts when you reload." with a Reload button. The page never reloads by itself.
+  Known limits: while an update waits, the release id online names the waiting release, not the one that runs (the
+  offline id names the running one). A browser with no BroadcastChannel (Safari before 15.4), or a tab the browser
+  has paused, cannot report an open round in that tab unless a clock runs there; that tab is never reloaded.
 - **Send feedback.** Settings, About opens an email to support with the release id and the browser family filled in,
   and a reminder not to include student names. Nothing is sent until the judge sends it. A Known issues link sits
   next to it.
