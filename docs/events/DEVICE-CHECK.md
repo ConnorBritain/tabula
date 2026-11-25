@@ -165,7 +165,7 @@ Fill one row for each device. Use one row for each section letter that failed, w
 
 ## 2. Emulated pass
 
-Run at branch commit `dab1f82`, whose app files are identical to main at `8dfc458` (the branch adds only
+Run at branch commit `c7b1c35`, whose app files are identical to main at `631194c` (the branch adds only
 `events/tools/`, this page and one test file). Run it again with:
 
 ```
@@ -235,8 +235,8 @@ in the output folder.
 8. **Laptop sizes (Chromebook, Windows): several buttons are 32 to 40 px tall** (Copy all, Print / PDF, Copy ranks,
    My day's Start a round and standby). Mouse users: low impact. Touch Chromebooks: worth fixing with the rest.
 9. **Header brand link is 30x25 on phones (icon only).** It is the way home. Low impact: My day is next to it.
-10. **Small text spills (2 to 4 px):** the Congress review's copy preview (`pre`) and a long comment in Review on the
-    Pixel width. Not visible to a judge in the screenshots; listed for completeness.
+10. **Small text spill (4 px):** a long comment in Review on the Pixel width. Not visible to a judge in the
+    screenshots; listed for completeness.
 
 Not problems (the check flags them, the design means them): the rank row's comment preview ends with "..." on
 purpose (tap to read the full comment).
@@ -280,10 +280,8 @@ Found by reading the code during the pass, to confirm on a real device:
 | Congress PO hour | android, chromebook, ipad, iphone, windows | dark, light | tap target under 44x44 | button "4" 40x40; button "5" 40x40; button "6" 40x40 |
 | Congress rank | android, chromebook, ipad, iphone, windows | dark, light | tap target under 44x44 | button "1 206" 182.5x42; button "2 204" 182.5x42; button "3 202" 182.5x42 |
 | Congress review | chromebook, windows | dark, light | tap target under 44x44 | a "Chamber" 107.4x32; button "Copy" 69.6x40; button "Copy ranks" 110.8x40 |
-| Congress review | android, iphone | dark, light | text overflows its box | pre "206 · A Bill to Fund High-Speed Rail · Aff · Rebut" by 2 px; pre "206 · A Bill to Fund High-Speed Rail · Aff · Rebut" by 3 px |
 | Congress offline | android, iphone | dark, light | page scrolls sideways | 115 px wider than the screen; 96 px wider than the screen |
 | Congress offline | chromebook, windows | dark, light | tap target under 44x44 | a "Chamber" 107.4x32; button "✓ Copied" 89.9x28; button "Copy" 69.6x40 |
-| Congress offline | android, iphone | dark, light | text overflows its box | pre "206 · A Bill to Fund High-Speed Rail · Aff · Rebut" by 2 px; pre "206 · A Bill to Fund High-Speed Rail · Aff · Rebut" by 3 px |
 | Congress chambers | chromebook, ipad, windows | dark, light | tap target under 44x44 | a "New chamber" 127.9x40; a "House · Winter Invitational · 204 8 legislators · " 694x24; a "House · Winter Invitational · 204 8 legislators · " 702x24 |
 | My day (with rounds) | android, chromebook, ipad, iphone, windows | dark, light | tap target under 44x44 | a "About Original Oratory" 38x24; button "More for OO Untitled round" 32x48; a "About Humorous Interpretation" 31.3x24 |
 
