@@ -21,7 +21,7 @@ class El {
   append(n) { this.child = n; }
   after(n) { this.next = n; }
   remove() { if (this.doc.ids[this._id] === this) delete this.doc.ids[this._id]; }
-  focus() {}
+  focus() { this.doc.activeElement = this; }
 }
 
 // Loads judging.js with the switch as given, a signed-in profile (or none) and a fetch that answers from `replies`.
@@ -41,7 +41,7 @@ function load({ on = false, profile = PROFILE, programId = 'prog_north', replies
     fetch: async (url, init) => { calls.push({ url, init, body: JSON.parse(init.body) }); const r = replies.shift() || { status: 500, body: null }; return { status: r.status, json: async () => r.body }; },
   };
   const src = (on ? SRC.replace('const PRACTICE_SLOT_ON = false;', 'const PRACTICE_SLOT_ON = true;') : SRC)
-    + '\nglobalThis.T = { get slot() { return slot; }, renderPracticeSlot, openSlotSheet, slotOpenRound, slotSend, slotNotNow, slotToggleTheme, slotBallot, slotSheetHtml };';
+    + '\nglobalThis.T = { get slot() { return slot; }, renderPracticeSlot, openSlotSheet, slotOpenRound, slotSend, slotNotNow, slotToggleTheme, slotPickTheme, slotBallot, slotSheetHtml };';
   vm.runInNewContext(src, ctx);
   const card = () => doc.ids['slot-card'].innerHTML;
   return { T: ctx.T, doc, calls, dlg, card };
@@ -125,7 +125,7 @@ test('0 to 4 theme chips per student', async () => {
   T.slotToggleTheme('stu_ana', 'time_use');
   assert.deepEqual(plain(T.slot.themes.stu_ana), ['too_fast', 'cx_use', 'conduct']);
   assert.deepEqual(plain(T.slotBallot().body.themes), { stu_ana: ['too_fast', 'cx_use', 'conduct'] });
-  assert.match(T.slotSheetHtml(), /aria-pressed="true" data-slot-theme="too_fast" data-slot-for="stu_ana">Too fast</);
+  assert.match(T.slotSheetHtml(), /id="slot-th-0-too_fast" aria-pressed="true" data-slot-theme="too_fast" data-slot-for="stu_ana">Too fast</);
 });
 
 // Why: sending is per round and never automatic; "Not now" must close the sheet without posting a ballot.
@@ -160,4 +160,16 @@ test('writes closed (403) shows a short neutral message', async () => {
   assert.match(card(), /Sending is not available right now\./);
   assert.doesNotMatch(card(), /internal/);
   assert.equal(T.slot.sent, null);
+});
+
+// Why: each chip press redraws the card; if focus fell off the chip, keyboard and screen-reader users would lose their place.
+test('a theme chip press keeps focus on the pressed chip', async () => {
+  const { T, doc, card } = load({ on: true, replies: [{ status: 200, body: ROUND }] });
+  T.openSlotSheet(); T.slot.code = 'KQXWMRTZ'; await T.slotOpenRound();
+  T.slotPickTheme('stu_cy', 'weak_weighing');
+  assert.equal(doc.activeElement && doc.activeElement.id, 'slot-th-2-weak_weighing');
+  assert.match(card(), /id="slot-th-2-weak_weighing" aria-pressed="true"/);
+  T.slotPickTheme('stu_cy', 'weak_weighing');
+  assert.equal(doc.activeElement.id, 'slot-th-2-weak_weighing', 'also when the chip is dropped');
+  assert.match(card(), /id="slot-th-2-weak_weighing" aria-pressed="false"/);
 });

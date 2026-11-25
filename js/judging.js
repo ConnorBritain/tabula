@@ -135,12 +135,20 @@ function slotSheetHtml() {
   if (!slot.round) return head + code + msg + `<div class="ask-btns"><button class="b" type="button" data-slot="no">Not now</button></div>`;
   const student = (s) => `<div class="mt-2" data-slot-student="${escapeHtml(s.id)}"><strong>${escapeHtml(s.name)}</strong>${s.getsBallot ? '' : ' <span class="muted">(no practice ballot)</span>'}
     <label class="row">Points <input type="number" min="0" max="30" step="0.1" class="w-auto" data-slot-pts="${escapeHtml(s.id)}" value="${escapeHtml(slot.pts[s.id] ?? '')}"></label>
-    <div class="row">${SLOT_THEMES.map(([v, label]) => { const on = (slot.themes[s.id] || []).includes(v); return `<button class="b small" type="button" aria-pressed="${on}" data-slot-theme="${v}" data-slot-for="${escapeHtml(s.id)}">${escapeHtml(label)}</button>`; }).join('')}</div></div>`;
+    <div class="row">${SLOT_THEMES.map(([v, label]) => { const on = (slot.themes[s.id] || []).includes(v); return `<button class="b small" type="button" id="${slotChipId(s.id, v)}" aria-pressed="${on}" data-slot-theme="${v}" data-slot-for="${escapeHtml(s.id)}">${escapeHtml(label)}</button>`; }).join('')}</div></div>`;
   const side = (label, list) => `<fieldset class="dlg-set mt-3"><legend>${label}</legend>${list.map(student).join('')}</fieldset>`;
   return head + code + side('Aff', slot.round.aff) + side('Neg', slot.round.neg)
     + `<p class="muted">Pick 0 to 4 themes for each student.</p>`
     + `<label class="row check-row mt-3"><input type="checkbox" data-slot-name${slot.showName ? ' checked' : ''}> Show my name</label>` + msg
     + `<div class="ask-btns"><button class="b" type="button" data-slot="no">Not now</button><button class="b primary" type="button" data-slot="send"${slot.busy ? ' disabled' : ''}>Send to both teams</button></div>`;
+}
+
+const slotChipId = (userId, theme) => 'slot-th-' + slotStudents().findIndex((x) => x.id === userId) + '-' + theme;
+// A chip press redraws the card; focus stays on the pressed chip.
+function slotPickTheme(userId, theme) {
+  slotToggleTheme(userId, theme); drawSlotSheet();
+  const chip = document.getElementById(slotChipId(userId, theme));
+  if (chip) chip.focus();
 }
 
 function drawSlotSheet() { const card = document.getElementById('slot-card'); if (card) card.innerHTML = slotSheetHtml(); }
@@ -204,7 +212,7 @@ document.addEventListener('click', (e) => {
   if (t.closest('#slot-btn')) return openSlotSheet();
   if (!t.closest('#slot-card')) return;
   const act = t.closest('[data-slot]'), theme = t.closest('[data-slot-theme]');
-  if (theme) { slotToggleTheme(theme.dataset.slotFor, theme.dataset.slotTheme); drawSlotSheet(); }
+  if (theme) slotPickTheme(theme.dataset.slotFor, theme.dataset.slotTheme);
   else if (act && act.dataset.slot === 'open') slotOpenRound();
   else if (act && act.dataset.slot === 'send') slotSend();
   else if (act && act.dataset.slot === 'no') slotNotNow();
