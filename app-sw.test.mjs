@@ -1,5 +1,5 @@
 // The app's service worker (sw.js) and web app manifest: what the build caches, the cache name, and what the worker
-// answers. The browser run is in offline-open.test.mjs. Run with: node --test
+// answers. The browser run is in offline-open.browser-test.mjs. Run with: node --test
 import test, { before } from 'node:test';
 import assert from 'node:assert/strict';
 import { appendFileSync, cpSync, existsSync, mkdtempSync, readFileSync, readdirSync } from 'node:fs';

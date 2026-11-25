@@ -18,8 +18,8 @@
 // Strategy: stale-while-revalidate, applied to the whole release instead of file by file. Every page load is
 // served at once from the release on this device (fast on weak tournament Wi-Fi, and it works with none), while
 // the browser checks sw.js in the background. A new release installs completely beside the old one and is used
-// once every Tabula tab has been closed (a reload alone keeps the old one, by browser rule). Network-first would make every load wait on a slow network, and per-file
-// revalidation could mix an old index.html with new scripts.
+// once every Tabula tab has been closed (a reload alone keeps the old one, by browser rule). Network-first would
+// make every load wait on a slow network, and per-file revalidation could mix an old index.html with new scripts.
 //
 // The worker never reloads a page and never takes over an open page, so a page never mixes two releases.
 // Every file the page loads later is in the cached list, so it works offline too (app-sw.test.mjs checks this).
