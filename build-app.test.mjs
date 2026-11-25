@@ -51,13 +51,12 @@ test('ships version.json with this commit and the build time', async () => {
   assert.ok(!Number.isNaN(Date.parse(v.builtAt)));
 });
 
-// Why: if version.json were cached for long, it would name the old commit after a deploy, and a
+// Why: if version.json were cached at all, it could name the old commit after a deploy, and a
 // check would flag a good release or pass a bad one.
-test('caches version.json for a short time only', () => {
+test('never caches version.json', () => {
   const rule = readFileSync(join(out, '_headers'), 'utf8').match(/^\/version\.json\n((?: {2}.+\n)+)/m);
   assert.ok(rule, 'has a /version.json rule');
-  const age = Number(rule[1].match(/Cache-Control: public, max-age=(\d+)\n/)?.[1]);
-  assert.ok(age > 0 && age <= 300, `max-age ${age} is at most 5 minutes`);
+  assert.match(rule[1], /^ {2}Cache-Control: no-cache, no-store, max-age=0, must-revalidate$/m);
 });
 
 const SHA = 'a'.repeat(40);
