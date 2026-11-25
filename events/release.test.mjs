@@ -66,6 +66,9 @@ test('the backup file names the release, and backups without it still restore', 
   const oldBack = readBackup(JSON.stringify(old));
   assert.equal(oldBack.release, '');
   assert.equal(oldBack.rounds, 1);
+  // A release field that is not a release id (text typed into the file) is not read as one.
+  const odd = makeBackup(SAVED, { now: '2026-11-25T00:00:00.000Z', release: 'Jordan Rivera, Room 214' });
+  assert.equal(readBackup(JSON.stringify(odd)).release, '');
 });
 
 // Why: the feedback email goes from the judge's own email app to an outside inbox; it must name the browser in a few fixed words, never the raw device string.

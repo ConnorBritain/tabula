@@ -7,7 +7,7 @@ What changes for judges in each Speech Events release, newest first.
 Each build gets a release id. Settings, About shows it, and the "Send feedback" email and the backup file carry it.
 
 - **Online:** the first 7 characters of the commit the build came from, then the day it was built, for example
-  `1a2b3c4 2026-11-25`. The build writes them to `version.json` (`{ "sha", "builtAt" }`, the same shape as the debate
+  `1a2b3c4 2026-01-15`. The build writes them to `version.json` (`{ "sha", "builtAt" }`, the same shape as the debate
   app). A `+` after the commit means the build had changes that were not committed.
 - **Offline:** the page cannot read `version.json`, so it shows the release the service worker saved on the device,
   for example `offline 387a7ee`. That name is a hash of every file the page loads (`events/sw-files.js`).
