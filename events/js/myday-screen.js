@@ -8,7 +8,8 @@
 // The rules are in cards.js; the builders at the top are pure (Node tests call them); createMydayScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon, iconButton } from './icons.js';
-import { statusPillHtml, eventPillHtml } from './status-pill.js';
+import { statusPillHtml } from './status-pill.js';
+import { eventPillHtml } from './event-pill.js';
 import { mydayModel, cardEvent, cardEventId, duePill, roomText, upNextItem, cancelCard, moveRoom, submitCard, findById, undoFields, ROOM_MAX } from './cards.js';
 import { roomEvent, present, CUSTOM_EVENT } from './room.js';
 import { dayOf } from './rooms.js';
@@ -88,7 +89,7 @@ function menuHtml(v, open, withSubmit) {
 // D5 A: the row keeps the button only where submitting is the next step (the ranks are copied, status "ranksIn").
 const rowSubmits = (v) => v.status === 'ranksIn';
 const submitHtml = (v, small) => (v.canSubmit ? `<button class="b${small ? ' small' : ''}" type="button" data-act="submit">Mark submitted</button>` : '');
-const evPill = (v) => eventPillHtml(v.eventId, v.name, v.short, true);
+const evPill = (v) => eventPillHtml(v.eventId, v.name, v.short, { title: true });
 
 // One compact row as HTML text (owner decision OD2 A): event pill, round and room (the link that opens it), the
 // status pill, the ranks-due pill, "Mark submitted" when it applies, and the "⋯" menu.

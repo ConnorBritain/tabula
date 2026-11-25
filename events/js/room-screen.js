@@ -8,7 +8,8 @@
 // Review for a comments-only round). The builders at the top are pure (Node tests call them); createRoomScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon, iconButton } from './icons.js';
-import { statusPillHtml, eventPillHtml } from './status-pill.js';
+import { statusPillHtml } from './status-pill.js';
+import { eventPillHtml } from './event-pill.js';
 import { roomPrimary, goRankHtml } from './room-primary.js';
 import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';

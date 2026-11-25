@@ -7,11 +7,12 @@ import { readFileSync } from 'node:fs';
 import { signalPoints } from './js/timer.js';
 import * as timeTrack from './js/time-track.js';
 import * as statusPill from './js/status-pill.js';
+import { eventPillHtml } from './js/event-pill.js';
 import { patchTrack } from './js/timer-view.js';
 import { ICONS } from './js/icons.js';
 
 const { trackModel, trackHtml, trackParts } = timeTrack;
-const { statusPillHtml, eventPillHtml } = statusPill;
+const { statusPillHtml } = statusPill;
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const noComments = (src) => src.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
 
@@ -23,6 +24,9 @@ const partsAt = (sec, phases) => trackParts(trackModel({ limit: 600, grace: 30, 
 function fakeTrack(parts) {
   const log = [];
   const t = { phases: parts.phases ? { html: parts.phases } : null };
+  t.times = [...(parts.phases || '').matchAll(/<span class="phase-time">([^<]*)<\/span>/g)].map((m) => ({
+    _t: m[1], get textContent() { return this._t; }, set textContent(v) { log.push('time'); this._t = v; },
+  }));
   const mk = (name, html) => ({ html, set outerHTML(h) { log.push(name); t[name] = mk(name, h); } });
   t.bar = mk('bar', parts.bar);
   t.ticks = { html: parts.ticks, set innerHTML(h) { log.push('ticks'); this.html = h; } };
@@ -35,6 +39,7 @@ function fakeTrack(parts) {
   const el = {
     querySelector: (s) => (s === '.track-img' ? t.img : s === '.phases' && t.phases ? {
       set outerHTML(h) { log.push('phases'); t.phases = { html: h }; },
+      querySelectorAll: (q) => (q === '.phase-time' ? t.times : []),
       remove() { log.push('phases gone'); t.phases = null; },
     } : null),
     insertAdjacentHTML: (where, h) => { log.push('phases added'); t.phases = { html: h }; },
@@ -46,6 +51,8 @@ function fakeTrack(parts) {
 // Why: the old tick rebuilt the whole track with outerHTML once a second, so the role="img" node and its long
 // aria-label were new every second. A screen reader on the card lost its place and could read the whole budget again,
 // every second, while the judge listens to a speech. If this regresses, the timer card is noisy for blind judges.
+// Limit: the stand-in only proves which writes patchTrack makes. That a browser keeps the node across those writes was
+// checked by hand in the room (2026-11-25: the same .track-img node after 3 ticks); the next test bans the old rebuild.
 test('the track tick keeps its role="img" node and writes only the parts that changed', () => {
   const first = partsAt(100);
   const { el, t, log } = fakeTrack(first);
@@ -78,6 +85,20 @@ test('the track tick rewrites the phase row only when its HTML changes, and keep
   assert.match(t.phases.html, />B</);
 });
 
+// Why: on a prep event the phase row shows the prep time, which moves every second while prep runs. Rebuilding the
+// row then would keep half the screen-reader noise the track fix removed. If this regresses, the labelled step list
+// is rebuilt once a second during prep.
+test('while only a phase time moves, the tick writes that time text and keeps the phase row', () => {
+  const row = (time) => `<div class="phases" id="card-phases"><ol class="phase-steps" aria-label="Prep, then speech"><li class="phase is-on" data-phase="prep" aria-current="step"><span class="phase-label">Prep</span> <span class="phase-time">${time}</span><span class="sr-only"> (now)</span></li></ol></div>`;
+  const a = partsAt(100, row('0:41'));
+  const { el, t, log } = fakeTrack(a);
+  patchTrack(el, a);
+  log.length = 0;
+  assert.deepEqual(patchTrack(el, partsAt(100, row('0:42'))), ['phase times']);
+  assert.deepEqual(log, ['time'], 'one text write, no row rebuild');
+  assert.equal(t.times[0].textContent, '0:42');
+});
+
 // Why: the split must not change what the card looks like: trackHtml is now built from trackParts, and the tick
 // writes the same parts. If they drifted, the first draw and the ticks would show two different tracks.
 test('trackHtml is the parts put together, so a draw and a tick show the same track', () => {
@@ -107,7 +128,8 @@ test('timer-card-html.js is pure: no driver, no tick, no DOM, no ballot footer',
 
 // Why: pill markup typed by hand in many files drifted (an event pill had two copies with different attributes);
 // with one helper, a change to the pill look or its rules is made once. If a hand-made pill comes back, it can miss
-// the tone rules (green for done only, red for errors only).
+// the tone rules (green for done only, red for errors only). Scope: the JS screens; static HTML (index.html's offline
+// chip) is not covered.
 test('every pill in events/js and events/congress comes from status-pill.js', () => {
   const files = ['round-frame.js', 'picker-screen.js', 'setup-screen.js', 'myday-screen.js', 'type-screen.js', 'room-screen.js', 'timer-view.js', 'timer-card-html.js']
     .map((f) => './js/' + f).concat(['./congress/views.js', './congress/chamber-screen.js']);
@@ -122,7 +144,7 @@ test('statusPillHtml: the cls and tag options give the same markup the screens u
   assert.equal(statusPillHtml('', 'Congress', '', { cls: 'md-ev' }), '<span class="pill md-ev">Congress</span>');
   assert.equal(statusPillHtml('err', 'x', '', 'id="a"'), '<span class="pill err" id="a">x</span>', 'the old attrs text still works');
   assert.equal(statusPillHtml('bogus', 'x'), '<span class="pill">x</span>', 'an unknown tone is the default pill');
-  assert.equal(eventPillHtml('hi', 'Humorous Interpretation', 'HI', true),
+  assert.equal(eventPillHtml('hi', 'Humorous Interpretation', 'HI', { title: true }),
     '<a class="pill md-ev" href="#/type/hi" title="Humorous Interpretation" aria-label="About Humorous Interpretation">HI</a>');
   assert.equal(eventPillHtml('custom', 'Custom event', 'Custom'), '<a class="pill md-ev" href="#/type/custom" aria-label="About Custom event">Custom</a>');
 });
@@ -136,11 +158,21 @@ test('every icon events/index.html points to is in the sprite', () => {
   for (const name of used) assert.ok(ICONS[name], name + ' is drawn by index.html');
 });
 
-// Why: TONES and overShown were exported but only used inside their files; an export is a promise other files may
-// lean on, so a private rule could not change without a search of the whole app.
+// Why: TONES and overShown were exported but only used inside their files. Once another file imports one, a change
+// to the tone list or to how much "over" the track shows would break that file with no test near it.
 test('TONES and overShown are private to their modules', () => {
   assert.equal(statusPill.TONES, undefined);
   assert.equal(timeTrack.overShown, undefined);
+});
+
+// Why: the over zone is the grace length, at least 30 s. A test that only uses grace 30 cannot tell that rule from
+// a fixed 30 s; if it broke, a long grace would squeeze the over zone or a short one would stretch it, and the judge
+// would read the fill's place wrong.
+test('the track over zone is as long as the grace, and at least 30 s', () => {
+  const over = (grace) => { const m = trackModel({ limit: 600, grace }); return m.span - 600 - grace; };
+  assert.equal(over(45), 45);
+  assert.equal(over(10), 30);
+  assert.equal(over(0), 30);
 });
 
 // Why: the pill rules were spread over five places in app.css, so a tone could be changed in one place and beaten by

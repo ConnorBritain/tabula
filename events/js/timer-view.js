@@ -32,6 +32,10 @@ import {
 // tr: the #timer-track element. parts: time-track.js trackParts(...). The last parts written are kept per element, so
 // a redraw (a new element) starts fresh. Returns the names of the parts it wrote (for the tests).
 const trackSeen = new WeakMap();
+// The phase row's times (phase-bar.js: <span class="phase-time">4:12</span>, clock text only), and the row without them.
+const PHASE_TIME = /<span class="phase-time">([^<]*)<\/span>/g;
+const phaseTimes = (html) => [...html.matchAll(PHASE_TIME)].map((m) => m[1]);
+const noPhaseTimes = (html) => html.replace(PHASE_TIME, '<span class="phase-time"></span>');
 export function patchTrack(tr, parts) {
   const img = tr && tr.querySelector('.track-img');
   if (!img) return [];
@@ -44,10 +48,15 @@ export function patchTrack(tr, parts) {
   if (parts.ticks !== prev.ticks && ticks) { ticks.innerHTML = parts.ticks; wrote.push('ticks'); }
   if (parts.phases !== prev.phases) {
     const ph = tr.querySelector('.phases');
-    if (ph && parts.phases) ph.outerHTML = parts.phases;
+    // A running prep or phase moves only its time: write just the time text, so the step list (an <ol> with a label)
+    // is not rebuilt each second either.
+    const times = phaseTimes(parts.phases);
+    const spans = ph && prev.phases && noPhaseTimes(prev.phases) === noPhaseTimes(parts.phases) ? ph.querySelectorAll('.phase-time') : null;
+    if (spans && spans.length === times.length) { spans.forEach((s, i) => { if (s.textContent !== times[i]) s.textContent = times[i]; }); wrote.push('phase times'); }
+    else if (ph && parts.phases) ph.outerHTML = parts.phases;
     else if (ph) ph.remove();
     else if (parts.phases) tr.insertAdjacentHTML('beforeend', parts.phases);
-    if (ph || parts.phases) wrote.push('phases');
+    if (!(spans && spans.length === times.length) && (ph || parts.phases)) wrote.push('phases');
   }
   trackSeen.set(tr, parts);
   return wrote;

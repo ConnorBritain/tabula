@@ -26,14 +26,12 @@ export function stoppedResult(face, grace) {
   return { kind: past <= grace ? 'grace' : 'over', past };
 }
 const RESULT_PILL = { inside: ['', 'circle-check', () => 'Inside time'], grace: ['caution', 'info', (p) => 'Grace +' + clockText(p)], over: ['err', 'triangle-alert', (p) => 'Over grace +' + clockText(p)] };
-// The pill for a stoppedResult ('' for null).
+// The pill under the digits for a stoppedResult ('' for null: before any time and while the clock runs).
 function resultPill(r) {
   if (!r) return '';
   const [tone, ic, word] = RESULT_PILL[r.kind];
   return statusPillHtml(tone, word(r.past), ic, 'id="timer-result"');
 }
-// The pill under the digits after a stop ('' otherwise).
-export const resultPillHtml = (face, grace) => resultPill(stoppedResult(face, grace));
 
 // What the card shows: after a stop the big digits are the final time used (9:20), not the time left (top 10 #2).
 export function cardFace(face) {
