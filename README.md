@@ -104,7 +104,7 @@ The maintainers run the hosted sites. This repository has no deploy steps for co
 | `logic/` | Debate app pure logic (no DOM, no network) |
 | `vendor/` | Self-hosted third-party libraries (see `vendor/README.md`) |
 
-For more detail, read [`docs/architecture/`](docs/architecture/) and [`docs/library/`](docs/library/).
+The Debate Library source text is in [`docs/library/`](docs/library/).
 
 ## Security
 
