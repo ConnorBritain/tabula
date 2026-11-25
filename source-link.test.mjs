@@ -7,5 +7,5 @@ import { readFileSync } from 'node:fs';
 test('the app footer links to the source code', () => {
   const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
   const foot = (/<p class="app-foot[^"]*">([\s\S]*?)<\/p>/.exec(html) || [])[1] || '';
-  assert.ok(foot.includes('<a href="https://github.com/TabulaSpeech/tabula" rel="noopener">Source code (AGPL)</a>'), 'footer: ' + foot);
+  assert.ok(foot.includes('<a href="https://github.com/TabulaSpeech/tabula" target="_blank" rel="noopener">Source code (AGPL)</a>'), 'footer: ' + foot);
 });
