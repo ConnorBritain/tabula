@@ -12,7 +12,7 @@ The owner asked for a pass over every event and every screen, with Mobbin, to ad
 4. The owner decisions, at most 2 options each, with a pick (§4).
 5. Bugs found on the way, for the events owner (§5).
 
-Rules that this plan keeps (no option breaks them, except OD3, which needs a change to DESIGN.md §3 and BRAND.md §7 and is marked so):
+Rules that this plan keeps (no option breaks them, except OD3, which needs a change to DESIGN.md §3 and is marked so):
 
 - Calm grey chrome. Color only for data and status. A word always goes with a color (`docs/events/DESIGN.md` §1).
 - No stripes and no underline tabs (`docs/design/NO-STRIPES.md`). A data bar is a full bordered track, never a one-sided accent.
@@ -386,7 +386,7 @@ Mockups (brief step 4, optional) were not made in this pass. If the owner wants 
 
 ## 4. Owner decisions
 
-**Decided 2026-11-24 (owner): OD1 = A, OD2 = A, OD3 = A.** OD3 needs DESIGN.md §3 and BRAND.md §7 edited before the header mark is built.
+**Decided 2026-11-24 (owner): OD1 = A, OD2 = A, OD3 = A.** OD3 needs DESIGN.md §3 edited before the header mark is built.
 
 ### OD1. How the phone room keeps the time on screen while the judge writes
 
@@ -404,12 +404,12 @@ Pick **A**. With 3 flights and 2 events, B still leaves a wall of 6 equal cards.
 
 ### OD3. The Speech Events mark in the app header (a brand rule change)
 
-This decision changes a stated rule. DESIGN.md §3 and BRAND.md §7 say the brand tints stay in the mark, logo, icon and marketing, and that no product color is used for app chrome. Option A puts the mark in the app header. If the owner picks A, both files need an edit first.
+This decision changes a stated rule. DESIGN.md §3 says the brand tints stay in the mark, logo, icon and marketing, and that no product color is used for app chrome. Option A puts the mark in the app header. If the owner picks A, that file needs an edit first.
 
 - **A. The green Speech Events mark next to "Tabula Speech Events" in the header, and nowhere else in the chrome (recommended).** It uses the locked green (`brand-color-families`) as a mark only. Buttons, menus and pills stay grey (DESIGN.md §1, §3).
 - B. Keep the text-only header (or a grey mark).
 
-Pick **A**. It is the cheapest visual lift in the app, it matches the Debate header which shows its own mark, and the mark carries no state, so color still never carries meaning. Cost: an edit to DESIGN.md §3 and BRAND.md §7 to allow the mark in the header and nowhere else in the chrome.
+Pick **A**. It is the cheapest visual lift in the app, it matches the Debate header which shows its own mark, and the mark carries no state, so color still never carries meaning. Cost: an edit to DESIGN.md §3 to allow the mark in the header and nowhere else in the chrome.
 
 ## 5. Bugs and spec gaps found on the way (for the events owner)
 

@@ -2,7 +2,7 @@
 
 Status: plan for owner approval, 2026-11-21. No code changed.
 
-This file answers the owner's request of 2026-11-21: "think through the object, data, and design models" for every event family. It builds on [ARCHITECTURE.md](ARCHITECTURE.md) §6 (data), [SHARED-VS-NEW.md](SHARED-VS-NEW.md) §5 (primitives N1–N14) and [DESIGN.md](DESIGN.md) §4 (components). It does not repeat them. The event list and the app split are in [CATALOG.md](CATALOG.md). The build order is in [LANDING.md](LANDING.md).
+This file answers the owner's request of 2026-11-21: "think through the object, data, and design models" for every event family. It builds on [ARCHITECTURE.md](ARCHITECTURE.md) §6 (data), [SHARED-VS-NEW.md](SHARED-VS-NEW.md) §5 (primitives N1–N14) and [DESIGN.md](DESIGN.md) §4 (components). It does not repeat them. The event list and the app split are in [CATALOG.md](CATALOG.md).
 
 Three words, used the same way in this file:
 
@@ -25,7 +25,7 @@ An **event family** is a group of events that share one shape on screen and in d
 | F7 | **Group events** | Readers Theatre, Ensemble, Choral Reading, One-Act | Not planned | Group entries, long limits |
 | — | **Debate events** | Policy, LD, PF, World Schools, Big Questions, Extemp Debate, Parli | **Tabula Debate, not this app** | Format files in `formats/` ([CATALOG.md](CATALOG.md) §3) |
 
-F1 to F3 make up the 17 v1 events. F4 and F5 come with league packs (PLAN.md P3). F6 is Congress (PLAN.md P5, right after v1 by Q13 B; [LANDING.md](LANDING.md) §5).
+F1 to F3 make up the 17 v1 events. F4 and F5 come with league packs. F6 is Congress (right after v1).
 
 ## 2. Shared objects
 
@@ -53,7 +53,7 @@ The owner asked to name the shared objects. "Shared" has two levels:
 
 **Two new shared modules are not in SHARED-VS-NEW.md yet.**
 
-- **`core/defs.js`.** The generic part of the debate format registry in `logic/format.js` (freeze, find by id and version, newest version, never drop an old version) is what event files need too. Only that part moves. The debate-only parts of `logic/format.js` stay in debate, and each app passes in its own `prepare` step (LANDING.md C1). Debate formats, event files and Congress chamber files all load through it. This avoids a second copy in the events loader.
+- **`core/defs.js`.** The generic part of the debate format registry in `logic/format.js` (freeze, find by id and version, newest version, never drop an old version) is what event files need too. Only that part moves. The debate-only parts of `logic/format.js` stay in debate, and each app passes in its own `prepare` step. Debate formats, event files and Congress chamber files all load through it. This avoids a second copy in the events loader.
 - **`core/points.js`**, split from ranks: a rank list and a points range change for different reasons.
 
 ## 3. Object model
@@ -77,7 +77,7 @@ Rules for every family:
 1. **Frozen at setup.** A room or session copies its event or chamber file id and version, and a full copy of the rules profile. Later edits never change an old record. This is the debate rule for format files (`docs/architecture/ARCHITECTURE.md` §9).
 2. **Runs, not counters.** All time is stored as runs with wall-clock start and stop times. A reload rebuilds the clock. A run has a `kind`: `speech`, `prep`, `cx` (later), `questions` (Congress).
 3. **Sticky over grace.** Once a run passes grace, the entry keeps the flag until the judge clears it on purpose (DESIGN.md §4.2).
-4. **Codes first.** Entries and legislators are codes by default. Names stay on the device (PLAN.md Q7).
+4. **Codes first.** Entries and legislators are codes by default. Names stay on the device.
 5. **The app never ranks.** AI never ranks, rates or compares (ARCHITECTURE.md §7).
 
 ## 4. Family models
