@@ -618,3 +618,29 @@ test('phone targets: every button, small ones too, is at least 44 px under 820 p
   assert.match(CSS, /@media \(max-width: 820px\) \{\n  a\.b, button\.b, a\.b\.small, button\.b\.small, \.timer-btns \.b \{ min-height: 44px; \}/);
   assert.match(CSS, /  a\.b\.primary, button\.b\.primary, \.timer-btns \.b\.primary \{ min-height: 48px; \}/);
 });
+
+// ---------- §6 screen findings, second pass: the header ----------
+
+// Why: My day was the one screen with no nav link, so a judge deep in History had only the logo to get home; and the
+// current page showed by a tint alone, which is 1.06:1 in dark mode. My day joins the nav and the current page is bold.
+test('header: My day, History and Settings in the nav, the current page tinted and bold', () => {
+  const html = read('./index.html');
+  const nav = html.slice(html.indexOf('<nav class="bar-nav"'), html.indexOf('</nav>'));
+  assert.deepEqual([...nav.matchAll(/id="nav-([a-z]+)" href="([^"]+)"><svg[^>]*><use href="#i-([a-z-]+)"\/><\/svg>([^<]+)</g)].map((m) => m.slice(1).join(' ')),
+    ['myday #/ calendar My day', 'history #/history history History', 'settings #/settings settings Settings']);
+  assert.match(read('./js/app.js'), /\[\['#nav-myday', 'rooms'\], \['#nav-history', 'history'\], \['#nav-settings', 'settings'\]\]/);
+  assert.match(CSS, /\.bar-nav a\.b\[aria-current="page"\] \{ background: var\(--fill-quiet\); color: var\(--text\); font-weight: var\(--fw-4\); \}/);
+});
+
+// Why: on a phone the header took two rows and the back link squeezed the title onto three lines. The header is one row
+// (the name stays for screen readers) and every back link sits on its own 44 px line above the title.
+test('header: one row on a phone, and every back link is on its own line above the title', () => {
+  assert.match(CSS, /@media \(max-width: 560px\) \{\n  \.bar \{ flex-wrap: nowrap;[^}]*\}\n  \.brand > span \{ position: absolute; width: 1px; height: 1px; overflow: hidden;/);
+  assert.match(CSS, /\.screen-head > \.back \{ order: -2; flex-basis: 100%; justify-content: flex-start; min-height: 44px;/);
+  let backs = 0;
+  for (const [f, src] of SOURCES) {
+    // A quiet link that starts with the back chevron is a back link (the Review blocker's "Back to Rate" is a primary).
+    for (const m of src.matchAll(/<a class="(b quiet[^"]*)" href="[^"]*">\$\{icon\('chevron-left'\)\}/g)) { backs++; assert.equal(m[1], 'b quiet back', f); }
+  }
+  assert.ok(backs >= 10, 'the screens have back links');
+});

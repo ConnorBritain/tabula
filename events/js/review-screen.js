@@ -238,7 +238,7 @@ export function createReviewScreen(env) {
       roomId = id; view = { order: 'speaking', editing: null };
       if (cleanup) cleanup.reset();
       const ev = event(r);
-      const back = hasRanksStage(r) ? `<a class="b quiet" href="#/rank/${encodeURIComponent(id)}">${icon('chevron-left')}${rankStageLabel(r.profile)}</a>` : `<a class="b quiet" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>`;
+      const back = hasRanksStage(r) ? `<a class="b quiet back" href="#/rank/${encodeURIComponent(id)}">${icon('chevron-left')}${rankStageLabel(r.profile)}</a>` : `<a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>`;
       env.el.innerHTML = `<div class="screen-head">${back}
           <h1 id="screen-title" tabindex="-1">Review · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <div id="review-top"></div><div id="review-ranks"></div><div id="review-comments"></div>`;

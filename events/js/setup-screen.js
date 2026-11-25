@@ -73,7 +73,7 @@ export function setupHtml(data) {
   const opt = (p) => `<option value="${esc(p.id)}"${p.id === DEFAULT_PROFILE ? ' selected' : ''}>${esc(p.name)}</option>`;
   const shapes = shapeChoices(data);
   const prOpts = shapes.length ? `<optgroup label="League rules">${profileChoices(data).map(opt).join('')}</optgroup><optgroup label="Other ballot shapes">${shapes.map(opt).join('')}</optgroup>` : profileChoices(data).map(opt).join('');
-  return `<div class="screen-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">New room</h1></div>
+  return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">New room</h1></div>
   <form class="setup" id="setup-form" novalidate>
     <div class="setup-fields">
       <label class="field"><span>Event</span><select id="setup-event"><option value="">Pick the event</option>${evOpts}<option value="${CUSTOM_EVENT}">Custom event (set the time)</option></select></label>

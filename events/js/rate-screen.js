@@ -84,7 +84,7 @@ export function createRateScreen(env) {
       roomId = id;
       if (r.state === 'judging') save(Object.assign({}, r, { state: 'ranking', updatedAt: env.now() }));
       const ev = event(r);
-      env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
+      env.el.innerHTML = `<div class="screen-head"><a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
           <h1 id="screen-title" tabindex="-1">Rate · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <p class="bias">${esc(r.profile.biasNote || 'Judge the performance, not the person.')}</p>
         <p class="muted board-help">These rules have no ranks. Rate each speaker on their own.</p>

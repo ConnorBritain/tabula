@@ -33,7 +33,7 @@ export function typeHtml(data, eventId, rooms) {
     ? `<ul class="ty-rounds">${mine.map((r) => `<li><a href="${esc(routeHash('round', r.id))}">${esc(roundLine(r, true) || 'Untitled round')}</a> <span class="muted">${esc(dayOf(r.createdAt))} · ${esc(STATE_LABEL[r.state] || STATE_LABEL.setup)}</span></li>`).join('')}</ul>`
     : '<p class="muted">No saved rounds of this type yet.</p>';
   const name = custom ? 'Custom event' : def.name;
-  return `<div class="screen-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">${esc(name)}</h1>${def ? `<span class="pill outline">${esc(def.short)}</span>` : ''}</div>
+  return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">${esc(name)}</h1>${def ? `<span class="pill outline">${esc(def.short)}</span>` : ''}</div>
     <section class="set-part" aria-labelledby="ty-g-h"><h2 id="ty-g-h">Guide</h2>
       <p>${esc(g.line)}</p><dl class="ty-list">${dl}</dl>${list('Rule checks', g.checks)}${list('Questions to think about for comments', g.prompts)}</section>
     <section class="set-part" aria-labelledby="ty-r-h"><h2 id="ty-r-h">Rules</h2>${rules}</section>

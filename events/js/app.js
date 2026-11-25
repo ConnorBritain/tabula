@@ -76,7 +76,8 @@ function renderHeader(screen) {
   menu.hidden = !modeMenuShown(s); // Shows only for a saved Coach or Student mode (copy trim E46); Settings cannot set one now.
   if (!sel.options.length) sel.innerHTML = MODES.map((m) => `<option value="${esc(m.id)}">${esc(m.label)}</option>`).join('');
   sel.value = s.mode;
-  for (const [id, name] of [['#nav-history', 'history'], ['#nav-settings', 'settings']]) {
+  // Design build (color review §6 Header): My day joins the nav; the current page gets a tint and bold.
+  for (const [id, name] of [['#nav-myday', 'rooms'], ['#nav-history', 'history'], ['#nav-settings', 'settings']]) {
     if (screen === name) $(id).setAttribute('aria-current', 'page'); else $(id).removeAttribute('aria-current');
   }
 }

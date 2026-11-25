@@ -240,7 +240,7 @@ a.brand { color: var(--text); text-decoration: none; }
 .bar [hidden] { display: none; }
 .mode-menu select { font: inherit; font-size: var(--fs-2); min-height: var(--h-sm); padding: 0 var(--s2); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); }
 .bar-nav { display: flex; align-items: center; gap: var(--s1); margin-left: auto; }
-.bar-nav a.b[aria-current="page"] { background: var(--sunk); }
+.bar-nav a.b[aria-current="page"] { background: var(--fill-quiet); color: var(--text); font-weight: var(--fw-4); } /* a tint and bold (§5.1 rule 3: the word and weight carry it) */
 .room-del { margin-left: var(--s2); }
 .tick, .radio { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--h-md); font-size: var(--fs-2); }
 .radios { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); }
@@ -650,3 +650,13 @@ details.fold[open] > .fold-row { margin-bottom: var(--s2); }
 .board-comment .bc-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .board-line.grace-line { display: flex; align-items: center; gap: var(--s1); color: var(--text); }
 .room-link > svg.i { align-self: center; color: var(--text-3); }
+/* Header (color review §6): one row on a phone (the mark stands for the name, which stays for screen readers); the
+   back link sits on its own line above the title, a 44 px target, so the title gets the full width. */
+@media (max-width: 560px) {
+  .bar { flex-wrap: nowrap; gap: var(--s2); padding: var(--s1) var(--s2); }
+  .brand > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .bar-nav { gap: 0; }
+  .bar-nav a.b { padding: 0 var(--s2); }
+}
+.screen-head > .back { order: -2; flex-basis: 100%; justify-content: flex-start; min-height: 44px; padding-left: 0; }
+.screen-head > .back:hover { background: transparent; text-decoration: underline; }

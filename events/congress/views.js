@@ -26,7 +26,7 @@ export function barHtml(chamber, session, stage, now) {
   const steps = [`<li><a href="#/chamber/${esc(chamber.id)}">Setup</a></li>`]
     .concat(['log', 'rank', 'review'].map((s) => `<li${s === stage ? ' class="on" aria-current="step"' : ''}><a href="#/round/${esc(session.id)}/${s}">${STAGE_WORDS[s]}</a></li>`));
   return `<div class="cg-bar">
-    <a class="b quiet" href="#/chamber/${esc(chamber.id)}">${icon('chevron-left')}Chamber</a>
+    <a class="b quiet back" href="#/chamber/${esc(chamber.id)}">${icon('chevron-left')}Chamber</a>
     <span class="pill live">${houseWord(chamber)}</span>
     <span class="cg-bar-title">Session ${esc(session.number)}${chamber.roomLabel ? ' · ' + esc(chamber.roomLabel) : ''}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''}</span>
     <ol class="phase-bar cg-steps" aria-label="Steps">${steps.join('')}</ol>

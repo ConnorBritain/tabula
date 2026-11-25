@@ -48,7 +48,7 @@ function congressHtml() {
 }
 
 export function pickerHtml() {
-  return `<div class="screen-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">Pick the event</h1></div>
+  return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">Pick the event</h1></div>
     <label class="field pk-search"><span>Search</span><input id="pk-search" type="search" autocomplete="off" spellcheck="false" placeholder="HI, extemp, poetry…"></label>
     <div id="pk-list"></div>`;
 }
