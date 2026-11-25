@@ -39,3 +39,23 @@ test('refuses to build when a linked file is left out', () => {
 test('ships the security headers file', () => {
   assert.match(readFileSync(join(out, '_headers'), 'utf8'), /Content-Security-Policy: default-src 'self'; script-src 'self'/);
 });
+
+// Why: anyone checking which version is live (and the release smoke test) reads version.json;
+// without it, or with a wrong sha, a stale or wrong deploy goes unseen.
+test('ships version.json with this commit and the build time', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8', cwd: new URL('.', import.meta.url) }).trim();
+  const v = JSON.parse(readFileSync(join(out, 'version.json'), 'utf8'));
+  assert.deepEqual(Object.keys(v), ['sha', 'builtAt']);
+  assert.match(v.sha, new RegExp(`^${head}(-dirty)?$`));
+  assert.ok(!Number.isNaN(Date.parse(v.builtAt)));
+});
+
+// Why: if version.json were cached for long, it would name the old commit after a deploy, and a
+// check would flag a good release or pass a bad one.
+test('caches version.json for a short time only', () => {
+  const rule = readFileSync(join(out, '_headers'), 'utf8').match(/^\/version\.json\n((?: {2}.+\n)+)/m);
+  assert.ok(rule, 'has a /version.json rule');
+  const age = Number(rule[1].match(/Cache-Control: public, max-age=(\d+)\n/)?.[1]);
+  assert.ok(age > 0 && age <= 300, `max-age ${age} is at most 5 minutes`);
+});
