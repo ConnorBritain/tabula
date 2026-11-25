@@ -120,8 +120,7 @@ test('the view draws its pill through status-pill.js and has the dialog parts a 
 
 // ---------- off by default ----------
 
-// Why: a judge who never asks for it must see the room exactly as before; a view that opens itself would show the
-// speaker the clock against the judge's choice.
+// Why: a judge who never asks for it must see the room exactly as before; a view that opens itself would show the speaker the clock against the judge's choice.
 test('the room timer draws no speaker view until the judge asks, and the button shows only while a speaker is up', () => {
   const doc = fakeDoc();
   const prev = globalThis.document;
@@ -163,8 +162,7 @@ function rig() {
   return { view, el, room: () => room, tick: (ms) => { now += ms; }, layers };
 }
 
-// Why: two clocks for one speech drift apart; the speaker and the judge would see different times and the ballot
-// would record the judge's.
+// Why: two clocks for one speech drift apart; the speaker and the judge would see different times and the ballot would record the judge's.
 test('the speaker view uses the room timer\'s one driver: no second interval, the same saved run', () => {
   const doc = fakeDoc();
   const prevDoc = globalThis.document, prevSet = globalThis.setInterval, prevClear = globalThis.clearInterval;
@@ -221,8 +219,7 @@ test('the open speaker view follows the room timer\'s tick', () => {
 
 // ---------- Esc, Space, fullscreen, focus ----------
 
-// Why: a judge who cannot get back to the ballot mid-round (or who shows the speaker the notes) is stuck in front of
-// the room; Esc and the Back button must always return.
+// Why: a judge who cannot get back to the ballot mid-round (or who shows the speaker the notes) is stuck in front of the room; Esc and the Back button must always return.
 test('Esc, Back and leaving full screen return to the judge view and give the focus back', async () => {
   for (const how of ['esc', 'back', 'layer', 'fullscreen']) {
     const doc = fakeDoc();
