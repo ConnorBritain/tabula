@@ -80,8 +80,13 @@ function fakePage() {
     setAttribute(k, v) { this.attrs[k] = String(v); }
     getAttribute(k) { return this.attrs[k] ?? null; }
     addEventListener(t, f) { (this.listeners[t] ||= []).push(f); }
-    fire(t, e = {}) { for (const f of this.listeners[t] || []) f(Object.assign({ target: this }, e)); }
-    focus() { const was = doc.activeElement; doc.activeElement = this; if (was && was !== this) was.fire('focusout', { relatedTarget: this }); this.fire('focusin'); }
+    fire(t, e = {}) { const ev = Object.assign({ target: this }, e); for (let n = this; n; n = n.parent) for (const f of n.listeners[t] || []) f(ev); }
+    focus() {
+      if (this === doc.body) return; // as in a browser: the body does not take focus this way
+      const was = doc.activeElement; doc.activeElement = this;
+      if (was && was !== this) was.fire('focusout', { relatedTarget: this });
+      this.fire('focusin'); for (const f of docL.focusin || []) f({ target: this });
+    }
     closest() { return null; }
     getClientRects() { return [1]; }
     all() { return this.children.flatMap((c) => [c, ...c.all()]); }
@@ -107,7 +112,7 @@ function fakePage() {
     for (const f of docL.keydown || []) f(e);
     return e;
   };
-  return { doc, before, del, after, press };
+  return { doc, before, del, after, press, N };
 }
 
 // Why: the real toast must behave as the rules say on a page: Undo is the next Tab stop, focus is never trapped, and Esc closes the toast without undoing.
@@ -144,9 +149,31 @@ test('createUI toast: Tab reaches Undo next, Shift+Tab and the last button lead 
     page.press('Escape');
     assert.ok(plain.el.parent, 'Esc with focus outside a toast leaves the toast alone');
     assert.equal(page.doc.getElementById('toasts-polite').textContent, '', 'the live region fills after a short gap');
-    await new Promise((ok) => setTimeout(ok, 100));
-    assert.equal(page.doc.getElementById('toasts-polite').textContent, 'Saved.');
     plain.el.children.find((n) => n.tagName === 'BUTTON').click(); // × closes it, which also stops its timer
+
+    // A screen that redraws after the toast: the focused button goes and the app focuses another one.
+    let fresh = UI.toast('Row deleted.', { action: { label: 'Undo', name: 'Undo: delete row', run: () => {} } });
+    page.del.remove(); page.after.focus();
+    page.press('Tab');
+    assert.equal(page.doc.activeElement, fresh.el.children.find((n) => n.tagName === 'BUTTON'), 'Undo is still the next stop after the redraw');
+    assert.equal(fresh.timer, null, 'the timer waits while focus is on the toast (WCAG 2.2.1)');
+    page.press('Tab', true);
+    assert.equal(page.doc.activeElement, page.after, 'and Shift+Tab goes back to where the app put focus');
+    page.press('Tab');
+    assert.notEqual(page.doc.activeElement && page.doc.activeElement.parent, fresh.el, 'once left, the toast is not offered again');
+    fresh.el.children.filter((n) => n.tagName === 'BUTTON')[1].click();
+
+    // Focus fell to the page body (the focused button was removed): Tab still reaches Undo, and Shift+Tab never sticks.
+    fresh = UI.toast('Ballot removed.', { action: { label: 'Undo', name: 'Undo: remove ballot', run: () => {} } });
+    page.doc.activeElement = page.doc.body; fresh.origin = page.doc.body;
+    page.press('Tab');
+    const undo2 = fresh.el.children.find((n) => n.tagName === 'BUTTON');
+    assert.equal(page.doc.activeElement, undo2);
+    const back = page.press('Tab', true);
+    assert.equal(back.defaultPrevented, false, 'with no place to go back to, the browser\'s own Shift+Tab runs');
+    fresh.el.children.filter((n) => n.tagName === 'BUTTON')[1].click();
+    await new Promise((ok) => setTimeout(ok, 100));
+    assert.match(page.doc.getElementById('toasts-polite').textContent, /Ballot removed\. Undo: press Tab\./);
   } finally {
     globalThis.document = keep.document; globalThis.CustomEvent = keep.CustomEvent;
     if (keep.document === undefined) delete globalThis.document;

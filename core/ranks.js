@@ -1,4 +1,4 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C8): ranks for any number of
+// Shared code for Tabula Debate and Tabula Speech Events: ranks for any number of
 // ids, with no ties. A ranking is { id: rank } with ranks stored as text ('1', '2', ...; '' means no rank yet), as the
 // debate ballot stores them. Generic words only (core-words.test.mjs). No DOM. Loaded as described in core/defs.js.
 //

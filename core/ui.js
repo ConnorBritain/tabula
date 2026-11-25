@@ -1,4 +1,4 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C3): the toast, the in-app
+// Shared code for Tabula Debate and Tabula Speech Events: the toast, the in-app
 // dialog ask(), the one Esc stack, the screen-reader announcer and modalDialog for a dialog with its own markup.
 // Generic words only (core-words.test.mjs). Loaded as described in core/defs.js.
 // The rules (which toast to close, which button gets focus, which layer is on top) are pure functions with unit tests
@@ -54,8 +54,10 @@ export function toastMs(text, kind, hasAction) {
 }
 
 // Keyboard path to a toast's action (WCAG 2.1.1). The toasts sit at the end of the page, so plain Tab order would reach
-// an Undo last. Instead the newest toast with an action acts as if it came right after the place the focus was when it
-// appeared (its origin), without trapping focus:
+// an Undo last. Instead the newest toast with an action acts as if it came right after the place the focus is (its
+// origin), without trapping focus. Until the person has been into the toast, the origin follows focus, so a screen that
+// redraws and moves focus after the toast still has the toast as its next stop. Once focus leaves the toast, the page's
+// own order is back.
 //   Tab at the origin            -> the toast's first button (the action)
 //   Shift+Tab on its first button -> back to the origin
 //   Tab on its last button        -> the next stop after the origin
@@ -89,7 +91,7 @@ export function askInputState(raw, opts) {
 // a second Esc listener and a second ask layer, so one Esc would close two things.
 // behind: a CSS selector for the parts of the page a dialog makes inert (the app's own layout, so it is passed in).
 // The page must have #toasts, #toasts-polite, #toasts-alert, #sr-status and the #ask dialog markup, and the toast, ask
-// and .b button styles (they move to shared CSS in step C4). A toast coming or going fires 'tabula:toasts' on document.
+// and .b button styles (core/ui.css has them). A toast coming or going fires 'tabula:toasts' on document.
 let made = false;
 export function createUI({ behind }) {
   if (typeof behind !== 'string' || !behind) throw new Error('createUI needs a behind selector');
@@ -120,7 +122,7 @@ export function createUI({ behind }) {
     const el = document.createElement('div');
     el.className = 'toast' + (kind === 'error' ? ' is-error' : '');
     const t = { el, msg: text, key: o.key || '', kind, action: o.action || null, ms: toastMs(text, kind, Boolean(o.action)), timer: null, left: 0, at: 0, hover: false, focus: false,
-      origin: document.activeElement || null };
+      origin: document.activeElement || null, visited: false };
     if (kind === 'error') { const i = document.createElement('span'); i.className = 'toast-icon'; i.setAttribute('aria-hidden', 'true'); i.textContent = '!'; el.append(i); }
     const m = document.createElement('span'); m.className = 'toast-msg'; m.textContent = text; el.append(m);
     if (t.action) {
@@ -137,7 +139,7 @@ export function createUI({ behind }) {
     el.addEventListener('mouseenter', () => hold('hover', true));
     el.addEventListener('mouseleave', () => hold('hover', false));
     el.addEventListener('focusin', () => hold('focus', true));
-    el.addEventListener('focusout', (e) => { if (!el.contains(e.relatedTarget)) hold('focus', false); });
+    el.addEventListener('focusout', (e) => { if (!el.contains(e.relatedTarget)) { hold('focus', false); t.visited = true; } });
     $('#toasts').append(el); toastList.push(t); toastArm(t); toastsChanged();
     return t;
   }
@@ -164,10 +166,16 @@ export function createUI({ behind }) {
     toastList.splice(i, 1); t.el.remove(); toastsChanged();
     if (hadFocus) focusBack(t.origin);
   }
-  const usable = (el) => Boolean(el && el.isConnected !== false && typeof el.focus === 'function' && !(el.closest && el.closest('[inert],[hidden]')));
+  // A place focus can go back to: in the page, not the page body, not inside an inert or hidden part.
+  const usable = (el) => Boolean(el && el !== document.body && el.isConnected !== false && typeof el.focus === 'function' && !(el.closest && el.closest('[inert],[hidden]')));
   function focusBack(el) { if (usable(el)) el.focus(); }
   // The toast whose action the keyboard path leads to: the newest one with an action.
   const actionToast = () => { for (let i = toastList.length - 1; i >= 0; i--) if (toastList[i].action) return toastList[i]; return null; };
+  // Until the toast has been visited, its origin follows focus anywhere outside the toasts (a redraw that refocuses).
+  document.addEventListener('focusin', (e) => {
+    const t = actionToast(); const box = $('#toasts');
+    if (t && !t.visited && !(box && box.contains(e.target))) t.origin = e.target;
+  });
   const toastButtons = (t) => Array.from(t.el.querySelectorAll('button'));
   // The next Tab stop after el in page order, outside the toasts; null lets the browser choose.
   const TABBABLE = 'a[href], button, input, select, textarea, summary, [tabindex], [contenteditable="true"]';
@@ -186,9 +194,12 @@ export function createUI({ behind }) {
     const t = actionToast(); if (!t) return;
     const btns = toastButtons(t);
     const active = document.activeElement;
-    const atOrigin = active === t.origin || (!t.origin || t.origin === document.body) && (!active || active === document.body);
-    const step = toastTab({ atOrigin, inToast: btns.indexOf(active), count: btns.length, back: e.shiftKey });
-    const target = step === 'toast' ? btns[0] : step === 'origin' ? (usable(t.origin) ? t.origin : null) : step === 'after' ? stopAfter(t.origin) : null;
+    const inToast = btns.indexOf(active);
+    if (inToast < 0 && t.visited) return;
+    const atOrigin = active === t.origin || (!usable(t.origin) && (!active || active === document.body));
+    const step = toastTab({ atOrigin, inToast, count: btns.length, back: e.shiftKey });
+    // With no usable origin (the page body, a removed button), the browser's own Tab runs: it never sticks on the toast.
+    const target = step === 'toast' ? btns[0] : step === 'origin' ? (usable(t.origin) ? t.origin : null) : step === 'after' ? (usable(t.origin) ? stopAfter(t.origin) : null) : null;
     if (!target) return;
     e.preventDefault(); target.focus();
   });

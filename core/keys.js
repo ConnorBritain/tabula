@@ -1,4 +1,4 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C5): the keyboard rules and
+// Shared code for Tabula Debate and Tabula Speech Events: the keyboard rules and
 // the palette search. Each app passes in its own shortcut list (registry), its scopes and its palette rows; nothing
 // here names an app's command. Generic words only (core-words.test.mjs). No DOM. Loaded as described in core/defs.js.
 
