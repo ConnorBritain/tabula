@@ -316,7 +316,7 @@ Done check for the MVP (when built): in tournament mode, no AI coaching call can
 4. **Live transcription in tournament mode: DECIDED — opt-in, off by default.** Only when the debater turns it on, after the consent step, and only where the tournament allows it.
 5. **AI flow cleanup in tournament mode: DECIDED — off by default.** A coach or tournament profile may turn it on.
 6. **Pricing for students:** kept out of this public doc. Measure student use before any new plan.
-7. **Judge sees the badge code: DECIDED — yes, in the MVP.** See MVP item 7 (§8). It is built as a tiny server that stores no personal data. Automatic deletion of entries after a set time is planned with this feature. It is not in place today.
+7. **Judge sees the badge code: DECIDED — yes, in the MVP.** See MVP item 7 (§8). It will be built as a tiny server that stores no personal data. Automatic deletion of entries after a set time is planned with this feature. It is not in place today.
 8. **Age floor: DECIDED — 13+.** Students aged 13 to 17 may use hosted AI on their own account, with or without a school. No accounts under 13.
 9. **Rules check: DECIDED — the owner reviews §4 every August**, with the yearly provider-tier check.
 
@@ -372,7 +372,7 @@ Everything in §1 to §9 can run on the device. Join codes and school spaces can
 - **COPPA.** No accounts under 13. Students 13 to 17 join a school space only with school consent, or with parent consent.
 - **State student-privacy laws** (SOPIPA, NY Ed Law 2-d, IL SOPPA, and others): no ads, no sale, no profiling, no training on student data. List every subprocessor.
 - **Consent.** Recording still needs the consent step in §5b.
-- **Retention and deletion.** Automatic deletion after a set time is planned with the Library feature. It is not in place today. The planned rules are in `docs/library/TRACKS.md` §6. Anything the student exported stays theirs. A student can delete any item at any time. When school spaces are built, a school can delete its whole space. Backups that expire on a fixed schedule are planned. They are not in place today.
+- **Retention and deletion.** Automatic deletion after a set time is planned. It is not in place today. Anything the student exported stays theirs. A student can delete any item at any time. When school spaces are built, a school can delete its whole space. Backups that expire on a fixed schedule are planned. They are not in place today.
 - **Student export.** One click exports the student's whole record (feedback, flows they saved, badges) as plain files. The student keeps it after they graduate or change schools.
 - **Encryption.** In transit always. At rest on the server.
 
@@ -400,7 +400,7 @@ Build in this order. Each step is useful alone.
 
 ### 10i. Decisions (owner)
 
-1. **Retention after the season: planned.** Automatic deletion after a set time is planned with the Library feature. It is not in place today.
+1. **Retention after the season: planned.** Automatic deletion after a set time is planned. It is not in place today.
 2. **Coach view of tournament round logs: DECIDED — only if the student shares them.** Never automatic.
 3. **Parents: DECIDED — no parent dashboard.** Parents ask the student or the school for an export. Exception: for a free Debate Library account made with parent consent (`docs/library/TRACKS.md` §6.1), the consenting parent gets a light account for data rights only: see what is stored, export, delete, withdraw consent. It shows no progress and sends no alerts except the planned retention reminders, so it is not a parent dashboard.
 

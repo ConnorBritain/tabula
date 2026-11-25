@@ -457,7 +457,7 @@ Check the age-design laws before Phase 3 ships. They change often and some are u
 | Badges: track ID, track version, date | Both paths |
 | Sign-in provider and that provider's user ID; during a final check, the attempt token, served question IDs and retry-wait state (same rules as §5.5) | Both paths |
 
-Not stored: final-check answers, time on pages, device data, activity trails. "Last sign-in date" is the only long-lived activity data, and it exists only to run the planned inactivity deletion rules (§5.5 for adults, §6.2 "Retention" for the parent path). Birth year (no month or day) exists only to block under-13 sign-up and to end parent consent at 18.
+Not stored: final-check answers, time on pages, device data, activity trails. "Last sign-in date" is the only long-lived activity data, and it exists only to run the planned inactivity deletion rules (§5.5 for adults, §9 item 13 for the parent path). Birth year (no month or day) exists only to block under-13 sign-up and to end parent consent at 18.
 
 **Account-life rules** (owner decisions, 2026-11-19; §9, items 15 to 18):
 
