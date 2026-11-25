@@ -38,6 +38,10 @@ import { settingsHtml } from './js/settings-screen.js';
 import { foldSummaryHtml } from './js/fold.js';
 import { pickerRows, pickerSections } from './js/picker.js';
 import { pickerListHtml } from './js/picker-screen.js';
+import { overviewHtml } from './congress/chamber-screen.js';
+import { createChamber, newSession, setStatus } from './congress/chamber.js';
+import { congressProfile } from './congress/profiles.js';
+import { migrateCongress, withChamber, withSession } from './congress/store.js';
 import { toggleCheck } from './js/comments.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
@@ -684,4 +688,26 @@ test('PCC: Start Pro, the next run card says Next, the run on the clock says Liv
   assert.match(CSS, /\.run-card\.is-on \{ border-color: var\(--text\); border-width: 2px; \}/);
   // The timer view names the first run before any time ("Start Pro") through its startWord option.
   assert.match(read('./js/runs-view.js'), /startWord: \(e, ev, now, lim\) => \(runsPhase\(e, ev, now, lim\)\.index === -1 \? 'Start ' \+ eventRuns\(ev\)\[0\]\.label : ''\)/);
+});
+
+// ---------- §6 Chamber overview ----------
+
+// Why: the overview showed about 20 selects of the same weight, so a judge could not scan who was out, and the note
+// "Mark who is absent" sat far below the button it comes before. Absent and Left show as words beside the code,
+// sessions get a status pill, done docket items a check, and the note sits under "Start session N".
+test('chamber overview: session pills, Absent and Left words, done docket items with a check, the note under the primary', () => {
+  const parsed = parseRoom(['1001', '1002', '1003'].join('\n'));
+  let ch = createChamber({ entries: parsed.entries, docket: ['A Bill to Fund Rail'], house: 'house', profile: congressProfile('nsda-district'), now: 0, makeId });
+  ch = setStatus(setStatus(ch, ch.legislators[1].id, 'absent', 1), ch.legislators[2].id, 'left', 1);
+  const made = newSession(ch, [], { now: 0, makeId });
+  const chamber = Object.assign({}, made.chamber, { docket: made.chamber.docket.map((d) => Object.assign({}, d, { debatedInSession: 1 })) });
+  const html = overviewHtml(withSession(withChamber(migrateCongress(null), chamber), made.session), chamber);
+  assert.equal(primaries(html), 1);
+  assert.match(html, /<span class="room-name">Session 1<\/span>\s*<span class="pill"><svg[^>]*><use href="#i-circle"\/><\/svg>Not started<\/span><span class="room-meta">0 speeches<\/span><svg[^>]*><use href="#i-chevron-right"\/><\/svg>/);
+  assert.match(html, /<span class="code">1002<\/span><span class="pill">Absent<\/span>/);
+  assert.match(html, /<span class="code">1003<\/span><span class="pill">Left<\/span>/);
+  assert.doesNotMatch(html, /<span class="code">1001<\/span><span class="pill">/, 'present needs no pill');
+  assert.match(html, /<span class="pill live"><svg[^>]*><use href="#i-check"\/><\/svg>Done in session 1<\/span>/);
+  assert.ok(html.indexOf('id="cg-before"') < html.indexOf('Sessions</h2>'), 'the note sits under the primary, before the lists');
+  assert.equal((html.match(/Mark who is absent/g) || []).length, 1);
 });

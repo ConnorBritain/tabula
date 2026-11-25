@@ -7,6 +7,7 @@
 // createChamberScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from '../js/icons.js';
+import { statusPillHtml } from '../js/status-pill.js';
 import { parseRoom } from '../js/parse.js';
 import { newId } from '../js/room.js';
 import { congressIO, findChamber, chamberSessions, withChamber, withSession } from './store.js';
@@ -69,22 +70,27 @@ export function previewHtml(parsed, checks) {
     ${checks.length ? `<h3>Check these</h3><ul class="check-list">${checks.map((c) => `<li class="check-row"><p>${esc(c.text)}</p></li>`).join('')}</ul>` : ''}`;
 }
 
+// A session's status as a pill in words (color review §6 Chamber overview): green once submitted, a quiet tint while
+// in progress, plain before it starts.
+const SESSION_TONE = Object.freeze({ Submitted: ['ok', 'circle-check'], 'Ranks copied': ['live', 'copy'], Ranking: ['live', 'list-ordered'], Scoring: ['live', 'circle-dashed'], 'Not started': ['', 'circle'] });
+export const sessionPill = (s) => { const w = sessionStatus(s); const [tone, ic] = SESSION_TONE[w] || ['', '']; return statusPillHtml(tone, w, ic); };
+
 export function overviewHtml(state, chamber) {
   const sessions = chamberSessions(state, chamber.id);
   const next = sessions.length + 1;
   const p = chamber.profile;
   const srows = sessions.map((s) => `<li><a class="room-link" href="#/round/${esc(s.id)}/log"><span class="room-name">Session ${esc(s.number)}</span>
-      <span class="room-meta">${esc(sessionStatus(s))} · ${s.speeches.length} ${s.speeches.length === 1 ? 'speech' : 'speeches'}</span>${icon('chevron-right')}</a></li>`).join('');
-  const lrows = chamber.legislators.map((l) => `<li class="cg-leg"><span class="code">${esc(l.code)}</span><span class="muted">${esc(l.name || '')}</span>
+      ${sessionPill(s)}<span class="room-meta">${s.speeches.length} ${s.speeches.length === 1 ? 'speech' : 'speeches'}</span>${icon('chevron-right')}</a></li>`).join('');
+  const lrows = chamber.legislators.map((l) => `<li class="cg-leg"><span class="code">${esc(l.code)}</span>${l.status === 'absent' || l.status === 'left' ? statusPillHtml('', STATUS_WORDS[l.status]) : ''}<span class="muted">${esc(l.name || '')}</span>
       <label class="sr-only" for="st-${esc(l.id)}">Status of ${esc(l.code)}</label>
       <select id="st-${esc(l.id)}" data-status="${esc(l.id)}">${Object.keys(STATUS_WORDS).map((k) => `<option value="${k}"${l.status === k ? ' selected' : ''}>${STATUS_WORDS[k]}</option>`).join('')}</select></li>`).join('');
-  const drows = chamber.docket.map((d) => `<li${d.debatedInSession ? ' class="muted"' : ''}>${esc(d.title)}${d.debatedInSession ? ' <span class="pill outline">Done in session ' + esc(d.debatedInSession) + '</span>' : ''}</li>`).join('');
+  const drows = chamber.docket.map((d) => `<li${d.debatedInSession ? ' class="muted"' : ''}>${esc(d.title)}${d.debatedInSession ? ' ' + statusPillHtml('live', 'Done in session ' + d.debatedInSession, 'check') : ''}</li>`).join('');
   return `<div class="screen-head"><a class="b quiet back" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">${houseWord(chamber)}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''}</h1>
       <button class="b primary" type="button" data-chact="session" data-key="session">${icon('play', 20)}Start session ${next}</button></div>
+    <p class="cg-before" id="cg-before">${icon('info')}Mark who is absent before a session. Absent legislators are not in the rank pool.</p>
     <p class="muted">${esc(p.name)} · ${esc(profileNote(p))}</p>
     <h2 class="cg-h">Sessions</h2>${srows ? `<ul class="room-list">${srows}</ul>` : '<p class="muted">No sessions yet.</p>'}
     <h2 class="cg-h">Legislators <span class="muted">(${chamber.legislators.length})</span></h2>
-    <p class="muted">Mark who is absent before a session. Absent legislators are not in the rank pool.</p>
     <ul class="room-list cg-legs">${lrows}</ul>
     <h2 class="cg-h">Docket</h2>${drows ? `<ol class="cg-docket-list">${drows}</ol>` : '<p class="muted">No docket items.</p>'}
     <p class="muted">The parliamentarian's full-chamber rank comes in a later step.</p>`;
