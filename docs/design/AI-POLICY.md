@@ -25,7 +25,7 @@ Related: `docs/STUDENT-EDITION.md` (§1e judging tools, §5a coach controls, §1
 | **Admin** | Head coach or the person who owns the program | Yes, for every role in the program | Their own coach policy (they set it) |
 | **Coach** | Assistant coach | Only if the admin gives them "can edit AI policy" | Yes (coach role) |
 | **Student** | A debater in the program | No | **Yes. This is the main use.** |
-| **Program judge** | A parent, alum or student judge that the program brings, on the program's seats or credit pool | No | Only for the program's pool (see 1a) |
+| **School judge** | A parent, alum or student judge that the program brings, on the school's account | No | Only for whether the school pays for judge AI (see 1a) |
 | **Hired judge** | A judge a tournament hires, not a program member | No | **No** |
 | **Solo user** | Anyone with no program (free, own key, or own paid plan) | Their own settings only | **No** |
 
@@ -88,7 +88,7 @@ The master switch **"AI tools: off"** sets all of these to off. "Flow only" is t
 - **Students: no default. The admin must pick** "Flow only" or "Flow + AI clerk" when the program is made. Until the pick is saved, students are in Flow only (fail closed). A school should make this choice on purpose. A default either way would surprise half the schools.
   - "Flow + AI clerk" uses the student-edition defaults (STUDENT-EDITION §5a): AI clerk tools on in practice, off in tournament mode; transcription off in tournament mode.
 - **Coaches:** all on.
-- **Program judges:** pool pays: on.
+- **School judges:** the school pays for judge AI: on.
 - **Student judges may use judge AI:** off.
 
 ### 2c. Managed and linked accounts
@@ -203,7 +203,7 @@ Plus a browser check (the DOM test; no new packages): with `?ai=off`, no id from
 
 1. **Edition rules** (STUDENT-EDITION §1e, §4c). Hard product rules. Live judging tools are never in the student edition. "What did I drop?" only after round closure. No admin can change these.
 2. **Tournament mode and tournament profile.** A tournament can turn off more (for example NCFL: no transcription).
-3. **Program policy** for the role.
+3. **School policy** for the role.
 4. **Plan and credits, or own key.**
 5. **The user's own settings** (for example Live AI flow off).
 
@@ -262,7 +262,7 @@ Plus a browser check (the DOM test; no new packages): with `?ai=off`, no id from
 - Server table `policy_events`: `program_id`, actor account ID, time, role, feature, old value, new value, `policyVersion`. No student names, no content.
 - **Admins and coaches** of the program can read the log: who changed what, and when.
 - **Students** can see their own current feature set only through the app itself. They see no log.
-- Kept for the program's retention period (120 days after the season, STUDENT-EDITION §10i), then deleted. It holds no student data, so a longer period is possible if schools ask.
+- Kept for the program's retention period. Automatic deletion after a set time is planned with the Library feature. It is not in place today. It holds no student data, so a longer period is possible if schools ask.
 - Each resolved feature set carries `policyVersion`, so a support question ("Why did AI vanish on Tuesday?") maps to one log line.
 
 ---

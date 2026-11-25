@@ -135,7 +135,6 @@ Sections:
 **Round packs** (later, for judges who do not want keys):
 - A small hosted backend (for example a Cloudflare Worker) holds Tabula's own AI keys.
 - Payments through Stripe. Credits are counted per round.
-- **Program accounts**: a coach buys a pool of credits and hands out judge codes. This works as a recruiting perk for judges.
 - We measure the real cost per round first.
 - **Needed before charging**:
   - Accounts and login.
