@@ -181,7 +181,7 @@ Entry {
 | Account, membership, program, AI policy | Yes | Already in D1. |
 | Usage per AI call: room ID (a random ID with no tournament name in it), task, tokens, credits | Yes | Billing. No text, no codes, no names. |
 | The text for "Clean up my comments" | **Processed, never stored.** It passes through our Worker to an AI provider (logging off) and back. | Hosted AI path, same as debate (`docs/architecture/ARCHITECTURE.md` §4). Before the call, the app replaces codes with "Speaker 1..N" and also scrubs any name, title or author the judge typed in setup for that room. Free text can still hold a name the judge typed only in the notes; the clean-up screen says so. For middle school events, hosted clean-up is off by default (own key or none), pending the legal read in PLAN.md Q7. |
-| Room summary (event, round, date, entry count) | Opt-in later | Matches the debate "round summaries" decision (the server's roles plan). No codes, no names, no comments. |
+| Room summary (event, round, date, entry count) | Opt-in later | Matches the same decision for debate rooms (the server's roles plan). No codes, no names, no comments. |
 | Stored comments, names, codes, audio, transcripts | **Never stored** | Minors. Same promise as debate. |
 
 ## 7. AI in Speech Events
