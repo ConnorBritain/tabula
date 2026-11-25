@@ -155,7 +155,7 @@ Both routes need a fresh check first: the person enters a recent code sent by em
   - `409 last_manager` with `{ programs: [id] }`: the person is the only member manager, or the only billing manager, of these schools. Hand over first.
   - `409 active_subscription`: a subscription will renew. Set it to cancel in the billing portal first.
   - `200 { ok: true }`, and both cookies are cleared.
-  - What delete removes and keeps is in [DATA-RULES.md](DATA-RULES.md) §5.
+  - Data rules: coming later.
 
 ## 8. Hosted AI replies
 
