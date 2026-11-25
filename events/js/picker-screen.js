@@ -42,7 +42,7 @@ export function pickerListHtml(sections) {
 // (#/chamber/new) instead of the confirm sheet. It shows with the family groups, never in search results.
 function congressHtml() {
   return `<section class="pk-sec" aria-labelledby="pk-h-congress"><h3 id="pk-h-congress">Congress</h3><ul class="pk-list"><li class="pk-row">
-    <a class="pk-pick" href="${esc(routeHash('chamber', 'new'))}"><span class="pk-name">Congressional Debate <span class="muted">Congress</span></span>
+    <a class="pk-pick" href="${esc(routeHash('chamber', 'new'))}"><span class="pk-name">Congressional Debate <span class="muted">Congress</span> <span class="pill outline">Beta</span></span>
       <span class="pk-line">Students give short speeches on bills and answer questions. You score each speech and rank the chamber.</span>
       ${chipsHtml(['Points per speech', 'Top 8'])}${icon('chevron-right')}</a></li></ul></section>`;
 }

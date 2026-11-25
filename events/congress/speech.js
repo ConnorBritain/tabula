@@ -151,6 +151,10 @@ export function legislatorLines(chamber, session) {
   });
 }
 
+// How many of a legislator's speeches still have no points (one line from legislatorLines). A speech past the
+// scored-speech cap gets no points by rule, so it is not counted; a ranks-only chamber has no points at all.
+export const openCount = (line, profile) => (ranksOnly(profile) ? 0 : line.speeches.filter((x) => x.counted == null && !(profile.scoredSpeechCap && x.nth > profile.scoredSpeechCap)).length);
+
 // Precedence for the picker (§1): legislators who are present, fewest speeches first, then the one who spoke least
 // recently (never spoken first; then by recency). This is a help for the scorer's search, not the official order
 // (the parliamentarian keeps that, step S7).
@@ -165,4 +169,4 @@ export function precedenceOrder(chamber, session) {
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressSpeech = Object.freeze({ SPEECH_MS, TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS,
   questionMsFor, nextDefaults, POINTS_ACTIONS, refusesAction, startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, timerView, minSec, clockText, countedPoints, needsReason,
-  legislatorLines, precedenceOrder });
+  legislatorLines, openCount, precedenceOrder });

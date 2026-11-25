@@ -80,6 +80,24 @@ export const SCALE_CHOICES = Object.freeze([
 ]);
 export const scaleId = (s) => (s ? s.min + '-' + s.max : '');
 export const scaleText = (s) => (s ? s.min + ' to ' + s.max : '');
+// The open facts a judge can set at setup. A value a source did not confirm (listed in `unverified`) is not decided
+// by the app: the setup screen shows a choice with "Check your tournament's rule", and the chamber keeps the pick.
+//   poScaleChoices(p)   the PO ranges to offer: the profile's own first, then the speech scale (NSDA district: 4 to 8,
+//                       or 1 to 8 as the manual's merit-points line reads). Empty when the PO range is confirmed, or
+//                       when the scorer gives the PO no points.
+//   rankPoolChoices(p)  'present' and 'spokeOrPresided', the profile's own first. Empty when the pool is confirmed.
+export const RANK_POOL_WORDS = Object.freeze({ present: 'Every present legislator', spokeOrPresided: 'Only those who spoke or presided' });
+export function poScaleChoices(p) {
+  if (!p || !p.poScale || p.poRule !== 'fullHourOnly' || !p.unverified.includes('poScale')) return [];
+  const out = [p.poScale];
+  if (p.scale && scaleId(p.scale) !== scaleId(p.poScale)) out.push(p.scale);
+  return out;
+}
+export function rankPoolChoices(p) {
+  if (!p || !p.unverified.includes('rankPool')) return [];
+  return [p.rankPool].concat(Object.keys(RANK_POOL_WORDS).filter((k) => k !== p.rankPool));
+}
+
 // A ranks-only profile gives no speech or PO points (NCFL, CHSSA).
 export const ranksOnly = (p) => Boolean(p) && p.scoring === 'ranksOnly';
 
@@ -94,4 +112,5 @@ export function congressProfile(id) {
 const FIELD_WORDS = Object.freeze({ reasonBelow: 'when to ask for a reason', poScale: 'the PO points range', poRule: 'how PO hours score', rankPool: 'who can be ranked', topN: 'how many to rank', maxLegislators: 'the chamber limit', wrongSideMax: 'the wrong-side cap', scale: 'the speech points range' });
 export const unverifiedWords = (p) => (p && p.unverified ? p.unverified.map((f) => FIELD_WORDS[f] || f) : []);
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressProfiles = Object.freeze({ CONGRESS_PROFILES, DEFAULT_CONGRESS_PROFILE, SCALE_CHOICES, scaleId, scaleText, ranksOnly, congressProfile, unverifiedWords });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressProfiles = Object.freeze({ CONGRESS_PROFILES, DEFAULT_CONGRESS_PROFILE, SCALE_CHOICES, scaleId, scaleText, ranksOnly, congressProfile, unverifiedWords,
+  RANK_POOL_WORDS, poScaleChoices, rankPoolChoices });
