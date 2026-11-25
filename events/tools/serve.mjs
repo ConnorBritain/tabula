@@ -1,5 +1,5 @@
 // A tiny static file server for the device pass: serves the repo root on 127.0.0.1 so /events/ loads like a real host.
-// Only GET and HEAD, only files under the root, no directory listing. Not part of the app build.
+// Only GET and HEAD, only files under the root, no dotfiles, no directory listing. Not part of the app build.
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize, sep } from 'node:path';
@@ -16,7 +16,10 @@ export function serve(root, port = 0) {
   const base = normalize(root + sep);
   const server = createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405).end(); return; }
-    let path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+    let path;
+    try { path = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { res.writeHead(400).end(); return; }
+    // Dotfiles and dot-folders (.git, .env) are never served, as in the real build.
+    if (path.split('/').some((part) => part.startsWith('.'))) { res.writeHead(404).end('not found'); return; }
     if (path.endsWith('/')) path += 'index.html';
     const file = normalize(join(base, path));
     if (!file.startsWith(base)) { res.writeHead(403).end(); return; }

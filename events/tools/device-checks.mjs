@@ -59,17 +59,20 @@ export function measurePage() {
         for (const rr of range.getClientRects()) right = Math.max(right, rr.right);
       }
       const cs = getComputedStyle(el);
-      // Visually hidden text (the sr-only pattern: a 1 px clipped box, or inside one) is for screen readers only.
+      // Visually hidden text (the sr-only pattern: a box of 2 px or less that clips what it holds, or inside one) is
+      // for screen readers only. A tiny box that lets its content show (overflow visible, no clip) does not count.
       let hiddenBox = false;
       for (let a = el; a && a !== document.body; a = a.parentElement) {
         const ar = a.getBoundingClientRect();
         const acs = getComputedStyle(a);
-        if ((ar.width <= 2 || ar.height <= 2) || /rect\(0(px)?,? 0(px)?,? 0(px)?,? 0(px)?\)/.test(acs.clip)) { hiddenBox = true; break; }
+        const clipsAll = /rect\(0(px)?,? 0(px)?,? 0(px)?,? 0(px)?\)/.test(acs.clip) || (acs.clipPath && acs.clipPath !== 'none');
+        if ((ar.width <= 2 || ar.height <= 2) && (clipsAll || /(hidden|clip)/.test(acs.overflow))) { hiddenBox = true; break; }
       }
-      // Inside a box that scrolls sideways on purpose (a strip of speakers, a wide table): off-screen text is reachable.
+      // Inside a box that really scrolls sideways (a strip of speakers, a wide table): off-screen text is reachable.
+      // A wrapper that is set to scroll but has nothing to scroll does not count.
       let inScroller = false;
       for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
-        if (/(auto|scroll)/.test(getComputedStyle(a).overflowX)) { inScroller = true; break; }
+        if (/(auto|scroll)/.test(getComputedStyle(a).overflowX) && a.scrollWidth > a.clientWidth + 1) { inScroller = true; break; }
       }
       const scrolls = /(auto|scroll)/.test(cs.overflowX);
       const clips = /(hidden|clip)/.test(cs.overflowX) || cs.textOverflow === 'ellipsis';

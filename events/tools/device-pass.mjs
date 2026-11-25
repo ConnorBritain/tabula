@@ -12,13 +12,21 @@ import { createRequire } from 'node:module';
 import { mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { resolve, sep, join } from 'node:path';
 import { serve } from './serve.mjs';
 import { SCREENS, THEMES, pickProfiles, engineFor } from './device-profiles.mjs';
 import { measurePage, judge, summarize, markdownTable } from './device-checks.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, '').split('=')).map(([k, v]) => [k, v ?? '1']));
-const OUT = args.out || fileURLToPath(new URL('out/', import.meta.url));
+// The output folder is wiped at the start of a run, so it must be a folder of its own: never the repo, a parent of
+// it, or a folder in it outside events/tools/out/.
+const OUT = resolve(args.out || fileURLToPath(new URL('out/', import.meta.url))) + sep;
+const SAFE_IN_REPO = resolve(ROOT, 'events/tools/out') + sep;
+if (resolve(ROOT).startsWith(OUT) || (OUT.startsWith(resolve(ROOT) + sep) && !OUT.startsWith(SAFE_IN_REPO))) {
+  console.error(`Refusing --out=${args.out}: it is the repo, holds the repo, or is a repo folder outside events/tools/out/.`);
+  process.exit(2);
+}
 
 
 let pw;
@@ -45,11 +53,12 @@ const within = (promise, ms, what) => Promise.race([promise, new Promise((_, no)
 
 async function walk(browser, engine, profile, theme, server, log, trace) {
   const tag = { device: profile.id, theme };
-  const dir = `${OUT}${profile.id}-${theme}/`;
+  const dir = join(OUT, `${profile.id}-${theme}`) + sep;
   mkdirSync(dir, { recursive: true });
   const ctxOpts = { ...profile.context, colorScheme: theme, serviceWorkers: 'allow' };
   if (engine === 'firefox') { delete ctxOpts.isMobile; }
   const ctx = await browser.newContext(ctxOpts);
+  trace.ctx = ctx;
   if (engine === 'chromium') await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: server.url });
   await ctx.clock.install(); // fake time: a 4-minute speech or a 1-hour PO term takes a moment, not minutes
   const page = await ctx.newPage();
@@ -63,7 +72,7 @@ async function walk(browser, engine, profile, theme, server, log, trace) {
   const hash = () => page.evaluate(() => location.hash);
   const go = async (h) => { await page.evaluate((x) => { location.hash = x; }, h); await sleep(350); };
   const settle = async () => { await page.waitForLoadState('load'); await sleep(350); };
-  const note = (screen, problem, detail) => log.push({ screen, ...tag, problem, detail });
+  const note = (screen, problem, detail) => { if (!trace.stopped) log.push({ screen, ...tag, problem, detail }); };
   // One screen: measure it, judge it, screenshot it, and pin any console errors since the last screen to it.
   const shot = async (screen) => {
     await sleep(200);
@@ -111,8 +120,12 @@ async function walk(browser, engine, profile, theme, server, log, trace) {
     await page.fill('#notes', `Clear characters and strong pops. Work on the intro, speaker ${i + 1}.`);
     if (i < 5) { await click('[data-act=next]'); await sleep(250); }
   }
+  await check('Room: interp (HI)', 'all six speakers are timed', async () => (await page.locator('.strip-pill', { hasText: 'Done' }).count()) === 6);
   await click('#go-rank'); await sleep(400);
+  const order = () => page.$$eval('[data-ract=down]', (bs) => bs.map((b) => b.dataset.id).join());
+  const before = await order();
   await click('[data-ract=down] >> nth=0'); await sleep(200);
+  await check('Rank', 'Move down changes the order', async () => (await order()) !== before);
   await shot('Rank');
   await click('#go-review'); await sleep(400);
   await shot('Review and copy');
@@ -129,7 +142,7 @@ async function walk(browser, engine, profile, theme, server, log, trace) {
   await shot('Review offline');
   await go(`#/round/${roomId}`);
   await check('Review offline', 'the room screen loads offline', async () => /Next speaker|Rank the room/.test(await page.textContent('#screen').catch(() => '')));
-  pending = pending.filter((p) => !/ERR_INTERNET_DISCONNECTED|Failed to load resource/.test(p.detail)); // the network is off on purpose
+  pending = pending.filter((p) => !/ERR_INTERNET_DISCONNECTED/.test(p.detail)); // the network is off on purpose; a missing file still shows
   await ctx.setOffline(false);
 
   for (const [ev, screen] of [['oo', 'Room: public address (OO)'], ['usx', 'Room: limited prep (USX)'], ['pcc', 'Room: Pro Con Challenge (PCC)']]) {
@@ -139,7 +152,9 @@ async function walk(browser, engine, profile, theme, server, log, trace) {
   }
   await go('#/new/hi'); await page.selectOption('#setup-profile', 'rate-only'); await page.fill('#setup-paste', SIX);
   await click('#setup-start'); await sleep(500);
-  await go(`#/round/${(await hash()).split('/')[2]}/rank`); await shot('Rate');
+  await go(`#/round/${(await hash()).split('/')[2]}/rank`);
+  await check('Rate', 'the rate-only room opens the Rate screen', async () => /Rate/.test(await page.textContent('#screen')));
+  await shot('Rate');
   await go('#/history'); await shot('History');
   await go('#/settings'); await shot('Settings');
   await page.keyboard.press(profile.context.userAgent.includes('Mac') || profile.context.userAgent.includes('iPhone') ? 'Meta+k' : 'Control+k'); await sleep(300);
@@ -165,6 +180,7 @@ async function walk(browser, engine, profile, theme, server, log, trace) {
     await click('[data-cact=end]'); await sleep(150);
     if (await page.isVisible('[data-cact=close]')) { await click('[data-cact=close]'); await sleep(150); }
   }
+  await check('Congress log', 'four speeches are logged', async () => (await page.locator('.cg-cell').count()) === 4);
   await click('[data-cact=po-choose]'); await sleep(200);
   await click('[data-cact=po-start] >> nth=0');
   // The chamber's 1-second tick must see the new term once before the hour passes (that first look is its baseline).
@@ -176,6 +192,7 @@ async function walk(browser, engine, profile, theme, server, log, trace) {
   if (await page.isVisible('[data-cact=po-score]')) { await click('[data-cact=po-score][data-value="7"]'); await sleep(200); }
   await go(`#/round/${chamberId}/rank`);
   for (let i = 0; i < 8; i++) { await click('.cg-poolrow:not(.on) >> nth=0').catch(() => {}); await sleep(120); }
+  await check('Congress rank', 'all 8 rank slots fill', async () => (await page.locator('.cg-poolrow.on').count()) === 8);
   await shot('Congress rank');
   await go(`#/round/${chamberId}/review`);
   await shot('Congress review');
@@ -189,7 +206,7 @@ async function walk(browser, engine, profile, theme, server, log, trace) {
   await page.reload().catch(() => {}); await settle();
   await check('Congress offline', 'the chamber loads offline', async () => /Good clash/.test(await page.textContent('#screen').catch(() => '')));
   await shot('Congress offline');
-  pending = pending.filter((p) => !/ERR_INTERNET_DISCONNECTED|Failed to load resource/.test(p.detail));
+  pending = pending.filter((p) => !/ERR_INTERNET_DISCONNECTED/.test(p.detail));
   await ctx.setOffline(false);
   await go('#/chamber'); await shot('Congress chambers');
   await go('#/'); await shot('My day (with rounds)');
@@ -220,6 +237,8 @@ async function main() {
         const trace = { step: 'start', covered: [] };
         const limit = new Promise((_, no) => setTimeout(() => no(new Error('walk took over 5 minutes')), 300000).unref());
         try { covered = await Promise.race([walk(browsers[engine], engine, profile, theme, server, log, trace), limit]); } catch (e) {
+          trace.stopped = true; // a walk that ran out of time stops adding findings and loses its browser tab
+          await trace.ctx?.close().catch(() => {});
           log.push({ screen: 'walk', device: profile.id, theme, problem: 'walk stopped', detail: `at "${trace.step}": ${String(e.message).split('\n')[0].slice(0, 200)}` });
         }
         covered = trace.covered;
@@ -235,10 +254,12 @@ async function main() {
   const runTable = '| Device | Profile | Theme | Engine | Screens |\n|---|---|---|---|---|\n' +
     runs.map((r) => `| ${r.device} | ${r.name} | ${r.theme} | ${r.engine}${r.engine !== r.wanted ? ` (wanted ${r.wanted}: not installed)` : ''} | ${r.screens} |`).join('\n');
   const md = `# Emulated device pass\n\nCommit: ${commit}\n\n${runTable}\n\n## Findings\n\n${markdownTable(rows)}\n`;
-  writeFileSync(OUT + 'findings.json', JSON.stringify({ commit, runs, findings: log }, null, 2));
-  writeFileSync(OUT + 'summary.md', md);
+  writeFileSync(join(OUT, 'findings.json'), JSON.stringify({ commit, runs, findings: log }, null, 2));
+  writeFileSync(join(OUT, 'summary.md'), md);
   console.log('\n' + md);
   console.log(`Screenshots and findings: ${OUT}`);
+  // Layout findings are a report; a failed step, a stopped walk or a script error makes the run fail.
+  if (log.some((f) => /^(step failed|walk stopped|console error|uncaught exception)$/.test(f.problem))) process.exitCode = 1;
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) await main();

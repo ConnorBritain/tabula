@@ -69,7 +69,7 @@ Mark each step pass or fail. On a fail, write what you saw and take a screenshot
 9. Leave the device alone for 2 minutes. Does the screen stay awake? (It should while the timer runs.)
 10. Lock the screen (power button) for 30 seconds, then unlock. Is the timer still running, with the right time?
 11. Switch to another app (or another tab) for 30 seconds, then come back. Is the time still right?
-12. Tap Stop. Type a comment. Tap Next speaker. Repeat steps 8, 12 for all six speakers (short times are fine).
+12. Tap Stop. Type a comment. Tap Next speaker. Repeat steps 8 and 12 for all six speakers (short times are fine).
 
 **E. Rank**
 
@@ -155,11 +155,11 @@ Fill one row for each device. Use one row for each section letter that failed, w
 
 | Device | OS version | Browser version | App release id | Tester | Date | Sections passed | Pass / fail | Notes |
 |---|---|---|---|---|---|---|---|---|
-| iPhone | | Safari | | | | | waiting for staging and testers | |
-| Android phone | | Chrome | | | | | waiting for staging and testers | |
-| School Chromebook | | Chrome | | | | | waiting for staging and testers | |
-| iPad | | Safari | | | | | waiting for staging and testers | |
-| Windows laptop | | Edge | | | | | waiting for staging and testers | |
+| iPhone (Safari) | | | | | | | waiting for staging and testers | |
+| Android phone (Chrome) | | | | | | | waiting for staging and testers | |
+| School Chromebook (Chrome) | | | | | | | waiting for staging and testers | |
+| iPad (Safari) | | | | | | | waiting for staging and testers | |
+| Windows laptop (Edge) | | | | | | | waiting for staging and testers | |
 
 ---
 
@@ -215,7 +215,7 @@ Screens covered (23): My day (empty and with rounds), Picker, Type page, Room se
 public address (OO), limited prep (USX) and Pro Con Challenge (PCC), Rank, Rate, Review and copy, Review offline,
 History, Settings, Palette, Congress setup, Congress log (speech open), Congress PO hour, Congress rank, Congress
 review, Congress offline, Congress chambers list. Every one has a light-theme phone shot (iPhone and Pixel profiles)
-in the output folder. This closes the gap of screens never seen in the light theme at phone width.
+in the output folder.
 
 ### Findings, by judge impact
 
@@ -225,7 +225,7 @@ in the output folder. This closes the gap of screens never seen in the light the
 2. **Type page: rule-set rows overlap at phone width (iPhone, Pixel).** In the Rules list, each closed row's title
    ("Rate only (no ranks)", "Comments only (no ranks)", "NSDA-style invitational") wraps into a narrow column and its
    summary text is drawn on top of it. Unreadable.
-3. **Rate screen: rating buttons are about 31 px wide (all devices).** Ten buttons in a row (1 to 10); a finger can
+3. **Rate screen: rating buttons are 31 to 33 px wide (all devices).** Ten buttons in a row (1 to 10); a finger can
    hit the next number. Same on the Congress points and PO score chips (40x40).
 4. **Rank: Move up / Move down are 32 px wide; the "read the comment" link is 24 px tall (all devices).**
 5. **Room screen: the "About <event>" link is 24 px tall; the speaker "Change" button is 32x32 (all devices).**

@@ -111,7 +111,7 @@ test('summarize groups findings by screen and problem, keeps devices and themes,
   assert.match(markdownTable([]), /\(none\)/);
 });
 
-// Why: if the walk drops a screen type, its phone layout goes unchecked again (13 screens were never seen in light).
+// Why: if the walk drops a screen type, its phone layout goes unchecked and a judge finds the bug mid-round.
 test('the walk lists every screen type a judge meets, Congress included', () => {
   for (const s of ['My day', 'Picker', 'Room setup', 'Rank', 'Rate', 'Review and copy', 'History', 'Settings', 'Palette', 'Type page',
     'Congress setup', 'Congress log', 'Congress PO hour', 'Congress rank', 'Congress review']) assert.ok(SCREENS.includes(s), s);
@@ -129,4 +129,19 @@ test('the pass output folder is gitignored', () => {
 test('the events build never copies events/tools', async () => {
   const { ALLOW } = await import('../build-events.mjs');
   for (const name of ALLOW) assert.ok(!/^events\/tools(\/|$)/.test(name) && name !== 'events', `build-events.mjs ALLOW ships ${name}`);
+});
+
+// Why: the pass serves the repo folder; it must not crash on a bad address or hand out .git or files above the repo.
+test('the local server serves app files only: no dotfiles, no paths above the root, no crash on bad encoding', async () => {
+  const { serve } = await import('./tools/serve.mjs');
+  const root = new URL('../', import.meta.url).pathname;
+  const s = await serve(root);
+  try {
+    const get = async (path) => (await fetch(s.url + path)).status;
+    assert.equal(await get('/events/index.html'), 200);
+    assert.equal(await get('/%E0%A4%A'), 400);
+    assert.equal(await get('/.git/config'), 404);
+    assert.notEqual(await get('/..%2f..%2fetc%2fpasswd'), 200);
+    assert.equal(await get('/events/no-such-file.js'), 404);
+  } finally { await s.close(); }
 });
