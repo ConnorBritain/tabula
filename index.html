@@ -86,6 +86,9 @@
   .muted { color: var(--text-3); font-size: var(--fs-2); }
   .status-line { font-weight: var(--fw-3); margin: var(--s2) 0 0; }
   .help-line { margin: var(--s2) 0 0; }
+  /* The day-end backup reminder in History: a quiet bordered line, no colour (it is a nudge, not an error). */
+  .backup-due { flex-wrap: wrap; gap: var(--s2); align-items: center; margin: 0 0 var(--s3); padding: var(--s2) var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-md); }
+  .backup-due[hidden] { display: none; }
   .status-inline { font-weight: var(--fw-3); }
   .mt-2 { margin-top: var(--s2); } .mt-3 { margin-top: var(--s3); }
   label.winner { font-size: var(--fs-3); color: var(--text); }
@@ -1340,6 +1343,12 @@
   </div>
   <div class="card" id="backup-card">
     <h2>Back up and restore</h2>
+    <p class="sr-only" id="backup-due-status" role="status"></p>
+    <div class="backup-due row" id="backup-due" hidden>
+      <span>You saved ballots since your last backup. Download one now, so clearing the browser does not lose them.</span>
+      <button class="b primary small" type="button" id="backup-due-go">Download backup</button>
+      <button class="b small" type="button" id="backup-due-no">Not now</button>
+    </div>
     <p class="muted" style="margin:0 0 var(--s3)">Everything is saved in this browser only. Download a backup before you clear the browser or switch computers.</p>
     <div class="row">
       <button class="b primary" id="backup-go">Download backup</button>
