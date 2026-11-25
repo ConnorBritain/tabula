@@ -51,7 +51,7 @@
     defaultSheets: ['Pro case', 'Con case'],
     // perTeam: one prep clock per side, shared by the team's two debaters.
     prep: { seconds: 180, mode: 'perTeam' },
-    // FORMATS.md §2: PF ballots give the win and speaker points, with no speaker ranks (lay judges are common).
+    // PF ballots give the win and speaker points, with no speaker ranks (lay judges are common).
     ballot: { points: { min: 25, max: 30 }, speakerRanks: false },
     timesNote: 'NSDA PF uses 4-minute constructives and rebuttals, 3-minute crossfires and summaries, 2-minute final focus speeches and 3 minutes prep per team. A coin flip picks the side and who speaks first.',
     ai: {
