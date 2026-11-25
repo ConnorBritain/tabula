@@ -65,7 +65,7 @@ Base commit: `8e89d6b` (debate repo).
 | E34 | Toast: "This browser blocked copying." (short form) | `events/js/review-screen.js:156` | Use the long form from `review-screen.js:132` | Two strings for one error. The long one says what to do. **Done.** |
 | E35 | "AI rewrote your words. Check them before you copy." **and** live message "The clean version is ready. Check it, then choose Use this or Keep mine." | `events/js/cleanup-view.js:48`, `:94` | Keep line 48. Live message: "Clean version ready." | Line 94 repeats line 48 for screen readers. The buttons are named already. **Done.** |
 
-**Keep as is:** the clean-up privacy note (`cleanup-view.js:33`). It says what leaves the device. A shorter form is possible, but the owner and the lawyer should pick it, not this audit.
+**Keep as is:** the clean-up privacy note (`cleanup-view.js:33`). It says what leaves the device. A shorter form is possible, but the owner should sign off on it, not this audit.
 
 ### 1.4 My day, setup, picker
 

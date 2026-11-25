@@ -1,0 +1,24 @@
+# Gates on every pull request and on main: the tests and the publish check (.claude/gates.json).
+# No dependencies to install: the app has no package.json, and its libraries are self-hosted in vendor/.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: node --test
+      # The leak guard reads its private term list from the LEAK_TERMS secret. With no secret it skips with a note.
+      # In CI it prints file:line and a term number only, never the term text.
+      - run: node check-publish.mjs
+        env:
+          TABULA_LEAK_TERMS_TEXT: ${{ secrets.LEAK_TERMS }}

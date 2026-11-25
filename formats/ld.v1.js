@@ -1,7 +1,7 @@
 // Format file: NSDA high school Lincoln-Douglas (LD), version 1. Data only, no code (docs/architecture/ARCHITECTURE.md §9).
 // A published version never changes: a round renders with the version it was judged under. To change the format,
 // copy this file to ld.v2.js, raise "version", and add the new file to logic/format.js and formats.test.js.
-// Speech times: AC 6, CX 3, NC 7, CX 3, 1AR 4, NR 6, 2AR 3; 4 minutes prep per debater.
+// Times from docs/formats/FORMATS.md: AC 6, CX 3, NC 7, CX 3, 1AR 4, NR 6, 2AR 3; 4 minutes prep per debater.
 (function (root) {
   'use strict';
   const format = {

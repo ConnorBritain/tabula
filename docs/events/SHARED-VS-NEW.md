@@ -17,7 +17,7 @@ Source: a read-only audit of the debate code on 2026-11-20 (file and line number
 - About **40% is product-neutral** (about 47% if Speech Events reuses recording for practice).
 - This audit supersedes the count in `docs/architecture/ARCHITECTURE.md` §10.2 (about 6,060 lines, about 43%). That count was made before `app.js` was split into `js/` and `logic/`, and it left out `logic/` (2,197 lines). The share is close; the total grew.
 - But **only about 11% can be reused unchanged** today: `providers.js`, `clipqueue.js`, `tap.js`, most of `ui.js`, most of `tokens.css`. The rest needs a small change first, mostly to stop it reading the debate globals `R` and `S`.
-- **Planning number: 35–45% shared.** This matches `docs/growth/FORENSICS.md` §4.
+- **Planning number: 35–45% shared.**
 - **The cost of a second app is the `core/` refactor.** It must come before `events/` code. The seams it needs come from the debate format refactor, which LD needs anyway.
 
 ## 2. Shared: the list the owner asked for
@@ -32,8 +32,8 @@ Source: a read-only audit of the debate code on 2026-11-20 (file and line number
 | **Points stepper and range** | Yes | `stepPoints` (:217), `ptsRange` and `rangeError` (`logic/round.js` :239–252) | Reuse as "rating points". |
 | **Copy for the tournament ballot** | Yes, the sheet | `openCopySheet` (`js/decide.js` :537) | Feed it a new events model instead of `L.tournamentBlocks(R)`. |
 | **Print / PDF** | Yes, the sheet | `openPrintDialog` (:568), `buildPrintSheet` (:589) | Feed it a new events print model. |
-| **Accounts and sign-in** | Yes, server side | `tabula-cloud` Worker | Add `events.tabulaspeech.com` to the return-URL list (already planned). |
-| **Rounds billing** | Yes, server side | `tabula-cloud` meter and ledger | New task names (`events.cleanup`). A rule for what one "round" is in Speech Events (PLAN.md Q2). `productLine: 'events'` on each debit. |
+| **Accounts and sign-in** | Yes, server side | Server Worker | Add `events.tabulaspeech.com` to the return-URL list (already planned). |
+| **Rounds billing** | Yes, server side | Server meter and ledger | New task names (`events.cleanup`). A rule for what one "round" is in Speech Events. `productLine: 'events'` on each debit. |
 | **AI policy** | Yes, design reused; code not built yet | Stubs only: `aiCommandsAllowed()` (`palette.js` :10), `hasHostedPlan(gate)` (now real, `logic/hosted.js`), `aiReady` (`ai.js` :66) | Build `can()` / `ready()` once, in `core/policy.js`, for both apps (`docs/design/AI-POLICY.md` §7 step 1). |
 | **AI provider client and key store** | Yes | `providers.js` (as is), `js/ai.js` `callAI` (:167), key store (:41–66) | Inject the anonymizer (today it reads `R.aff` / `R.neg`, :154). |
 | **Design tokens** | Yes | `assets/tokens.css` (124) | Move `--aff` / `--neg` out to the debate CSS. Add events data tokens (DESIGN.md §3). |
@@ -98,6 +98,6 @@ Covered in [DESIGN.md](DESIGN.md). In short:
 2. **Lift `core/`** from the seams, with debate still passing all its tests. This is the riskiest step. It touches the live debate app.
 3. **Build `events/` on `core/`.**
 
-Estimate for step 2 (my judgment, not measured): about 2 to 3 weeks of focused work for one developer, plus a full debate regression pass. The estimate depends on how `core/` loads with no build step (PLAN.md Q10). See PLAN.md risks R1 and R2.
+Estimate for step 2 (my judgment, not measured): about 2 to 3 weeks of focused work for one developer, plus a full debate regression pass. The estimate depends on how `core/` loads with no build step.
 
 Timing: steps 2 and 3 run **after LD and PF ship**, keeping the owner's order. The format refactor (step 1) is what unblocks LD; the folder lift does not.

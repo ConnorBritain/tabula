@@ -1,7 +1,7 @@
 // Format file: NSDA high school Public Forum (PF), version 1. Data only, no code (docs/architecture/ARCHITECTURE.md §9).
 // A published version never changes: a round renders with the version it was judged under. To change the format,
 // copy this file to pf.v2.js, raise "version", and add the new file to logic/format.js and formats.test.js.
-// Speech times: constructive 4 + 4, crossfire 3, rebuttal 4 + 4, crossfire 3, summary 3 + 3,
+// Times from docs/formats/FORMATS.md: constructive 4 + 4, crossfire 3, rebuttal 4 + 4, crossfire 3, summary 3 + 3,
 // grand crossfire 3, final focus 2 + 2; 3 minutes prep per team.
 (function (root) {
   'use strict';
@@ -51,7 +51,7 @@
     defaultSheets: ['Pro case', 'Con case'],
     // perTeam: one prep clock per side, shared by the team's two debaters.
     prep: { seconds: 180, mode: 'perTeam' },
-    // PF ballots give the win and speaker points, with no speaker ranks (lay judges are common).
+    // docs/formats/FORMATS.md: PF ballots give the win and speaker points, with no speaker ranks (lay judges are common).
     ballot: { points: { min: 25, max: 30 }, speakerRanks: false },
     timesNote: 'NSDA PF uses 4-minute constructives and rebuttals, 3-minute crossfires and summaries, 2-minute final focus speeches and 3 minutes prep per team. A coin flip picks the side and who speaks first.',
     ai: {

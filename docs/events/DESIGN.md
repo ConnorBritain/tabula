@@ -9,7 +9,7 @@ This file has two parts:
 
 Mobbin links need a signed-in Mobbin account. The full reference list (32 searches, about 60 screens) is in the shared notes folder: `side-session-notes/local_8e1f7a27-…/speech-events/mobbin-references.md`. Mobbin had no screens for some apps we asked about (SpeedGrader, Gradescope, Google Classroom, ClassDojo, Keynote presenter view, Toastmasters timers, Speeko, Grammarly, Gmail, Apple Writing Tools). Where that happened, the closest real pattern is used.
 
-Related: `docs/design/SPEC.md` Part 2 (tokens), `docs/design/NO-STRIPES.md`, `docs/design/AI-POLICY.md` §3, `docs/growth/BRAND.md` §7, [SHARED-VS-NEW.md](SHARED-VS-NEW.md) §5 (primitives N1–N14).
+Related: `docs/design/SPEC.md` Part 2 (tokens), `docs/design/NO-STRIPES.md`, `docs/design/AI-POLICY.md` §3, [SHARED-VS-NEW.md](SHARED-VS-NEW.md) §5 (primitives N1–N14).
 
 ## 1. Shared philosophy (same as Tabula Debate)
 
@@ -36,9 +36,9 @@ These rules come over unchanged. They are already tested in debate.
 ## 3. Color for Speech Events
 
 - **The two Speech Events greens stay in the mark** (logo, app icon, marketing): deep `#1e7a55` and light `#5ec796`, locked by the owner on 2026-11-23 (they replace the earlier sage drafts).
-- **One exception, the app header (owner decision OD3 A, 2026-11-24, `docs/design/EVENTS-DESIGN-REVIEW.md` §4):** the green Speech Events mark sits next to "Tabula Speech Events" in the header bar, and nowhere else in the chrome. It is a mark only: it never changes with state, it is never a button, pill, outline or fill, and it carries no meaning. Every other part of the chrome stays black, white and gray (`docs/growth/BRAND.md` §7: a brand color never carries meaning inside an app).
+- **One exception, the app header (owner decision OD3 A, 2026-11-24, `docs/design/EVENTS-DESIGN-REVIEW.md` §4):** the green Speech Events mark sits next to "Tabula Speech Events" in the header bar, and nowhere else in the chrome. It is a mark only: it never changes with state, it is never a button, pill, outline or fill, and it carries no meaning. Every other part of the chrome stays black, white and gray (a brand color never carries meaning inside an app).
 - **No side colors.** Speech has no Aff and Neg, so `--aff` and `--neg` are not loaded in `events/`.
-- **Rust stays out of the app** (it is too close to `--error`; BRAND.md §7).
+- **Rust stays out of the app** (it is too close to `--error`).
 - **Timer stage colors use the existing status tokens only:**
 
 | Stage | Fill of the timer card | Word on the card |
@@ -82,7 +82,7 @@ References:
 - **In-room prep (impromptu):** the track starts with a prep piece, and the phase row "Prep" then "Speech" sits inside the track's box (one phase control). The judge taps "Speech started". Both share one limit when the event says so. Pro Con Challenge uses the same track with a Pro piece and a Con piece.
 - **Phone (OD1 A, 2026-11-24):** when the big card scrolls away, a compact bar pins to the top: stage word, time, mini track, the main button and, after a stop, "Next speaker". It is a second render of the same timer state: no second clock, and Space stays the one start and stop key.
 
-**Speaker view** (off by default; PLAN.md Q4): a full-screen view with only the stage word and the time, in the largest size that fits. No speaker code, no comments. Tap anywhere or press Esc to leave. On a laptop, this view can open in a second window.
+**Speaker view** (off by default): a full-screen view with only the stage word and the time, in the largest size that fits. No speaker code, no comments. Tap anywhere or press Esc to leave. On a laptop, this view can open in a second window.
 
 References:
 - Oura full-screen timer: small label, very large digits, nothing else. https://mobbin.com/screens/d4f18703-69ba-4cce-bdb3-48c0c037a326
@@ -108,7 +108,7 @@ References:
 
 **Decision:** on the Review screen, each comment box shows a short, quiet checklist under it, in words, with no score: "Names one strength", "Names one thing to work on", "Says why this rank". It ticks itself from simple text checks. It never blocks copying.
 
-A one-line reminder on the Rank screen, from the rules profile: "Judge the performance, not the person." The exact bias-awareness wording is the tournament's, not ours (PLAN.md Q5).
+A one-line reminder on the Rank screen, from the rules profile: "Judge the performance, not the person." The exact bias-awareness wording is the tournament's, not ours.
 
 References:
 - Uxcel review page: a feedback box with a character count and a "Review tips" link. https://mobbin.com/screens/80f84b05-ec88-4f77-a653-4ff007d3a5d1
