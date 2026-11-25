@@ -170,8 +170,7 @@ export function createTimerView(opts) {
     chipUntil = now + 3000;
     const chip = $('#signal-chip');
     if (chip && room().current === e.id) { chip.textContent = label; chip.hidden = false; }
-    // In the speaker view its own live region says the phase; one voice at a time.
-    if (!speakerOpen()) env().ui.announce(e.code + ': ' + label);
+    env().ui.announce(e.code + ': ' + label);
   }
 
   // Update the card in place (no redraw, so the notes box keeps its cursor).
@@ -202,7 +201,7 @@ export function createTimerView(opts) {
     const flagBox = $('#timer-flagbox');
     if (flagBox && face.overGrace !== Boolean(flagBox.firstElementChild)) flagBox.innerHTML = overGraceHtml(face);
     // Screen readers hear the stage when it changes, not every second.
-    if (face.stage !== lastStage && face.running && !speakerOpen() && (face.stage === 'last' || face.stage === 'grace' || face.stage === 'over')) env().ui.announce(e.code + ': ' + face.word.replace(/ \+.*/, ''));
+    if (face.stage !== lastStage && face.running && (face.stage === 'last' || face.stage === 'grace' || face.stage === 'over')) env().ui.announce(e.code + ': ' + face.word.replace(/ \+.*/, ''));
     lastStage = face.stage;
   }
 
