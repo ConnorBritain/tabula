@@ -40,7 +40,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const SIX = '101 Avery Lin\n102 Jordan Park\n103 Sam Ortiz\n104 Riley Chen\n105 Morgan Diaz\n106 Casey Patel';
 const EIGHT = ['201', '202', '203', '204', '205', '206', '207', '208'].join('\n');
 
-async function walk(browser, engine, profile, theme, server, log) {
+// A page call that has no time limit of its own (evaluate) gets one here.
+const within = (promise, ms, what) => Promise.race([promise, new Promise((_, no) => setTimeout(() => no(new Error(`${what} took over ${ms / 1000} s`)), ms).unref())]);
+
+async function walk(browser, engine, profile, theme, server, log, trace) {
   const tag = { device: profile.id, theme };
   const dir = `${OUT}${profile.id}-${theme}/`;
   mkdirSync(dir, { recursive: true });
@@ -64,22 +67,25 @@ async function walk(browser, engine, profile, theme, server, log) {
   // One screen: measure it, judge it, screenshot it, and pin any console errors since the last screen to it.
   const shot = async (screen) => {
     await sleep(200);
-    const found = judge(await page.evaluate(measurePage));
+    trace.step = `measure ${screen}`;
+    const found = judge(await within(page.evaluate(measurePage), 15000, 'measuring the page'));
     for (const f of [...pending, ...found]) note(f.header ? 'Header (every screen)' : screen, f.problem, f.detail);
     pending = [];
     n++;
-    await page.screenshot({ path: `${dir}${String(n).padStart(2, '0')}-${slug(screen)}.png`, fullPage: true });
+    trace.step = `screenshot ${screen}`;
+    await page.screenshot({ path: `${dir}${String(n).padStart(2, '0')}-${slug(screen)}.png`, fullPage: true, animations: 'disabled', timeout: 20000 });
     covered.push(screen);
   };
   // A step a judge depends on: when it fails, it is a finding, and the walk goes on.
   const check = async (screen, what, fn) => {
-    try { const ok = await fn(); if (!ok) note(screen, 'step failed', what); } catch (e) { note(screen, 'step failed', `${what}: ${String(e.message).split('\n')[0].slice(0, 160)}`); }
+    trace.step = `check ${what}`;
+    try { const ok = await within(fn(), 20000, what); if (!ok) note(screen, 'step failed', what); } catch (e) { note(screen, 'step failed', `${what}: ${String(e.message).split('\n')[0].slice(0, 160)}`); }
   };
   // A clipboard read can wait forever for page focus, so it gets its own time limit.
   const clipboard = async () => engine === 'chromium'
     ? page.evaluate(() => Promise.race([navigator.clipboard.readText(), new Promise((_, no) => setTimeout(() => no(new Error('clipboard read timed out')), 3000))]))
     : null;
-  const click = (sel) => page.click(sel, { timeout: 4000 });
+  const click = (sel) => { trace.step = `click ${sel}`; return page.click(sel, { timeout: 4000 }); };
 
   // --- Speech room ----------------------------------------------------------------------------------------------
   await page.goto(base); await settle();
@@ -208,9 +214,10 @@ async function main() {
         const t0 = Date.now();
         let covered = [];
         // One stuck step must not stall the whole pass: each walk gets 5 minutes.
+        const trace = { step: 'start' };
         const limit = new Promise((_, no) => setTimeout(() => no(new Error('walk took over 5 minutes')), 300000).unref());
-        try { covered = await Promise.race([walk(browsers[engine], engine, profile, theme, server, log), limit]); } catch (e) {
-          log.push({ screen: 'walk', device: profile.id, theme, problem: 'walk stopped', detail: String(e.message).split('\n')[0].slice(0, 200) });
+        try { covered = await Promise.race([walk(browsers[engine], engine, profile, theme, server, log, trace), limit]); } catch (e) {
+          log.push({ screen: 'walk', device: profile.id, theme, problem: 'walk stopped', detail: `at "${trace.step}": ${String(e.message).split('\n')[0].slice(0, 200)}` });
         }
         runs.push({ device: profile.id, name: profile.name, theme, engine, wanted: profile.engine, screens: covered.length });
         console.log(`${covered.length} screens, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
