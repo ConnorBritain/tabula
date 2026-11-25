@@ -570,3 +570,36 @@ test('folds: rule checks are closed on a phone until a flag is set, and open on 
   assert.match(flagged, /<details class="chk-group fold" open>[\s\S]*?>1 flagged</);
   assert.match(sheetHtml(r, r.entries[0], OO, { narrow: false }), /<details class="chk-group fold" open>/);
 });
+
+// ---------- D5-A: "I submitted in Tabroom" on My day ----------
+
+// Why: 8 outlined "I submitted in Tabroom" buttons competed with Continue on rows where the ballot was not finished; a
+// judge could mark a round submitted by mistake. Owner D5 A (reverses change 2 in §2.1 of the last review): the button
+// stays on the Up next card and on rows whose ranks are in, and waits in ⋯ on rows still judging.
+test('D5-A: on rows still judging the submit button moves into ⋯; Up next and ranks-in rows keep it', () => {
+  const DAY = makeDay({ date: dayOf(NOW), now: NOW - 3600000, makeId: () => 'd1' });
+  const make = (ev, over) => {
+    const r = Object.assign(room(ev, 'nsda-district'), over || {});
+    const c = Object.assign(makeCard({ day: DAY, event: DATA.events.get(ev), round: 'Round 1', now: NOW - 1000, makeId }), { roundId: r.id, status: 'judging' });
+    r.cardId = c.id;
+    return [r, c];
+  };
+  const [ra, ca] = make('hi', { state: 'judging' });
+  const [rb, cb] = make('di', { state: 'judging' });
+  const [rc, cc] = make('oo', { state: 'review', ranksCopiedAt: NOW - 1000 });
+  const m = mydayModel({ day: DAY, cards: [ca, cb, cc], rounds: [ra, rb, rc], now: NOW });
+  const html = mydayHtml(m, DAY, DATA.events, NOW, []);
+  const next = html.slice(html.indexOf('class="md-next-card"'), html.indexOf('</section>'));
+  assert.match(next, /data-act="submit">I submitted in Tabroom/, 'Up next keeps it');
+  const rows = [...html.matchAll(/<li class="md-row"[^>]*aria-label="([^"]+)">([\s\S]*?)<\/li>/g)];
+  const judging = rows.filter((x) => /Judging$/.test(x[1]));
+  const ranksIn = rows.filter((x) => /Ranks copied/.test(x[1]));
+  assert.ok(judging.length && ranksIn.length, 'both kinds of row are drawn');
+  for (const x of judging) assert.doesNotMatch(x[2], /data-act="submit"/, x[1] + ': not on the row');
+  for (const x of ranksIn) assert.match(x[2], /data-act="submit">I submitted in Tabroom/, x[1] + ': on the row');
+  // Opened, a judging row's menu lists it first, with Cancel last.
+  const key = judging[0][0].match(/data-item="([^"]+)"/)[1];
+  const open = mydayHtml(m, DAY, DATA.events, NOW, [], key);
+  const row = open.slice(open.indexOf('data-item="' + key + '"'));
+  assert.match(row.slice(0, row.indexOf('</li>')), /<div class="md-menu"[^>]*>\s*<button class="b small" type="button" data-act="submit">I submitted in Tabroom<\/button>\s*<button[^>]*data-act="room">Change room<\/button>\s*<button class="b small quiet danger-text md-cancel" type="button" data-act="cancel">Cancel round<\/button><\/div>/);
+});

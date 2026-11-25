@@ -76,12 +76,17 @@ function moreHtml(v, open) {
   const label = v.short + ' ' + v.title;
   return `<button class="iconbtn md-more" type="button" data-act="menu" aria-expanded="${open}" aria-label="${esc('More for ' + label)}">${icon('ellipsis', 20)}</button>`;
 }
-function menuHtml(v, open) {
+// withSubmit (owner D5 A, which reverses change 2 in §2.1 of the last review): on a row still judging, "I submitted
+// in Tabroom" is not the next step, so it waits here as the first item instead of on the row.
+function menuHtml(v, open, withSubmit) {
   if (!v.canEdit || !open) return '';
   return `<div class="md-menu" role="group" aria-label="${esc('More for ' + v.short + ' ' + v.title)}">
+      ${withSubmit && v.canSubmit ? '<button class="b small" type="button" data-act="submit">I submitted in Tabroom</button>' : ''}
       <button class="b small" type="button" data-act="room">Change room</button>
-      <button class="b small quiet md-cancel" type="button" data-act="cancel">Cancel round</button></div>`;
+      <button class="b small quiet danger-text md-cancel" type="button" data-act="cancel">Cancel round</button></div>`;
 }
+// D5 A: the row keeps the button only where submitting is the next step (the ranks are copied, status "ranksIn").
+const rowSubmits = (v) => v.status === 'ranksIn';
 const submitHtml = (v, small) => (v.canSubmit ? `<button class="b${small ? ' small' : ''}" type="button" data-act="submit">I submitted in Tabroom</button>` : '');
 const evPill = (v) => `<a class="pill md-ev" href="${esc(routeHash('type', v.eventId))}" title="${esc(v.name)}" aria-label="${esc('About ' + v.name)}">${esc(v.short)}</a>`;
 
@@ -94,8 +99,8 @@ export function cardHtml(v, now, menuOpen) {
     ${evPill(v)}
     ${v.goHash ? `<a class="md-row-main" href="${esc(v.goHash)}" aria-label="${esc(v.goWord + ' ' + label)}">${main}${icon('chevron-right')}</a>` : `<span class="md-row-main">${main}</span>`}
     <span class="md-pills">${roundPill(v)}${dueHtml(v.due, now)}</span>
-    ${submitHtml(v, true)}${moreHtml(v, Boolean(menuOpen))}
-    ${menuHtml(v, Boolean(menuOpen))}
+    ${rowSubmits(v) ? submitHtml(v, true) : ''}${moreHtml(v, Boolean(menuOpen))}
+    ${menuHtml(v, Boolean(menuOpen), !rowSubmits(v))}
   </li>`;
 }
 
@@ -109,7 +114,7 @@ export function upNextHtml(v, now, menuOpen) {
       ${v.meta ? `<p class="md-next-meta">${esc(v.meta)}</p>` : ''}
       ${facts ? `<p class="md-facts">${facts}</p>` : ''}
       <div class="md-act">${v.goHash ? `<a class="b primary md-go" href="${esc(v.goHash)}">${esc(v.goWord)}${icon('arrow-right', 20)}</a>` : ''}${submitHtml(v, false)}${moreHtml(v, Boolean(menuOpen))}</div>
-      ${menuHtml(v, Boolean(menuOpen))}
+      ${menuHtml(v, Boolean(menuOpen), false)}
     </div></section>`;
 }
 
