@@ -115,7 +115,7 @@ export function readBackup(text) {
     const s = parseJson(storage[SETTINGS_KEY]);
     storage[SETTINGS_KEY] = JSON.stringify(migrateSettings(s.ok ? s.value : {}));
   }
-  const release = typeof b.file.release === 'string' ? b.file.release : '';
+  const release = typeof b.file.release === 'string' && RELEASE_TEXT.test(b.file.release) ? b.file.release : '';
   return { storage, exportedAt: typeof b.exportedAt === 'string' ? b.exportedAt : '', includesKeys: b.includesKeys, rounds, release };
 }
 
@@ -172,6 +172,8 @@ export const CLEAR_WHAT = 'every round, ballot card, comment, Congress session a
 // The service worker's cache is named 'tabula-events-' + the release hash (events/sw.js, events/sw-files.js).
 const CACHE_NAME = /^tabula-events-([0-9a-f]{7,})$/;
 const DAY = /^\d{4}-\d{2}-\d{2}/;
+// What a release id can look like (releaseId's output). Anything else is not treated as one.
+const RELEASE_TEXT = /^[0-9a-z +-]{1,40}$/;
 
 // A short, readable name for the release this page runs. v: { version (the parsed version.json, { sha, builtAt }, or
 // null when it could not be read), cacheName (the worker's cache name, or null) }.
@@ -210,7 +212,7 @@ export const KNOWN_ISSUES_URL = 'https://tabulaforensics.com/known-issues/';
 // Nothing is sent: the judge's own email app opens and the judge decides.
 export function feedbackMailto(v) {
   const o = v || {};
-  const release = typeof o.release === 'string' && /^[0-9a-z +-]{1,40}$/.test(o.release) ? o.release : 'unknown';
+  const release = typeof o.release === 'string' && RELEASE_TEXT.test(o.release) ? o.release : 'unknown';
   const body = ['', '', '', '', 'Please do not include student names.', 'Release: ' + release, 'Browser: ' + browserFamily(o.ua)].join('\n');
   return 'mailto:' + FEEDBACK_TO + '?subject=' + encodeURIComponent(FEEDBACK_SUBJECT) + '&body=' + encodeURIComponent(body);
 }

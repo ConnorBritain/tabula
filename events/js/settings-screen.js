@@ -82,7 +82,8 @@ export function lookupRelease(deps) {
   return run;
 }
 
-// Look it up once when the page loads (not in Node tests), so a backup made from My day carries it too.
+// Look it up once when the page loads (not in Node tests), so a backup made from My day carries it too. It only reads
+// a file from this same site; it sends nothing about the judge or the device.
 if (typeof document === 'object' && document) lookupRelease();
 
 // The About part as HTML text. rel: the release id.
