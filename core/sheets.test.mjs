@@ -45,3 +45,18 @@ test('a sheet from generic sections escapes every text and writes classes only w
   assert.equal(Sh.printSheetClass({ landscape: true }), 'print-sheet landscape');
   assert.equal(Sh.copyBlocksHtml([{ id: 'x', label: 'Empty', text: '' }]).includes('Nothing written yet'), true);
 });
+
+// Why: when printing, the page's <main> is hidden; a print sheet outside every landmark fails axe (landmark-one-main, region) for screen-reader users of the PDF view.
+test('the print sheet is the main landmark, named by its title', () => {
+  assert.deepEqual(Sh.printSheetAttrs({ title: 'Ballot: Round 3', sections: [] }), { role: 'main', 'aria-label': 'Ballot: Round 3' });
+  assert.equal(Sh.printSheetAttrs({ sections: [] })['aria-label'], 'Sheet to print');
+  const made = [];
+  const el = { attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, set innerHTML(v) { this.html = v; } };
+  const keep = globalThis.document;
+  globalThis.document = { createElement: () => el, getElementById: () => null, body: { append: (x) => made.push(x), classList: { add() {}, remove() {} } } };
+  try { Sh.showPrintSheet({ title: 'Ballot', sections: [] }); } finally { if (keep === undefined) delete globalThis.document; else globalThis.document = keep; }
+  assert.equal(made[0], el);
+  assert.equal(el.attrs.role, 'main');
+  assert.equal(el.attrs['aria-label'], 'Ballot');
+  assert.equal(el.id, 'print-sheet');
+});
