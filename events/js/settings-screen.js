@@ -18,7 +18,7 @@ import { KEYS_KEY } from './ai-key.js';
 import { keymap } from './keys.js';
 import { checkOffline, CACHE_PREFIX } from './offline.js';
 import { askConnectKey, askForgetKey } from './ai-connect.js';
-import { LIFETIME_KEY, AUTO_DELETE_DAYS, autoDeleteDaysOf, lifetimeValue, autoDeleteHelp, backupSummary, backupSummaryRows } from './lifetime.js';
+import { LIFETIME_KEY, AUTO_DELETE_DAYS, autoDeleteDaysOf, lifetimeValue, autoDeleteHelp, autoDeletePaused, deviceSummaryText, backupSummary, backupSummaryRows } from './lifetime.js';
 
 const radios = (name, list, picked) => list.map((x) => `<label class="radio"><input type="radio" name="${name}" value="${esc(x.id)}"${x.id === picked ? ' checked' : ''}> ${esc(x.label)}</label>`).join('');
 
@@ -119,7 +119,7 @@ export const AUTO_DELETE_CHOICES = Object.freeze([{ id: '0', label: 'Off' }].con
 export function checkHtml(check) {
   if (!check) return '';
   if (check.error) {
-    return `<div class="problems" id="set-check" role="alert"><h3 id="set-check-h" tabindex="-1">${statusPillHtml('err', 'Not restored', 'triangle-alert')} This file cannot be restored</h3>
+    return `<div class="problems" id="set-check" role="region" aria-labelledby="set-check-h"><h3 id="set-check-h" tabindex="-1">${statusPillHtml('err', 'Not restored', 'triangle-alert')} This file cannot be restored</h3>
       <p>${esc(check.error)}</p><p class="field-help">Nothing on this device changed.</p>
       <div class="set-row"><button class="b" type="button" id="set-check-close">Close</button></div></div>`;
   }
@@ -138,7 +138,7 @@ const installed = () => {
 
 // The whole screen as HTML text. v: { settings, ai, keys (keySheetHtml), offline ({ text } or null while checking),
 // kept (keptText's line, or null while checking), release (the release id), autoDelete (0, 7, 30 or 90),
-// check (checkHtml's value) }.
+// autoPaused (auto-delete waits for the clock), check (checkHtml's value) }.
 export function settingsHtml(v) {
   const s = v.settings;
   return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">Settings</h1></div>
@@ -169,8 +169,8 @@ export function settingsHtml(v) {
     <p class="field-help">See what a backup file holds before you restore it.</p>
     ${checkHtml(v.check)}
     <h3 id="set-auto-h">Auto-delete old rounds</h3>
-    <fieldset class="radios"><legend class="sr-only">Auto-delete old rounds</legend>${radios('set-auto', AUTO_DELETE_CHOICES, String(v.autoDelete || 0))}</fieldset>
-    <p class="field-help" id="set-auto-help">${esc(autoDeleteHelp(v.autoDelete || 0))}</p>
+    <fieldset class="radios" aria-labelledby="set-auto-h" aria-describedby="set-auto-help">${radios('set-auto', AUTO_DELETE_CHOICES, String(v.autoDelete || 0))}</fieldset>
+    <p class="field-help" id="set-auto-help">${esc(autoDeleteHelp(v.autoDelete || 0, !v.autoPaused))}</p>
     <h3>Wrap up the season</h3>
     <p class="field-help">Save a backup, check that it saved, then clear this device.</p>
     <div class="set-row"><button class="b" type="button" id="set-wrap">Wrap up the season</button></div>
@@ -200,7 +200,7 @@ export function createSettingsScreen(env) {
 
   function draw(focusSel) {
     env.el.innerHTML = settingsHtml({ settings: env.settings(), ai: aiView(), keys: keySheetHtml(keymap.shortcutRows(mac(), true)), offline, kept, release: currentRelease(),
-      autoDelete: autoDeleteDaysOf(env.store.get(LIFETIME_KEY, null)), check: checked });
+      autoDelete: autoDeleteDaysOf(env.store.get(LIFETIME_KEY, null)), autoPaused: autoDeletePaused(env.store, env.now()), check: checked });
     const f = focusSel && $(focusSel);
     if (f) f.focus();
   }
@@ -241,7 +241,7 @@ export function createSettingsScreen(env) {
     const pick = await env.ui.ask({
       title: 'Clear this device?',
       body: wrap
-        ? ['This removes ' + CLEAR_WHAT, from === 'saved' ? 'Your backup is saved. Check a backup restores it on any device.' : 'You skipped the backup. Once this tab closes, your rounds cannot come back.', 'Tabula Debate data on this browser is not touched.']
+        ? ['This removes ' + CLEAR_WHAT, from === 'saved' ? 'Your backup is saved. Use Check a backup to restore it on any device.' : 'You skipped the backup. Once this tab closes, your rounds cannot come back.', 'Tabula Debate data on this browser is not touched.']
         : ['This removes ' + CLEAR_WHAT, 'Download a backup first if you want to keep them. Tabula Debate data on this browser is not touched.'],
       buttons: wrap
         ? [{ label: 'Cancel', value: null }, { label: 'Clear this device', value: 'clear', kind: 'danger' }]
@@ -300,10 +300,7 @@ export function createSettingsScreen(env) {
   }
 
   // What this device holds now, in words, for the Check a backup result.
-  function hereText() {
-    const sum = backupSummary({ storage: env.store.snapshot(PREFIX) });
-    return sum.rounds + (sum.rounds === 1 ? ' round' : ' rounds') + (sum.chambers ? ', ' + sum.chambers + (sum.chambers === 1 ? ' Congress chamber' : ' Congress chambers') : '');
-  }
+  const hereText = () => deviceSummaryText(backupSummary({ storage: env.store.snapshot(PREFIX) }));
 
   // Check a backup: read the file and show what it holds. Nothing is written here; Restore does that.
   async function checkFile(input) {
@@ -318,10 +315,18 @@ export function createSettingsScreen(env) {
     draw('#set-check-h');
   }
 
-  // Restore the checked backup. Undo in the toast puts this device back as it was while the tab is open.
-  function restoreChecked() {
+  // Restore the checked backup, after one confirm (it replaces everything, like Clear this device). Undo in the toast
+  // puts this device back as it was while the tab is open.
+  async function restoreChecked() {
     const b = checked && checked.backup;
     if (!b) return;
+    const ok = await env.ui.ask({
+      title: 'Restore this backup?',
+      body: ['It replaces every round and setting on this device (now: ' + hereText() + ').', 'You can undo it while this tab is open.'],
+      buttons: [{ label: 'Cancel', value: false }, { label: 'Replace my data', value: true, kind: 'danger' }],
+      cancelValue: false,
+    });
+    if (!ok || !checked || checked.backup !== b) return; // Cancel, or the judge closed or changed the check meanwhile
     const before = env.store.snapshot(PREFIX);
     const items = restoreItems(before, b);
     try { env.store.replaceAll(PREFIX, items); }
@@ -374,7 +379,7 @@ export function createSettingsScreen(env) {
     if (t.name === 'set-auto') {
       const val = lifetimeValue(t.value);
       if (!env.store.set(LIFETIME_KEY, val)) return;
-      if ($('#set-auto-help')) $('#set-auto-help').textContent = autoDeleteHelp(val.days);
+      if ($('#set-auto-help')) $('#set-auto-help').textContent = autoDeleteHelp(val.days, !autoDeletePaused(env.store, env.now()));
       env.ui.toast(val.days ? 'Auto-delete is on: ' + val.days + ' days after the round.' : 'Auto-delete is off.', { key: 'auto' });
     }
   }

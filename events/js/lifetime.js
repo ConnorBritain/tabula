@@ -69,8 +69,9 @@ export function pickOld(v) {
   const chambers = cg.chambers.filter((c) => isRecord(c) && c.id);
   const sessions = cg.sessions.filter((s) => isRecord(s) && s.id);
   // A clock set back reads earlier than the newest time saved. Then no age is safe to trust: delete nothing.
-  const times = [...rooms.flatMap((r) => nums(r.createdAt, r.updatedAt)), ...cards.flatMap((c) => nums(c.createdAt, c.submittedAt)),
-    ...chambers.flatMap((c) => nums(c.createdAt, c.updatedAt)), ...sessions.flatMap((s) => nums(s.createdAt, s.updatedAt, s.submittedAt))];
+  // The same times the ages use (roundTime, chamberTime), plus each card's own time.
+  const times = [...rooms.flatMap((r) => nums(r.createdAt, r.updatedAt, r.ranksCopiedAt)), ...cards.flatMap((c) => nums(c.createdAt, c.submittedAt)),
+    ...chambers.flatMap((c) => nums(c.createdAt, c.updatedAt)), ...sessions.flatMap((s) => nums(s.createdAt, s.updatedAt, s.submittedAt, s.copiedAt))];
   if (times.some((t) => t > now)) { out.clockOk = false; return out; }
   const old = (t) => Number.isFinite(t) && calendarDays(t, now) >= days;
   for (const r of rooms) {
@@ -130,14 +131,25 @@ export function removedText(rounds, chambers) {
   return parts.length ? parts.join(' and ') + ' removed.' : '';
 }
 
-/** The help line under the choices. days: 0, 7, 30 or 90. */
-export function autoDeleteHelp(days) {
+/** The help line under the choices. days: 0, 7, 30 or 90. clockOk: false when pickOld found a saved time later than
+ * the device clock, so auto-delete waits; the line then says so. */
+export function autoDeleteHelp(days, clockOk = true) {
   if (!days) return 'Off. Rounds stay on this device until you delete them.';
-  return 'When the app starts, it removes rounds ' + days + ' days after the round. It keeps a round not yet marked submitted, a round with comments open, and a Congress chamber still open.';
+  const rule = 'When the app starts, it removes rounds ' + days + ' days after the round. It keeps a round not yet marked submitted, a round with comments open, and a Congress chamber still open.';
+  return clockOk ? rule : rule + ' Paused now: a saved round has a time later than this device\'s clock. Check the date and time on this device.';
+}
+
+/** What this device holds now, in words ("4 rounds, 1 Congress chamber"). sum: backupSummary's result. */
+export const deviceSummaryText = (sum) => plural(sum.rounds, 'round', 'rounds') + (sum.chambers ? ', ' + plural(sum.chambers, 'Congress chamber', 'Congress chambers') : '');
+
+/** Is auto-delete paused by the clock check right now? store: the events store; now: the time. */
+export function autoDeletePaused(store, now) {
+  const days = autoDeleteDaysOf(store.get(LIFETIME_KEY, null));
+  return Boolean(days) && !pickOld(Object.assign({ days, now }, readSaved(store))).clockOk;
 }
 
 // ---------- the start-up run ----------
-const readSaved = (store) => ({ rooms: store.get(ROOMS_KEY, []), cards: store.get(CARDS_KEY, []), congress: store.get(CONGRESS_KEY, null) });
+function readSaved(store) { return { rooms: store.get(ROOMS_KEY, []), cards: store.get(CARDS_KEY, []), congress: store.get(CONGRESS_KEY, null) }; }
 // Save the three values. A value that was missing and is still empty stays missing.
 function writeSaved(store, saved, had) {
   return [[ROOMS_KEY, saved.rooms], [CARDS_KEY, saved.cards], [CONGRESS_KEY, saved.congress]]
@@ -217,4 +229,4 @@ export function backupSummaryRows(sum) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).lifetime = Object.freeze({ LIFETIME_KEY, AUTO_DELETE_DAYS, AUTO_DELETE_TOAST_KEY,
-  autoDeleteDaysOf, lifetimeValue, calendarDays, pickOld, removeOld, putBack, removedText, autoDeleteHelp, autoDeleteAtStart, backupSummary, backupSummaryRows });
+  autoDeleteDaysOf, lifetimeValue, calendarDays, pickOld, removeOld, putBack, removedText, autoDeleteHelp, deviceSummaryText, autoDeletePaused, autoDeleteAtStart, backupSummary, backupSummaryRows });

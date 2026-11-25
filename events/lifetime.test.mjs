@@ -9,7 +9,7 @@ import { CONGRESS_KEY } from './congress/store.js';
 import { makeBackup, readBackup, CLEAR_WHAT } from './js/settings.js';
 import { createSettingsScreen, settingsHtml, checkHtml, AUTO_DELETE_CHOICES } from './js/settings-screen.js';
 import { LIFETIME_KEY, AUTO_DELETE_DAYS, autoDeleteDaysOf, lifetimeValue, calendarDays, pickOld, removeOld, putBack, removedText, autoDeleteAtStart,
-  backupSummary, backupSummaryRows } from './js/lifetime.js';
+  backupSummary, backupSummaryRows, autoDeleteHelp, autoDeletePaused, deviceSummaryText } from './js/lifetime.js';
 
 const DAY = 86400000;
 const NOW = Date.UTC(2026, 10, 25, 15, 0); // 2026-11-25, mid-afternoon in most time zones
@@ -115,6 +115,14 @@ test('a clock set back (now earlier than a saved time) removes nothing', () => {
   assert.deepEqual(p.roundIds, []);
   const q = pick({ rooms: [round('r1', ago(400))], cards: [card('c1', 'r1', ago(400))], congress: { chambers: [{ id: 'ch1', createdAt: NOW + 60000 }], sessions: [] }, days: 7 });
   assert.equal(q.clockOk, false, 'a Congress time counts too');
+  const r = pick({ rooms: [round('r1', ago(400), { ranksCopiedAt: NOW + DAY })], cards: [card('c1', 'r1', ago(400))], days: 7 });
+  assert.equal(r.clockOk, false, 'every time the age reads is checked too');
+  // Settings says why nothing goes.
+  const store = createEventsStore(fakeUi(), memStorage({ [LIFETIME_KEY]: '{"days":7}', [ROOMS_KEY]: JSON.stringify([round('r2', NOW + 2 * DAY)]) }), { nav: null });
+  assert.equal(autoDeletePaused(store, NOW), true);
+  assert.match(autoDeleteHelp(7, false), /Paused now: a saved round has a time later than this device's clock\./);
+  assert.doesNotMatch(autoDeleteHelp(7, true), /Paused/);
+  assert.equal(autoDeletePaused(createEventsStore(fakeUi(), memStorage({}), { nav: null }), NOW), false, 'off is never paused');
 });
 
 // Why: a daylight saving change must not move the line by a day: the rule counts dates, not hours.
@@ -246,6 +254,8 @@ test('backupSummary lists the days, rounds, chambers, release id and date in a b
   const bare = backupSummary(readBackup(JSON.stringify({ app: 'tabula-events', kind: 'backup', version: 1, storage: {} })));
   assert.deepEqual(backupSummaryRows(bare).slice(0, 2).map((r) => r.value), ['Not named in the file', 'Not named in the file'], 'an older file with no release id or date');
   assert.equal(bare.rounds, 0);
+  assert.equal(deviceSummaryText(sum), '2 rounds, 1 Congress chamber');
+  assert.equal(deviceSummaryText(bare), '0 rounds');
 });
 
 // A Settings screen with stand-ins for the page parts; it keeps both the click and the change handlers.
@@ -289,7 +299,14 @@ test('Check a backup shows the contents and changes nothing until Restore; Undo 
   assert.doesNotMatch(rig.html, /set-check-h/, 'Close hides the result');
   assert.deepEqual(local.dump(), before);
   await rig.pickFile(backupText(FULL));
-  rig.click('set-check-restore');
+  rig.ui.answers.push(false); // Cancel in the confirm
+  await rig.click('set-check-restore');
+  assert.equal(rig.ui.asks.at(-1).title, 'Restore this backup?');
+  assert.deepEqual(rig.ui.asks.at(-1).buttons.map((x) => [x.value, x.kind]), [[false, undefined], [true, 'danger']]);
+  assert.match(rig.ui.asks.at(-1).body.join(' '), /now: 1 round/);
+  assert.deepEqual(local.dump(), before, 'Cancel changes nothing');
+  rig.ui.answers.push(true);
+  await rig.click('set-check-restore');
   const after = local.dump();
   assert.deepEqual(JSON.parse(after[ROOMS_KEY]).map((r) => r.id), ['r1', 'r2']);
   assert.equal(after['policyJudge.rounds'], '[1]');
@@ -316,10 +333,11 @@ test('Check a backup gives a plain error for a bad or foreign file and changes n
     const rig = screenRig(local);
     await rig.pickFile(text);
     assert.match(rig.html, want);
-    assert.match(rig.html, /role="alert"/);
+    assert.match(rig.html, /<h3 id="set-check-h" tabindex="-1">/, 'focus moves to the heading (no second alert)');
     assert.match(rig.html, /Nothing on this device changed\./);
     assert.doesNotMatch(rig.html, /set-check-restore/, 'no Restore button for a bad file');
-    rig.click('set-check-restore');
+    rig.ui.answers.push(true);
+    await rig.click('set-check-restore');
     assert.deepEqual(local.dump(), before);
   }
   const unreadable = screenRig(memStorage({}));
