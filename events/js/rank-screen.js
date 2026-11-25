@@ -5,7 +5,7 @@
 // The builders at the top are pure (Node tests call them); createRankScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
-import { problemsListHtml, readyHtml, rateRowPill, jumpToRow } from './ballot-status.js';
+import { problemsListHtml, readyHtml, rateRowPill, jumpToRow, ballotFootHtml, footToOpenRow } from './ballot-status.js';
 import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
   ratingFix, ratingTies, RANK_RATING_ROW, graceLineText,
@@ -107,6 +107,7 @@ export function createRankScreen(env) {
     if (!r) return;
     $('#board-box').innerHTML = boardHtml(r, { tapMode, limit: limitOf(event(r)), event: event(r), now: env.now() });
     $('#problems').innerHTML = problemsHtml(r);
+    $('#ballot-foot').innerHTML = ballotFootHtml(r, 'rank'); // the sticky footer (top 10 #6) follows every change
     $('#tap-toggle').textContent = tapMode ? 'Done tapping' : 'Tap in order';
     $('#tap-toggle').setAttribute('aria-pressed', String(tapMode));
     $('#tap-help').hidden = !tapMode;
@@ -143,6 +144,7 @@ export function createRankScreen(env) {
     if (ev.target.closest('#tap-toggle')) return tapMode ? endTap() : startTap();
     if (ev.target.closest('#restart')) return restart();
     if (jumpToRow(env.el, ev.target)) return; // a "Before you review" item takes the judge to its row
+    if (footToOpenRow(env.el, ev.target, env.ui.announce)) { ev.preventDefault(); return; } // work open: to its row
     const sc = scoreClick(ev.target, room(), env.now()); // a rating word, a rating − or +, or a rubric stepper
     if (sc) { save(sc.room); draw(sc.focusKey); return; }
     const b = ev.target.closest('[data-ract]');
@@ -246,7 +248,7 @@ export function createRankScreen(env) {
         <div id="problems"></div>
         <label class="field" for="rank-reason"><span>Reason for rank <span class="muted">(whole room)</span></span></label>
         <textarea id="rank-reason" rows="3">${esc(r.reasonForRank || '')}</textarea>
-        <div class="rank-foot"><a class="b primary" id="go-review" href="#/review/${encodeURIComponent(id)}">Review and copy</a></div>`;
+        <div class="ballot-foot" id="ballot-foot"></div>`;
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('input', onInput);
       env.el.addEventListener('change', onChange);

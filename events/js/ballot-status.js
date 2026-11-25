@@ -6,8 +6,8 @@ import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
 import { statusPillHtml } from './status-pill.js';
 import { present } from './room.js';
-import { ratingError } from './rank.js';
-import { rubricScores, rubricTotal, rubricMax, rubricError } from './profile-layer.js';
+import { ratingError, ratingScale } from './rank.js';
+import { rubricScores, rubricTotal, rubricMax, rubricError, layerOf, layerProblems } from './profile-layer.js';
 
 const blank = (v) => v == null || String(v).trim() === '';
 
@@ -57,5 +57,49 @@ export function jumpToRow(root, target) {
   if (!b) return false;
   const row = root.querySelector(`[data-row="${CSS.escape(b.dataset.jump)}"]`);
   if (row) { row.scrollIntoView({ block: 'center' }); row.focus({ preventScroll: true }); }
+  return true;
+}
+
+// How far the ballot is, for the sticky footer (top 10 #6). Returns { word, open } where word is the progress in words
+// ("2 of 3 rated", "4 of 5 scored", "All ranked", "All rated") and open is the id of the first row still to fix, or
+// null when there is nothing to fix (or the problem names no speaker). stage: 'rank' or 'rate'.
+export function ballotProgress(room, stage) {
+  const list = present(room);
+  const problems = layerProblems(room);
+  const open = problems.map((p) => problemTarget(room, p)).find(Boolean) || null;
+  if (!problems.length) return { word: stage === 'rate' ? 'All rated' : 'All ranked', open: null };
+  const rubric = layerOf(room.profile).rubric;
+  const scale = ratingScale(room.profile);
+  if (rubric.length) {
+    const scored = list.filter((e) => { const s = rubricScores(e); return rubric.every((c) => !blank(s[c.id]) && !rubricError(s[c.id], c)); }).length;
+    return { word: scored + ' of ' + list.length + ' scored', open };
+  }
+  if (scale.kind !== 'none') {
+    const rated = list.filter((e) => !blank(e.rating) && !ratingError(e.rating, scale)).length;
+    return { word: rated + ' of ' + list.length + ' rated', open };
+  }
+  return { word: problems.length + (problems.length === 1 ? ' thing' : ' things') + ' to fix', open };
+}
+
+// The sticky ballot footer as HTML text (top 10 #6, owner D4 B): the progress word on the left and a full-height
+// "Review and copy" on the right, the screen's one primary. It is never disabled (§5.1 rule 1): while work is open, a
+// tap takes the judge to the first open row (data-open), and the word says what is left. Only the Rank and Rate screens
+// draw it, so it never shows with the Room's sticky timer bar (OD1).
+export function ballotFootHtml(room, stage) {
+  const p = ballotProgress(room, stage);
+  return `<span class="bf-progress" id="bf-progress" role="status">${p.open ? icon('circle', 14) : icon('circle-check', 14)}${esc(p.word)}</span>
+    <a class="b primary" id="go-review" href="#/review/${encodeURIComponent(room.id)}"${p.open ? ` data-open="${esc(p.open)}"` : ''}>Review and copy${icon('arrow-right', 20)}</a>`;
+}
+
+// A tap on the footer's primary while work is open: go to the first open row instead (and say why). Returns true when
+// it did. root: the screen element; announce: ui.announce.
+export function footToOpenRow(root, target, announce) {
+  const a = target.closest && target.closest('#go-review[data-open]');
+  if (!a) return false;
+  const row = root.querySelector(`[data-row="${CSS.escape(a.dataset.open)}"]`);
+  if (!row) return false;
+  row.scrollIntoView({ block: 'center' });
+  row.focus({ preventScroll: true });
+  if (announce) announce('Finish this row first. ' + (root.querySelector('#bf-progress') || {}).textContent);
   return true;
 }

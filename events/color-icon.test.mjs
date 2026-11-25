@@ -20,7 +20,7 @@ import { historyTableHtml } from './js/history-screen.js';
 import { ranksStageHtml, commentsStageHtml, nextCopy } from './js/review-screen.js';
 import { rosterRowHtml, statusPill } from './js/room-screen.js';
 import { problemsHtml } from './js/rank-screen.js';
-import { problemTarget, rateRowPill } from './js/ballot-status.js';
+import { problemTarget, rateRowPill, ballotProgress, ballotFootHtml } from './js/ballot-status.js';
 import { offlineHtml } from './js/settings-screen.js';
 import { ratingScale } from './js/rank.js';
 import { roomPrimary, goRankHtml, nextTopHtml } from './js/room-primary.js';
@@ -476,4 +476,44 @@ test('Review: the checklist and the card use the same word for the whole-room no
   const ranked = Object.assign(room('hi', 'nsda-district'), { reasonForRank: 'A1 first.' });
   assert.ok(checklist(ranked).some((c) => c.label === 'Reason for rank written'));
   assert.match(commentsStageHtml(ranked, { order: 'speaking', editing: null }), /<span>Reason for rank<\/span>/);
+});
+
+// ---------- the sticky ballot footer (top 10 #6, D4 B) ----------
+
+// Why: the primary was small, far right, at the end of a long page, and looked like a selected rating. A judge on a
+// phone scrolled past 15 rubric rows to find it. It pins to the bottom with the progress in words, and while work is
+// open a tap goes to the first open row instead of a Review screen that would block the copy.
+test('ballot footer: the progress word and one primary; while work is open it points at the first open row', () => {
+  let r = room('oo', 'rate-only', ['A12', 'B07', 'C33']);
+  r = withRating(r, idOf(r, 'A12'), '8', NOW);
+  const open = ballotProgress(r, 'rate');
+  assert.equal(open.word, '1 of 3 rated');
+  assert.equal(open.open, idOf(r, 'B07'), 'the first row still to rate');
+  const html = ballotFootHtml(r, 'rate');
+  assert.equal(primaries(html), 1);
+  assert.match(html, /<span class="bf-progress" id="bf-progress" role="status"><svg[^>]*><use href="#i-circle"\/><\/svg>1 of 3 rated<\/span>/);
+  assert.match(html, new RegExp('<a class="b primary" id="go-review" href="#/review/' + r.id + '" data-open="' + idOf(r, 'B07') + '">Review and copy<svg'));
+  r = withRating(withRating(r, idOf(r, 'B07'), '6', NOW), idOf(r, 'C33'), '9', NOW);
+  assert.deepEqual(ballotProgress(r, 'rate'), { word: 'All rated', open: null });
+  assert.doesNotMatch(ballotFootHtml(r, 'rate'), /data-open/, 'all done: the button goes to Review');
+  const ranked = openBoard(room('hi', 'nsda-district', ['A1', 'B2']), NOW).room;
+  assert.deepEqual(ballotProgress(ranked, 'rank'), { word: 'All ranked', open: null });
+  // A rubric counts speakers with every part scored.
+  const rub = Object.assign(prof('nsda-district'), { rubric: [{ id: 'v', label: 'Voice', min: 1, max: 5 }, { id: 'b', label: 'Body', min: 1, max: 5 }] });
+  let rr = openBoard(room('di', 'nsda-district', ['A1', 'B2'], { profile: rub }), NOW).room;
+  rr = withEntry(rr, 'A1', (e) => Object.assign({}, e, { rubric: { v: 4, b: 5 } }));
+  assert.equal(ballotProgress(rr, 'rank').word, '1 of 2 scored');
+  assert.equal(ballotProgress(rr, 'rank').open, idOf(rr, 'B2'));
+});
+
+// Why: OD1 — the footer must never show at the same time as the phone timer bar, or two pinned bars cover the comment
+// box. They live on different screens: the footer on Rank and Rate only, the timer bar on the Room only.
+test('ballot footer: only Rank and Rate draw it, the Room never does, and it pins with a full edge', () => {
+  for (const f of ['./js/rank-screen.js', './js/rate-screen.js']) {
+    const src = read(f);
+    assert.match(src, /<div class="ballot-foot" id="ballot-foot"><\/div>/, f);
+    assert.doesNotMatch(src, /timer-mini/, f);
+  }
+  for (const f of ['./js/room-screen.js', './js/timer-view.js']) assert.doesNotMatch(read(f), /ballot-foot/, f);
+  assert.match(CSS, /\.ballot-foot \{ position: sticky; bottom: 0; z-index: var\(--z-sticky\);[^}]*border: 1px solid var\(--border-ctl\);/);
 });

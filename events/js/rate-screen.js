@@ -5,7 +5,7 @@
 // The builders at the top are pure (Node tests call them); createRateScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
-import { problemsListHtml, readyHtml, rateRowPill, jumpToRow } from './ballot-status.js';
+import { problemsListHtml, readyHtml, rateRowPill, jumpToRow, ballotFootHtml, footToOpenRow } from './ballot-status.js';
 import { ratingScale, ratingError, ratingTies, overtimeRow } from './rank.js';
 import { boardCtx, ratingsOf } from './board.js';
 import { layerOf, layerProblems } from './profile-layer.js';
@@ -59,6 +59,7 @@ export function createRateScreen(env) {
     if (!r) return;
     $('#rate-box').innerHTML = rateListHtml(r, { limit: limitOf(event(r)), now: env.now() });
     $('#problems').innerHTML = rateProblemsHtml(r);
+    $('#ballot-foot').innerHTML = ballotFootHtml(r, 'rate'); // the sticky footer (top 10 #6) follows every change
     if (focusKey) { const el = $(`[data-key="${CSS.escape(focusKey)}"]`); if (el && !el.disabled) el.focus(); }
   }
 
@@ -66,6 +67,7 @@ export function createRateScreen(env) {
   // when the box is left.
   function onClick(ev) {
     if (jumpToRow(env.el, ev.target)) return; // a "Before you review" item takes the judge to its row
+    if (footToOpenRow(env.el, ev.target, env.ui.announce)) { ev.preventDefault(); return; } // work open: to its row
     const res = scoreClick(ev.target, room(), env.now()); if (res) { save(res.room); draw(res.focusKey); }
   }
   function onInput(ev) { const next = scoreInput(ev.target, room(), env.now()); if (next) save(next); }
@@ -89,7 +91,7 @@ export function createRateScreen(env) {
         <div id="problems"></div>
         <label class="field" for="rank-reason"><span>Notes for the whole room <span class="muted">(optional)</span></span></label>
         <textarea id="rank-reason" rows="3">${esc(r.reasonForRank || '')}</textarea>
-        <div class="rank-foot"><a class="b primary" id="go-review" href="#/review/${encodeURIComponent(id)}">Review and copy</a></div>`;
+        <div class="ballot-foot" id="ballot-foot"></div>`;
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('input', onInput);
       env.el.addEventListener('change', onChange);
