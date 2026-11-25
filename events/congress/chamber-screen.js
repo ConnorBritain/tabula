@@ -74,13 +74,13 @@ export function overviewHtml(state, chamber) {
   const next = sessions.length + 1;
   const p = chamber.profile;
   const srows = sessions.map((s) => `<li><a class="room-link" href="#/round/${esc(s.id)}/log"><span class="room-name">Session ${esc(s.number)}</span>
-      <span class="room-meta">${esc(sessionStatus(s))} · ${s.speeches.length} ${s.speeches.length === 1 ? 'speech' : 'speeches'}</span></a></li>`).join('');
+      <span class="room-meta">${esc(sessionStatus(s))} · ${s.speeches.length} ${s.speeches.length === 1 ? 'speech' : 'speeches'}</span>${icon('chevron-right')}</a></li>`).join('');
   const lrows = chamber.legislators.map((l) => `<li class="cg-leg"><span class="code">${esc(l.code)}</span><span class="muted">${esc(l.name || '')}</span>
       <label class="sr-only" for="st-${esc(l.id)}">Status of ${esc(l.code)}</label>
       <select id="st-${esc(l.id)}" data-status="${esc(l.id)}">${Object.keys(STATUS_WORDS).map((k) => `<option value="${k}"${l.status === k ? ' selected' : ''}>${STATUS_WORDS[k]}</option>`).join('')}</select></li>`).join('');
   const drows = chamber.docket.map((d) => `<li${d.debatedInSession ? ' class="muted"' : ''}>${esc(d.title)}${d.debatedInSession ? ' <span class="pill outline">Done in session ' + esc(d.debatedInSession) + '</span>' : ''}</li>`).join('');
   return `<div class="screen-head"><a class="b quiet" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">${houseWord(chamber)}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''}</h1>
-      <button class="b primary" type="button" data-chact="session" data-key="session">Start session ${next}</button></div>
+      <button class="b primary" type="button" data-chact="session" data-key="session">${icon('play', 20)}Start session ${next}</button></div>
     <p class="muted">${esc(p.name)} · ${esc(profileNote(p))}</p>
     <h2 class="cg-h">Sessions</h2>${srows ? `<ul class="room-list">${srows}</ul>` : '<p class="muted">No sessions yet.</p>'}
     <h2 class="cg-h">Legislators <span class="muted">(${chamber.legislators.length})</span></h2>

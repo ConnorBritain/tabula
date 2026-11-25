@@ -147,7 +147,9 @@ test('the grace line shows under rank 1 only while a speaker is over grace under
   const r = over(plain, 2);
   assert.equal(graceLineText(boardCtx(r)), 'Rank 1 needs a speaker inside grace.');
   const rows = boardHtml(r, { tapMode: false, limit: 600, now: 3000 }).split('<li ').slice(1);
-  assert.match(rows[0], /class="board-line grace-line">Rank 1 needs a speaker inside grace\.</);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.3: the grace line has an info icon). Old line:
+  //   assert.match(rows[0], /class="board-line grace-line">Rank 1 needs a speaker inside grace\.</);
+  assert.match(rows[0], /class="board-line grace-line"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-info"\/><\/svg>Rank 1 needs a speaker inside grace\.</);
   assert.doesNotMatch(rows.slice(1).join(''), /grace-line/);
   const flag = over(ranked(mk('oo', prof('nsda-district', { overtime: { grace: 30, effect: 'flagOnly' } }), 3)), 2);
   assert.equal(graceLineText(boardCtx(flag)), '', 'flagOnly: the tab room applies the penalty, the judge may rank 1st');
@@ -160,7 +162,9 @@ test('each Rank row shows the piece and the first sentence of the comment, as a 
   r = updateEntry(r, r.entries[0].id, (e) => Object.assign(setNotes(e, 'Strong characters. Next time slow the ending.'), { title: 'The Lottery', author: 'Shirley Jackson' }), 3);
   const rows = boardHtml(r, { tapMode: false, limit: 600, now: 3000 }).split('<li ').slice(1);
   assert.match(rows[0], /class="board-piece">“The Lottery” by Shirley Jackson</);
-  assert.match(rows[0], /class="board-comment" type="button" data-ract="note"[^>]*><span class="sr-only">Read the comment for A1: <\/span>Strong characters\.<\/button>/);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.3: the comment line has a speech bubble and a trailing chevron). Old line:
+  //   assert.match(rows[0], /class="board-comment" type="button" data-ract="note"[^>]*><span class="sr-only">Read the comment for A1: <\/span>Strong characters\.<\/button>/);
+  assert.match(rows[0], /class="board-comment" type="button" data-ract="note"[^>]*><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-message-square"\/><\/svg><span class="sr-only">Read the comment for A1: <\/span><span class="bc-text">Strong characters\.<\/span><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-chevron-right"\/><\/svg><\/button>/);
   assert.doesNotMatch(rows[1], /board-comment|board-piece/, 'no empty lines for a row with no words');
 });
 

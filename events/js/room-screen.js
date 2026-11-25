@@ -65,7 +65,7 @@ export function rosterHtml(room, menuFor, extra, sub) {
     <div class="roster-full" id="roster-full">
       <h2 class="roster-title">Roster <span class="muted">${done} of ${here} done</span></h2>
       <ol class="roster-list">${rows}</ol>
-      <button class="b small" type="button" data-act="add" data-key="add-entry">Add entry</button>
+      <button class="b small" type="button" data-act="add" data-key="add-entry">${icon('plus')}Add entry</button>
     </div>`;
 }
 

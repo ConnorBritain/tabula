@@ -29,7 +29,7 @@ function rowWordsHtml(e) {
   const piece = pieceLine(e);
   const first = firstSentence(ballotComment(e));
   return (piece ? `<span class="board-piece">${esc(piece)}</span>` : '')
-    + (first ? `<button class="board-comment" type="button" data-ract="note" data-id="${esc(e.id)}" data-key="note-${esc(e.id)}"><span class="sr-only">Read the comment for ${esc(e.code)}: </span>${esc(first)}</button>` : '');
+    + (first ? `<button class="board-comment" type="button" data-ract="note" data-id="${esc(e.id)}" data-key="note-${esc(e.id)}">${icon('message-square')}<span class="sr-only">Read the comment for ${esc(e.code)}: </span><span class="bc-text">${esc(first)}</span>${icon('chevron-right')}</button>` : '');
 }
 
 // The board as HTML text. view: { tapMode, limit, now }.
@@ -78,7 +78,7 @@ export function boardHtml(room, view) {
       <span class="board-moves">${main}</span>
       ${scale.kind !== 'none' ? `<span class="board-rate">${ratingHtml(e, ratings[id], scale, err)}</span>` : ''}
       ${rubricHtml(e, layer.rubric)}
-      ${i === 0 && graceLine ? `<span class="board-line grace-line">${esc(graceLine)}</span>` : ''}${cut && i === cut - 1 && cutLine ? `<span class="board-line cut-line">${esc(cutLine)}</span>` : ''}
+      ${i === 0 && graceLine ? `<span class="board-line grace-line">${icon('info')}${esc(graceLine)}</span>` : ''}${cut && i === cut - 1 && cutLine ? `<span class="board-line cut-line">${esc(cutLine)}</span>` : ''}
     </li>`;
   }).join('');
   return `<ol class="board${view.tapMode ? ' tapping' : ''}" id="board" aria-label="Ranks, best first">${rows}</ol>`;

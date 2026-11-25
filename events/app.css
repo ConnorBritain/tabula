@@ -645,3 +645,8 @@ details.fold > summary::-webkit-details-marker { display: none; }
 details.fold[open] > .fold-row > svg.i { transform: rotate(180deg); }
 details.fold[open] > .fold-row { margin-bottom: var(--s2); }
 @media (hover: none) and (pointer: coarse) { .set-keys { display: none; } }
+/* More icon places (§5.3): the Rank comment line, the grace line, the Congress session rows. */
+.board-comment { display: inline-flex; align-items: center; gap: var(--s1); }
+.board-comment .bc-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.board-line.grace-line { display: flex; align-items: center; gap: var(--s1); color: var(--text); }
+.room-link > svg.i { align-self: center; color: var(--text-3); }
