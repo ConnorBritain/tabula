@@ -113,7 +113,7 @@ test('readSse and sseStep: events split across chunks, the done frame, and the e
   assert.deepEqual(L.readSse('data: not json\n\n: comment\n\ndata: {"t":"x"}').events, [], 'bad lines are skipped; a part event waits');
 });
 
-// Why: each server refusal needs a different reaction (APP-CLIENT-PROPOSAL §3 error table). A wrong mapping shows an
+// Why: each server refusal needs a different reaction (the server API's error table). A wrong mapping shows an
 // error for a policy change that must be quiet, blocks a judge whose own key would work, or hides the Buy rounds link.
 test('hostedError: what the app does with each server refusal', () => {
   const e = (s, c) => L.hostedError(s, c);

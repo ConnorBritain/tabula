@@ -1,5 +1,5 @@
 // Tests for the AI gate's pure rules (platform phase 1B). Spec: the server API contracts (§2 and §5),
-// docs/platform/BUILD-PLAN.md §3 1B, and docs/design/AI-POLICY.md §3 and §6. Run with: node --test
+// the server's plan for phase 1B, and docs/design/AI-POLICY.md §3 and §6. Run with: node --test
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

@@ -8,9 +8,9 @@
   const F = part('format');
 
   const PROFILE_URL = '/api/v1/me/profile';
-  // The server's limit for the paradigm (the server API's paradigm limit).
+  // The server's limit for the paradigm.
   const MAX_PARADIGM = 5000;
-  // The server's program id rule (the server API's id rule). Another id would be ignored as "Just me".
+  // The server's program id rule. Another id would be ignored as "Just me".
   const PROGRAM_ID = /^[A-Za-z0-9_-]{8,64}$/;
 
   // GET /api/v1/me/profile -> { displayName, paradigm, photo, programs: [{ id, name, role }] }. Returns a clean

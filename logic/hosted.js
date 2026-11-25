@@ -78,7 +78,7 @@
     return block(lines);
   }
 
-  // The round state for one hosted job (APP-CLIENT-PROPOSAL §3, §3a). job: a HOSTED_TASKS key. Docs are added by the
+  // The round state for one hosted job (per the server API's app client contract). job: a HOSTED_TASKS key. Docs are added by the
   // page (the same text, in the same order, on every call of a round, so the provider can cache them).
   //  flow: the speech id and that whole speech so far (the server bills only new words), and the AI flow of the
   //        earlier speeches. No paradigm, notes or other transcripts: the flow does not need them.
@@ -156,7 +156,7 @@
     badReply: 'The AI answer was not in a form Tabula can read. Try again.',
   };
 
-  // What the app does with a hosted answer that is not a stream (APP-CLIENT-PROPOSAL §3, error table).
+  // What the app does with a hosted answer that is not a stream (per the server API's error table).
   // status: the HTTP status (0: the stream itself failed). code: the server's error code.
   // Returns { kind, text, retryable, fallback (use the judge's own key if there is one), quiet (stop and show
   // nothing), signOut (forget the capability record), link: { label, url } or null }.
