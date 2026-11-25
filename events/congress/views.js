@@ -9,6 +9,7 @@ import { hoursDue, openTerm, ordinal, fullHours, poLockLine } from './po.js';
 import { rankModel } from './rank.js';
 import { reviewBlocks, rankProblems } from './review.js';
 import { scaleText, ranksOnly } from './profiles.js';
+import { statusPillHtml } from '../js/status-pill.js';
 
 const STAGE_WORDS = Object.freeze({ log: 'Log', rank: 'Rank', review: 'Review' });
 // The PO card's line when the scorer gives the PO no points.
@@ -27,7 +28,7 @@ export function barHtml(chamber, session, stage, now) {
     .concat(['log', 'rank', 'review'].map((s) => `<li${s === stage ? ' class="on" aria-current="step"' : ''}><a href="#/round/${esc(session.id)}/${s}">${STAGE_WORDS[s]}</a></li>`));
   return `<div class="cg-bar">
     <a class="b quiet back" href="#/chamber/${esc(chamber.id)}">${icon('chevron-left')}Chamber</a>
-    <span class="pill live">${houseWord(chamber)}</span>
+    ${statusPillHtml('live', houseWord(chamber))}
     <span class="cg-bar-title">Session ${esc(session.number)}${chamber.roomLabel ? ' · ' + esc(chamber.roomLabel) : ''}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''}</span>
     <ol class="phase-bar cg-steps" aria-label="Steps">${steps.join('')}</ol>
     <span class="cg-clock" title="Time since the session started"><span class="sr-only">Session time </span><span id="cg-session-clock">${sessionClock(session, now)}</span></span>
@@ -85,7 +86,7 @@ export function speechCardHtml(chamber, session, speechId, now) {
   if (capped) note.push(`Only the first ${p.scoredSpeechCap} speeches of each legislator get points under ${p.name}.`);
   return `<section class="stage cg-card" aria-labelledby="cg-card-title">
     <div class="stage-head"><h2 class="stage-code" id="cg-card-title">${esc(l ? l.code : '?')}</h2><span class="muted">${esc(l && l.name ? l.name : '')} · speech ${nth}</span>
-      ${!live && sp.speakMs ? `<span class="pill outline">${esc(minSec(sp.speakMs))}</span>` : ''}</div>
+      ${!live && sp.speakMs ? statusPillHtml('outline', minSec(sp.speakMs)) : ''}</div>
     ${live ? timerHtml(session, now, p.questionBlockMs) : ''}
     <div class="cg-fields">
       <label class="field"><span>Item</span><select id="cg-item" data-cfield="itemId" data-key="item">${items || '<option value="">No docket items</option>'}</select></label>

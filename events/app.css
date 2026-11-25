@@ -31,9 +31,19 @@ button.b:disabled { opacity: .5; cursor: default; }
 .screen-head h1:focus { outline: none; }
 .code, .mono { font-family: var(--font-mono); }
 .mono { margin: 0; overflow-wrap: anywhere; }
-.pill { display: inline-flex; align-items: center; min-height: 24px; padding: 0 var(--s2); border-radius: var(--r-pill); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font-size: var(--fs-1); font-weight: var(--fw-3); white-space: nowrap; }
+/* Status pills (js/status-pill.js makes every one): a tint and a word (the icon helps; the word carries it). Never
+   the solid fill. Tones: outline, live, ok (done only), caution, err (errors and over time only). Cleanup 2026-11-25:
+   the pill and over-grace flag rules sit in this one block; rules that only place a pill in a layout stay with it. */
+.pill { display: inline-flex; align-items: center; gap: var(--s1); min-height: 24px; padding: 0 var(--s2); border-radius: var(--r-pill); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font-size: var(--fs-1); font-weight: var(--fw-3); white-space: nowrap; }
 .pill.outline { background: transparent; color: var(--text-2); }
+.pill.live { background: var(--fill-quiet); border-color: var(--border-ctl); color: var(--text); }
+.pill.ok { background: var(--ok-tint); border-color: var(--ok); color: var(--text); }
+.pill.caution { background: var(--caution-tint); border-color: var(--caution); color: var(--text); }
 .pill.err { background: var(--error-tint); border-color: var(--error); color: var(--text); }
+.pill.pk-chip { min-height: 20px; font-weight: var(--fw-2); }
+/* The over-grace line in the timer card: the err pill and the quiet "Clear over grace" button. */
+.timer-flag { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; margin-top: var(--s2); }
+.timer-card .timer-flag { justify-content: center; }
 .field { display: grid; gap: var(--s1); font-size: var(--fs-2); font-weight: var(--fw-3); }
 .field input, .field select, textarea, .chk-code { font: inherit; font-size: var(--fs-3); font-weight: var(--fw-2); min-height: var(--h-lg); padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); }
 textarea { width: 100%; padding: var(--s3); line-height: var(--lh-read); resize: vertical; }
@@ -115,8 +125,10 @@ main:has(.room-grid) { max-width: 1120px; }
 .timer-card.stage-over { background: var(--error-tint); border-color: var(--error); }
 .timer-card.stage-stopped { background: var(--sunk); }
 .timer-card p { margin: 0; }
-/* The Congress step bar (events/congress/views.js, class "phase-bar cg-steps") still uses these pill rules. The room's
-   phase rows use .phase-steps (js/phase-bar.js) since the design build. */
+/* Known exception (cleanup 2026-11-25): the Congress step bar (events/congress/views.js, class "phase-bar cg-steps")
+   keeps these rules and its own markup. The room's phase rows use .phase-steps (js/phase-bar.js phasesHtml) since the
+   design build. Moving Congress to phasesHtml changes its markup and what a screen reader says (done marks, "(now)"),
+   so it waits for a Congress design pass instead of a cleanup. */
 .phase-bar { display: flex; justify-content: center; gap: var(--s2); list-style: none; margin: 0 0 var(--s2); padding: 0; font-size: var(--fs-2); }
 .phase-bar li { padding: var(--s1) var(--s3); border: 1px solid var(--border); border-radius: var(--r-pill); color: var(--text-2); }
 .phase-bar li.on { background: var(--panel); color: var(--text); border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); font-weight: var(--fw-4); }
@@ -127,7 +139,6 @@ main:has(.room-grid) { max-width: 1120px; }
 .timer-card .timer-limit { margin-top: var(--s2); }
 .signal-chip { position: absolute; top: var(--s2); right: var(--s2); padding: var(--s1) var(--s3); border-radius: var(--r-pill); background: var(--text); color: var(--canvas); font-weight: var(--fw-4); font-size: var(--fs-3); }
 .signal-chip[hidden] { display: none; }
-.timer-flag { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; margin-top: var(--s2); }
 .timer-btns { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s3); }
 .timer-btns .timer-go { min-width: 8rem; min-height: var(--h-lg); font-size: var(--fs-3); }
 .timer-none { margin: var(--s3) 0; }
@@ -414,7 +425,6 @@ a.pk-pick { text-decoration: none; } /* the Congress row is a link (step S6) */
 /* OD3 A: the green Speech Events mark in the header, the only brand color in the chrome. It never changes with state. */
 a.brand { display: inline-flex; align-items: center; gap: var(--s2); }
 .brand-mark { flex: none; color: var(--text); }
-.pill.caution { background: var(--caution-tint); border-color: var(--caution); color: var(--text); }
 /* My day (OD2 A): one large "Up next" card, then compact rows with a status pill and a "⋯" menu. */
 .md-next { margin-top: var(--s4); }
 .md-next h2 { font-size: var(--fs-3); color: var(--text-2); }
@@ -460,7 +470,6 @@ main:has(#setup-form) { max-width: 1040px; }
    each family heading stays in view while its group scrolls. */
 .pk-pick { padding: var(--s2) var(--s4); gap: 2px; }
 .pk-chips { display: flex; flex-wrap: wrap; gap: var(--s1); margin-top: var(--s1); }
-.pill.pk-chip { min-height: 20px; font-weight: var(--fw-2); }
 a.b.pk-guide { align-self: center; margin-right: var(--s2); }
 .pk-sec h3 { position: sticky; top: 0; z-index: 1; background: var(--canvas); padding: var(--s1) 0; margin-bottom: var(--s1); }
 /* A two-option segmented control on real radios (Congress House or Senate; design review §2.15). The radio is
@@ -558,10 +567,6 @@ button.b.danger-text, a.b.danger-text { color: var(--error); }
 .seg-track { display: inline-flex; gap: var(--s0); padding: var(--s0); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--fill-quiet); width: max-content; max-width: 100%; }
 .seg-track .b { border-color: transparent; background: transparent; color: var(--text-2); }
 .seg-track .b.on, .seg-track .b[aria-pressed="true"] { background: var(--panel); border-color: var(--border-ctl); color: var(--text); font-weight: var(--fw-4); }
-/* Status pills: a tint and a word (the icon helps; the word carries it). Never the solid fill. */
-.pill { gap: var(--s1); }
-.pill.live { background: var(--fill-quiet); border-color: var(--border-ctl); color: var(--text); }
-.pill.ok { background: var(--ok-tint); border-color: var(--ok); color: var(--text); }
 /* Radios and check boxes take the neutral accent, not the browser's blue (DESIGN.md §1.1 repair). */
 input[type="radio"], input[type="checkbox"] { accent-color: var(--accent); }
 @media (max-width: 820px) {
@@ -599,7 +604,6 @@ svg.i.i-20 { width: 20px; height: 20px; vertical-align: -5px; }
 .timer-card.stage-stopped[data-result="grace"] { background: var(--caution-tint); border: 2px solid var(--caution); }
 .timer-card.stage-stopped[data-result="over"] { background: var(--error-tint); border: 2px solid var(--error); }
 .timer-result { display: flex; justify-content: center; margin-top: var(--s1); }
-.timer-card .timer-flag { justify-content: center; }
 .timer-btns { align-items: center; }
 @media (max-width: 820px) { .timer-btns .next-top { flex: 1 0 100%; } }
 .row-pick:has(.row-now) { flex-wrap: wrap; }
