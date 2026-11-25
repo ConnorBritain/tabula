@@ -1,6 +1,6 @@
 # Legal pages: business facts (checked against the live pages on 2026-11-23)
 
-The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/privacy/ and https://tabulaspeech.com/refunds/. They say "Effective November 23, 2026". These are the business facts and legal choices inside them for the live Debate app and sites. Change the pages and this file together. Source files: `~/Code/tabula-sites/sites/speech/pages/{terms,privacy,refunds}.html`.
+The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/privacy/ and https://tabulaspeech.com/refunds/. They say "Effective November 23, 2026". These are the business facts and legal choices inside them for the live Debate app and sites. Change the pages and this file together. Source files: the terms, privacy and refunds pages in the site repo.
 
 History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) published 2026-11-20. Update 3 (13+, no free trials) and update 5 Part A (Link as seller, refunds, disputes) published 2026-11-22. Update 6 draft 4 (paid Rounds never expire, plan caps, "your plan takes a break") published 2026-11-23; checked word for word against the live pages that day.
 
