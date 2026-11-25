@@ -53,6 +53,27 @@ export function toastMs(text, kind, hasAction) {
   return Math.min(10000, Math.max(4000, 1000 + 60 * n));
 }
 
+// Keyboard path to a toast's action (WCAG 2.1.1). The toasts sit at the end of the page, so plain Tab order would reach
+// an Undo last. Instead the newest toast with an action acts as if it came right after the place the focus was when it
+// appeared (its origin), without trapping focus:
+//   Tab at the origin            -> the toast's first button (the action)
+//   Shift+Tab on its first button -> back to the origin
+//   Tab on its last button        -> the next stop after the origin
+// s: { atOrigin, inToast: index of the focused toast button or -1, count: buttons in the toast, back }.
+// Returns 'toast' | 'origin' | 'after' | null (null: the browser's own Tab).
+export function toastTab(s) {
+  const o = s || {};
+  if (!(o.count > 0)) return null;
+  if (o.inToast < 0) return o.atOrigin && !o.back ? 'toast' : null;
+  if (o.back && o.inToast === 0) return 'origin';
+  if (!o.back && o.inToast === o.count - 1) return 'after';
+  return null;
+}
+// What a screen reader hears for a toast (WCAG 4.1.3): the message, and for a toast with an action, how to reach it.
+export function toastSpoken(text, actionLabel) {
+  return actionLabel ? String(text) + ' ' + actionLabel + ': press Tab.' : String(text);
+}
+
 // The text box in ask() (spec 4.2): is the typed text good enough for the primary button?
 // opts: { required (default true), maxLength, emptyError }. Returns { ok, text, error }.
 export function askInputState(raw, opts) {
@@ -86,7 +107,8 @@ export function createUI({ behind }) {
     const kind = o.kind === 'error' ? 'error' : 'info';
     const text = String(msg);
     const region = document.getElementById(kind === 'error' ? 'toasts-alert' : 'toasts-polite');
-    if (region) { region.textContent = ''; setTimeout(() => { region.textContent = text; }, 60); }
+    const spoken = toastSpoken(text, o.action ? o.action.label : '');
+    if (region) { region.textContent = ''; setTimeout(() => { region.textContent = spoken; }, 60); }
     const plan = toastPlan(toastList.map((t) => ({ key: t.key, msg: t.msg, action: Boolean(t.action) })), { key: o.key || '', msg: text, action: Boolean(o.action) });
     if (plan.reuse >= 0) {
       const same = toastList[plan.reuse];
@@ -97,7 +119,8 @@ export function createUI({ behind }) {
     plan.close.map((i) => toastList[i]).forEach(toastClose);
     const el = document.createElement('div');
     el.className = 'toast' + (kind === 'error' ? ' is-error' : '');
-    const t = { el, msg: text, key: o.key || '', kind, action: o.action || null, ms: toastMs(text, kind, Boolean(o.action)), timer: null, left: 0, at: 0, hover: false, focus: false };
+    const t = { el, msg: text, key: o.key || '', kind, action: o.action || null, ms: toastMs(text, kind, Boolean(o.action)), timer: null, left: 0, at: 0, hover: false, focus: false,
+      origin: document.activeElement || null };
     if (kind === 'error') { const i = document.createElement('span'); i.className = 'toast-icon'; i.setAttribute('aria-hidden', 'true'); i.textContent = '!'; el.append(i); }
     const m = document.createElement('span'); m.className = 'toast-msg'; m.textContent = text; el.append(m);
     if (t.action) {
@@ -136,8 +159,39 @@ export function createUI({ behind }) {
   function toastClose(t) {
     clearTimeout(t.timer);
     const i = toastList.indexOf(t); if (i < 0) return;
+    // Focus never falls to the page body when its toast goes: it goes back to where it was when the toast appeared.
+    const hadFocus = t.el.contains(document.activeElement);
     toastList.splice(i, 1); t.el.remove(); toastsChanged();
+    if (hadFocus) focusBack(t.origin);
   }
+  const usable = (el) => Boolean(el && el.isConnected !== false && typeof el.focus === 'function' && !(el.closest && el.closest('[inert],[hidden]')));
+  function focusBack(el) { if (usable(el)) el.focus(); }
+  // The toast whose action the keyboard path leads to: the newest one with an action.
+  const actionToast = () => { for (let i = toastList.length - 1; i >= 0; i--) if (toastList[i].action) return toastList[i]; return null; };
+  const toastButtons = (t) => Array.from(t.el.querySelectorAll('button'));
+  // The next Tab stop after el in page order, outside the toasts; null lets the browser choose.
+  const TABBABLE = 'a[href], button, input, select, textarea, summary, [tabindex], [contenteditable="true"]';
+  function stopAfter(el) {
+    if (!el || !el.compareDocumentPosition) return null;
+    const box = $('#toasts');
+    for (const c of document.querySelectorAll(TABBABLE)) {
+      if (box && box.contains(c)) continue;
+      if (c.disabled || c.tabIndex < 0 || !usable(c) || (c.getClientRects && !c.getClientRects().length)) continue;
+      if (el.compareDocumentPosition(c) & 4 /* Node.DOCUMENT_POSITION_FOLLOWING */ && !el.contains(c)) return c;
+    }
+    return null;
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab' || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+    const t = actionToast(); if (!t) return;
+    const btns = toastButtons(t);
+    const active = document.activeElement;
+    const atOrigin = active === t.origin || (!t.origin || t.origin === document.body) && (!active || active === document.body);
+    const step = toastTab({ atOrigin, inToast: btns.indexOf(active), count: btns.length, back: e.shiftKey });
+    const target = step === 'toast' ? btns[0] : step === 'origin' ? (usable(t.origin) ? t.origin : null) : step === 'after' ? stopAfter(t.origin) : null;
+    if (!target) return;
+    e.preventDefault(); target.focus();
+  });
   // Close the toast with this key, if one shows (for example the storage error after a save works again).
   function dismissToast(key) { toastList.filter((t) => t.key === key).forEach(toastClose); }
   // The Undo that waits now, for the palette row "Undo: {what}" (spec 4.3, 5.4): { name, run } or null.
@@ -309,6 +363,10 @@ export function createUI({ behind }) {
     ESC_LAYERS[top].close();
   }, true);
   escLayer('ask', 90, askIsOpen, () => askState.close());
+  // Esc on a toast that has focus closes that toast. It never runs the toast's action (Esc on an Undo toast keeps the
+  // change). Lowest rank: any open dialog or panel closes first.
+  const focusedToast = () => toastList.find((t) => t.el.contains(document.activeElement)) || null;
+  escLayer('toast', 1, () => Boolean(focusedToast()), () => { const t = focusedToast(); if (t) toastClose(t); });
 
   // ---------- a dialog with its own markup (Slice 4: Print / PDF and Copy for the tournament ballot) ----------
   // The same rules as ask(): the page behind is inert, Tab stays inside, Esc / × / the dim layer close it, and focus
@@ -355,4 +413,4 @@ export function createUI({ behind }) {
   return Object.freeze({ toast, dismissToast, pendingUndo, announce, ask, askIsOpen, escLayer, modalDialog });
 }
 
-(globalThis.TabulaCore = globalThis.TabulaCore || {}).ui = Object.freeze({ escTop, TOAST_MAX, toastPlan, toastMs, askFirstFocus, trapNext, askInputState, createUI });
+(globalThis.TabulaCore = globalThis.TabulaCore || {}).ui = Object.freeze({ escTop, TOAST_MAX, toastPlan, toastMs, toastTab, toastSpoken, askFirstFocus, trapNext, askInputState, createUI });
