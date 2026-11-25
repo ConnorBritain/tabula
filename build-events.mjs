@@ -12,8 +12,11 @@
 //
 // After the copy it checks that every local file index.html links to, and every file in sw-files.js (what the
 // service worker caches), is in the output. A missing cached file would make the worker's install fail for everyone.
+// It also writes version.json, { sha, builtAt }, the same shape the debate build writes: the commit this build came
+// from, so anyone (and Settings, About) can see which version is live. The service worker does not cache it.
 // Run: node build-events.mjs [outDir]
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
@@ -46,6 +49,15 @@ export const outPath = (path) => (path.startsWith('events/') ? path.slice('event
 
 const posix = (p) => p.split('\\').join('/');
 
+/**
+ * The commit this repo is at, "-dirty" when there are uncommitted changes, "unknown" with no git (a copy of the files).
+ * The same rule as build-app.mjs; copied, not shared, so the debate build is not touched.
+ */
+export function gitSha(dir = ROOT) {
+  const git = (...a) => execFileSync('git', a, { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  try { return git('rev-parse', 'HEAD') + (git('status', '--porcelain') ? '-dirty' : ''); } catch { return 'unknown'; }
+}
+
 export function build(out = join(ROOT, 'dist', 'events'), allow = ALLOW) {
   // core/ is shared with the debate app: ship only the core files the events page loads (the service worker list),
   // so a core file only the debate app uses never ships here.
@@ -65,6 +77,8 @@ export function build(out = join(ROOT, 'dist', 'events'), allow = ALLOW) {
       filter: (p) => !skip(posix(relative(ROOT, p))),
     });
   }
+  // One build serves production and staging, so there is no mode field. _headers says no-cache for it.
+  writeFileSync(join(out, 'version.json'), JSON.stringify({ sha: gitSha(), builtAt: new Date().toISOString() }) + '\n');
   const missing = missingRefs(out);
   if (missing.length) throw new Error(`build-events: the page or the service worker needs files that are not in the output: ${missing.join(', ')}`);
   return out;

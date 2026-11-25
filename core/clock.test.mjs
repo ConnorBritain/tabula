@@ -1,4 +1,4 @@
-// Tests for the shared clock math, core/clock.js (docs/events/LANDING.md §3, step C6). Run with: node --test
+// Tests for the shared clock math, core/clock.js. Run with: node --test
 // Debate's restore rules keep their own tests (logic-slice1.test.js, formats.test.js); they run through this file now.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -20,7 +20,7 @@ test('timeStage: within at or before the limit, grace inside the grace, over pas
   assert.equal(C.timeStage(-1, -5), 'over', 'a negative grace counts as none');
 });
 
-// Why: the over-time flag feeds the ballot rule "no rank 1 past grace" (docs/events/PLAN.md §3 item 4); if pausing or
+// Why: the over-time flag feeds the ballot rule "no rank 1 past grace"; if pausing or
 // adding time cleared it, the judge could rank a speaker first by mistake.
 test('stickyOver: the over-grace flag sets past the grace and never clears for that run', () => {
   let over = false;
@@ -67,7 +67,7 @@ test('PolicyLogic gives the very same shared clock functions', () => {
   for (const k of ['OVER_LIMIT', 'leftAt', 'beepDecision']) assert.equal(L[k], C[k], k);
 });
 
-// ---------- the driver (step C7) ----------
+// ---------- the driver ----------
 // A fake wall clock and fake timers, so the driver runs with no real waiting.
 function rig(kind) {
   const t = { now: NOW, timers: [], calls: [] };

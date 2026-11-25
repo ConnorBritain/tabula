@@ -72,8 +72,11 @@ export function withSetting(settings, key, value) {
 // ---------- the backup file ----------
 // saved: { name: rawString } for every tabulaEvents.* value (store.snapshot(PREFIX)). The AI key stays out unless
 // includeKeys: a backup file is easy to share by mistake.
-export const makeBackup = (saved, { includeKeys = false, now } = {}) =>
-  buildBackup(saved, { prefix: PREFIX, app: BACKUP_APP, secretKeys: [KEYS_KEY], includeSecrets: includeKeys, now });
+// release: the release id of the page that made the file (releaseId below), so a problem with a backup can be traced
+// to the version that wrote it. It is left out when not known; readBackup never needs it (older files have none).
+export const makeBackup = (saved, { includeKeys = false, now, release } = {}) =>
+  buildBackup(saved, { prefix: PREFIX, app: BACKUP_APP, secretKeys: [KEYS_KEY], includeSecrets: includeKeys, now,
+    extra: typeof release === 'string' && release ? { release } : {} });
 
 // The file name for a backup made at an ISO time.
 export const backupName = (iso) => 'tabula-speech-events-backup-' + String(iso || '').slice(0, 10) + '.json';
@@ -112,7 +115,8 @@ export function readBackup(text) {
     const s = parseJson(storage[SETTINGS_KEY]);
     storage[SETTINGS_KEY] = JSON.stringify(migrateSettings(s.ok ? s.value : {}));
   }
-  return { storage, exportedAt: typeof b.exportedAt === 'string' ? b.exportedAt : '', includesKeys: b.includesKeys, rounds };
+  const release = typeof b.file.release === 'string' && RELEASE_TEXT.test(b.file.release) ? b.file.release : '';
+  return { storage, exportedAt: typeof b.exportedAt === 'string' ? b.exportedAt : '', includesKeys: b.includesKeys, rounds, release };
 }
 
 // What restore writes: the backup's values. A backup made without the AI key keeps the key this device has now, so
@@ -164,5 +168,54 @@ export function backupReminderDue(v) {
 // What "Clear this device" removes, for the confirm dialog: every saved value under tabulaEvents.*, in plain words.
 export const CLEAR_WHAT = 'every round, ballot card, comment, Congress session and setting in Speech Events on this browser, and your AI key if you saved one here.';
 
+// ---------- release id and feedback ----------
+// The service worker's cache is named 'tabula-events-' + the release hash (events/sw.js, events/sw-files.js).
+const CACHE_NAME = /^tabula-events-([0-9a-f]{7,})$/;
+const DAY = /^\d{4}-\d{2}-\d{2}/;
+// What a release id can look like (releaseId's output). Anything else is not treated as one.
+const RELEASE_TEXT = /^[0-9a-z +-]{1,40}$/;
+
+// A short, readable name for the release this page runs. v: { version (the parsed version.json, { sha, builtAt }, or
+// null when it could not be read), cacheName (the worker's cache name, or null) }.
+//   version.json read:  the first 7 characters of the commit and the build day, e.g. "1a2b3c4 2026-11-25".
+//   not read (offline): the worker's release hash, e.g. "offline 387a7ee".
+//   neither:            "unknown".
+export function releaseId(v) {
+  const o = v || {};
+  const ver = o.version && typeof o.version === 'object' ? o.version : null;
+  const sha = ver && typeof ver.sha === 'string' && /^[0-9a-f]{7,40}(-dirty)?$/.test(ver.sha) ? ver.sha : '';
+  const day = ver && typeof ver.builtAt === 'string' && DAY.test(ver.builtAt) ? ver.builtAt.slice(0, 10) : '';
+  if (sha || day) return [sha ? sha.slice(0, 7) + (sha.endsWith('-dirty') ? '+' : '') : 'build', day].filter(Boolean).join(' ');
+  const m = typeof o.cacheName === 'string' && CACHE_NAME.exec(o.cacheName);
+  return m ? 'offline ' + m[1].slice(0, 7) : 'unknown';
+}
+
+// The device and browser family from a user agent string, in a few fixed words (e.g. "iPhone Safari"). Only words
+// from these lists come out, never the raw string, so nothing else about the device goes into an email.
+export function browserFamily(ua) {
+  const s = typeof ua === 'string' ? ua : '';
+  const device = /iPhone|iPod/.test(s) ? 'iPhone' : /iPad/.test(s) ? 'iPad' : /Android/.test(s) ? 'Android'
+    : /CrOS/.test(s) ? 'Chromebook' : /Macintosh|Mac OS X/.test(s) ? 'Mac' : /Windows/.test(s) ? 'Windows'
+      : /Linux/.test(s) ? 'Linux' : '';
+  const browser = /EdgiOS|Edg(e|A)?\//.test(s) ? 'Edge' : /FxiOS|Firefox\//.test(s) ? 'Firefox'
+    : /SamsungBrowser\//.test(s) ? 'Samsung Internet' : /CriOS|Chrome\/|Chromium\//.test(s) ? 'Chrome'
+      : /Safari\//.test(s) ? 'Safari' : '';
+  return [device, browser].filter(Boolean).join(' ') || 'Unknown browser';
+}
+
+export const FEEDBACK_TO = 'support@tabulaspeech.com';
+export const FEEDBACK_SUBJECT = 'Speech Events feedback';
+export const KNOWN_ISSUES_URL = 'https://tabulaforensics.com/known-issues/';
+
+// The "Send feedback" email link. It takes only the release id and the user agent: no rounds, names or settings can
+// reach it. The body starts with blank lines for the judge's words, then the reminder, the release and the browser.
+// Nothing is sent: the judge's own email app opens and the judge decides.
+export function feedbackMailto(v) {
+  const o = v || {};
+  const release = typeof o.release === 'string' && RELEASE_TEXT.test(o.release) ? o.release : 'unknown';
+  const body = ['', '', '', '', 'Please do not include student names.', 'Release: ' + release, 'Browser: ' + browserFamily(o.ua)].join('\n');
+  return 'mailto:' + FEEDBACK_TO + '?subject=' + encodeURIComponent(FEEDBACK_SUBJECT) + '&body=' + encodeURIComponent(body);
+}
+
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ keptText, lastChangeAt, backupReminderDue, CLEAR_WHAT, BACKUP_APP, MODES, THEMES, RANKS_DUE_MAX, RECENT_MAX, DRAW_GAPS, drawGapOf, validRanksDue, ranksDueMinOf, withRecentEvent, modeMenuShown, withSetting,
-  makeBackup, backupName, readBackup, restoreItems });
+  makeBackup, backupName, readBackup, restoreItems, releaseId, browserFamily, feedbackMailto, FEEDBACK_TO, FEEDBACK_SUBJECT, KNOWN_ISSUES_URL });

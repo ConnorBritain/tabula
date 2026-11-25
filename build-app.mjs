@@ -7,6 +7,7 @@
 // A deploy build (wrangler.app.jsonc) runs with --strict and its mode; see versionInfo.
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -14,7 +15,7 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 
 // Files and folders the app page needs, plus the public pages it links to.
 export const ALLOW = [
-  '_headers', 'index.html', 'about.html',
+  '_headers', 'index.html', 'about.html', 'sw.js', 'manifest.webmanifest',
   'app.js', 'logic.js', 'providers.js', 'keys.js', 'clipqueue.js', 'tap.js', 'tour.js', 'ui.js',
   'js', 'logic', 'formats', 'core', 'demo', 'assets', 'vendor', 'learn',
 ];
@@ -72,10 +73,11 @@ export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW, env = proc
       filter: (p) => !BLOCK.some((re) => re.test(relative(ROOT, p).split('\\').join('/'))),
     });
   }
-  // The deploy build names its mode (wrangler.app.jsonc: --mode=prod or --mode=staging). _headers caches it for a minute only.
+  // The deploy build names its mode (wrangler.app.jsonc: --mode=prod or --mode=staging). _headers never caches it.
   writeFileSync(join(out, 'version.json'), JSON.stringify(version) + '\n');
   const missing = missingRefs(out);
   if (missing.length) throw new Error(`build-app: a shipped page links to files that are not in the output: ${missing.join(', ')}`);
+  writeWorker(out);
   return out;
 }
 
@@ -90,6 +92,37 @@ export function missingRefs(out) {
     const p = join(out, r);
     return !(existsSync(p) && (statSync(p).isFile() || existsSync(join(p, 'index.html'))));
   });
+}
+
+// Shipped files the service worker does not cache. learn/ is its own set of pages (build-learn.mjs).
+// The AI SDK only runs with AI, which needs the network anyway. The diagram library (3 MB) draws the
+// optional map view; judging a round does not need it, and offline the map says it needs the internet.
+// sw.js, _headers and version.json are for the host and the browser, not the page.
+export const NOT_CACHED = [/^learn\//, /^vendor\/mermaid-/, /^vendor\/anthropic-sdk-/, /^sw\.js$/, /^_headers$/, /^version\.json$/];
+
+/** The files the service worker caches: every shipped file the app needs to open and judge a round. */
+export function shellFiles(out) {
+  return listFiles(out).filter((f) => !NOT_CACHED.some((re) => re.test(f))).sort();
+}
+
+/**
+ * The cache release name: the sha from version.json plus a hash of the cached files and of sw.js itself. So
+ * each deploy gets a new cache, and so does a build whose sha says "unknown" or "-dirty" when any cached file
+ * or the worker's code changed.
+ */
+export function releaseName(out, files, sha) {
+  const h = createHash('sha256');
+  for (const f of [...files, 'sw.js']) h.update(f + '\0').update(readFileSync(join(out, f))).update('\0');
+  return (String(sha).replace(/[^0-9A-Za-z._-]/g, '') || 'unknown') + '-' + h.digest('hex').slice(0, 12);
+}
+
+/** Puts the release (named from the built version.json) and its file list at the top of the shipped sw.js. */
+function writeWorker(out) {
+  const { sha } = JSON.parse(readFileSync(join(out, 'version.json'), 'utf8'));
+  const files = shellFiles(out);
+  const head = 'self.TABULA_APP_RELEASE = ' + JSON.stringify(releaseName(out, files, sha)) + ';\n'
+    + 'self.TABULA_APP_FILES = ' + JSON.stringify(files) + ';\n';
+  writeFileSync(join(out, 'sw.js'), head + readFileSync(join(out, 'sw.js'), 'utf8'));
 }
 
 /** Every file path in the output, relative and with forward slashes. */

@@ -1,4 +1,4 @@
-// Tests for shared ranks, core/ranks.js (docs/events/LANDING.md §3, step C8). Run with: node --test
+// Tests for shared ranks, core/ranks.js. Run with: node --test
 // Debate's rank message keeps its test in logic-slice4.test.js; it runs through this file now.
 import test from 'node:test';
 import assert from 'node:assert/strict';

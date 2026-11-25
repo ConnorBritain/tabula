@@ -1,4 +1,4 @@
-// Tests for core/: shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C0).
+// Tests for core/: shared code for Tabula Debate and Tabula Speech Events.
 // Run with: node --test
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,12 +11,12 @@ const CORE = readdirSync(new URL('core/', import.meta.url)).filter((f) => f.ends
 const HTML = read('index.html');
 const scripts = [...HTML.matchAll(/<script\b([^>]*)>/g)].map((m) => ({ attrs: m[1], src: (/\bsrc="([^"]+)"/.exec(m[1]) || [])[1] })).filter((s) => s.src);
 const isModule = (s) => /type="module"/.test(s.attrs);
-// Head files (step C11): plain scripts that must run in <head> before the first paint (core/policy.js, the AI gate).
+// Head files: plain scripts that must run in <head> before the first paint (core/policy.js, the AI gate).
 // Every other core/ .js file is an ES module. A head file says so in its header ("A head file:").
 const HEAD = CORE.filter((f) => /^\/\/ A head file:/m.test(read(f)));
 const MODULES = CORE.filter((f) => !HEAD.includes(f));
 
-// Product words that must never appear in core/ (docs/events/ARCHITECTURE.md §8). Debate: the sides, the flow, the
+// Product words that must never appear in core/ (shared code stays product-neutral). Debate: the sides, the flow, the
 // speech IDs. Speech Events: room and entry. Generic words such as rank, points and feature are allowed.
 const BANNED = ['aff', 'affirmative', 'neg', 'flow', 'flows', '1ac', '1nc', '2ac', '2nc', '1nr', '2nr', '1ar', '2ar', 'room', 'rooms', 'entry', 'entries'];
 
@@ -43,7 +43,7 @@ test('core/ uses no product word', () => {
 });
 
 // Why: a debate side colour in the shared tokens would give the second app a blue and red it has no meaning for, and
-// would let shared styles start to depend on debate sides (step C4).
+// would let shared styles start to depend on debate sides.
 test('core/tokens.css uses no product word, and the side colours stay in assets/tokens.css', () => {
   assert.deepEqual(bannedIn(read('core/tokens.css')), [], 'core/tokens.css uses a product word');
   assert.doesNotMatch(read('core/tokens.css'), /--(aff|neg)\b/, 'a side colour token is in core/tokens.css');

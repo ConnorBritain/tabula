@@ -1,4 +1,4 @@
-// Tests for the shared toast, dialog and Esc code, core/ui.js (docs/events/LANDING.md §3, step C3). Run with: node --test
+// Tests for the shared toast, dialog and Esc code, core/ui.js. Run with: node --test
 // The rules themselves (toastPlan, askFirstFocus, escTop and the rest) keep their unit tests in logic.test.js.
 import test from 'node:test';
 import assert from 'node:assert/strict';

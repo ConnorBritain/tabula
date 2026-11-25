@@ -10,7 +10,7 @@ import vm from 'node:vm';
 const require = createRequire(import.meta.url);
 const L = require('./logic.js');
 const UI_SRC = readFileSync(new URL('./ui.js', import.meta.url), 'utf8');
-// ask() itself lives in core/ui.js createUI() since step C3; ui.js calls it. core/ui.js is an ES module with no imports,
+// ask() itself lives in core/ui.js createUI(); ui.js calls it. core/ui.js is an ES module with no imports,
 // so dropping the "export" words lets it run as a plain script in the same fake page, as the page loads it before ui.js.
 const CORE_UI_SRC = readFileSync(new URL('./core/ui.js', import.meta.url), 'utf8').replace(/^export /gm, '');
 

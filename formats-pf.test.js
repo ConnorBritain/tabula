@@ -169,7 +169,7 @@ test('the side words in the page text follow the format', () => {
   assert.match(readSource('app.js'), /function renderSideWords\(fmt\)/);
 });
 
-// Why: the decision (Q12 B) is data first: PF behaviour comes from the format file's fields, so the next coin-flip or
+// Why: PF behaviour is data first: it comes from the format file's fields, so the next coin-flip or
 // crossfire format needs no new code. A check on the PF id in code would make PF a special case.
 test('no code checks for the PF format by id', () => {
   const inDir = (d) => fs.readdirSync(path.join(__dirname, d)).filter((f) => /\.m?js$/.test(f) && !/\.test\./.test(f)).map((f) => d + '/' + f);
