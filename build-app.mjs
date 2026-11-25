@@ -26,7 +26,7 @@ const BLOCK = [/\.test\.(m?js)$/, /(^|\/)README\.md$/, /\.local\./, /(^|\/)\./, 
  * The commit this repo is at. A tree with uncommitted changes gets "-dirty", because the
  * build is then not exactly that commit. No git (a copy of the files) reads "unknown".
  */
-export function gitSha(dir = ROOT) {
+function gitSha(dir = ROOT) {
   const git = (...a) => execFileSync('git', a, { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
   try { return git('rev-parse', 'HEAD') + (git('status', '--porcelain') ? '-dirty' : ''); } catch { return 'unknown'; }
 }

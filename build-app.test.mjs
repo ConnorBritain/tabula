@@ -40,7 +40,7 @@ test('ships the security headers file', () => {
   assert.match(readFileSync(join(out, '_headers'), 'utf8'), /Content-Security-Policy: default-src 'self'; script-src 'self'/);
 });
 
-// Why: anyone checking which version is live (and the release smoke test) reads version.json;
+// Why: anyone checking which version is live reads version.json;
 // without it, or with a wrong sha, a stale or wrong deploy goes unseen.
 test('ships version.json with this commit and the build time', async () => {
   const { execFileSync } = await import('node:child_process');
