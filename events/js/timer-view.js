@@ -144,7 +144,7 @@ export function timerHtml(entry, face, limit, grace, track, opts) {
   const shown = cardFace(face);
   const result = resultPillHtml(face, grace);
   const next = p === 'next' && o.nextHtml ? o.nextHtml : '';
-  const btns = shared && face.phase !== 'speech' ? prepButtons(face, p === 'timer') : `${bigButton(face, p === 'timer')}${next}
+  const btns = shared && face.phase !== 'speech' ? prepButtons(face, p === 'timer') : `${next}${bigButton(face, p === 'timer')}
       ${toolGroup('speech')}
       <button class="b" type="button" data-tact="set">Set time</button>
       ${!face.running && face.used ? resetHtml : ''}`;
@@ -390,8 +390,9 @@ export function createTimerView(opts) {
   // After a start or stop the focus goes to the main button. A tap in the sticky bar keeps the focus in the bar, so
   // the page does not jump back up to the big card while the judge writes.
   let fromBar = false;
+  // Design build (top 10 #1): after a stop with speakers left, the focus goes to "Next speaker", the room's primary.
   const focusGo = () => {
-    const b = fromBar ? $('#timer-mini [data-tact]') : $('[data-tact="startstop"]');
+    const b = fromBar ? $('#timer-mini [data-tact]') : ($('.timer-btns .next-top') || $('[data-tact="startstop"]'));
     if (b) b.focus({ preventScroll: fromBar });
   };
 

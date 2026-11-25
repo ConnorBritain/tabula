@@ -333,7 +333,7 @@ test('room primary: the card and the header together hold exactly one solid shap
   assert.equal(total(), 1, 'stopped, speakers left');
   assert.match(stopped, /class="b timer-go"[^>]*><svg[^>]*>.*?<\/svg>Resume</, 'Resume steps down');
   assert.match(stopped, /<button class="b primary next-top" type="button" data-act="next" data-key="next">Next speaker: B2<svg/);
-  assert.ok(stopped.indexOf('next-top') < stopped.indexOf('tool-group'), 'Next speaker sits next to the timer, before the tools');
+  assert.ok(stopped.indexOf('next-top') < stopped.indexOf('timer-go'), 'Next speaker comes first, right under the timer, before Resume and the tools');
   r = withEntry(withEntry(r, 'B2', (e) => doneE(e, 400)), 'C3', (e) => doneE(e, 450));
   assert.equal(cardPrimaries(cardFor(r, a(), ev, 600)), 0, 'all done: nothing solid on the card');
   assert.match(goRankHtml(r, roomPrimary(r, a())), /^<a class="b primary" id="go-rank"[^>]*><svg class="i i-20"[^>]*><use href="#i-list-ordered"\/><\/svg>Rank the room<\/a>$/);
@@ -602,4 +602,11 @@ test('D5-A: on rows still judging the submit button moves into ⋯; Up next and 
   const open = mydayHtml(m, DAY, DATA.events, NOW, [], key);
   const row = open.slice(open.indexOf('data-item="' + key + '"'));
   assert.match(row.slice(0, row.indexOf('</li>')), /<div class="md-menu"[^>]*>\s*<button class="b small" type="button" data-act="submit">I submitted in Tabroom<\/button>\s*<button[^>]*data-act="room">Change room<\/button>\s*<button class="b small quiet danger-text md-cancel" type="button" data-act="cancel">Cancel round<\/button><\/div>/);
+});
+
+// Why: §5.1 sets 44 px targets on a phone; a 28 px "Edit" or "Show all" next to other controls is a mis-tap that opens
+// the wrong card in the middle of a round.
+test('phone targets: every button, small ones too, is at least 44 px under 820 px; the primary is 48 px', () => {
+  assert.match(CSS, /@media \(max-width: 820px\) \{\n  a\.b, button\.b, a\.b\.small, button\.b\.small, \.timer-btns \.b \{ min-height: 44px; \}/);
+  assert.match(CSS, /  a\.b\.primary, button\.b\.primary, \.timer-btns \.b\.primary \{ min-height: 48px; \}/);
 });
