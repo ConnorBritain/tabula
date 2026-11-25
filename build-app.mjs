@@ -73,7 +73,7 @@ export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW, env = proc
       filter: (p) => !BLOCK.some((re) => re.test(relative(ROOT, p).split('\\').join('/'))),
     });
   }
-  // The deploy build names its mode (wrangler.app.jsonc: --mode=prod or --mode=staging). _headers caches it for a minute only.
+  // The deploy build names its mode (wrangler.app.jsonc: --mode=prod or --mode=staging). _headers never caches it.
   writeFileSync(join(out, 'version.json'), JSON.stringify(version) + '\n');
   const missing = missingRefs(out);
   if (missing.length) throw new Error(`build-app: a shipped page links to files that are not in the output: ${missing.join(', ')}`);

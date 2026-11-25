@@ -102,6 +102,10 @@ test('the deploy runs every *.test file; only the browser test is left to the fu
   const cmds = [cfg.build.command, ...Object.values(cfg.env || {}).map((e) => e.build && e.build.command).filter(Boolean)];
   assert.equal(cmds.length, 2, 'prod and staging each have a deploy build command');
   for (const c of cmds) assert.match(c, /^node --test "\*\*\/\*\.test\.\*js" && node check-publish\.mjs && node build-app\.mjs/, c);
+  // The events host's deploy runs the same browser-free set (its build needs no browser either).
+  const ev = JSON.parse(readFileSync(new URL('./wrangler.events.jsonc', import.meta.url), 'utf8').replace(/^\s*\/\/.*$/gm, ''));
+  const evCmds = [ev.build.command, ...Object.values(ev.env || {}).map((e) => e.build && e.build.command).filter(Boolean)];
+  for (const c of evCmds) assert.match(c, /^node --test "\*\*\/\*\.test\.\*js" && /, 'events: ' + c);
   // Files plain `node --test` runs that the deploy pattern does not: the *-test.*js files at the root.
   const rootOnly = readdirSync(new URL('./', import.meta.url)).filter((f) => /-test\.[cm]?js$/.test(f));
   assert.deepEqual(rootOnly, ['offline-open.browser-test.mjs']);
