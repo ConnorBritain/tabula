@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "note": "Sentence starters for the comment box and the reason for rank. A tap puts one starter at the cursor; the judge writes the rest. Each starter is the start of a sentence, with no end mark. Plain words, about a US grade 6 reading level. events/comment-kit/kit-data.js is built from this file: run node events/comment-kit/build-data.mjs after a change.",
+  "families": {
+    "interp": {
+      "label": "Interp",
+      "strength": [
+        "I believed you most when",
+        "Your strongest moment was",
+        "Your characters were easy to tell apart when",
+        "Your intro worked well because",
+        "Your blocking helped the story when",
+        "The cut was easy to follow because",
+        "You pulled me in when",
+        "Your pauses worked well when"
+      ],
+      "toWork": [
+        "Try slowing down when",
+        "To make each character clearer, try",
+        "I lost track of who was speaking when",
+        "The story would hit harder if",
+        "Try a longer pause after",
+        "Think about where you look when",
+        "Your intro could tell me more about",
+        "One thing to try next time is"
+      ],
+      "reason": [
+        "I ranked you here because",
+        "What set you apart was",
+        "The speakers above you",
+        "Your rank came down to",
+        "To move up next time,",
+        "This was a close room, and"
+      ]
+    },
+    "platform": {
+      "label": "Platform speeches",
+      "strength": [
+        "Your main point was clear when",
+        "Your best example was",
+        "Your intro hooked me because",
+        "Your evidence was strong when",
+        "Your speech was easy to follow because",
+        "You made me care when",
+        "Your conclusion worked because",
+        "You spoke with confidence when"
+      ],
+      "toWork": [
+        "Your main point would be clearer if",
+        "Try adding a source for",
+        "One part that was hard to follow was",
+        "Try linking your points by",
+        "Your conclusion could",
+        "Try slowing down when",
+        "Try more eye contact when",
+        "One thing to try next time is"
+      ],
+      "reason": [
+        "I ranked you here because",
+        "What set you apart was",
+        "The speakers above you",
+        "Your rank came down to",
+        "To move up next time,",
+        "This was a close room, and"
+      ]
+    },
+    "limitedPrep": {
+      "label": "Limited prep",
+      "strength": [
+        "You answered the question by",
+        "Your best source was",
+        "Your analysis was strong when",
+        "Your points were easy to follow because",
+        "Your example about",
+        "You sounded sure when",
+        "Your intro set up the question well by",
+        "You used your time well by"
+      ],
+      "toWork": [
+        "Answer the question more directly by",
+        "Try citing a source for",
+        "Explain why this matters by",
+        "Your points would be clearer if",
+        "Try a short preview of your points, like",
+        "Watch your time near",
+        "Try a stronger ending, such as",
+        "One thing to try next time is"
+      ],
+      "reason": [
+        "I ranked you here because",
+        "You answered the question better than",
+        "The speakers above you",
+        "Your rank came down to",
+        "To move up next time,",
+        "This was a close room, and"
+      ]
+    },
+    "twoRuns": {
+      "label": "Two runs",
+      "strength": [
+        "Your Pro side was strong when",
+        "Your Con side was strong when",
+        "Your best reason was",
+        "You switched sides smoothly by",
+        "Both sides were easy to follow because",
+        "You used your time well by"
+      ],
+      "toWork": [
+        "Your Pro side would be stronger if",
+        "Your Con side would be stronger if",
+        "Try to split your time more evenly by",
+        "Make the switch between sides clearer by",
+        "Try one more reason for",
+        "One thing to try next time is"
+      ],
+      "reason": [
+        "I ranked you here because",
+        "What set you apart was",
+        "The speakers above you",
+        "Your rank came down to",
+        "To move up next time,",
+        "This was a close room, and"
+      ]
+    },
+    "congress": {
+      "label": "Congress",
+      "strength": [
+        "Your speech moved the debate forward by",
+        "You answered an earlier speaker well when",
+        "Your best evidence was",
+        "You handled questions well when",
+        "Your intro was strong because",
+        "You stayed calm and clear when"
+      ],
+      "toWork": [
+        "Try answering an earlier speaker by",
+        "Try adding a source for",
+        "Your point would be clearer if",
+        "In questions, try",
+        "Bring a new point by",
+        "One thing to try next time is"
+      ],
+      "reason": [
+        "I ranked you here because",
+        "What set you apart was",
+        "The speakers above you",
+        "Your rank came down to",
+        "To move up next time,",
+        "This was a close chamber, and"
+      ]
+    },
+    "general": {
+      "label": "Any event",
+      "strength": [
+        "Your strongest moment was",
+        "You did well when",
+        "Your intro worked because",
+        "You were easy to follow when",
+        "You made me care when",
+        "You spoke with confidence when"
+      ],
+      "toWork": [
+        "Try slowing down when",
+        "One part that was hard to follow was",
+        "This would be stronger if",
+        "Try a longer pause after",
+        "Your ending could",
+        "One thing to try next time is"
+      ],
+      "reason": [
+        "I ranked you here because",
+        "What set you apart was",
+        "The speakers above you",
+        "Your rank came down to",
+        "To move up next time,",
+        "This was a close room, and"
+      ]
+    }
+  }
+}

@@ -7,6 +7,7 @@ import { entryOf, updateEntry, roomEvent } from './room.js';
 import { icon } from './icons.js';
 import { foldSummaryHtml, foldValueHtml } from './fold.js';
 import { ranksShown } from './profile-layer.js';
+import { mountCommentKit } from '../comment-kit/kit-view.js';
 
 // One chip and one rule check as HTML text (the sheet draws them, and a tap redraws just that button). A chip that is
 // on gets a check and a 2 px edge, never the solid fill (§5.1 toggle chip). A rule check is a row with a flag button:
@@ -158,6 +159,7 @@ export function createCommentView() {
       box.addEventListener('input', onInput);
       box.addEventListener('click', onClick);
       for (const t of ['keyup', 'mouseup', 'touchend', 'select', 'input', 'blur']) box.addEventListener(t, keepCursor, true);
+      mountCommentKit(box, event(room()), (room() || {}).current); // sentence starters, performance check, length note
     },
     show(c) { ctx = c; promptsAll = false; reasonOpen = false; },
   };
