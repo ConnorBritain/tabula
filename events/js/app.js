@@ -41,6 +41,7 @@ import { createPalette } from './palette-screen.js';
 import { mountSprite } from './icons.js';
 import { loadWorkspace, roundFamily } from './workspaces.js';
 import { registerOffline } from './offline.js';
+import { watchUpdates, pageBusy } from './update-gate.js';
 import { createPageAI } from './page-ai.js';
 import { createDayStore } from './day-store.js';
 import { createMydayScreen } from './myday-screen.js';
@@ -55,7 +56,7 @@ const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
 mountSprite(document); // the Lucide sprite (icons.js): every icon on every screen points into it
 const store = createEventsStore(ui);
-registerOffline();
+watchUpdates(registerOffline(), () => pageBusy({ screen: parseRoute(location.hash).screen, rooms: readRooms(), congress: congressIO(store).read() })); // a new release waits for a quiet screen
 
 // Read one file under events/. A reply that is not JSON (for example a host's HTML error page) names the file.
 async function readJson(path) {

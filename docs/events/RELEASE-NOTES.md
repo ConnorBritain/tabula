@@ -34,6 +34,8 @@ optional and uses the judge's own key.
   scripts run next to a judge's saved AI key.
 - **Source code.** Settings, About links to the source code (AGPL).
 - **Release id.** Settings, About shows which release the device runs, and backup files name it.
+- **Safe updates.** A new release waits while a round is open or a clock runs. When the page is quiet, it says
+  "Update ready. It starts when you reload." with a Reload button. The page never reloads by itself.
 - **Send feedback.** Settings, About opens an email to support with the release id and the browser family filled in,
   and a reminder not to include student names. Nothing is sent until the judge sends it. A Known issues link sits
   next to it.
