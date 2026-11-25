@@ -7,7 +7,7 @@ day at a tournament. Its code is public in this repository under `events/`.
 rounds to our server. The only data that leaves your device is what you send to an AI company with your own key (see
 [Sent to other services](#sent-to-other-services)).
 
-Who can see device data: anyone who can use this browser on this device. Tabula cannot see it.
+Who can see device data: anyone who can use this browser on this device. Tabula does not receive it.
 
 If you also have a Tabula account, the account site keeps the data in [console.md](console.md). Speech Events does not
 use that account today.
@@ -87,6 +87,6 @@ Your Speech Events data is on your device. Our server backups do not hold it. Th
 The service that serves the app's files can log each request (for example, the web address and your IP address).
 What it keeps and for how long: we are confirming this. The app sends no round data in these requests.
 
-## Questions
+## Questions, export and delete
 
 Email support@tabulaspeech.com.

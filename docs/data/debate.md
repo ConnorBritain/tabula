@@ -6,7 +6,8 @@ public in this repository.
 **Where your data lives:**
 
 - **On your device.** Your rounds, flows, transcripts, speech documents, saved ballots, settings and any AI key you
-  paste stay in this browser on this device. Tabula cannot see them.
+  paste stay in this browser on this device. They are not sent to Tabula unless you use hosted AI or import a
+  SpeechDrop room (see [Sent to other services](#sent-to-other-services)).
 - **On our server**, only if you sign in. Your account, your profile and records of AI use and purchases. See
   [Our server](#our-server) and the full list in [console.md](console.md).
 
@@ -49,8 +50,8 @@ Who can see device data: anyone who can use this browser on this device.
 
 - **Save round file (.tab)**: the current round and its documents. It does not carry your AI keys, your "Judging for"
   school or your AI answer.
-- **Download backup**: the current round, History, settings and the round's documents. AI keys are left out unless you tick the box to include them. The account copies and small reminders are
-  not in it. Keep the file safe: it holds names and ballots.
+- **Download backup**: the current round, History, settings and the round's documents. AI keys are left out unless you
+  tick the box to include them. The account copies and small reminders are not in it. Keep the file safe: it holds names and ballots.
 - **History → CSV**, **Print / PDF** and **Copy for the tournament ballot** give one ballot or a list of ballots.
 
 ## Delete everything
@@ -74,10 +75,10 @@ These are kept only if you sign in. The full list, with who can see each item, i
 
 ## Sent to other services
 
-| Where | What it gets | Why |
+| Service | What it gets | Why |
 |---|---|---|
 | **The AI company you choose with your own key** (Anthropic, Google, OpenAI, OpenRouter or xAI) | Your key; audio clips, if you transcribe with that company; and the round content the AI feature needs: transcripts, flows, your notes and paradigm, the topic, and speech documents. Before sending, the app swaps debater and team names in text for labels like "1A" or "the Aff team", and puts the names back in the reply. PDF documents are sent as they are, so names inside a PDF are not swapped. | AI help and transcription. This goes straight from your browser to that company, not through our server. That company's own terms apply. |
-| **Our server, with hosted AI** (when you are signed in and use rounds of AI) | Round id, "Judging for" school, a call id, the format and task, and the round text the task needs: transcripts, your flow and the AI flow, the topic, your paradigm and notes, ballot details you asked for, the writing style, the points range, and text documents. Names in text are swapped for labels first. PDF documents are not sent (only their file names). Tournament, school and student names are not sent as fields. | Our server forwards the round text to an AI company (OpenAI; Anthropic as a backup and for a deeper mode) and streams the answer back. Our server does not store the round text. It keeps only the usage record above. For OpenAI we ask it not to store the request; Anthropic has no matching setting. How long the AI companies keep data: we are confirming this. |
+| **Our server, with hosted AI** (when you are signed in and use rounds of AI) | Round id, "Judging for" school, a call id, the format and task, and the round text the task needs: transcripts, your flow and the AI flow, the topic, your paradigm and notes, ballot details you asked for, the writing style, the points range, and text documents. Names in text are swapped for labels first. PDF documents are not sent (only their file names). Tournament, school and student names are not sent as fields. | Our server forwards the round text to an AI company (OpenAI; Anthropic as a backup and for a deeper mode) and streams the answer back. Our server passes the round text on and does not save it. It keeps only the usage record above. For OpenAI we ask it not to store the request; Anthropic has no matching setting. How long the AI companies keep data: we are confirming this. |
 | **Our server, other checks** (when signed in) | Your profile (read, and your paradigm when you save it), your AI access check (with the "Judging for" school), and a round limits check (with the round id) | Shows your schools, paradigm, AI features and rounds left |
 | **Your browser's speech recognition** (if you pick the browser for transcription) | Microphone audio | Turns speech into text. Some browsers send this audio to the browser maker's service. That browser's own terms apply. |
 | **SpeechDrop** (only if you import a SpeechDrop room) | The room code. The request goes through a helper route on the site that serves the app, which fetches the room's files. | Imports speech documents |

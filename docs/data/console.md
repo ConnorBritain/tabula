@@ -36,7 +36,7 @@ what stays.
 | Age-check time | When you gave your birth date and agreed to the Terms and Privacy Policy. It is our record of that agreement. | You | Yes | Closing your account clears it. | Until you close your account | Our server |
 | Your uses (admin, coach, debater, judge) | You pick these. They change your home screen only. They give no rights. | You | Yes | You can change them. Closing your account clears them. | Until you change them or close your account | Our server |
 | Email-verified time | When you first signed in with this email | No screen shows it. | Not in the self-service export; ask us | No. It stays after you close your account. | We keep it. We have no automatic deletion for this yet. | Our server |
-| Under-13 check fields: the first under-13 date given, a one-correction flag, the end of a 7-day hold, the time a person asked for a human review | Our process when a birth date shows a person under 13 | No screen shows them. | Not in the self-service export; ask us | No. They stay after you close your account. | We keep them. We have no automatic deletion for these yet. An account on an under-13 hold is closed after 7 days. | Our server |
+| Under-13 check fields (dates and status of an under-13 check) | Our process when a birth date shows a person under 13 | No screen shows them. | Not in the self-service export; ask us | No. They stay after you close your account. | We keep them. We have no automatic deletion for these yet. An account on an under-13 hold is closed after 7 days. | Our server |
 | Payment customer number | Opens checkout and the billing page for you | No screen shows it. | Not in the self-service export; ask us | No. It stays after you close your account. | We keep it. We have no automatic deletion for this yet. | Our server |
 | Billing hold time | Set by hand while a card dispute is open. It stops hosted AI and checkout. | No screen shows it. | Not in the self-service export; ask us | Cleared by hand when the dispute ends | We keep it. We have no automatic deletion for this yet. | Our server |
 | Passkey handle and two-step sign-in fields | For passkeys and two-step sign-in. **This feature is not on yet.** | No screen shows them. | Not in the self-service export; ask us | No. They stay after you close your account. | We keep them. We have no automatic deletion for these yet. | Our server |
@@ -70,7 +70,7 @@ When someone else sees a student's photo, we write a row in the student-data rea
 | School: id, name (typed by the person who made it), who made it, created time, which app (debate, Speech Events, or both), settings version | The group your account belongs to. Only adults can make a school. | Members. The school name is also in invite emails and in a person's list of open invites. | The school name and id are in each member's export. | No. We have no way to delete a school yet. | We keep it. We have no automatic deletion for this yet. | Our server |
 | Membership: school, person, role, a "managed" flag (a teen who joined with a student code, managed by the school), the three admin rights, joined time | Who is in the school and what they can do | You see your own. Admins and coaches see the roster with roles, rights, the managed flag and join times. Judges and students see no roster. | Yes | A member manager removes you (this needs a fresh emailed code), you leave, or you close your account. | Until removed | Our server |
 | School AI rules: the rule, where it applies, its value, updated time, who updated it | What AI help the school allows | Admins and coaches. Only an admin with the edit-AI-rules right can change them. | Not in the self-service export; ask us | Changed by editing. Old values are overwritten. | We keep them. We have no automatic deletion for these yet. | Our server |
-| School change log: who, when, what changed, old and new value. Account numbers only, never names or emails. | A record of settings and team changes (roles, rights, removals, invites, join codes, students joining or leaving, passkey resets) | Admins and coaches see settings changes, with the person's display name. No screen shows team changes. | Not in the self-service export; ask us | No. Closing your account does not remove these. | We keep it. We have no automatic deletion for this yet. | Our server |
+| School change log: who, when, what changed, old and new value. Account numbers only, never names or emails. | A record of settings and team changes (roles, rights, members joining or leaving, invites, join codes) | Admins and coaches see settings changes, with the person's display name. No screen shows team changes. | Not in the self-service export; ask us | No. Closing your account does not remove these. | We keep it. We have no automatic deletion for this yet. | Our server |
 
 Who manages school data: school admins first, then coaches. Admin rights decide who can manage members, edit AI rules
 and manage billing.
@@ -96,7 +96,7 @@ A join code holds no student data.
 |---|---|---|---|---|---|---|
 | Balance changes: amount, kind (grant, use, refund, adjust), reference, time | Your rounds left | You see it as rounds left. | Yes, without the reference | No. These are records. | We keep them. We have no automatic deletion for these yet. | Our server |
 | AI use record, one per AI call: call id, person, round id (made by the app), task, format, app (debate or Speech Events), model, word-piece (token) counts, cost | Billing and limits. Usage numbers only: no round text, no names. | No screen lists them. | Per-round totals only (first and last call time, number of calls, app) | No. These are records. | We keep them. We have no automatic deletion for these yet. | Our server |
-| Cost-overrun record: person, call, round, amount | Finds calls that cost more than planned. A daily alert emails account numbers and counts to an internal Tabula address. | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
+| Cost-overrun record: person, call, round, amount | Finds calls that cost more than planned. We check these records for unusual costs. | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
 | Paid grant: product, amount, created time, end date (paid grants do not run out) | Rounds you bought | You see it as rounds left. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
 | Payment: payment reference, invoice number, owner, product, amount, rounds, time | Your purchase record | You (export, and the page after you pay) | Yes (product, amount, rounds, time) | No. These are records. | We keep them. We have no automatic deletion for these yet. | Our server |
 | Subscription: product, status, cancel flag, period end | Plans that renew | You | Yes | No. While a plan renews, you cannot close your account. | We keep it. We have no automatic deletion for this yet. | Our server |
@@ -105,8 +105,8 @@ A join code holds no student data.
 | Link between your account and the payment service's customer record | Billing | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
 | Auto-renew consent: person, product, notice version, times | A record that you agreed to automatic renewal (required in California) | No screen shows it. | Not in the self-service export; ask us | No | At least 3 years. We have no automatic deletion for this yet. | Our server |
 
-Checkout without an account is off. When it was on, it stored a random cookie value in scrambled form and a scrambled
-copy of the IP address. That scrambled IP copy is not salted, so it is weaker than it should be.
+Checkout without an account is off. When it is on, the checkout record also holds a scrambled copy of a random cookie
+value and of the IP address.
 
 ## Buying rounds for someone else
 
@@ -115,7 +115,7 @@ You can buy rounds and send them to another person by email.
 | Data | Why | Who can see it | Export | Delete | How long we keep it | Where it lives |
 |---|---|---|---|---|---|---|
 | Send: buyer, product, status, the email address the buyer typed, times, reminder times | Delivers the rounds to the other person | The buyer sees open sends, with the address partly hidden. | Not in the self-service export; ask us | We clear the typed address when the send ends: the other person keeps, claims or declines it, the buyer cancels, 14 days pass, an under-13 hold starts, the buyer starts a new send, or the buyer closes their account. | The address: until the send ends. The rest of the send record: we keep it. We have no automatic deletion for this yet. | Our server |
-| Send limit check: a scrambled copy of the other person's email address | Stops too many sends to one person. The scrambled copy is not salted. | No screen shows it. | No | Deleted when the send ends | Until the send ends | Our server |
+| Send limit check: a scrambled copy of the other person's email address. It can still be matched to that address. | Stops too many sends to one person. | No screen shows it. | No | Deleted when the send ends | Until the send ends | Our server |
 | Rounds moved between accounts: from, to, rounds, time | Records the move | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
 | Sender block (a person blocked a buyer) | Stops more sends from that buyer | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
 
@@ -135,7 +135,13 @@ and the time.
 
 | Data | Why | Who can see it | Export | Delete | How long we keep it | Where it lives |
 |---|---|---|---|---|---|---|
-| Queued email: recipient address, kind (receipt, setup, sent-to-you, under-13, returned, parent question, renewal confirm and others), subject, body, tries, last error, times | Sends email reliably. The body can hold a sign-in or answer link. | No screen shows it. | Not in the self-service export; ask us | We blank the body once the email is sent, or after 5 failed tries. "Sent to you" emails are deleted when the send ends. | Recipient address and subject: we keep them, also after you close your account. We have no automatic deletion for these yet. | Our server |
+| Queued email: recipient address, kind of email (for example receipts and sign-in codes), subject, body, tries, last error, times | Sends email reliably. The body can hold a sign-in or answer link. | No screen shows it. | Not in the self-service export; ask us | We blank the body once the email is sent, or after 5 failed tries. "Sent to you" emails are deleted when the send ends. | Recipient address and subject: we keep them, also after you close your account. We have no automatic deletion for these yet. | Our server |
+
+## Rate limits
+
+| Data | Why | Who can see it | Export | Delete | How long we keep it | Where it lives |
+|---|---|---|---|---|---|---|
+| Request counters, kept by IP address (sign-in, answer links, checkout without an account) or by account number (AI, export, photo, checkout) | Stops abuse and overload | No screen shows them. | No | Automatic | Each count covers 60 seconds. How the hosting provider stores them: we are confirming this. | Our hosting provider |
 
 ## Security counts
 
@@ -203,7 +209,7 @@ To ask us to delete more, email support@tabulaspeech.com.
 | Payment service (Stripe) | Your account number as a reference, the product, your email if you are a new customer. It collects your card and billing address itself. | It sells you the product (it is the seller of record), and handles refunds and cancels. We do not ask it to delete your customer record. How long it keeps data: we are confirming this. |
 | Email service (Resend) | Recipient, subject and text of: sign-in and confirmation codes, invites (with the school name), notices that a student was removed, receipts, send links, the parent question, and internal alerts that hold account numbers | Delivers our emails. How long it keeps data: we are confirming this. |
 | Bot check (Cloudflare Turnstile) | A check token and your IP address | Stops automated abuse. It is **off** today for sign-in, send forms and checkout without an account. |
-| AI providers (OpenAI, Anthropic) | Only when an app uses hosted AI. See [debate.md](debate.md) and [events.md](events.md). | Answers AI requests |
+| AI providers (OpenAI, Anthropic) | Only when the judging app uses hosted AI. See [debate.md](debate.md). Speech Events has no hosted AI today. | Answers AI requests |
 
 ## Cookies
 
@@ -211,7 +217,7 @@ To ask us to delete more, email support@tabulaspeech.com.
 |---|---|---|
 | Session cookie | Your account number and session id, signed. Scripts on the page cannot read it. | 30 days |
 | Sign-in hint (`tabula_si`) | The value 1. No user data. | Same as the session |
-| Under-13 marker | Set only on the birth-date path | 1 year |
+| Under-13 marker | Set only during the birth-date step | 1 year |
 | Guest checkout cookie | A random value. Only for checkout without an account, which is off. | 1 day |
 
 ## Backups
