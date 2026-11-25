@@ -3,7 +3,7 @@
 // with Undo. The rules are in history.js; the builders at the top are pure (Node tests call them); createHistoryScreen
 // does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
-import { icon } from './icons.js';
+import { icon, iconButton } from './icons.js';
 import { statusPillHtml } from './status-pill.js';
 import { downloadFile } from '../../core/store.js';
 import { historyRows, filterChoices, filterRows, historyColumns, exportTable, toTSV, toCSV, csvName } from './history.js';
@@ -31,7 +31,7 @@ function cellHtml(row, key) {
 // until "⋯" opens it, so a keyboard judge reaches Delete only on purpose. Delete still has Undo.
 function moreHtml(r) {
   const name = r.event + ' ' + (r.round || 'round') + ' from ' + r.date;
-  return `<button class="iconbtn hist-more-btn" type="button" data-more aria-expanded="false" aria-label="${esc('More for ' + name)}">${icon('ellipsis', 20)}</button>`
+  return iconButton('ellipsis', 'More for ' + name, 'iconbtn hist-more-btn', 'data-more aria-expanded="false"')
     + `<div class="hist-menu" role="group" aria-label="${esc('More for ' + name)}" hidden><button class="b small quiet" type="button" data-del="${esc(r.id)}" aria-label="${esc('Delete ' + name)}">Delete</button></div>`;
 }
 

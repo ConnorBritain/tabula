@@ -8,6 +8,7 @@
 // time (or once cross-ex has time). The phase row is phase-bar.js, the one phase renderer (no pills of its own).
 // The rules are in cross-ex.js. The builders at the top are pure (Node tests call them); createCrossExView does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { statusPillHtml } from './status-pill.js';
 import { clockText, limitOf } from './timer.js';
 import { entryOf, present, roomEvent } from './room.js';
 import {
@@ -66,7 +67,7 @@ export function crossExHtml(room, entry, event, now) {
       <label class="field"><span>School of ${esc(entry.code)} <span class="muted">(optional)</span></span><input id="cx-school" data-cxfield="school" autocomplete="off" maxlength="60" value="${esc(entry.school || '')}"></label>
     </div>
     ${warn ? `<p class="cx-warn" id="cx-warn" role="status">${esc(warn)}</p>` : ''}
-    <div class="cx-clock${face.over ? ' over' : ''}"><span class="cx-digits" id="cx-digits">${esc(face.digits)}</span>${face.over ? ' <span class="pill err">Over</span>' : ''}
+    <div class="cx-clock${face.over ? ' over' : ''}"><span class="cx-digits" id="cx-digits">${esc(face.digits)}</span>${face.over ? ' ' + statusPillHtml('err', 'Over') : ''}
       <button class="b" type="button" data-cxact="startstop" data-key="cx-startstop">${face.running ? 'Stop cross-ex' : face.used ? 'Resume cross-ex' : 'Start cross-ex'}</button>
       ${!face.running && face.used ? '<button class="b quiet" type="button" data-cxact="reset" data-key="cx-reset">Reset</button>' : ''}</div>
     ${lim ? '' : '<p class="field-help">The cross-ex length is not set in these rules. Follow the tab room.</p>'}

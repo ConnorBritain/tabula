@@ -50,7 +50,7 @@ export function ranksStageHtml(room) {
   const back = ranked ? 'Rank' : 'Rate';
   // A top-N ballot: the rows past N say "Not in top N", as the copied text does, not a bare dash.
   const notRanked = layerOf(room.profile).ranks === 'topN' ? notRankedText(room.profile) : '';
-  const overCell = (r) => (r.overTime ? `<span class="pill err">${esc(OVER_GRACE_PILL)}</span>` : '<span class="sr-only">No</span>');
+  const overCell = (r) => (r.overTime ? statusPillHtml('err', OVER_GRACE_PILL) : '<span class="sr-only">No</span>');
   const table = `<table class="ranks-table"><thead><tr><th>Code</th>${ranked ? '<th>Rank</th>' : ''}${rated ? '<th>Rating</th>' : ''}${rubric ? '<th>Rubric</th>' : ''}<th>Over time</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="code">${esc(r.code)}</td>${ranked ? `<td class="preview-rank">${r.rank ? esc(r.rank) : notRanked ? `<span class="muted preview-out">${esc(notRanked)}</span>` : '–'}</td>` : ''}${rated ? `<td>${r.rating ? esc(r.rating) : statusPillHtml('caution', 'No rating')}</td>` : ''}${rubric ? `<td>${esc(rubricLine(r.rubric))}</td>` : ''}<td>${overCell(r)}</td></tr>`).join('')}</tbody></table>`;
   const copyBtn = problems.length ? ''
     : `<button class="${sent ? 'b quiet' : 'b primary'}" type="button" data-vact="copy" data-what="ranks" data-key="copy-ranks">${copyLabel(false, sent ? 'Copy ' + word + ' again' : 'Copy ' + word)}</button>`;

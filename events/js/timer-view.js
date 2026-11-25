@@ -33,7 +33,7 @@ import {
 // The over-grace line inside the card ('' when the flag is off). Design build (top 10 #2): it sits in the card, and
 // "Clear over grace" is a quiet button (a rare fix). After a stop the result pill under the digits says it, so the
 // line keeps only the clear button.
-export const overGraceHtml = (face) => (face.overGrace ? `<div class="timer-flag">${face.stage === 'stopped' && face.used > 0 ? '' : '<span class="pill err">Over grace</span>'}
+export const overGraceHtml = (face) => (face.overGrace ? `<div class="timer-flag">${face.stage === 'stopped' && face.used > 0 ? '' : statusPillHtml('err', 'Over grace')}
       <button class="b small quiet" type="button" data-tact="clear">Clear over grace</button></div>` : '');
 
 // The result of a stopped speech (top 10 #2), or null before any time and while the clock runs: 'inside', 'grace'

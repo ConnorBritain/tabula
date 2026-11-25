@@ -4,8 +4,10 @@
 // #/round/<id>/rank. The rules are in profile-layer.js and rank.js; this file draws them.
 // The builders at the top are pure (Node tests call them); createRateScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { statusPillHtml } from './status-pill.js';
 import { icon } from './icons.js';
-import { problemsListHtml, readyHtml, rateRowPill, jumpToRow, ballotFootHtml, footToOpenRow } from './ballot-status.js';
+import { problemsListHtml, readyHtml, rateRowPill, ballotFootHtml } from './ballot-status.js';
+import { ballotNavClick } from './ballot-nav.js';
 import { ratingScale, ratingError, ratingTies, overtimeRow } from './rank.js';
 import { boardCtx, ratingsOf } from './board.js';
 import { layerOf, layerProblems } from './profile-layer.js';
@@ -31,7 +33,7 @@ export function rateListHtml(room, view) {
     const err = ratingError(ratings[e.id], scale) || (tied.has(e.id) ? 'Another speaker has this rating.' : '');
     return `<li class="rate-row" data-row="${esc(e.id)}" tabindex="-1">
       <span class="board-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}
-        <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ` <span class="pill err">${esc(ot.pill)}</span>` : ''}</span>
+        <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ' ' + statusPillHtml('err', ot.pill) : ''}</span>
         ${ot.pill && panel ? `<span class="board-note">${esc(panel)}</span>` : ''}${rateRowPill(e, ratings[e.id], scale, rubric)}</span>
       ${scale.kind !== 'none' ? `<span class="board-rate">${ratingHtml(e, ratings[e.id], scale, err)}</span>` : ''}
       ${rubricHtml(e, rubric)}
@@ -66,8 +68,7 @@ export function createRateScreen(env) {
   // The score controls work as on the Rank screen (score-view.js); typing saves on every change, and the error shows
   // when the box is left.
   function onClick(ev) {
-    if (jumpToRow(env.el, ev.target)) return; // a "Before you review" item takes the judge to its row
-    if (footToOpenRow(env.el, ev.target, env.ui.announce)) { ev.preventDefault(); return; } // work open: to its row
+    if (ballotNavClick(env.el, ev, env.ui.announce)) return; // a "Before you review" item, or the footer while work is open
     const res = scoreClick(ev.target, room(), env.now()); if (res) { save(res.room); draw(res.focusKey); }
   }
   function onInput(ev) { const next = scoreInput(ev.target, room(), env.now()); if (next) save(next); }

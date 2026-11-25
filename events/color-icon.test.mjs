@@ -101,12 +101,16 @@ test('icons: every svg.i is aria-hidden, from icon() and in the page shell', () 
 test('icons: an icon-only button has an aria-label and uses one of the six allowed icons', () => {
   assert.deepEqual([...ICON_ONLY].sort(), ['chevron-down', 'chevron-left', 'chevron-up', 'ellipsis', 'grip-vertical', 'x']);
   for (const name of ICON_ONLY) {
-    const html = iconButton(name, 'More for HI Round 1', 'class="iconbtn"');
+    const html = iconButton(name, 'More for HI Round 1', 'iconbtn', 'data-act="menu"');
+    assert.match(html, /^<button class="iconbtn" type="button" data-act="menu" aria-label="More for HI Round 1"><svg class="i i-20"/);
     assert.match(html, /aria-label="More for HI Round 1"/);
     assert.match(html, new RegExp('#i-' + name + '"'));
   }
   // A name off the list draws the label as a word instead of a lone icon.
-  assert.equal(iconButton('copy', 'Copy all'), '<button type="button"  aria-label="Copy all">Copy all</button>');
+  assert.equal(iconButton('copy', 'Copy all', 'b'), '<button class="b" type="button" aria-label="Copy all">Copy all</button>');
+  // In the code: the "⋯" menus and the rank moves go through iconButton, never a hand-written lone icon.
+  for (const f of ['js/myday-screen.js', 'js/room-screen.js', 'js/history-screen.js']) assert.match(read('./' + f), /iconButton\('ellipsis'/, f);
+  assert.match(read('./js/rank-screen.js'), /iconButton\('chevron-up'[\s\S]*iconButton\('chevron-down'/);
   // In the code: a button whose only content is an icon (no word beside it) has an aria-label, and the icon is allowed.
   for (const [f, src] of SOURCES) {
     for (const m of src.matchAll(/<button\b([^>]*)>\s*\$\{icon\('([a-z-]+)'[^}]*\}\s*<\/button>/g)) {
@@ -126,6 +130,10 @@ test('icons: every icon name the code uses and every #i-* reference exists in th
     for (const m of src.matchAll(/href="#i-([a-z-]+)"/g)) { seen++; assert.ok(sprite.includes('id="i-' + m[1] + '"'), f + ': no symbol i-' + m[1]); }
   }
   assert.ok(seen > 20, 'the screens use the sprite');
+  // And no symbol ships unused (every judge downloads the sprite). Names may come from maps ('live', 'circle-dashed')
+  // or a choice (running ? 'pause' : 'play'), so any quoted use counts. "x" stays for the six-icon allowlist.
+  const used = SOURCES.filter(([f]) => f !== 'js/icons.js').map(([, src]) => src).join('\n');
+  for (const name of Object.keys(ICONS)) if (name !== 'x') assert.ok(used.includes("'" + name + "'") || used.includes('#i-' + name + '"'), 'unused icon: ' + name);
   assert.equal(icon('no-such-icon'), '');
 });
 

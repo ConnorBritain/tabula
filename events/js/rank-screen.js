@@ -4,8 +4,10 @@
 // (Alt+Up and Alt+Down on a focused row). A refused move changes nothing and says why.
 // The builders at the top are pure (Node tests call them); createRankScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
-import { icon } from './icons.js';
-import { problemsListHtml, readyHtml, rateRowPill, jumpToRow, ballotFootHtml, footToOpenRow } from './ballot-status.js';
+import { statusPillHtml } from './status-pill.js';
+import { icon, iconButton } from './icons.js';
+import { problemsListHtml, readyHtml, rateRowPill, ballotFootHtml } from './ballot-status.js';
+import { ballotNavClick } from './ballot-nav.js';
 import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
   ratingFix, ratingTies, RANK_RATING_ROW, graceLineText,
@@ -62,14 +64,14 @@ export function boardHtml(room, view) {
     const used = totalUsedAt(e.timing, view.now, view.limit); // on a prep event (E11), prep and speech
     const main = view.tapMode
       ? `<button class="tap-pick" type="button" data-ract="tap" data-id="${id}" data-key="tap-${id}">${rank ? 'Rank ' + esc(rank) + ' · tap to clear' : next ? 'Tap to rank ' + next : ''}</button>`
-      : `<button class="b small quiet move" type="button" data-ract="up" data-id="${id}" data-key="up-${id}" aria-label="Move ${esc(e.code)} up"${i === 0 ? ' disabled' : ''}>${icon('chevron-up', 20)}</button>
-         <button class="b small quiet move" type="button" data-ract="down" data-id="${id}" data-key="down-${id}" aria-label="Move ${esc(e.code)} down"${i === n - 1 ? ' disabled' : ''}>${icon('chevron-down', 20)}</button>
+      : `${iconButton('chevron-up', 'Move ' + e.code + ' up', 'b small quiet move', `data-ract="up" data-id="${id}" data-key="up-${id}"${i === 0 ? ' disabled' : ''}`)}
+         ${iconButton('chevron-down', 'Move ' + e.code + ' down', 'b small quiet move', `data-ract="down" data-id="${id}" data-key="down-${id}"${i === n - 1 ? ' disabled' : ''}`)}
          <span class="drag" data-drag="${id}" aria-hidden="true" title="Drag to move">${icon('grip-vertical', 20)}</span>`;
     const below = cut && i >= cut;
     return `<li class="board-row${below ? ' below-cut' : ''}" data-row="${id}" tabindex="-1" aria-label="${esc(e.code)}, ${below ? esc(notRankedText(room.profile)) + ', place ' + esc(rank || i + 1) : 'rank ' + esc(rank || 'none')}">
       <span class="board-rank" aria-hidden="true">${esc(rank || '–')}</span>
       <span class="board-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}
-        <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ` <span class="pill err">${esc(ot.pill)}</span>` : ''}</span>
+        <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ' ' + statusPillHtml('err', ot.pill) : ''}</span>
         ${used ? rowTrackHtml(e, view.event, view.limit, graceOf(room), view.now) : ''}
         ${layer.rubric.length ? rateRowPill(e, null, null, layer.rubric) : ''}
         ${rowWordsHtml(e)}
@@ -143,8 +145,7 @@ export function createRankScreen(env) {
   function onClick(ev) {
     if (ev.target.closest('#tap-toggle')) return tapMode ? endTap() : startTap();
     if (ev.target.closest('#restart')) return restart();
-    if (jumpToRow(env.el, ev.target)) return; // a "Before you review" item takes the judge to its row
-    if (footToOpenRow(env.el, ev.target, env.ui.announce)) { ev.preventDefault(); return; } // work open: to its row
+    if (ballotNavClick(env.el, ev, env.ui.announce)) return; // a "Before you review" item, or the footer while work is open
     const sc = scoreClick(ev.target, room(), env.now()); // a rating word, a rating − or +, or a rubric stepper
     if (sc) { save(sc.room); draw(sc.focusKey); return; }
     const b = ev.target.closest('[data-ract]');

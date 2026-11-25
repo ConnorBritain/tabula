@@ -7,7 +7,7 @@
 // Cancel round. Ranks due is a pill in words. The room shows as typed (bug 3).
 // The rules are in cards.js; the builders at the top are pure (Node tests call them); createMydayScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
-import { icon } from './icons.js';
+import { icon, iconButton } from './icons.js';
 import { statusPillHtml } from './status-pill.js';
 import { mydayModel, cardEvent, cardEventId, duePill, roomText, upNextItem, cancelCard, moveRoom, submitCard, findById, undoFields, ROOM_MAX } from './cards.js';
 import { roomEvent, present, CUSTOM_EVENT } from './room.js';
@@ -74,7 +74,7 @@ export function dueHtml(due, now) {
 function moreHtml(v, open) {
   if (!v.canEdit) return '';
   const label = v.short + ' ' + v.title;
-  return `<button class="iconbtn md-more" type="button" data-act="menu" aria-expanded="${open}" aria-label="${esc('More for ' + label)}">${icon('ellipsis', 20)}</button>`;
+  return iconButton('ellipsis', 'More for ' + label, 'iconbtn md-more', `data-act="menu" aria-expanded="${open}"`);
 }
 // withSubmit (owner D5 A, which reverses change 2 in §2.1 of the last review): on a row still judging, "I submitted
 // in Tabroom" is not the next step, so it waits here as the first item instead of on the row.

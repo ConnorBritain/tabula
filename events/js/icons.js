@@ -31,7 +31,6 @@ export const ICONS = Object.freeze({
   ellipsis: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
   flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>',
   'grip-vertical': '<circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>',
-  'hard-drive': '<path d="M22 12H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><path d="M6 16h.01"/><path d="M10 16h.01"/>',
   history: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
   info: c10 + '<path d="M12 16v-4"/><path d="M12 8h.01"/>',
   'list-ordered': '<path d="M10 12h11"/><path d="M10 18h11"/><path d="M10 6h11"/><path d="M4 10h2"/><path d="M4 6h1v4"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>',
@@ -44,16 +43,14 @@ export const ICONS = Object.freeze({
   plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
   printer: '<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/>',
   'rotate-ccw': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
-  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
   settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
-  square: '<rect width="18" height="18" x="3" y="3" rx="2"/>',
   'thumbs-up': '<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88z"/>',
   'triangle-alert': '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
   x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
 });
 
 // The six controls that may show an icon with no word (§5.3), each with an aria-label: back (phone only), more, close,
-// drag handle, rank up, rank down.
+// drag handle, rank up, rank down. "x" (close) is kept for the allowlist; no screen draws a close button yet.
 export const ICON_ONLY = Object.freeze(['chevron-left', 'ellipsis', 'x', 'grip-vertical', 'chevron-up', 'chevron-down']);
 
 // One icon as HTML text: hidden from screen readers (the word next to it says what it means). size: 14 (pills),
@@ -65,12 +62,12 @@ export function icon(name, size) {
   return `<svg class="i i-${s}" aria-hidden="true" focusable="false"><use href="#i-${name}"/></svg>`;
 }
 
-// An icon-only button (one of ICON_ONLY): the label is its accessible name. attrs: the rest of the button's
-// attributes as HTML text (class, data-*, aria-expanded). A name off the list draws a button with the label as text,
-// so a slip shows a word, never a mystery icon.
-export function iconButton(name, label, attrs) {
+// An icon-only button (one of ICON_ONLY): the label is its accessible name. cls: its class; attrs: the rest of its
+// attributes as HTML text (data-*, aria-expanded, disabled). A name off the list draws a button with the label as
+// text, so a slip shows a word, never a mystery icon. The screens' "⋯" menus and the rank moves use it.
+export function iconButton(name, label, cls, attrs) {
   const body = ICON_ONLY.includes(name) ? icon(name, 20) : esc(label);
-  return `<button type="button" ${attrs || ''} aria-label="${esc(label)}">${body}</button>`;
+  return `<button class="${esc(cls)}" type="button"${attrs ? ' ' + attrs : ''} aria-label="${esc(label)}">${body}</button>`;
 }
 
 // The sprite as HTML text: one hidden SVG with a symbol per icon.

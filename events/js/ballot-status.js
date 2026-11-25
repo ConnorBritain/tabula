@@ -1,7 +1,8 @@
 // Progress on the Rank and Rate screens (design build 2026-11-24; docs/design/EVENTS-COLOR-ICON-REVIEW.md top 10 #7,
 // owner D2 A). "Before you review" is a caution list; each item names a speaker and is a button that scrolls to that
 // row. "Ready" is green with a check (the D2 reading: the ranking work is finished). A Rate or Rubric row says how far
-// it is ("Rated 8", "16 / 25 · 4 of 5"). Every color goes with a word. Pure builders (Node tests call them).
+// it is ("Rated 8", "16 / 25 · 4 of 5"). Every color goes with a word. Pure builders (Node tests call them); the
+// clicks that use them are in ballot-nav.js.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
 import { statusPillHtml } from './status-pill.js';
@@ -10,6 +11,9 @@ import { ratingError, ratingScale } from './rank.js';
 import { rubricScores, rubricTotal, rubricMax, rubricError, layerOf, layerProblems } from './profile-layer.js';
 
 const blank = (v) => v == null || String(v).trim() === '';
+// The one answer to "is this row done?" that the row pills and the footer count share.
+export const ratedOk = (rating, scale) => !blank(rating) && !ratingError(rating, scale);
+export const rubricScored = (e, crit) => { const v = rubricScores(e)[crit.id]; return !blank(v) && !rubricError(v, crit); };
 
 // The entry a problem line is about: the first present entry whose code stands as a whole word in the text, or null
 // (a room-wide line such as "Add the speakers"). Longer codes first, so "A12" never matches inside "A120".
@@ -38,11 +42,10 @@ export const readyHtml = (text) => `<p class="problems ok" role="status">${statu
 export function rateRowPill(e, rating, scale, rubric) {
   const out = [];
   if (scale && scale.kind !== 'none') {
-    out.push(!blank(rating) && !ratingError(rating, scale) ? statusPillHtml('ok', 'Rated ' + rating, 'circle-check') : statusPillHtml('caution', 'Not rated', 'circle'));
+    out.push(ratedOk(rating, scale) ? statusPillHtml('ok', 'Rated ' + rating, 'circle-check') : statusPillHtml('caution', 'Not rated', 'circle'));
   }
   if (rubric && rubric.length) {
-    const s = rubricScores(e);
-    const scored = rubric.filter((c) => !blank(s[c.id]) && !rubricError(s[c.id], c)).length;
+    const scored = rubric.filter((c) => rubricScored(e, c)).length;
     const total = rubricTotal(e, rubric);
     const sum = (total == null ? 0 : total) + ' / ' + rubricMax(rubric);
     out.push(scored === rubric.length ? statusPillHtml('ok', 'All scored · ' + sum, 'circle-check') : statusPillHtml('caution', sum + ' · ' + scored + ' of ' + rubric.length, 'circle'));
@@ -50,15 +53,6 @@ export function rateRowPill(e, rating, scale, rubric) {
   return out.length ? `<span class="row-status">${out.join('')}</span>` : '';
 }
 
-// A click on a "Before you review" item: scroll its row into view and move the focus there. Returns true when the
-// click was on such an item. root: the screen element.
-export function jumpToRow(root, target) {
-  const b = target.closest && target.closest('[data-jump]');
-  if (!b) return false;
-  const row = root.querySelector(`[data-row="${CSS.escape(b.dataset.jump)}"]`);
-  if (row) { row.scrollIntoView({ block: 'center' }); row.focus({ preventScroll: true }); }
-  return true;
-}
 
 // How far the ballot is, for the sticky footer (top 10 #6). Returns { word, open } where word is the progress in words
 // ("2 of 3 rated", "4 of 5 scored", "All ranked", "All rated") and open is the id of the first row still to fix, or
@@ -71,11 +65,11 @@ export function ballotProgress(room, stage) {
   const rubric = layerOf(room.profile).rubric;
   const scale = ratingScale(room.profile);
   if (rubric.length) {
-    const scored = list.filter((e) => { const s = rubricScores(e); return rubric.every((c) => !blank(s[c.id]) && !rubricError(s[c.id], c)); }).length;
+    const scored = list.filter((e) => rubric.every((c) => rubricScored(e, c))).length;
     return { word: scored + ' of ' + list.length + ' scored', open };
   }
   if (scale.kind !== 'none') {
-    const rated = list.filter((e) => !blank(e.rating) && !ratingError(e.rating, scale)).length;
+    const rated = list.filter((e) => ratedOk(e.rating, scale)).length;
     return { word: rated + ' of ' + list.length + ' rated', open };
   }
   return { word: problems.length + (problems.length === 1 ? ' thing' : ' things') + ' to fix', open };
@@ -89,17 +83,4 @@ export function ballotFootHtml(room, stage) {
   const p = ballotProgress(room, stage);
   return `<span class="bf-progress" id="bf-progress" role="status">${p.open ? icon('circle', 14) : icon('circle-check', 14)}${esc(p.word)}</span>
     <a class="b primary" id="go-review" href="#/review/${encodeURIComponent(room.id)}"${p.open ? ` data-open="${esc(p.open)}"` : ''}>Review and copy${icon('arrow-right', 20)}</a>`;
-}
-
-// A tap on the footer's primary while work is open: go to the first open row instead (and say why). Returns true when
-// it did. root: the screen element; announce: ui.announce.
-export function footToOpenRow(root, target, announce) {
-  const a = target.closest && target.closest('#go-review[data-open]');
-  if (!a) return false;
-  const row = root.querySelector(`[data-row="${CSS.escape(a.dataset.open)}"]`);
-  if (!row) return false;
-  row.scrollIntoView({ block: 'center' });
-  row.focus({ preventScroll: true });
-  if (announce) announce('Finish this row first. ' + (root.querySelector('#bf-progress') || {}).textContent);
-  return true;
 }

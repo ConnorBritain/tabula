@@ -7,7 +7,7 @@
 // under the title (round-frame.js), and the head button that follows the profile layer (Rank, Rate, or straight to
 // Review for a comments-only round). The builders at the top are pure (Node tests call them); createRoomScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
-import { icon } from './icons.js';
+import { icon, iconButton } from './icons.js';
 import { statusPillHtml } from './status-pill.js';
 import { roomPrimary, goRankHtml } from './room-primary.js';
 import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present, roomEvent } from './room.js';
@@ -51,7 +51,7 @@ export function rosterRowHtml(room, e, place, menuOpen, extra, sub) {
       <span class="row-num" aria-hidden="true">${place}</span>
       <span class="row-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}${sub ? sub(e) : ''}</span>
       ${extra ? extra(e) : ''}${statusPill(e)}${cur ? `<span class="row-now">${statusPillHtml('', 'Now', '', 'data-now')}</span>` : ''}</button>
-    <button class="iconbtn row-more" type="button" data-act="menu" data-id="${e.id}" data-key="menu-${e.id}" aria-expanded="${menuOpen}" aria-label="Change ${esc(e.code)}">${icon('ellipsis', 20)}</button>
+    ${iconButton('ellipsis', 'Change ' + e.code, 'iconbtn row-more', `data-act="menu" data-id="${e.id}" data-key="menu-${e.id}" aria-expanded="${menuOpen}"`)}
     ${menu}</li>`;
 }
 
