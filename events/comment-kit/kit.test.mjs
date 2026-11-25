@@ -74,15 +74,21 @@ test('each event picks its family of starters', () => {
 test('a starter goes in at the cursor as a new sentence, with one space after it for the judge to go on', () => {
   assert.deepEqual(insertStarter('', 'I believed you most when', 0), { text: 'I believed you most when ', cursor: 25 });
   assert.deepEqual(insertStarter('Great intro.', 'Try slowing down when', 12), { text: 'Great intro. Try slowing down when ', cursor: 35 });
-  // In the middle: the text after it stays as it was.
+  // In the middle or at the start: what the judge types next does not run into the text after it.
   const mid = insertStarter('Great intro. Clear end.', 'Try slowing down when', 13);
-  assert.equal(mid.text, 'Great intro. Try slowing down when Clear end.');
   assert.equal(mid.text.slice(0, mid.cursor), 'Great intro. Try slowing down when ');
-  // A cursor out of range goes to the end; a space already after the cursor is not doubled.
+  const typed = (r, w) => r.text.slice(0, r.cursor) + w + r.text.slice(r.cursor);
+  assert.equal(typed(mid, 'X.'), 'Great intro. Try slowing down when X. Clear end.');
+  assert.equal(typed(insertStarter('Great energy.', 'Your strongest moment was', 0), 'X.'), 'Your strongest moment was X. Great energy.');
+  // A cursor out of range goes to the end; a space already after the cursor is used, not doubled.
   assert.equal(insertStarter('Hi.', 'X', 99).text, 'Hi. X ');
   const sp = insertStarter('A. B.', 'X', 2);
   assert.equal(sp.text, 'A. X B.');
   assert.equal(sp.cursor, 5);
+  // A sentence left with no end mark gets a period first; a line break stays as it is.
+  assert.equal(insertStarter('Good pace', 'Try X', 9).text, 'Good pace. Try X ');
+  assert.equal(insertStarter('Good pace ', 'Try X', 10).text, 'Good pace. Try X ');
+  assert.equal(insertStarter('Good pace\n', 'Try X', 10).text, 'Good pace\nTry X ');
 });
 
 test('the starter rows draw each starter as a button with "…", escaped, and nothing for an empty kind', () => {
@@ -109,6 +115,7 @@ test('words.json: seven categories, each term a word or phrase, no repeats, and 
   for (const c of WORDS.categories) {
     assert.equal(typeof c.label, 'string', c.id);
     assert.equal(typeof c.roleSafe, 'boolean', c.id);
+    assert.equal(typeof c.negatable, 'boolean', c.id);
     assert.ok(c.terms.length >= 5, c.id + ' has terms');
     for (const raw of c.terms) {
       const o = typeof raw === 'string' ? { t: raw } : raw;
@@ -130,7 +137,7 @@ test('looks: words about how a student looks get the note', () => {
   for (const t of ['Your hair was in your face the whole time.', 'You are cute up there!', 'Your acne was distracting.', 'Such a handsome young man.']) assert.deepEqual(cats(t), ['looks'], t);
 });
 test('body: words about a student\'s body get the note', () => {
-  for (const t of ['You might want to lose weight.', 'You are so skinny.', 'You\'re short, so stand on a step.', 'Your legs were shaking.']) assert.deepEqual(cats(t), ['body'], t);
+  for (const t of ['You might want to lose weight.', 'You are so skinny.', 'You\'re short, so stand on a step.', 'You gained weight.']) assert.deepEqual(cats(t), ['body'], t);
 });
 test('clothes: words about what a student wore get the note', () => {
   for (const t of ['Your outfit was nice!', 'Your skirt was too short.', 'You were well dressed today.', 'Your tie was crooked.']) assert.deepEqual(cats(t), ['clothes'], t);
@@ -189,6 +196,45 @@ test('normal performance words do not set off the note', () => {
   for (const t of ok) assert.deepEqual(checkComment(t), [], t);
 });
 
+test('a role word turns off the role-safe checks only in its own clause', () => {
+  // Hurtful words after a comma or "but" still get the note, even when the sentence names a character.
+  for (const [t, cat] of [
+    ['Your character work was good but you need to lose weight.', 'body'],
+    ['Great character voices, but your outfit was distracting.', 'clothes'],
+    ['Your persona worked, but honestly your hair was messy.', 'looks'],
+    ['The narrator was clear, your skirt was too short.', 'clothes'],
+  ]) assert.deepEqual(cats(t), [cat], t);
+  // A harsh word about the character, in the same clause, is about the role: no note.
+  for (const t of ['The annoying little brother character was so fun.', 'Your villain was terrible and scary.']) assert.deepEqual(cats(t), [], t);
+});
+
+test('a harsh word after "not", "never" or a word with n\'t is not a hit', () => {
+  for (const t of ['Not so bad.', 'Not that bad.', 'It wasn\'t bad at all.', 'This was not annoying.', 'Not boring at all.', 'Never dull.']) assert.deepEqual(cats(t), [], t);
+  assert.deepEqual(cats('So boring, and not good.'), ['harsh'], 'a "not" in another clause does not count');
+});
+
+test('common phrases and speech topics are not hits', () => {
+  for (const t of ['Your speech on fat shaming was strong.', 'Clothing waste is a great topic.', 'Breathe from your stomach, not your chest.',
+    'Your teeth were chattering in the cold scene.', 'The terrible twos bit was funny.', 'The ugly duckling line landed.', 'Fat chance, the brother says.',
+    'Skinny jeans joke worked.', 'Your stats on trash in the ocean were clear.', 'You are pretty good at eye contact.', 'You\'re pretty clear in the intro.']) assert.deepEqual(cats(t), [], t);
+});
+
+test('clear phrases in each category are hits', () => {
+  for (const [t, cat] of [
+    ['Your accent is hard to understand.', 'accent'], ['Your voice is too high.', 'voiceType'], ['You are pretty.', 'looks'],
+    ['You have a beautiful smile.', 'looks'], ['Nice dress!', 'looks'], ['You\'re gay.', 'identity'], ['You speak like a woman.', 'identity'],
+  ]) assert.deepEqual(cats(t), [cat], t);
+});
+
+test('while typing, a hit the next word may cancel waits for it, so the note does not flash ("the bad " before "guy")', () => {
+  assert.deepEqual(settledHits('Then the bad ', false), []);
+  assert.deepEqual(settledHits('Then the bad guy came in. ', false), []);
+  assert.equal(settledHits('Then the bad. ', false).length, 1);
+  assert.equal(settledHits('Then the bad ', true).length, 1, 'once the judge leaves the box');
+  assert.deepEqual(settledHits('Strong accent ', false), []);
+  assert.deepEqual(settledHits('Strong accent work. ', false), []);
+});
+
 test('a word inside a longer word is not a hit ("badge", "fatal", "outfitted" are fine)', () => {
   assert.deepEqual(checkComment('Your badge story was fatal to the plot, and the boringly named file was fine.'), []);
 });
@@ -209,10 +255,10 @@ test('a longer term covers a shorter one in the same place, and words are named 
   assert.deepEqual(hitKeys(hits), ['boring', 'whiny voice']);
 });
 
-test('while typing, a word at the very end waits for the next space or mark ("bad" on the way to "badge")', () => {
-  assert.deepEqual(settledHits('Your bad', false), []);
-  assert.equal(settledHits('Your bad ', false).length, 1);
-  assert.equal(settledHits('Your bad', true).length, 1, 'once the judge leaves the box');
+test('while typing, a word at the very end waits for the next space or mark ("dull" on the way to "dullness")', () => {
+  assert.deepEqual(settledHits('It was dull', false), []);
+  assert.equal(settledHits('It was dull ', false).length, 1);
+  assert.equal(settledHits('It was dull', true).length, 1, 'once the judge leaves the box');
 });
 
 test('the check can run on a given list (the data drives it, not the code)', () => {

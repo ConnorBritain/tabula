@@ -31,7 +31,7 @@ export const STARTERS = {
         "What set you apart was",
         "The speakers above you",
         "Your rank came down to",
-        "To move up next time,",
+        "To move up next time, try",
         "This was a close room, and"
       ]
     },
@@ -62,7 +62,7 @@ export const STARTERS = {
         "What set you apart was",
         "The speakers above you",
         "Your rank came down to",
-        "To move up next time,",
+        "To move up next time, try",
         "This was a close room, and"
       ]
     },
@@ -93,7 +93,7 @@ export const STARTERS = {
         "You answered the question better than",
         "The speakers above you",
         "Your rank came down to",
-        "To move up next time,",
+        "To move up next time, try",
         "This was a close room, and"
       ]
     },
@@ -120,7 +120,7 @@ export const STARTERS = {
         "What set you apart was",
         "The speakers above you",
         "Your rank came down to",
-        "To move up next time,",
+        "To move up next time, try",
         "This was a close room, and"
       ]
     },
@@ -147,7 +147,7 @@ export const STARTERS = {
         "What set you apart was",
         "The speakers above you",
         "Your rank came down to",
-        "To move up next time,",
+        "To move up next time, try",
         "This was a close chamber, and"
       ]
     },
@@ -174,7 +174,7 @@ export const STARTERS = {
         "What set you apart was",
         "The speakers above you",
         "Your rank came down to",
-        "To move up next time,",
+        "To move up next time, try",
         "This was a close room, and"
       ]
     }
@@ -182,7 +182,7 @@ export const STARTERS = {
 };
 export const WORDS = {
   "version": 1,
-  "note": "Words for the performance check. When a comment holds one of these, a calm note asks the judge to check it. It warns and never blocks. A term is a word or a short phrase, matched as whole words, in any letter case. A term can be an object: unlessPrev and unlessNext are words that, right before or right after it, mean it is not a hit (for example 'not bad', 'the bad guy'). A category with roleSafe true is skipped in a sentence that names a role (roleWords), so 'a squeaky voice for the mouse character' or 'the accent work for each role' is not a hit. When a word is often used for the performance, it is left out: when unsure, do not flag. Clothes words count only with \"your\" (\"your outfit\"), so a neutral note on a league dress rule (\"outfit within the dress code\") is not a hit. events/comment-kit/kit-data.js is built from this file: run node events/comment-kit/build-data.mjs after a change.",
+  "note": "Words for the performance check. When a comment holds one of these, a calm note asks the judge to check it. It warns and never blocks. A term is a word or a short phrase, matched as whole words, in any letter case. A term can be an object: unlessPrev and unlessNext are words that, right before or right after it, mean it is not a hit (for example 'too bad', 'the bad guy'). A category with roleSafe true is skipped in a clause that names a role (roleWords): 'a squeaky voice for the mouse character' is not a hit, but in 'Great character voices, but your outfit was distracting' the comma and 'but' start a new clause, so 'your outfit' is. A category with negatable true is skipped after a negating word in the same clause, up to three words back ('not bad', 'wasn't boring'). When a word is often used for the performance or for a speech topic, it is left out or needs 'your' or 'you': when unsure, do not flag. events/comment-kit/kit-data.js is built from this file: run node events/comment-kit/build-data.mjs after a change.",
   "roleWords": [
     "character",
     "characters",
@@ -203,7 +203,16 @@ export const WORDS = {
       "label": "looks",
       "roleSafe": true,
       "terms": [
-        "ugly",
+        {
+          "t": "ugly",
+          "unlessNext": [
+            "duckling",
+            "truth",
+            "side",
+            "stepsister",
+            "stepsisters"
+          ]
+        },
         "uglier",
         "hideous",
         "unattractive",
@@ -212,9 +221,128 @@ export const WORDS = {
         "handsome",
         "pretty face",
         "pretty girl",
+        "pretty boy",
+        "pretty smile",
+        "beautiful smile",
+        "cute smile",
         "you are cute",
         "you're cute",
         "youre cute",
+        "you look cute",
+        {
+          "t": "you are pretty",
+          "unlessNext": [
+            "good",
+            "much",
+            "close",
+            "fast",
+            "quick",
+            "clear",
+            "strong",
+            "solid",
+            "confident",
+            "nervous",
+            "calm",
+            "relaxed",
+            "natural",
+            "comfortable",
+            "sure",
+            "loud",
+            "quiet",
+            "well",
+            "consistent",
+            "funny",
+            "believable",
+            "engaging",
+            "smooth",
+            "clean",
+            "focused",
+            "polished",
+            "creative",
+            "convincing",
+            "composed",
+            "prepared"
+          ]
+        },
+        {
+          "t": "you're pretty",
+          "unlessNext": [
+            "good",
+            "much",
+            "close",
+            "fast",
+            "quick",
+            "clear",
+            "strong",
+            "solid",
+            "confident",
+            "nervous",
+            "calm",
+            "relaxed",
+            "natural",
+            "comfortable",
+            "sure",
+            "loud",
+            "quiet",
+            "well",
+            "consistent",
+            "funny",
+            "believable",
+            "engaging",
+            "smooth",
+            "clean",
+            "focused",
+            "polished",
+            "creative",
+            "convincing",
+            "composed",
+            "prepared"
+          ]
+        },
+        {
+          "t": "youre pretty",
+          "unlessNext": [
+            "good",
+            "much",
+            "close",
+            "fast",
+            "quick",
+            "clear",
+            "strong",
+            "solid",
+            "confident",
+            "nervous",
+            "calm",
+            "relaxed",
+            "natural",
+            "comfortable",
+            "sure",
+            "loud",
+            "quiet",
+            "well",
+            "consistent",
+            "funny",
+            "believable",
+            "engaging",
+            "smooth",
+            "clean",
+            "focused",
+            "polished",
+            "creative",
+            "convincing",
+            "composed",
+            "prepared"
+          ]
+        },
+        "you are beautiful",
+        "you're beautiful",
+        "you look beautiful",
+        "you look pretty",
+        "cute shoes",
+        "cute outfit",
+        "nice outfit",
+        "nice dress",
+        "cute dress",
         "your hair",
         "your haircut",
         "your hairstyle",
@@ -224,7 +352,6 @@ export const WORDS = {
         "pimple",
         "pimples",
         "zits",
-        "your teeth",
         "your braces",
         "your skin",
         "your nose",
@@ -232,24 +359,34 @@ export const WORDS = {
         "your appearance",
         "how you look",
         "the way you look"
-      ]
+      ],
+      "negatable": false
     },
     {
       "id": "body",
       "label": "body",
       "roleSafe": true,
       "terms": [
-        "fat",
+        "you're fat",
+        "you are fat",
+        "you look fat",
+        "too fat",
+        "so fat",
         "fatter",
         "chubby",
-        "skinny",
+        "you're skinny",
+        "you are skinny",
+        "too skinny",
+        "so skinny",
         "scrawny",
         "overweight",
         "obese",
         "underweight",
         "lose weight",
         "lost weight",
+        "losing weight",
         "gain weight",
+        "gained weight",
         "body type",
         "body shape",
         "your figure",
@@ -260,12 +397,9 @@ export const WORDS = {
         "you're tall",
         "you are tall",
         "curvy",
-        "busty",
-        "your chest",
-        "your belly",
-        "your stomach",
-        "your legs"
-      ]
+        "busty"
+      ],
+      "negatable": false
     },
     {
       "id": "clothes",
@@ -298,7 +432,8 @@ export const WORDS = {
         "your nail polish",
         "your tattoo",
         "your tattoos"
-      ]
+      ],
+      "negatable": false
     },
     {
       "id": "voiceType",
@@ -329,8 +464,14 @@ export const WORDS = {
         "you stutter",
         "your lisp",
         "you lisp",
-        "speech impediment"
-      ]
+        "speech impediment",
+        "your voice is too high",
+        "your voice was too high",
+        "your voice is too deep",
+        "your voice was too deep",
+        "your voice is annoying"
+      ],
+      "negatable": false
     },
     {
       "id": "accent",
@@ -402,8 +543,12 @@ export const WORDS = {
         "native speaker",
         "where are you from",
         "where you are from",
-        "where you're from"
-      ]
+        "where you're from",
+        "your accent is hard",
+        "your accent was hard",
+        "your accent made it hard"
+      ],
+      "negatable": false
     },
     {
       "id": "identity",
@@ -444,18 +589,28 @@ export const WORDS = {
         "your headscarf",
         "your yarmulke",
         "your wheelchair",
-        "your disability"
-      ]
+        "your disability",
+        "you're gay",
+        "you are gay",
+        "speak like a woman",
+        "speak like a girl",
+        "talk like a woman",
+        "talk like a girl",
+        "sound like a woman",
+        "sound like a girl",
+        "girls look better",
+        "for a woman"
+      ],
+      "negatable": false
     },
     {
       "id": "harsh",
       "label": "harsh words",
-      "roleSafe": false,
+      "roleSafe": true,
       "terms": [
         {
           "t": "bad",
           "unlessPrev": [
-            "not",
             "too"
           ],
           "unlessNext": [
@@ -476,7 +631,12 @@ export const WORDS = {
         "boring",
         "bored me",
         "annoying",
-        "terrible",
+        {
+          "t": "terrible",
+          "unlessNext": [
+            "twos"
+          ]
+        },
         "awful",
         "horrible",
         "stupid",
@@ -494,8 +654,6 @@ export const WORDS = {
         "i hated",
         "hated it",
         "embarrassing",
-        "garbage",
-        "trash",
         "idiot",
         "idiotic",
         "ridiculous",
@@ -513,8 +671,13 @@ export const WORDS = {
         "worst speech",
         "worst performance",
         "you are weird",
-        "you're weird"
-      ]
+        "you're weird",
+        "was trash",
+        "was garbage",
+        "is trash",
+        "is garbage"
+      ],
+      "negatable": true
     }
   ]
 };
