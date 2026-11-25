@@ -62,7 +62,7 @@ test('a restored backup counts as the last backup', () => {
   assert.equal(L.stampRestoredBackup('not json', at), 'not json');
   assert.equal(L.stampRestoredBackup('{"a":1}', ''), '{"a":1}', 'no export time: unchanged');
   assert.match(read('js/decide.js'), /entries\[SETTINGS\] = L\.stampRestoredBackup\(entries\[SETTINGS\], b\.exportedAt\)/);
-  assert.match(read('js/decide.js'), /S\.lastBackupAt = Date\.now\(\); save\(\); saveSettings\(\);\s*const all = readAllStorage\(\);/, 'the backup time is in the file itself');
+  assert.match(read('js/decide.js'), /S\.lastBackupAt = Date\.now\(\); save\(\); saveSettings\(\);\s*let backup;\s*try \{\s*const all = readAllStorage\(\);/, 'the backup time is in the file itself');
 });
 
 // Why: the reminder is only useful if the History screen shows it with a working button and a way to quiet it; a missing id would throw at load and break the page.
@@ -80,9 +80,17 @@ test('History shows the reminder with Download backup and Not now; the app wires
   assert.match(js, /if \(backupDue\(\) && S\.backupToastFor !== S\.lastSavedAt\) \{\s*S\.backupToastFor = S\.lastSavedAt;/, 'the toast on opening shows once per save');
 });
 
+// Why: voice-control users say what they see; a toast button whose spoken name does not start with its visible words cannot be clicked by voice (WCAG 2.5.3).
+test('the new toast buttons keep their visible words at the start of their names', () => {
+  const js = read('js/decide.js');
+  for (const [label, name] of [...js.matchAll(/label: '([^']+)', name: '([^']+)'/g)].map((m) => [m[1], m[2]])) assert.ok(name.startsWith(label), name + ' does not start with ' + label);
+  assert.match(js, /label: 'Save as PDF', name: 'Save as PDF: this ballot'/);
+  assert.match(js, /label: 'Download backup', name: 'Download backup now'/);
+});
+
 // Why: the end of a round is when a judge wants a copy of the ballot; Save to History must offer the PDF step right there (the print dialog says how to save a PDF).
 test('Save to History offers Save as PDF, which opens the print dialog', () => {
   const js = read('js/decide.js');
-  assert.match(js, /toast\('Saved to History\.', \{ action: \{ label: 'Save as PDF', name: 'Save this ballot as a PDF', run: \(\) => openPrintDialog\(\) \} \}\)/);
+  assert.match(js, /toast\('Saved to History\.', \{ action: \{ label: 'Save as PDF', name: 'Save as PDF: this ballot', run: \(\) => openPrintDialog\(\) \} \}\)/);
   assert.match(read('index.html'), /id="print-help">To get a PDF, choose "Save as PDF" in the print window\.<\/p>/);
 });

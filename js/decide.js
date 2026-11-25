@@ -321,10 +321,14 @@ async function readAllDocs() {
 const stamp = () => { const d = new Date(), p = (n) => String(n).padStart(2, '0'); return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()); }; // local time
 async function downloadBackup(includeKeys, label) {
   // The backup time is saved first, so the file itself says it was backed up: a restore from it shows no reminder.
+  const before = S.lastBackupAt;
   S.lastBackupAt = Date.now(); save(); saveSettings();
-  const all = readAllStorage();
-  if (includeKeys && !S.rememberKeys && Object.keys(keys).length) all[KEYS] = JSON.stringify(keys); // keys kept for this tab only
-  const backup = L.buildBackup(all, await readAllDocs(), { includeKeys });
+  let backup;
+  try {
+    const all = readAllStorage();
+    if (includeKeys && !S.rememberKeys && Object.keys(keys).length) all[KEYS] = JSON.stringify(keys); // keys kept for this tab only
+    backup = L.buildBackup(all, await readAllDocs(), { includeKeys });
+  } catch (err) { S.lastBackupAt = before; saveSettings(); throw err; } // no file made: no backup time either
   download('tabula-' + (label || 'backup') + '-' + stamp() + '.json', JSON.stringify(backup), 'application/json');
   saveSettings(); renderBackup();
 }
@@ -347,7 +351,7 @@ $('#backup-due-no').addEventListener('click', () => { S.backupDismissedAt = S.la
 // Opening the app after the judging day (a new day, or hours after the last save): one toast, once per save.
 if (backupDue() && S.backupToastFor !== S.lastSavedAt) {
   S.backupToastFor = S.lastSavedAt; saveSettings();
-  toast('You saved ballots since your last backup.', { key: 'backup-due', action: { label: 'Download backup', name: 'Download a backup now', run: () => downloadBackup(false) } });
+  toast('You saved ballots since your last backup.', { key: 'backup-due', action: { label: 'Download backup', name: 'Download backup now', run: () => downloadBackup(false) } });
 }
 $('#backup-go').addEventListener('click', () => downloadBackup($('#backup-keys').checked));
 $('#restore-file').addEventListener('change', async (e) => {
@@ -551,7 +555,7 @@ $('#b-save').addEventListener('click', async () => {
   S.lastSavedAt = Date.now(); saveSettings(); renderBackup();
   // Offer a backup when there is none from the last 2 hours (spec 2.4 #16); else the round's end: a PDF of the ballot.
   if (!S.lastBackupAt || Date.now() - S.lastBackupAt > 2 * 3600 * 1000) toast('Saved to History. Your data lives only in this browser.', { action: { label: 'Download backup', run: () => downloadBackup(false) } });
-  else toast('Saved to History.', { action: { label: 'Save as PDF', name: 'Save this ballot as a PDF', run: () => openPrintDialog() } });
+  else toast('Saved to History.', { action: { label: 'Save as PDF', name: 'Save as PDF: this ballot', run: () => openPrintDialog() } });
 });
 // The first ballot field with a problem: the winner, then points, then ranks, then the RFD.
 function focusBallotProblem() {
