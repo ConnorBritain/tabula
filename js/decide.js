@@ -330,6 +330,17 @@ async function downloadBackup(includeKeys, label) {
 function renderBackup() {
   const el = $('#backup-last'); if (!el) return;
   el.textContent = S.lastBackupAt ? 'Last backup: ' + agoText(S.lastBackupAt) + '.' : 'No backup yet.';
+  const due = $('#backup-due'); if (due) due.hidden = !backupDue();
+}
+// The day-end reminder (L.backupReminderDue): ballots saved since the last backup, and the judging looks over.
+const backupDue = () => L.backupReminderDue({ lastSavedAt: S.lastSavedAt ?? null, lastBackupAt: S.lastBackupAt ?? null, dismissedAt: S.backupDismissedAt ?? null, now: Date.now() });
+$('#backup-due-go').addEventListener('click', () => downloadBackup(false));
+// "Not now" quiets the reminder until the next saved ballot.
+$('#backup-due-no').addEventListener('click', () => { S.backupDismissedAt = S.lastSavedAt; saveSettings(); renderBackup(); });
+// Opening the app after the judging day (a new day, or hours after the last save): one toast, once per save.
+if (backupDue() && S.backupToastFor !== S.lastSavedAt) {
+  S.backupToastFor = S.lastSavedAt; saveSettings();
+  toast('You saved ballots since your last backup.', { key: 'backup-due', action: { label: 'Download backup', name: 'Download a backup now', run: () => downloadBackup(false) } });
 }
 $('#backup-go').addEventListener('click', () => downloadBackup($('#backup-keys').checked));
 $('#restore-file').addEventListener('change', async (e) => {
@@ -528,9 +539,10 @@ $('#b-save').addEventListener('click', async () => {
   const err = storeLog(log);
   if (err === 'full') return toast("Not saved: this browser's storage is full. Delete old saved ballots, or use Print / PDF to keep a copy.", { kind: 'error' });
   if (err) return toast('Not saved: this browser is blocking storage. Use Print / PDF to keep a copy.', { kind: 'error' });
-  // Offer a backup when there is none from the last 2 hours (spec 2.4 #16).
+  S.lastSavedAt = Date.now(); saveSettings(); renderBackup();
+  // Offer a backup when there is none from the last 2 hours (spec 2.4 #16); else the round's end: a PDF of the ballot.
   if (!S.lastBackupAt || Date.now() - S.lastBackupAt > 2 * 3600 * 1000) toast('Saved to History. Your data lives only in this browser.', { action: { label: 'Download backup', run: () => downloadBackup(false) } });
-  else toast('Saved to History.');
+  else toast('Saved to History.', { action: { label: 'Save as PDF', name: 'Save this ballot as a PDF', run: () => openPrintDialog() } });
 });
 // The first ballot field with a problem: the winner, then points, then ranks, then the RFD.
 function focusBallotProblem() {

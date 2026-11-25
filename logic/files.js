@@ -185,6 +185,19 @@
     return { round: name, ballots: Array.isArray(log) ? log.length : 0, docs: (b.docs || []).length, keys: b.includesKeys };
   }
 
+  // The day-end backup reminder: is a backup due? Ballots were saved since the last backup, the judge has not said
+  // "Not now" to this save, and the judging looks over for now: the last save is at least 2 hours old, or it was on an
+  // earlier day. o: { lastSavedAt, lastBackupAt, dismissedAt, now } (times in ms; missing ones are null).
+  const BACKUP_QUIET_MS = 2 * 3600 * 1000;
+  function backupReminderDue(o) {
+    const v = o || {};
+    const saved = Number(v.lastSavedAt), now = Number(v.now);
+    if (!Number.isFinite(saved) || !Number.isFinite(now) || saved <= 0) return false;
+    if (Number.isFinite(v.lastBackupAt) && v.lastBackupAt >= saved) return false;
+    if (v.dismissedAt === saved) return false;
+    return now - saved >= BACKUP_QUIET_MS || new Date(now).toDateString() !== new Date(saved).toDateString();
+  }
+
   // ---------- round documents (speech docs, case files) ----------
   const DOC_SIDES = { aff: 'AFF', neg: 'NEG', other: 'OTHER' };
   const DOC_NOTE = 'Speech documents from the debaters are attached above. Use them to read card tags, authors and evidence text. '
@@ -237,7 +250,7 @@
 
   const api = { parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, orderInUse,
     buildRoundFile, parseRoundFile, roundFileName, KEYS_ENTRY, OLD_KEY_ENTRIES, buildBackup, parseBackup,
-    backupSummary, DOC_SIDES, DOC_NOTE, docSpeech, docsForSpeech, DOC_FLOW_NOTE, docTitle, buildDocBlocks,
+    backupSummary, backupReminderDue, DOC_SIDES, DOC_NOTE, docSpeech, docsForSpeech, DOC_FLOW_NOTE, docTitle, buildDocBlocks,
     buildUserContent };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).files = api;
