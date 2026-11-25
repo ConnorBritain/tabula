@@ -206,11 +206,17 @@ Never queue live transcription or the live flow.
 
 ### 6.7 Database
 
-**D1** (Cloudflare's SQLite database) for accounts, sessions, ledger, usage, badges and programs.
+**D1** (Cloudflare's SQLite database) for accounts, sessions, ledger, usage, badges and group accounts.
 - Scales to zero. Billed per row read and written.
-- One database holds up to 10 GB. Usage rows are about 200 bytes × 8 speeches per round. At "Many formats", that is about 100 MB a month, about 2.4 GB over the 24-month retention. Watch this, but it fits.
-- **Durable Objects with SQLite** for the per-user meter, and later one per large program (a data boundary, and one-call deletion).
+- One database holds up to 10 GB. See "Usage detail and the 10 GB database limit" below.
+- **Durable Objects with SQLite** for the per-user meter, and later one per large group account (a data boundary, and one-call deletion).
 - **Not chosen now:** a managed Postgres such as Supabase. It has a flat monthly fee that runs all summer, and adds a second vendor that can fail. The owner chose all Cloudflare on 2026-11-20 (`STACK.md` §3).
+
+**Usage detail and the 10 GB database limit.** One D1 database holds up to 10 GB, and this limit cannot be raised. Each hosted AI call writes one usage row (about 200 bytes) and one or more ledger rows. The meter writes the per-call rows to D1 in one batch, about once per speech. A round makes about 150 calls, so it adds about 85 KB. A weekend of 20,000 rounds adds about 1.7 GB.
+
+Per-call usage rows stay in D1 for 30 days. After 30 days, a nightly job writes each round's per-call rows to R2 as one archive file under the prefix of the account that paid. It checks the write, then keeps one rollup row per round (counts, tokens, credits) and deletes the per-call rows. Ledger rows are not changed and not archived. They stay in D1 and count toward the limit too. A nightly check compares the R2 sums with the rollup rows.
+
+At 20,000 rounds a weekend, 30 days of per-call rows is about 7 GB, which is near the limit. When the money database (the D1 database that holds usage and ledger rows) passes 4 GB, or a weekend passes 10,000 rounds, an alert asks a person to switch per-call detail to the usage queue (a Cloudflare Queue). The queue writes it straight to R2 by account prefix (and to Analytics Engine, Cloudflare's metrics store) instead of D1. A second alert fires above 5 GB.
 
 ## 7. Before the first paid Saturday
 
