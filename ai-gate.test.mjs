@@ -1,4 +1,4 @@
-// The AI gate static test (platform phase 1B; docs/design/AI-POLICY.md §3e, tabula-cloud docs/platform/CONTRACTS.md
+// The AI gate static test (platform phase 1B; docs/design/AI-POLICY.md §3e, the server API contracts
 // §5). It reads the code as text and uses fixed lists, so it gives no false alarms. Each check is a pure function,
 // and each has its own negative case that must make it fail. Run with: node --test
 import test from 'node:test';

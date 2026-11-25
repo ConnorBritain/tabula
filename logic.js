@@ -99,7 +99,7 @@
     parseRoundPaste, roundPasteChanges, swapSides,
     // Feature flags (logic/flags.js)
     FLAGS, FLAG_GROUP, flagOn,
-    // Hosted AI calls (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3) and their round limits (Terms §6.4)
+    // Hosted AI calls (the server API's app client contract) and their round limits (Terms §6.4)
     limitsRequest, parseRound, parseLimits, limitsLines, roundLine, roundBlocks, resumedRound, roundAfterRefusal,
     roundMode, consentStep, consentAsk, roundsLeftText, consentLine,
     BUY_URL, accountUrl, plansUrl, signinUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPays, selfPaidHosted, hostedState, hostedRequest, readSse, sseStep, hostedError,

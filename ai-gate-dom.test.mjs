@@ -1,4 +1,4 @@
-// The AI gate on the page, per fixture record (platform phase 1B; tabula-cloud docs/platform/BUILD-PLAN.md §3 1B).
+// The AI gate on the page, per fixture record (platform phase 1B, per the server's plan).
 // It builds the page tree from index.html, takes the words the gate writes to <html data-ai-off>, and works out what
 // the CSS in index.html leaves visible (the "CSS hides each gate word" check in ai-gate.test.mjs keeps the two equal).
 // Run with: node --test
@@ -14,7 +14,7 @@ const { parseHtml, walk, byId, ancestorsAndSelf } = require('./test-html.js');
 const L = require('./logic.js');
 const HTML = read('index.html');
 const ROOT = parseHtml(HTML);
-// tabula-cloud's contract file (made by the real resolver): fixtures.<name> = { note, record }.
+// The server API's contract file (made by the real resolver): fixtures.<name> = { note, record }.
 const FIX = Object.fromEntries(Object.entries(JSON.parse(read('fixtures/platform-v2.json')).fixtures).map(([k, v]) => [k, v.record]));
 const NOW = 1795300000000;
 const P = FIX['judge-self'].subject.programId;

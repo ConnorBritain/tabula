@@ -1,4 +1,4 @@
-// The AI gate on the page (platform phase 1B; tabula-cloud docs/platform/CONTRACTS.md §5, docs/design/AI-POLICY.md §3).
+// The AI gate on the page (platform phase 1B; the server API contracts §5, docs/design/AI-POLICY.md §3).
 // can(f) is the one check: every AI control renders, and every AI call starts, only if it is true. A removed tool is
 // gone: no greyed button, no lock, no "ask your admin". The rule itself is pure (logic/caps.js); assets/caps-boot.js
 // used it before the first paint. Here the page keeps the record fresh and writes <html data-ai-off> again.
@@ -75,7 +75,7 @@ async function refreshCaps(programId) {
 // Sign-out: forget the record (AI-POLICY §6d). The gate changes at the next boundary.
 function clearCaps() { capsRecord = null; store.del(L.STORE_KEYS.caps); capsBoundary(); }
 
-// ?caps=<fixture>: the dev and test switch. fixtures/platform-v2.json is tabula-cloud's contracts/platform-v2.json
+// ?caps=<fixture>: the dev and test switch. fixtures/platform-v2.json is a copy of the server API's platform contract file
 // (made by the real resolver; each fixture is { note, record }). It is only in the repo, never in the hosted build.
 // Records expire (expiresAt), so a fixture file older than 14 days shows its records as expired.
 if (capsFixtureName) {

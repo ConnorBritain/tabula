@@ -1,4 +1,4 @@
-// Hosted AI (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3 and §3a): when the account has hosted access, the AI
+// Hosted AI (the server API's app client contract): when the account has hosted access, the AI
 // features call POST /api/v1/ai/<task> on the app's own origin instead of a provider with the judge's own key.
 // The server owns the prompts, the models and the prices. The app sends round state only, and only the parts a task
 // needs. Names never go: the page swaps them for roles (1A, 2A, 1N, 2N) before the call, as it does for own keys.
@@ -14,7 +14,7 @@
 
   // Where a judge buys rounds (the buy page lives on the account site). The staging app (debate.tabulaspeech.dev)
   // links to the staging account site, so a test purchase never opens the live one.
-  // Staging hosts: tabula-cloud docs/DEPLOY.md "Staging site" (the one list).
+  // Staging hosts: the server's deploy notes, "Staging site" (the one list).
   const ACCOUNT_SITES = ['tabulaspeech.com', 'tabulaspeech.dev'];
   const BUY_URL = 'https://' + ACCOUNT_SITES[0] + '/account/';
   function accountUrl(host) {
@@ -24,8 +24,8 @@
   }
   // The Plans page (prices and packs) on the same account site, for links that must not buy yet (the demo's nudge).
   function plansUrl(host) { return accountUrl(host).replace(/\/account\/$/, '/plans/'); }
-  // The sign-in page on the same account site. An app host the server lets sign-in return to (tabula-cloud
-  // RETURN_ORIGINS: debate. and my.) asks to come back to itself (?return=). Any other host (localhost, a preview, an app
+  // The sign-in page on the same account site. An app host the server lets sign-in return to (the
+  // server's list: debate. and my.) asks to come back to itself (?return=). Any other host (localhost, a preview, an app
   // not on that list yet, such as events.) gets the plain sign-in page and lands on the account site's own home.
   const RETURN_APPS = ['debate', 'my'];
   function signinUrl(host) {
@@ -34,7 +34,7 @@
     const back = ACCOUNT_SITES.some((d) => RETURN_APPS.some((a) => h === a + '.' + d));
     return back ? page + '?return=' + encodeURIComponent('https://' + h + '/') : page;
   }
-  // The round format the server knows (tabula-cloud src/ai/tasks.ts KNOWN_FORMATS). A new version needs the server first.
+  // The round format the server knows (the server API's known formats). A new version needs the server first.
   const FORMAT = 'policy-hs', FORMAT_VERSION = 1;
 
   // Each app job and the server task it calls.
@@ -96,7 +96,7 @@
     let notes = judgeNotes(r, e);
     if (job === 'ballot') notes = [notes, ...ballotRequestLines(r, e.judgeInput, e)].join('\n').trim();
     const state = { transcript: block(transcriptLines(r, docs)), flow: flowText, notes };
-    // The server owns the guide text for each reading level and the points scale (tabula-cloud contracts/ai-replies-v1).
+    // The server owns the guide text for each reading level and the points scale (the server API's AI reply contract).
     // The round map gets no level (callAI passes reading: null for it, as on the own-key path): its text is short labels.
     if (e.reading === 'expert' || e.reading === 'plain') state.reading = e.reading;
     if (job === 'ballot' || job === 'eval') state.pointsRange = ptsRange(e.range || r.ptsRange);
@@ -179,7 +179,7 @@
       if (c === 'round_cap') return out('roundCap');
       if (c === 'day_cap') return out('dayCap');
       if (c === 'plan_required') return out('planRequired', { fallback: true, link: buy });
-      // Age rules (tabula-cloud src/age.ts, Terms §3): age_required = no date of birth yet.
+      // Age rules (the server's age rule, Terms §3): age_required = no date of birth yet.
       if (c === 'age_required') return out('ageRequired', { fallback: true, link: { label: 'Open account', url: page } });
       if (c === 'parent_consent_required') return out('parentConsent', { fallback: true });
       return out('noCredits', { link: buy });

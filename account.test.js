@@ -1,5 +1,5 @@
 // Tests for the Tabula account in the app (roles plan step 3): "Judging for" and the account paradigm.
-// Spec: tabula-cloud docs/ACCOUNTS-AND-ROLES.md §5a, §6 and §9 step 3; docs/APP-CLIENT-PROPOSAL.md §3 and §3c.
+// Spec: the server's accounts and roles plan (step 3) and the server API's app client contract.
 // Run with: node --test
 const test = require('node:test');
 const assert = require('node:assert/strict');

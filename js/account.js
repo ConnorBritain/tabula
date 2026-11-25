@@ -1,4 +1,4 @@
-// The Tabula account (roles plan step 3, tabula-cloud docs/ACCOUNTS-AND-ROLES.md §5a and §6): the profile fetch and
+// The Tabula account (roles plan step 3, per the server's accounts and roles plan): the profile fetch and
 // cache, and the account paradigm as the one source while the judge is signed in. The "Judging for" picker that the
 // profile feeds is js/judging.js. Other parts read acctProfile and myParadigm() only when called, never at load.
 // Signed out (or on a page with no account server, such as the local helper): nothing here shows, and the app works
