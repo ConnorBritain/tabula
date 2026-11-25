@@ -85,7 +85,7 @@ The buyer signs in (from the screen, the setup email, or later with their email)
 4. If the age result allows it, the server sends the purchase:
    - It reserves the setup (`UPDATE purchase_setups SET status='claiming', claimed_by=? WHERE status='open'`).
    - It takes the purchase's unused Rounds back from the buyer account and grants them to the user, with one idempotent ledger reference (`setup:<purchase key>`). A crash between the steps can be retried safely.
-   - The Rounds get new expiry dates, counted from the setup day, not the purchase date (owner decision 2026-11-22, legal update 5 Part B, Terms §6.6). A Weekend Pass or Camp Pass keeps its own rule: its days start when its first Round is committed.
+   - The Rounds get new expiry dates, counted from the setup day, not the purchase date (owner decision 2026-11-22, Terms §6.6). A Weekend Pass or Camp Pass keeps its own rule: its days start when its first Round is committed.
    - Status becomes `sent`.
 5. The buyer gets a "Your purchase was set up by [masked email]" email.
 

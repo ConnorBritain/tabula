@@ -181,7 +181,7 @@ Entry {
 | Account, membership, program, AI policy | Yes | Already in D1. |
 | Usage per AI call: room ID (a random ID with no tournament name in it), task, tokens, credits | Yes | Billing. No text, no codes, no names. |
 | The text for "Clean up my comments" | **Processed, never stored.** It passes through our Worker to an AI provider (logging off) and back. | Hosted AI path, same as debate (`docs/architecture/ARCHITECTURE.md` §4). Before the call, the app replaces codes with "Speaker 1..N" and also scrubs any name, title or author the judge typed in setup for that room. Free text can still hold a name the judge typed only in the notes; the clean-up screen says so. For middle school events, hosted clean-up is off by default (own key or none). |
-| Room summary (event, round, date, entry count) | Opt-in later | Matches the same decision for debate rooms (the server's roles plan). No codes, no names, no comments. |
+| Room summary (event, round, date, entry count) | Opt-in later | Matches the same opt-in rule for debate rounds (the server's roles plan). No codes, no names, no comments. |
 | Stored comments, names, codes, audio, transcripts | **Never stored** | Minors. Same promise as debate. |
 
 ## 7. AI in Speech Events
@@ -242,7 +242,7 @@ events/
 - **Sign-in, wallet, plans:** shared. New on the server for v1: the `productLine` field, the AI task `events.cleanup`, and a round rule for Speech Events. That rule needs a cloud change: a new commit trigger (the first hosted clean-up call, since rooms have no recorded speech; today a round commits at the first recorded speech, per the server's plan), and, if one round covers a judging day, a day-window and room cap in the meter.
 - **What one "round" means in Speech Events** is a pricing choice. Clean-up of a 6-speaker room is a small text job, far cheaper than a recorded debate round.
 - The judge's "Judging for" picker (cloud plan step 3) is reused in Room setup.
-- **Plan rules live on the platform, not in the app.** The shared school and admin platform (designed in the server's spec, owned by another session) serves one capabilities API with `product = "events"`. The app reads it and never decides plan rules itself. Speech Events asked that platform for: shared rules profiles per program (P3), a default league pack per program, a separate `recording` key (practice only, with consent), the task names above, and a round model that can hold a day-window (Q2). The platform has accepted all of these (the server's spec). The app reads `GET /api/v1/me/capabilities?v=2&product=events` (the server's API spec). The platform maps `programs.product = "speech"` to API product `events`.
+- **Plan rules live on the platform, not in the app.** The shared school and admin platform (designed in the server's spec, owned by another session) serves one capabilities API with `product = "events"`. The app reads it and never decides plan rules itself. Speech Events asked that platform for: shared rules profiles per program (P3), a default league pack per program, a separate `recording` key (practice only, with consent), the task names above, and a round model that can hold a day-window. The platform has accepted all of these (the server's spec). The app reads `GET /api/v1/me/capabilities?v=2&product=events` (the server's API spec). The platform maps `programs.product = "speech"` to API product `events`.
 - **Hired judges and solo judges** use their own account or none. A school's policy never covers them (`docs/design/AI-POLICY.md` §1a).
 
 ## 10. Offline, install and devices

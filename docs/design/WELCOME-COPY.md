@@ -57,7 +57,7 @@ This is Draft C's before-launch state, with panel fixes. It uses equal setup car
 
 ## 3. Before launch vs after launch
 
-- **Before launch (now):** ship the copy in section 1 as it is. Do not mention a price, the demo or a single round. The app has no buy page or plan state yet (hasHostedPlan() is false), so any such line would be false.
+- **Before launch (now):** ship the copy in section 1 as it is. Do not mention a price, the demo or a paid round. The app has no buy page or plan state yet (hasHostedPlan() is false), so any such line would be false.
 - **After launch:** put all new parts behind one switch (for example L.hostedRoundLive()).
   - Add a plain button **Watch a sample round** next to "Start judging". It opens ?demo=policy or ?demo=ld. It asks for no commitment, so add it first.
   - Optional, and your decision: add a row above the key row, **One round for [price from the Pricing page]** / "Get the automatic flow and draft ballot for one round. No key or setup." It names one price, with no "try" or "free" words. The panel said a price makes the welcome feel like a shop. The point for it is that 13 to 17 year old debaters cannot use their own key, so today the key row is a dead end for them.
