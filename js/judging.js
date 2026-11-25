@@ -1,4 +1,4 @@
-// "Judging for" at round start (roles plan step 3, tabula-cloud docs/ACCOUNTS-AND-ROLES.md §5a): a signed-in judge who
+// "Judging for" at round start (as the server defines it): a signed-in judge who
 // belongs to a school picks whose AI policy and credits apply to the round, or "Just me". The choice is R.programId,
 // sent as programId on hosted AI calls (L.hostedAiBody). The profile comes from js/account.js, which calls syncJudging.
 // One part of the page code (see app.js for the load order). The parts are classic scripts that share one global
