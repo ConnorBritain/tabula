@@ -14,6 +14,7 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
 import { statusPillHtml } from './status-pill.js';
+import { roomPrimary, nextTopHtml } from './room-primary.js';
 import { phasesHtml } from './phase-bar.js';
 import { trackModel, trackHtml, miniTrackHtml, piecesFor, pointsFor, rowTrackHtml } from './time-track.js';
 import { createDriver } from '../../core/clock.js';
@@ -29,9 +30,32 @@ import {
 
 // The timer card for one entry as HTML text. face: timerFace(...). The stage shows as a fill of the whole card plus a
 // word (DESIGN.md §3); colour never carries the meaning alone.
-// The over-grace line under the card ('' when the flag is off).
-export const overGraceHtml = (face) => (face.overGrace ? `<div class="timer-flag"><span class="pill err">Over grace</span>
-      <button class="b small" type="button" data-tact="clear">Clear over grace</button></div>` : '');
+// The over-grace line inside the card ('' when the flag is off). Design build (top 10 #2): it sits in the card, and
+// "Clear over grace" is a quiet button (a rare fix). After a stop the result pill under the digits says it, so the
+// line keeps only the clear button.
+export const overGraceHtml = (face) => (face.overGrace ? `<div class="timer-flag">${face.stage === 'stopped' && face.used > 0 ? '' : '<span class="pill err">Over grace</span>'}
+      <button class="b small quiet" type="button" data-tact="clear">Clear over grace</button></div>` : '');
+
+// The result of a stopped speech (top 10 #2), or null before any time and while the clock runs: 'inside', 'grace'
+// or 'over', with the amount past the limit. On a prep event the face's left is of the speech part.
+export function stoppedResult(face, grace) {
+  if (!face || face.stage !== 'stopped' || !(face.used > 0)) return null;
+  const past = -face.left;
+  if (past <= 0) return { kind: 'inside', past: 0 };
+  return { kind: past <= grace ? 'grace' : 'over', past };
+}
+const RESULT_PILL = { inside: ['', 'circle-check', () => 'Inside time'], grace: ['caution', 'info', (p) => 'Grace +' + clockText(p)], over: ['err', 'triangle-alert', (p) => 'Over grace +' + clockText(p)] };
+// The pill under the digits after a stop ('' otherwise).
+export function resultPillHtml(face, grace) {
+  const r = stoppedResult(face, grace);
+  if (!r) return '';
+  const [tone, ic, word] = RESULT_PILL[r.kind];
+  return statusPillHtml(tone, word(r.past), ic, 'id="timer-result"');
+}
+// What the card shows: after a stop the big digits are the final time used (9:20), not the time left (top 10 #2).
+export function cardFace(face) {
+  return face && face.stage === 'stopped' && face.used > 0 ? Object.assign({}, face, { digits: clockText(face.used), sub: 'used' }) : face;
+}
 
 // The phase row of a prep event (DESIGN.md §4.2 "Prep" then "Speech"), as a phase-bar.js model. face: prep.js
 // sharedFace(...). Prep shows its time once it has some; it freezes when the speech starts.
@@ -58,14 +82,13 @@ export function cardTrack(entry, event, face, limit, grace, now, phasesFor) {
 }
 
 // The buttons under the card before the speech starts on a prep event: ready, prep running, prep stopped.
-function prepButtons(face) {
-  if (face.phase === 'ready') return `${bigButton(face)}
+function prepButtons(face, primary) {
+  if (face.phase === 'ready') return `${bigButton(face, primary)}
       <button class="b" type="button" data-tact="speech">Start speech</button>`;
-  return `${bigButton(face)}
+  return `${bigButton(face, primary)}
       <button class="b" type="button" data-tact="prep">${face.running ? 'Stop prep' : 'Resume prep'}</button>
-      <button class="b" type="button" data-tact="minus" aria-label="Take 10 seconds off the prep time">−10 s</button>
-      <button class="b" type="button" data-tact="plus" aria-label="Add 10 seconds to the prep time">+10 s</button>
-      ${face.running ? '' : '<button class="b quiet" type="button" data-tact="reset">Reset time</button>'}`;
+      ${toolGroup('prep')}
+      ${face.running ? '' : resetHtml}`;
 }
 
 // The one main button of the card, as { tact, label } (the big button and the sticky bar's button both draw it).
@@ -75,46 +98,70 @@ export function mainButton(face) {
   return { tact: 'startstop', label: face.running ? 'Stop' : face.used ? 'Resume' : 'Start' };
 }
 
-// The big main button of the card (data-key="startstop": the focus and the Space rule find it first).
-const bigButton = (face) => { const b = mainButton(face); return `<button class="b primary timer-go" type="button" data-tact="${b.tact}" data-key="startstop">${esc(b.label)}</button>`; };
+// The play or pause icon of the main button (§5.3): pause while a clock runs, play otherwise.
+const goIcon = (face) => icon(face.running ? 'pause' : 'play', 20);
+// The big main button of the card (data-key="startstop": the focus and the Space rule find it first). primary: false
+// when another step holds the room's one solid fill (top 10 #1: Next speaker after a stop, Rank the room at the end).
+const bigButton = (face, primary) => { const b = mainButton(face); return `<button class="b${primary === false ? '' : ' primary'} timer-go" type="button" data-tact="${b.tact}" data-key="startstop">${goIcon(face)}${esc(b.label)}</button>`; };
+
+// −10 s and +10 s in one quiet track (top 10 #8): rare fixes, not peers of the primary. what: 'prep' or 'speech'.
+function toolGroup(what) {
+  const of = what === 'prep' ? 'the prep time' : 'the time used';
+  return `<span class="tool-group" role="group" aria-label="Correct ${of}">
+        <button class="b" type="button" data-tact="minus" aria-label="Take 10 seconds off ${of}">−10 s</button>
+        <button class="b" type="button" data-tact="plus" aria-label="Add 10 seconds to ${of}">+10 s</button></span>`;
+}
+// "Reset time" is quiet, with the rotate icon (top 10 #8).
+const resetHtml = `<button class="b quiet" type="button" data-tact="reset">${icon('rotate-ccw')}Reset time</button>`;
 
 // The sticky compact bar (OD1 A; review §2.4 change 2): stage word, time, mini track, the main button, and after a
 // stop, "Next speaker". It shows only on a narrow screen while the big card is out of view (the CSS and an
 // IntersectionObserver turn it on). The digits are hidden from screen readers, as on the card (the word says the stage).
-export function stickyBarHtml(face, track) {
+// primary (design build, top 10 #1): which step holds the solid fill, as on the card ('timer' when left out).
+export function stickyBarHtml(face, track, primary) {
   const b = mainButton(face);
-  const next = face.stage === 'stopped' && face.used > 0 ? '<button class="b small" type="button" data-act="next">Next speaker</button>' : '';
+  const p = primary || 'timer';
+  const shown = cardFace(face);
+  const next = face.stage === 'stopped' && face.used > 0 ? `<button class="b small${p === 'next' ? ' primary' : ''}" type="button" data-act="next">Next speaker</button>` : '';
   return `<div class="timer-mini stage-${face.stage}" id="timer-mini" role="group" aria-label="Timer">
       <span class="tm-word" id="tm-word">${esc(face.word)}</span>
-      <span class="tm-digits" id="tm-digits" aria-hidden="true">${esc(face.digits)}</span>
+      <span class="tm-digits" id="tm-digits" aria-hidden="true">${esc(shown.digits)}</span>
       <span class="tm-track" id="tm-track">${track ? miniTrackHtml(track.model) : ''}</span>
-      <button class="b small primary" type="button" data-tact="${b.tact}">${esc(b.label)}</button>${next}</div>`;
+      <button class="b small${p === 'timer' ? ' primary' : ''}" type="button" data-tact="${b.tact}">${esc(b.label)}</button>${next}</div>`;
 }
 
 // limit: the event's limit (on a prep event, the shared limit for prep and speech). track: cardTrack(...) (optional;
 // without it the card has no signal track and no sticky bar).
-export function timerHtml(entry, face, limit, grace, track) {
+// opts (design build, top 10 #1; optional): { primary: 'timer' | 'next' | 'rank' | 'other' (room-primary.js; 'other':
+// another part of the room holds it, as the F4 run button), nextHtml: the "Next speaker: U2" button }. Left out, the
+// big button is the primary, as before.
+export function timerHtml(entry, face, limit, grace, track, opts) {
   if (entry.status === 'noShow') return '<p class="muted timer-none">No show. Undo it in the roster menu to time this speaker.</p>';
+  const o = opts || {};
+  const p = o.primary || 'timer';
   const over = overGraceHtml(face);
   const shared = Boolean(face.phase);
-  const btns = shared && face.phase !== 'speech' ? prepButtons(face) : `${bigButton(face)}
-      <button class="b" type="button" data-tact="minus" aria-label="Take 10 seconds off the time used">−10 s</button>
-      <button class="b" type="button" data-tact="plus" aria-label="Add 10 seconds to the time used">+10 s</button>
+  const shown = cardFace(face);
+  const result = resultPillHtml(face, grace);
+  const next = p === 'next' && o.nextHtml ? o.nextHtml : '';
+  const btns = shared && face.phase !== 'speech' ? prepButtons(face, p === 'timer') : `${bigButton(face, p === 'timer')}${next}
+      ${toolGroup('speech')}
       <button class="b" type="button" data-tact="set">Set time</button>
-      ${!face.running && face.used ? '<button class="b quiet" type="button" data-tact="reset">Reset time</button>' : ''}`;
+      ${!face.running && face.used ? resetHtml : ''}`;
   return `<div class="timer-box" id="timer-box">
-    <div class="timer-card stage-${face.stage}" id="timer-card">
+    <div class="timer-card stage-${face.stage}" id="timer-card"${result ? ` data-result="${stoppedResult(face, grace).kind}"` : ''}>
       <p class="timer-word" id="timer-word">${esc(face.word)}</p>
-      <p class="timer-digits" id="timer-digits" aria-hidden="true">${esc(face.digits)}</p>
-      <p class="timer-sub" id="timer-sub">${esc(face.sub)}</p>
+      <p class="timer-digits" id="timer-digits" aria-hidden="true">${esc(shown.digits)}</p>
+      <p class="timer-sub" id="timer-sub">${esc(shown.sub)}</p>
+      ${result ? `<p class="timer-result">${result}</p>` : ''}
       ${track ? trackHtml(track.model, { id: 'timer-track', phases: track.phases }) : ''}
       <p class="signal-chip" id="signal-chip" hidden></p>
       <p class="timer-limit">Limit ${clockText(limit)}${shared ? ' for prep and speech' : ''} · grace ${clockText(grace)}</p>
+      <div id="timer-flagbox">${over}</div>
     </div>
-    <div id="timer-flagbox">${over}</div>
     <div class="timer-btns">
       ${btns}
-    </div>${track ? stickyBarHtml(face, track) : ''}</div>`;
+    </div>${track ? stickyBarHtml(face, track, p) : ''}</div>`;
 }
 
 // The time on a roster row (after the code): the time used (on a prep event, prep and speech), once there is some.
@@ -137,6 +184,8 @@ export function rowTrackLine(entry, used, track) {
 //   syncEntry(entry, event, now, limit) -> entry   runs after every change this view makes to an entry, so data kept
 //                                                 beside the clock (the runs of a PCC entry) follows the clock
 //   resetFields(entry) -> { field: value }         more fields that "Reset time" sets (its Undo puts the old ones back)
+//   yieldsPrimary(entry, event, now, limit) -> bool another part of the room holds the one primary (design build,
+//                                                 top 10 #1; F4: the next run's button), so the big button is secondary
 export function createTimerView(opts) {
   const o = opts || {};
   let ctx = null;
@@ -251,8 +300,8 @@ export function createTimerView(opts) {
     const face = faceOf(e, now);
     card.className = 'timer-card stage-' + face.stage;
     $('#timer-word').textContent = face.word;
-    $('#timer-digits').textContent = face.digits;
-    $('#timer-sub').textContent = face.sub;
+    $('#timer-digits').textContent = cardFace(face).digits;
+    $('#timer-sub').textContent = cardFace(face).sub;
     // The track and the sticky bar follow the same face (no second clock: this is the one tick).
     const track = cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor);
     const tr = $('#timer-track');
@@ -261,7 +310,7 @@ export function createTimerView(opts) {
     if (mini) {
       mini.className = 'timer-mini stage-' + face.stage + (mini.classList.contains('is-on') ? ' is-on' : '');
       $('#tm-word').textContent = face.word;
-      $('#tm-digits').textContent = face.digits;
+      $('#tm-digits').textContent = cardFace(face).digits;
       $('#tm-track').innerHTML = miniTrackHtml(track.model);
     }
     const chip = $('#signal-chip');
@@ -400,7 +449,14 @@ export function createTimerView(opts) {
     // The roster row's time.
     rowExtra: (r, e) => rosterTimeHtml(e, totalUsedAt(e.timing, env().now(), limit())),
     rowSub: (r, e) => { const now = env().now(); return rowTrackLine(e, totalUsedAt(e.timing, now, limit()), rowTrackHtml(e, event(), limit(), grace(), now)); },
-    stageHtml: (r, e) => { const now = env().now(); const face = faceOf(e, now); return timerHtml(e, face, limit(), grace(), cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor)); },
+    stageHtml: (r, e) => {
+      const now = env().now();
+      const face = faceOf(e, now);
+      // Top 10 #1: the room's one primary. A family part may hold it instead (F4: the next run's button).
+      const yields = o.yieldsPrimary && o.yieldsPrimary(e, event(), now, limit());
+      const primary = yields ? 'other' : roomPrimary(r, e);
+      return timerHtml(e, face, limit(), grace(), cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor), { primary, nextHtml: nextTopHtml(r) });
+    },
     mounted() { const box = $('#timer-box'); if (box) box.addEventListener('click', onClick); watchCard(); },
     show(c) {
       ctx = c; active = true; runId = null; prepId = null; prevLeft = null; lastStage = ''; fromBar = false;

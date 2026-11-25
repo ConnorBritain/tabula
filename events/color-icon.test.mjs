@@ -23,6 +23,11 @@ import { problemsHtml } from './js/rank-screen.js';
 import { problemTarget, rateRowPill } from './js/ballot-status.js';
 import { offlineHtml } from './js/settings-screen.js';
 import { ratingScale } from './js/rank.js';
+import { roomPrimary, goRankHtml, nextTopHtml } from './js/room-primary.js';
+import { timerHtml, cardTrack, stickyBarHtml, stoppedResult } from './js/timer-view.js';
+import { timerFace } from './js/timer.js';
+import { sharedFace } from './js/prep.js';
+import { runCardsHtml, nextRunWaits } from './js/runs-view.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const CSS = read('./app.css');
@@ -221,6 +226,9 @@ test('roster: Done is green with a check, Done over grace keeps a neutral check,
   const cur = Object.assign({}, r, { current: e('C3').id });
   assert.match(rosterRowHtml(cur, e('C3'), 3, false), /<span class="pill" data-now>Now<\/span>/);
   assert.doesNotMatch(rosterRowHtml(cur, e('A1'), 1, false), /data-now/);
+  // "Now" sits on its own line after the status, outside the name block, so the name keeps its width.
+  assert.match(rosterRowHtml(cur, e('C3'), 3, false), /Speaking<\/span><span class="row-now"><span class="pill" data-now>Now<\/span><\/span><\/button>/);
+  assert.match(CSS, /\.row-now \{ order: 10; flex-basis: 100%;/);
 });
 
 // Why: "Before you review" listed problems as plain text far from the rows; on a long board the judge scrolled to
@@ -269,4 +277,126 @@ test('Settings: the offline state is a pill in words', () => {
   assert.match(offlineHtml({ ready: true, text: 'Ready for offline.' }), /^<span class="pill ok">[\s\S]*Ready offline<\/span> Ready for offline\.$/);
   assert.match(offlineHtml({ ready: false, text: 'Not ready yet.' }), /^<span class="pill caution">[\s\S]*Not ready<\/span> Not ready yet\.$/);
   assert.equal(offlineHtml(null), 'Checking…');
+});
+
+// ---------- the room primary moves with the state (top 10 #1), the stopped card (#2), the tool group (#8) ----------
+
+const T = 1_800_000_000_000;
+const doneE = (e, sec, extra) => Object.assign({}, e, { status: 'done', timing: Object.assign({}, e.timing, { run: null, usedMs: sec * 1000 }, extra || {}) });
+const runningE = (e, used, limit) => Object.assign({}, e, { status: 'speaking', timing: Object.assign({}, e.timing, { run: { kind: 'speech', endAt: T + (limit - used) * 1000, startLeft: limit - used } }) });
+// The solid shapes of the card itself (the sticky bar is a second render of the same step, shown only while the card is
+// out of view, so it is counted on its own).
+const cardPrimaries = (html) => primaries(html.slice(0, html.indexOf('id="timer-mini"') < 0 ? html.length : html.indexOf('id="timer-mini"')));
+function cardFor(r, e, event, limit, opts) {
+  const face = timerFace(e, limit, 30, T);
+  return timerHtml(e, face, limit, 30, cardTrack(e, event, face, limit, 30, T), Object.assign({ primary: roomPrimary(r, e), nextHtml: nextTopHtml(r) }, opts || {}));
+}
+
+// Why: the review found the two loudest buttons (Resume, Rank the room) were the wrong next steps and "Next speaker"
+// the weakest. The fill must follow the work, or the judge taps Resume on a speaker who is already done.
+test('room primary: Start or Stop while the speaker is up, Next speaker after the stop, Rank the room when nobody waits', () => {
+  let r = room('hi', 'nsda-district', ['A1', 'B2']);
+  const a = () => r.entries.find((x) => x.code === 'A1');
+  assert.equal(roomPrimary(r, a()), 'timer', 'waiting: Start');
+  r = withEntry(r, 'A1', (e) => runningE(e, 60, 600));
+  assert.equal(roomPrimary(r, a()), 'timer', 'speaking: Stop');
+  r = withEntry(r, 'A1', (e) => doneE(e, 500));
+  assert.equal(roomPrimary(r, a()), 'next', 'stopped with B2 waiting');
+  r = withEntry(r, 'B2', (e) => Object.assign({}, e, { status: 'noShow' }));
+  assert.equal(roomPrimary(r, a()), 'rank', 'nobody waits');
+  assert.equal(roomPrimary(r, r.entries.find((x) => x.code === 'B2')), 'rank', 'a no show on screen with nobody waiting');
+  assert.equal(roomPrimary(room('hi'), null), 'next', 'no speaker on screen, speakers waiting');
+});
+
+// Why: one solid shape per state. Two would put the judge back where the review started: unsure which to press.
+test('room primary: the card and the header together hold exactly one solid shape in each state', () => {
+  const ev = DATA.events.get('hi');
+  let r = Object.assign(room('hi', 'nsda-district', ['A1', 'B2', 'C3']), {});
+  r = Object.assign({}, r, { current: idOf(r, 'A1') });
+  const a = () => r.entries.find((x) => x.code === 'A1');
+  const total = () => cardPrimaries(cardFor(r, a(), ev, 600)) + primaries(goRankHtml(r, roomPrimary(r, a())));
+  assert.equal(total(), 1, 'waiting');
+  assert.match(cardFor(r, a(), ev, 600), /class="b primary timer-go"[^>]*><svg[^>]*><use href="#i-play"\/><\/svg>Start</);
+  assert.match(goRankHtml(r, 'timer'), /^<a class="b" id="go-rank" href="#\/rank\/[^"]+"><svg[^>]*><use href="#i-list-ordered"\/><\/svg>Rank the room <span class="muted">· 0 of 3<\/span><\/a>$/);
+  r = withEntry(r, 'A1', (e) => runningE(e, 60, 600));
+  assert.equal(total(), 1, 'speaking');
+  assert.match(cardFor(r, a(), ev, 600), /class="b primary timer-go"[^>]*><svg[^>]*><use href="#i-pause"\/><\/svg>Stop</);
+  r = withEntry(r, 'A1', (e) => doneE(e, 500));
+  const stopped = cardFor(r, a(), ev, 600);
+  assert.equal(total(), 1, 'stopped, speakers left');
+  assert.match(stopped, /class="b timer-go"[^>]*><svg[^>]*>.*?<\/svg>Resume</, 'Resume steps down');
+  assert.match(stopped, /<button class="b primary next-top" type="button" data-act="next" data-key="next">Next speaker: B2<svg/);
+  assert.ok(stopped.indexOf('next-top') < stopped.indexOf('tool-group'), 'Next speaker sits next to the timer, before the tools');
+  r = withEntry(withEntry(r, 'B2', (e) => doneE(e, 400)), 'C3', (e) => doneE(e, 450));
+  assert.equal(cardPrimaries(cardFor(r, a(), ev, 600)), 0, 'all done: nothing solid on the card');
+  assert.match(goRankHtml(r, roomPrimary(r, a())), /^<a class="b primary" id="go-rank"[^>]*><svg class="i i-20"[^>]*><use href="#i-list-ordered"\/><\/svg>Rank the room<\/a>$/);
+  // The sticky bar follows the same step: its Next speaker is solid after the stop, never both buttons.
+  const bar = stickyBarHtml(timerFace(doneE(a(), 500), 600, 30, T), null, 'next');
+  assert.equal(primaries(bar), 1);
+  assert.match(bar, /class="b small primary" type="button" data-act="next">Next speaker</);
+});
+
+// Why: the review's open risk — the primary changes style during work in every family. IMP prep, PCC's second run and
+// USX must each keep one solid step, or prep and the run button compete with the clock.
+test('room primary: IMP prep, PCC runs and USX each keep one solid step', () => {
+  // IMP: prep running is the speaker's turn, so the big button ("Speech started") holds it.
+  const imp = DATA.events.get('imp');
+  let ri = room('imp', 'nsda-district', ['A1', 'B2']);
+  const ie = Object.assign({}, ri.entries[0], { status: 'speaking', timing: { run: null, runs: [], usedMs: 0, prepRun: { kind: 'prep', endAt: T + 300_000, startLeft: 420 } } });
+  ri = Object.assign({}, ri, { entries: [ie, ri.entries[1]] });
+  const sf = sharedFace(ie, 420, 30, T);
+  const impHtml = timerHtml(ie, sf, 420, 30, cardTrack(ie, imp, sf, 420, 30, T), { primary: roomPrimary(ri, ie), nextHtml: nextTopHtml(ri) });
+  assert.equal(cardPrimaries(impHtml), 1);
+  assert.match(impHtml, /class="b primary timer-go" type="button" data-tact="speech"/);
+  // PCC: while the next run waits, the run button holds it and the clock steps down.
+  const pcc = DATA.events.get('pcc');
+  const rp = room('pcc', 'nsda-invitational', ['A1']);
+  const pe = runningE(rp.entries[0], 200, 630);
+  assert.equal(nextRunWaits(pe, pcc, T, 630), true);
+  const pf = timerFace(pe, 630, 30, T);
+  const pccCard = timerHtml(pe, pf, 630, 30, cardTrack(pe, pcc, pf, 630, 30, T), { primary: 'other' });
+  const pccHtml = pccCard + runCardsHtml(pe, pcc, T, 630);
+  assert.equal(cardPrimaries(pccCard), 0, 'the clock steps down');
+  assert.equal(primaries(runCardsHtml(pe, pcc, T, 630)), 1, 'the run button holds it');
+  assert.match(pccHtml, /class="b primary" type="button" data-ract="next"[^>]*>Pro done · start Con/);
+  assert.equal(nextRunWaits(rp.entries[0], pcc, T, 630), false, 'before Pro starts the clock holds it');
+  // USX: one speaker done, the next waits: "Next speaker: U2".
+  const usx = DATA.events.get('usx');
+  let ru = room('usx', 'nsda-district', ['U1', 'U2']);
+  ru = Object.assign(withEntry(ru, 'U1', (e) => doneE(e, 420)), { current: idOf(ru, 'U1') });
+  const u1 = ru.entries.find((x) => x.code === 'U1');
+  const usxHtml = cardFor(ru, u1, usx, 420);
+  assert.equal(cardPrimaries(usxHtml), 1);
+  assert.match(usxHtml, />Next speaker: U2</);
+});
+
+// Why: after Stop the over state went away and the card hid in dark mode (--sunk on --panel is 1.06:1); the judge lost
+// the one fact the ballot needs. The stopped card keeps the final time, a word pill and its tint.
+test('stopped card: final time used, a result pill in words, the tint stays, and inside time has a full edge', () => {
+  const e0 = room('hi').entries[0];
+  const html = (sec) => { const e = doneE(e0, sec); return timerHtml(e, timerFace(e, 600, 30, T), 600, 30); };
+  assert.deepEqual([590, 612, 740].map((sec) => stoppedResult(timerFace(doneE(e0, sec), 600, 30, T), 30).kind), ['inside', 'grace', 'over']);
+  assert.match(html(560), /id="timer-digits" aria-hidden="true">9:20</);
+  assert.match(html(560), /id="timer-sub">used</);
+  assert.match(html(560), /data-result="inside"[\s\S]*<span class="pill" id="timer-result"><svg[^>]*><use href="#i-circle-check"\/><\/svg>Inside time<\/span>/);
+  assert.match(html(612), /data-result="grace"[\s\S]*<span class="pill caution" id="timer-result">[\s\S]*?Grace \+0:12<\/span>/);
+  assert.match(html(740), /data-result="over"[\s\S]*<span class="pill err" id="timer-result">[\s\S]*?Over grace \+2:20<\/span>/);
+  assert.equal(stoppedResult(timerFace(e0, 600, 30, T), 30), null, 'no result before any time');
+  assert.match(CSS, /\.timer-card\.stage-stopped \{ background: var\(--panel\); border: 1px solid var\(--border-ctl\); \}/);
+  assert.match(CSS, /\.timer-card\.stage-stopped\[data-result="over"\] \{ background: var\(--error-tint\); border: 2px solid var\(--error\); \}/);
+  // "Clear over grace" moved into the card, quiet.
+  const over = doneE(e0, 740, { overGrace: true });
+  const card = timerHtml(over, timerFace(over, 600, 30, T), 600, 30);
+  assert.ok(card.indexOf('data-tact="clear"') < card.indexOf('class="timer-btns"'), 'inside the card');
+  assert.match(card, /<button class="b small quiet" type="button" data-tact="clear">Clear over grace<\/button>/);
+});
+
+// Why: 4 or 5 controls of the same weight sat next to the primary, so rare fixes looked like the next step. The ±10 s
+// fixes share one quiet track, Reset is quiet with an icon, and Set time stays in view (DESIGN.md's fix for a late start).
+test('timer tools: ±10 s in one quiet track, Reset time quiet with an icon, Set time in view', () => {
+  const e = doneE(room('hi').entries[0], 300);
+  const html = timerHtml(e, timerFace(e, 600, 30, T), 600, 30);
+  assert.match(html, /<span class="tool-group" role="group" aria-label="Correct the time used">\s*<button class="b" type="button" data-tact="minus"[^>]*>−10 s<\/button>\s*<button class="b" type="button" data-tact="plus"[^>]*>\+10 s<\/button><\/span>/);
+  assert.match(html, /<button class="b quiet" type="button" data-tact="reset"><svg[^>]*><use href="#i-rotate-ccw"\/><\/svg>Reset time<\/button>/);
+  assert.match(html, /data-tact="set">Set time</);
 });

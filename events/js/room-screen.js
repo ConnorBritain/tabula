@@ -9,12 +9,12 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
 import { statusPillHtml } from './status-pill.js';
+import { roomPrimary, goRankHtml } from './room-primary.js';
 import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { crossNote } from './cross-entry.js';
 import { createNumberPicker, crossEntryAction } from './room-actions.js';
 import { frameHtml } from './round-frame.js';
-import { rankStageLabel } from './profile-layer.js';
 
 // The status pill in words (DESIGN.md §4.1) with a shape (§5.3) and a tint (D2-A): Waiting is plain words with an
 // empty circle, Speaking a quiet tint with a play circle, Done green with a check. A Done speech over grace keeps a
@@ -31,7 +31,8 @@ export function roomTitle(room, event) {
   return [event ? event.name : 'Custom event', roundLine(room, false)].filter(Boolean).join(' · ');
 }
 
-// One roster row as HTML text. extra(e): optional HTML after the name (the time, from step E5). sub(e): optional
+// One roster row as HTML text. The current row says "Now" (§5.1 rule 3) on its own line under the row (CSS wraps it
+// like the F4 run line), so the name keeps its width. extra(e): optional HTML after the name (the time, from step E5). sub(e): optional
 // HTML under the name (design build: the question or topic, quote-view.js, and the mini time track, timer-view.js).
 // menuOpen: this row's menu is open.
 export function rosterRowHtml(room, e, place, menuOpen, extra, sub) {
@@ -49,7 +50,7 @@ export function rosterRowHtml(room, e, place, menuOpen, extra, sub) {
     <button class="row-pick" type="button" data-act="pick" data-id="${e.id}" data-key="pick-${e.id}"${cur ? ' aria-current="true"' : ''}>
       <span class="row-num" aria-hidden="true">${place}</span>
       <span class="row-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}${sub ? sub(e) : ''}</span>
-      ${extra ? extra(e) : ''}${cur ? statusPillHtml('', 'Now', '', 'data-now') : ''}${statusPill(e)}</button>
+      ${extra ? extra(e) : ''}${statusPill(e)}${cur ? `<span class="row-now">${statusPillHtml('', 'Now', '', 'data-now')}</span>` : ''}</button>
     <button class="iconbtn row-more" type="button" data-act="menu" data-id="${e.id}" data-key="menu-${e.id}" aria-expanded="${menuOpen}" aria-label="Change ${esc(e.code)}">${icon('ellipsis', 20)}</button>
     ${menu}</li>`;
 }
@@ -115,13 +116,20 @@ export function createRoomScreen(env, parts) {
     stage.innerHTML = e ? `<div class="stage-head"><h2 class="stage-code" id="stage-code">${esc(e.code)}</h2><span class="muted stage-name" id="stage-name">${esc(e.name || '')}</span>${statusPill(e)}</div>`
       + (crossNote(e) ? `<p class="muted cross-note">${esc(crossNote(e))}</p>` : '')
       + views.map((v) => (v.stageHtml ? v.stageHtml(r, e) : '')).join('')
-      + `<div class="stage-foot"><button class="b" type="button" data-act="next" data-key="next">Next speaker</button></div>`
+      // Top 10 #1: when "Next speaker" is the room's primary it sits next to the timer; else it waits here, secondary.
+      + (roomPrimary(r, e) === 'next' ? '' : `<div class="stage-foot"><button class="b" type="button" data-act="next" data-key="next">Next speaker${icon('arrow-right')}</button></div>`)
       : '<p class="muted">Add an entry to start.</p>';
     for (const v of views) if (v.mounted) v.mounted(ctx);
     const back = keep && document.getElementById(keep.id);
     if (back && stage.contains(back)) { back.focus(); if (typeof keep.a === 'number' && back.setSelectionRange) back.setSelectionRange(keep.a, keep.b); }
   }
-  function draw() { drawRoster(); drawStage(); }
+  // The header's Rank button follows the room's primary (top 10 #1): secondary with "· 2 of 6" until nobody waits.
+  function drawHead() {
+    const r = room();
+    const go = $('#go-rank');
+    if (r && go) go.outerHTML = goRankHtml(r, roomPrimary(r, entryOf(r, r.current)));
+  }
+  function draw() { drawRoster(); drawStage(); drawHead(); }
 
   function pick(id) {
     const r = room();
@@ -187,8 +195,7 @@ export function createRoomScreen(env, parts) {
       const r = findRoom(env.rooms(), id);
       if (!r) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
       roomId = id; menuFor = null; rosterOpen = false; numbers.reset();
-      const stageWord = rankStageLabel(r.profile);
-      const go = stageWord ? `<a class="b primary" id="go-rank" href="#/rank/${encodeURIComponent(id)}">${stageWord} the room</a>` : `<a class="b primary" id="go-rank" href="#/review/${encodeURIComponent(id)}">Review and copy</a>`;
+      const go = goRankHtml(r, roomPrimary(r, entryOf(r, r.current)));
       // Step S3 (EXPERIENCE.md §1.1): the event pill opens the type page for this round's event.
       const ev = event(r);
       env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a>

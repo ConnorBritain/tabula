@@ -9,6 +9,7 @@
 // The rules are in runs.js. There is no minimum time for a run: a card shows the time and never a warning.
 // The builders at the top are pure (Node tests call them); createRunsParts does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from './icons.js';
 import { clockText, limitOf } from './timer.js';
 import { entryOf, updateEntry, roomEvent } from './room.js';
 import { createTimerView } from './timer-view.js';
@@ -29,10 +30,19 @@ export function runCardsHtml(entry, event, now, limit) {
       <span class="run-word muted" data-run-word="${esc(s.side)}">${esc(word)}</span></li>`;
   }).join('');
   const nextSide = index >= 0 && index < sides.length - 1 ? sides[index + 1] : null;
-  const btn = nextSide ? `<button class="b primary" type="button" data-ract="next" data-key="run-next">${esc(nextSide.label)} started</button>` : '';
+  // Design build (top 10 #1): while a next run waits, this button is the room's one primary ("Pro done · start Con");
+  // the timer's big button steps down (createRunsParts passes yieldsPrimary).
+  const btn = nextSide ? `<button class="b primary" type="button" data-ract="next" data-key="run-next">${esc(sides[index].label)} done · start ${esc(nextSide.label)}${icon('arrow-right', 20)}</button>` : '';
   return `<div class="runs" id="runs"><ol class="run-cards" aria-label="Runs">${cards}</ol>
     <p class="field-help">One limit covers every run. Each run shows its own time, with no minimum.</p>
     ${btn ? `<div class="run-btns">${btn}</div>` : ''}</div>`;
+}
+
+// A next run waits (its button shows): that button is the room's primary (top 10 #1).
+export function nextRunWaits(entry, event, now, limit) {
+  if (!entry || entry.status === 'noShow') return false;
+  const { index } = runsPhase(entry, event, now, limit);
+  return index >= 0 && index < eventRuns(event).length - 1;
 }
 
 // The time of each run on a roster row ('' with no time yet).
@@ -56,6 +66,7 @@ export function createRunsParts() {
     syncEntry: (e, ev, now, lim) => syncRuns(e, ev, now, lim),
     resetFields: () => resetRunFields(),
     phasesFor: (e, ev, now, lim) => runsBarModel(e, ev, now, lim),
+    yieldsPrimary: (e, ev, now, lim) => nextRunWaits(e, ev, now, lim),
   });
 
   // While the clock runs, the run times and the roster line follow it (the timer card paints itself, its track and

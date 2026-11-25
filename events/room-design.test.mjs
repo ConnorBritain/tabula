@@ -122,7 +122,9 @@ test('the card has the track and at most one phase row: none for HI, Prep then S
 // Why: OD1's acceptance rule: the bar is a second render of the same state. Its one button must send the same action
 // as the big button in every phase, or a tap in the bar would start prep when the big card says "Speech started".
 test('sticky bar: its button sends the same action as the big button for F1, IMP (prep, then speech) and PCC', () => {
-  const big = (html) => /class="b primary timer-go" type="button" data-tact="([a-z]+)"[^>]*>([^<]+)</.exec(html).slice(1);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.3: the main timer button has a play or pause icon before its word). Old line:
+  //   const big = (html) => /class="b primary timer-go" type="button" data-tact="([a-z]+)"[^>]*>([^<]+)</.exec(html).slice(1);
+  const big = (html) => /class="b primary timer-go" type="button" data-tact="([a-z]+)"[^>]*>(?:<svg class="i i-20"[^>]*><use href="#i-(?:play|pause)"\/><\/svg>)([^<]+)</.exec(html).slice(1);
   const bar = (html) => /id="timer-mini"[\s\S]*?data-tact="([a-z]+)">([^<]+)</.exec(html).slice(1);
   const cases = [];
   const hi = ev('hi');

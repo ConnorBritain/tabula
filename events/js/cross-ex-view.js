@@ -58,6 +58,7 @@ export function crossExHtml(room, entry, event, now) {
   const others = present(room).filter((x) => x.id !== entry.id);
   const warn = sameSchoolWarning(room, entry.id);
   const face = cxFace(entry, lim, now);
+  // Design build (top 10 #1): the cross-ex clock is secondary; the speaker timer's step keeps the room's one primary.
   return `<fieldset class="crossex" id="crossex"><legend>Cross-ex <span class="muted">(elim round)</span></legend>
     ${phasesHtml(cxPhaseModel(ph, false), { id: 'cx-phases' })}
     <div class="cx-fields">
@@ -66,7 +67,7 @@ export function crossExHtml(room, entry, event, now) {
     </div>
     ${warn ? `<p class="cx-warn" id="cx-warn" role="status">${esc(warn)}</p>` : ''}
     <div class="cx-clock${face.over ? ' over' : ''}"><span class="cx-digits" id="cx-digits">${esc(face.digits)}</span>${face.over ? ' <span class="pill err">Over</span>' : ''}
-      <button class="b${face.running ? '' : ' primary'}" type="button" data-cxact="startstop" data-key="cx-startstop">${face.running ? 'Stop cross-ex' : face.used ? 'Resume cross-ex' : 'Start cross-ex'}</button>
+      <button class="b" type="button" data-cxact="startstop" data-key="cx-startstop">${face.running ? 'Stop cross-ex' : face.used ? 'Resume cross-ex' : 'Start cross-ex'}</button>
       ${!face.running && face.used ? '<button class="b quiet" type="button" data-cxact="reset" data-key="cx-reset">Reset</button>' : ''}</div>
     ${lim ? '' : '<p class="field-help">The cross-ex length is not set in these rules. Follow the tab room.</p>'}
   </fieldset>`;
