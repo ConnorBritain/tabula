@@ -24,8 +24,9 @@
   --accent: #16191d; --on-accent: #fff; --ring: #16191d;
   /* Buttons: primary hover and press. The solid danger fill is only for the confirm button of a danger dialog. */
   --accent-hover: #3c434c; --accent-press: #000000;
-  /* Quiet neutral tints (Speech Events control ladder, EVENTS-COLOR-ICON-REVIEW.md §5.1 rule 4): status pills, tool
-     tracks and hover only. Under 3:1 as a shape, so a control that needs an edge keeps its 1 px outline. */
+  /* Quiet neutral tints (the control ladder: a control's fill goes quiet, then press, then solid only for the one
+     primary): status pills, tool tracks and hover only. Under 3:1 as a shape, so a control that needs an edge keeps
+     its 1 px outline. */
   --fill-quiet: #e9ecf0; --fill-press: #dce0e5;
   --danger-fill: #b93d0a; --on-danger: #ffffff; --danger-hover: #9a3208; --danger-press: #7f2906;
   /* Shadow: --shadow-1 is for the main work card only; --shadow-2 pop-ups and tips; --shadow-3 dialogs */

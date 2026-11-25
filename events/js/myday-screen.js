@@ -9,6 +9,7 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon, iconButton } from './icons.js';
 import { statusPillHtml } from './status-pill.js';
+import { eventPillHtml } from './event-pill.js';
 import { mydayModel, cardEvent, cardEventId, duePill, roomText, upNextItem, cancelCard, moveRoom, submitCard, findById, undoFields, ROOM_MAX } from './cards.js';
 import { roomEvent, present, CUSTOM_EVENT } from './room.js';
 import { dayOf } from './rooms.js';
@@ -61,12 +62,12 @@ export function itemView(it, events) {
 // shape on My day is the Up next card's main button). Finished work is green; in progress is a quiet tint.
 const PILL = Object.freeze({ notStarted: ['outline', 'circle'], judging: ['live', 'circle-dashed'], ranksIn: ['live', 'list-ordered'], submitted: ['ok', 'circle-check'], done: ['ok', 'circle-check'], cancelled: ['outline', ''] });
 export const roundPill = (v) => { const [tone, ic] = PILL[v.status] || ['', '']; return statusPillHtml(tone, v.word, ic); };
-const DUE_TONE = { caution: ' caution', late: ' err' };
+const DUE_TONE = { caution: 'caution', late: 'err' };
 
 // The ranks-due pill in words (design review §2.1 change 3). update() redraws its text and tone each second.
 export function dueHtml(due, now) {
   const p = duePill(due, now);
-  return p ? `<span class="pill md-due${DUE_TONE[p.tone] || ''}" data-due="${due}">${esc(p.text)}</span>` : '';
+  return p ? statusPillHtml(DUE_TONE[p.tone] || '', p.text, '', { cls: 'md-due', attrs: `data-due="${due}"` }) : '';
 }
 
 // The "⋯" button and, when open, its menu (owner decision OD2 A): the rare steps, with the destructive one last and
@@ -88,7 +89,7 @@ function menuHtml(v, open, withSubmit) {
 // D5 A: the row keeps the button only where submitting is the next step (the ranks are copied, status "ranksIn").
 const rowSubmits = (v) => v.status === 'ranksIn';
 const submitHtml = (v, small) => (v.canSubmit ? `<button class="b${small ? ' small' : ''}" type="button" data-act="submit">Mark submitted</button>` : '');
-const evPill = (v) => `<a class="pill md-ev" href="${esc(routeHash('type', v.eventId))}" title="${esc(v.name)}" aria-label="${esc('About ' + v.name)}">${esc(v.short)}</a>`;
+const evPill = (v) => eventPillHtml(v.eventId, v.name, v.short, { title: true });
 
 // One compact row as HTML text (owner decision OD2 A): event pill, round and room (the link that opens it), the
 // status pill, the ranks-due pill, "Mark submitted" when it applies, and the "⋯" menu.
@@ -139,7 +140,7 @@ export function mydayHtml(m, day, events, now, congress, menuFor) {
       <h2 id="md-h-${s.id}">${esc(s.title)} <span class="muted">${s.items.length}</span></h2>
       <ul class="md-list">${s.items.map((it) => cardHtml(itemView(it, events), now, menuFor === itemKey(it))).join('')}</ul></section>`).join('');
   const cong = chambers.length ? `<section class="md-sec" aria-labelledby="md-h-congress"><h2 id="md-h-congress">Congress <span class="muted">${chambers.length}</span></h2>
-      <ul class="md-list">${chambers.map((c) => `<li class="md-row"><span class="pill md-ev">Congress</span><a class="md-row-main" href="${esc(routeHash('chamber', c.id))}" aria-label="${esc('Open ' + c.label)}"><span class="md-title">${esc(c.label)}</span></a></li>`).join('')}</ul></section>` : '';
+      <ul class="md-list">${chambers.map((c) => `<li class="md-row">${statusPillHtml('', 'Congress', '', { cls: 'md-ev' })}<a class="md-row-main" href="${esc(routeHash('chamber', c.id))}" aria-label="${esc('Open ' + c.label)}"><span class="md-title">${esc(c.label)}</span></a></li>`).join('')}</ul></section>` : '';
   const empty = !m.items.length && !m.standby && !chambers.length ? '<p class="muted md-empty">No ballots yet today.</p>' : '';
   const standbyOn = !m.standby && !busy ? '<button class="b" type="button" id="md-standby-on">I am on standby</button>' : '';
   return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">My day</h1><a class="b${next ? '' : ' primary'}" id="md-start" href="${esc(routeHash('pick'))}">${icon('plus')}Start a round</a>${standbyOn}</div>
