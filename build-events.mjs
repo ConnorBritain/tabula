@@ -25,7 +25,7 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 
 // Repo paths (files or folders) the events page needs. Each lands at outPath(path).
 export const ALLOW = [
-  'events/_headers', 'events/index.html', 'events/app.css', 'events/sw.js', 'events/sw-files.js', 'events/published.json',
+  'events/_headers', 'events/index.html', 'events/app.css', 'events/install.css', 'events/sw.js', 'events/sw-files.js', 'events/published.json',
   'events/js', 'events/congress', 'events/defs', 'events/profiles', 'events/prompts',
   'core',
   'assets/theme-boot.js', 'assets/fonts',
