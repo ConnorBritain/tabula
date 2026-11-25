@@ -114,7 +114,7 @@ Change the spec first, as a visible diff (the spec-over-tests rule).
 
 The welcome is the first surface. For each surface below, run the same E1 test: "does this line need the word AI at all?" Settings can keep "AI" where people paste keys and choose providers.
 
-- **Settings, AI tab:** the h2 "Connect AI"; the select "AI tools (flow, Live Eval, analysis, decision) use"; the h3 "Use your AI subscription"; the card "AI writing and decisions" and "How the AI writes". The user lands here right after the welcome, so without a pass the heavy AI copy just moves one screen later.
+- **Settings, AI tab:** the h2 "Connect AI"; the select "AI uses"; the h3 "Use your AI subscription"; the card "AI writing and decisions" and "How the AI writes". The user lands here right after the welcome, so without a pass the heavy AI copy just moves one screen later.
 - **Tour, last step:** "Connect AI any time with the gear; without AI, the timers, flow and ballot still work." It has the same "without AI" hedge.
 - **Tour, Settings step:** "Connect AI" / "Paste a key from any AI provider…"
 - **Live updates note (js/help.js about lines 171-185):** it says "AI" 6 times.
@@ -153,3 +153,18 @@ The welcome is the first surface. For each surface below, run the same E1 test: 
 **Settings button (#show-welcome):** still "Show the welcome again".
 
 **Tests.** The old test "the subscription row shows only when LOCAL_ORIGIN is true" now checks one 'setup' entry on both hosts. That diff stays visible. New tests check: zero "AI" and no "pay", "key", "subscription", "Terminal" or "$"; the link opens Settings at the setup area; and the link is a real control that Tab reaches.
+
+## 8. Revision 3 (2026-11-23, owner approved: "Option A: open door")
+
+**What changes.** The app stays open with no sign-in wall. A judge who bought rounds needs a way in, so the welcome gets one more quiet line, **only when the account server said the judge is signed out**. Offline, or on the local helper, it is not known, so the welcome is the same as Revision 2.
+
+**Second line (under the help line):**
+- Text: Bought rounds?
+- Link: Sign in
+- Action: it goes to the sign-in page on the account site (`L.signinUrl`), which sends the judge back to the app.
+
+**Why.** Before this, the app had no Sign in anywhere. A judge who bought rounds could not reach them. "Start judging" stays first and alone. The help line does not change. The top bar and Settings also show Sign in when signed out.
+
+**Note.** "Bought rounds?" names a purchase, which Revision 2 left out. The owner chose this line (Option A, front-door write-up in the shared notes).
+
+**Tests.** The Revision 2 tests do not change: with no signed-out answer, the welcome still shows `['start', 'setup']`. New tests (front-door.test.mjs) check the signed-out line, its banned words (AI, pay, key, subscription, $, free trial) and the Sign in action.

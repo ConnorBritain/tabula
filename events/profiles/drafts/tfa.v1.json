@@ -1,0 +1,19 @@
+{
+  "id": "tfa",
+  "version": 1,
+  "name": "TFA (Texas)",
+  "ranks": "all",
+  "maxEntries": 8,
+  "elim": {
+    "cx": true
+  },
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 30,
+    "effect": "noFirst"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "TFA Constitution and Contest Rules 2026-27 (amended October 2026). Summarized in our own words; no rule text copied. Extemp finals have an open cross-ex of up to 3 min; the app turns it on in every elim. Not verified: whether a judge may tie."
+}

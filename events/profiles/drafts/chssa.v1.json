@@ -1,0 +1,18 @@
+{
+  "id": "chssa",
+  "version": 1,
+  "name": "CHSSA (California)",
+  "ranks": "all",
+  "elim": {
+    "cx": true
+  },
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 30,
+    "effect": "flagOnly"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "CHSSA Rules and Regulations 2026-27 (effective 2026-10-07), Art. IX and X. Summarized in our own words; no rule text copied. The tab room drops one rank past 30 s. Extemp cross-ex is in finals only (2 min); the app turns it on in every elim. Not verified: section size; whether a judge may tie."
+}

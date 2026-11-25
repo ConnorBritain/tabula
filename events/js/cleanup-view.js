@@ -26,7 +26,7 @@ export function cleanupButtonHtml(c, path, open) {
 // error, errorKind, providerName }. c: the Review card (code, comment).
 export function cleanupPanelHtml(c, st) {
   const btn = (act, label, extra = '') => `<button class="b${extra}" type="button" data-vact="${act}" data-id="${esc(c.id)}" data-key="${act}-${esc(c.id)}">${label}</button>`;
-  const modes = `<div class="order-toggle" role="group" aria-label="How much to change">${['full', 'spelling'].map((m) =>
+  const modes = `<div class="order-toggle seg-track" role="group" aria-label="How much to change">${['full', 'spelling'].map((m) =>
     `<button class="b small${st.mode === m ? ' on' : ''}" type="button" data-vact="clean-mode" data-mode="${m}" data-id="${esc(c.id)}" data-key="clean-mode-${m}" aria-pressed="${st.mode === m}"${st.status === 'busy' ? ' disabled' : ''}>${MODE_LABELS[m]}</button>`).join('')}</div>`;
   let body = '';
   if (st.status === 'idle') {
@@ -91,7 +91,7 @@ export function createCleanup(env, hooks) {
       const card = cleanupReview(entries, drafts).cards[0];
       st = Object.assign({}, st, { status: 'ready', card });
       hooks.draw(card.empty || String(card.base[card.fields[0]]).trim() === String(card.after[card.fields[0]]).trim() ? 'clean-keep-' + id : 'clean-use-' + id);
-      env.ui.announce('The clean version is ready. Check it, then choose Use this or Keep mine.');
+      env.ui.announce('Clean version ready.');
     } catch (err) {
       if (mine !== token || !st) return;
       st = Object.assign({}, st, { status: 'error', error: err.message || 'The clean-up did not work. Your comment is safe.', errorKind: err.kind || '' });

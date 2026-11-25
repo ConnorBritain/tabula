@@ -1,0 +1,47 @@
+{
+  "id": "ncfca-interp",
+  "version": 1,
+  "name": "NCFCA (interp)",
+  "ranks": "all",
+  "rubric": [
+    {
+      "id": "content",
+      "label": "Content and literary merit",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "organization",
+      "label": "Organization and citations",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "characterization",
+      "label": "Characterization",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "blocking",
+      "label": "Blocking",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "impact",
+      "label": "Impact",
+      "min": 1,
+      "max": 5
+    }
+  ],
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 15,
+    "effect": "flagOnly"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "NCFCA head judge timer instructions (Aug 29, 2026), event rules pages, judge prep page (Dec 2025), sample interp rubric (Aug 2026), 2026-27 season. Summarized in our own words; no rule text copied. Tab software takes 2 ranks for more than 15 s over. The competitor runs the timer. Not verified: that the Duo and Biblical Thematic rubrics match this one; section size; ties."
+}

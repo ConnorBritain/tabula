@@ -10,6 +10,7 @@ import { ENABLED_EVENTS, createRoom, selectEntry, updateEntry, entryOf, nextWait
 import { limitOf, graceOf, startLeft, stoppedTiming } from './js/timer.js';
 import { asksQuestion, questionOf, setQuestion, QUESTION_MAX } from './js/question.js';
 import { sheetHtml } from './js/comment-view.js';
+import { quoteHtml } from './js/quote-view.js';
 import { rosterHtml } from './js/room-screen.js';
 import { eventChoices } from './js/setup-screen.js';
 import { setNotes, ballotComment } from './js/comments.js';
@@ -75,17 +76,28 @@ test('screen: the third speaker starts first; the roster shows it done and its s
   const state = { room: usxRoom(), now: T0 };
   judgeOne(state, 'C33', 412);
   const html = rosterHtml(state.room, null);
-  assert.match(html, /C33<\/span><\/span>[\s\S]*?class="pill outline">Done</, 'C33 is done on its roster row');
-  assert.equal((html.match(/class="pill">Waiting</g) || []).length, 3, 'the other three rows still wait');
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (D2-A status tints with words and icons; top 10 #4: no solid status pills). Old line:
+  //   assert.match(html, /C33<\/span><\/span>[\s\S]*?class="pill outline">Done</, 'C33 is done on its roster row');
+  assert.match(html, /C33<\/span><\/span>[\s\S]*?class="pill ok"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-circle-check"\/><\/svg>Done</, 'C33 is done on its roster row');
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.3: roster states get shapes; Waiting is an empty circle). Old line:
+  //   assert.equal((html.match(/class="pill">Waiting</g) || []).length, 3, 'the other three rows still wait');
+  assert.equal((html.match(/class="pill"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-circle"\/><\/svg>Waiting</g) || []).length, 3, 'the other three rows still wait');
   // Next speaker goes on from C33 to the next waiting entry, and then round to the top.
   assert.equal(nextWaiting(state.room).code, 'D41');
   judgeOne(state, 'A12', 380);
   const back = selectEntry(state.room, idOf(state.room, 'C33'), state.now);
-  const sheet = sheetHtml(back, entryOf(back, back.current), USX);
-  assert.match(sheet, /Question drawn/);
-  assert.match(sheet, new RegExp('id="question"[^>]*value="' + Q('C33').replace('?', '\\?') + '"'));
-  // The question field comes first on the sheet, above the chips (MODELS.md §4.2: "at the top").
-  assert.ok(sheet.indexOf('id="question"') < sheet.indexOf('class="chip-group"'));
+  // CHANGED 2026-11-24 (design build, review §2.5 change 1): the question moved from the top of the comment sheet to
+  // the top of the card, above the timer (quote-view.js), and shows as a quote line once filled. Old assertions:
+  //   const sheet = sheetHtml(back, entryOf(back, back.current), USX);
+  //   assert.match(sheet, /Question drawn/);
+  //   assert.match(sheet, new RegExp('id="question"[^>]*value="' + Q('C33')... + '"'));
+  //   assert.ok(sheet.indexOf('id="question"') < sheet.indexOf('class="chip-group"'));
+  const top = quoteHtml(entryOf(back, back.current), USX, false);
+  assert.match(top, /Question drawn: <\/span>“/);
+  assert.ok(top.includes('“' + Q('C33') + '”'), 'the question comes back as the quote line');
+  assert.match(quoteHtml(entryOf(back, back.current), USX, true), new RegExp('id="question"[^>]*value="' + Q('C33').replace('?', '\\?') + '"'));
+  // Only one question field on the screen: the sheet no longer has its own.
+  assert.doesNotMatch(sheetHtml(back, entryOf(back, back.current), USX), /id="question"/);
 });
 
 // Why: LANDING.md E10's done-check: the question shows on the review card, so the judge can match the comment to what

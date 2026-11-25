@@ -1,0 +1,21 @@
+{
+  "id": "mifa",
+  "version": 1,
+  "name": "MIFA (Michigan)",
+  "ranks": "topN",
+  "topN": 3,
+  "maxEntries": 7,
+  "rating": {
+    "min": 75,
+    "max": 100,
+    "step": 1
+  },
+  "ratingNoTies": true,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 0,
+    "effect": "flagOnly"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "MIFA Speech Activities 2026-2027 and the MIFA event ballots, 2026-27 season. Summarized in our own words; no rule text copied. Rank the top 3 only. Unique whole-number scores 75-100; the best entry must get 100 (this profile cannot hold that rule). Time limits are suggestions; any penalty is up to the judge. Not verified: the extemp draw count; the document has no exact date."
+}

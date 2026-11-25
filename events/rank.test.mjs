@@ -151,7 +151,9 @@ test('noFirst: when every speaker went over grace, the review says so once', () 
   const ctx = ctxFor(DISTRICT, { overGrace: { a: true, b: true, c: true, d: true } });
   const out = checkBoard({ ranks: startRanks(ctx) }, ctx);
   assert.equal(out.length, 1);
-  assert.match(out[0], /Every speaker went over grace/);
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E29). Old line:
+  //   assert.match(out[0], /Every speaker went over grace/);
+  assert.match(out[0], /Everyone went over grace/);
 });
 
 // ---------- ratings ----------

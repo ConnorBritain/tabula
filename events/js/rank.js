@@ -52,6 +52,13 @@ export function overtimeEffect(profile) {
 // The message when the judge tries to put an over-grace entry at rank 1 under noFirst (DESIGN.md §4.5).
 export const noFirstMessage = (label) => label + " went over grace, so it can't be ranked 1st. Clear the over-grace flag on the timer if the time was wrong.";
 
+// The rule as a place on the Rank board (design review 2026-11-24 §2.8, top 10 #6): the line under rank 1 while a
+// speaker is over grace under noFirst; '' when it does not apply. ctx: board.js boardCtx.
+export function graceLineText(ctx) {
+  const over = ctx && ctx.overGrace ? idsOf(ctx).some((id) => isOver(ctx, id)) : false;
+  return over && overtimeEffect(ctx.profile) === 'noFirst' ? 'Rank 1 needs a speaker inside grace.' : '';
+}
+
 // What the row shows for one entry: { pill: 'Over grace' or '', note: text or '' }.
 // noFirst: the pill and the rule. flagOnly: the pill and the tab-room note. none: the pill only.
 export function overtimeRow(id, ctx) {
@@ -265,7 +272,7 @@ export function checkBoard(board, ctx) {
   // Overtime: noFirst.
   if (overtimeEffect(ctx.profile) === 'noFirst') {
     if (ids.every((id) => isOver(ctx, id))) {
-      out.push("Every speaker went over grace, so no one can be ranked 1st under these rules. Clear the flag on the timer for any time that was wrong.");
+      out.push("Everyone went over grace, so no one can be 1st. Time wrong? Clear the flag on the timer.");
     } else {
       for (const id of ids) if (asText(ranks[id]) === '1' && isOver(ctx, id)) out.push(noFirstMessage(label(id)));
     }

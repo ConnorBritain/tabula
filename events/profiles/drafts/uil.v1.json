@@ -1,0 +1,16 @@
+{
+  "id": "uil",
+  "version": 1,
+  "name": "UIL (Texas)",
+  "ranks": "all",
+  "maxEntries": 8,
+  "rating": "none",
+  "ratingNoTies": false,
+  "rankRatingRule": false,
+  "overtime": {
+    "grace": 0,
+    "effect": "directorDq"
+  },
+  "biasNote": "Judge the performance, not the person.",
+  "source": "UIL Constitution and Contest Rules 2026-27, §1003-1007; UIL judge procedures 2025. Summarized in our own words; no rule text copied. Prose and Poetry: any overtime is a disqualification that only the contest director applies (State final: last place); the judge still ranks. Extemp: finish the sentence. Not verified: the 2026-27 Prose and Poetry Handbook."
+}

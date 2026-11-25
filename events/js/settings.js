@@ -1,13 +1,20 @@
 // Speech Events step S2 (docs/events/EXPERIENCE.md §1.1, §7, §8.5): the device settings and the backup file. Pure: no
 // DOM, no storage, no clock. settings-screen.js draws the Settings screen; app.js saves.
 //
+// Step S4 adds drawGapMin, the F2 draw gap (7 or 10 minutes; DRAW_GAPS and drawGapOf below).
 // Deferred to later steps (EXPERIENCE.md §11.1), so not here yet: the league pack and default profile, the defaults
-// for each type (signals, grace), the F2 draw gap and ranks-due minutes (S3, S4), the Congress scale defaults (S6), and
-// Shared device (S8).
+// for each type (signals, grace), the Congress scale defaults (S6), and Shared device (S8).
+// Step S3 adds ranksDueMin (1 to 60 minutes) and recentEvents (up to 5 public event ids, for the picker).
+// Step S4 adds drawGapMin (the F2 draw gap, 7 or 10 minutes).
 import { buildBackup, parseBackup } from '../../core/store.js';
-import { PREFIX, ROOMS_KEY, SETTINGS_KEY } from './store.js';
+import { PREFIX, ROOMS_KEY, SETTINGS_KEY, DAYS_KEY, CARDS_KEY } from './store.js';
 import { KEYS_KEY } from './ai-key.js';
-import { migrateRooms, migrateSettings } from './migrate.js';
+import { migrateRooms, migrateSettings, migrateDays, migrateCards, RANKS_DUE_DEFAULT } from './migrate.js';
+
+// The F2 draw gaps in minutes (step S4, EXPERIENCE.md §3: 7 or 10, not confirmed, so the judge picks) and the gap of a
+// settings record (an unknown value reads as the first, the migration default).
+export const DRAW_GAPS = Object.freeze([7, 10]);
+export const drawGapOf = (settings) => (settings && DRAW_GAPS.includes(settings.drawGapMin) ? settings.drawGapMin : DRAW_GAPS[0]);
 
 // The app name in a backup file. A file with another name (a Tabula Debate backup) is refused.
 export const BACKUP_APP = 'tabula-events';
@@ -25,12 +32,27 @@ export const THEMES = Object.freeze([
   { id: 'dark', label: 'Dark' },
 ]);
 
-// Does the header show the mode menu? Only after someone picks Coach or Student, or turns the menu on (§1.1: a parent
-// who judges once never sees it).
-export const modeMenuShown = (settings) => {
+export const RANKS_DUE_MAX = 60;
+export const RECENT_MAX = 5;
+// A good ranks-due value: a whole number of minutes from 1 to 60.
+export const validRanksDue = (v) => Number.isInteger(v) && v >= 1 && v <= RANKS_DUE_MAX;
+// The ranks-due minutes to use: the setting when it is good, else 10 (a bad value from an old backup never breaks
+// the countdown).
+export function ranksDueMinOf(settings) {
+  const v = migrateSettings(settings).ranksDueMin;
+  return validRanksDue(v) ? v : RANKS_DUE_DEFAULT;
+}
+// The recent events with one more at the front (no doubles, at most 5).
+export const withRecentEvent = (settings, eventId) => {
   const s = migrateSettings(settings);
-  return s.mode !== 'judge' || s.showModeMenu === true;
+  const old = Array.isArray(s.recentEvents) ? s.recentEvents.filter((x) => typeof x === 'string' && x !== eventId) : [];
+  return withSetting(s, 'recentEvents', [eventId].concat(old).slice(0, RECENT_MAX));
 };
+
+// Does the header show the mode menu? Only when a saved mode is Coach or Student (§1.1: a parent who judges once never
+// sees it). Copy trim E46: Settings has no Mode part until those screens ship, so the old "Show the mode menu" switch is
+// gone and no longer counts; a judge left in Coach or Student uses this menu to go back to Judge, and then it hides.
+export const modeMenuShown = (settings) => migrateSettings(settings).mode !== 'judge';
 
 // The settings with one change. A value that is not on the list is refused (the settings come back unchanged), so a
 // bad value from the page can never be saved.
@@ -38,9 +60,13 @@ export function withSetting(settings, key, value) {
   const s = migrateSettings(settings);
   if (key === 'mode' && !MODES.some((m) => m.id === value)) return s;
   if (key === 'theme' && !THEMES.some((t) => t.id === value)) return s;
+  // showModeMenu is retired (copy trim E46): still accepted so old backups load, but modeMenuShown no longer reads it.
   if (key === 'showModeMenu' && typeof value !== 'boolean') return s;
-  if (!['mode', 'theme', 'showModeMenu'].includes(key)) return s;
-  return Object.assign({}, s, { [key]: value });
+  if (key === 'ranksDueMin' && !validRanksDue(value)) return s;
+  if (key === 'recentEvents' && !(Array.isArray(value) && value.length <= RECENT_MAX && value.every((x) => typeof x === 'string' && /^[a-z0-9-]{1,20}$/.test(x)))) return s;
+  if (key === 'drawGapMin' && !DRAW_GAPS.includes(value)) return s;
+  if (!['mode', 'theme', 'showModeMenu', 'ranksDueMin', 'recentEvents', 'drawGapMin'].includes(key)) return s;
+  return Object.assign({}, s, { [key]: Array.isArray(value) ? value.slice() : value });
 }
 
 // ---------- the backup file ----------
@@ -75,6 +101,13 @@ export function readBackup(text) {
     rounds = list.length;
     storage[ROOMS_KEY] = JSON.stringify(list);
   }
+  // Step S3: days and cards come back in today's shape too. A list that is damaged is refused, like the rounds.
+  for (const [key, mig, what] of [[DAYS_KEY, migrateDays, 'days'], [CARDS_KEY, migrateCards, 'ballot cards']]) {
+    if (!(key in storage)) continue;
+    const r = parseJson(storage[key]);
+    if (!r.ok || !Array.isArray(r.value)) throw new Error('The ' + what + ' in this backup are damaged, so nothing was restored.');
+    storage[key] = JSON.stringify(mig(r.value));
+  }
   if (SETTINGS_KEY in storage) {
     const s = parseJson(storage[SETTINGS_KEY]);
     storage[SETTINGS_KEY] = JSON.stringify(migrateSettings(s.ok ? s.value : {}));
@@ -92,5 +125,5 @@ export function restoreItems(current, backup) {
   return items;
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ BACKUP_APP, MODES, THEMES, modeMenuShown, withSetting,
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ BACKUP_APP, MODES, THEMES, RANKS_DUE_MAX, RECENT_MAX, DRAW_GAPS, drawGapOf, validRanksDue, ranksDueMinOf, withRecentEvent, modeMenuShown, withSetting,
   makeBackup, backupName, readBackup, restoreItems });

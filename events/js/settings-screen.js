@@ -1,13 +1,16 @@
 // Speech Events step S2 (docs/events/EXPERIENCE.md §7, §8.5, §9): the Settings screen, #/settings. Only the parts that
-// work today: Mode, Theme, Connect AI, the keyboard sheet, Ready for offline, and Data (backup and restore).
-// Deferred (EXPERIENCE.md §11.1): league pack and default profile, defaults for each type, F2 draw gap and ranks-due
-// minutes (S3, S4), Congress scale defaults (S6), Shared device (S8).
+// work today: Mode, Theme, Ranks due (step S3, the minutes after the last speaker, §5.3), the extemp draw gap (step
+// S4), Connect AI, the keyboard sheet, Ready for offline, and Data (backup and restore).
+// Deferred (EXPERIENCE.md §11.1): league pack and default profile, defaults for each type, Congress scale defaults
+// (S6), Shared device (S8).
 // The rules are in settings.js; the builders at the top are pure (Node tests call them); createSettingsScreen does the
 // DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { statusPillHtml } from './status-pill.js';
+import { foldSummaryHtml } from './fold.js';
 import { downloadFile } from '../../core/store.js';
 import { isMacPlatform } from '../../core/keys.js';
-import { MODES, THEMES, withSetting, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
+import { THEMES, RANKS_DUE_MAX, DRAW_GAPS, withSetting, validRanksDue, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems } from './settings.js';
 import { PREFIX } from './store.js';
 import { keymap } from './keys.js';
 import { checkOffline } from './offline.js';
@@ -25,31 +28,39 @@ export function keySheetHtml(groups) {
 export function aiPartHtml(ai) {
   if (!ai || !ai.allowed) return '';
   const body = ai.connected
-    ? `<p>Connected: ${esc(ai.providerName)}. Clean-up on the Review screen uses this key.</p><button class="b" type="button" id="set-ai-forget">Forget my key</button>`
-    : `<p class="field-help">Clean-up on the Review screen can use your own API key. The key stays in this browser.</p><button class="b" type="button" id="set-ai-connect">Connect AI</button>`;
+    ? `<p>Connected: ${esc(ai.providerName)}.</p><button class="b" type="button" id="set-ai-forget">Forget my key</button>`
+    : `<p class="field-help">Use your own AI key for Clean-up. The key stays in this browser.</p><button class="b" type="button" id="set-ai-connect">Connect AI</button>`;
   return `<section class="set-part" aria-labelledby="set-ai-h"><h2 id="set-ai-h">AI clean-up</h2>${body}</section>`;
 }
+
+// The offline state (D2-A, under the owner's reading of DESIGN.md §1.2: the app files are saved, so the work is done):
+// "Ready offline" is green with a check, anything else a caution "Not ready", then the plain sentence.
+export const offlineHtml = (res) => (!res ? 'Checking…'
+  : (res.ready ? statusPillHtml('ok', 'Ready offline', 'circle-check') : statusPillHtml('caution', 'Not ready', 'triangle-alert')) + ' ' + esc(res.text));
 
 // The whole screen as HTML text. v: { settings, ai, keys (keySheetHtml), offline ({ text } or null while checking) }.
 export function settingsHtml(v) {
   const s = v.settings;
   return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">Settings</h1></div>
-  <section class="set-part" aria-labelledby="set-mode-h"><h2 id="set-mode-h">Mode</h2>
-    <fieldset class="radios"><legend class="sr-only">Mode</legend>${radios('set-mode', MODES, s.mode)}</fieldset>
-    <label class="tick"><input type="checkbox" id="set-modemenu"${s.showModeMenu ? ' checked' : ''}> Show the mode menu in the header</label>
-    <p class="field-help">Coach and Student screens come in a later version. For now, the mode only shows the mode menu.</p>
-  </section>
   <section class="set-part" aria-labelledby="set-theme-h"><h2 id="set-theme-h">Theme</h2>
     <fieldset class="radios"><legend class="sr-only">Theme</legend>${radios('set-theme', THEMES, s.theme)}</fieldset>
   </section>
+  <section class="set-part" aria-labelledby="set-due-h"><h2 id="set-due-h">Ranks due</h2>
+    <label class="field set-due"><span>Minutes after the last speaker</span><input id="set-due" type="number" inputmode="numeric" min="1" max="${RANKS_DUE_MAX}" step="1" value="${esc(ranksDueMinOf(s))}"></label>
+    <p class="field-help">My day counts down to this time.</p>
+  </section>
+  <section class="set-part" aria-labelledby="set-gap-h"><h2 id="set-gap-h">Extemp draw gap</h2>
+    <fieldset class="radios"><legend class="sr-only">Extemp draw gap</legend>${radios('set-gap', DRAW_GAPS.map((n) => ({ id: String(n), label: n + ' minutes' })), String(s.drawGapMin))}</fieldset>
+    <p class="field-help">How long the room shows "Waiting for next speaker" between Extemp speakers.</p>
+  </section>
   ${aiPartHtml(v.ai)}
-  <section class="set-part" aria-labelledby="set-keys-h"><h2 id="set-keys-h">Keyboard</h2>${v.keys}</section>
+  <section class="set-part set-keys" aria-labelledby="set-keys-h"><details class="fold">${foldSummaryHtml('<h2 id="set-keys-h">Keyboard</h2>')}${v.keys}</details></section>
   <section class="set-part" aria-labelledby="set-off-h"><h2 id="set-off-h">Ready for offline</h2>
-    <p id="set-offline" role="status">${esc(v.offline ? v.offline.text : 'Checking…')}</p>
+    <p id="set-offline" role="status">${offlineHtml(v.offline)}</p>
     <button class="b" type="button" id="set-offline-check">Check again</button>
   </section>
   <section class="set-part" aria-labelledby="set-data-h"><h2 id="set-data-h">Data</h2>
-    <p class="field-help">Your rounds stay on this device. A backup is one file you can keep or move to another device.</p>
+    <p class="field-help">Your rounds stay on this device. A backup lets you keep or move them.</p>
     <div class="set-row"><button class="b" type="button" id="set-backup">Download backup</button>
       <label class="tick"><input type="checkbox" id="set-backup-keys"> Include my AI key</label></div>
     <div class="set-row"><button class="b" type="button" id="set-restore-btn">Restore from a backup</button>
@@ -81,7 +92,7 @@ export function createSettingsScreen(env) {
     const res = await checkOffline();
     if (!shown) return;
     offline = res;
-    if ($('#set-offline')) $('#set-offline').textContent = res.text;
+    if ($('#set-offline')) $('#set-offline').innerHTML = offlineHtml(res);
   }
 
   function backup() {
@@ -128,8 +139,12 @@ export function createSettingsScreen(env) {
   }
   function onChange(e) {
     const t = e.target;
-    if (t.name === 'set-mode') env.saveSettings(withSetting(env.settings(), 'mode', t.value));
-    if (t.id === 'set-modemenu') env.saveSettings(withSetting(env.settings(), 'showModeMenu', t.checked));
+    if (t.id === 'set-due') {
+      const n = Number(t.value);
+      if (validRanksDue(n)) { env.saveSettings(withSetting(env.settings(), 'ranksDueMin', n)); env.ui.toast('Ranks are due ' + n + ' min after the last speaker.', { key: 'due' }); }
+      else { t.value = String(ranksDueMinOf(env.settings())); env.ui.toast('Type a whole number of minutes from 1 to ' + RANKS_DUE_MAX + '.', { kind: 'error', key: 'due' }); }
+    }
+    if (t.name === 'set-gap') env.saveSettings(withSetting(env.settings(), 'drawGapMin', Number(t.value)));
     if (t.name === 'set-theme') {
       env.saveSettings(withSetting(env.settings(), 'theme', t.value));
       if (globalThis.TabulaTheme) globalThis.TabulaTheme.set(t.value);

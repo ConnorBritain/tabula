@@ -4,32 +4,42 @@
 // (Alt+Up and Alt+Down on a focused row). A refused move changes nothing and says why.
 // The builders at the top are pure (Node tests call them); createRankScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { statusPillHtml } from './status-pill.js';
+import { icon, iconButton } from './icons.js';
+import { problemsListHtml, readyHtml, rateRowPill, ballotFootHtml } from './ballot-status.js';
+import { ballotNavClick, createRubricFolds } from './ballot-nav.js';
 import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
-  ratingFix, ratingTies, checkBoard, RANK_RATING_ROW,
+  ratingFix, ratingTies, RANK_RATING_ROW, graceLineText,
 } from './rank.js';
-import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks, stepRating } from './board.js';
+import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks } from './board.js';
 import { attachDrag } from './rank-drag.js';
-import { entryOf, findRoom, roomEvent } from './room.js';
+import { entryOf, findRoom, roomEvent, present } from './room.js';
 import { roundLine } from './rooms.js';
-import { limitOf, clockText } from './timer.js';
+import { limitOf, clockText, graceOf } from './timer.js';
+import { rowTrackHtml } from './time-track.js';
 import { totalUsedAt } from './prep.js';
-import { setReason } from './comments.js';
+import { setReason, ballotComment, firstSentence } from './comments.js';
+import { pieceLine } from './piece.js';
+import { layerOf, layerProblems, notRankedText, cutLineText } from './profile-layer.js';
+import { ratingHtml, rubricHtml, scoreClick, scoreInput, scoreKey, isScoreBox } from './score-view.js';
+import { overtimeNote } from './round-frame.js';
 
-// The rating control of one row as HTML text ('' when the profile has no rating).
-export function ratingHtml(e, value, scale, err) {
-  if (scale.kind === 'none') return '';
-  const label = 'Rating for ' + e.code;
-  const errHtml = `<p class="rate-err" id="rate-err-${e.id}">${esc(err)}</p>`;
-  if (scale.kind === 'words') {
-    return `<div class="rate words" role="group" aria-label="${esc(label)}">${scale.words.map((w) => `<button class="rate-word${w === value ? ' on' : ''}" type="button" data-ract="word" data-id="${e.id}" data-value="${esc(w)}" aria-pressed="${w === value}">${esc(w)}</button>`).join('')}</div>${errHtml}`;
-  }
-  return `<div class="rate points"><button class="b small" type="button" data-ract="minus" data-id="${e.id}" data-key="minus-${e.id}" aria-label="Lower the rating for ${esc(e.code)}"${value !== '' && Number(value) <= scale.min ? ' disabled' : ''}>−</button>
-    <input class="rate-num" id="rate-${e.id}" data-ract="num" data-id="${e.id}" inputmode="decimal" autocomplete="off" value="${esc(value)}" aria-label="${esc(label)}, ${scale.min} to ${scale.max}" aria-describedby="rate-err-${e.id}"${err ? ' aria-invalid="true"' : ''}>
-    <button class="b small" type="button" data-ract="plus" data-id="${e.id}" data-key="plus-${e.id}" aria-label="Raise the rating for ${esc(e.code)}"${value !== '' && Number(value) >= scale.max ? ' disabled' : ''}>+</button></div>${errHtml}`;
+// What a row shows of the judge's words: the piece (F1: "“Title” by Author") and the comment's first sentence
+// (comments.js firstSentence). A tap on the comment line opens the whole comment in a sheet.
+function rowWordsHtml(e) {
+  const piece = pieceLine(e);
+  const first = firstSentence(ballotComment(e));
+  return (piece ? `<span class="board-piece">${esc(piece)}</span>` : '')
+    + (first ? `<button class="board-comment" type="button" data-ract="note" data-id="${esc(e.id)}" data-key="note-${esc(e.id)}">${icon('message-square')}<span class="sr-only">Read the comment for ${esc(e.code)}: </span><span class="bc-text">${esc(first)}</span>${icon('chevron-right')}</button>` : '');
 }
 
-// The board as HTML text. view: { tapMode, limit, now }.
+// The board as HTML text. view: { tapMode, limit, now, openRub (the rubric block that is open, §5.4) }.
+// Design build (review top 10 #3, D3-A; Room and timer session): each row with time shows the mini time track
+// (time-track.js rowTrackHtml, the same one the roster uses). view.event: the event file (prep and runs pieces).
+// Step S4 (profile layer): under ranks 'topN' the board still orders everyone and a labelled line falls under rank N
+// (the rows past it say "Not in top N" to a screen reader); a profile rubric adds its grid to each row; under a panel
+// an over-grace row says to agree with the panel first.
 export function boardHtml(room, view) {
   const ctx = boardCtx(room);
   const ranks = ranksOf(room), ratings = ratingsOf(room);
@@ -39,6 +49,11 @@ export function boardHtml(room, view) {
   const tied = new Set(ratingTies(ratings, ctx).flatMap((t) => t.ids));
   const next = view.tapMode ? nextRank(ranks, ctx) : null;
   const n = order.length;
+  const layer = layerOf(room.profile);
+  const panel = overtimeNote(room);
+  const cut = layer.ranks === 'topN' ? layer.topN : null;
+  const cutLine = cutLineText(room.profile, n);
+  const graceLine = graceLineText(ctx);
   const rows = order.map((id, i) => {
     const e = entryOf(room, id);
     const ot = overtimeRow(id, ctx);
@@ -49,33 +64,41 @@ export function boardHtml(room, view) {
     const used = totalUsedAt(e.timing, view.now, view.limit); // on a prep event (E11), prep and speech
     const main = view.tapMode
       ? `<button class="tap-pick" type="button" data-ract="tap" data-id="${id}" data-key="tap-${id}">${rank ? 'Rank ' + esc(rank) + ' · tap to clear' : next ? 'Tap to rank ' + next : ''}</button>`
-      : `<button class="b small" type="button" data-ract="up" data-id="${id}" data-key="up-${id}" aria-label="Move ${esc(e.code)} up"${i === 0 ? ' disabled' : ''}>↑</button>
-         <button class="b small" type="button" data-ract="down" data-id="${id}" data-key="down-${id}" aria-label="Move ${esc(e.code)} down"${i === n - 1 ? ' disabled' : ''}>↓</button>
-         <span class="drag" data-drag="${id}" aria-hidden="true" title="Drag to move">⠿</span>`;
-    return `<li class="board-row" data-row="${id}" tabindex="-1" aria-label="${esc(e.code)}, rank ${esc(rank || 'none')}">
+      : `${iconButton('chevron-up', 'Move ' + e.code + ' up', 'b small quiet move', `data-ract="up" data-id="${id}" data-key="up-${id}"${i === 0 ? ' disabled' : ''}`)}
+         ${iconButton('chevron-down', 'Move ' + e.code + ' down', 'b small quiet move', `data-ract="down" data-id="${id}" data-key="down-${id}"${i === n - 1 ? ' disabled' : ''}`)}
+         <span class="drag" data-drag="${id}" aria-hidden="true" title="Drag to move">${icon('grip-vertical', 20)}</span>`;
+    const below = cut && i >= cut;
+    return `<li class="board-row${below ? ' below-cut' : ''}" data-row="${id}" tabindex="-1" aria-label="${esc(e.code)}, ${below ? esc(notRankedText(room.profile)) + ', place ' + esc(rank || i + 1) : 'rank ' + esc(rank || 'none')}">
       <span class="board-rank" aria-hidden="true">${esc(rank || '–')}</span>
       <span class="board-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}
-        <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ` <span class="pill err">${esc(ot.pill)}</span>` : ''}</span>
-        ${ot.note ? `<span class="board-note">${esc(ot.note)}</span>` : ''}
+        <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ' ' + statusPillHtml('err', ot.pill) : ''}</span>
+        ${used ? rowTrackHtml(e, view.event, view.limit, graceOf(room), view.now) : ''}
+        ${layer.rubric.length ? rateRowPill(e, null, null, layer.rubric) : ''}
+        ${rowWordsHtml(e)}
+        ${ot.note ? `<span class="board-note">${esc(ot.note)}</span>` : ''}${ot.pill && panel ? `<span class="board-note">${esc(panel)}</span>` : ''}
         ${conflict ? `<span class="board-note">${esc(RANK_RATING_ROW)}${fix != null ? ` <button class="b small" type="button" data-ract="fix" data-id="${id}" data-value="${esc(fix)}">Fix: ${esc(fix)}</button>` : ''}</span>` : ''}</span>
       <span class="board-moves">${main}</span>
       ${scale.kind !== 'none' ? `<span class="board-rate">${ratingHtml(e, ratings[id], scale, err)}</span>` : ''}
+      ${rubricHtml(e, layer.rubric, view.openRub === id)}
+      ${i === 0 && graceLine ? `<span class="board-line grace-line">${icon('info')}${esc(graceLine)}</span>` : ''}${cut && i === cut - 1 && cutLine ? `<span class="board-line cut-line">${esc(cutLine)}</span>` : ''}
     </li>`;
   }).join('');
   return `<ol class="board${view.tapMode ? ' tapping' : ''}" id="board" aria-label="Ranks, best first">${rows}</ol>`;
 }
 
-// The checklist under the board ("Before you review"), from rank.js checkBoard.
+// The checklist under the board ("Before you review"), from rank.js checkBoard (with the rubric scores, step S4:
+// profile-layer.js layerProblems).
 export function problemsHtml(room) {
-  const list = checkBoard({ ranks: ranksOf(room), ratings: ratingsOf(room) }, boardCtx(room));
-  return list.length ? `<div class="problems" role="status"><h2>Before you review</h2><ul>${list.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>`
-    : '<p class="problems ok" role="status"><span class="pill outline">Ready</span> Every speaker has a rank' + (ratingScale(room.profile).kind === 'none' ? '.' : ' and a rating.') + '</p>';
+  const list = layerProblems(room);
+  return list.length ? problemsListHtml(room, list)
+    : readyHtml('Every speaker has a rank' + (ratingScale(room.profile).kind === 'none' ? '.' : ' and a rating.'));
 }
 
 // env: { el, ui, data, now, rooms(), saveRoom(room), go(screen, id) }.
 export function createRankScreen(env) {
   let roomId = null;
   let tapMode = false;
+  const folds = createRubricFolds(env.el); // the open rubric block (§5.4)
   let detachDrag = null;
   const $ = (s) => env.el.querySelector(s);
   const room = () => findRoom(env.rooms(), roomId);
@@ -85,8 +108,9 @@ export function createRankScreen(env) {
   function draw(focusKey) {
     const r = room();
     if (!r) return;
-    $('#board-box').innerHTML = boardHtml(r, { tapMode, limit: limitOf(event(r)), now: env.now() });
+    $('#board-box').innerHTML = boardHtml(r, { tapMode, limit: limitOf(event(r)), event: event(r), now: env.now(), openRub: folds.open() });
     $('#problems').innerHTML = problemsHtml(r);
+    $('#ballot-foot').innerHTML = ballotFootHtml(r, 'rank'); // the sticky footer (top 10 #6) follows every change
     $('#tap-toggle').textContent = tapMode ? 'Done tapping' : 'Tap in order';
     $('#tap-toggle').setAttribute('aria-pressed', String(tapMode));
     $('#tap-help').hidden = !tapMode;
@@ -122,29 +146,22 @@ export function createRankScreen(env) {
   function onClick(ev) {
     if (ev.target.closest('#tap-toggle')) return tapMode ? endTap() : startTap();
     if (ev.target.closest('#restart')) return restart();
+    if (ballotNavClick(env.el, ev, env.ui.announce)) return; // a "Before you review" item, or the footer while work is open
+    const sc = scoreClick(ev.target, room(), env.now()); // a rating word, a rating − or +, or a rubric stepper
+    if (sc) { save(sc.room); draw(sc.focusKey); return; }
     const b = ev.target.closest('[data-ract]');
     if (!b || b.dataset.ract === 'num') return;
     const id = b.dataset.id;
     const r = room();
-    const scale = ratingScale(r.profile);
     const act = b.dataset.ract;
     if (act === 'up' || act === 'down') return move(id, act);
+    if (act === 'note') return showComment(id);
     if (act === 'tap') {
       const ranks = ranksOf(r);
       const ctx = boardCtx(r);
       const res = ranks[id] ? tapRank(ranks, id, '', ctx) : tapRank(ranks, id, nextRank(ranks, ctx), ctx);
       apply(res, id, 'tap-' + id);
       if (!nextRank(ranksOf(room()), boardCtx(room()))) { tapMode = false; draw(); env.ui.announce('Every speaker has a rank.'); $('#tap-toggle').focus(); }
-      return;
-    }
-    if (act === 'word') {
-      setRating(id, entryOf(r, id).rating === b.dataset.value ? '' : b.dataset.value);
-      draw();
-      return;
-    }
-    if (act === 'minus' || act === 'plus') {
-      setRating(id, String(stepRating(entryOf(r, id).rating ?? '', act === 'minus' ? -1 : 1, scale)));
-      draw(act + '-' + id); // at the end of the range the button turns off, and the focus goes to the row
       return;
     }
     if (act === 'fix') {
@@ -154,12 +171,22 @@ export function createRankScreen(env) {
     }
   }
 
+  // The whole comment of one row in a sheet (the row shows its first sentence). The room is where the judge edits it.
+  function showComment(id) {
+    const e = entryOf(room(), id);
+    if (!e) return;
+    const text = ballotComment(e).trim();
+    env.ui.ask({ title: 'Comment for ' + e.code + (e.name ? ' · ' + e.name : ''), body: text ? text.split(/\n+/) : ['No comment yet.'], buttons: [{ label: 'Close', value: true, kind: 'primary' }], cancelValue: true });
+  }
+
   // Typing a rating: saved on every change; the error shows when the box is left (not while the judge types).
-  function onInput(ev) { if (ev.target.dataset.ract === 'num') setRating(ev.target.dataset.id, ev.target.value.trim()); }
-  function onChange(ev) { if (ev.target.dataset.ract === 'num') draw(); }
+  function onInput(ev) { const next = scoreInput(ev.target, room(), env.now()); if (next) save(next); }
+  function onChange(ev) { if (isScoreBox(ev.target)) draw(); }
 
   // Alt+Up and Alt+Down move the row that has focus (the row or any control in it).
   function onKey(ev) {
+    const sk = scoreKey(ev, room(), env.now()); // arrows and digits on a row of number buttons (score-view.js)
+    if (sk) { ev.preventDefault(); if (sk.room !== room()) save(sk.room); draw(sk.focusKey); return; }
     if (!ev.altKey || ev.ctrlKey || ev.metaKey || (ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown')) return;
     const row = ev.target.closest('[data-row]');
     if (!row || tapMode) return;
@@ -188,7 +215,7 @@ export function createRankScreen(env) {
     const ranks = ranksOf(r);
     const ctx = boardCtx(r);
     tapMode = false;
-    if (nextRank(ranks, ctx)) { save(withRanks(r, fillRest(ranks, ctx), env.now())); env.ui.announce('The speakers you did not tap keep speaking order after the others.'); }
+    if (nextRank(ranks, ctx)) { save(withRanks(r, fillRest(ranks, ctx), env.now())); env.ui.announce('Speakers you did not tap follow in speaking order.'); }
     draw();
   }
 
@@ -212,22 +239,23 @@ export function createRankScreen(env) {
       if (opened.room !== r0) save(opened.room);
       const r = room();
       const ev = event(r);
-      env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/room/${encodeURIComponent(id)}">‹ Room</a>
+      env.el.innerHTML = `<div class="screen-head"><a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
           <h1 id="screen-title" tabindex="-1">Rank · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <p class="bias">${esc(r.profile.biasNote || 'Judge the performance, not the person.')}</p>
         <div class="board-tools"><button class="b" type="button" id="tap-toggle" aria-pressed="false">Tap in order</button>
           <button class="b quiet" type="button" id="restart">Start again</button></div>
-        <p class="muted" id="tap-help" hidden>Tap the speakers from best to last. Tap a ranked speaker again to take the rank off.</p>
-        <p class="muted board-help">Best first. Drag the handle, use the arrows, or press Alt+Up and Alt+Down on a row.</p>
+        <p class="muted" id="tap-help" hidden>Tap best to last. Tap again to undo.</p>
+        <p class="muted board-help">Best first. Alt+Up and Alt+Down move a row.${layerOf(r.profile).ranks === 'topN' ? ' Only the top ' + layerOf(r.profile).topN + ' are ranked on the ballot.' : ''}</p>
         <div id="board-box"></div>
         <div id="problems"></div>
-        <label class="field" for="rank-reason"><span>Reason for rank <span class="muted">(whole room)</span></span></label>
+        <label class="field" for="rank-reason"><span>Reason for rank</span></label>
         <textarea id="rank-reason" rows="3">${esc(r.reasonForRank || '')}</textarea>
-        <div class="rank-foot"><a class="b primary" id="go-review" href="#/review/${encodeURIComponent(id)}">Review and copy</a></div>`;
+        <div class="ballot-foot" id="ballot-foot"></div>`;
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('input', onInput);
       env.el.addEventListener('change', onChange);
       env.el.addEventListener('keydown', onKey);
+      folds.start(r);
       detachDrag = attachDrag($('#board-box'), { enabled: () => !tapMode, onDrop });
       $('#rank-reason').addEventListener('input', (e) => save(setReason(room(), e.target.value, env.now())));
       draw();
@@ -236,6 +264,7 @@ export function createRankScreen(env) {
     },
     hide() {
       for (const [t, f] of [['click', onClick], ['input', onInput], ['change', onChange], ['keydown', onKey]]) env.el.removeEventListener(t, f);
+      folds.stop();
       if (detachDrag) detachDrag();
       roomId = null;
     },

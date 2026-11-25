@@ -15,7 +15,7 @@ moment a round starts. Rounds left must be clear, "like how Claude/ChatGPT keep 
 
 ## 1. The setting: "When a round starts" (Settings, "AI rounds" card)
 Two choices, as radio rows with one help line each (Mobbin cue: Fresha "Transfer authorisation").
-- **Ask me first** (default): "Before AI runs in a round, Tabula asks you. Nothing is used until you say yes."
+- **Ask me first** (default): "Tabula asks first. No round is used until you say yes."
 - **Use AI automatically**: "Your AI settings run on their own. Each round with AI uses 1 round."
 - Stored on the device: `S.aiRoundMode` = `'ask'` | `'auto'`.
 

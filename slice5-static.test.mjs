@@ -82,7 +82,7 @@ test('5.5 shortcut sheet: title, search, no-match copy and the single-key switch
 test('5.6b the clock renders into both places through one renderClockInto(el)', () => {
   assert.match(APP, /renderClockInto\(\$\('#clock'\), shown\);/);
   assert.match(APP, /renderClockInto\(\$\('#cv-clock'\), shown\);/);
-  assert.ok(HTML.includes('Flowing needs a bigger screen. Use a tablet in landscape or a laptop to flow. Your clock and ballot work here.'));
+  assert.ok(HTML.includes('Flow on a tablet or laptop. Clock and ballot work here.'));
   assert.match(HTML, /data-prep="aff" aria-label="Start Aff prep"/);
   assert.match(STYLE, /@media \(max-width: 819\.98px\) \{[^@]*#workspace, #workspace\.on \{ display: none; \}/);
 });

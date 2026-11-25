@@ -24,6 +24,16 @@
   }
   // The Plans page (prices and packs) on the same account site, for links that must not buy yet (the demo's nudge).
   function plansUrl(host) { return accountUrl(host).replace(/\/account\/$/, '/plans/'); }
+  // The sign-in page on the same account site. An app host the server lets sign-in return to (tabula-cloud
+  // RETURN_ORIGINS: debate. and my.) asks to come back to itself (?return=). Any other host (localhost, a preview, an app
+  // not on that list yet, such as events.) gets the plain sign-in page and lands on the account site's own home.
+  const RETURN_APPS = ['debate', 'my'];
+  function signinUrl(host) {
+    const h = String(host || '').toLowerCase();
+    const page = accountUrl(h).replace(/\/account\/$/, '/signin/');
+    const back = ACCOUNT_SITES.some((d) => RETURN_APPS.some((a) => h === a + '.' + d));
+    return back ? page + '?return=' + encodeURIComponent('https://' + h + '/') : page;
+  }
   // The round format the server knows (tabula-cloud src/ai/tasks.ts KNOWN_FORMATS). A new version needs the server first.
   const FORMAT = 'policy-hs', FORMAT_VERSION = 1;
 
@@ -124,7 +134,7 @@
   // The words for each hosted problem. Plain words; no error codes.
   const HOSTED_TEXT = {
     quiet: '', // policyOff or a duplicate call: nothing is shown
-    signedOut: 'You are signed out of Tabula, so your rounds cannot be used. Sign in again in Settings.',
+    signedOut: 'You are signed out of Tabula, so your rounds cannot be used. Sign in again to use them.',
     noCredits: 'You are out of rounds. Buy more to use AI again. The clock, flow and ballot still work.',
     planRequired: 'This account has no rounds yet. Buy rounds to use AI. The clock, flow and ballot still work.',
     dayCap: 'You reached the daily AI limit. The round goes on without AI.',
@@ -151,14 +161,15 @@
   // Returns { kind, text, retryable, fallback (use the judge's own key if there is one), quiet (stop and show
   // nothing), signOut (forget the capability record), link: { label, url } or null }.
   // account: the account page for this app (accountUrl); the production one by default.
-  function hostedError(status, code, account) {
+  // signin: the sign-in page for this app (signinUrl); the production one by default.
+  function hostedError(status, code, account, signin) {
     const out = (kind, more) => Object.assign({ kind, text: HOSTED_TEXT[kind], retryable: false, fallback: false, quiet: false, signOut: false, link: null }, more);
     const page = account || BUY_URL;
     const buy = { label: 'Buy rounds', url: page };
     const s = Number(status) || 0;
     const c = String(code || '');
     if (c === 'policyOff' || c === 'duplicate_call') return out('quiet', { quiet: true }); // policy off: stop quietly; duplicate: the first answer stands
-    if (s === 401) return out('signedOut', { signOut: true, fallback: true });
+    if (s === 401) return out('signedOut', { signOut: true, fallback: true, link: { label: 'Sign in', url: signin || signinUrl('') } });
     // Round limits (Terms §6.4): the round goes on with the free tools; an own key still works.
     if (c === 'round_idle') return out('roundIdle', { fallback: true, roundState: 'idle' });
     if (c === 'free_mode') return out('freeMode', { fallback: true, roundState: 'free' });
@@ -181,7 +192,7 @@
     return out('noAnswer', { retryable: true });
   }
 
-  const api = { BUY_URL, accountUrl, plansUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPays, selfPaidHosted, hasHostedPlan, hostedState, hostedRequest, readSse, sseStep, hostedError };
+  const api = { BUY_URL, accountUrl, plansUrl, signinUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPays, selfPaidHosted, hasHostedPlan, hostedState, hostedRequest, readSse, sseStep, hostedError };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).hosted = api;
 })(typeof window !== 'undefined' ? window : globalThis);

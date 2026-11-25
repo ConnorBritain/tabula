@@ -182,7 +182,7 @@ async function askClaude(name, task, schema, opts) {
 async function runTool(name, task, schema, opts, store) {
   if (!can('analysis')) return;
   if (!ready()) return toast(noAiText());
-  if (busy[name]) return toast('Still working on the last one. Try again when it finishes.');
+  if (busy[name]) return toast('Still working. Try again soon.');
   busy[name] = true; errs[name] = ''; renderAnalysis();
   try {
     const data = await askClaude(name, task, schema, opts);
@@ -275,7 +275,7 @@ function renderAnalysis() {
   statusLine($('#map-status'), 'map', map, 'Not drawn yet. Click Run.');
   const view = R.mapView === 'diagram' ? 'diagram' : 'sheet';
   document.querySelectorAll('[data-mapview]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mapview === view)));
-  if (!(map && map.data)) { $('#map-out').innerHTML = '<p class="muted">No map yet. Click "+ Argument" to draw one by hand, or Run to let the AI map the round.</p>'; lastMapCode = ''; return; }
+  if (!(map && map.data)) { $('#map-out').innerHTML = '<p class="muted">No map yet. Click + Argument, or Run.</p>'; lastMapCode = ''; return; }
   if (view === 'diagram') drawMap(map.data);
   else { lastMapCode = ''; mapSeq++; $('#map-out').innerHTML = mapSheetHtml(map.data); } // mapSeq++ stops a late diagram from covering the sheet
 }
@@ -283,7 +283,7 @@ const KIND_MARK = { answers: '↩ answers', turns: '↻ turns', extends: '→ ex
 function mapSheetHtml(data) {
   const e = escapeHtml;
   const lay = L.layoutMap(data, L.speechesSoFar(R), FMT());
-  if (!lay.rows.length) return '<p class="muted">No arguments yet. Click "+ Argument" to start, or Draw to let the AI map the round.</p>';
+  if (!lay.rows.length) return '<p class="muted">No arguments yet. Click + Argument, or Update.</p>';
   const cols = lay.columns;
   const sideOf = (sp) => (L.speechOf(FMT(), sp) || {}).side || 'neg';
   const card = (c) => {

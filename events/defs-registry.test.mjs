@@ -19,7 +19,7 @@ test('every published event file loads through the shared registry with an event
   const reg = createRegistry(FILES, { prepare });
   assert.equal(reg.keys().length, PUB.defs.length);
   for (const f of PUB.defs) {
-    const [id, v] = f.replace(/\.json$/, '').split('.v');
+    const [id, v] = f.replace(/^v2\//, '').replace(/\.json$/, '').split('.v'); // step S5: files after v1 are listed as 'v2/<file>' (brief rule 3a)
     const d = reg.get(id, Number(v));
     assert.ok(d, f + ' is not in the registry');
     assert.equal(d.key, id + '@' + v, f);

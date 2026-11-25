@@ -68,7 +68,7 @@ Each has at most 2 options and my pick. **Q2, Q5, Q6 and Q7 touch legal or busin
 **Q1. App address.** Fixed forever once public. (Same open question as `docs/architecture/ARCHITECTURE.md` §12 Q2 and `docs/growth/BRAND.md` Q4; one answer closes all three.)
 - A. `events.tabulaspeech.com` (matches "Tabula Speech Events"; the architecture already reserves it).
 - B. `forensics.tabulaspeech.com` (coach word; parents do not know it).
-- **Decided 2026-11-20 (owner): A.**
+- **Decided 2026-11-20 (owner): A.** Confirmed 2026-11-24 (owner): keep `events.tabulaspeech.com` as the one app address, and add `forensics.tabulaspeech.com` as a redirect to it, so coaches who type the coach word still land in the app. The redirect is part of launch; it needs the owner's yes before any DNS or Cloudflare change.
 
 **Q2. What a "round" buys in Speech Events.** Clean-up of a 6-speaker room is a small text job. A judge often judges 4–6 rooms a day.
 - A. **One round covers one tournament day of rooms** (up to a cap, for example 8 rooms or 12 hours from the first AI call), for hosted clean-up. Same $2 single round and the same passes. This needs an exception to the live Terms limit on hosted AI per round (3 hours, 20 minutes idle; `tabula-cloud/docs/PLAN.md`), because a judging day is longer.

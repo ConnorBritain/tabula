@@ -193,13 +193,13 @@ test('the Rooms list has a named Delete button on each row', () => {
 // ---------- Settings ----------
 
 // Why: a parent who judges once must never see a mode menu (EXPERIENCE.md §1.1); it shows only after Coach or
-// Student, or when turned on.
-test('the mode menu shows only for Coach or Student or when turned on, and a bad setting value is refused', () => {
+// Student. The old "turned on" switch left Settings with copy trim E46, so a stale saved switch must not show it.
+test('the mode menu shows only for Coach or Student, and a bad setting value is refused', () => {
   assert.equal(modeMenuShown({}), false);
   assert.equal(modeMenuShown(null), false);
   assert.equal(modeMenuShown({ mode: 'coach' }), true);
   assert.equal(modeMenuShown({ mode: 'student' }), true);
-  assert.equal(modeMenuShown({ mode: 'judge', showModeMenu: true }), true);
+  assert.equal(modeMenuShown({ mode: 'judge', showModeMenu: true }), false);
   assert.equal(withSetting({}, 'mode', 'coach').mode, 'coach');
   assert.equal(withSetting({}, 'mode', 'admin').mode, 'judge');
   assert.equal(withSetting({ theme: 'dark' }, 'theme', 'neon').theme, 'dark');
@@ -217,7 +217,7 @@ test('the theme the Settings screen saves is the one the head script reads', () 
   assert.equal(JSON.parse(saved).theme, 'dark', 'theme-boot.js reads settings.theme');
   const view = settingsHtml({ settings: withSetting({}, 'theme', 'dark'), ai: null, keys: '', offline: null });
   assert.match(view, /name="set-theme" value="dark" checked/);
-  assert.match(view, /name="set-mode" value="judge" checked/);
+  assert.doesNotMatch(view, /name="set-mode"|id="set-modemenu"/);
 });
 
 // Why: AI that is off by policy must be gone, not greyed (AI-POLICY.md §3); a Connect AI button there would invite a
@@ -265,7 +265,8 @@ test('the palette lists New for each enabled event, Open for each round, History
   assert.equal(open.hash, '#/round/' + r.id);
   assert.ok(rows.some((x) => x.label === 'History' && x.hash === '#/history'));
   assert.ok(rows.some((x) => x.label === 'Settings' && x.hash === '#/settings'));
-  assert.ok(!rows.some((x) => /^Guide/.test(x.label)), 'no Guide rows until a guide route exists');
+  assert.ok(rows.some((x) => /^Guide/.test(x.label)), 'Guide rows exist now that the guide route (#/type/<eventId>) exists (step S3, owner OK 2026-11-23)');
+  for (const x of rows.filter((y) => /^Guide/.test(y.label))) assert.match(x.hash, /^#\/type\/[a-z0-9-]+$/, x.label + ' opens the type page');
   assert.ok(!rows.some((x) => x.act === 'undo'), 'no Undo row with nothing to undo');
   assert.equal(searchCommands('new hi', rows)[0].label, 'New HI round');
   assert.equal(searchCommands('settings', rows)[0].id, 'go-settings');

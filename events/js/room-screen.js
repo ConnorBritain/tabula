@@ -2,24 +2,40 @@
 // Laptop and iPad: the roster is a left pane; the selected entry fills the main pane. Phone: a row of code pills across
 // the top (it scrolls sideways) and a "Roster" button that opens the full rows.
 // Each roster row has a menu: Move up, Move down, Move to end (late arrivals), Mark no show and Remove, each with Undo.
-// Number keys 1–8 pick an entry. The builders at the top are pure (Node tests call them); createRoomScreen does the DOM.
+// Number keys 1–8 pick an entry; a room over 8 types the number, then Enter (step S4, number-pick.js).
+// Step S4 also adds: the row menu's "Cross-entered" (EXPERIENCE.md §3.1, cross-entry.js), the level and panel frame
+// under the title (round-frame.js), and the head button that follows the profile layer (Rank, Rate, or straight to
+// Review for a comments-only round). The builders at the top are pure (Node tests call them); createRoomScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon, iconButton } from './icons.js';
+import { statusPillHtml } from './status-pill.js';
+import { roomPrimary, goRankHtml } from './room-primary.js';
 import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
-import { pickNumber } from './keys.js';
+import { crossNote } from './cross-entry.js';
+import { createNumberPicker, crossEntryAction } from './room-actions.js';
+import { frameHtml } from './round-frame.js';
 
-const pill = (word, cls) => `<span class="pill${cls ? ' ' + cls : ''}">${esc(word)}</span>`;
-// The status pill in words (DESIGN.md §4.1): Speaking is a solid fill, Done a gray outline.
-export const statusPill = (e) => pill(STATUS_LABEL[e.status] || STATUS_LABEL.waiting, { speaking: 'solid', done: 'outline', noShow: 'outline' }[e.status] || '');
+// The status pill in words (DESIGN.md §4.1) with a shape (§5.3) and a tint (D2-A): Waiting is plain words with an
+// empty circle, Speaking a quiet tint with a play circle, Done green with a check. A Done speech over grace keeps a
+// neutral check (the review's limit 2): green must not say "all fine" next to the "Over grace" pill.
+const STATUS_LOOK = Object.freeze({ waiting: ['', 'circle'], speaking: ['live', 'circle-play'], done: ['ok', 'circle-check'], noShow: ['outline', ''], crossEntered: ['outline', ''] });
+export const statusPill = (e) => {
+  const [tone, ic] = STATUS_LOOK[e.status] || STATUS_LOOK.waiting;
+  const over = e.status === 'done' && e.timing && e.timing.overGrace;
+  return statusPillHtml(over ? '' : tone, STATUS_LABEL[e.status] || STATUS_LABEL.waiting, over ? 'check' : ic);
+};
 
 // The room's title line: event short name and round.
 export function roomTitle(room, event) {
   return [event ? event.name : 'Custom event', roundLine(room, false)].filter(Boolean).join(' · ');
 }
 
-// One roster row as HTML text. extra(e): optional HTML after the name (the time, from step E5).
+// One roster row as HTML text. The current row says "Now" (§5.1 rule 3) on its own line under the row (CSS wraps it
+// like the F4 run line), so the name keeps its width. extra(e): optional HTML after the name (the time, from step E5). sub(e): optional
+// HTML under the name (design build: the question or topic, quote-view.js, and the mini time track, timer-view.js).
 // menuOpen: this row's menu is open.
-export function rosterRowHtml(room, e, place, menuOpen, extra) {
+export function rosterRowHtml(room, e, place, menuOpen, extra, sub) {
   const cur = room.current === e.id;
   const n = room.entries.length;
   const noShow = e.status === 'noShow';
@@ -28,41 +44,49 @@ export function rosterRowHtml(room, e, place, menuOpen, extra) {
       <button class="b small" type="button" data-act="down" data-id="${e.id}" data-key="down-${e.id}"${place === n ? ' disabled' : ''}>Move down</button>
       <button class="b small" type="button" data-act="end" data-id="${e.id}" data-key="end-${e.id}"${place === n ? ' disabled' : ''}>Move to end</button>
       <button class="b small" type="button" data-act="${noShow ? 'show' : 'noshow'}" data-id="${e.id}" data-key="ns-${e.id}">${noShow ? 'Undo no show' : 'Mark no show'}</button>
+      ${e.status === 'waiting' ? `<button class="b small" type="button" data-act="cross" data-id="${e.id}" data-key="cross-${e.id}">Cross-entered</button>` : e.status === 'crossEntered' ? `<button class="b small" type="button" data-act="uncross" data-id="${e.id}" data-key="cross-${e.id}">Back in the room</button>` : ''}
       <button class="b small" type="button" data-act="remove" data-id="${e.id}" data-key="remove-${e.id}">Remove</button></div>` : '';
   return `<li class="roster-row${cur ? ' is-current' : ''}${noShow ? ' is-noshow' : ''}">
     <button class="row-pick" type="button" data-act="pick" data-id="${e.id}" data-key="pick-${e.id}"${cur ? ' aria-current="true"' : ''}>
       <span class="row-num" aria-hidden="true">${place}</span>
-      <span class="row-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}</span>
-      ${extra ? extra(e) : ''}${statusPill(e)}</button>
-    <button class="iconbtn row-more" type="button" data-act="menu" data-id="${e.id}" data-key="menu-${e.id}" aria-expanded="${menuOpen}" aria-label="Change ${esc(e.code)}">⋯</button>
+      <span class="row-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}${sub ? sub(e) : ''}</span>
+      ${extra ? extra(e) : ''}${statusPill(e)}${cur ? `<span class="row-now">${statusPillHtml('', 'Now', '', 'data-now')}</span>` : ''}</button>
+    ${iconButton('ellipsis', 'Change ' + e.code, 'iconbtn row-more', `data-act="menu" data-id="${e.id}" data-key="menu-${e.id}" aria-expanded="${menuOpen}"`)}
     ${menu}</li>`;
 }
 
 // The full roster as HTML text, plus the phone strip of code pills.
-export function rosterHtml(room, menuFor, extra) {
+export function rosterHtml(room, menuFor, extra, sub) {
   const done = room.entries.filter((e) => e.status === 'done').length;
   const here = present(room).length;
-  const rows = room.entries.map((e, i) => rosterRowHtml(room, e, i + 1, menuFor === e.id, extra)).join('');
+  const rows = room.entries.map((e, i) => rosterRowHtml(room, e, i + 1, menuFor === e.id, extra, sub)).join('');
   const strip = room.entries.map((e) => `<button class="strip-pill${room.current === e.id ? ' is-current' : ''}" type="button" data-act="pick" data-id="${e.id}"${room.current === e.id ? ' aria-current="true"' : ''}><span class="code">${esc(e.code)}</span> <span class="strip-status">${esc(STATUS_LABEL[e.status] || '')}</span></button>`).join('');
   return `<div class="strip" role="group" aria-label="Speakers">${strip}</div>
     <div class="roster-full" id="roster-full">
       <h2 class="roster-title">Roster <span class="muted">${done} of ${here} done</span></h2>
       <ol class="roster-list">${rows}</ol>
-      <button class="b small" type="button" data-act="add" data-key="add-entry">Add entry</button>
+      <button class="b small" type="button" data-act="add" data-key="add-entry">${icon('plus')}Add entry</button>
     </div>`;
 }
 
 // env: { el, ui, data, now, rooms(), saveRoom(room), go(screen, id) }.
 // parts: the views that add to this screen (the timer in step E5, the comment sheet in E6). Each may have:
 //   rowExtra(room, entry) -> HTML after a roster row's name     stageHtml(room, entry) -> HTML in the main pane
+//   rowSub(room, entry) -> HTML under a roster row's name
+//   holdsPrimary(room, entry) -> true while the view holds the room's one primary (F4: the next run's button), so
+//                                the header's Rank button stays secondary (top 10 #1)
+//   footHtml(room) -> HTML for the whole room, under the grid     footMounted(ctx) after it is drawn (design build, D3-A:
+//                                                                 the room-level reason for rank)
 //   mounted(ctx) after the main pane is drawn                    show(ctx) / hide(ctx) when the screen opens / closes
 //   run(action, ctx) -> true when it ran a shortcut              stopFor(id) stops that entry's running clock
-// ctx: { env, room(), save(room), draw(), drawStage(), drawRoster() } (drawStage and drawRoster redraw one pane only).
+// ctx: { env, room(), save(room), draw(), drawStage(), drawRoster(), primary(room) } (drawStage and drawRoster redraw
+// one pane only; primary is 'timer' | 'next' | 'rank' | 'other', where 'other' means a view's holdsPrimary said so).
 export function createRoomScreen(env, parts) {
   const views = parts || [];
   let roomId = null;
   let menuFor = null;
   let rosterOpen = false;
+  const numbers = createNumberPicker(); // "type the number, then Enter" in a room over 8 (room-actions.js)
   const $ = (s) => env.el.querySelector(s);
   const room = () => findRoom(env.rooms(), roomId);
   const event = (r) => roomEvent(env.data.events, r);
@@ -75,7 +99,7 @@ export function createRoomScreen(env, parts) {
     if (!r) return;
     const box = $('#roster');
     const key = box.contains(document.activeElement) && document.activeElement.dataset ? document.activeElement.dataset.key : null;
-    box.innerHTML = rosterHtml(r, menuFor, (e) => views.map((v) => (v.rowExtra ? v.rowExtra(r, e) : '')).join(''));
+    box.innerHTML = rosterHtml(r, menuFor, (e) => views.map((v) => (v.rowExtra ? v.rowExtra(r, e) : '')).join(''), (e) => views.map((v) => (v.rowSub ? v.rowSub(r, e) : '')).join(''));
     box.classList.toggle('open', rosterOpen);
     $('#roster-toggle').setAttribute('aria-expanded', String(rosterOpen));
     if (key) {
@@ -95,14 +119,24 @@ export function createRoomScreen(env, parts) {
     const had = stage.contains(document.activeElement) && document.activeElement.id ? document.activeElement : null;
     const keep = had && { id: had.id, a: had.selectionStart, b: had.selectionEnd };
     stage.innerHTML = e ? `<div class="stage-head"><h2 class="stage-code" id="stage-code">${esc(e.code)}</h2><span class="muted stage-name" id="stage-name">${esc(e.name || '')}</span>${statusPill(e)}</div>`
+      + (crossNote(e) ? `<p class="muted cross-note">${esc(crossNote(e))}</p>` : '')
       + views.map((v) => (v.stageHtml ? v.stageHtml(r, e) : '')).join('')
-      + `<div class="stage-foot"><button class="b" type="button" data-act="next" data-key="next">Next speaker</button></div>`
+      // Top 10 #1: when "Next speaker" is the room's primary it sits next to the timer; else it waits here, secondary.
+      + (roomPrimary(r, e) === 'next' ? '' : `<div class="stage-foot"><button class="b" type="button" data-act="next" data-key="next">Next speaker${icon('arrow-right')}</button></div>`)
       : '<p class="muted">Add an entry to start.</p>';
     for (const v of views) if (v.mounted) v.mounted(ctx);
     const back = keep && document.getElementById(keep.id);
     if (back && stage.contains(back)) { back.focus(); if (typeof keep.a === 'number' && back.setSelectionRange) back.setSelectionRange(keep.a, keep.b); }
   }
-  function draw() { drawRoster(); drawStage(); }
+  // The header's Rank button follows the room's primary (top 10 #1): secondary with "· 2 of 6" until nobody waits.
+  function drawHead() {
+    const r = room();
+    const go = $('#go-rank');
+    if (r && go) go.outerHTML = goRankHtml(r, headPrimary(r));
+  }
+  // The room's primary for the header: a view may hold it (F4 runs), else room-primary.js decides.
+  const headPrimary = (r) => { const e = entryOf(r, r.current); return views.some((v) => v.holdsPrimary && v.holdsPrimary(r, e)) ? 'other' : roomPrimary(r, e); };
+  function draw() { drawRoster(); drawStage(); drawHead(); }
 
   function pick(id) {
     const r = room();
@@ -131,8 +165,9 @@ export function createRoomScreen(env, parts) {
       env.ui.toast(res.message, { action: { label: 'Undo', name: 'Undo: ' + res.message, run: () => { const cur = room(); if (cur) { save(res.undo(cur, env.now())); draw(); } } } });
       return;
     }
+    if (action === 'cross' || action === 'uncross') return crossEntryAction(action, id, { env, room, save, draw, closeMenu: () => { menuFor = null; } });
     if (action === 'add') {
-      const code = await env.ui.ask({ title: 'Add an entry', body: 'A late entry goes at the end of the roster. You can move it after.', input: { label: 'Entry code', placeholder: 'A12', required: true, emptyError: 'Type the entry code.' }, buttons: [{ label: 'Cancel', value: null }, { label: 'Add', value: 'add', kind: 'primary' }] });
+      const code = await env.ui.ask({ title: 'Add an entry', input: { label: 'Entry code', placeholder: 'A12', required: true, emptyError: 'Type the entry code.' }, buttons: [{ label: 'Cancel', value: null }, { label: 'Add', value: 'add', kind: 'primary' }] });
       if (!code) return;
       const res = addEntry(room(), code, '', env.now());
       if (res.error) { env.ui.toast(res.error, { kind: 'error', key: 'add' }); return; }
@@ -142,8 +177,12 @@ export function createRoomScreen(env, parts) {
     }
     if (action === 'next') {
       const nx = nextWaiting(r);
-      if (!nx) { env.ui.toast('Every speaker has spoken or is a no show. Rank the room when you are ready.', { key: 'next' }); return; }
-      return pick(nx.id);
+      if (!nx) { env.ui.toast('Everyone is done. Rank the room.', { key: 'next' }); return; }
+      pick(nx.id);
+      // The Next button is gone after the redraw (top 10 #1: it shows only while it is the primary), so a keyboard judge
+      // lands on the new speaker's Start, the next step.
+      const go = $('[data-key="startstop"]'); if (go) go.focus();
+      return;
     }
   }
 
@@ -153,7 +192,8 @@ export function createRoomScreen(env, parts) {
     if (b && env.el.contains(b)) act(b.dataset.act, b.dataset.id);
   }
 
-  const ctx = { env, room, save, draw, drawStage, drawRoster };
+  // ctx.primary(room): the room's one primary, the same answer for the header and the timer card (top 10 #1).
+  const ctx = { env, room, save, draw, drawStage, drawRoster, primary: (r) => headPrimary(r) };
   const menuOpen = () => roomId !== null && menuFor !== null;
   env.ui.escLayer('row-menu', 40, menuOpen, () => {
     const id = menuFor; menuFor = null; drawRoster();
@@ -166,15 +206,25 @@ export function createRoomScreen(env, parts) {
     show(id) {
       const r = findRoom(env.rooms(), id);
       if (!r) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
-      roomId = id; menuFor = null; rosterOpen = false;
-      env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet" href="#/">‹ Rooms</a>
+      roomId = id; menuFor = null; rosterOpen = false; numbers.reset();
+      // A placeholder: draw() below fills it once the views are shown (a view may hold the primary; it needs its
+      // context). draw() must always follow, or the header keeps an empty button.
+      const go = '<a class="b" id="go-rank"></a>';
+      // Step S3 (EXPERIENCE.md §1.1): the event pill opens the type page for this round's event.
+      const ev = event(r);
+      env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a>
+          <a class="pill md-ev" href="#/type/${encodeURIComponent(r.customEvent ? 'custom' : r.eventId)}" aria-label="${esc('About ' + (ev ? ev.name : 'Custom event'))}">${esc(ev ? ev.short || ev.name : 'Custom')}</a>
           <h1 id="screen-title" tabindex="-1">${esc(roomTitle(r, event(r)))}</h1>
           <button class="b" type="button" id="roster-toggle" aria-controls="roster-full" aria-expanded="false">Roster</button>
-          <a class="b primary" id="go-rank" href="#/rank/${encodeURIComponent(id)}">Rank the room</a></div>
-        <div class="room-grid"><nav class="roster" id="roster" aria-label="Roster"></nav><section class="stage" id="stage" aria-labelledby="stage-code"></section></div>`;
+          ${go}</div>
+        ${frameHtml(r)}
+        <div class="room-grid"><nav class="roster" id="roster" aria-label="Roster"></nav><section class="stage" id="stage" aria-labelledby="stage-code"></section></div>
+        <div class="room-foot" id="room-foot"></div>`;
       env.el.addEventListener('click', onClick);
       for (const v of views) if (v.show) v.show(ctx);
+      $('#room-foot').innerHTML = views.map((v) => (v.footHtml ? v.footHtml(r) : '')).join('');
       draw();
+      for (const v of views) if (v.footMounted) v.footMounted(ctx);
       $('#screen-title').focus();
     },
     hide() {
@@ -184,8 +234,12 @@ export function createRoomScreen(env, parts) {
     },
     // A shortcut from app.js (core/keys.js matched it in the 'room' scope).
     run(action) {
-      const n = pickNumber(action);
-      if (n) { const e = entryAtNumber(room(), n); if (e) pick(e.id); return true; }
+      const r = room();
+      const num = numbers.run(action, r ? r.entries.length : 0);
+      if (num.pick) { const e = entryAtNumber(r, num.pick); if (e) pick(e.id); }
+      if (num.error) env.ui.toast(num.error, { kind: 'error', key: 'numpick' });
+      else if (num.hint) env.ui.toast(num.hint, { key: 'numpick' });
+      if (num.mine) return num.handled;
       for (const v of views) if (v.run && v.run(action, ctx)) return true;
       return false;
     },

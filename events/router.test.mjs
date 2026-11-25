@@ -26,7 +26,8 @@ const roomOf = (eventId, codes) => createRoom({ event: DATA.events.get(eventId),
 // an extemp room in a workspace that has no question card.
 test('each published event gets the family EXPERIENCE.md §2.1 gives it, and Custom is custom', () => {
   const want = { oo: 'f1', inf: 'f1', exp: 'f1', dec: 'f1', osw: 'f1', di: 'f1', hi: 'f1', duo: 'f1', poi: 'f1', pro: 'f1', poe: 'f1', sto: 'f1',
-    usx: 'f2', ix: 'f2', com: 'f2', mx: 'f2', imp: 'f3' };
+    usx: 'f2', ix: 'f2', com: 'f2', mx: 'f2', imp: 'f3',
+    pcc: 'f4' }; // step S5: a def v2 file that names its family (§2.1 step 2)
   for (const id of DATA.order) assert.equal(DATA.events.get(id).family, want[id], id);
   assert.deepEqual(Object.keys(want).sort(), [...DATA.order].sort(), 'every published event is in this table');
   assert.equal(familyOf(customEvent({ name: 'Radio', limit: '5:00' })), 'custom');
@@ -37,14 +38,16 @@ test('each published event gets the family EXPERIENCE.md §2.1 gives it, and Cus
 // Why: if a family had no workspace, or its module lacked a contract member, every round of that family would fail
 // to open at the tournament.
 test('every room family loads the room workspace, and it has each §2.3 contract member', async () => {
-  assert.deepEqual(Object.keys(WORKSPACES).sort(), ['custom', 'f1', 'f2', 'f3']);
+  // Step S5 adds f4 (PCC). Step S6 adds the Congress workspace (EXPERIENCE.md §2.2: congress is a module of its own in the registry).
+  assert.deepEqual(Object.keys(WORKSPACES).sort(), ['congress', 'custom', 'f1', 'f2', 'f3', 'f4']);
   for (const fam of Object.keys(WORKSPACES)) {
     const ws = await loadWorkspace(fam);
     assert.ok(ws.families.includes(fam), fam + ' is one of the keys the module says it serves');
     for (const m of ['newRound', 'stages', 'mount', 'keys', 'validate', 'summary', 'rankModel', 'reviewModel']) assert.equal(typeof ws[m], 'function', fam + ' ' + m);
     assert.equal(typeof ws.family, 'string');
   }
-  await assert.rejects(loadWorkspace('congress'), /No workspace/, 'a family with no workspace is an error, not a blank screen');
+  // Step S6: congress now has a workspace, so the planned discussion family (S9) is the one with none.
+  await assert.rejects(loadWorkspace('discussion'), /No workspace/, 'a family with no workspace is an error, not a blank screen');
   await assert.rejects(loadWorkspace('toString'), /No workspace/, 'an object method name is not a family');
 });
 
