@@ -28,7 +28,7 @@ node --test
 node check-publish.mjs
 ```
 
-`check-publish.mjs` needs the built Debate Library in `learn/`. To build it, run `node build-learn.mjs`.
+`check-publish.mjs` reads the built Debate Library in `learn/`. After you edit `docs/library/`, rebuild it with `node build-learn.mjs`.
 
 ## Conduct
 

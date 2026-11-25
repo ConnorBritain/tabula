@@ -19,7 +19,7 @@ Places in the app:
 
 - **Flow**: your flow, an optional AI flow, speech and prep clocks, and transcription while the clock runs.
 - **Round**: round info, AI writing style, round documents, prep length.
-- **Decide**: Live Eval (leaning, key issues), Analysis (Paradigm Lens, Impact Calculus, Round Map), and Ballot (points, ranks, RFD, comment boxes). The AI ballot filler never overwrites fields you typed.
+- **Decide**: Live Eval (leaning, key issues), Analysis (Paradigm Lens, Impact Calculus, Round Map), and Ballot (points, ranks, RFD, comment boxes). The AI ballot filler does not overwrite fields you typed unless you choose to.
 - **History**: saved ballots, copy for a spreadsheet, download as CSV.
 - **Settings** (gear button): AI connections and app settings.
 
@@ -67,7 +67,7 @@ AI is optional. You can flow and fill a ballot with no AI.
 | ChatGPT subscription (through Codex, with `node bridge.mjs`) | yes | no |
 | Browser speech recognition (Chrome) | no | yes, free |
 
-Paste a key in **Settings → Connect AI**. The app finds the provider, tests the key, and picks a model from the provider's live model list. The key is saved only in this browser. With a key, AI calls go straight to the provider you chose. In the text it sends, the app puts roles (for example 1A, 2N) in place of debater names. PDFs and audio go to the provider as they are.
+Paste a key in **Settings → Connect AI**. The app finds the provider, tests the key, and picks a model from the provider's live model list. The key stays in this browser: for this tab only, unless you turn on "Remember this key" (then it is saved in this browser as plain text). With a key, AI calls go straight to the provider you chose. In the text it sends, the app puts roles (for example 1A, 2N) in place of debater names. PDFs and audio go to the provider as they are.
 
 The hosted sites can also offer AI through a Tabula account. That server is not in this repository.
 
@@ -80,7 +80,7 @@ node --test
 node check-publish.mjs
 ```
 
-`node --test` runs every test. `node check-publish.mjs` checks public pages for placeholders and remote scripts. It needs `learn/` (built by `node build-learn.mjs`).
+`node --test` runs every test. `node check-publish.mjs` checks public pages for placeholders and remote scripts. It reads `learn/`. After you edit `docs/library/`, rebuild it with `node build-learn.mjs`.
 
 ## Deploy
 
