@@ -66,7 +66,7 @@ export function profileNote(profile, scale) {
 export function previewHtml(parsed, checks) {
   const n = parsed.entries.length;
   return `<h2 class="preview-title">${n ? n + (n === 1 ? ' legislator' : ' legislators') : 'No legislators yet'}</h2>
-    ${n ? `<p class="cg-codes">${parsed.entries.map((e) => `<span class="pill outline code">${esc(e.code)}</span>`).join(' ')}</p>` : ''}
+    ${n ? `<p class="cg-codes">${parsed.entries.map((e) => statusPillHtml('outline', e.code, '', { cls: 'code' })).join(' ')}</p>` : ''}
     ${checks.length ? `<h3>Check these</h3><ul class="check-list">${checks.map((c) => `<li class="check-row"><p>${esc(c.text)}</p></li>`).join('')}</ul>` : ''}`;
 }
 

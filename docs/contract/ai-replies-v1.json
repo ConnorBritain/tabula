@@ -1,0 +1,487 @@
+{
+  "$comment": "Hosted AI reply shapes, version 1. One JSON Schema per task. The server sends each schema to the provider as structured output and checks the reply against it; the debate app parses the reply with the same shape. Change a shape only with a new version and the app's matching change.",
+  "version": 1,
+  "tasks": {
+    "flow.update": {
+      "type": "object",
+      "properties": {
+        "sheets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sheet": {
+                "type": "string"
+              },
+              "brief": {
+                "type": "string"
+              },
+              "standard": {
+                "type": "string"
+              },
+              "detailed": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "sheet",
+              "brief",
+              "standard",
+              "detailed"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "sheets"
+      ],
+      "additionalProperties": false
+    },
+    "eval.live": {
+      "type": "object",
+      "properties": {
+        "leaning": {
+          "type": "object",
+          "properties": {
+            "side": {
+              "type": "string",
+              "enum": [
+                "aff",
+                "neg",
+                "toss-up"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            "why": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "side",
+            "confidence",
+            "why"
+          ],
+          "additionalProperties": false
+        },
+        "summary": {
+          "type": "string"
+        },
+        "key_issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "issue": {
+                "type": "string"
+              },
+              "ahead": {
+                "type": "string",
+                "enum": [
+                  "aff",
+                  "neg",
+                  "even",
+                  "unclear"
+                ]
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "issue",
+              "ahead",
+              "note"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "watch_for": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "aff_needs": {
+          "type": "string"
+        },
+        "neg_needs": {
+          "type": "string"
+        },
+        "feedback": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "speaker": {
+                "type": "string",
+                "enum": [
+                  "1A",
+                  "2A",
+                  "1N",
+                  "2N"
+                ]
+              },
+              "so_far": {
+                "type": "string"
+              },
+              "strength": {
+                "type": "string"
+              },
+              "fix": {
+                "type": "string"
+              },
+              "points": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "speaker",
+              "so_far",
+              "strength",
+              "fix",
+              "points"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "leaning",
+        "summary",
+        "key_issues",
+        "watch_for",
+        "aff_needs",
+        "neg_needs",
+        "feedback"
+      ],
+      "additionalProperties": false
+    },
+    "analysis.lens": {
+      "type": "object",
+      "properties": {
+        "winner": {
+          "type": "string",
+          "enum": [
+            "aff",
+            "neg",
+            "toss-up"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "rfd": {
+          "type": "string"
+        },
+        "deciding_factors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lens_effect": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "winner",
+        "confidence",
+        "rfd",
+        "deciding_factors",
+        "lens_effect"
+      ],
+      "additionalProperties": false
+    },
+    "analysis.impact": {
+      "type": "object",
+      "properties": {
+        "impacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "impact": {
+                "type": "string"
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "aff",
+                  "neg"
+                ]
+              },
+              "magnitude": {
+                "type": "string"
+              },
+              "probability": {
+                "type": "string"
+              },
+              "timeframe": {
+                "type": "string"
+              },
+              "reversibility": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "extended",
+                  "contested",
+                  "dropped",
+                  "conceded",
+                  "not yet extended"
+                ]
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "impact",
+              "side",
+              "magnitude",
+              "probability",
+              "timeframe",
+              "reversibility",
+              "status",
+              "note"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "weighing_done": {
+          "type": "string"
+        },
+        "comparison": {
+          "type": "string"
+        },
+        "net": {
+          "type": "string",
+          "enum": [
+            "aff",
+            "neg",
+            "even"
+          ]
+        }
+      },
+      "required": [
+        "impacts",
+        "weighing_done",
+        "comparison",
+        "net"
+      ],
+      "additionalProperties": false
+    },
+    "analysis.map": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "speech": {
+                "type": "string",
+                "enum": [
+                  "1AC",
+                  "1NC",
+                  "2AC",
+                  "2NC",
+                  "1NR",
+                  "1AR",
+                  "2NR",
+                  "2AR"
+                ]
+              },
+              "label": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "answered",
+                  "extended",
+                  "dropped",
+                  "conceded",
+                  "open"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "speech",
+              "label",
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "answers",
+                  "extends",
+                  "turns",
+                  "concedes"
+                ]
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "kind"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "nodes",
+        "edges"
+      ],
+      "additionalProperties": false
+    },
+    "ballot.fill": {
+      "type": "object",
+      "properties": {
+        "winner": {
+          "type": "string",
+          "enum": [
+            "aff",
+            "neg"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "points": {
+          "type": "object",
+          "properties": {
+            "1A": {
+              "type": "number"
+            },
+            "2A": {
+              "type": "number"
+            },
+            "1N": {
+              "type": "number"
+            },
+            "2N": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "1A",
+            "2A",
+            "1N",
+            "2N"
+          ],
+          "additionalProperties": false
+        },
+        "ranks": {
+          "type": "object",
+          "properties": {
+            "1A": {
+              "type": "integer",
+              "enum": [
+                1,
+                2,
+                3,
+                4
+              ]
+            },
+            "2A": {
+              "type": "integer",
+              "enum": [
+                1,
+                2,
+                3,
+                4
+              ]
+            },
+            "1N": {
+              "type": "integer",
+              "enum": [
+                1,
+                2,
+                3,
+                4
+              ]
+            },
+            "2N": {
+              "type": "integer",
+              "enum": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          },
+          "required": [
+            "1A",
+            "2A",
+            "1N",
+            "2N"
+          ],
+          "additionalProperties": false
+        },
+        "rfd": {
+          "type": "string"
+        },
+        "aff_comments": {
+          "type": "string"
+        },
+        "neg_comments": {
+          "type": "string"
+        },
+        "points_reasoning": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "winner",
+        "confidence",
+        "points",
+        "ranks",
+        "rfd",
+        "aff_comments",
+        "neg_comments",
+        "points_reasoning"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

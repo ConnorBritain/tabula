@@ -265,7 +265,7 @@ This section maps the Tabula Debate console to Speech Events.
 |---|---|
 | PLACES nav | Header: Home, History, Settings. The stages live in the round bar. |
 | History, TSV, CSV | `#/history`: one row per round (date, tournament, round, flight, level, event, entries, state, "comments open"). Filter by type and tournament. A filter for one family adds that family's columns: questions (F2), runs (F4), sessions and speech counts (Congress) **[AF]**. Copy as TSV and download CSV, with **codes only and no comments** unless the judge picks them. |
-| Backup and restore | Settings → Data: one file through `core/store` `buildBackup` / `parseBackup` under `tabulaEvents.*`. AI keys are left out unless picked. |
+| Backup and restore | Settings → Data: one file through `core/store` `buildBackup` / `parseBackup` under `tabulaEvents.*`. AI keys are left out unless picked. Settings → Data also says whether the browser keeps the rounds and has **Clear this device**; My day reminds the judge to back up at the end of the day (ARCHITECTURE.md, "Data safety"). |
 | Room delete | Delete with Undo through the toast |
 | Settings | Theme (Mode comes back with the Coach and Student screens); default profile and league pack; defaults for each type (signals, grace); Connect AI (moved from the Review invite; hosted after E14); keyboard sheet; F2 draw gap; ranks-due minutes; Congress scale defaults; Shared device; Ready for offline. |
 | Palette | ⌘K through `core/keys` `searchCommands`: "New HI round", "Open R3", "Copy ranks", "Guide: Duo" |
