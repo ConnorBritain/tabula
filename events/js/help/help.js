@@ -11,7 +11,7 @@ import { escapeHtml as esc } from '../../../core/sheets.js';
 import { foldSummaryHtml } from '../fold.js';
 import { guideModel, eventLine } from '../guide.js';
 import { overtimeEffect, ratingScale } from '../rank.js';
-import { graceOf } from '../timer.js';
+import { graceOf, clockText } from '../timer.js';
 import { layerOf } from '../profile-layer.js';
 import { CUSTOM_EVENT } from '../room.js';
 import { LISTEN_FOR } from './listen-for.js';
@@ -31,7 +31,7 @@ export const resetWalk = (store) => store.set(HELP_KEY, Object.assign({}, readHe
 
 // ---------- 1. the first-room walk ----------
 export const WALK_STEPS = Object.freeze([
-  Object.freeze({ title: 'Time each speaker', text: 'Tap a speaker, then tap Start when they begin. Tap Stop when they end. The time bar shows when they go over.' }),
+  Object.freeze({ title: 'Time each speaker', text: 'Tap a speaker, then tap the Start button. If the event has prep in the room, start when they get the topic. Tap Stop when they end.' }),
   Object.freeze({ title: 'Write a few kind notes', text: 'Type in the comment box while you listen. The questions above it help you get started. Short notes are fine.' }),
   Object.freeze({ title: 'Rank, then copy', text: 'When all have spoken, tap Rank the room. Put the best first. Then copy the ranks and comments into the tournament site.' }),
 ]);
@@ -47,7 +47,7 @@ export function walkHtml(i) {
     <h2 class="help-walk-title" id="help-walk-h" tabindex="-1">${esc(s.title)}</h2>
     <p class="help-walk-text">${esc(s.text)}</p>
     <div class="help-walk-acts">
-      <button class="b small quiet" type="button" data-hact="skip">${last ? 'Close' : 'Skip tips'}</button>
+      ${last ? '' : '<button class="b small quiet" type="button" data-hact="skip">Skip tips</button>'}
       ${at > 0 ? '<button class="b small" type="button" data-hact="back">Back</button>' : ''}
       <button class="b small" type="button" data-hact="${last ? 'done' : 'next'}">${last ? 'Got it' : 'Next'}</button>
     </div></section>`;
@@ -57,14 +57,18 @@ export function walkHtml(i) {
 // The bullets for an event id ([] when there are none; the schema test makes sure every published event has some).
 export const listenBullets = (id) => (LISTEN_FOR[id] ? LISTEN_FOR[id].slice() : []);
 
-// The card's content for a room. def: the event file (null for a Custom room). Returns { intro, facts, bullets }:
-// intro is the Guide's plain line, facts the Guide's limit, grace and material in one short line.
+// The card's content for a room. def: the event file (a Custom room passes its own room.customEvent, or null).
+// Returns { intro, facts, bullets }: intro is the Guide's plain line; facts the Guide's limit, grace and material in
+// one short line, then the Guide's prep line for an event with prep in the room. A Custom room shows the limit the
+// judge set (room.customEvent.timing.limit).
 export function listenModel(def, room) {
-  const custom = !def || (room && room.customEvent);
+  const custom = !def || def.id === CUSTOM_EVENT || Boolean(room && room.customEvent);
   const id = custom ? CUSTOM_EVENT : def.id;
   const g = guideModel(custom ? null : def, room && room.profile);
-  const limit = custom ? '' : g.limit;
-  const facts = [limit ? 'Time: ' + limit : '', 'Grace: ' + g.grace, g.material].filter(Boolean).join(' · ');
+  const own = custom && room && room.customEvent && room.customEvent.timing ? Number(room.customEvent.timing.limit) : 0;
+  const limit = custom ? (own > 0 ? clockText(own) : '') : g.limit;
+  const prep = !custom && def.timing && def.timing.inRoomPrep ? g.prep : '';
+  const facts = [limit ? 'Time: ' + limit : '', 'Grace: ' + g.grace, g.material].filter(Boolean).join(' · ') + (prep ? '. ' + prep : '');
   return { intro: custom ? eventLine(CUSTOM_EVENT) : g.line, facts, bullets: listenBullets(id) };
 }
 
@@ -86,19 +90,24 @@ export function listenHtml(model, open) {
 
 // ---------- 3. how to rank ----------
 // The lines for the Rank screen's fold, from the round's profile (the same rules rank.js uses for the board).
+// No bias line here: the Rank screen already shows the profile's own reminder, or our line when it has none
+// (DESIGN.md §4.4). No top-N line: the screen's help line under the tools already says it.
 export function rankHelpLines(room) {
   const p = (room && room.profile) || {};
   const L = layerOf(p);
   const lines = ['Rank 1 is the best. Then 2, then 3, down to the last.', 'No ties. Each speaker gets a different rank.'];
-  if (L.ranks === 'topN') lines.push('Only your top ' + L.topN + ' go on the ballot. Still put everyone in order.');
   const g = graceOf(room);
   const over = g > 0 ? 'more than ' + g + ' seconds over the time limit' : 'over the time limit';
   const eff = overtimeEffect(p);
   if (eff === 'noFirst') lines.push('A speaker ' + over + ' cannot get rank 1.');
   else if (eff === 'flagOnly') lines.push('A speaker ' + over + ' gets a note for the tab room. You still rank them where you think best.');
   else lines.push('Going over time does not change the rank.');
-  if (ratingScale(p).kind !== 'none') lines.push(p.rankRatingRule ? 'You also give points. A better rank needs the same or more points.' : 'You also give each speaker points.');
-  lines.push('Rank what you saw and heard today. The school, the name and the clothes do not count.');
+  if (ratingScale(p).kind !== 'none') {
+    const what = ratingScale(p).kind === 'words' ? 'rating' : 'points';
+    const each = what === 'points' ? 'points' : 'a rating';
+    lines.push(p.rankRatingRule ? 'You also give ' + each + '. A better rank needs the same or a better ' + (what === 'points' ? 'score' : 'rating') + '.' : 'You also give each speaker ' + each + '.');
+    if (p.ratingNoTies) lines.push('No two speakers can get the same ' + what + '.');
+  }
   return lines;
 }
 
@@ -113,7 +122,7 @@ export const TIPS_AGAIN = 'Show the first-room tips again';
 export function tipsPartHtml() {
   return `<section class="set-part" id="help-set" aria-labelledby="help-set-h"><h2 id="help-set-h">Tips</h2>
     <button class="b" type="button" id="help-tips-again">${esc(TIPS_AGAIN)}</button>
-    <p class="field-help">The next room you open shows the 3 short steps.</p></section>`;
+    <p class="field-help">The next room you open shows the ${WALK_STEPS.length} short steps.</p></section>`;
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).help = Object.freeze({ HELP_KEY, readHelp, walkDue, markWalkSeen, resetWalk, WALK_STEPS, walkHtml, listenBullets, listenModel, listenOpen, listenHtml, rankHelpLines, rankHelpHtml, tipsPartHtml, TIPS_AGAIN });

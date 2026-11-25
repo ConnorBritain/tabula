@@ -42,7 +42,7 @@ test('the walk is a card in the page, never a modal, and it can be skipped at ev
   for (let i = 0; i < 3; i++) {
     const h = walkHtml(i);
     assert.doesNotMatch(h, /role="(alert)?dialog"|aria-modal|<dialog/);
-    assert.match(h, /data-hact="skip"/);
+    if (i < 2) assert.match(h, /data-hact="skip"/); else assert.doesNotMatch(h, /data-hact="skip"/, 'the last step has one way out: Got it');
     assert.match(h, new RegExp('Step ' + (i + 1) + ' of 3'));
   }
   assert.match(walkHtml(0), /data-hact="next"/);
@@ -121,9 +121,14 @@ test('the card follows the round: its own grace, and a Custom round gets the Cus
   const room = roomFor('oo');
   room.profile = Object.assign({}, room.profile, { overtime: { grace: 15, effect: 'noFirst' } });
   assert.match(listenModel(DATA.events.get('oo'), room).facts, /Grace: 15 seconds/);
-  const custom = listenModel(null, Object.assign({}, room, { customEvent: { name: 'Local' } }));
+  const ce = { id: CUSTOM_EVENT, name: 'Local', timing: { limit: 240, inRoomPrep: false } };
+  const custom = listenModel(ce, Object.assign({}, room, { customEvent: ce }));
   assert.deepEqual(custom.bullets, LISTEN_FOR.custom);
-  assert.doesNotMatch(custom.facts, /Time:/);
+  assert.match(custom.facts, /Time: 4:00/, 'the limit the judge set');
+  assert.doesNotMatch(listenModel(null, Object.assign({}, room, { customEvent: { name: 'Old' } })).facts, /Time:/);
+  // Impromptu: the shared clock comes from the Guide's prep line, not typed in a bullet.
+  const imp = listenModel(DATA.events.get('imp'), roomFor('imp'));
+  assert.ok(imp.facts.includes(guideModel(DATA.events.get('imp'), roomFor('imp').profile).prep));
 });
 
 test('the card is open in the device\'s first round on a wide screen, and closed after that or on a phone', () => {
@@ -136,17 +141,31 @@ test('the card is open in the device\'s first round on a wide screen, and closed
   assert.doesNotMatch(listenHtml({ intro: 'x', facts: 'y', bullets: ['a.'] }, false), / open>/);
 });
 
+test('no bullet contradicts the event file: binder, chair and two-performer words only where the data says so', () => {
+  for (const id of ENABLED_EVENTS) {
+    const def = DATA.events.get(id);
+    const text = LISTEN_FOR[id].join(' ');
+    if (/binder|reads? /i.test(text)) assert.equal(def.material, 'manuscript', id + ' talks of reading from a binder');
+    if (/from memory/i.test(text)) assert.equal(def.material, 'memorized', id + ' talks of memory');
+    if (/chair|seated/i.test(text)) assert.ok(def.checks.includes('seated'), id + ' talks of sitting');
+    if (/two students|the pair/i.test(text)) assert.equal(def.performers, 2, id + ' talks of two performers');
+    if (/signs or boards|visual aids/i.test(text)) assert.ok(def.checks.includes('aidsOk'), id + ' allows aids');
+    if (/prep|prepare/i.test(text)) assert.ok(def.timing.inRoomPrep || /draw/.test(eventLineOf(id)), id + ' talks of prep');
+  }
+});
+const eventLineOf = (id) => guideModel(DATA.events.get(id), DATA.profiles.get(DEFAULT_PROFILE)).line;
+
 test('the listen card escapes its words', () => {
   const h = listenHtml({ intro: '<b>', facts: '&', bullets: ['<i>.'] }, false);
   assert.doesNotMatch(h, /<b>|<i>/);
 });
 
 // ---------- 3. how to rank ----------
-test('How to rank: 1 is best, no ties, and the bias line in our own words', () => {
+test('How to rank: 1 is best and no ties, folded by default', () => {
   const lines = rankHelpLines(roomFor('oo'));
   assert.match(lines[0], /Rank 1 is the best/);
   assert.match(lines[1], /No ties/);
-  assert.match(lines.at(-1), /not count/);
+  assert.ok(!lines.some((l) => /person|school/i.test(l)), 'no second bias line: the screen shows the reminder above the fold');
   assert.match(rankHelpHtml(roomFor('oo')), /<details class="fold help-rank"/);
   assert.doesNotMatch(rankHelpHtml(roomFor('oo')), / open>/, 'folded by default');
 });
@@ -159,7 +178,9 @@ test('How to rank reads the time rule from the round\'s profile, never a fixed n
   assert.match(at({ grace: 0, effect: 'noFirst' }), /A speaker over the time limit cannot get rank 1/);
   assert.match(at({ grace: 60, effect: 'flagOnly' }), /more than 60 seconds .* note for the tab room/);
   assert.match(at({ grace: 30, effect: 'none' }), /does not change the rank/);
-  assert.match(at({ grace: 30, effect: 'noFirst' }, { rating: { min: 70, max: 100, step: 1 }, rankRatingRule: true }), /same or more points/);
+  assert.match(at({ grace: 30, effect: 'noFirst' }, { rating: { min: 70, max: 100, step: 1 }, rankRatingRule: true }), /same or a better score/);
+  assert.match(at({ grace: 30, effect: 'noFirst' }, { rating: { words: ['Superior', 'Excellent', 'Good'] } }), /each speaker a rating/);
+  assert.match(at({ grace: 30, effect: 'noFirst' }, { rating: { min: 70, max: 100, step: 1 }, ratingNoTies: true }), /No two speakers can get the same points/);
   // The published profiles: each one's own grace shows.
   for (const p of DATA.profiles.list ? DATA.profiles.list() : PUB.profiles.map((f) => JSON.parse(read('../../profiles/' + f)))) {
     const g = p.overtime && Number.isFinite(p.overtime.grace) ? p.overtime.grace : 30;
@@ -168,9 +189,10 @@ test('How to rank reads the time rule from the round\'s profile, never a fixed n
   }
 });
 
-test('How to rank says when only the top N go on the ballot', () => {
+test('How to rank leaves the top-N line to the Rank screen, which already says it', () => {
   const text = rankHelpLines({ profile: JSON.parse(read('../../profiles/v2/top-three.v1.json')) }).join(' ');
-  assert.match(text, /top 3 go on the ballot/);
+  assert.doesNotMatch(text, /top 3/);
+  assert.match(read('../rank-screen.js'), /Only the top ' \+ layerOf\(r\.profile\)\.topN \+ ' are ranked on the ballot\./);
 });
 
 test('the judge help copies no league text: the tournament\'s own bias note is never in the fold', () => {

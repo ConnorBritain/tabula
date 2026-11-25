@@ -87,7 +87,7 @@ export const LISTEN_FOR = Object.freeze({
   ]),
   imp: Object.freeze([
     'The student gets a topic in the room, plans, and then speaks.',
-    'Prep and speech share one clock, so a short plan is smart.',
+    'A short plan leaves more time to speak.',
     'Listen for a clear point, a few parts, and examples that fit.',
     'Reward calm, clear thinking more than polish.',
   ]),

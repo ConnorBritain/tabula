@@ -6,6 +6,7 @@
 // Not shipped: build-events.mjs leaves out every .mjs file.
 import { fileURLToPath } from 'node:url';
 import { WALK_STEPS, rankHelpLines, tipsPartHtml } from './help.js';
+import { layerOf } from '../profile-layer.js';
 import { LISTEN_FOR } from './listen-for.js';
 
 export const TARGET_GRADE = 6;
@@ -15,14 +16,18 @@ export function syllables(word) {
   let w = String(word).toLowerCase().replace(/[^a-z]/g, '');
   if (!w) return 0;
   if (w.length <= 3) return 1;
-  w = w.replace(/(?:[^laeiouy]es|[^laeiouy]ed|[^laeiouy]e)$/, '').replace(/^y/, '');
-  const groups = w.match(/[aeiouy]{1,2}/g);
-  return Math.max(1, groups ? groups.length : 1);
+  // A silent end: "-es", "-ed" (but not "-ted" or "-ded", which say a syllable) and "-e".
+  w = w.replace(/(?:[^laeiouytd]es|[^laeiouytd]ed|[^laeiouy]e)$/, '').replace(/^y/, '');
+  const groups = (w.match(/[aeiouy]+/g) || []).length;
+  // Vowel pairs that are said as two syllables: "idea", "area", "radio", "being", "poem", "create".
+  const split = (w.match(/(?<![tsc])ia|(?<![tsc])io|iu|eo|ua|uo|ea$|ei(?=ng)|oe(?=m)|ea(?=t)/g) || []).length;
+  return Math.max(1, groups + split);
 }
 
 // Words and sentences of a text. A number or a time ("10:00") counts as one short word.
 export function counts(text) {
-  const s = String(text || '').trim();
+  // Dotted short forms ("U.S.") are one word, not a sentence end.
+  const s = String(text || '').trim().replace(/\b([A-Z])\.([A-Z])\./g, '$1$2');
   const sentences = Math.max(1, (s.match(/[.!?]+(\s|$)/g) || []).length);
   const words = s.split(/\s+/).filter((w) => /[a-z0-9]/i.test(w));
   const syl = words.reduce((n, w) => n + (/[a-z]/i.test(w) ? syllables(w) : 1), 0);
@@ -41,10 +46,12 @@ export function fkGrade(text) {
 export function helpBlocks(profiles) {
   const blocks = [{ name: 'First-room walk', text: WALK_STEPS.map((s) => s.title + '. ' + s.text).join(' ') }];
   for (const [id, list] of Object.entries(LISTEN_FOR)) blocks.push({ name: 'What to listen for: ' + id, text: list.join(' ') });
-  for (const p of profiles || [{ id: 'default', overtime: { grace: 30, effect: 'noFirst' } }]) {
+  // Only profiles with ranks reach the Rank screen (a rate-only or comments-only round never shows "How to rank").
+  const ranked = (profiles || [{ id: 'default', overtime: { grace: 30, effect: 'noFirst' } }]).filter((p) => { const L = layerOf(p); return !L.critiqueOnly && L.ranks !== 'off'; });
+  for (const p of ranked) {
     blocks.push({ name: 'How to rank: ' + (p.id || 'profile'), text: rankHelpLines({ profile: p }).join(' ') });
   }
-  blocks.push({ name: 'Settings tips line', text: tipsPartHtml().replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').replace(/again The/, 'again. The') });
+  blocks.push({ name: 'Settings tips line', text: tipsPartHtml().replace(/<\/(h2|button|p)>/g, '. ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').replace(/\.\s*\./g, '.') });
   return blocks.map((b) => Object.assign(b, { grade: fkGrade(b.text) }));
 }
 

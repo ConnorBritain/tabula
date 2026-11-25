@@ -10,6 +10,10 @@ import { walkDue, markWalkSeen, resetWalk, walkHtml, WALK_STEPS, listenModel, li
 // The room's help, put above the roster and stage. env: the room screen's env ({ el, ui, data, store, rooms() });
 // room: the room being shown; el: the screen element (the help goes before its .room-grid). The room screen redraws
 // only the roster and stage, so this part stays put while the judge works.
+// Shown on this page already: if the browser cannot save the flag (a private window, full storage), the walk still
+// shows only once until the page reloads.
+let walkShownHere = false;
+
 // A phone-width screen (the comment view's 820 px break).
 const narrow = () => typeof matchMedia === 'function' && matchMedia('(max-width: 820px)').matches;
 
@@ -18,11 +22,11 @@ export function mountRoomHelp(env, room, el) {
   if (!grid || !room) return null;
   const box = document.createElement('div');
   box.className = 'help-room';
-  const showWalk = Boolean(env.store) && walkDue(env.store);
+  const showWalk = Boolean(env.store) && walkDue(env.store) && !walkShownHere;
   box.innerHTML = (showWalk ? walkHtml(0) : '') + listenHtml(listenModel(roomEvent(env.data.events, room), room), listenOpen(env.rooms(), room.id, narrow()));
   grid.parentNode.insertBefore(box, grid);
   // Shown once per device: marked as soon as it shows, so a judge who walks away mid-round never sees it twice.
-  if (showWalk) markWalkSeen(env.store);
+  if (showWalk) { walkShownHere = true; markWalkSeen(env.store); }
   box.addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-hact]');
     if (!b || !box.contains(b)) return;
@@ -37,7 +41,7 @@ export function mountRoomHelp(env, room, el) {
       if (h) h.focus();
       return;
     }
-    // Skip, Close or Got it: the card goes; the focus lands on the next real step, the room's title.
+    // Skip tips or Got it: the card goes; the focus lands on the next real step, the room's title.
     walk.remove();
     if (env.ui && env.ui.announce) env.ui.announce('Tips closed. Settings can show them again.');
     const t = el.querySelector('#screen-title');
@@ -57,6 +61,7 @@ export function mountTipsPart(env, el) {
   if (about) about.parentNode.insertBefore(part, about); else el.appendChild(part);
   part.querySelector('#help-tips-again').addEventListener('click', () => {
     resetWalk(env.store);
+    walkShownHere = false;
     env.ui.toast('The tips show in the next room you open.', { key: 'help-tips' });
   });
 }

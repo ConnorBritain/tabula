@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { fkGrade, syllables, helpBlocks, TARGET_GRADE } from './grade.mjs';
+import { fkGrade, syllables, counts, helpBlocks, TARGET_GRADE } from './grade.mjs';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const PUB = JSON.parse(read('../../published.json'));
@@ -13,6 +13,8 @@ test('the grade rule tells easy words from hard ones', () => {
   assert.equal(syllables('cat'), 1);
   assert.equal(syllables('table'), 2);
   assert.equal(syllables('information'), 4);
+  for (const [w, n] of [['created', 3], ['being', 2], ['area', 3], ['idea', 3], ['poems', 2], ['wanted', 2], ['jumped', 1], ['radio', 3], ['nation', 2], ['special', 2]]) assert.equal(syllables(w), n, w);
+  assert.equal(counts('The U.S. news. It is big.').sentences, 2, '"U.S." is not a sentence end');
   assert.ok(fkGrade('The cat sat on the mat. It was fun.') < 2);
   assert.ok(fkGrade('Comprehensive organizational considerations necessitate institutional deliberation regarding performance evaluation methodologies and their interpretive implications.') > 12);
   assert.equal(fkGrade(''), 0);
