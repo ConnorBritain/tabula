@@ -50,6 +50,7 @@ import { focusIfLost } from './focus.js';
 import { createChamberScreen } from '../congress/chamber-screen.js';
 import { findRound as findCongressRound } from '../congress/workspace.js';
 import { congressIO, congressToday } from '../congress/store.js';
+import { autoDeleteAtStart } from './lifetime.js';
 
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
@@ -188,6 +189,7 @@ function boot(data) {
     if (action === 'palette') { ev.preventDefault(); palette.open(); return; }
     if (action && current && current.run && current.run(action)) ev.preventDefault();
   });
+  autoDeleteAtStart({ store, ui, now: env.now, refresh: () => env.reload() }); // Settings → Data: off unless the judge turned it on
   route();
 }
 
