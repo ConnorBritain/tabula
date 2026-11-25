@@ -1,8 +1,8 @@
 // The hosted app at debate.tabulaspeech.com: static files only, no server code.
 // Deploy (owner's yes first): npx wrangler deploy -c wrangler.app.jsonc
 // The build command below runs the gates first; a red test stops the deploy.
-// This is a Workers assets project on a route, not the Pages project with a custom
-// domain that docs/architecture/MARKETING-SITE.md §6 describes: a route needs no DNS change.
+// This is a Workers assets project on a route, not a Pages project with a custom
+// domain: a route needs no DNS change.
 //
 // The route debate.tabulaspeech.com/* sends pages here. The server Worker's
 // route debate.tabulaspeech.com/api/v1/* is more specific, so the API stays there.
@@ -16,8 +16,11 @@
   "name": "tabula-app",
   "account_id": "36bbd78435b2291e928a50731e703509",
   "compatibility_date": "2026-10-01",
+  // The deploy build is strict: version.json must name exactly one commit and its mode, or the deploy stops.
+  // It runs every test that needs no browser (*.test.js / *.test.mjs). The browser test
+  // (offline-open.browser-test.mjs) runs with the full `node --test` before each merge, in CI.
   "build": {
-    "command": "node --test && node check-publish.mjs && node build-app.mjs"
+    "command": "node --test \"**/*.test.*js\" && node check-publish.mjs && node build-app.mjs --strict --mode=prod"
   },
   "assets": {
     "directory": "./dist/app"
@@ -30,6 +33,9 @@
   "env": {
     "staging": {
       "name": "tabula-app-staging",
+      "build": {
+        "command": "node --test \"**/*.test.*js\" && node check-publish.mjs && node build-app.mjs --strict --mode=staging"
+      },
       "routes": [{ "pattern": "debate.tabulaspeech.dev", "custom_domain": true }],
       "workers_dev": false,
       "preview_urls": false

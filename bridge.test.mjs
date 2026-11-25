@@ -82,7 +82,7 @@ test('serves the self-hosted libraries as scripts, and the page with its securit
 
 // Why: every page loads the shared token file and the theme script (spec V0, V10); if the helper does not serve them, or serves them with the wrong type, the page has no colours and dark-mode judges see a white flash.
 test('serves the shared token file as CSS and the theme script as JavaScript', async () => {
-  // The shared tokens are in core/tokens.css since step C4; assets/tokens.css imports it and adds the side colours.
+  // The shared tokens are in core/tokens.css; assets/tokens.css imports it and adds the side colours.
   const css = await get('/assets/tokens.css');
   assert.equal(css.status, 200);
   assert.match(css.headers.get('content-type'), /^text\/css/);

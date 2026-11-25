@@ -67,7 +67,7 @@ A round with **browser transcription** drops the transcription line. A free user
 
 ### 3.3 Other formats and Speech Events
 
-- Cost follows minutes of talk. A policy round is about 64 minutes of talk; LD about 45; PF about 40 (`docs/growth/FORMATS.md`). So an LD or PF round costs roughly **60 to 70%** of a policy round.
+- Cost follows minutes of talk. A policy round is about 64 minutes of talk; LD about 45; PF about 40 (`docs/formats/FORMATS.md`). So an LD or PF round costs roughly **60 to 70%** of a policy round.
 - Tabula Speech Events uses little hosted AI: no live flow, no transcription in competitive rounds by default, and one "clean up my comments" call per entry. Its cost per room is a small part of a debate round's. Its load is small next to debate.
 - The peak shape is the same: speech events run on the same tournament days.
 
@@ -169,7 +169,7 @@ Use the Workers rate-limiting binding or WAF rate rules for the per-IP limits.
 
 #### 6.5a Provider limits on record (owner read the consoles on 2026-11-22)
 
-**Luna (GPT-6 Luna) stays the main model** for every automatic call. Haiku 5.5 is the failover. Sonnet 5.5 serves the paid "deep" actions. The server copy of these numbers is `perMinute` in tabula-cloud `src/ai/prices.ts`. The limiter DO uses 80% of it.
+**Luna (GPT-6 Luna) stays the main model** for every automatic call. Haiku 5.5 is the failover. Sonnet 5.5 serves the paid "deep" actions. The server keeps its own copy of these numbers (`perMinute`). The limiter DO uses 80% of it.
 
 Our accounts now:
 
@@ -191,7 +191,7 @@ OpenAI tier ladder for gpt-6-luna (from the OpenAI limits page):
 Rules:
 - The production OpenAI key must come from the **company** org. The owner's "Personal" org is on the Free tier (50 requests a day), which would push almost every call to failover.
 - Build gives Luna 4,000 calls a minute after the 80% margin. The app makes one live-flow pass every 30 s per speech, so this is far above the 400-round load test. Ask for Launch before a season where "Growth" traffic is likely.
-- Read both consoles again each August and update `src/ai/prices.ts` and this table together.
+- Read both consoles again each August and update the server's price table and this table together.
 
 ### 6.6 Queues
 

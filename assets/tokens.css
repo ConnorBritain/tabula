@@ -1,5 +1,5 @@
 /* Tabula Debate tokens. Every page (the app, About and the Debate Library) links this one file.
-   The shared tokens come from core/tokens.css (step C4); this file adds debate's side colours, in the same four theme
+   The shared tokens come from core/tokens.css; this file adds debate's side colours, in the same four theme
    blocks so a side colour follows the theme and the print reset like every other token, and debate's flow grid and page layout sizes. */
 @import url('../core/tokens.css');
 :root {

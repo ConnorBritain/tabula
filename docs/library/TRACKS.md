@@ -281,7 +281,7 @@ Size target: `check.js` under 300 lines, no libraries. `learn.css` gets the chec
 **Tests** (built in Phase 1; parser and track tests are in `learn-tracks.test.mjs`, page tests in `build-learn.test.mjs`):
 
 - the parser rules in §3.2, the `page:` link to a real page, and the live rule (a track is live only when every check is `reviewed`);
-- built pages hold no inline script. The existing test was edited (the diff is visible): it allows only the JSON-LD data tag and `<script src="…check.js" defer>` (at any depth), and it fails on an `on*=` handler. **Phase 2:** `final-check.js` is served by the `tabulaspeech.com` site, not `learn/`, so this test does not cover it. That site's build (`build-home.mjs`, `docs/architecture/MARKETING-SITE.md` §6.1) needs the same no-inline-script test;
+- built pages hold no inline script. The existing test was edited (the diff is visible): it allows only the JSON-LD data tag and `<script src="…check.js" defer>` (at any depth), and it fails on an `on*=` handler. **Phase 2:** `final-check.js` is served by the `tabulaspeech.com` site, not `learn/`, so this test does not cover it. That site's build (`build-home.mjs`) needs the same no-inline-script test;
 - built pages still pass the freshness test (`learn/` matches the Markdown).
 
 **Still open:** the guard test in §5.3 (a subfolder file or a `*.local.md` file in the source folder never reaches `learn/`). The existing "private and planning files are never published" test covers top-level `*.local.md` files only.
@@ -404,7 +404,7 @@ A signed link (a link that carries its own digital signature, so it can be check
 
 Delete on request. Delete the account and all badges on "Delete my account". **Inactive accounts** (§9, item 19): delete the account, its badges and verify links 24 months after the last sign-in, with reminders 30 days before, 7 days before and on the day, each with an export link. Short security logs (for abuse and rate limits) expire on a fixed schedule.
 
-**Size:** after the round-pack accounts exist: about 2 to 3 weeks of code (final-check endpoints and grading, retry wait and timer, badge table, verify page, revoke and delete, certificate with QR, tests). Plus writing and reviewing the hidden pool for the parent judge track (about 40 questions, about 1 to 2 weeks). Plus updates to the privacy policy and ToS: the single policy and terms on `tabulaspeech.com` cover the final check and verify pages (`docs/architecture/MARKETING-SITE.md` §2a). The move to `tabulaspeech.com` adds about 2 to 3 days (the static check page on that site, the Back to Library link, the old-version and retired-track pages). It needs accounts on `tabulaspeech.com` first (`docs/architecture/ARCHITECTURE.md` §11, steps 4 and 7).
+**Size:** after the round-pack accounts exist: about 2 to 3 weeks of code (final-check endpoints and grading, retry wait and timer, badge table, verify page, revoke and delete, certificate with QR, tests). Plus writing and reviewing the hidden pool for the parent judge track (about 40 questions, about 1 to 2 weeks). Plus updates to the privacy policy and ToS: the single policy and terms on `tabulaspeech.com` cover the final check and verify pages. The move to `tabulaspeech.com` adds about 2 to 3 days (the static check page on that site, the Back to Library link, the old-version and retired-track pages). It needs accounts on `tabulaspeech.com` first (`docs/architecture/ARCHITECTURE.md` §11, steps 4 and 7).
 
 ## 6. Phase 3: student badges (only with strong privacy rules)
 

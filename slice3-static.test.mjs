@@ -99,7 +99,7 @@ test('small controls have a 24 px hit area', () => {
 
 // Why: V12: motion must stop for judges who ask for less of it, and Windows high-contrast users must still tell Aff from Neg and find the current column.
 test('reduced motion and forced colours are handled', () => {
-  // The global rule moved with the shared tokens to core/tokens.css (step C4); assets/tokens.css imports it.
+  // The global rule moved with the shared tokens to core/tokens.css; assets/tokens.css imports it.
   assert.match(read('core/tokens.css'), /@media \(prefers-reduced-motion: reduce\) \{\s*\*, \*::before, \*::after/);
   const fc = /@media \(forced-colors: active\) \{([\s\S]*?)\n  \}/.exec(STYLE)[1];
   // CHANGED 2026-11-20 because the owner approved docs/design/NO-STRIPES.md (D3: the side shows as a word, not a

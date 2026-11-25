@@ -1,6 +1,6 @@
 # Speech Events prototype: 5-judge lay test
 
-Goal: learn if a parent judge can run a 6-speaker room with the prototype, with no help. This is the test in [DESIGN.md](DESIGN.md) §6 and [PLAN.md](PLAN.md) P2.
+Goal: learn if a parent judge can run a 6-speaker room with the prototype, with no help. This is the test in [DESIGN.md](DESIGN.md) §6.
 
 The prototype is throwaway. It has no AI, no network calls and no recording. It saves only in the browser on that device.
 

@@ -557,7 +557,7 @@ Each question offers options. ★ marks the recommended option. Options are not 
 **Slice G: Copy pass (last, after Slice A+B).** Old place names, vendor names in copy, offline error text, mic help, "Tabula rasa" label, About placeholder. It runs last because it edits strings in the same Flow code.
 
 ### Step 4: Gates and review for each slice
-- Run the repo gates in `/Users/dahlia/Code/debate/.claude/gates.json`: `node --test` and `node check-publish.mjs`. Report each command and its result.
+- Run the repo gates in `.claude/gates.json`: `node --test` and `node check-publish.mjs`. Report each command and its result.
 - These gates do not test the UI. So each slice also needs a **browser check** with screenshots:
   - sizes: 1366×768, iPad landscape and portrait, 375 px phone (for screens in Q17),
   - light and dark mode,

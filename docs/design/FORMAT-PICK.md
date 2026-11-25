@@ -18,7 +18,7 @@ This note answers the owner's four questions about debate formats: names, where 
 | Changing the format on a round with work asks first ("Start a new … round?", button "Clear and start new"). An empty round switches at once. A `?format=ld` link switches an empty round at once, else shows a toast. | `js/formatsetup.js` `switchFormat` |
 | Prep minutes are saved per format (Policy keeps the old `prepMin` key). | `js/core.js` `prepMinSaved` |
 | Other places that show the name: the History CSV "Format" column (always, every row), the on-screen History table (only when History holds more than one format or an unknown one), the demo intro (`?demo=policy`, `?demo=ld`) ("This is a Lincoln-Douglas (LD) round…"), the print sheet (only for a format this copy does not have), the `?format=` toast. | `logic/decide.js` `formatLabel`; `logic/demo.js`; `js/formatsetup.js` |
-| `about.html` still says "high school policy debate" only. The marketing copy says LD and PF are "coming soon", and the planned `/ld/` and `/pf/` pages are not built. | `about.html`; `docs/marketing/COPY.md`; `docs/marketing/SITES.md` §2 |
+| `about.html` still says "high school policy debate" only. The marketing copy says LD and PF are "coming soon", and the planned `/ld/` and `/pf/` pages are not built. | `about.html`; the marketing site copy |
 
 **So the real risk is not a mid-round switch.** A mid-round switch already needs a "Clear and start new" click. The real risk is the carry-over: a judge does LD on Saturday, then opens the app for a Policy round next week, and the round starts in LD. Nothing on Flow says so until the speech names look wrong.
 
@@ -47,7 +47,7 @@ This note answers the owner's four questions about debate formats: names, where 
 2. Add a level word only when two formats share a name, as a suffix: "Policy (college)". High school is the default and gets no word. So `level: 'hs'` never shows.
 3. The short form (Policy, LD, PF) shows only in the narrow chip. It comes from each file's `ai.abbr` (LD, PF). Policy is the one exception: its `ai.abbr` is "CX", so its short form is "Policy".
 4. **The labels live in `logic/format.js` next to `formatCopy`**, keyed by format id, not in the format files. Labels are copy, not rules, so they change without a new format version. One function gives them: `labelOf(fmt, 'full' | 'short')`. A format with no table entry falls back to its file `name`. A test checks that every format a judge can pick (`FORMAT_IDS`) has a table entry, so the fallback never shows the old "(LD)" names by accident.
-5. **The file `name` stays frozen and becomes a fallback only.** A grep shows that only screens read it: `js/formatsetup.js`, `logic/demo.js`, `logic/decide.js` `formatLabel`. tabula-cloud does not read it; the client sends `format` and `formatVersion` only (ARCHITECTURE.md §9). `fixtures/format-baseline.json` pins it, and that pin stays true because the file does not change.
+5. **The file `name` stays frozen and becomes a fallback only.** A grep shows that only screens read it: `js/formatsetup.js`, `logic/demo.js`, `logic/decide.js` `formatLabel`. The server does not read it; the client sends `format` and `formatVersion` only (ARCHITECTURE.md §9). `fixtures/format-baseline.json` pins it, and that pin stays true because the file does not change.
 6. **The existing `decide.formatLabel(round)` stays and calls `labelOf`.** It keeps its "id vN" branch for a format this copy does not have (a ballot from a newer Tabula). No second function with the same name.
 7. **The History CSV "Format" cell changes** from "Lincoln-Douglas (LD)" to "Lincoln-Douglas". Old exports keep the old text. This is a visible change: the test that pins the cell gets a visible diff, and the History help names the change. (Option: keep the old CSV text for one season. Not recommended, because the screen and the file would then disagree.)
 
@@ -74,18 +74,18 @@ This note answers the owner's four questions about debate formats: names, where 
 
 | Option | For | Against |
 |---|---|---|
-| **A. LD and PF stay in Tabula Debate.** Speech Events gets a hand-off card ("Judge this round in Tabula Debate"). | Room shape decides the app: two sides, a resolution, cross-examination, prep, a flow and a win-or-loss ballot. All of that is built and live in Tabula Debate today, including PF since 2026-11-22. Same account in both apps. Already the rule in `docs/events/SEASON.md` §4 and `docs/events/CATALOG.md`. | A judge in a state with one combined season may look on tabulaforensics.com first. |
-| B. Move LD and PF to Speech Events | Fits states where LD runs with the spring speech meet (Texas UIL, Oklahoma, Missouri) | Speech Events would need a second copy of the clock, prep, flow, ballot and Round Map. The same LD round would belong to a different app in different states. No league judges LD as a speech event (SEASON.md §3). |
+| **A. LD and PF stay in Tabula Debate.** Speech Events gets a hand-off card ("Judge this round in Tabula Debate"). | Room shape decides the app: two sides, a resolution, cross-examination, prep, a flow and a win-or-loss ballot. All of that is built and live in Tabula Debate today, including PF since 2026-11-22. Same account in both apps. Already the rule in `docs/events/CATALOG.md`. | A judge in a state with one combined season may look on tabulaforensics.com first. |
+| B. Move LD and PF to Speech Events | Fits states where LD runs with the spring speech meet (Texas UIL, Oklahoma, Missouri) | Speech Events would need a second copy of the clock, prep, flow, ballot and Round Map. The same LD round would belong to a different app in different states. No league judges LD as a speech event. |
 
 **Recommendation: A.** The word "forensics" changes by state: speech and debate in one season in many states, speech only in some (the owner names Wisconsin and Minnesota; this note did not verify those two). The app split should not follow a word that changes by state. It follows the room. The sites carry the word problem instead. Today SITES.md §2 gives tabulaforensics.com the text "Tabula Speech Events: extemp, oratory, interp, Congress. Coming later." It has no link to debate. Proposed:
 
 - Add a "Judging debate? Tabula Debate" link near the top of tabulaforensics.com.
 - Check that tabulaspeech.com (the parent: plans, sign-in, all products) names both apps, so a combined-season judge finds both with one account.
-- The Speech Events hand-off card (SEASON.md §4) links to `debate.tabulaspeech.com`. Proposed: add `?format=ld` (or `pf`, `policy-hs`) so the round opens in the right format (the link form is in `docs/growth/BRAND.md`).
+- The Speech Events hand-off card links to `debate.tabulaspeech.com`. Proposed: add `?format=ld` (or `pf`, `policy-hs`) so the round opens in the right format.
 
 **Research that would confirm it:**
 
-1. Read `docs/marketing/SITES.md` §2 and `docs/growth/FORMATS.md` §3 against the hand-off link above, and check that the forensics site copy names debate and links out. (Desk check, one hour.)
+1. Read the marketing site copy and the format names against the hand-off link above, and check that the forensics site copy names debate and links out. (Desk check, one hour.)
 2. Verify how Wisconsin (WHSFA, WDCA) and Minnesota (MSHSL) name their speech and debate seasons, from the league sites. (Desk check.)
 3. Five short talks with judges or coaches: two from a combined-season state, two from a split-season state, one Texas UIL. Ask: "Where would you look for an LD judging tool?" (One week.)
 4. After launch: count `?format=` visits from each marketing site, and hand-off card clicks. (Analytics, no new code beyond the card.)
@@ -106,7 +106,7 @@ Small and front-end only. No format file changes, no server change.
 
 6. "Judging for": options without the "Judging for: " prefix. This is the "Lincoln HS" text the owner saw.
 7. Print sheet: always print "Format: Lincoln-Douglas" in the facts block.
-8. `about.html` and its description still say "policy debate" only. The marketing copy ("coming soon") and the planned `/ld/` and `/pf/` pages in tabula-sites should use the same names (Policy, Lincoln-Douglas, Public Forum).
+8. `about.html` and its description still say "policy debate" only. The marketing copy ("coming soon") and the planned `/ld/` and `/pf/` pages on the marketing sites should use the same names (Policy, Lincoln-Douglas, Public Forum).
 
 **Tests:** new tests for each change. Where a name changes on screen or in the CSV, the old assertion is changed in a visible diff for review, never deleted. `fixtures/format-baseline.json` does not change.
 

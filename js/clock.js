@@ -1,5 +1,5 @@
 // Clocks: the speech timer, prep, the clocks after a reload or sleep, a second tab on the same round,
-// and the settings object (S). Starting, stopping and the tick are the shared driver in core/clock.js (step C7);
+// and the settings object (S). Starting, stopping and the tick are the shared driver in core/clock.js;
 // this file keeps debate's runs in R and says what happens around them (hooks).
 // One part of the page code (see app.js for the load order). The parts are classic scripts that share one global
 // scope, so a part can use what any part declares; code that runs at load only uses parts that load before it.
