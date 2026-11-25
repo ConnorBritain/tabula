@@ -1,4 +1,4 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C2): browser storage and
+// Shared code for Tabula Debate and Tabula Speech Events: browser storage and
 // backup files, kept apart by name prefix. Generic words only (core-words.test.mjs). Loaded as described in core/defs.js.
 
 // A store for one app. prefixes: the key name starts this app may use, for example ['policyJudge.', 'tabula.'].
@@ -82,8 +82,8 @@ export function parseBackup(text, { prefix, app = 'tabula' }) {
   return { storage, exportedAt: j.exportedAt || '', includesKeys: Boolean(j.includesKeys), file: j };
 }
 
-// Save text as a file in Downloads (page only: it needs document, so the Node tests do not run it). Step C3 may move
-// it to core/ui.js with the other page helpers.
+// Save text as a file in Downloads (page only: it needs document, so the Node tests do not run it). It could move
+// to core/ui.js with the other page helpers.
 export function downloadFile(name, text, type) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], { type: type || 'text/csv' }));

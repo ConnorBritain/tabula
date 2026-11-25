@@ -1,7 +1,7 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, steps C0 and C1).
+// Shared code for Tabula Debate and Tabula Speech Events.
 // Generic words only: core-words.test.mjs fails if a word from its product list appears here.
 //
-// How a classic script reaches this ES module (the C0 bridge, LANDING.md §2, option a):
+// How a classic script reaches this ES module (the bridge):
 // - In the page, index.html loads this file with type="module" before the classic scripts that use it. Those
 //   classic scripts load with defer, so the browser runs them after this module, in page order. The last line
 //   below puts the same functions on globalThis.TabulaCore.defs for them. Every core/ file ends this way, and the

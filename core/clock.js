@@ -1,7 +1,7 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C6): the clock math, with no
+// Shared code for Tabula Debate and Tabula Speech Events: the clock math, with no
 // DOM and no timers. A run is one clock that counts down: { kind, endAt, startLeft? }. The app owns what a run is
 // for (which speech, which side's prep) and passes in its length. Generic words only (core-words.test.mjs). Loaded as
-// described in core/defs.js. createDriver (step C7, at the end) starts, stops and ticks one clock.
+// described in core/defs.js. createDriver (at the end) starts, stops and ticks one clock.
 
 // A run never counts below -9:59 (599 s over), on screen and after a reload.
 export const OVER_LIMIT = -599;
@@ -53,7 +53,7 @@ export function prepWins(speech, prep) {
 // still count as on time.
 //   'within' at or before the limit; 'grace' past it but inside the grace; 'over' past the grace.
 // At exactly 0:00 the stage is still 'within' while the 0:00 signal plays (beepDecision). A driver should pass whole
-// seconds, so a rounding crumb such as -0.0001 does not flash 'grace' (step C7).
+// seconds, so a rounding crumb such as -0.0001 does not flash 'grace'.
 export function timeStage(left, grace = 0) {
   if (left >= 0) return 'within';
   return left >= -Math.max(0, grace) ? 'grace' : 'over';
@@ -73,7 +73,7 @@ export function beepDecision(left, beeped) {
   return left > -5 ? 'beep' : 'skip';
 }
 
-// ---------- the driver (step C7): start, stop and tick one clock ----------
+// ---------- the driver: start, stop and tick one clock ----------
 // The app keeps the run where it saves it (get and set read and write it), so a reload or a second tab sees the same
 // run. The driver owns only the tick timer and the order of the steps.
 // opts:

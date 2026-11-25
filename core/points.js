@@ -1,9 +1,9 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C9): a points range, the
+// Shared code for Tabula Debate and Tabula Speech Events: a points range, the
 // error for a range a judge types, and the − / + stepper. Each app passes in its own default range. Generic words
 // only (core-words.test.mjs). No DOM. Loaded as described in core/defs.js.
 
 // The allowed bounds of any range: whole numbers from 0 to 100. The stepper moves by 0.1. Both are debate's rules; a
-// Congress scale (1–6 or 1–8, whole steps) adds an option when its step needs one (LANDING.md §4.3 K4).
+// Congress scale (1–6 or 1–8, whole steps) adds an option when its step needs one.
 const POINTS_BOUNDS = { lo: 0, hi: 100 };
 const toNum = (v) => (v === '' || v == null ? NaN : Number(v)); // the same rule as num() in logic/round.js
 

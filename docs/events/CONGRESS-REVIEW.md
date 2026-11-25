@@ -9,6 +9,7 @@ This file covers the Congress scorer screens that the earlier screen review left
 3. The open rule facts and what the app does with them now (§3).
 4. What is left for later (§4).
 5. The accessibility and keyboard pass (§5).
+6. Fixes from the device check (§6).
 
 Rules this review keeps: calm grey chrome, color only for data and status, a word with every color, no stripes (`docs/events/DESIGN.md` §1). The beta tag is a plain outlined pill in words, with no color.
 
@@ -132,3 +133,14 @@ Keys that work now:
 - A7. Esc does not close the PO chooser or the speech card. Not changed: the speech card holds the comment box, and Esc there needs a rule for unsaved text.
 - A8. Shortcut keys a laptop judge would want, which need the shared key registry (not added here): Next speech, Start questions, End speech, points by number keys, Done, Undo for the last toast, Next item. Same as F19.
 - A9. Screen reader on real devices (VoiceOver on iPhone and Mac, TalkBack on Android, NVDA on Windows): waiting for real-device testers.
+
+## 6. Fixes from the device check
+
+The device check (`docs/events/DEVICE-CHECK.md`) found four more Congress problems. All are fixed. Tests: `events/congress-followup.test.mjs`.
+
+| Problem | Fix |
+|---|---|
+| The Congress screens did not keep the screen awake, so a phone or Chromebook could dim and lock during a long chamber. | While a session is open (Log, Rank or Review), the app asks the browser to keep the screen awake. It lets go when the judge leaves the session or the tab is hidden, and asks again when the tab comes back. Where the browser cannot do this, nothing changes. The helper is `events/congress/wake.js`; the room timer has its own copy, so one shared helper would be better later. |
+| When a PO hour passed while the judge was typing a comment, the score prompt did not show until the next tap. | Only the PO card is redrawn, so the prompt shows at once. The comment box keeps the typing and the focus. |
+| The speech timer showed "−0:00" at the limit. | It shows "0:00". The minus, and the over-time color of the timer card, start one whole second past the limit ("−0:01"). |
+| The points and PO score chips were 40 × 40 px. | They are 44 × 44 px. Checked in Chromium at 360 and 390 px wide: no sideways scroll, and the chips wrap inside the card. |

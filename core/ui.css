@@ -1,6 +1,6 @@
-/* Shared styles for the parts core/ui.js builds (step E1): buttons, the toast, the in-app dialog (ask), the skip link
+/* Shared styles for the parts core/ui.js builds: buttons, the toast, the in-app dialog (ask), the skip link
    and the screen-reader-only text. Tokens only (core/tokens.css). Speech Events links this file; debate still keeps its
-   own copy of these rules in index.html and moves to this file in a later step (docs/events/LANDING.md, E1 note).
+   own copy of these rules in index.html and moves to this file in a later step.
    No coloured side stripes (no-stripes.test.mjs covers core/). */
 .skip { position: absolute; left: -9999px; }
 .skip:focus { left: var(--s3); top: var(--s3); background: var(--panel); padding: var(--s2) var(--s3); border-radius: var(--r-md); z-index: var(--z-dialog); }
