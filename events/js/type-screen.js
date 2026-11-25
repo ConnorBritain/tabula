@@ -12,6 +12,7 @@ import { ENABLED_EVENTS, CUSTOM_EVENT, DEFAULT_PROFILE } from './room.js';
 import { roundLine, dayOf, STATE_LABEL } from './rooms.js';
 import { routeHash } from './routes.js';
 import { profileChoices } from './data.js';
+import { statusPillHtml } from './status-pill.js';
 
 // The saved rounds of one type, newest first. A Custom round is one with its own event (room.customEvent).
 export function roundsOfType(rooms, eventId) {
@@ -48,7 +49,7 @@ export function typeHtml(data, eventId, rooms) {
     ? `<ul class="ty-rounds">${mine.map((r) => `<li><a href="${esc(routeHash('round', r.id))}">${esc(roundLine(r, true) || 'Untitled round')}</a> <span class="muted">${esc(dayOf(r.createdAt))} · ${esc(STATE_LABEL[r.state] || STATE_LABEL.setup)}</span></li>`).join('')}</ul>`
     : '<p class="muted">No saved rounds of this type yet.</p>';
   const name = custom ? 'Custom event' : def.name;
-  return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">${esc(name)}</h1>${def ? `<span class="pill outline">${esc(def.short)}</span>` : ''}
+  return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">${esc(name)}</h1>${def ? statusPillHtml('outline', def.short) : ''}
       <a class="b primary" id="ty-start" href="${esc(routeHash('setup', eventId))}">${icon('plus', 20)}Start a round</a></div>
     <section class="set-part" aria-labelledby="ty-g-h"><h2 id="ty-g-h">Guide</h2>
       <p>${esc(g.line)}</p><dl class="ty-list">${dl}</dl>${list('Rule checks', g.checks, 'square')}${list('Questions to think about for comments', g.prompts)}</section>
