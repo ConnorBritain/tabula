@@ -149,21 +149,60 @@ export function autoDeletePaused(store, now) {
 }
 
 // ---------- the start-up run ----------
+// What the last run removed, kept in memory for this tab only. The toast's Undo lasts 10 seconds (core/ui.js), so
+// Settings → Data also offers "Put them back" until the tab closes. Clear this device and a restore forget it
+// (settings-screen.js), so rounds never come back onto a device the judge just cleared or replaced.
+let lastRemoved = null; // { removed, keys, rounds, chambers }
+
+const FIELD = Object.freeze({ [ROOMS_KEY]: 'rooms', [CARDS_KEY]: 'cards', [CONGRESS_KEY]: 'congress' });
 function readSaved(store) { return { rooms: store.get(ROOMS_KEY, []), cards: store.get(CARDS_KEY, []), congress: store.get(CONGRESS_KEY, null) }; }
-// Save the three values. A value that was missing and is still empty stays missing.
-function writeSaved(store, saved, had) {
-  return [[ROOMS_KEY, saved.rooms], [CARDS_KEY, saved.cards], [CONGRESS_KEY, saved.congress]]
-    .every(([k, val]) => (!had[k] && (val == null || (Array.isArray(val) && !val.length)) ? true : store.set(k, val)));
+// The keys a pick changes. Only these are written, so a value auto-delete has no reason to touch is never rewritten.
+const keysOf = (pick) => [].concat(pick.roundIds.length ? [ROOMS_KEY] : [], pick.cardIds.length ? [CARDS_KEY] : [],
+  pick.chamberIds.length || pick.sessionIds.length ? [CONGRESS_KEY] : []);
+// Save the keys from `saved`, all or nothing: when one save fails, the keys already saved go back to their old values.
+function writeKeys(store, keys, saved) {
+  const old = readSaved(store);
+  const done = [];
+  for (const k of keys) {
+    if (store.set(k, saved[FIELD[k]])) { done.push(k); continue; }
+    for (const d of done) store.set(d, old[FIELD[d]]);
+    return false;
+  }
+  return true;
+}
+const backText = (r) => (r.rounds + r.chambers === 1 ? (r.rounds ? 'The round is back.' : 'The Congress chamber is back.') : 'The removed rounds are back.');
+
+/** What the last run removed and can still put back in this tab: { rounds, chambers }, or null. */
+export const pendingPutBack = () => (lastRemoved ? { rounds: lastRemoved.rounds, chambers: lastRemoved.chambers } : null);
+/** Forget what the last run removed (after Clear this device or a restore). */
+export function forgetRemoved() { lastRemoved = null; }
+
+/**
+ * Put back what the last run removed (the toast's Undo and Settings' "Put them back"). Records made or changed since
+ * stay as they are. deps: { store, ui, refresh() }. Returns true when they are back. A failed save keeps them in
+ * memory, so the judge can try again.
+ */
+export function putBackRemoved({ store, ui, refresh }) {
+  const r = lastRemoved;
+  if (!r) return false;
+  ui.dismissToast(AUTO_DELETE_TOAST_KEY);
+  if (!writeKeys(store, r.keys, putBack(readSaved(store), r.removed))) {
+    ui.toast('The rounds did not come back. The device storage is full or blocked. Try again in Settings, Data.', { kind: 'error', key: AUTO_DELETE_TOAST_KEY });
+    return false;
+  }
+  lastRemoved = null;
+  if (refresh) refresh();
+  ui.toast(backText(r), { key: AUTO_DELETE_TOAST_KEY });
+  return true;
 }
 
 /**
  * Run auto-delete once (app start). deps: { store (the events store), ui: { toast, dismissToast }, now(),
  * refresh() (redraw the screen that shows, after an Undo) }. Returns the number of rounds and chambers removed.
- * With the setting off, it reads one value and does nothing else. A save that fails puts the old values back and says
- * nothing was removed.
+ * With the setting off, it reads one value and does nothing else. A save that fails puts the old values back.
  */
 export function autoDeleteAtStart(deps) {
-  // The page must always start: a fault here is logged and nothing is removed.
+  // The page must always start: a fault here is logged and nothing more is removed.
   try { return runAutoDelete(deps); } catch (err) { console.error('Speech Events: auto-delete did not run.', err); return 0; }
 }
 function runAutoDelete({ store, ui, now, refresh }) {
@@ -173,24 +212,20 @@ function runAutoDelete({ store, ui, now, refresh }) {
   const pick = pickOld(Object.assign({ days, now: now() }, before));
   const count = pick.roundIds.length + pick.chamberIds.length;
   if (!count) return 0;
-  const had = Object.fromEntries([ROOMS_KEY, CARDS_KEY, CONGRESS_KEY].map((k) => [k, store.get(k, null) !== null]));
+  const keys = keysOf(pick);
   const { next, removed } = removeOld(before, pick);
-  if (!writeSaved(store, next, had)) {
-    writeSaved(store, before, had);
+  lastRemoved = { removed, keys, rounds: pick.roundIds.length, chambers: pick.chamberIds.length };
+  if (!writeKeys(store, keys, next)) {
+    // writeKeys put the old values back. If even that did not hold, the removed records are still in memory: offer them.
     console.error('Speech Events: auto-delete did not save, so nothing was removed.');
+    if (putBackRemoved({ store, ui: { toast() {}, dismissToast() {} } })) return 0;
+    ui.toast('Auto-delete did not finish. Put the rounds back now.', { kind: 'error', key: AUTO_DELETE_TOAST_KEY,
+      action: { label: 'Put back', name: 'Put back the removed rounds', run: () => putBackRemoved({ store, ui, refresh }) } });
     return 0;
   }
   const what = removedText(pick.roundIds.length, pick.chamberIds.length);
   ui.dismissToast(AUTO_DELETE_TOAST_KEY);
-  ui.toast(what, { key: AUTO_DELETE_TOAST_KEY, action: { label: 'Undo', name: 'Undo: ' + what.replace(/\.$/, ''), run: () => {
-    ui.dismissToast(AUTO_DELETE_TOAST_KEY);
-    if (!writeSaved(store, putBack(readSaved(store), removed), had)) {
-      ui.toast('The rounds did not come back. The device storage is full or blocked.', { kind: 'error', key: AUTO_DELETE_TOAST_KEY });
-      return;
-    }
-    if (refresh) refresh();
-    ui.toast(count === 1 ? 'The round is back.' : 'The rounds are back.', { key: AUTO_DELETE_TOAST_KEY });
-  } } });
+  ui.toast(what, { key: AUTO_DELETE_TOAST_KEY, action: { label: 'Undo', name: 'Undo: ' + what.replace(/\.$/, ''), run: () => putBackRemoved({ store, ui, refresh }) } });
   return count;
 }
 
@@ -200,7 +235,7 @@ const parseValue = (raw) => { try { return JSON.parse(raw); } catch { return nul
 
 /**
  * What a backup holds, for the judge to read before a restore. b: settings.js readBackup's result (it has already
- * refused a bad or foreign file). Returns { days, rounds, chambers, sessions, release, date, includesKeys }.
+ * refused a bad or foreign file). Returns { days, rounds, chambers, sessions, autoDelete, release, date, includesKeys }.
  */
 export function backupSummary(b) {
   const s = (b && b.storage) || {};
@@ -210,6 +245,7 @@ export function backupSummary(b) {
     rounds: Number.isInteger(b && b.rounds) ? b.rounds : (ROOMS_KEY in s ? parseList(s[ROOMS_KEY]).length : 0),
     chambers: cg.chambers.filter(isRecord).length,
     sessions: cg.sessions.filter(isRecord).length,
+    autoDelete: LIFETIME_KEY in s ? autoDeleteDaysOf(parseValue(s[LIFETIME_KEY])) : 0,
     release: (b && b.release) || '',
     date: (b && typeof b.exportedAt === 'string' && /^\d{4}-\d{2}-\d{2}/.test(b.exportedAt)) ? b.exportedAt.slice(0, 10) : '',
     includesKeys: Boolean(b && b.includesKeys && typeof s[KEYS_KEY] === 'string'),
@@ -225,8 +261,9 @@ export function backupSummaryRows(sum) {
     { label: 'Rounds', value: String(sum.rounds) },
     { label: 'Congress chambers', value: sum.chambers + (sum.sessions ? ' (' + plural(sum.sessions, 'session', 'sessions') + ')' : '') },
     { label: 'Your AI key', value: sum.includesKeys ? 'In the file' : 'Not in the file' },
+    { label: 'Auto-delete in the file', value: (sum.autoDelete ? sum.autoDelete + ' days' : 'Off') + ' (this device keeps its own choice)' },
   ];
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).lifetime = Object.freeze({ LIFETIME_KEY, AUTO_DELETE_DAYS, AUTO_DELETE_TOAST_KEY,
-  autoDeleteDaysOf, lifetimeValue, calendarDays, pickOld, removeOld, putBack, removedText, autoDeleteHelp, deviceSummaryText, autoDeletePaused, autoDeleteAtStart, backupSummary, backupSummaryRows });
+  autoDeleteDaysOf, lifetimeValue, calendarDays, pickOld, removeOld, putBack, removedText, autoDeleteHelp, deviceSummaryText, autoDeletePaused, autoDeleteAtStart, pendingPutBack, forgetRemoved, putBackRemoved, backupSummary, backupSummaryRows });

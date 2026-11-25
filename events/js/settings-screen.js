@@ -18,7 +18,7 @@ import { KEYS_KEY } from './ai-key.js';
 import { keymap } from './keys.js';
 import { checkOffline, CACHE_PREFIX } from './offline.js';
 import { askConnectKey, askForgetKey } from './ai-connect.js';
-import { LIFETIME_KEY, AUTO_DELETE_DAYS, autoDeleteDaysOf, lifetimeValue, autoDeleteHelp, autoDeletePaused, deviceSummaryText, backupSummary, backupSummaryRows } from './lifetime.js';
+import { LIFETIME_KEY, AUTO_DELETE_DAYS, autoDeleteDaysOf, lifetimeValue, autoDeleteHelp, autoDeletePaused, deviceSummaryText, backupSummary, backupSummaryRows, pendingPutBack, putBackRemoved, forgetRemoved, removedText, AUTO_DELETE_TOAST_KEY } from './lifetime.js';
 
 const radios = (name, list, picked) => list.map((x) => `<label class="radio"><input type="radio" name="${name}" value="${esc(x.id)}"${x.id === picked ? ' checked' : ''}> ${esc(x.label)}</label>`).join('');
 
@@ -138,7 +138,7 @@ const installed = () => {
 
 // The whole screen as HTML text. v: { settings, ai, keys (keySheetHtml), offline ({ text } or null while checking),
 // kept (keptText's line, or null while checking), release (the release id), autoDelete (0, 7, 30 or 90),
-// autoPaused (auto-delete waits for the clock), check (checkHtml's value) }.
+// autoPaused (auto-delete waits for the clock), putBack (lifetime.js pendingPutBack), check (checkHtml's value) }.
 export function settingsHtml(v) {
   const s = v.settings;
   return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">Settings</h1></div>
@@ -171,6 +171,7 @@ export function settingsHtml(v) {
     <h3 id="set-auto-h">Auto-delete old rounds</h3>
     <fieldset class="radios" aria-labelledby="set-auto-h" aria-describedby="set-auto-help">${radios('set-auto', AUTO_DELETE_CHOICES, String(v.autoDelete || 0))}</fieldset>
     <p class="field-help" id="set-auto-help">${esc(autoDeleteHelp(v.autoDelete || 0, !v.autoPaused))}</p>
+    ${v.putBack ? `<div class="set-row"><span>${esc(removedText(v.putBack.rounds, v.putBack.chambers).replace(/ removed\.$/, ' removed when the app started.'))}</span><button class="b" type="button" id="set-putback">Put them back</button></div>` : ''}
     <h3>Wrap up the season</h3>
     <p class="field-help">Save a backup, check that it saved, then clear this device.</p>
     <div class="set-row"><button class="b" type="button" id="set-wrap">Wrap up the season</button></div>
@@ -200,7 +201,7 @@ export function createSettingsScreen(env) {
 
   function draw(focusSel) {
     env.el.innerHTML = settingsHtml({ settings: env.settings(), ai: aiView(), keys: keySheetHtml(keymap.shortcutRows(mac(), true)), offline, kept, release: currentRelease(),
-      autoDelete: autoDeleteDaysOf(env.store.get(LIFETIME_KEY, null)), autoPaused: autoDeletePaused(env.store, env.now()), check: checked });
+      autoDelete: autoDeleteDaysOf(env.store.get(LIFETIME_KEY, null)), autoPaused: autoDeletePaused(env.store, env.now()), putBack: pendingPutBack(), check: checked });
     const f = focusSel && $(focusSel);
     if (f) f.focus();
   }
@@ -252,6 +253,8 @@ export function createSettingsScreen(env) {
     if (pick !== 'clear') return;
     const before = env.store.snapshot(PREFIX);
     const beforeTab = tab.snapshot(PREFIX);
+    forgetRemoved(); // rounds auto-delete removed never come back onto a cleared device
+    env.ui.dismissToast(AUTO_DELETE_TOAST_KEY);
     const hadKey = KEYS_KEY in before || KEYS_KEY in beforeTab;
     try {
       env.ai.own.forget(); // the key in memory goes too, not only the saved copy
@@ -290,7 +293,9 @@ export function createSettingsScreen(env) {
       backup();
       const saved = await env.ui.ask({
         title: 'Did the backup save?',
-        body: ['Look in your downloads for ' + backupName(new Date(env.now()).toISOString()) + '.', 'Move it off this device (email it to yourself or copy it to a drive) before you clear.'],
+        body: ['Look in your downloads for ' + backupName(new Date(env.now()).toISOString()) + '.',
+          $('#set-backup-keys') && $('#set-backup-keys').checked ? 'Your AI key is in the file. Keep the file private.' : 'Your AI key is not in the file. Clearing this device removes it.',
+          'Move the file off this device (email it to yourself or copy it to a drive) before you clear.'],
         buttons: [{ label: 'Cancel', value: null }, { label: 'Download again', value: 'again' }, { label: 'Yes, it saved', value: 'saved', kind: 'primary' }],
         cancelValue: null,
       });
@@ -329,6 +334,8 @@ export function createSettingsScreen(env) {
     if (!ok || !checked || checked.backup !== b) return; // Cancel, or the judge closed or changed the check meanwhile
     const before = env.store.snapshot(PREFIX);
     const items = restoreItems(before, b);
+    // The device keeps its own auto-delete choice: an old file with auto-delete on must not remove the rounds it brings.
+    if (LIFETIME_KEY in before) items[LIFETIME_KEY] = before[LIFETIME_KEY]; else delete items[LIFETIME_KEY];
     try { env.store.replaceAll(PREFIX, items); }
     catch (err) {
       console.error('Speech Events: the restore did not finish.', err);
@@ -337,6 +344,8 @@ export function createSettingsScreen(env) {
       return;
     }
     checked = null;
+    forgetRemoved();
+    env.ui.dismissToast(AUTO_DELETE_TOAST_KEY);
     env.store.set(BACKUP_AT_KEY, env.now()); // everything on the device now is in the file the judge just chose
     env.reload();
     // The AI key is read once when the page loads, so an Undo that changes the key reloads the page.
@@ -358,6 +367,7 @@ export function createSettingsScreen(env) {
     if (id === 'set-restore-btn') return $('#set-restore').click();
     if (id === 'set-clear') return clearDevice();
     if (id === 'set-wrap') return wrapUp();
+    if (id === 'set-putback') { if (putBackRemoved({ store: env.store, ui: env.ui, refresh: () => env.reload() })) draw('input[name="set-auto"]:checked'); return; }
     if (id === 'set-check-restore') return restoreChecked();
     if (id === 'set-check-close') { checked = null; draw('#set-restore-btn'); return; }
     if (id === 'set-ai-connect') { if (await askConnectKey(env.ui, env.ai.own)) draw('#set-ai-forget'); return; }

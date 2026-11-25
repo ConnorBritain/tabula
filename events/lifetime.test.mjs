@@ -8,7 +8,7 @@ import { createEventsStore, PREFIX, ROOMS_KEY, CARDS_KEY, DAYS_KEY, SETTINGS_KEY
 import { CONGRESS_KEY } from './congress/store.js';
 import { makeBackup, readBackup, CLEAR_WHAT } from './js/settings.js';
 import { createSettingsScreen, settingsHtml, checkHtml, AUTO_DELETE_CHOICES } from './js/settings-screen.js';
-import { LIFETIME_KEY, AUTO_DELETE_DAYS, autoDeleteDaysOf, lifetimeValue, calendarDays, pickOld, removeOld, putBack, removedText, autoDeleteAtStart,
+import { LIFETIME_KEY, AUTO_DELETE_TOAST_KEY, pendingPutBack, forgetRemoved, putBackRemoved, AUTO_DELETE_DAYS, autoDeleteDaysOf, lifetimeValue, calendarDays, pickOld, removeOld, putBack, removedText, autoDeleteAtStart,
   backupSummary, backupSummaryRows, autoDeleteHelp, autoDeletePaused, deviceSummaryText } from './js/lifetime.js';
 
 const DAY = 86400000;
@@ -215,7 +215,32 @@ test('autoDeleteAtStart removes the old rounds, says "3 old rounds removed.", an
   assert.deepEqual(ids(ROOMS_KEY).sort(), ['new', 'open', 'r1', 'r2', 'r3']);
   assert.deepEqual(ids(CARDS_KEY).sort(), ['c1', 'c2', 'c3', 'c4', 'c5']);
   assert.equal(rig.refreshed, 1);
-  assert.equal(rig.ui.toasts.at(-1).msg, 'The rounds are back.');
+  assert.equal(rig.ui.toasts.at(-1).msg, 'The removed rounds are back.');
+  assert.equal(pendingPutBack(), null, 'nothing waits once they are back');
+});
+
+// Why: the toast lasts seconds and may show while the judge looks away; the rounds must still come back in this tab,
+// next to any round made since.
+test('after the toast, Settings can put the removed rounds back for the rest of the tab, keeping rounds made since', () => {
+  const rig = startRig({ [CONGRESS_KEY]: JSON.stringify({ v: 1, chambers: [], sessions: [], prefs: { keep: 1 } }) });
+  const congressBefore = rig.local.dump()[CONGRESS_KEY];
+  autoDeleteAtStart(rig.deps);
+  assert.equal(rig.local.dump()[CONGRESS_KEY], congressBefore, 'a value with nothing removed is not rewritten');
+  assert.deepEqual(pendingPutBack(), { rounds: 3, chambers: 0 });
+  const list = JSON.parse(rig.local.dump()[ROOMS_KEY]);
+  rig.local.setItem(ROOMS_KEY, JSON.stringify(list.concat(round('made-later', NOW))));
+  assert.equal(putBackRemoved(rig.deps), true);
+  assert.deepEqual(JSON.parse(rig.local.dump()[ROOMS_KEY]).map((r) => r.id).sort(), ['made-later', 'new', 'open', 'r1', 'r2', 'r3']);
+  assert.equal(putBackRemoved(rig.deps), false, 'a second put back does nothing');
+  autoDeleteAtStart(rig.deps);
+  forgetRemoved();
+  assert.equal(pendingPutBack(), null);
+});
+
+// Why: a round whose ranks are copied and submitted but whose comments are still open is still being written.
+test('a submitted round with ranks copied but comments open is kept', () => {
+  const p = pick({ rooms: [round('r1', ago(400), { state: 'review', ranksCopiedAt: ago(400) })], cards: [card('c1', 'r1', ago(400))], days: 7 });
+  assert.deepEqual(p.roundIds, []);
 });
 
 // Why: a failed save must never leave the judge with half the data gone and no word about it.
@@ -228,7 +253,32 @@ test('autoDeleteAtStart puts the data back when a save fails, and a broken value
   try {
     assert.equal(autoDeleteAtStart(rig.deps), 0);
     assert.deepEqual(JSON.parse(rig.local.dump()[ROOMS_KEY]).length, 5, 'the rounds went back');
+    assert.deepEqual(JSON.parse(rig.local.dump()[CARDS_KEY]).length, 5, 'the cards were never changed');
     assert.equal(rig.ui.toasts.some((t) => t.opts.key === 'auto-delete'), false, 'no "removed" toast');
+    assert.equal(pendingPutBack(), null);
+    // Undo whose cards save fails: the rounds it saved go back out, so no round comes back without its card.
+    const u = startRig();
+    autoDeleteAtStart(u.deps);
+    const set2 = u.local.setItem;
+    u.local.setItem = (k, v) => { if (k === CARDS_KEY) throw new Error('full'); set2(k, v); };
+    assert.equal(putBackRemoved(u.deps), false);
+    assert.deepEqual(JSON.parse(u.local.dump()[ROOMS_KEY]).map((r) => r.id), ['open', 'new'], 'all or nothing');
+    assert.equal(u.ui.toasts.at(-1).opts.kind, 'error');
+    assert.deepEqual(pendingPutBack(), { rounds: 3, chambers: 0 }, 'kept for another try');
+    u.local.setItem = set2;
+    assert.equal(putBackRemoved(u.deps), true, 'the next try works');
+    assert.equal(JSON.parse(u.local.dump()[CARDS_KEY]).length, 5);
+    // Start-up save fails and the rollback fails too: an error toast offers Put back.
+    const f = startRig();
+    const set3 = f.local.setItem;
+    f.local.setItem = (k, v) => { if (k === CARDS_KEY) throw new Error('full'); if (k === ROOMS_KEY && JSON.parse(v).length === 5) throw new Error('full'); set3(k, v); };
+    assert.equal(autoDeleteAtStart(f.deps), 0);
+    const t = f.ui.toasts.at(-1);
+    assert.equal(t.opts.kind, 'error');
+    assert.equal(t.opts.action.label, 'Put back');
+    f.local.setItem = set3;
+    t.opts.action.run();
+    assert.equal(JSON.parse(f.local.dump()[ROOMS_KEY]).length, 5, 'Put back brings them all back');
     const broken = startRig({ [ROOMS_KEY]: '{not json', [CARDS_KEY]: '7' });
     assert.equal(autoDeleteAtStart(broken.deps), 0);
     assert.equal(autoDeleteAtStart({ store: { get() { throw new Error('blocked'); } }, ui: fakeUi(), now: () => NOW }), 0);
@@ -248,9 +298,9 @@ const FULL = {
 // Why: a judge must see what a file holds before a restore replaces everything on the device.
 test('backupSummary lists the days, rounds, chambers, release id and date in a backup', () => {
   const sum = backupSummary(readBackup(backupText(FULL)));
-  assert.deepEqual(sum, { days: 3, rounds: 2, chambers: 1, sessions: 2, release: 'abc1234 2026-05-30', date: '2026-06-01', includesKeys: false });
+  assert.deepEqual(sum, { days: 3, rounds: 2, chambers: 1, sessions: 2, autoDelete: 0, release: 'abc1234 2026-05-30', date: '2026-06-01', includesKeys: false });
   assert.deepEqual(backupSummaryRows(sum).map((r) => r.label + ': ' + r.value), ['Saved on: 2026-06-01', 'Release: abc1234 2026-05-30', 'Days: 3', 'Rounds: 2',
-    'Congress chambers: 1 (2 sessions)', 'Your AI key: Not in the file']);
+    'Congress chambers: 1 (2 sessions)', 'Your AI key: Not in the file', 'Auto-delete in the file: Off (this device keeps its own choice)']);
   const bare = backupSummary(readBackup(JSON.stringify({ app: 'tabula-events', kind: 'backup', version: 1, storage: {} })));
   assert.deepEqual(backupSummaryRows(bare).slice(0, 2).map((r) => r.value), ['Not named in the file', 'Not named in the file'], 'an older file with no release id or date');
   assert.equal(bare.rounds, 0);
@@ -420,4 +470,67 @@ test('Wrap up the season: "Skip the backup" goes to Clear this device and says t
     assert.deepEqual(local.dump(), { 'policyJudge.rounds': '[1]' });
     assert.ok(rig.ui.toasts.find((t) => t.opts.key === 'clear' && t.opts.action), 'the existing Clear this device Undo is there');
   });
+});
+
+// Why: an old backup with auto-delete on must not quietly remove the rounds it just brought back; a cleared or
+// replaced device must never get auto-deleted rounds back.
+test('restore keeps this device\'s auto-delete choice, and Restore or Clear forget the rounds waiting to go back', async () => {
+  const before = { [ROOMS_KEY]: '[]' };
+  const local = memStorage(before);
+  const rig = screenRig(local);
+  await rig.pickFile(backupText(Object.assign({}, FULL, { [LIFETIME_KEY]: '{"days":7}' })));
+  assert.ok(rig.html.includes('<dt>Auto-delete in the file</dt><dd>7 days (this device keeps its own choice)</dd>'));
+  const s = startRig();
+  autoDeleteAtStart(s.deps);
+  assert.ok(pendingPutBack());
+  rig.ui.answers.push(true);
+  await rig.click('set-check-restore');
+  assert.equal(local.dump()[LIFETIME_KEY], undefined, 'the file\'s 7 days did not come in');
+  assert.equal(pendingPutBack(), null, 'restore forgets the removed rounds');
+  // With a choice on the device, the device's choice stays.
+  const l2 = memStorage({ [LIFETIME_KEY]: '{"days":90}' });
+  const r2 = screenRig(l2);
+  await r2.pickFile(backupText(Object.assign({}, FULL, { [LIFETIME_KEY]: '{"days":7}' })));
+  r2.ui.answers.push(true);
+  await r2.click('set-check-restore');
+  assert.equal(l2.dump()[LIFETIME_KEY], '{"days":90}');
+  // Clear this device forgets them too.
+  const s2 = startRig();
+  autoDeleteAtStart(s2.deps);
+  const r3 = screenRig(memStorage({}));
+  r3.ui.answers.push('clear');
+  await r3.click('set-clear');
+  assert.equal(pendingPutBack(), null);
+});
+
+// Why: the page reads the AI key once at load; an Undo that changes the key must reload, or the page keeps a stale key.
+test('restoring a backup with an AI key, then Undo, reloads the page', async () => {
+  const KEY = 'tabulaEvents.aiKeys.v1';
+  const before = { [ROOMS_KEY]: '[]' };
+  const local = memStorage(before);
+  const rig = screenRig(local);
+  await rig.pickFile(backupText(Object.assign({}, FULL, { [KEY]: '{"anthropic":"k"}' }), { includeKeys: true }));
+  assert.ok(rig.html.includes('<dt>Your AI key</dt><dd>In the file</dd>'));
+  rig.ui.answers.push(true);
+  await rig.click('set-check-restore');
+  assert.equal(local.dump()[KEY], '{"anthropic":"k"}');
+  const prevLoc = globalThis.location;
+  let reloaded = 0;
+  globalThis.location = { reload: () => { reloaded++; } };
+  try { rig.ui.toasts.find((t) => t.msg === 'Backup restored.').opts.action.run(); } finally { globalThis.location = prevLoc; }
+  assert.equal(reloaded, 1);
+  assert.deepEqual(local.dump(), before);
+});
+
+// Why: after the toast is gone, the judge needs a plain way back in Settings.
+test('Settings shows "Put them back" while removed rounds wait, and it brings them back', () => {
+  const s = startRig();
+  autoDeleteAtStart(s.deps);
+  const rig = screenRig(s.local);
+  assert.match(rig.html, /3 old rounds removed when the app started\.<\/span><button class="b" type="button" id="set-putback">Put them back<\/button>/);
+  rig.click('set-putback');
+  assert.equal(JSON.parse(s.local.dump()[ROOMS_KEY]).length, 5);
+  assert.equal(rig.reloads, 1);
+  assert.doesNotMatch(rig.html, /set-putback/);
+  assert.equal(AUTO_DELETE_TOAST_KEY, 'auto-delete');
 });
