@@ -217,3 +217,49 @@ test('a link button draws as a quiet line in a dialog without the choices varian
   link.click();
   assert.equal(await p, 'more');
 });
+
+// ---------- ask() radios (the format for a new round, docs/design/FORMAT-PICK.md §3) ----------
+const NEW_ROUND = {
+  title: 'Start a new round?', body: 'This clears the flow.', cancelValue: false,
+  radios: { legend: 'Format for the new round', name: 'nr', value: 'ld', options: [{ value: 'policy-hs', label: 'Policy' }, { value: 'ld', label: 'Lincoln-Douglas' }] },
+  buttons: [{ label: 'Cancel', value: false, kind: 'plain' }, { label: 'Clear and start new', value: true, kind: 'danger' }],
+};
+const radiosOf = (doc) => {
+  const fs = doc.byId['ask-body'].children.find((c) => c.className === 'ask-radios');
+  return fs ? fs.children.filter((c) => c.tagName === 'LABEL').map((l) => l.children[0]) : [];
+};
+
+// Why: "New round" is where a judge changes format for a new tournament or event. If the dialog dropped the group or
+// lost the pick, the new round would quietly start in the old format, the carry-over problem the owner reported.
+test('ask() radios: the group shows with the current pick, and the button gives { value, choice }', async () => {
+  const { UI, doc } = loadUI();
+  const p = UI.ask(NEW_ROUND); await tick();
+  const radios = radiosOf(doc);
+  assert.deepEqual(radios.map((r) => [r.type, r.value, r.checked]), [['radio', 'policy-hs', false], ['radio', 'ld', true]]);
+  assert.equal(doc.byId['ask-body'].children.find((c) => c.className === 'ask-radios').children[0].textContent, 'Format for the new round');
+  radios[1].checked = false; radios[0].checked = true; // the judge picks Policy
+  doc.byId['ask-btns'].children[1].click();
+  // The object comes from the fake page's own realm, so compare its plain fields.
+  assert.deepEqual(JSON.parse(JSON.stringify(await p)), { value: true, choice: 'policy-hs' });
+});
+
+// Why: a caller tests the cancel value first. If Cancel, Esc or × came back as an object, "if (!res)" would be false
+// and Cancel would clear the round.
+test('ask() radios: Cancel, Esc and × still give the plain cancelValue', async () => {
+  for (const close of ['cancel', 'esc', 'x']) {
+    const { UI, doc, key } = loadUI();
+    const p = UI.ask(NEW_ROUND); await tick();
+    if (close === 'cancel') doc.byId['ask-btns'].children[0].click();
+    else if (close === 'esc') key('Escape'); else doc.byId['ask-x'].click();
+    assert.equal(await p, false, close);
+  }
+});
+
+// Why: a dialog without radios must behave exactly as before; every other ask() caller tests for a plain value.
+test('ask() without radios draws no group and returns the plain button value', async () => {
+  const { UI, doc } = loadUI();
+  const p = UI.ask({ title: 'T', buttons: [{ label: 'OK', value: 'ok', kind: 'primary' }] }); await tick();
+  assert.equal(radiosOf(doc).length, 0);
+  doc.byId['ask-btns'].children[0].click();
+  assert.equal(await p, 'ok');
+});

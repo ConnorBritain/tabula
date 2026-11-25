@@ -125,6 +125,25 @@
   // Full prep for every clock: { aff: 480, neg: 480 } or { Aff: 240, Neg: 240 }.
   const fullPrep = (fmt, seconds) => Object.fromEntries(prepClocks(fmt).map((c) => [c.id, seconds]));
 
+  // ---------- the names a judge sees (docs/design/FORMAT-PICK.md §2) ----------
+  // One naming rule: the plain event name, with no abbreviation and no level ("Lincoln-Douglas", not "Lincoln-Douglas
+  // (LD)" or "LD HS"). A level word is added only when two formats share a name ("Policy (college)"). The names are copy,
+  // so they live here and not in the frozen format files; a file's own `name` ("Lincoln-Douglas (LD)") is only the
+  // fallback for a format with no entry. short: the narrow header chip. It is the file's ai.abbr (LD, PF) unless set
+  // here; policy sets it, because its abbr "CX" is also the word for cross-examination. blurb: one line in the pick.
+  const LABELS = {
+    'policy-hs': { full: 'Policy', short: 'Policy', blurb: 'Two debaters per side. Eight speeches with cross-ex.' },
+    ld: { full: 'Lincoln-Douglas', blurb: 'One debater per side. Value and criterion.' },
+    pf: { full: 'Public Forum', blurb: 'Two debaters per side. A coin flip picks who speaks first.' },
+  };
+  // labelOf(fmt) -> 'Lincoln-Douglas'; labelOf(fmt, 'short') -> 'LD'; labelOf(fmt, 'blurb') -> the one-line summary.
+  function labelOf(fmt, kind = 'full') {
+    const own = LABELS[fmt.id] || {};
+    if (kind === 'short') return own.short || (fmt.ai && fmt.ai.abbr) || own.full || fmt.name;
+    if (kind === 'blurb') return own.blurb || '';
+    return own.full || fmt.name;
+  }
+
   // ---------- example wording per format ----------
   // Hints and examples in shared places (the Resolution box, the ballot box, the reading level, the live flow) that
   // name things only one format has ("plan", "the 1A"). They are copy, not rules, so they live here and not in the
@@ -171,7 +190,7 @@
   }
 
   const api = { FORMAT_FILES: FILES, FORMAT_IDS, DEFAULT_FORMAT_ID, OLD_ROUND, getFormat, formatOf, formatKnown, formatFields,
-    formatFromSearch, speechOf, columnOf, speakerOf, speechSpeakers, sideLabel, isCoinFlip, speakersOn, speakerTag, speakerName, prepClocks, fullPrep, formatCopy,
+    formatFromSearch, labelOf, speechOf, columnOf, speakerOf, speechSpeakers, sideLabel, isCoinFlip, speakersOn, speakerTag, speakerName, prepClocks, fullPrep, formatCopy,
     POLICY: getFormat('policy-hs', 1) };
   if (isNode) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).format = api;
