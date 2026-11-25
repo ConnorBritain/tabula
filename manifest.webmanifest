@@ -1,0 +1,14 @@
+{
+  "name": "Tabula Debate",
+  "short_name": "Tabula",
+  "description": "A free judging tool for high school debate: timers, flows and ballots.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f5f7",
+  "theme_color": "#16191d",
+  "icons": [
+    { "src": "assets/tabula-icon-64.png", "sizes": "64x51", "type": "image/png" },
+    { "src": "assets/tabula-mark-black.png", "sizes": "990x800", "type": "image/png", "purpose": "any" }
+  ]
+}
