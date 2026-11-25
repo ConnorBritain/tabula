@@ -16,3 +16,7 @@
 # version.json names the commit this build came from. Never cached, so a check right after a deploy reads the new one.
 /version.json
   Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+
+# The service worker: the browser must see each new release at once.
+/sw.js
+  Cache-Control: no-cache

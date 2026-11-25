@@ -57,12 +57,18 @@ test('ships no tests, READMEs, dotfiles, dev scripts, prototype or fixtures', ()
 
 // Why: the events host must stay its own product; if debate app files shipped there, judges would see the wrong tool and the debate app's settings could clash with the events page on one host.
 test('ships no debate-only app files', () => {
-  // Names both apps use (_headers, index.html, core/, assets/, js/) are checked by source below, not by name.
-  const shared = ['_headers', 'index.html', 'core', 'assets', 'js'];
+  // Names both apps use (_headers, index.html, core/, assets/, js/, and each app's own sw.js and manifest.webmanifest)
+  // are checked by source below, not by name.
+  const shared = ['_headers', 'index.html', 'core', 'assets', 'js', 'sw.js', 'manifest.webmanifest'];
   const debateOnly = APP_ALLOW.filter((n) => !shared.includes(n));
   assert.deepEqual(files.filter((f) => debateOnly.some((n) => f === n || f.startsWith(n + '/'))), []);
   // Every shipped js/ file is the events page's own (events/js/), never the debate app's root js/.
   assert.deepEqual(files.filter((f) => f.startsWith('js/') && !existsSync(join(ROOT, 'events', f))), []);
+  // The shipped service worker and manifest are the events page's own (events/), never the debate app's root copies.
+  for (const f of ['sw.js', 'manifest.webmanifest']) {
+    if (files.includes(f)) assert.equal(readFileSync(join(out, f), 'utf8'), readFileSync(join(ROOT, 'events', f), 'utf8'), f + ' is not the events copy');
+  }
+  assert.ok(files.includes('sw.js'), 'the events service worker ships');
   assert.match(readFileSync(join(out, 'index.html'), 'utf8'), /<title>Tabula Speech Events<\/title>/);
   for (const f of ['about.html', 'app.js', 'logic.js', 'providers.js', 'tour.js', 'assets/tokens.css', 'assets/brand.js']) assert.ok(!files.includes(f), f);
 });
