@@ -4,13 +4,13 @@
 // This is a Workers assets project on a route, not the Pages project with a custom
 // domain that docs/architecture/MARKETING-SITE.md §6 describes: a route needs no DNS change.
 //
-// The route debate.tabulaspeech.com/* sends pages here. The tabula-cloud Worker's
+// The route debate.tabulaspeech.com/* sends pages here. The server Worker's
 // route debate.tabulaspeech.com/api/v1/* is more specific, so the API stays there.
 // The proxied placeholder DNS record for debate.tabulaspeech.com stays as it is.
 //
-// Staging (tabula-cloud docs/DEPLOY.md "Staging site"): debate.tabulaspeech.dev, behind Cloudflare Access.
+// Staging (the server's deploy notes, "Staging site"): debate.tabulaspeech.dev, behind Cloudflare Access.
 // Deploy: npx wrangler deploy -c wrangler.app.jsonc --env staging
-// It is a custom domain, so the deploy makes its DNS record and certificate. tabula-cloud-staging's route
+// It is a custom domain, so the deploy makes its DNS record and certificate. The staging server Worker's route
 // debate.tabulaspeech.dev/api/v1/* still wins for the API (a route beats a custom domain, as on tabulaspeech.com).
 {
   "name": "tabula-app",

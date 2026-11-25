@@ -1,5 +1,5 @@
 // Tests for the Tabula account in the app (roles plan step 3): "Judging for" and the account paradigm.
-// Spec: tabula-cloud docs/ACCOUNTS-AND-ROLES.md §5a, §6 and §9 step 3; docs/APP-CLIENT-PROPOSAL.md §3 and §3c.
+// Spec: the server's accounts and roles plan (step 3) and the server API's app client contract.
 // Run with: node --test
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -106,7 +106,7 @@ test('judgingLocked: open before the first speech clock runs, locked after', () 
   assert.equal(L.judgingLocked(null), false);
 });
 
-// Why: the server picks the school's policy and pool from programId on each hosted call (APP-CLIENT-PROPOSAL §3). It must
+// Why: the server picks the school's policy and pool from programId on each hosted call (per the server API's app client contract). It must
 // come from the round's choice, with null for "Just me", and a call must never be able to send another school.
 test('hostedAiBody: roundId and programId always come from the round', () => {
   const call = { callId: 'c1', format: 'policy-hs', programId: ID_B, roundId: 'other', state: { speech: '1AC' } };
