@@ -7,16 +7,18 @@ import { familyOf } from '../js/data.js';
 
 // The three kinds of starter: the two comment rows and the reason for rank.
 export const STARTER_KINDS = Object.freeze(['strength', 'toWork', 'reason']);
-export const STARTER_TITLE = Object.freeze({ strength: 'Strength', toWork: 'To work on', reason: 'Sentence starters' });
-// (The reason row sits right under its own "Reason for rank" label, so its title does not repeat it.)
+// The row titles differ from the sheet's own "Strengths" and "To work on" chip rows (those mark a whole sentence; these
+// start one), so the two never sound alike to a screen reader. The reason row sits right above its own "Reason for
+// rank" label, so its title does not repeat it.
+export const STARTER_TITLE = Object.freeze({ strength: 'Start a strength', toWork: 'Start a tip', reason: 'Sentence starters' });
 
 // The starter set for an event file (a v1 or v2 def, a Custom event, or a Congress chamber): its key in
 // starters.json. The workspace family picks it (data.js familyOf); the F1 family splits into interp and platform.
+// The congress set is data only for now: the Congress screens do not mount the kit yet.
 export function starterSetKey(def) {
   if (!def) return 'general';
   if (def.family === 'congress' || def.category === 'congress') return 'congress';
-  let fam = '';
-  try { fam = familyOf(def); } catch { fam = ''; }
+  const fam = familyOf(def);
   if (fam === 'f4') return 'twoRuns';
   if (fam === 'f2' || fam === 'f3') return 'limitedPrep';
   if (fam === 'f1') return def.category === 'interp' ? 'interp' : 'platform';
@@ -128,7 +130,6 @@ export const hitKeys = (hits) => [...new Set(hits.map((h) => h.term.toLowerCase(
 
 // The note's words (plain, grade 6). The judge-facing text lives here, so a test can read it.
 export const NOTE_TEXT = 'Is this about the performance? Comments about how a student looks or who they are can hurt.';
-export const NOTE_HELP = 'Edit or keep.';
 
 // ---------- Length note ----------
 

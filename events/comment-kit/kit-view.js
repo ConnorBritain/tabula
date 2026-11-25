@@ -42,12 +42,32 @@ const NOTE_STYLE = 'margin-top:var(--s2);padding:var(--s2) var(--s3);border:1px 
 // "Keep" per comment: the hit words the judge chose to keep, by box key. The note comes back only for a new word.
 // It lives for the page visit (memory only); a reload asks again.
 const kept = new Map();
+// The hit words last announced, by box key, so a redraw of the screen does not read the same note out again.
+const told = new Map();
 let startersOpen = true; // the fold, for this page visit
+// How long after the box loses focus a new note shows: the tap that took the focus lands first, so the note never
+// moves a button (Private note, Flag, Next speaker) out from under the judge's finger.
+const BLUR_WAIT = 400;
+
+// A message for screen readers through the page's one status line (#sr-status), the same way core/ui.js announce
+// does: clear it, then set it, so the same words are read again when they come back.
+function announce(doc, text) {
+  const r = doc.getElementById('sr-status');
+  if (!r) return;
+  r.textContent = '';
+  setTimeout(() => { r.textContent = text; }, 60);
+}
+// Add or take out one id in an aria-describedby list, keeping the ids already there (the prompts list).
+function describedBy(box, id, on) {
+  const ids = (box.getAttribute('aria-describedby') || '').split(/\s+/).filter((x) => x && x !== id);
+  if (on) ids.push(id);
+  if (ids.length) box.setAttribute('aria-describedby', ids.join(' ')); else box.removeAttribute('aria-describedby');
+}
 
 // Attach the kit to one text box. key: the "Keep" key; startersBefore: the element the starters go in front of (the
-// box's label), else the box; startersHtml: the starters ('' for none).
+// box's label), else the box; startersHtml: the starters ('' for none). Returns update(done), or null.
 function attach(box, def, key, startersBefore, startersHtml) {
-  if (!box || box.dataset.kit) return;
+  if (!box || box.dataset.kit) return null;
   box.dataset.kit = '1';
   const doc = box.ownerDocument;
   const make = (html) => { const t = doc.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
@@ -55,26 +75,27 @@ function attach(box, def, key, startersBefore, startersHtml) {
   if (starters) (startersBefore || box).before(starters);
   const nid = (box.id || 'box') + '-kit-note';
   const note = make(`<div class="kit-note" id="${esc(nid)}" hidden style="${NOTE_STYLE}"></div>`);
-  const live = make(`<p class="sr-only" role="status" aria-live="polite"></p>`);
   const count = make(`<p class="field-help kit-count" hidden></p>`);
-  box.after(note, live, count);
+  box.after(note, count);
 
   let shown = []; // the hits the note names now
-  function update(done) {
+  // done: the judge left the box (a word at the end counts); first: the screen just drew the box (no announcement).
+  function update(done, first) {
     const text = box.value;
     const hits = settledHits(text, done);
     const keys = hitKeys(hits);
     const keep = new Set(kept.get(key) || []);
     const show = keys.some((k) => !keep.has(k));
-    const was = !note.hidden;
     shown = show ? hits : [];
     // Redraw only when the words change: a blur comes just before a tap on Edit or Keep, and a redraw then would
     // swap the button under the judge's finger and lose the tap.
     const html = show ? noteHtml(text, hits) : '';
     if (show && html !== note.dataset.html) { note.innerHTML = html; note.dataset.html = html; }
     note.hidden = !show;
-    if (show && !was) live.textContent = 'Check this comment. ' + NOTE_TEXT;
-    if (!show && was) live.textContent = '';
+    describedBy(box, nid, show);
+    const said = show ? keys.join('|') : '';
+    if (!first && said && told.get(key) !== said) announce(doc, 'Check this comment. ' + NOTE_TEXT);
+    told.set(key, said);
     const len = lengthNote(text);
     count.textContent = len;
     count.hidden = !len;
@@ -116,8 +137,9 @@ function attach(box, def, key, startersBefore, startersHtml) {
   }
   note.addEventListener('click', onNote);
   box.addEventListener('input', () => update(false));
-  box.addEventListener('blur', () => { box.dataset.kitCursor = String(box.selectionStart); update(true); });
-  update(true);
+  box.addEventListener('blur', () => { box.dataset.kitCursor = String(box.selectionStart); setTimeout(() => update(true), BLUR_WAIT); });
+  update(true, true);
+  return update;
 }
 
 // The comment sheet (comment-view.js). sheet: the #sheet element; def: the room's event file; entryId: the speaker.
@@ -125,7 +147,10 @@ export function mountCommentKit(sheet, def, entryId) {
   if (!sheet) return;
   const box = sheet.querySelector('#notes');
   if (!box) return;
-  attach(box, def, 'notes:' + (entryId || ''), sheet.querySelector('label[for="notes"]'), sheetStartersHtml(def, startersOpen));
+  const update = attach(box, def, 'notes:' + (entryId || ''), sheet.querySelector('label[for="notes"]'), sheetStartersHtml(def, startersOpen));
+  // A Strengths or To work on chip writes a sentence into the box without an input event (comments.js tapChip). This
+  // listener runs after the sheet's own click handler, so the note and the count follow the new text.
+  if (update) sheet.addEventListener('click', (ev) => { if (ev.target.closest('[data-cact="chip"]')) update(true); });
 }
 
 // The reason for rank (rank-screen.js). box: the reason text box; key: one per room.

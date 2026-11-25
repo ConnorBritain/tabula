@@ -91,6 +91,8 @@ test('the starter rows draw each starter as a button with "…", escaped, and no
   assert.match(html, /Your main point was clear when…/);
   assert.match(html, /role="group" aria-labelledby="kit-strength"/);
   assert.equal(starterRowHtml(null, 'nope', 'kit'), '');
+  assert.match(html, />Start a strength</, 'not the same title as the sheet\'s own "Strengths" chips');
+  assert.match(starterRowHtml(null, 'toWork', 'kit'), />Start a tip</, 'not the same title as the sheet\'s own "To work on" chips');
   const sheet = sheetStartersHtml(DATA.events.get('di'), true);
   assert.match(sheet, /<details class="fold kit-starters" open>/);
   assert.match(sheet, /Sentence starters/);
@@ -131,7 +133,7 @@ test('body: words about a student\'s body get the note', () => {
   for (const t of ['You might want to lose weight.', 'You are so skinny.', 'You\'re short, so stand on a step.', 'Your legs were shaking.']) assert.deepEqual(cats(t), ['body'], t);
 });
 test('clothes: words about what a student wore get the note', () => {
-  for (const t of ['Nice outfit!', 'Your skirt was too short.', 'You were well dressed today.', 'Your tie was crooked.']) assert.deepEqual(cats(t), ['clothes'], t);
+  for (const t of ['Your outfit was nice!', 'Your skirt was too short.', 'You were well dressed today.', 'Your tie was crooked.']) assert.deepEqual(cats(t), ['clothes'], t);
 });
 test('voice type: words about the student\'s own voice get the note', () => {
   for (const t of ['Your squeaky voice was hard to hear.', 'You sound so nasally.', 'Your stutter got in the way.', 'Your whiny voice did not help.']) assert.deepEqual(cats(t), ['voiceType'], t);
@@ -180,6 +182,9 @@ test('normal performance words do not set off the note', () => {
     'Your thick accent work for the old man was steady.',
     'The narrator\'s nasal voice was a smart choice.',
     'Your posture was strong and your projection was great.',
+    // A neutral note on a league dress rule: clothes words count only with "your".
+    'Outfit and clothes were within the dress code; no jewelry or skirt issue.',
+    'The ending felt a bit flat; add one more beat.',
   ];
   for (const t of ok) assert.deepEqual(checkComment(t), [], t);
 });
@@ -234,6 +239,33 @@ test('the length note is a quiet count from a long comment on, with no limit', (
   assert.equal(lengthNote('x'.repeat(LONG_AT - 1)), '');
   assert.equal(lengthNote('x'.repeat(LONG_AT)), LONG_AT + ' characters');
   assert.equal(lengthNote('x'.repeat(12345)), '12,345 characters');
+});
+
+// ---------- The note never blocks ----------
+
+// Why: the check only warns; if a flagged word could hold back the ranks or the copy, a judge with a fair comment
+// that trips the list ("dull ending") could not finish the ballot the tab room is waiting for.
+test('a flagged comment never blocks ranking, review or copy: the ballot checks read the same with or without a hit', async () => {
+  const { createRoom } = await import('../js/room.js');
+  const { ranksProblems, checklist, cards, statusText } = await import('../js/ballot.js');
+  const make = (text) => {
+    const r = createRoom({ event: DATA.events.get('oo'), profile: DATA.profiles.get('nsda-district'), entries: [{ code: 'A1' }, { code: 'B2' }], now: 1, makeId: ((n) => (p) => p + n++)(1) });
+    return Object.assign({}, r, { reasonForRank: text, entries: r.entries.map((e, i) => Object.assign({}, e, { status: 'done', rank: i + 1, notes: text })) });
+  };
+  const kind = 'The ending was dull and a bit embarrassing.';
+  const plain = 'The ending was quiet and a bit rushed.';
+  assert.ok(checkComment(kind).length >= 2 && checkComment(plain).length === 0);
+  const a = make(kind), b = make(plain);
+  assert.deepEqual(ranksProblems(a), ranksProblems(b));
+  assert.deepEqual(JSON.parse(JSON.stringify(checklist(a))), JSON.parse(JSON.stringify(checklist(b))));
+  assert.equal(statusText(a), statusText(b));
+  assert.equal(cards(a).length, cards(b).length);
+  // The kit itself never stops an action or turns a control off, and only the two hooked screens load it.
+  const view = read('kit-view.js');
+  assert.doesNotMatch(view, /preventDefault|stopPropagation|\.disabled\b|setAttribute\('disabled'/);
+  const { readdirSync } = await import('node:fs');
+  const users = readdirSync(new URL('../js/', import.meta.url)).filter((f) => f.endsWith('.js') && read('../js/' + f).includes('comment-kit/'));
+  assert.deepEqual(users.sort(), ['comment-view.js', 'rank-screen.js']);
 });
 
 // ---------- The hooks stay small ----------

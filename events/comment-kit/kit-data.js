@@ -182,7 +182,7 @@ export const STARTERS = {
 };
 export const WORDS = {
   "version": 1,
-  "note": "Words for the performance check. When a comment holds one of these, a calm note asks the judge to check it. It warns and never blocks. A term is a word or a short phrase, matched as whole words, in any letter case. A term can be an object: unlessPrev and unlessNext are words that, right before or right after it, mean it is not a hit (for example 'not bad', 'the bad guy'). A category with roleSafe true is skipped in a sentence that names a role (roleWords), so 'a squeaky voice for the mouse character' or 'the accent work for each role' is not a hit. When a word is often used for the performance, it is left out: when unsure, do not flag. events/comment-kit/kit-data.js is built from this file: run node events/comment-kit/build-data.mjs after a change.",
+  "note": "Words for the performance check. When a comment holds one of these, a calm note asks the judge to check it. It warns and never blocks. A term is a word or a short phrase, matched as whole words, in any letter case. A term can be an object: unlessPrev and unlessNext are words that, right before or right after it, mean it is not a hit (for example 'not bad', 'the bad guy'). A category with roleSafe true is skipped in a sentence that names a role (roleWords), so 'a squeaky voice for the mouse character' or 'the accent work for each role' is not a hit. When a word is often used for the performance, it is left out: when unsure, do not flag. Clothes words count only with \"your\" (\"your outfit\"), so a neutral note on a league dress rule (\"outfit within the dress code\") is not a hit. events/comment-kit/kit-data.js is built from this file: run node events/comment-kit/build-data.mjs after a change.",
   "roleWords": [
     "character",
     "characters",
@@ -272,10 +272,10 @@ export const WORDS = {
       "label": "clothes",
       "roleSafe": true,
       "terms": [
-        "outfit",
-        "outfits",
-        "clothes",
-        "clothing",
+        "your outfit",
+        "your outfits",
+        "your clothes",
+        "your clothing",
         "your dress",
         "your skirt",
         "your shirt",
@@ -292,14 +292,12 @@ export const WORDS = {
         "nicely dressed",
         "dressed nicely",
         "poorly dressed",
-        "dressed up",
-        "skirt",
-        "neckline",
-        "jewelry",
-        "earrings",
-        "nail polish",
-        "tattoo",
-        "tattoos"
+        "your neckline",
+        "your jewelry",
+        "your earrings",
+        "your nail polish",
+        "your tattoo",
+        "your tattoos"
       ]
     },
     {
