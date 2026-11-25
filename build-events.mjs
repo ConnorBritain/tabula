@@ -26,7 +26,12 @@ export const ALLOW = [
   'events/js', 'events/congress', 'events/defs', 'events/profiles', 'events/prompts',
   'core',
   'assets/theme-boot.js', 'assets/fonts',
+  'events/manifest.webmanifest', 'events/icons',
 ];
+
+// Allowed paths that may not exist yet (the install manifest and its icons). They are copied when present. Whether
+// they are needed is checked the same way as every other file: if the page links them, they must be in the output.
+export const OPTIONAL = new Set(['events/manifest.webmanifest', 'events/icons']);
 
 // Never ship these, even inside an allowed folder. Paths are repo paths with forward slashes.
 // core/package.json only tells Node that core/ holds ES modules; the page does not need it.
@@ -51,7 +56,10 @@ export function build(out = join(ROOT, 'dist', 'events'), allow = ALLOW) {
   mkdirSync(out, { recursive: true });
   for (const name of allow) {
     const src = join(ROOT, name);
-    if (!existsSync(src)) throw new Error(`build-events: allowed file is missing: ${name}`);
+    if (!existsSync(src)) {
+      if (OPTIONAL.has(name)) continue;
+      throw new Error(`build-events: allowed file is missing: ${name}`);
+    }
     cpSync(src, join(out, outPath(name)), {
       recursive: true,
       filter: (p) => !skip(posix(relative(ROOT, p))),
@@ -80,10 +88,27 @@ export function pageRefs(html) {
   return refs.filter((r) => !/^[a-z][a-z0-9+.-]*:|^\/\/|^#/i.test(r)).map((r) => toOut(r, 'index.html'));
 }
 
-/** Every output path the page links to or the worker caches that the output does not have. */
+/** The output paths of the web manifests index.html links (rel="manifest"). */
+export function manifestLinks(html) {
+  const tags = html.match(/<link\b[^>]*>/gi) || [];
+  return tags.filter((t) => /\brel\s*=\s*["']manifest["']/i.test(t))
+    .map((t) => (t.match(/\bhref\s*=\s*["']([^"']+)["']/i) || [])[1]).filter(Boolean).map((r) => toOut(r, 'index.html'));
+}
+
+/** The icon files a web manifest names, as output paths (each src is relative to the manifest). */
+export function manifestIcons(json, manifestPath) {
+  const m = JSON.parse(json);
+  return (m.icons || []).map((i) => i && i.src).filter((r) => r && !/^[a-z][a-z0-9+.-]*:|^\/\//i.test(r)).map((r) => toOut(r, manifestPath));
+}
+
+/** Every output path the page links to, its manifest names, or the worker caches, that the output does not have. */
 export function missingRefs(out) {
+  const html = readFileSync(join(out, 'index.html'), 'utf8');
+  const manifests = manifestLinks(html);
+  const icons = manifests.filter((m) => existsSync(join(out, m))).flatMap((m) => manifestIcons(readFileSync(join(out, m), 'utf8'), m));
   const need = [
-    ...pageRefs(readFileSync(join(out, 'index.html'), 'utf8')),
+    ...pageRefs(html),
+    ...icons,
     ...swFiles(readFileSync(join(out, 'sw-files.js'), 'utf8')).map((p) => toOut(p, 'sw.js')),
   ];
   return [...new Set(need)].filter((p) => { const f = join(out, p); return !(existsSync(f) && statSync(f).isFile()); });

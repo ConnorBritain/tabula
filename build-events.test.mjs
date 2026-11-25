@@ -5,7 +5,7 @@ import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
-import { ALLOW, build, listFiles, outPath, swFiles, pageRefs } from './build-events.mjs';
+import { ALLOW, OPTIONAL, build, listFiles, outPath, swFiles, pageRefs, manifestLinks, manifestIcons } from './build-events.mjs';
 import { ALLOW as APP_ALLOW } from './build-app.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -42,6 +42,9 @@ test('every file sw-files.js lists is in the output', () => {
 // Why: the host is public. Only what the page loads may ship; anything else (drafts of unpublished league rules, tests, notes, dev scripts) would go on the open web the moment someone added it to an allowed folder.
 test('ships only the files the page loads, plus the worker files, the headers and the font licence', () => {
   const extras = new Set(['sw.js', 'sw-files.js', '_headers', 'assets/fonts/LICENSE.txt']);
+  // The install manifest the page links, and every icon it names (some are read only at install, so not cached).
+  const html = readFileSync(join(out, 'index.html'), 'utf8');
+  for (const m of manifestLinks(html)) { extras.add(m); for (const i of manifestIcons(readFileSync(join(out, m), 'utf8'), m)) extras.add(i); }
   assert.deepEqual(files.filter((f) => !cached.includes(f) && !extras.has(f)), []);
 });
 
@@ -75,4 +78,24 @@ test('ships the security headers file at the root', () => {
   const h = readFileSync(join(out, '_headers'), 'utf8');
   assert.match(h, /Content-Security-Policy: default-src 'self'; script-src 'self';/);
   assert.match(h, /Strict-Transport-Security: max-age=31536000; includeSubDomains/);
+});
+
+// Why: an installed app shows the icons its manifest names; if one were left out of the build, judges who add the page to their home screen would get a blank or broken icon.
+test('reads the manifest the page links and the icons it names, relative to the manifest', () => {
+  const html = '<link rel="stylesheet" href="app.css"><link rel="manifest" href="manifest.webmanifest"><link href="x.json" rel="manifest">';
+  assert.deepEqual(manifestLinks(html), ['manifest.webmanifest', 'x.json']);
+  const json = JSON.stringify({ icons: [{ src: 'icons/a.png' }, { src: '../b.png' }, { src: 'https://cdn.test/c.png' }, {}] });
+  assert.deepEqual(manifestIcons(json, 'manifest.webmanifest'), ['icons/a.png', 'b.png']);
+  assert.deepEqual(manifestIcons(json, 'm/manifest.json'), ['m/icons/a.png', 'b.png']);
+  // Every icon the shipped manifest names (when the page has one) is in the output.
+  for (const m of manifestLinks(readFileSync(join(out, 'index.html'), 'utf8'))) {
+    assert.ok(files.includes(m), m);
+    assert.deepEqual(manifestIcons(readFileSync(join(out, m), 'utf8'), m).filter((i) => !files.includes(i)), []);
+  }
+});
+
+// Why: the manifest and icons are optional only while the page does not link them; once it does, a build without them must fail rather than ship a broken install.
+test('optional paths are only the manifest and its icons', () => {
+  assert.deepEqual([...OPTIONAL].sort(), ['events/icons', 'events/manifest.webmanifest']);
+  for (const o of OPTIONAL) assert.ok(ALLOW.includes(o), o);
 });

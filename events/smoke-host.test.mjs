@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  headerProblems, revalidates, swFileList, fileUrls, typeProblem, redirectProblem, checksForensics, requestHeaders, PROD,
+  headerProblems, revalidates, manifestTypeProblem, swFileList, fileUrls, typeProblem, redirectProblem, checksForensics, requestHeaders, PROD,
 } from './smoke-host.mjs';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
@@ -47,7 +47,7 @@ test('the headers turn the microphone off and block framing', () => {
 
 // Why: if the page or the worker files were cached by the browser, a judge would keep an old release after a fix.
 test('the page, sw.js and sw-files.js are no-cache', () => {
-  for (const p of ['/', '/index.html', '/sw.js', '/sw-files.js']) assert.equal(headersFor(p)['Cache-Control'], 'no-cache', p);
+  for (const p of ['/', '/index.html', '/sw.js', '/sw-files.js', '/manifest.webmanifest']) assert.equal(headersFor(p)['Cache-Control'], 'no-cache', p);
   assert.ok(revalidates('no-cache') && revalidates('public, max-age=0, must-revalidate'));
   assert.ok(!revalidates('public, max-age=14400') && !revalidates(null));
 });
@@ -93,4 +93,11 @@ test('requestHeaders sends the Access token only when both parts are set', () =>
   assert.deepEqual(requestHeaders({}), {});
   assert.deepEqual(requestHeaders({ CF_ACCESS_CLIENT_ID: 'a' }), {});
   assert.deepEqual(requestHeaders({ CF_ACCESS_CLIENT_ID: 'a', CF_ACCESS_CLIENT_SECRET: 'b' }), { 'CF-Access-Client-Id': 'a', 'CF-Access-Client-Secret': 'b' });
+});
+
+// Why: browsers ignore an install manifest served with the wrong type, so judges could not add the page to their home screen.
+test('the manifest is served as application/manifest+json', () => {
+  assert.equal(headersFor('/manifest.webmanifest')['Content-Type'], 'application/manifest+json');
+  assert.equal(manifestTypeProblem('https://h.test/manifest.webmanifest', 'application/manifest+json; charset=utf-8'), null);
+  assert.match(manifestTypeProblem('https://h.test/manifest.webmanifest', 'text/html'), /expected application\/manifest\+json/);
 });

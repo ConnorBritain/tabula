@@ -9,7 +9,7 @@
 // Exit code 0 = all good, 1 = a problem (each one is printed).
 // The pure helpers below are unit-tested in smoke-host.test.mjs; only main() touches the network.
 import { fileURLToPath } from 'node:url';
-import { swFiles } from '../build-events.mjs';
+import { swFiles, manifestLinks, manifestIcons } from '../build-events.mjs';
 
 export const PROD = 'https://events.tabulaspeech.com';
 export const FORENSICS = 'https://forensics.tabulaspeech.com';
@@ -51,6 +51,10 @@ export function typeProblem(url, contentType) {
     ? (html ? null : `${url}: expected text/html, got ${contentType}`)
     : (html ? `${url}: got an HTML page (a missing file?)` : null);
 }
+
+/** Problem with a web manifest's content type, or null when it is application/manifest+json. */
+export const manifestTypeProblem = (url, contentType) =>
+  (/^application\/manifest\+json\b/i.test(contentType || '') ? null : `${url}: expected application/manifest+json, got ${contentType}`);
 
 /** Problems with the forensics redirect: status must be 301 and Location the same path and query on PROD. */
 export function redirectProblem(from, status, location) {
@@ -95,6 +99,20 @@ async function main(base) {
     if (r.status !== 200) problems.push(`${url}: expected 200, got ${r.status}`);
     else { const t = typeProblem(url, r.headers.get('content-type')); if (t) problems.push(t); }
     await r.arrayBuffer().catch(() => {});
+  }
+  // The install manifest the page links (if any): its type, and every icon it names.
+  const html = page.status === 200 ? await page.text() : '';
+  for (const m of manifestLinks(html)) {
+    const url = new URL('/' + m, base).href;
+    const r = await get(url);
+    if (r.status !== 200) { problems.push(`${url}: expected 200, got ${r.status}`); continue; }
+    const t = manifestTypeProblem(url, r.headers.get('content-type')); if (t) problems.push(t);
+    for (const i of manifestIcons(await r.text(), m)) {
+      const ir = await get(new URL('/' + i, base).href);
+      if (ir.status !== 200) problems.push(`/${i}: expected 200, got ${ir.status}`);
+      else if (!/^image\//i.test(ir.headers.get('content-type') || '')) problems.push(`/${i}: expected an image, got ${ir.headers.get('content-type')}`);
+      await ir.arrayBuffer().catch(() => {});
+    }
   }
   if (checksForensics(base)) {
     const from = FORENSICS + '/smoke/check?from=smoke-host';
