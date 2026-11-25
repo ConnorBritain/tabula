@@ -31,16 +31,16 @@ Related: `docs/STUDENT-EDITION.md` (§1e judging tools, §5a coach controls, §1
 
 ### 1a. Judges (decided, §8 item 1)
 
-**Do not let a program turn off a judge's own AI. Let it decide only whether its credit pool pays for judge AI.**
+**Do not let a program turn off a judge's own AI. Let it decide only whether the school pays for judge AI.**
 
 Why:
 - Judges are adults who judge for a tournament, not for the program. The tournament's rules govern how they judge, not the school that brought them.
 - The judge app's AI is the core product for judges. A program that blocks it makes the judge's tool worse in other programs' rounds too.
 - A hired judge has no tie to the program at all.
-- The real cost question is money: "Does our pool pay for parent judges' AI?" That is a fair program choice.
+- The real cost question is money: "Does the school pay for parent judges' AI?" That is a fair program choice.
 
-So for program judges:
-- **Pool pays: on or off** (default on, if the program has a pool).
+So for school judges:
+- **School pays for judge AI: on or off** (default on, if the school has a school plan).
 - When it is off, the judge's app acts like a solo user's app: their own key or their own plan still works. If they have neither, they see the normal free-user invite to connect AI (Q8). That invite is fine here, because the judge *can* have the feature.
 
 **One exception: student judges.** A student who judges a novice round is still a student. See 1b.
@@ -209,7 +209,7 @@ Plus a browser check (the DOM test; no new packages): with `?ai=off`, no id from
 
 - For students in their own debate rounds, `liveEval`, `analysis` and `ballotDraft` are always off, whatever the program says. (A student who judges someone else's round is covered by §1b.) The admin screen does not show those rows for students at all (the same no-taunt rule, for admins).
 - `practiceAI` covers the post-mortem. Closure still locks it until the round is closed; the policy can only remove it.
-- STUDENT-EDITION §5a coach controls (modes, transcription in tournament mode, AI clerk in tournament mode, hosted AI pool) become rows of this one policy. Same switches, one screen.
+- STUDENT-EDITION §5a coach controls (modes, transcription in tournament mode, AI clerk in tournament mode, hosted AI credits) become rows of this one policy. Same switches, one screen.
 - **Coach edition:** a coach running a practice round or review for a student uses the coach's device and the coach policy. The tools a student cannot have stay on the coach's screen, with a person leading the talk (STUDENT-EDITION §1e).
 
 ---
@@ -217,10 +217,10 @@ Plus a browser check (the DOM test; no new packages): with `?ai=off`, no id from
 ## 5. Billing and credits
 
 - **The server enforces the policy.** The hosted AI path (ARCHITECTURE §4, step 2) adds a check: is `f` allowed for this user and role under the current policy? If not, it answers `403 policyOff` **before** the meter reserves anything. No credit is spent.
-- **Pool credits are never reserved** for users whose AI is off.
+- **School credits are never reserved** for users whose AI is off.
 - **Own-key calls** never touch the server, so the server cannot block them. The app blocks them with `can()` (R4). Honest limit: a changed copy of the open-source app could skip that. The same limit is in STUDENT-EDITION §7. The program rule and the tournament rule still apply to the person.
 - **Plans:**
-  - A "Flow only" program spends no credits on those users. Seat pricing for Flow-only users is a later question (§8, Later).
+  - A "Flow only" program spends no credits on those users.
   - Turning AI off costs nothing to run. **The AI policy is also in the free school space** (owner decision). A school should never have to pay to make the app *less* able. This **amends** STUDENT-EDITION §10g, which lists only join code, track assignments and badges for the free space (decided, §8 item 4).
   - A linked user's own plan (for example a Pass) is not charged in rounds opened for the program where AI is off. What happens to unused personal credits follows the plan's normal rules (private business plan).
 
@@ -280,7 +280,7 @@ Step 1 changes app files. Slice 4 owns them now, so it waits.
 
 ## 8. Decisions (owner, 2026-11-20)
 
-1. **Judges: DECIDED — a program decides only whether its pool pays for judge AI.** It never turns off a judge's own key or own plan (§1a).
+1. **Judges: DECIDED — a program decides only whether the school pays for judge AI.** It never turns off a judge's own key or own plan (§1a).
 2. **Student default: DECIDED — the admin must pick** "Flow only" or "Flow + AI clerk" at setup. Until then, students are in Flow only (§2b).
 3. **Own-key notice: DECIDED — one quiet notice** with "Remove it / Keep it", shown once at join (§6c).
 4. **Free school space: DECIDED — the AI policy is in the free school space too** (§5). STUDENT-EDITION §10g is amended to match.
@@ -288,7 +288,6 @@ Step 1 changes app files. Slice 4 owns them now, so it waits.
 6. **Student judges: DECIDED — "Student judges may use judge AI" is off by default** (§1b).
 
 **Later (not needed now):**
-- Seat price for Flow-only users: free, or lower.
 - A school Chromebook device policy through Chrome's Managed Configuration API, so AI stays off even when signed out.
 
 ## 9. New York companion rules (from 2027-01-01)
