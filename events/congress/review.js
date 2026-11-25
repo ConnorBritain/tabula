@@ -7,7 +7,8 @@ import { rankModel } from './rank.js';
 import { firstUnscored } from './po.js';
 import { ranksOnly } from './profiles.js';
 
-// [{ id, kind: 'speech'|'po'|'ranks', title, text, copied }] in Tabroom order.
+// [{ id, kind: 'speech'|'po'|'ranks', title, detail?, text, copied }] in Tabroom order. text is what Copy puts on the
+// clipboard (the title line, then the detail); the card shows the title once and the detail under it.
 export function reviewBlocks(chamber, session) {
   const out = [];
   const nth = new Map();
@@ -19,7 +20,8 @@ export function reviewBlocks(chamber, session) {
     const head = [codeOf(chamber, s.legislatorId), item ? item.title : 'No item', SIDE_WORDS[s.side] || s.side, TYPE_WORDS[s.type] || s.type,
       ranksOnly(chamber.profile) ? '' : pts == null ? 'No points' : pts + (pts === 1 ? ' point' : ' points')].filter(Boolean).join(' · ');
     const notes = [s.penalty ? PENALTY_WORDS[s.penalty] : '', s.speakMs ? 'Spoke ' + minSec(s.speakMs) : ''].filter(Boolean).join(' · ');
-    out.push({ id: s.id, kind: 'speech', title: head, text: [head, notes, String(s.comment || '').trim()].filter(Boolean).join('\n'), copied: Boolean(s.copiedAt) });
+    const detail = [notes, String(s.comment || '').trim()].filter(Boolean).join('\n');
+    out.push({ id: s.id, kind: 'speech', title: head, detail, text: [head, detail].filter(Boolean).join('\n'), copied: Boolean(s.copiedAt) });
   }
   session.poTerms.forEach((t, i) => {
     for (const h of t.hourScores) {
@@ -45,6 +47,30 @@ export function rankProblems(chamber, session, now) {
   return out;
 }
 
+// The speeches that still have no points, in log order: [{ id, code, nth }]. Not a block (the judge may still be
+// deciding), but the online ballot needs a score for each speech, so Rank and Review say so before the copy.
+// A ranks-only chamber, a speech past the scored-speech cap and a "Not on the floor" speech (0 points) are not listed.
+export function unscoredSpeeches(chamber, session) {
+  if (ranksOnly(chamber.profile)) return [];
+  const out = [];
+  const nth = new Map();
+  for (const s of session.speeches) {
+    const n = (nth.get(s.legislatorId) || 0) + 1;
+    nth.set(s.legislatorId, n);
+    if (session.live && session.live.speechId === s.id) continue;
+    if (chamber.profile.scoredSpeechCap && n > chamber.profile.scoredSpeechCap) continue;
+    if (countedPoints(s, chamber.profile, n) == null) out.push({ id: s.id, code: codeOf(chamber, s.legislatorId), nth: n });
+  }
+  return out;
+}
+
+// One plain line for the unscored speeches, or ''.
+export function unscoredLine(list) {
+  if (!list.length) return '';
+  const names = list.slice(0, 6).map((x) => x.code + ' (speech ' + x.nth + ')').join(', ') + (list.length > 6 ? ' and ' + (list.length - 6) + ' more' : '');
+  return (list.length === 1 ? '1 speech has' : list.length + ' speeches have') + ' no points yet: ' + names + '.';
+}
+
 // The status word for a session (summary and the chamber page).
 export function sessionStatus(session) {
   if (session.submittedAt) return 'Submitted';
@@ -54,4 +80,4 @@ export function sessionStatus(session) {
   return 'Not started';
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressReview = Object.freeze({ reviewBlocks, rankProblems, sessionStatus });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressReview = Object.freeze({ reviewBlocks, rankProblems, unscoredSpeeches, unscoredLine, sessionStatus });

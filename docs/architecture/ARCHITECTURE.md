@@ -215,7 +215,7 @@ The student edition must never show live judging tools (STUDENT-EDITION §1e). *
 - **Sign-in:** an emailed link and code (no password; sent with Resend, `STACK.md` §2), plus Google and Microsoft by redirect (TRACKS §8.1). Turnstile on the email form only, as the one allowed script (§3.2).
 - **Session:** 30 days, renewed on use, so judges do not sign in at 8 AM in a tournament hallway.
 - **One account system** for hosted AI, badges and school spaces, on every Tabula app host.
-- **Ages:** hosted AI is 18+. Students 13 to 17 only through a school space or parent consent (TRACKS §6). No accounts under 13.
+- **Ages:** hosted AI is for people aged 13 and over, with or without a school. No accounts under 13.
 - **First tables:** `users`, `identities`, `ledger` (integer milli-credits), `usage` (one row per speech; no text, no names), `badges`, `stripe_events` (event ID first, then process inline, so each event runs once). Coach tables come later.
 - **Paid but not yet granted:** after Checkout, the app polls for the grant for up to a minute and says "Payment received, adding your rounds".
 
@@ -237,7 +237,7 @@ The student edition must never show live judging tools (STUDENT-EDITION §1e). *
 
 The owner decided: the app stays AGPL in the public repo; the server, billing and coach backend may be private.
 
-- **The contract is public.** Publish the API shapes and the server's data rules in the public repo, so schools and families can check them.
+- **The contract is public.** Publish the API shapes and the server's data rules in the public repo, so schools and families can check them. Done: see `docs/contract/`.
 - **Watch the prompt templates.** The server builds prompts. If it copies prompt code from `logic.js`, and `logic.js` has outside AGPL contributions, the server must be AGPL too. Write the server templates fresh, or use a contributor licence agreement (CLA: contributors let the owner relicense) before accepting outside code.
 - The public app must work fully with no server.
 

@@ -100,6 +100,7 @@ test('a change to sw.js alone gives a new release name', () => {
 test('the deploy runs every *.test file; only the browser test is left to the full run', () => {
   const cfg = JSON.parse(readFileSync(new URL('./wrangler.app.jsonc', import.meta.url), 'utf8').replace(/^\s*\/\/.*$/gm, ''));
   const cmds = [cfg.build.command, ...Object.values(cfg.env || {}).map((e) => e.build && e.build.command).filter(Boolean)];
+  assert.equal(cmds.length, 2, 'prod and staging each have a deploy build command');
   for (const c of cmds) assert.match(c, /^node --test "\*\*\/\*\.test\.\*js" && node check-publish\.mjs && node build-app\.mjs/, c);
   // Files plain `node --test` runs that the deploy pattern does not: the *-test.*js files at the root.
   const rootOnly = readdirSync(new URL('./', import.meta.url)).filter((f) => /-test\.[cm]?js$/.test(f));

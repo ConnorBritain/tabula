@@ -7,6 +7,7 @@
 //
 // Overtime is always a flag (§3). Under a panel the app reminds the judge: PANEL_OVERTIME_NOTE.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { statusPillHtml } from './status-pill.js';
 
 const LEVELS = Object.freeze([{ id: 'prelim', label: 'Prelim' }, { id: 'elim', label: 'Elim' }]);
 export const PANEL_SIZES = Object.freeze([1, 3, 5]);
@@ -51,7 +52,7 @@ export function frameHtml(room) {
   const facts = [...(levelOf(room) === 'elim' ? ['Elim'] : []), ...(p ? ['Panel of ' + p.size] : [])];
   if (!facts.length) return '';
   const note = p && p.note ? `<span class="muted round-frame-note">${esc(p.note)}</span>` : '';
-  return `<div class="round-frame" id="round-frame"><p class="round-frame-pills">${facts.map((f) => `<span class="pill outline">${esc(f)}</span>`).join(' ')}${note ? ' ' + note : ''}</p>`
+  return `<div class="round-frame" id="round-frame"><p class="round-frame-pills">${facts.map((f) => statusPillHtml('outline', f)).join(' ')}${note ? ' ' + note : ''}</p>`
     + `${overtimeNote(room) ? `<p class="muted round-frame-line">${esc(PANEL_FRAME_LINE)}</p>` : ''}</div>`;
 }
 
@@ -61,7 +62,7 @@ export function levelFieldsHtml(picked) {
   const lv = p.level === 'elim' ? 'elim' : 'prelim';
   return `<label class="field"><span>Level</span><select id="setup-level">${LEVELS.map((l) => `<option value="${l.id}"${l.id === lv ? ' selected' : ''}>${l.label}</option>`).join('')}</select></label>
       <label class="field"><span>Judges in the room</span><select id="setup-panel">${PANEL_SIZES.map((n) => `<option value="${n}"${n === (p.panelSize || 1) ? ' selected' : ''}>${n === 1 ? 'Only me' : 'Panel of ' + n}</option>`).join('')}</select></label>
-      <label class="field wide" id="setup-panel-note-box" hidden><span>Panel note <span class="pill outline">Not on ballot</span></span><input id="setup-panel-note" autocomplete="off" maxlength="${PANEL_NOTE_MAX}" placeholder="Seats 1–3"></label>`;
+      <label class="field wide" id="setup-panel-note-box" hidden><span>Panel note ${statusPillHtml('outline', 'Not on ballot')}</span><input id="setup-panel-note" autocomplete="off" maxlength="${PANEL_NOTE_MAX}" placeholder="Seats 1–3"></label>`;
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).roundFrame = Object.freeze({

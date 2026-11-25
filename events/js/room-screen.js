@@ -9,6 +9,7 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon, iconButton } from './icons.js';
 import { statusPillHtml } from './status-pill.js';
+import { eventPillHtml } from './event-pill.js';
 import { roomPrimary, goRankHtml } from './room-primary.js';
 import { STATUS_LABEL, entryOf, selectEntry, entryAtNumber, nextWaiting, addEntry, rosterAction, findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
@@ -213,7 +214,7 @@ export function createRoomScreen(env, parts) {
       // Step S3 (EXPERIENCE.md §1.1): the event pill opens the type page for this round's event.
       const ev = event(r);
       env.el.innerHTML = `<div class="screen-head room-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a>
-          <a class="pill md-ev" href="#/type/${encodeURIComponent(r.customEvent ? 'custom' : r.eventId)}" aria-label="${esc('About ' + (ev ? ev.name : 'Custom event'))}">${esc(ev ? ev.short || ev.name : 'Custom')}</a>
+          ${eventPillHtml(r.customEvent ? 'custom' : r.eventId, ev ? ev.name : 'Custom event', ev ? ev.short || ev.name : 'Custom')}
           <h1 id="screen-title" tabindex="-1">${esc(roomTitle(r, event(r)))}</h1>
           <button class="b" type="button" id="roster-toggle" aria-controls="roster-full" aria-expanded="false">Roster</button>
           ${go}</div>

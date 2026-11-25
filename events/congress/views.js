@@ -3,12 +3,21 @@
 // session-screen.js draws them and wires the buttons. House design: black, white and gray; no stripes; plain words.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from '../js/icons.js';
-import { legislatorOf, codeOf, itemOf, houseWord } from './chamber.js';
-import { TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS, legislatorLines, precedenceOrder, timerView, clockText, minSec, needsReason, countedPoints } from './speech.js';
+import { legislatorOf, codeOf, itemOf, houseWord, statusIn } from './chamber.js';
+import { TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS, legislatorLines, openCount, precedenceOrder, timerView, clockText, minSec, needsReason, countedPoints } from './speech.js';
 import { hoursDue, openTerm, ordinal, fullHours, poLockLine } from './po.js';
 import { rankModel } from './rank.js';
-import { reviewBlocks, rankProblems } from './review.js';
+import { reviewBlocks, rankProblems, unscoredSpeeches, unscoredLine } from './review.js';
 import { scaleText, ranksOnly } from './profiles.js';
+import { statusPillHtml } from '../js/status-pill.js';
+
+// Congress scoring is new, so every Congress screen says so in a small plain tag, and the screens where a judge starts
+// or hands in a ballot add one line. Shared with chamber-screen.js.
+export const BETA_TAG = statusPillHtml('outline', 'Beta', '', { cls: 'cg-beta' });
+export const BETA_LINE = 'Congress scoring is new. Check the totals before you hand in your ballot.';
+export const betaNoteHtml = () => `<p class="cg-beta-line">${BETA_LINE}</p>`;
+// The line for a value a source did not confirm.
+export const CHECK_RULE = 'Check your tournament\'s rule.';
 
 const STAGE_WORDS = Object.freeze({ log: 'Log', rank: 'Rank', review: 'Review' });
 // The PO card's line when the scorer gives the PO no points.
@@ -27,11 +36,26 @@ export function barHtml(chamber, session, stage, now) {
     .concat(['log', 'rank', 'review'].map((s) => `<li${s === stage ? ' class="on" aria-current="step"' : ''}><a href="#/round/${esc(session.id)}/${s}">${STAGE_WORDS[s]}</a></li>`));
   return `<div class="cg-bar">
     <a class="b quiet back" href="#/chamber/${esc(chamber.id)}">${icon('chevron-left')}Chamber</a>
-    <span class="pill live">${houseWord(chamber)}</span>
+    ${statusPillHtml('live', houseWord(chamber))}${BETA_TAG}
     <span class="cg-bar-title">Session ${esc(session.number)}${chamber.roomLabel ? ' · ' + esc(chamber.roomLabel) : ''}${chamber.tournament ? ' · ' + esc(chamber.tournament) : ''}</span>
     <ol class="phase-bar cg-steps" aria-label="Steps">${steps.join('')}</ol>
     <span class="cg-clock" title="Time since the session started"><span class="sr-only">Session time </span><span id="cg-session-clock">${sessionClock(session, now)}</span></span>
   </div>`;
+}
+
+// The present legislators that match the search (code or name), in precedence order.
+export function pickerMatches(chamber, session, query) {
+  const q = String(query || '').trim().toLowerCase();
+  return precedenceOrder(chamber, session).filter((l) => !q || l.code.toLowerCase().includes(q) || (l.name || '').toLowerCase().includes(q));
+}
+
+// Who Enter in the search box gives the floor to, or null. Typing "1" matches most codes, so Enter never takes the
+// first of many: it takes the legislator whose code is exactly the text, or the only match.
+export function enterPick(chamber, session, query) {
+  const q = String(query || '').trim().toLowerCase();
+  if (!q) return null;
+  const list = pickerMatches(chamber, session, query);
+  return list.find((l) => l.code.toLowerCase() === q) || (list.length === 1 ? list[0] : null);
 }
 
 // The legislator picker for "Next speech": a search box and one button for each present legislator, in precedence
@@ -40,10 +64,11 @@ export function pickerHtml(chamber, session, query) {
   const q = String(query || '').trim().toLowerCase();
   const count = new Map();
   for (const s of session.speeches) count.set(s.legislatorId, (count.get(s.legislatorId) || 0) + 1);
-  const list = precedenceOrder(chamber, session).filter((l) => !q || l.code.toLowerCase().includes(q) || (l.name || '').toLowerCase().includes(q));
+  const list = pickerMatches(chamber, session, query);
   return `<div class="cg-picker" id="cg-picker">
     <label class="field"><span>Who has the floor?</span><input id="cg-search" type="search" autocomplete="off" spellcheck="false" placeholder="Type a code" value="${esc(query || '')}"></label>
-    <div class="cg-pick-list" role="list">${list.map((l) => `<button class="chip cg-pick" type="button" role="listitem" data-cact="pick" data-id="${esc(l.id)}" data-key="pick-${esc(l.id)}"><span class="code">${esc(l.code)}</span>${l.name ? ' <span class="muted">' + esc(l.name) + '</span>' : ''} <span class="muted">· ${count.get(l.id) || 0}</span></button>`).join('') || '<p class="muted">No present legislator matches.</p>'}</div>
+    <p class="field-help">Fewest speeches first. The small number is how many times each one has spoken. Enter picks an exact code.</p>
+    <div class="cg-pick-list" role="list">${list.map((l) => `<button class="chip cg-pick" type="button" role="listitem" data-cact="pick" data-id="${esc(l.id)}" data-key="pick-${esc(l.id)}" aria-label="${esc(l.code)}${l.name ? ' ' + esc(l.name) : ''}, ${count.get(l.id) || 0} ${(count.get(l.id) || 0) === 1 ? 'speech' : 'speeches'}"><span class="code">${esc(l.code)}</span>${l.name ? ' <span class="muted">' + esc(l.name) + '</span>' : ''} <span class="muted">· ${count.get(l.id) || 0}</span></button>`).join('') || '<p class="muted">No present legislator matches.</p>'}</div>
     <div class="cg-row"><button class="b quiet" type="button" data-cact="cancel-pick" data-key="cancel-pick">Cancel</button></div>
   </div>`;
 }
@@ -85,7 +110,7 @@ export function speechCardHtml(chamber, session, speechId, now) {
   if (capped) note.push(`Only the first ${p.scoredSpeechCap} speeches of each legislator get points under ${p.name}.`);
   return `<section class="stage cg-card" aria-labelledby="cg-card-title">
     <div class="stage-head"><h2 class="stage-code" id="cg-card-title">${esc(l ? l.code : '?')}</h2><span class="muted">${esc(l && l.name ? l.name : '')} · speech ${nth}</span>
-      ${!live && sp.speakMs ? `<span class="pill outline">${esc(minSec(sp.speakMs))}</span>` : ''}</div>
+      ${!live && sp.speakMs ? statusPillHtml('outline', minSec(sp.speakMs)) : ''}</div>
     ${live ? timerHtml(session, now, p.questionBlockMs) : ''}
     <div class="cg-fields">
       <label class="field"><span>Item</span><select id="cg-item" data-cfield="itemId" data-key="item">${items || '<option value="">No docket items</option>'}</select></label>
@@ -115,14 +140,24 @@ export function poCardHtml(chamber, session, now, choosing) {
       <div class="cg-points" role="group" aria-label="PO points, hour ${h}">${range(scale).map((n) => `<button class="chip cg-pt" type="button" data-cact="po-score" data-term="${i}" data-hour="${h}" data-value="${n}" data-key="po-${i}-${h}-${n}">${n}</button>`).join('')}</div></div>`).join('');
   const scored = session.poTerms.flatMap((t, i) => t.hourScores.map((h) => `<li><span class="code">${esc(codeOf(chamber, t.legislatorId))}</span> hour ${h.hour}: ${esc(h.points)} <button class="b quiet small" type="button" data-cact="po-clear" data-term="${i}" data-hour="${h.hour}" data-key="po-clear-${i}-${h.hour}">Change</button></li>`)
     .concat(t.partHour ? [`<li class="muted"><span class="code">${esc(codeOf(chamber, t.legislatorId))}</span> part hour: no score</li>`] : [])).join('');
-  const pick = choosing ? `<div class="cg-pick-list" role="list">${chamber.legislators.filter((l) => l.status === 'present').map((l) => `<button class="chip" type="button" role="listitem" data-cact="po-start" data-id="${esc(l.id)}" data-key="po-start-${esc(l.id)}"><span class="code">${esc(l.code)}</span></button>`).join('')}</div>` : '';
+  const pick = choosing ? `<div class="cg-pick-list" role="list">${chamber.legislators.filter((l) => statusIn(session, l) === 'present').map((l) => `<button class="chip" type="button" role="listitem" data-cact="po-start" data-id="${esc(l.id)}" data-key="po-start-${esc(l.id)}"><span class="code">${esc(l.code)}</span></button>`).join('')}</div>` : '';
   const head = term
     ? `<p><span class="code">${esc(codeOf(chamber, term.legislatorId))}</span> presides · ${fullHours(term, now)} full ${fullHours(term, now) === 1 ? 'hour' : 'hours'} so far</p>
        <div class="cg-row"><button class="b small" type="button" data-cact="po-end" data-key="po-end">End term</button><button class="b small quiet" type="button" data-cact="po-choose" data-key="po-choose">New PO</button></div>`
     : `<p class="muted">No PO term is open.</p><button class="b small" type="button" data-cact="po-choose" data-key="po-choose">Start a PO term</button>`;
   return `<section class="stage cg-po" aria-labelledby="cg-po-title"><h2 id="cg-po-title" class="cg-h">Presiding officer</h2>
     ${PO_NOTE[p.poRule] ? `<p class="muted">Under ${esc(p.name)} ${PO_NOTE[p.poRule]} Log the term so the speech counts stay right.</p>` : ''}
+    ${scale && p.unverified && p.unverified.includes('poScale') && p.poRule === 'fullHourOnly' ? `<p class="muted">PO points: ${esc(scaleText(scale))} for each full hour (set at setup). ${CHECK_RULE}</p>` : ''}
     ${head}${pick}${dueHtml}${scored ? `<ul class="cg-scored">${scored}</ul>` : ''}</section>`;
+}
+
+// The words on a grid row: "2 speeches · 11 points · avg 5.5", and "1 not scored" while a speech has no points, so an
+// empty box never reads as a score of 0.
+export function statsText(line, profile) {
+  const sp = line.count + (line.count === 1 ? ' speech' : ' speeches');
+  if (ranksOnly(profile) || !line.count) return sp;
+  const open = openCount(line, profile);
+  return sp + ' · ' + line.total + (line.total === 1 ? ' point' : ' points') + (line.average != null ? ' · avg ' + line.average : '') + (open ? ' · ' + open + ' not scored' : '');
 }
 
 // The running view: one row for each legislator, a cell for each speech (its counted points), then count, total and
@@ -131,12 +166,13 @@ export function gridHtml(chamber, session, selectedId) {
   const noPts = ranksOnly(chamber.profile);
   const rows = legislatorLines(chamber, session).map((line) => {
     const l = line.legislator;
+    const st = statusIn(session, l);
     const cells = line.speeches.map((x) => `<button class="cg-cell${x.speech.id === selectedId ? ' on' : ''}${!noPts && x.speech.points == null && x.speech.penalty !== 'offFloor' ? ' empty' : ''}" type="button" data-cact="select" data-id="${esc(x.speech.id)}" data-key="cell-${esc(x.speech.id)}" aria-label="${esc(l.code)} speech ${x.nth}${noPts ? '' : ': ' + (x.counted == null ? 'no points' : esc(x.counted) + ' points')}">${noPts ? x.nth : x.counted == null ? '–' : esc(x.counted)}</button>`).join('');
-    return `<li class="cg-line${l.status !== 'present' ? ' is-out' : ''}"><span class="code">${esc(l.code)}</span>
+    return `<li class="cg-line${st !== 'present' ? ' is-out' : ''}"><span class="code">${esc(l.code)}</span>
       <span class="cg-cells">${cells || '<span class="muted">No speeches</span>'}</span>
-      <span class="cg-stats">${line.count}${noPts ? '' : ' · ' + line.total + (line.average != null ? ' · avg ' + esc(line.average) : '')}${l.status !== 'present' ? ' · ' + esc(l.status) : ''}</span></li>`;
+      <span class="cg-stats">${statsText(line, chamber.profile)}${st !== 'present' ? ' · ' + esc(st) : ''}</span></li>`;
   }).join('');
-  return `<section class="cg-grid-wrap" aria-labelledby="cg-grid-title"><h2 id="cg-grid-title" class="cg-h">Chamber <span class="muted">(${noPts ? 'speeches' : 'speeches · total · average'})</span></h2><ol class="cg-grid">${rows}</ol></section>`;
+  return `<section class="cg-grid-wrap" aria-labelledby="cg-grid-title"><h2 id="cg-grid-title" class="cg-h">Chamber <span class="muted">(tap a box to open that speech)</span></h2><ol class="cg-grid">${rows}</ol></section>`;
 }
 
 // The docket line above the log: the item under debate and "Next item".
@@ -154,6 +190,9 @@ export function logHtml(chamber, session, view, now) {
   return `${docketHtml(chamber, session)}<div class="cg-log"><div class="cg-main">${top}</div>${poCardHtml(chamber, session, now, view.choosingPO)}</div>${gridHtml(chamber, session, view.selectedId)}`;
 }
 
+// "A, B and C".
+const joinCodes = (list) => (list.length < 2 ? list.join('') : list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1]);
+
 // The Rank stage body.
 export function rankHtml(chamber, session, now) {
   const noPts = ranksOnly(chamber.profile);
@@ -163,14 +202,17 @@ export function rankHtml(chamber, session, now) {
   const ranked = new Set(m.slots.filter(Boolean));
   const pool = m.pool.map((x) => `<li><button class="cg-poolrow${ranked.has(x.legislator.id) ? ' on' : ''}" type="button" data-cact="rank" data-id="${esc(x.legislator.id)}" data-key="pool-${esc(x.legislator.id)}" aria-pressed="${ranked.has(x.legislator.id)}" ${lock ? 'disabled' : ''}>
       <span class="code">${esc(x.legislator.code)}</span><span class="muted">${esc(x.legislator.name || '')}</span>
-      <span class="cg-stats">${x.count} ${x.count === 1 ? 'speech' : 'speeches'}${noPts ? '' : ' · ' + x.total + ' points'}${x.poHours.length ? ' · PO ' + x.poHours.join(', ') : ''}</span></button></li>`).join('');
-  const warn = m.ties.map(([a, b]) => `<li>${esc(codeOf(chamber, a))} and ${esc(codeOf(chamber, b))} have the same points.</li>`)
+      <span class="cg-stats">${x.count} ${x.count === 1 ? 'speech' : 'speeches'}${noPts ? '' : ' · ' + x.total + (x.total === 1 ? ' point' : ' points') + (x.open ? ' · ' + x.open + ' not scored' : '')}${x.poHours.length ? ' · PO ' + x.poHours.join(', ') : ''}</span></button></li>`).join('');
+  const open = unscoredLine(unscoredSpeeches(chamber, session));
+  const warn = m.ties.map((g) => `<li>${esc(joinCodes(g.map((id) => codeOf(chamber, id))))} have the same points.</li>`)
+    .concat(open ? [`<li>${esc(open)}</li>`] : [])
     .concat(m.gone.map((id) => `<li>${esc(codeOf(chamber, id))} is ranked but not present now. Their slot is empty.</li>`)).join('');
   return `<section class="cg-rank" aria-labelledby="cg-rank-title"><h2 id="cg-rank-title" class="cg-h">Top ${m.topN}</h2>
     ${lock ? `<p class="problems" role="status">${esc(lock)} <a class="b small" href="#/round/${esc(session.id)}/log">Back to Log</a></p>` : '<p class="muted">Tap a name to fill the next slot. Tap a slot to clear it.' + (noPts ? '' : ' Points do not limit the order.') + '</p>'}
     <ol class="cg-slots">${slots}</ol>
     ${warn ? `<ul class="check-list">${warn.replace(/<li>/g, '<li class="check-row">')}</ul>` : ''}
     <h3 class="cg-h">${chamber.profile.rankPool === 'spokeOrPresided' ? 'Legislators who spoke or presided' : 'Present legislators'}${noPts ? ', by speeches' : ', by points'}</h3>
+    ${chamber.profile.unverified && chamber.profile.unverified.includes('rankPool') ? `<p class="muted">Who can be ranked was set at setup. ${CHECK_RULE}</p>` : ''}
     <ol class="cg-pool">${pool}</ol>
     <div class="stage-foot"><a class="b primary" href="#/round/${esc(session.id)}/review">Go to Review</a></div></section>`;
 }
@@ -181,11 +223,13 @@ export function reviewHtml(chamber, session, now) {
   const problems = rankProblems(chamber, session, now);
   const ranks = blocks.find((b) => b.kind === 'ranks');
   const item = (b) => `<li class="card cg-block" data-block="${esc(b.id)}"><div class="card-head"><span>${esc(b.title)}</span></div>
-      ${b.text && b.kind === 'speech' ? `<pre class="cg-pre">${esc(b.text)}</pre>` : ''}
+      ${b.detail ? `<pre class="cg-pre">${esc(b.detail)}</pre>` : ''}
       ${b.text ? `<button class="b${b.copied ? '' : ' primary'} small" type="button" data-cact="copy" data-id="${esc(b.id)}" data-key="copy-${esc(b.id)}">${b.copied ? '✓ Copied' : 'Copy'}</button>` : ''}</li>`;
   const speeches = blocks.filter((b) => b.kind === 'speech');
   const po = blocks.filter((b) => b.kind === 'po');
-  return `<section class="review-stage" aria-labelledby="cg-rv1"><h2 id="cg-rv1">1. Speeches <span class="muted">(${speeches.length})</span></h2>
+  const open = unscoredLine(unscoredSpeeches(chamber, session));
+  return `${betaNoteHtml()}${open ? `<ul class="check-list"><li class="check-row">${esc(open)} <a class="b small" href="#/round/${esc(session.id)}/log">Back to Log</a></li></ul>` : ''}
+    <section class="review-stage" aria-labelledby="cg-rv1"><h2 id="cg-rv1">1. Speeches <span class="muted">(${speeches.length})</span></h2>
       <p class="muted">The online ballot asks for the speeches first. Copy each one into its row.</p>
       <ol class="cards">${speeches.map(item).join('') || '<li class="muted">No speeches yet.</li>'}</ol></section>
     ${po.length ? `<section class="review-stage" aria-labelledby="cg-rv2"><h2 id="cg-rv2">2. PO hours</h2><ol class="cards">${po.map(item).join('')}</ol></section>` : ''}
@@ -195,4 +239,4 @@ export function reviewHtml(chamber, session, now) {
       <div class="stage-foot"><button class="b${session.submittedAt ? '' : ' primary'}" type="button" data-cact="submitted" data-key="submitted" aria-pressed="${Boolean(session.submittedAt)}">${session.submittedAt ? '✓ Submitted' : 'Mark submitted'}</button></div></section>`;
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressViews = Object.freeze({ sessionClock, barHtml, pickerHtml, timerHtml, speechCardHtml, poCardHtml, gridHtml, docketHtml, logHtml, rankHtml, reviewHtml });
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressViews = Object.freeze({ BETA_TAG, BETA_LINE, statsText, pickerMatches, enterPick, sessionClock, barHtml, pickerHtml, timerHtml, speechCardHtml, poCardHtml, gridHtml, docketHtml, logHtml, rankHtml, reviewHtml });

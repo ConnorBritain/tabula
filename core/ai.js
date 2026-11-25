@@ -281,7 +281,7 @@ export function engineOptions(keys, helper) {
   return { ai, tr };
 }
 
-// ---------- the hosted answer stream (tabula-cloud docs/APP-CLIENT-PROPOSAL.md §3) ----------
+// ---------- the hosted answer stream (the server's app client contract) ----------
 // The server answers with server-sent events: `data: {"t":"..."}` chunks, then `data: {"done":true,...}` or
 // `data: {"error":"..."}`. readSse takes the text read so far and returns the whole events in it and the rest (a part
 // event that waits for more bytes). A line that is not JSON is skipped.

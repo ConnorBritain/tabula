@@ -125,5 +125,44 @@ export function restoreItems(current, backup) {
   return items;
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ BACKUP_APP, MODES, THEMES, RANKS_DUE_MAX, RECENT_MAX, DRAW_GAPS, drawGapOf, validRanksDue, ranksDueMinOf, withRecentEvent, modeMenuShown, withSetting,
+// ---------- data safety ----------
+// The Settings line for storageKept's answer (store.js). installed: the page runs as an installed app (Safari keeps an
+// installed app's data even when the browser says 'may-clear').
+export function keptText(state, installed) {
+  if (state === 'kept') return 'This browser keeps your rounds.';
+  if (installed) return 'The app is installed, so this browser keeps your rounds longer. A backup is still the safest copy.';
+  return 'This browser may clear your rounds if you do not open the app for a while. Install it or download a backup.';
+}
+
+// The latest time any round or ballot card changed (ms), or 0 when there are none. Rounds carry updatedAt; a card
+// changes when it is made, submitted or cancelled.
+export function lastChangeAt(rounds, cards) {
+  let t = 0;
+  const take = (v) => { if (Number.isFinite(v) && v > t) t = v; };
+  for (const r of Array.isArray(rounds) ? rounds : []) if (r && typeof r === 'object') { take(r.createdAt); take(r.updatedAt); }
+  for (const c of Array.isArray(cards) ? cards : []) if (c && typeof c === 'object') { take(c.createdAt); take(c.submittedAt); take(c.cancelledAt); }
+  return t;
+}
+
+// Does My day show the "download a backup" reminder? Only when the judging day is over and something changed since the
+// last backup. The day is over when today has ballots, none of them is still to judge (Now or Later today), the judge
+// is not on standby for another ballot, and no Congress chamber is in use.
+// v: { model (cards.js mydayModel), chambers (today's Congress chambers), lastChange (lastChangeAt), lastBackupAt
+// (ms or null), dismissedAt (the lastChange value the judge said "Not now" to, or null) }.
+export function backupReminderDue(v) {
+  const o = v || {};
+  const m = o.model;
+  if (!m || !Array.isArray(m.items) || !m.items.length || !Array.isArray(m.sections)) return false;
+  const left = m.sections.filter((s) => s.id === 'now' || s.id === 'later').reduce((n, s) => n + s.items.length, 0);
+  if (left || m.standby || (Array.isArray(o.chambers) && o.chambers.length)) return false;
+  const changed = Number.isFinite(o.lastChange) ? o.lastChange : 0;
+  if (!changed) return false;
+  if (o.dismissedAt === changed) return false;
+  return !(Number.isFinite(o.lastBackupAt) && o.lastBackupAt >= changed);
+}
+
+// What "Clear this device" removes, for the confirm dialog: every saved value under tabulaEvents.*, in plain words.
+export const CLEAR_WHAT = 'every round, ballot card, comment, Congress session and setting in Speech Events on this browser, and your AI key if you saved one here.';
+
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).settings = Object.freeze({ keptText, lastChangeAt, backupReminderDue, CLEAR_WHAT, BACKUP_APP, MODES, THEMES, RANKS_DUE_MAX, RECENT_MAX, DRAW_GAPS, drawGapOf, validRanksDue, ranksDueMinOf, withRecentEvent, modeMenuShown, withSetting,
   makeBackup, backupName, readBackup, restoreItems });

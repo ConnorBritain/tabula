@@ -12,7 +12,9 @@ import {
   hasSharedPrep, prepUsedAt, speechLimit, totalUsedAt, prepPhase, prepStartLeft, stoppedPrep, adjustPrep, resetAll, sharedFace,
   restoreSharedRoom,
 } from './js/prep.js';
-import { timerHtml, rowTimeHtml, cardTrack } from './js/timer-view.js';
+// CHANGED (Speech Events cleanup 2026-11-25: the pure card builders moved to timer-card-html.js; same functions). Old line:
+// import { timerHtml, rowTimeHtml, cardTrack } from './js/timer-view.js';
+import { timerHtml, rowTimeHtml, cardTrack } from './js/timer-card-html.js';
 import { eventChoices } from './js/setup-screen.js';
 import { printModel } from './js/ballot.js';
 

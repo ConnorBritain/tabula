@@ -1,6 +1,6 @@
 // The narrow-tool rules for the AI (docs/design/AI-POLICY.md §9: New York GBL Art. 48, from 2027-01-01): stay on the
 // round, no first-person views, no praise of the judge, no persona. Hosted AI's prompts live on the server
-// (tabula-cloud narrow-tool.test.ts); these are the own-key prompts and the demo's saved answers.
+// (the server's own narrow-tool test); these are the own-key prompts and the demo's saved answers.
 // Run with: node --test
 const test = require('node:test');
 const assert = require('node:assert/strict');

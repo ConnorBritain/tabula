@@ -4,7 +4,7 @@
 // Contract (§2.3): family, families, newRound, stages, mount, keys, validate, summary, rankModel, reviewModel.
 // The model members need the session's chamber; they take it as a second argument when the caller has it
 // (round.chamber is not stored on the session, so a caller with only the session passes the chamber in).
-import { newSession } from './chamber.js';
+import { newSession, statusIn } from './chamber.js';
 import { mountSession } from './session-screen.js';
 import { congressIO, findSession, findChamber } from './store.js';
 import { rankModel as rankOf } from './rank.js';
@@ -38,7 +38,7 @@ export const validate = (round, chamber, now = Date.now()) => (chamber ? rankPro
 
 export function summary(round, chamber) {
   const next = chamber ? precedenceOrder(chamber, round)[0] : null;
-  return { status: sessionStatus(round), done: round.speeches.length, total: chamber ? chamber.legislators.filter((l) => l.status === 'present').length : 0, next: next ? next.code : null };
+  return { status: sessionStatus(round), done: round.speeches.length, total: chamber ? chamber.legislators.filter((l) => statusIn(round, l) === 'present').length : 0, next: next ? next.code : null };
 }
 
 export const rankModel = (round, chamber) => (chamber ? rankOf(chamber, round) : null);

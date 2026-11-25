@@ -5,7 +5,7 @@
 //    The markup links to the app's web address, which is right on the website. Inside the app, the app is the
 //    site root, so the link goes back there ("Back to the app") and the reader never leaves the running app.
 (() => {
-  // The website and its local preview (port 8782, tabula-sites serve.mjs; see docs/marketing/SITES.md).
+  // The website and its local preview (port 8782).
   const onSite = /(^|\.)tabuladebate\.com$/.test(location.hostname) || location.port === '8782';
   if (onSite) return;
   for (const a of document.querySelectorAll('a[data-app]')) {

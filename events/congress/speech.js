@@ -3,6 +3,7 @@
 // so a 3-hour session never loses a speech to a reload or a dead battery.
 import { pointsRange } from '../../core/points.js';
 import { ranksOnly } from './profiles.js';
+import { statusIn } from './chamber.js';
 
 export const SPEECH_MS = 180000; // 3:00 for every scored speech (NSDA 2026-27)
 export const TYPES = Object.freeze(['authorship', 'sponsorship', 'firstNeg', 'rebuttal', 'extension', 'crystal', 'amendment']);
@@ -151,6 +152,10 @@ export function legislatorLines(chamber, session) {
   });
 }
 
+// How many of a legislator's speeches still have no points (one line from legislatorLines). A speech past the
+// scored-speech cap gets no points by rule, so it is not counted; a ranks-only chamber has no points at all.
+export const openCount = (line, profile) => (ranksOnly(profile) ? 0 : line.speeches.filter((x) => x.counted == null && !(profile.scoredSpeechCap && x.nth > profile.scoredSpeechCap)).length);
+
 // Precedence for the picker (§1): legislators who are present, fewest speeches first, then the one who spoke least
 // recently (never spoken first; then by recency). This is a help for the scorer's search, not the official order
 // (the parliamentarian keeps that, step S7).
@@ -158,11 +163,11 @@ export function precedenceOrder(chamber, session) {
   const count = new Map();
   for (const s of session.speeches) count.set(s.legislatorId, (count.get(s.legislatorId) || 0) + 1);
   const rec = new Map(session.recency.map((id, i) => [id, i]));
-  return chamber.legislators.map((l, i) => ({ l, i })).filter((x) => x.l.status === 'present')
+  return chamber.legislators.map((l, i) => ({ l, i })).filter((x) => statusIn(session, x.l) === 'present')
     .sort((a, b) => (count.get(a.l.id) || 0) - (count.get(b.l.id) || 0) || (rec.has(a.l.id) ? rec.get(a.l.id) : -1) - (rec.has(b.l.id) ? rec.get(b.l.id) : -1) || a.i - b.i)
     .map((x) => x.l);
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressSpeech = Object.freeze({ SPEECH_MS, TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS,
   questionMsFor, nextDefaults, POINTS_ACTIONS, refusesAction, startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, timerView, minSec, clockText, countedPoints, needsReason,
-  legislatorLines, precedenceOrder });
+  legislatorLines, openCount, precedenceOrder });
