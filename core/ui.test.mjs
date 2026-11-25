@@ -90,7 +90,10 @@ function fakePage() {
     closest() { return null; }
     getClientRects() { return [1]; }
     all() { return this.children.flatMap((c) => [c, ...c.all()]); }
-    querySelectorAll(sel) { return this.all().filter((n) => (sel === 'button' ? n.tagName === 'BUTTON' : ['BUTTON', 'INPUT', 'A'].includes(n.tagName))); }
+    querySelectorAll(sel) {
+      if (sel.startsWith('[aria-modal')) return this.all().filter((n) => n.attrs['aria-modal'] === 'true');
+      return this.all().filter((n) => (sel === 'button' ? n.tagName === 'BUTTON' : ['BUTTON', 'INPUT', 'A'].includes(n.tagName)));
+    }
     compareDocumentPosition(o) { const order = doc.body.all(); return order.indexOf(o) > order.indexOf(this) ? 4 : 2; }
     click() { this.fire('click'); }
   }
@@ -136,13 +139,25 @@ test('createUI toast: Tab reaches Undo next, Shift+Tab and the last button lead 
     x.focus();
     page.press('Tab');
     assert.equal(page.doc.activeElement, page.after, 'Tab past the toast continues after the origin, not at the end of the page');
-    undo.focus();
+    x.click(); // × closes the first toast
+
+    // A second visit: Shift+Tab from Undo goes back to where the judge was.
+    const undoToast = () => UI.toast('Sheet deleted.', { key: 'del', action: { label: 'Undo', name: 'Undo: delete sheet', run: () => { undone++; } } });
+    page.del.focus();
+    let t2 = undoToast();
+    page.press('Tab');
+    assert.equal(page.doc.activeElement, t2.el.children.find((n) => n.tagName === 'BUTTON'));
     page.press('Tab', true);
     assert.equal(page.doc.activeElement, page.del, 'Shift+Tab from Undo goes back to the origin');
-    undo.focus();
+    t2.el.children.filter((n) => n.tagName === 'BUTTON')[1].click();
+
+    // Esc on the toast closes it without undoing, and focus goes back.
+    page.del.focus();
+    t2 = undoToast();
+    page.press('Tab');
     page.press('Escape');
     assert.equal(undone, 0, 'Esc never runs the action');
-    assert.equal(t.el.parent, null, 'Esc closed the toast');
+    assert.equal(t2.el.parent, null, 'Esc closed the toast');
     assert.equal(page.doc.activeElement, page.del, 'focus goes back to where it was');
     const plain = UI.toast('Saved.');
     page.del.focus();
@@ -161,7 +176,25 @@ test('createUI toast: Tab reaches Undo next, Shift+Tab and the last button lead 
     assert.equal(page.doc.activeElement, page.after, 'and Shift+Tab goes back to where the app put focus');
     page.press('Tab');
     assert.notEqual(page.doc.activeElement && page.doc.activeElement.parent, fresh.el, 'once left, the toast is not offered again');
-    fresh.el.children.filter((n) => n.tagName === 'BUTTON')[1].click();
+    // Reached later through the page's own order (it sits at the end), the toast is a plain stop: no jump back, no loop.
+    const [u3, x3] = fresh.el.children.filter((n) => n.tagName === 'BUTTON');
+    u3.focus();
+    assert.equal(page.press('Tab', true).defaultPrevented, false, 'Shift+Tab on a visited toast is the browser\'s own');
+    x3.focus();
+    assert.equal(page.press('Tab').defaultPrevented, false, 'Tab past a visited toast is the browser\'s own');
+    x3.click();
+
+    // A toast that was never jumped to, reached by the page's own Tab order, does not jump out either.
+    fresh = UI.toast('Mark removed.', { action: { label: 'Undo', name: 'Undo: remove mark', run: () => {} } });
+    const [u4, x4] = fresh.el.children.filter((n) => n.tagName === 'BUTTON');
+    x4.focus();
+    assert.equal(page.press('Tab').defaultPrevented, false);
+    // While a dialog is open, the toast path stays out of the way (the dialog keeps Tab inside itself).
+    const dlg = new page.N('div'); dlg.setAttribute('aria-modal', 'true'); page.doc.body.append(dlg);
+    page.after.focus(); fresh.visited = false; fresh.origin = page.after;
+    assert.equal(page.press('Tab').defaultPrevented, false, 'no jump to the toast past an open dialog');
+    dlg.remove();
+    x4.click();
 
     // Focus fell to the page body (the focused button was removed): Tab still reaches Undo, and Shift+Tab never sticks.
     fresh = UI.toast('Ballot removed.', { action: { label: 'Undo', name: 'Undo: remove ballot', run: () => {} } });

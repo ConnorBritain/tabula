@@ -85,7 +85,7 @@ test('a bare Enter shortcut matches Enter alone, and modifier combos keep their 
   assert.equal(core.keyMatches(combo, ev()), false, 'Meta+Enter never fires on Enter alone');
 });
 
-// ---------- the shared registry (createRegistry) ----------
+// ---------- the shared shortcut registry (createShortcutRegistry) ----------
 const sc = (id, key, scope, extra) => Object.assign({ id, keys: { mac: key, other: key }, scope, action: id, label: id, group: 'G' }, extra);
 
 // Why: if two parts of an app could add the same key in places that show together, one press would run the wrong command mid-round.
@@ -107,8 +107,8 @@ test('the debate and Speech Events shortcut lists have no problems', async () =>
 });
 
 // Why: a workspace (Congress) adds its own keys when it shows; a clash must stop it whole, and leaving must take its keys away, or they fire on other screens.
-test('createRegistry: add() matches the new keys, refuses a clash whole, and remove() takes them out', () => {
-  const r = core.createRegistry([sc('palette', 'Meta+k', 'global', { typing: true }), sc('startStop', 'Space', 'room', { single: true, noFocus: true })]);
+test('createShortcutRegistry: add() matches the new keys, refuses a clash whole, and remove() takes them out', () => {
+  const r = core.createShortcutRegistry([sc('palette', 'Meta+k', 'global', { typing: true }), sc('startStop', 'Space', 'room', { single: true, noFocus: true })]);
   const ctx = { scopes: ['global', 'congress'], focus: 'none', singleKeysOn: true };
   const remove = r.add([sc('next', 'n', 'congress', { single: true }), sc('clock', 'Space', 'congress', { single: true, noFocus: true })]);
   assert.equal(r.keyAction({ key: 'n', code: 'KeyN' }, ctx), 'next');
@@ -120,5 +120,5 @@ test('createRegistry: add() matches the new keys, refuses a clash whole, and rem
   remove(); remove();
   assert.equal(r.keyAction({ key: 'n', code: 'KeyN' }, ctx), null);
   assert.deepEqual(r.list().map((s) => s.id), ['palette', 'startStop']);
-  assert.throws(() => core.createRegistry([sc('a', 'n', 'room'), sc('b', 'n', 'room')]), /same key/);
+  assert.throws(() => core.createShortcutRegistry([sc('a', 'n', 'room'), sc('b', 'n', 'room')]), /same key/);
 });

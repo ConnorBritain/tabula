@@ -82,8 +82,8 @@ export function parseBackup(text, { prefix, app = 'tabula' }) {
   return { storage, exportedAt: j.exportedAt || '', includesKeys: Boolean(j.includesKeys), file: j };
 }
 
-// Save text as a file in Downloads (page only: it needs document, so the Node tests do not run it). Step C3 may move
-// it to core/ui.js with the other page helpers.
+// Save text as a file in Downloads (page only: it needs document, so the Node tests do not run it). It could move
+// to core/ui.js with the other page helpers.
 export function downloadFile(name, text, type) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], { type: type || 'text/csv' }));

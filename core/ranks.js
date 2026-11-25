@@ -23,7 +23,7 @@ export function moveRank(ranks, id, rank, ids, opts) {
   return { ranks: out, moved };
 }
 
-// Where a ranking stands (added in C8 for the rank board and the Congress top 8). opts.cap: as above (ids.length when
+// Where a ranking stands (for the rank board and the Congress top 8). opts.cap: as above (ids.length when
 // left out).
 // Returns { given: how many ids have a rank, missing: [the ranks 1..cap no id has], ties: [ranks held twice],
 // outOfRange: [ids with a rank that is not 1..cap], complete: every rank 1..cap given once, nothing else wrong }.

@@ -161,12 +161,12 @@ export function shortcutProblems(list) {
   });
   return out;
 }
-// createRegistry(base) -> a keymap (matchKey, keyAction, shortcutRows, as createKeymap) over base plus every list a part
+// createShortcutRegistry(base) -> a keymap (matchKey, keyAction, shortcutRows, as createKeymap) over base plus every list a part
 // of the app adds later, for example one workspace's own shortcuts.
 //   add(list) -> remove(): adds the list, or throws with every problem and adds nothing. remove() takes the list out
 //                again (a workspace that unmounts). Adding a list again before removing it throws (the ids repeat).
 //   list() -> the shortcuts now in force, base first, then each added list in the order it was added.
-export function createRegistry(base) {
+export function createShortcutRegistry(base) {
   const live = [];
   const first = shortcutProblems(base || []);
   if (first.length) throw new Error('shortcut registry: ' + first.join('; '));
@@ -216,4 +216,4 @@ export function searchCommands(query, rows) {
 }
 
 (globalThis.TabulaCore = globalThis.TabulaCore || {}).keys = Object.freeze({ parseCombo, isReservedCombo, focusKind, keyMatches, allowed,
-  isMacPlatform, formatKeys, shortcutKeys, createKeymap, shortcutsClash, shortcutProblems, createRegistry, searchCommands });
+  isMacPlatform, formatKeys, shortcutKeys, createKeymap, shortcutsClash, shortcutProblems, createShortcutRegistry, searchCommands });

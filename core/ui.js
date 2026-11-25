@@ -56,8 +56,9 @@ export function toastMs(text, kind, hasAction) {
 // Keyboard path to a toast's action (WCAG 2.1.1). The toasts sit at the end of the page, so plain Tab order would reach
 // an Undo last. Instead the newest toast with an action acts as if it came right after the place the focus is (its
 // origin), without trapping focus. Until the person has been into the toast, the origin follows focus, so a screen that
-// redraws and moves focus after the toast still has the toast as its next stop. Once focus leaves the toast, the page's
-// own order is back.
+// redraws and moves focus after the toast still has the toast as its next stop. Only a visit this path started leads
+// back out (Shift+Tab to the origin, Tab to the stop after it); once focus leaves the toast, the page's own order is
+// back and the toast is a plain stop at the end of the page, so Tab never loops around it.
 //   Tab at the origin            -> the toast's first button (the action)
 //   Shift+Tab on its first button -> back to the origin
 //   Tab on its last button        -> the next stop after the origin
@@ -122,7 +123,7 @@ export function createUI({ behind }) {
     const el = document.createElement('div');
     el.className = 'toast' + (kind === 'error' ? ' is-error' : '');
     const t = { el, msg: text, key: o.key || '', kind, action: o.action || null, ms: toastMs(text, kind, Boolean(o.action)), timer: null, left: 0, at: 0, hover: false, focus: false,
-      origin: document.activeElement || null, visited: false };
+      origin: document.activeElement || null, visited: false, jumped: false };
     if (kind === 'error') { const i = document.createElement('span'); i.className = 'toast-icon'; i.setAttribute('aria-hidden', 'true'); i.textContent = '!'; el.append(i); }
     const m = document.createElement('span'); m.className = 'toast-msg'; m.textContent = text; el.append(m);
     if (t.action) {
@@ -139,7 +140,7 @@ export function createUI({ behind }) {
     el.addEventListener('mouseenter', () => hold('hover', true));
     el.addEventListener('mouseleave', () => hold('hover', false));
     el.addEventListener('focusin', () => hold('focus', true));
-    el.addEventListener('focusout', (e) => { if (!el.contains(e.relatedTarget)) { hold('focus', false); t.visited = true; } });
+    el.addEventListener('focusout', (e) => { if (!el.contains(e.relatedTarget)) { hold('focus', false); t.visited = true; t.jumped = false; } });
     $('#toasts').append(el); toastList.push(t); toastArm(t); toastsChanged();
     return t;
   }
@@ -195,14 +196,21 @@ export function createUI({ behind }) {
     const btns = toastButtons(t);
     const active = document.activeElement;
     const inToast = btns.indexOf(active);
-    if (inToast < 0 && t.visited) return;
+    // Not while a dialog is open (it keeps Tab inside itself), not after the toast was left, and the way back out only
+    // for a visit this path started.
+    if (askIsOpen() || modalOpen()) return;
+    if (inToast < 0 ? t.visited : !t.jumped) return;
     const atOrigin = active === t.origin || (!usable(t.origin) && (!active || active === document.body));
     const step = toastTab({ atOrigin, inToast, count: btns.length, back: e.shiftKey });
     // With no usable origin (the page body, a removed button), the browser's own Tab runs: it never sticks on the toast.
     const target = step === 'toast' ? btns[0] : step === 'origin' ? (usable(t.origin) ? t.origin : null) : step === 'after' ? (usable(t.origin) ? stopAfter(t.origin) : null) : null;
     if (!target) return;
-    e.preventDefault(); target.focus();
+    e.preventDefault();
+    if (step === 'toast') t.jumped = true;
+    target.focus();
   });
+  // An open modal dialog of this page (ask() or modalDialog): role="dialog" with aria-modal, not inside a hidden part.
+  const modalOpen = () => Array.from(document.querySelectorAll('[aria-modal="true"]')).some((d) => !(d.closest && d.closest('[hidden]')));
   // Close the toast with this key, if one shows (for example the storage error after a save works again).
   function dismissToast(key) { toastList.filter((t) => t.key === key).forEach(toastClose); }
   // The Undo that waits now, for the palette row "Undo: {what}" (spec 4.3, 5.4): { name, run } or null.
