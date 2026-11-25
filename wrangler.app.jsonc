@@ -1,8 +1,8 @@
 // The hosted app at debate.tabulaspeech.com: static files only, no server code.
 // Deploy (owner's yes first): npx wrangler deploy -c wrangler.app.jsonc
 // The build command below runs the gates first; a red test stops the deploy.
-// This is a Workers assets project on a route, not the Pages project with a custom
-// domain that docs/architecture/MARKETING-SITE.md §6 describes: a route needs no DNS change.
+// This is a Workers assets project on a route, not a Pages project with a custom
+// domain: a route needs no DNS change.
 //
 // The route debate.tabulaspeech.com/* sends pages here. The server Worker's
 // route debate.tabulaspeech.com/api/v1/* is more specific, so the API stays there.
