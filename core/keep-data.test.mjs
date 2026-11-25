@@ -15,8 +15,7 @@ function fakeNav({ persisted = false, grant = true, throws = false, missing = fa
 }
 const memStore = () => { const m = new Map(); return { get: (k, d) => (m.has(k) ? m.get(k) : d), set: (k, v) => { m.set(k, v); return true; }, m }; };
 
-// Why: if the answer is read wrong, Settings and My day tell a judge their ballots are safe when the browser may clear
-// them, and the judge loses a tournament's comments without a backup.
+// Why: if the answer is read wrong, Settings and My day tell a judge their ballots are safe when the browser may clear them, and the judge loses a tournament's comments without a backup.
 test('storageKept reads the browser answer and never throws', async () => {
   assert.equal(await storageKept(fakeNav({ persisted: true })), 'kept');
   assert.equal(await storageKept(fakeNav({ persisted: false })), 'may-clear');
@@ -50,8 +49,7 @@ test('askToKeepOnce reads unknown when the browser cannot answer', async () => {
   assert.equal(await askToKeepOnce(memStore(), 'k', () => 1, fakeNav({ throws: true })), 'unknown');
 });
 
-// Why: the reminder is the last chance to save a day of ballots off the device; it must show when the day is over and
-// nothing is backed up, and must not nag a judge who already has a backup or said "Not now".
+// Why: the reminder is the last chance to save a day of ballots off the device; it must show when the day is over and nothing is backed up, and must not nag a judge who already has a backup or said "Not now".
 test('backupDue: only when the day is over and something changed since the last backup', () => {
   const base = { dayOver: true, lastChange: 1000, lastBackupAt: null, dismissedAt: null };
   assert.equal(backupDue(base), true);

@@ -17,7 +17,7 @@ import { dayOf } from './js/rooms.js';
 import { loadEventData } from './js/data.js';
 import { createRoom, updateEntry } from './js/room.js';
 import { openBoard, withRanks } from './js/board.js';
-import { setNotes } from './js/comments.js';
+import { setNotes, setPrivateNote } from './js/comments.js';
 import { cards, markCopied, printModel } from './js/ballot.js';
 import { saveStageHtml, nextCopy, summaryHtml } from './js/review-screen.js';
 import { printSheetHtml } from '../core/sheets.js';
@@ -30,8 +30,7 @@ const ANDROID = { ua: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.
 
 // ---------- the version.json header ----------
 
-// Why: a stale version.json makes Settings show the old release after a deploy, so a judge who reports a problem names
-// the wrong build, and a fix looks like it never shipped.
+// Why: a stale version.json makes Settings show the old release after a deploy, so a judge who reports a problem names the wrong build, and a fix looks like it never shipped.
 test('events/_headers never lets a browser or proxy store version.json', () => {
   const h = read('_headers');
   const rule = /^\/version\.json\n((?:[ \t]+.*\n?)+)/m.exec(h);
@@ -43,8 +42,7 @@ test('events/_headers never lets a browser or proxy store version.json', () => {
 
 // ---------- the new style sheet ships ----------
 
-// Why: a style sheet the page links but the offline cache or the build leaves out shows the banner and the sheet
-// unstyled with no internet at a tournament.
+// Why: a style sheet the page links but the offline cache or the build leaves out shows the banner and the sheet unstyled with no internet at a tournament.
 test('install.css is linked from the page, cached offline and shipped by the build', async () => {
   assert.match(read('index.html'), /<link rel="stylesheet" href="install\.css">/);
   assert.ok((await pageFiles()).includes('events/install.css'), 'in the offline cache list');
@@ -55,8 +53,7 @@ test('install.css is linked from the page, cached offline and shipped by the bui
 
 // ---------- the store wrappers ----------
 
-// Why: other events files import these from store.js; if the move to core/ changed the key, every judge would be asked
-// to keep the data again, and a backup restore would lose the "asked" mark.
+// Why: other events files import these from store.js; if the move to core/ changed the key, every judge would be asked to keep the data again, and a backup restore would lose the "asked" mark.
 test('store.js still asks once under tabulaEvents.persistAsked.v1, through core/keep-data.js', async () => {
   const m = new Map();
   const store = { get: (k, d) => (m.has(k) ? m.get(k) : d), set: (k, v) => { m.set(k, v); return true; } };
@@ -71,8 +68,7 @@ test('store.js still asks once under tabulaEvents.persistAsked.v1, through core/
 
 // ---------- the "may delete" banner ----------
 
-// Why: a warning on every visit teaches judges to ignore it; no warning when the browser really may delete the data
-// loses a tournament's ballots. 'unknown' is not a reason to alarm a parent judge.
+// Why: a warning on every visit teaches judges to ignore it; no warning when the browser really may delete the data loses a tournament's ballots. 'unknown' is not a reason to alarm a parent judge.
 test('the banner shows only on a real "may-clear" answer, not installed, not dismissed today', () => {
   const base = { kept: 'may-clear', standalone: false, dismissedDay: null, now: NOW };
   assert.equal(bannerDue(base), true);
@@ -101,8 +97,7 @@ test('the banner says it plainly and offers Download a backup, How to keep it an
 
 // ---------- the "Add to Home Screen" sheet ----------
 
-// Why: Safari on iPhone deletes the data after about 7 days without a visit; the sheet is the judge's warning. It must
-// not nag (at most once a day, never after "Don't show again") and must not show where it cannot help.
+// Why: Safari on iPhone deletes the data after about 7 days without a visit; the sheet is the judge's warning. It must not nag (at most once a day, never after "Don't show again") and must not show where it cannot help.
 test('the sheet opens by itself only on iPhone and iPad Safari, once a day, until "Don\'t show again"', () => {
   const hint = installHint(IPHONE);
   const base = { hint, standalone: false, pref: null, now: NOW };
@@ -116,8 +111,7 @@ test('the sheet opens by itself only on iPhone and iPad Safari, once a day, unti
   assert.match(INSTALL_HINT_KEY, /^tabulaEvents\./);
 });
 
-// Why: a lay parent judge follows these words on a phone in a hallway; the steps and the 7-day reason must be there,
-// in an ordered list, and a judge with rounds saved must learn that the Home Screen app starts with its own copy.
+// Why: a lay parent judge follows these words on a phone in a hallway; the steps and the 7-day reason must be there, in an ordered list, and a judge with rounds saved must learn that the Home Screen app starts with its own copy.
 test('the sheet holds the 3 Safari steps, the 7-day reason, and the backup note when rounds are saved', () => {
   const hint = installHint(IPHONE);
   const html = installSheetHtml(hint, { hasWork: false, auto: true });
@@ -135,8 +129,7 @@ test('the sheet holds the 3 Safari steps, the 7-day reason, and the backup note 
   assert.doesNotMatch(withWork, /data-ins="never"/, 'opened by the judge: no "Don\'t show again"');
 });
 
-// Why: a dialog without a role, a label, focus moving in and back, and Esc leaves a screen-reader user stuck behind an
-// invisible sheet. The sheet is built on core/ui.js modalDialog, which traps focus, returns it, and closes on Esc.
+// Why: a dialog without a role, a label, focus moving in and back, and Esc leaves a screen-reader user stuck behind an invisible sheet. The sheet is built on core/ui.js modalDialog, which traps focus, returns it, and closes on Esc.
 test('the sheet is a labelled modal dialog built on modalDialog (focus in and back, Esc closes)', () => {
   const src = read('js/install-sheet.js');
   assert.match(src, /setAttribute\('role', 'dialog'\)/);
@@ -153,8 +146,7 @@ const sess = (over) => Object.assign({ id: 's1', chamberId: 'ch1', number: 1, st
 const congress = (sessions, chamberAt = NOW - 4 * 3600e3) => ({ v: 1, chambers: [{ id: 'ch1', house: 'house', tournament: 'Fall Classic', createdAt: chamberAt, legislators: [], docket: [], sessionIds: sessions.map((s) => s.id) }], sessions, prefs: {} });
 const emptyModel = () => mydayModel({ day: null, cards: [], rounds: [], now: NOW, ranksDueMin: 10 });
 
-// Why: a Congress judge's ranks and speech scores live only on this device too; before this change a Congress-only day
-// never got the reminder, so those ballots had no nudge to a backup.
+// Why: a Congress judge's ranks and speech scores live only on this device too; before this change a Congress-only day never got the reminder, so those ballots had no nudge to a backup.
 test('a Congress-only day gets the reminder once every session today is handed in', () => {
   const open = congress([sess({})]);
   const done = congress([sess({ copiedAt: NOW - 3600e3 })]);
@@ -181,8 +173,7 @@ test('the day is not over while a ballot is left or the judge is on standby, wha
   assert.equal(eventsDayOver({ model: emptyModel(), chambers: [{ id: 'x', label: 'House' }] }), false, 'a chamber with no open flag counts as open');
 });
 
-// Why: "Not now" and "backed up" compare against the last change; if Congress changes did not count, a judge who backed
-// up before the last session would never be reminded about it.
+// Why: "Not now" and "backed up" compare against the last change; if Congress changes did not count, a judge who backed up before the last session would never be reminded about it.
 test('lastChangeAt counts Congress time stamps (session start, ranks copied, submitted)', () => {
   assert.equal(lastChangeAt([], [], congress([sess({})])), NOW - 3 * 3600e3);
   assert.equal(lastChangeAt([], [], congress([sess({ copiedAt: NOW - 3600e3, submittedAt: NOW - 1800e3 })])), NOW - 1800e3);
@@ -211,8 +202,7 @@ function judged() {
   return Object.assign({}, r, { reasonForRank: 'A12 had the clearest close.' });
 }
 
-// Why: after the ranks and comments are copied, the judge's last chance to keep a copy is the PDF; it must be the one
-// clear next step then, and not compete with a copy step before that.
+// Why: after the ranks and comments are copied, the judge's last chance to keep a copy is the PDF; it must be the one clear next step then, and not compete with a copy step before that.
 test('"Save as PDF" is the last stage and the primary button only once everything is copied', () => {
   let r = judged();
   const before = saveStageHtml(r, nextCopy(r, cards(r, 'speaking')));
@@ -229,20 +219,21 @@ test('"Save as PDF" is the last stage and the primary button only once everythin
   assert.match(summaryHtml(r), /Print \/ PDF/, 'the toolbar button stays');
 });
 
-// Why: a printed or saved ballot can be left on a shared computer; it must hold only the codes and what the judge
-// entered, never a student's name, the private note, a setting or an AI key.
-test('the print sheet holds codes and the judge\'s words, not student names', () => {
-  const r = judged();
+// Why: a ballot left on a shared computer must not expose student names or the judge's private note.
+test('the print sheet holds codes and the judge\'s words, not student names or private notes', () => {
+  const privateNote = 'PRIVATE_NOTE_PDF_SENTINEL';
+  let r = judged();
+  r = updateEntry(r, r.entries[0].id, (e) => setPrivateNote(e, privateNote), 5);
   const html = printSheetHtml(printModel(r, EXP, 300));
   assert.match(html, /A12/);
   assert.match(html, /A12: strong open\./);
   assert.match(html, /A12 had the clearest close\./);
   assert.doesNotMatch(html, /Sam Rivera|Jo Park/);
+  assert.doesNotMatch(html, /PRIVATE_NOTE_PDF_SENTINEL/);
   assert.doesNotMatch(html, /tabulaEvents|apiKey|sk-/);
 });
 
-// Why: on iPhone the storage answer arrives while the sheet is open; redrawing then removed the element focus returns
-// to, so a screen-reader judge was dropped on the page body when the sheet closed.
+// Why: on iPhone the storage answer arrives while the sheet is open; redrawing then removed the element focus returns to, so a screen-reader judge was dropped on the page body when the sheet closed.
 test('My day waits for the sheet to close before redrawing, then focuses the title', () => {
   const src = read('js/myday-screen.js');
   assert.match(src, /if \(sheet\.isOpen\(\)\) \{ redrawAfterSheet = true; return; \}/);

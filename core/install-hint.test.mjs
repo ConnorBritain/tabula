@@ -1,10 +1,7 @@
 // Tests for core/install-hint.js: which "add to Home Screen" steps a judge sees on their browser.
 // Run with: node --test
 //
-// WHY this table matters: Safari on iPhone and iPad can delete a judge's saved ballots after about 7 days without a
-// visit. If an iPhone Safari user gets no hint, a tournament's ballots can vanish between weekends; if a browser that
-// cannot add to the Home Screen (Chrome on iPhone, an app's built-in browser) gets the Safari steps, the judge follows
-// steps that do not exist there and gives up.
+// Why: a missing install hint can cost a judge saved ballots, and steps the browser does not have can make the judge give up.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installHint, isStandalone } from './install-hint.js';
@@ -56,6 +53,7 @@ const TABLE = [
 ];
 
 for (const [name, input, kind] of TABLE) {
+  // Why: wrong install steps can make a judge give up and leave saved ballots at risk of deletion.
   test(`installHint: ${name} -> ${kind}`, () => {
     const h = installHint(input);
     assert.equal(h ? h.kind : null, kind);
