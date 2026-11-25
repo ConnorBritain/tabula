@@ -24,6 +24,11 @@
 /sw-files.js
   Cache-Control: no-cache
 
+# version.json names the commit this build came from (Settings, About shows it). Always checked for a new copy, so a
+# new deploy shows at once. The service worker never caches it.
+/version.json
+  Cache-Control: no-cache
+
 # The install manifest (when the page has one): its standard type, and always checked for a new copy.
 /manifest.webmanifest
   Content-Type: application/manifest+json

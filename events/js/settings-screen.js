@@ -1,7 +1,7 @@
 // Speech Events step S2 (docs/events/EXPERIENCE.md §7, §8.5, §9): the Settings screen, #/settings. Only the parts that
 // work today: Mode, Theme, Ranks due (step S3, the minutes after the last speaker, §5.3), the extemp draw gap (step
 // S4), Connect AI, the keyboard sheet, Ready for offline, and Data (whether the browser keeps the data, backup, restore,
-// and Clear this device), and About (the link to the source code).
+// and Clear this device), and About (the release id, Send feedback, known issues and the link to the source code).
 // Deferred (EXPERIENCE.md §11.1): league pack and default profile, defaults for each type, Congress scale defaults
 // (S6), Shared device (S8).
 // The rules are in settings.js; the builders at the top are pure (Node tests call them); createSettingsScreen does the
@@ -11,11 +11,11 @@ import { statusPillHtml } from './status-pill.js';
 import { foldSummaryHtml } from './fold.js';
 import { createStore, downloadFile } from '../../core/store.js';
 import { isMacPlatform } from '../../core/keys.js';
-import { THEMES, RANKS_DUE_MAX, DRAW_GAPS, withSetting, validRanksDue, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems, keptText, CLEAR_WHAT } from './settings.js';
+import { THEMES, RANKS_DUE_MAX, DRAW_GAPS, withSetting, validRanksDue, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems, keptText, CLEAR_WHAT, releaseId, feedbackMailto, KNOWN_ISSUES_URL } from './settings.js';
 import { PREFIX, BACKUP_AT_KEY, storageKept } from './store.js';
 import { KEYS_KEY } from './ai-key.js';
 import { keymap } from './keys.js';
-import { checkOffline } from './offline.js';
+import { checkOffline, CACHE_PREFIX } from './offline.js';
 import { askConnectKey, askForgetKey } from './ai-connect.js';
 
 const radios = (name, list, picked) => list.map((x) => `<label class="radio"><input type="radio" name="${name}" value="${esc(x.id)}"${x.id === picked ? ' checked' : ''}> ${esc(x.label)}</label>`).join('');
@@ -40,12 +40,69 @@ export function aiPartHtml(ai) {
 export const offlineHtml = (res) => (!res ? 'Checking…'
   : (res.ready ? statusPillHtml('ok', 'Ready offline', 'circle-check') : statusPillHtml('caution', 'Not ready', 'triangle-alert')) + ' ' + esc(res.text));
 
+// ---------- the release id ----------
+// The build writes version.json ({ sha, builtAt }) at the root of the host; the service worker never caches it, and
+// _headers says no-cache, so a read always shows what is live. Offline, or when the file cannot be read (the page run
+// from the repo), the worker's cache name stands in. The page looks once at load and again each time Settings opens.
+let release = null;
+let pending = null;
+
+/** The release id found so far, or 'unknown' before the first lookup ends. */
+export const currentRelease = () => release || 'unknown';
+
+/**
+ * Find the release id. Never throws, and the fetch gives up after 4 seconds. deps (for tests): { fetch, caches,
+ * online() }. Resolves to the id and keeps it for currentRelease.
+ */
+export function lookupRelease(deps) {
+  if (pending && !deps) return pending;
+  const d = Object.assign({
+    fetch: globalThis.fetch && ((u, i) => globalThis.fetch(u, i)),
+    caches: globalThis.caches,
+    online: () => !globalThis.navigator || globalThis.navigator.onLine !== false,
+  }, deps);
+  const run = (async () => {
+    let version = null;
+    if (d.fetch && d.online()) {
+      try {
+        const init = { cache: 'no-store' };
+        if (globalThis.AbortSignal && AbortSignal.timeout) init.signal = AbortSignal.timeout(4000);
+        const res = await d.fetch(new URL('../version.json', import.meta.url).href, init);
+        if (res && res.ok) version = await res.json();
+      } catch { version = null; }
+    }
+    let cacheName = null;
+    if (releaseId({ version }) === 'unknown' && d.caches) {
+      try { cacheName = (await d.caches.keys()).find((k) => k.startsWith(CACHE_PREFIX)) || null; } catch { cacheName = null; }
+    }
+    release = releaseId({ version, cacheName });
+    return release;
+  })();
+  if (!deps) { pending = run; run.finally(() => { pending = null; }); }
+  return run;
+}
+
+// Look it up once when the page loads (not in Node tests), so a backup made from My day carries it too. It only reads
+// a file from this same site; it sends nothing about the judge or the device.
+if (typeof document === 'object' && document) lookupRelease();
+
+// The About part as HTML text. rel: the release id.
+export function aboutHtml(rel) {
+  return `<section class="set-part" aria-labelledby="set-about-h"><h2 id="set-about-h">About</h2>
+    <p>Release: <span id="set-release">${esc(rel)}</span></p>
+    <p><a id="set-feedback" href="${esc(feedbackMailto({ release: rel, ua: globalThis.navigator && globalThis.navigator.userAgent }))}">Send feedback</a>
+      · <a href="${esc(KNOWN_ISSUES_URL)}" rel="noopener">Known issues</a></p>
+    <p class="field-help">Send feedback opens your email app. Nothing is sent until you send it.</p>
+    <p><a href="https://github.com/TabulaSpeech/tabula" rel="noopener">Source code (AGPL)</a></p>
+  </section>`;
+}
+
 // Download a backup of every tabulaEvents.* value and note the time (BACKUP_AT_KEY), so My day knows the data is safe.
 // env: { store, ui, now() }. includeKeys: put the AI key in the file. Settings and the My day reminder both use it.
 export function downloadBackup(env, includeKeys) {
   const at = env.now();
   const now = new Date(at).toISOString();
-  const file = makeBackup(env.store.snapshot(PREFIX), { includeKeys: Boolean(includeKeys), now });
+  const file = makeBackup(env.store.snapshot(PREFIX), { includeKeys: Boolean(includeKeys), now, release: currentRelease() });
   downloadFile(backupName(now), JSON.stringify(file, null, 2), 'application/json');
   env.store.set(BACKUP_AT_KEY, at);
   env.ui.toast('The backup file is in your downloads.', { key: 'backup' });
@@ -58,7 +115,7 @@ const installed = () => {
 };
 
 // The whole screen as HTML text. v: { settings, ai, keys (keySheetHtml), offline ({ text } or null while checking),
-// kept (keptText's line, or null while checking) }.
+// kept (keptText's line, or null while checking), release (the release id) }.
 export function settingsHtml(v) {
   const s = v.settings;
   return `<div class="screen-head"><h1 id="screen-title" tabindex="-1">Settings</h1></div>
@@ -90,9 +147,7 @@ export function settingsHtml(v) {
     <p class="field-help">Clear this device when you are done, so the next person cannot see your rounds.</p>
     <div class="set-row"><button class="b" type="button" id="set-clear">Clear this device</button></div>
   </section>
-  <section class="set-part" aria-labelledby="set-about-h"><h2 id="set-about-h">About</h2>
-    <p><a href="https://github.com/TabulaSpeech/tabula" rel="noopener">Source code (AGPL)</a></p>
-  </section>`;
+  ${aboutHtml(v.release || 'unknown')}`;
 }
 
 // env: { el, ui, now, store, settings(), saveSettings(s), ai, reload() }.
@@ -111,7 +166,7 @@ export function createSettingsScreen(env) {
   };
 
   function draw(focusSel) {
-    env.el.innerHTML = settingsHtml({ settings: env.settings(), ai: aiView(), keys: keySheetHtml(keymap.shortcutRows(mac(), true)), offline, kept });
+    env.el.innerHTML = settingsHtml({ settings: env.settings(), ai: aiView(), keys: keySheetHtml(keymap.shortcutRows(mac(), true)), offline, kept, release: currentRelease() });
     const f = focusSel && $(focusSel);
     if (f) f.focus();
   }
@@ -130,6 +185,14 @@ export function createSettingsScreen(env) {
     if (!shown) return;
     kept = keptText(state, installed());
     if ($('#set-kept')) $('#set-kept').textContent = kept;
+  }
+
+  // Fill in the release id when the lookup ends; the screen never waits for it.
+  async function showRelease() {
+    const rel = await lookupRelease();
+    if (!shown) return;
+    if ($('#set-release')) $('#set-release').textContent = rel;
+    if ($('#set-feedback')) $('#set-feedback').href = feedbackMailto({ release: rel, ua: globalThis.navigator && globalThis.navigator.userAgent });
   }
 
   const backup = () => downloadBackup(env, $('#set-backup-keys') && $('#set-backup-keys').checked);
@@ -232,6 +295,7 @@ export function createSettingsScreen(env) {
       draw('#screen-title');
       check();
       checkKept();
+      showRelease();
     },
     hide() {
       shown = false;
