@@ -3,7 +3,8 @@
 The account site is the web console where you sign in, manage your profile, run a school, and buy rounds of AI help.
 Its code is not public. This list is.
 
-Everything on this page lives **on our server**, not on your device. The judging app and Speech Events keep their own
+Everything on this page lives **on our server**, not on your device, except the cookies and a short browser copy of
+photos. The judging app and Speech Events keep their own
 data on your device; see [debate.md](debate.md) and [events.md](events.md).
 
 Some words used below:
@@ -57,7 +58,7 @@ When someone else sees a student's photo, we write a row in the student-data rea
 
 | Data | Why | Who can see it | Export | Delete | How long we keep it | Where it lives |
 |---|---|---|---|---|---|---|
-| Sign-in request: the email you typed (it may have no account), a scrambled copy (hash) of the sign-in link and of the 6-digit code, the page to return to, times, tries (up to 5) | Emails you a sign-in link and code. We never store the link or code itself. | No screen shows it. | Not in the self-service export; ask us | Closing your account deletes these for your email. | A code works for 15 minutes. We delete the request 24 hours after it stops working. | Our server |
+| Sign-in request: the email you typed (it may have no account), a scrambled copy (hash) of the sign-in link and of the 6-digit code, the page to return to, times, tries (up to 5) | Emails you a sign-in link and code. The sign-in request keeps only scrambled copies. The queued email holds the link and code until it is sent (see Emails we send). | No screen shows it. | Not in the self-service export; ask us | Closing your account deletes these for your email. | A code works for 15 minutes. We delete the request 24 hours after it stops working. | Our server |
 | Session: times, a scrambled copy of a fresh confirmation code, a sign-in strength level. No IP address, browser name or device. | Keeps you signed in | No screen shows it. | Not in the self-service export; ask us | Sign out, "sign out everywhere", or close your account. | Up to 30 days. It also ends after 30 days without use, or 12 hours without use for staff. We delete it when it ends and is next checked. | Our server (a fast per-person store) |
 | Count of confirmation emails sent | Limits how many confirmation codes we send | No screen shows it. | No | Automatic | 1 hour | Our server (a fast per-person store) |
 | One-time passkey challenge | Passkey sign-in. **This feature is not on yet.** | No screen shows it. | No | Deleted when used | Unused ones that run out: we have no automatic deletion for these yet. | Our server |
@@ -88,7 +89,7 @@ A join code holds no student data.
 
 | Data | Why | Who can see it | Export | Delete | How long we keep it | Where it lives |
 |---|---|---|---|---|---|---|
-| School, who read, time, read or export, what kind of item (roster, photo, account and so on), which student (for one-person reads), count. No content, email, IP address or name. | A record of who looked at student data. We write it when someone reads the roster, when someone else sees a student's photo, and when a student exports their own data (one row per school). | School admins see the last 90 days. Students cannot see reads of their own data. | Not in the self-service export; ask us | Automatic | 365 days, then we delete it | Our server |
+| School, who read, time, read or export, what kind of item (for example roster or photo), which student (for one-person reads), count. No content, email, IP address or name. | A record of who looked at student data. We write it when someone reads the roster, when someone else sees a student's photo, and when a student exports their own data (one row per school). | School admins see the last 90 days. Students cannot see reads of their own data. | Not in the self-service export; ask us | Automatic | 365 days, then we delete it | Our server |
 
 ## Rounds, purchases and subscriptions
 
@@ -101,12 +102,12 @@ A join code holds no student data.
 | Payment: payment reference, invoice number, owner, product, amount, rounds, time | Your purchase record | You (export, and the page after you pay) | Yes (product, amount, rounds, time) | No. These are records. | We keep them. We have no automatic deletion for these yet. | Our server |
 | Subscription: product, status, cancel flag, period end | Plans that renew | You | Yes | No. While a plan renews, you cannot close your account. | We keep it. We have no automatic deletion for this yet. | Our server |
 | Checkout record: owner, product, which app you came from, status, times | Tracks a checkout until it is paid | You see it on the page after you pay. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
-| Card dispute: status, times | Handles a card dispute | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
+| Card dispute record | Handles a card dispute | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
 | Link between your account and the payment service's customer record | Billing | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
 | Auto-renew consent: person, product, notice version, times | A record that you agreed to automatic renewal (required in California) | No screen shows it. | Not in the self-service export; ask us | No | At least 3 years. We have no automatic deletion for this yet. | Our server |
 
 Checkout without an account is off. When it is on, the checkout record also holds a scrambled copy of a random cookie
-value and of the IP address.
+value and of the IP address. We keep these records.
 
 ## Buying rounds for someone else
 
@@ -116,7 +117,7 @@ You can buy rounds and send them to another person by email.
 |---|---|---|---|---|---|---|
 | Send: buyer, product, status, the email address the buyer typed, times, reminder times | Delivers the rounds to the other person | The buyer sees open sends, with the address partly hidden. | Not in the self-service export; ask us | We clear the typed address when the send ends: the other person keeps, claims or declines it, the buyer cancels, 14 days pass, an under-13 hold starts, the buyer starts a new send, or the buyer closes their account. | The address: until the send ends. The rest of the send record: we keep it. We have no automatic deletion for this yet. | Our server |
 | Send limit check: a scrambled copy of the other person's email address. It can still be matched to that address. | Stops too many sends to one person. | No screen shows it. | No | Deleted when the send ends | Until the send ends | Our server |
-| Rounds moved between accounts: from, to, rounds, time | Records the move | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
+| Rounds moved between accounts | Records the move | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
 | Sender block (a person blocked a buyer) | Stops more sends from that buyer | No screen shows it. | Not in the self-service export; ask us | No | We keep it. We have no automatic deletion for this yet. | Our server |
 
 ### The parent question
@@ -166,8 +167,8 @@ On the account site you can download your data. You need a fresh emailed code. E
 The export has: your account (account number, email, plan, adult confirmation time, birth date, age-check time,
 created time); your profile (display name, paradigm, whether you have a photo, your uses); your memberships (school id,
 school name, role, since); your rounds (first and last call time, number of calls, app); purchases (product, amount,
-rounds, time); subscriptions (product, status, cancel flag, period end); balance changes (time, change, kind). Your
-photo downloads on its own.
+rounds, time); subscriptions (product, status, cancel flag, period end); balance changes (time, change, kind); badges (none are given
+yet). Your photo downloads on its own.
 
 The rows above that say "Not in the self-service export" are not in it. To get them, email support@tabulaspeech.com.
 
@@ -183,8 +184,8 @@ When you close your account, we:
 - remove you from every school (each removal adds one row to that school's change log);
 - revoke open invites you sent, and delete sign-in requests for your email;
 - sign you out everywhere and delete all your profile photos;
-- send back rounds you sent to someone that they did not accept yet, and cancel your open sends (we clear the
-  addresses you typed).
+- return sent rounds to the people who bought them, and cancel your own open sends (we clear the addresses you
+  typed).
 
 We keep, after you close your account:
 
@@ -216,7 +217,7 @@ To ask us to delete more, email support@tabulaspeech.com.
 | Cookie | What it holds | How long |
 |---|---|---|
 | Session cookie | Your account number and session id, signed. Scripts on the page cannot read it. | 30 days |
-| Sign-in hint (`tabula_si`) | The value 1. No user data. | Same as the session |
+| Sign-in hint (`tabula_si`) | The value 1. No user data. | We are confirming this. |
 | Under-13 marker | Set only during the birth-date step | 1 year |
 | Guest checkout cookie | A random value. Only for checkout without an account, which is off. | 1 day |
 

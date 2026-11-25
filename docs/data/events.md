@@ -27,7 +27,7 @@ use that account today.
 | Data | Why | Who can see it | Export | Delete | How long we keep it | Where it lives |
 |---|---|---|---|---|---|---|
 | Chambers: house, your role, legislators (code and name), docket titles, tournament | Runs a Congress chamber | People with this browser on this device | Backup file | There is no delete button for this yet. Clear site data in your browser. | Until you clear site data | This browser on this device |
-| Sessions: speeches (side, type, speaking and question times, points, penalty, comment), presiding officer terms, ranks, recency; your scale preference | Scores and ranks a session | People with this browser on this device | Backup file | There is no delete button for this yet. Clear site data in your browser. | Until you clear site data | This browser on this device |
+| Sessions: speeches (side, type, speaking and question times, points, penalty, comment), presiding officer terms, ranks, recency; your scale preference | Scores and ranks a session | People with this browser on this device | Backup file | You can remove a single speech (with Undo). There is no button to delete a session yet. Clear site data in your browser. | Until you clear site data | This browser on this device |
 
 ## My day
 
