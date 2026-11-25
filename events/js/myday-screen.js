@@ -1,7 +1,7 @@
 // Speech Events step S3 (docs/events/EXPERIENCE.md §1.2, §5.1, §5.3, §5.4): My day, the judge home at #/. It replaces
 // the Rooms list. Sections: Now, Later today, Done (comments open), Done. A Standby card shows when today is on standby
 // and nothing is in Now or Later today. The Now card counts down to the ranks-due time. Each card can be marked "I
-// submitted in Tabroom", moved to another room or cancelled, each with Undo.
+// Mark submitted", moved to another room or cancelled, each with Undo.
 // Design build 2026-11-24 (owner decision OD2 A, design review §2.1): one large "Up next" card (the round being judged,
 // else the next one), then the other rounds as compact rows with a status pill and a "⋯" menu that holds Change room and
 // Cancel round. Ranks due is a pill in words. The room shows as typed (bug 3).
@@ -81,17 +81,17 @@ function moreHtml(v, open) {
 function menuHtml(v, open, withSubmit) {
   if (!v.canEdit || !open) return '';
   return `<div class="md-menu" role="group" aria-label="${esc('More for ' + v.short + ' ' + v.title)}">
-      ${withSubmit && v.canSubmit ? '<button class="b small" type="button" data-act="submit">I submitted in Tabroom</button>' : ''}
+      ${withSubmit && v.canSubmit ? '<button class="b small" type="button" data-act="submit">Mark submitted</button>' : ''}
       <button class="b small" type="button" data-act="room">Change room</button>
       <button class="b small quiet danger-text md-cancel" type="button" data-act="cancel">Cancel round</button></div>`;
 }
 // D5 A: the row keeps the button only where submitting is the next step (the ranks are copied, status "ranksIn").
 const rowSubmits = (v) => v.status === 'ranksIn';
-const submitHtml = (v, small) => (v.canSubmit ? `<button class="b${small ? ' small' : ''}" type="button" data-act="submit">I submitted in Tabroom</button>` : '');
+const submitHtml = (v, small) => (v.canSubmit ? `<button class="b${small ? ' small' : ''}" type="button" data-act="submit">Mark submitted</button>` : '');
 const evPill = (v) => `<a class="pill md-ev" href="${esc(routeHash('type', v.eventId))}" title="${esc(v.name)}" aria-label="${esc('About ' + v.name)}">${esc(v.short)}</a>`;
 
 // One compact row as HTML text (owner decision OD2 A): event pill, round and room (the link that opens it), the
-// status pill, the ranks-due pill, "I submitted in Tabroom" when it applies, and the "⋯" menu.
+// status pill, the ranks-due pill, "Mark submitted" when it applies, and the "⋯" menu.
 export function cardHtml(v, now, menuOpen) {
   const label = v.short + ' ' + v.title;
   const main = `<span class="md-title">${esc(v.title)}</span>${v.meta ? `<span class="muted md-meta">${esc(v.meta)}</span>` : ''}`;
@@ -227,7 +227,7 @@ export function createMydayScreen(env) {
     const c = li && cardFor(li.dataset.item);
     if (!c) { draw(); return; }
     const name = [c.round || 'the round', c.tournament].filter(Boolean).join(', ');
-    if (b.dataset.act === 'submit') change(c, submitCard(c, env.now()), 'Marked submitted in Tabroom: ' + name + '.', 'submitted ' + name);
+    if (b.dataset.act === 'submit') change(c, submitCard(c, env.now()), 'Marked submitted: ' + name + '.', 'submitted ' + name);
     if (b.dataset.act === 'cancel') change(c, cancelCard(c, env.now()), 'Cancelled ' + name + '.', 'cancel ' + name);
     if (b.dataset.act === 'room') {
       const label = await env.ui.ask({ title: 'Moved to another room?', input: { label: 'Room', value: c.roomLabel || '', maxLength: ROOM_MAX, emptyError: 'Type the room, for example 204.' },

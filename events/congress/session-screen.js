@@ -91,7 +91,7 @@ export function mountSession(el, env, sessionId, stage) {
     if (id === 'ranks') save(Object.assign({}, fresh, { copiedAt: env.now() }));
     else if (b.kind === 'speech') save(Object.assign({}, fresh, { speeches: fresh.speeches.map((x) => (x.id === id ? Object.assign({}, x, { copiedAt: env.now() }) : x)) }));
     draw('copy-' + id);
-    env.ui.announce(id === 'ranks' ? 'Ranks copied. Paste them into Tabroom.' : 'Copied.');
+    env.ui.announce(id === 'ranks' ? 'Ranks copied. Paste them into the online ballot.' : 'Copied.');
   }
 
   function act(b) {

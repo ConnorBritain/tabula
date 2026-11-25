@@ -24,7 +24,7 @@ export function listHtml(state) {
       <span class="room-meta">${c.legislators.length} legislators · ${n} ${n === 1 ? 'session' : 'sessions'}</span></a></li>`;
   }).join('');
   return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">Congress chambers</h1><a class="b primary" href="#/chamber/new">New chamber</a></div>
-    ${rows ? `<ul class="room-list">${rows}</ul>` : '<p class="muted">No chambers yet. A Congress chamber you score shows here.</p>'}`;
+    ${rows ? `<ul class="room-list">${rows}</ul>` : '<p class="muted">No chambers yet.</p>'}`;
 }
 
 // The setup form. prefs: the last profile and scale the judge picked.
@@ -35,8 +35,8 @@ export function setupHtml(prefs) {
   return `<div class="screen-head"><a class="b quiet back" href="#/chamber">${icon('chevron-left')}Chambers</a><h1 id="screen-title" tabindex="-1">New Congress chamber</h1></div>
   <form class="setup" id="cg-setup" novalidate>
     <div class="setup-fields">
-      <label class="field"><span>Tournament <span class="muted">(optional)</span></span><input id="cg-tournament" autocomplete="off" maxlength="80"></label>
-      <label class="field"><span>Room <span class="muted">(optional)</span></span><input id="cg-room" autocomplete="off" maxlength="40"></label>
+      <label class="field"><span>Tournament</span><input id="cg-tournament" autocomplete="off" maxlength="80"></label>
+      <label class="field"><span>Room</span><input id="cg-room" autocomplete="off" maxlength="40"></label>
       <!-- House or Senate as a two-option segmented control (design review §2.15, bug 7): the label sits on its option,
            never under the radio. Role is a fixed line, not a label with no control. -->
       <fieldset class="field cg-house"><legend>Chamber</legend><div class="seg"><label class="seg-opt"><input type="radio" name="cg-house" value="house" checked><span>House</span></label><label class="seg-opt"><input type="radio" name="cg-house" value="senate"><span>Senate</span></label></div></fieldset>
@@ -44,7 +44,7 @@ export function setupHtml(prefs) {
       <label class="field"><span>Rules</span><select id="cg-profile">${prOpts}</select></label>
       <label class="field" id="cg-scale-field"><span>Points scale</span><select id="cg-scale">${scOpts}</select></label>
       <p class="field-help wide" id="cg-profile-note"></p>
-      <label class="field wide"><span>Chamber list <span class="muted">(paste from Tabroom, or one code for each line)</span></span><textarea id="cg-paste" rows="8" spellcheck="false"></textarea></label>
+      <label class="field wide"><span>Chamber list <span class="muted">paste the chamber list, or one code per line</span></span><textarea id="cg-paste" rows="8" spellcheck="false"></textarea></label>
       <label class="field wide"><span>Docket <span class="muted">(one bill or resolution for each line, in agenda order)</span></span><textarea id="cg-docket" rows="5"></textarea></label>
     </div>
     <div class="preview" id="cg-preview" aria-live="polite"></div>

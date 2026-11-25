@@ -164,10 +164,10 @@ export function rankHtml(chamber, session, now) {
   const pool = m.pool.map((x) => `<li><button class="cg-poolrow${ranked.has(x.legislator.id) ? ' on' : ''}" type="button" data-cact="rank" data-id="${esc(x.legislator.id)}" data-key="pool-${esc(x.legislator.id)}" aria-pressed="${ranked.has(x.legislator.id)}" ${lock ? 'disabled' : ''}>
       <span class="code">${esc(x.legislator.code)}</span><span class="muted">${esc(x.legislator.name || '')}</span>
       <span class="cg-stats">${x.count} ${x.count === 1 ? 'speech' : 'speeches'}${noPts ? '' : ' · ' + x.total + ' points'}${x.poHours.length ? ' · PO ' + x.poHours.join(', ') : ''}</span></button></li>`).join('');
-  const warn = m.ties.map(([a, b]) => `<li>${esc(codeOf(chamber, a))} and ${esc(codeOf(chamber, b))} have the same points. That is fine if you meant it.</li>`)
+  const warn = m.ties.map(([a, b]) => `<li>${esc(codeOf(chamber, a))} and ${esc(codeOf(chamber, b))} have the same points.</li>`)
     .concat(m.gone.map((id) => `<li>${esc(codeOf(chamber, id))} is ranked but not present now. Their slot is empty.</li>`)).join('');
   return `<section class="cg-rank" aria-labelledby="cg-rank-title"><h2 id="cg-rank-title" class="cg-h">Top ${m.topN}</h2>
-    ${lock ? `<p class="problems" role="status">${esc(lock)} <a class="b small" href="#/round/${esc(session.id)}/log">Back to Log</a></p>` : '<p class="muted">Tap a legislator to fill the next slot. Tap a slot to clear it.' + (noPts ? '' : ' Points do not limit the order.') + '</p>'}
+    ${lock ? `<p class="problems" role="status">${esc(lock)} <a class="b small" href="#/round/${esc(session.id)}/log">Back to Log</a></p>` : '<p class="muted">Tap a name to fill the next slot. Tap a slot to clear it.' + (noPts ? '' : ' Points do not limit the order.') + '</p>'}
     <ol class="cg-slots">${slots}</ol>
     ${warn ? `<ul class="check-list">${warn.replace(/<li>/g, '<li class="check-row">')}</ul>` : ''}
     <h3 class="cg-h">${chamber.profile.rankPool === 'spokeOrPresided' ? 'Legislators who spoke or presided' : 'Present legislators'}${noPts ? ', by speeches' : ', by points'}</h3>
@@ -186,13 +186,13 @@ export function reviewHtml(chamber, session, now) {
   const speeches = blocks.filter((b) => b.kind === 'speech');
   const po = blocks.filter((b) => b.kind === 'po');
   return `<section class="review-stage" aria-labelledby="cg-rv1"><h2 id="cg-rv1">1. Speeches <span class="muted">(${speeches.length})</span></h2>
-      <p class="muted">Tabroom asks for the speeches first. Copy each one into its row.</p>
+      <p class="muted">The online ballot asks for the speeches first. Copy each one into its row.</p>
       <ol class="cards">${speeches.map(item).join('') || '<li class="muted">No speeches yet.</li>'}</ol></section>
     ${po.length ? `<section class="review-stage" aria-labelledby="cg-rv2"><h2 id="cg-rv2">2. PO hours</h2><ol class="cards">${po.map(item).join('')}</ol></section>` : ''}
     <section class="review-stage" aria-labelledby="cg-rv3"><h2 id="cg-rv3">${po.length ? 3 : 2}. Ranks</h2>
       ${problems.length ? `<div class="problems"><h3>Fix these before you copy the ranks</h3><ul>${problems.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><a class="b" href="#/round/${esc(session.id)}/rank">Back to Rank</a></div>`
         : `<pre class="cg-pre">${esc(ranks.text)}</pre><button class="b${session.copiedAt ? '' : ' primary'}" type="button" data-cact="copy" data-id="ranks" data-key="copy-ranks">${session.copiedAt ? '✓ Ranks copied. Copy again' : 'Copy ranks'}</button>`}
-      <div class="stage-foot"><button class="b${session.submittedAt ? '' : ' primary'}" type="button" data-cact="submitted" data-key="submitted" aria-pressed="${Boolean(session.submittedAt)}">${session.submittedAt ? '✓ Submitted in Tabroom' : 'I submitted in Tabroom'}</button></div></section>`;
+      <div class="stage-foot"><button class="b${session.submittedAt ? '' : ' primary'}" type="button" data-cact="submitted" data-key="submitted" aria-pressed="${Boolean(session.submittedAt)}">${session.submittedAt ? '✓ Submitted' : 'Mark submitted'}</button></div></section>`;
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).congressViews = Object.freeze({ sessionClock, barHtml, pickerHtml, timerHtml, speechCardHtml, poCardHtml, gridHtml, docketHtml, logHtml, rankHtml, reviewHtml });

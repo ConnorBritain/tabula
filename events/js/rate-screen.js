@@ -88,10 +88,10 @@ export function createRateScreen(env) {
       env.el.innerHTML = `<div class="screen-head"><a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
           <h1 id="screen-title" tabindex="-1">Rate · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <p class="bias">${esc(r.profile.biasNote || 'Judge the performance, not the person.')}</p>
-        <p class="muted board-help">These rules have no ranks. Rate each speaker on their own.</p>
+        <p class="muted board-help">No ranks. Rate each speaker.</p>
         <div id="rate-box"></div>
         <div id="problems"></div>
-        <label class="field" for="rank-reason"><span>Notes for the whole room <span class="muted">(optional)</span></span></label>
+        <label class="field" for="rank-reason"><span>Room notes</span></label>
         <textarea id="rank-reason" rows="3">${esc(r.reasonForRank || '')}</textarea>
         <div class="ballot-foot" id="ballot-foot"></div>`;
       env.el.addEventListener('click', onClick);

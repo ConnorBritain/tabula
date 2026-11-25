@@ -143,7 +143,7 @@ Both views write the same data. Each legislator line shows the speech count, the
 - Each speech block shows the legislator, item, side, type, points and comment. "Copy" copies one block at a time.
 - PO hour scores show as their own blocks.
 - The rank list copies as one block.
-- "Ranks copied" and "I submitted in Tabroom" work as on the room ballot ([EXPERIENCE.md](EXPERIENCE.md) §5.3).
+- "Ranks copied" and "Mark submitted" work as on the room ballot ([EXPERIENCE.md](EXPERIENCE.md) §5.3).
 
 ### 4.5 Parliamentarian screens
 

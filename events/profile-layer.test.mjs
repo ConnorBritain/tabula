@@ -206,7 +206,9 @@ test('critiqueOnly: no Rank stage, no ranks to copy, and the round is done when 
   // Design review 2026-11-24 bug 6: the Ranks stage is gone for comments only (it used to show a "1. Ranks" section
   // saying there were none); the summary at the top now says the rules are comments only.
   assert.equal(ranksStageHtml(r), '');
-  assert.match(summaryHtml(r), /These rules are comments only/);
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E31). Old line:
+  //   assert.match(summaryHtml(r), /These rules are comments only/);
+  assert.match(summaryHtml(r), /Comments only\. No ranks to submit\./);
   assert.doesNotMatch(copyAllText(r, null), /\nRanks\n/);
   assert.match(rosterHtml(r, null), /A1/);
   for (const e of r.entries) r = updateEntry(r, e.id, (x) => Object.assign({}, x, { comment: 'Clear voice. Next time slow the ending.' }), 1);

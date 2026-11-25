@@ -215,7 +215,7 @@ export function createRankScreen(env) {
     const ranks = ranksOf(r);
     const ctx = boardCtx(r);
     tapMode = false;
-    if (nextRank(ranks, ctx)) { save(withRanks(r, fillRest(ranks, ctx), env.now())); env.ui.announce('The speakers you did not tap keep speaking order after the others.'); }
+    if (nextRank(ranks, ctx)) { save(withRanks(r, fillRest(ranks, ctx), env.now())); env.ui.announce('Speakers you did not tap follow in speaking order.'); }
     draw();
   }
 
@@ -244,11 +244,11 @@ export function createRankScreen(env) {
         <p class="bias">${esc(r.profile.biasNote || 'Judge the performance, not the person.')}</p>
         <div class="board-tools"><button class="b" type="button" id="tap-toggle" aria-pressed="false">Tap in order</button>
           <button class="b quiet" type="button" id="restart">Start again</button></div>
-        <p class="muted" id="tap-help" hidden>Tap the speakers from best to last. Tap a ranked speaker again to take the rank off.</p>
+        <p class="muted" id="tap-help" hidden>Tap best to last. Tap again to undo.</p>
         <p class="muted board-help">Best first. Alt+Up and Alt+Down move a row.${layerOf(r.profile).ranks === 'topN' ? ' Only the top ' + layerOf(r.profile).topN + ' are ranked on the ballot.' : ''}</p>
         <div id="board-box"></div>
         <div id="problems"></div>
-        <label class="field" for="rank-reason"><span>Reason for rank <span class="muted">(whole room)</span></span></label>
+        <label class="field" for="rank-reason"><span>Reason for rank</span></label>
         <textarea id="rank-reason" rows="3">${esc(r.reasonForRank || '')}</textarea>
         <div class="ballot-foot" id="ballot-foot"></div>`;
       env.el.addEventListener('click', onClick);

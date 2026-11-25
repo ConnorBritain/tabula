@@ -114,7 +114,7 @@ Change the spec first, as a visible diff (the spec-over-tests rule).
 
 The welcome is the first surface. For each surface below, run the same E1 test: "does this line need the word AI at all?" Settings can keep "AI" where people paste keys and choose providers.
 
-- **Settings, AI tab:** the h2 "Connect AI"; the select "AI tools (flow, Live Eval, analysis, decision) use"; the h3 "Use your AI subscription"; the card "AI writing and decisions" and "How the AI writes". The user lands here right after the welcome, so without a pass the heavy AI copy just moves one screen later.
+- **Settings, AI tab:** the h2 "Connect AI"; the select "AI uses"; the h3 "Use your AI subscription"; the card "AI writing and decisions" and "How the AI writes". The user lands here right after the welcome, so without a pass the heavy AI copy just moves one screen later.
 - **Tour, last step:** "Connect AI any time with the gear; without AI, the timers, flow and ballot still work." It has the same "without AI" hedge.
 - **Tour, Settings step:** "Connect AI" / "Paste a key from any AI provider…"
 - **Live updates note (js/help.js about lines 171-185):** it says "AI" 6 times.

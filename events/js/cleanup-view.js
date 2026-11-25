@@ -91,7 +91,7 @@ export function createCleanup(env, hooks) {
       const card = cleanupReview(entries, drafts).cards[0];
       st = Object.assign({}, st, { status: 'ready', card });
       hooks.draw(card.empty || String(card.base[card.fields[0]]).trim() === String(card.after[card.fields[0]]).trim() ? 'clean-keep-' + id : 'clean-use-' + id);
-      env.ui.announce('The clean version is ready. Check it, then choose Use this or Keep mine.');
+      env.ui.announce('Clean version ready.');
     } catch (err) {
       if (mine !== token || !st) return;
       st = Object.assign({}, st, { status: 'error', error: err.message || 'The clean-up did not work. Your comment is safe.', errorKind: err.kind || '' });

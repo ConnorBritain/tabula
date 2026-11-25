@@ -60,7 +60,9 @@ test('the form refuses a missing or odd limit and grace, and names the fix', () 
 // or empty form would leave local-event judges with no way to set the time.
 test('setup offers the Custom event, with its fields hidden until picked', () => {
   const html = setupHtml(DATA);
-  assert.match(html, /<option value="custom">Custom event \(set the time\)<\/option>/);
+  // CHANGED 2026-11-24 because the owner approved COPY-TRIM-AUDIT.md §1 (E41). Old line:
+  //   assert.match(html, /<option value="custom">Custom event \(set the time\)<\/option>/);
+  assert.match(html, /<option value="custom">Custom event<\/option>/);
   assert.match(html, /<fieldset class="setup-custom" id="setup-custom" hidden>/);
   assert.match(html, /id="custom-grace" autocomplete="off" inputmode="numeric" value="30"/);
   assert.equal(setupError(parseRoom('A12'), CUSTOM_EVENT), '', 'Custom passes the event check');

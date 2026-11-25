@@ -167,7 +167,7 @@ export function createRoomScreen(env, parts) {
     }
     if (action === 'cross' || action === 'uncross') return crossEntryAction(action, id, { env, room, save, draw, closeMenu: () => { menuFor = null; } });
     if (action === 'add') {
-      const code = await env.ui.ask({ title: 'Add an entry', body: 'A late entry goes at the end of the roster. You can move it after.', input: { label: 'Entry code', placeholder: 'A12', required: true, emptyError: 'Type the entry code.' }, buttons: [{ label: 'Cancel', value: null }, { label: 'Add', value: 'add', kind: 'primary' }] });
+      const code = await env.ui.ask({ title: 'Add an entry', input: { label: 'Entry code', placeholder: 'A12', required: true, emptyError: 'Type the entry code.' }, buttons: [{ label: 'Cancel', value: null }, { label: 'Add', value: 'add', kind: 'primary' }] });
       if (!code) return;
       const res = addEntry(room(), code, '', env.now());
       if (res.error) { env.ui.toast(res.error, { kind: 'error', key: 'add' }); return; }
