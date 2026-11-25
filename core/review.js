@@ -1,4 +1,4 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C12): the review of an AI
+// Shared code for Tabula Debate and Tabula Speech Events: the review of an AI
 // draft before it goes into a record the judge fills in (a ballot, a comment sheet). Pure: no DOM, no AI call. Generic
 // words only (core-words.test.mjs). Loaded as described in core/defs.js.
 //

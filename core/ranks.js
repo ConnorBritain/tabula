@@ -1,4 +1,4 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C8): ranks for any number of
+// Shared code for Tabula Debate and Tabula Speech Events: ranks for any number of
 // ids, with no ties. A ranking is { id: rank } with ranks stored as text ('1', '2', ...; '' means no rank yet), as the
 // debate ballot stores them. Generic words only (core-words.test.mjs). No DOM. Loaded as described in core/defs.js.
 //
@@ -23,7 +23,7 @@ export function moveRank(ranks, id, rank, ids, opts) {
   return { ranks: out, moved };
 }
 
-// Where a ranking stands (added in C8 for the rank board and the Congress top 8). opts.cap: as above (ids.length when
+// Where a ranking stands (for the rank board and the Congress top 8). opts.cap: as above (ids.length when
 // left out).
 // Returns { given: how many ids have a rank, missing: [the ranks 1..cap no id has], ties: [ranks held twice],
 // outOfRange: [ids with a rank that is not 1..cap], complete: every rank 1..cap given once, nothing else wrong }.

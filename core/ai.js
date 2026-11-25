@@ -1,4 +1,4 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C13): the AI layer with no app
+// Shared code for Tabula Debate and Tabula Speech Events: the AI layer with no app
 // in it. Each provider's setup help, model picks, request building and reply reading; the hosted answer stream; and the
 // key store. No DOM and no network here (the app does the fetch), and no round, ballot or names: the app swaps names
 // itself before it sends text, and gets text back. Generic words only
@@ -69,7 +69,7 @@ function versionScore(id) {
 // 'ai'   = every routine call: the small, cheap model.
 // 'deep' = the few calls that write a whole result (for example a decision draft): a mid-tier model.
 // Premium models are picked only when the judge chooses one in Settings.
-// These name patterns are a heuristic for live model lists. Hosted AI (plan step C1) must use an explicit
+// These name patterns are a heuristic for live model lists. Hosted AI must use an explicit
 // server-side model map with prices instead of extending them.
 const PREMIUM = /(opus|fable|mythos|astra|ultra)/i;
 const TIER = {

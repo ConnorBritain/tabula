@@ -84,3 +84,41 @@ test('a bare Enter shortcut matches Enter alone, and modifier combos keep their 
   assert.equal(core.keyMatches(combo, ev({ ctrl: true })), true, 'and Ctrl+Enter');
   assert.equal(core.keyMatches(combo, ev()), false, 'Meta+Enter never fires on Enter alone');
 });
+
+// ---------- the shared shortcut registry (createShortcutRegistry) ----------
+const sc = (id, key, scope, extra) => Object.assign({ id, keys: { mac: key, other: key }, scope, action: id, label: id, group: 'G' }, extra);
+
+// Why: if two parts of an app could add the same key in places that show together, one press would run the wrong command mid-round.
+test('shortcutsClash: same key in overlapping scopes clashes; Meta and Control count as one; separate scopes do not', () => {
+  assert.equal(core.shortcutsClash(sc('a', 'Meta+k', 'global'), sc('b', 'Control+K', 'room')), true);
+  assert.equal(core.shortcutsClash(sc('a', 'n', 'room'), sc('b', 'n', 'room')), true);
+  assert.equal(core.shortcutsClash(sc('a', 'n', 'room'), sc('b', 'n', 'congress')), false);
+  assert.equal(core.shortcutsClash(sc('a', 'n', 'room'), sc('b', 'N', 'room')), false, 'a single key is the exact character');
+  assert.equal(core.shortcutsClash(sc('a', 'Space'), sc('b', 'Space', 'room')), true, 'no scope means global');
+});
+
+// Why: both apps' shipped shortcut lists must pass the clash rules, or wrapping them in a registry would throw at page load.
+test('the debate and Speech Events shortcut lists have no problems', async () => {
+  assert.deepEqual(core.shortcutProblems(K.REGISTRY), []);
+  const ev = await import('../events/js/keys.js');
+  assert.deepEqual(core.shortcutProblems(ev.SHORTCUTS), []);
+  assert.match(core.shortcutProblems([sc('a', 'Meta+t', 'room')]).join(), /browser or keyboard owns/);
+  assert.match(core.shortcutProblems([sc('a', 'x', 'room'), sc('a', 'y', 'room')]).join(), /used twice/);
+});
+
+// Why: a workspace (Congress) adds its own keys when it shows; a clash must stop it whole, and leaving must take its keys away, or they fire on other screens.
+test('createShortcutRegistry: add() matches the new keys, refuses a clash whole, and remove() takes them out', () => {
+  const r = core.createShortcutRegistry([sc('palette', 'Meta+k', 'global', { typing: true }), sc('startStop', 'Space', 'room', { single: true, noFocus: true })]);
+  const ctx = { scopes: ['global', 'congress'], focus: 'none', singleKeysOn: true };
+  const remove = r.add([sc('next', 'n', 'congress', { single: true }), sc('clock', 'Space', 'congress', { single: true, noFocus: true })]);
+  assert.equal(r.keyAction({ key: 'n', code: 'KeyN' }, ctx), 'next');
+  assert.equal(r.keyAction(space, ctx), 'clock', 'Space in its own scope does not clash with the room scope');
+  assert.throws(() => r.add([sc('ok', 'm', 'congress'), sc('bad', 'Control+k', 'congress')]), /"bad" and "palette"/);
+  assert.equal(r.list().length, 4, 'a refused list adds nothing, not even its good keys');
+  assert.throws(() => r.add([sc('next', 'q', 'other')]), /used twice/);
+  assert.equal(r.shortcutRows(false, true).find((g) => g.group === 'G').rows.length, 4);
+  remove(); remove();
+  assert.equal(r.keyAction({ key: 'n', code: 'KeyN' }, ctx), null);
+  assert.deepEqual(r.list().map((s) => s.id), ['palette', 'startStop']);
+  assert.throws(() => core.createShortcutRegistry([sc('a', 'n', 'room'), sc('b', 'n', 'room')]), /same key/);
+});
