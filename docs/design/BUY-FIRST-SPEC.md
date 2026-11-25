@@ -230,7 +230,7 @@ Also: `open` → `replaced` (a new link was made), `open` → `cancelled` (refun
 - Managed Payments allows refunds by API.
 - `applyTakeBack` works on an account that `closeAccount` has closed.
 
-**tabula-sites and the app**
+**The site repo and the app**
 - Plans page: Buy works signed out, with the line under each Buy button.
 - The "purchase active" screen, the setup screen, the neutral date-of-birth screen, the two under-13 confirmations, the hold screen.
 - Sign-in page link (section 9).

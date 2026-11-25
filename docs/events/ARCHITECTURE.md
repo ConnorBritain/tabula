@@ -242,7 +242,7 @@ events/
 - **Sign-in, wallet, plans:** shared. New on the server for v1: the `productLine` field, the AI task `events.cleanup`, and the round rule chosen in PLAN.md Q2. Q2's pick needs a cloud change: a new commit trigger (the first hosted clean-up call, since rooms have no recorded speech; today a round commits at the first recorded speech, per the server's plan), and, for option A, a day-window and room cap in the meter.
 - **What one "round" means in Speech Events** is a pricing choice. Clean-up of a 6-speaker room is a small text job, far cheaper than a recorded debate round. See PLAN.md Q2.
 - The judge's "Judging for" picker (cloud plan step 3) is reused in Room setup.
-- **Plan rules live on the platform, not in the app.** The shared school and admin platform (designed in the server's spec, owned by another session) serves one capabilities API with `product = "events"`. The app reads it and never decides plan rules itself. Speech Events asked that platform for: shared rules profiles per program (P3), a default league pack per program, a separate `recording` key (practice only, with consent), the task names above, and a round model that can hold a day-window (Q2). The platform has accepted all of these (the server's spec). The app reads `GET /api/v1/me/capabilities?v=2&product=events` (the public API contract, `docs/contract/`). The platform maps `programs.product = "speech"` to API product `events`.
+- **Plan rules live on the platform, not in the app.** The shared school and admin platform (designed in the server's spec, owned by another session) serves one capabilities API with `product = "events"`. The app reads it and never decides plan rules itself. Speech Events asked that platform for: shared rules profiles per program (P3), a default league pack per program, a separate `recording` key (practice only, with consent), the task names above, and a round model that can hold a day-window (Q2). The platform has accepted all of these (the server's spec). The app reads `GET /api/v1/me/capabilities?v=2&product=events` (the server's API spec). The platform maps `programs.product = "speech"` to API product `events`.
 - **Hired judges and solo judges** use their own account or none. A school's policy never covers them (`docs/design/AI-POLICY.md` §1a).
 
 ## 10. Offline, install and devices
@@ -270,6 +270,6 @@ The same rules as every `*.tabulaspeech.com` host (`docs/architecture/ARCHITECTU
 
 ## Sources
 
-- Base plans: `docs/growth/FORENSICS.md`, `docs/growth/BRAND.md`, `docs/architecture/ARCHITECTURE.md`, `docs/design/AI-POLICY.md`, and the server's roles plan and plan.
+- Base plans: `docs/growth/FORENSICS.md`, `docs/growth/BRAND.md`, `docs/architecture/ARCHITECTURE.md`, `docs/design/AI-POLICY.md`, and the server's roles plan and project plan.
 - Event rules: see EVENTS.md.
 - Screen Wake Lock API: https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API

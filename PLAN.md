@@ -226,7 +226,7 @@ The roles plan is in the server's spec.
 
 ## 10. The AI gate (platform phase 1B, built 2026-11-20)
 
-Spec: the public API contract (`docs/contract/`), the server's spec, and `docs/design/AI-POLICY.md` §3 and §6.
+Spec: the server's API spec and `docs/design/AI-POLICY.md` §3 and §6.
 
 - One check, `can(feature)` (`js/caps.js`, rules in `logic/caps.js`). The record comes from `GET /api/v1/me/capabilities?v=2&product=debate[&programId=…]` at app start, sign-in, and when "Judging for" changes before the first speech. New rounds reload the page, so they start there too. The gate never changes mid-round.
 - With no record, a "Just me" round is today's app. A school round as coach, admin or student, or a managed account, hides all AI until a record arrives. A judge keeps their own AI.

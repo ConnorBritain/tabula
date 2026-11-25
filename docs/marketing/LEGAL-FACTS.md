@@ -1,4 +1,4 @@
-# Legal pages: business facts (checked against the live pages on 2026-11-23; prices re-checked 2026-11-25)
+# Legal pages: business facts (checked against the live pages on 2026-11-23)
 
 The live pages are https://tabulaspeech.com/terms/, https://tabulaspeech.com/privacy/ and https://tabulaspeech.com/refunds/. They say "Effective November 23, 2026". These are the business facts and legal choices inside them for the live Debate app and sites. Change the pages and this file together. Source files: `~/Code/tabula-sites/sites/speech/pages/{terms,privacy,refunds}.html`.
 
@@ -27,7 +27,7 @@ History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) publishe
 | Renewal reminder | 7 to 30 days before each Season or All-Access renewal, by email; Link sends it to the checkout email (Link sends it 15 days before) | Terms §8, Refunds §5 |
 | Free trials | None; a promotional price is a paid purchase | Terms §7, Refunds §2 |
 | Unit | "Round": one debate round normally uses one Round; internal smaller units are never sold or shown | Terms §2, §6 |
-| How long Rounds last | Single Round, Round Pack and Weekend Pass Rounds never expire. Monthly: each month adds Rounds only up to the cap on the Pricing page (39). Season and All-Access: each year adds Rounds only up to one year's amount (60, 165). The cap never removes Rounds. At the cap, the plan takes a break: no charge, plan stays active; a mistaken charge is refunded. After cancel, Rounds stay and never expire | Terms §6.6, Refunds §4 |
+| How long Rounds last | Single Round, Round Pack and Weekend Pass Rounds never expire. Monthly: each month adds Rounds only up to the cap on the Pricing page. Season and All-Access: each year adds Rounds only up to one year's amount. The cap never removes Rounds. At the cap, the plan takes a break: no charge, plan stays active; a mistaken charge is refunded. After cancel, Rounds stay and never expire | Terms §6.6, Refunds §4 |
 | What Rounds are | A limited, revocable license to use Hosted AI; not money, a deposit, stored value or property; no cash value | Terms §6.7, Refunds §4 |
 | Return rule | A Round can be returned until the first speech is recorded; then it is committed. A returned Round goes back to the balance it came from; it is not a refund | Terms §6.3, Refunds §1, §4 |
 | Spend order | Subscription Rounds first, then Single Round, Round Pack and Weekend Pass Rounds; oldest first inside each group | Terms §6.5, Refunds §4 |
@@ -46,30 +46,20 @@ History: draft 4 (Rounds, Weekend Pass, Subscriptions, the return rule) publishe
 
 ## Support rules (owner rule, 2026-11-23)
 
-- **Small-balance cash-out.** If a customer asks, and a state law requires a cash payment for a small balance (California below $15, Washington below $5, if Rounds are covered), support pays the price that the customer paid per Round for their unused Rounds from that purchase. Refund through Link. Record the request.
+- **Small-balance cash-out.** If a customer asks, and a state law requires a cash payment for a small balance (for example California or Washington, if Rounds are covered), support pays the price that the customer paid per Round for their unused Rounds from that purchase. Refund through Link. Record the request.
 - **Account deletion.** Before a user deletes their Account, the app shows: "You have N rounds. Deleting your account removes them." Support handles any request that the law requires (Terms §18, "except where the law requires otherwise").
 - **Words.** See "Words for Rounds" below.
 
 ## DMCA designated agent (filed 2026-11-23)
 
 - Service provider: Pattern Engine LLC, at the legal address above.
-- Registration number: DMCA-1087298. Filed 2026-11-23 with a $6 fee. The status on that day was "Payment Processing". It turns "Active" after Pay.gov checks the payment.
+- Registration number: DMCA-1087298. Filed 2026-11-23. The status on that day was "Payment Processing". It turns "Active" after Pay.gov checks the payment.
 - Agent: "Copyright Agent" (a job title), Pattern Engine LLC, same address. Phone 785-224-9633 (public). Email support@tabulaspeech.com.
 - Alternate names: Tabula, Tabula Speech, Tabula Debate, Tabula Speech Events, tabulaspeech.com, tabuladebate.com, tabulaforensics.com.
-- Renew by 2029-11-23 (every 3 years). Any amendment costs $6 and restarts the 3 years.
+- Renew by 2029-11-23 (every 3 years). Any amendment restarts the 3 years.
 - Open items:
   1. The site must show the agent details too (a /copyright/ page).
   2. Amend the filing if the business address changes.
-
-## Wording fixes for the next legal update
-
-- **"Plans page" becomes "Pricing page".** The site nav and footer say "Pricing" (owner decision). The URL moves to /pricing/ (tabula-sites PR 21; /plans/ redirects there). In the Terms (§6.1 twice, "Payment") and the Refund Policy (§4), say "the Pricing page (tabulaspeech.com/pricing/)" at first use, then "the Pricing page". This is a name change only.
-
-## Watch list
-
-- **Federal KIDS Act / COPPA 2.0.** None has passed (2026-11-23). If a version that covers age 13 passes, 13-year-olds need a parent's consent or a school agreement. The per-state consent switch in the server can be used.
-- **New York GBL Art. 48** from 2027-01-01: product rules in `docs/design/AI-POLICY.md` §9.
-- **Pennsylvania:** re-check in December 2026 that no added session day passed a bill.
 
 ## Not yet true in the product
 
