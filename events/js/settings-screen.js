@@ -93,6 +93,7 @@ export function aboutHtml(rel) {
     <p><a id="set-feedback" href="${esc(feedbackMailto({ release: rel, ua: globalThis.navigator && globalThis.navigator.userAgent }))}">Send feedback</a>
       · <a href="${esc(KNOWN_ISSUES_URL)}" rel="noopener">Known issues</a></p>
     <p class="field-help">Send feedback opens your email app. Nothing is sent until you send it.</p>
+    <p><a id="set-kit" href="kit/index.html">Print a judge card</a></p>
     <p><a href="https://github.com/TabulaSpeech/tabula" rel="noopener">Source code (AGPL)</a></p>
   </section>`;
 }

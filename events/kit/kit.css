@@ -1,0 +1,64 @@
+/* Speech Events judge card (events/kit/index.html). Tokens only on screen (core/tokens.css); the print rules use
+   plain black on white, so the card prints light in a dark theme too. One card fits a US Letter or A4 page; two cards
+   stack on one page with a dashed outline to cut along. No coloured side stripes, no brand color outside the mark. */
+.kit-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.kit-tools { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); padding: var(--s4); margin-bottom: var(--s5); }
+.kit-tools h1 { font-size: var(--fs-5); }
+.kit-tools p { margin: 0 0 var(--s3); }
+.kit-fields { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.kit-fields .field input { width: 100%; }
+.kit-layout { margin: var(--s3) 0 0; }
+.kit-layout legend { font-size: var(--fs-2); font-weight: var(--fw-3); padding: 0; margin-bottom: var(--s1); }
+
+/* The card. On screen it follows the theme; the QR code keeps its own white square so it scans in both themes. */
+.kit-sheet { display: grid; gap: var(--s4); }
+.kit-card { border: 1px solid var(--border-ctl); border-radius: var(--r-lg); background: var(--panel); color: var(--text); padding: var(--s5); }
+.kit-card [hidden] { display: none; }
+.kc-head { display: flex; align-items: center; gap: var(--s2); font-family: var(--font-display); font-weight: var(--fw-4); font-size: var(--fs-4); }
+.kc-mark { width: 38px; height: 31px; flex: none; color: var(--text); }
+.kc-event { margin: var(--s2) 0 0; font-size: var(--fs-4); font-weight: var(--fw-3); overflow-wrap: anywhere; }
+.kc-title { margin: var(--s4) 0 var(--s3); font-size: var(--fs-5); }
+.kc-body { display: flex; flex-wrap: wrap; gap: var(--s4) var(--s5); align-items: flex-start; }
+.kc-code { margin: 0; flex: none; text-align: center; }
+.kc-qr { width: 216px; height: 216px; }
+.kc-qr .qr { display: block; width: 100%; height: 100%; }
+.kc-url { margin-top: var(--s2); font-family: var(--font-mono); font-size: var(--fs-2); }
+.kc-steps { flex: 1; min-width: 220px; margin: 0; padding-left: 1.4em; font-size: var(--fs-3); }
+.kc-steps li { margin-bottom: var(--s2); }
+.kc-help { margin: var(--s4) 0 0; font-size: var(--fs-3); font-weight: var(--fw-3); overflow-wrap: anywhere; }
+.kc-foot { margin-top: var(--s4); font-size: var(--fs-2); color: var(--text-2); }
+.kc-foot p { margin: 0; }
+.two-up .kit-card { border-style: dashed; }
+
+@media print {
+  @page { margin: 0.5in; }
+  html, body { background: #fff !important; color: #000 !important; }
+  .kit-noprint, .skip { display: none !important; }
+  main { max-width: none; margin: 0; padding: 0; }
+  .kit-sheet { gap: 0.3in; }
+  .kit-card, .kit-card * { color: #000 !important; }
+  .kit-card { background: #fff; border: 1px solid #000; border-radius: 0; width: 7.2in; max-width: 100%; margin: 0 auto; padding: 0.4in; break-inside: avoid; }
+  .kc-mark { color: #000; }
+  .kc-head { font-size: 20pt; }
+  .kc-event { font-size: 18pt; }
+  .kc-title { font-size: 24pt; margin: 0.25in 0 0.2in; }
+  .kc-body { flex-wrap: nowrap; gap: 0.35in; }
+  .kc-qr { width: 3in; height: 3in; }
+  .kc-url { font-size: 11pt; }
+  .kc-steps { font-size: 14pt; min-width: 0; }
+  .kc-help { font-size: 14pt; }
+  .kc-foot { font-size: 10pt; margin-top: 0.3in; }
+  /* Two cards: each about 4.6 in tall, a dashed outline to cut along. */
+  .two-up .kit-card { border: 1px dashed #000; height: 4.65in; padding: 0.25in 0.3in; overflow: hidden; }
+  .two-up .kc-head { font-size: 14pt; }
+  .two-up .kc-mark { width: 30px; height: 25px; }
+  .two-up .kc-event { font-size: 13pt; margin-top: 0.04in; }
+  .two-up .kc-title { font-size: 16pt; margin: 0.08in 0 0.1in; }
+  .two-up .kc-body { gap: 0.25in; }
+  .two-up .kc-qr { width: 2.1in; height: 2.1in; }
+  .two-up .kc-url { font-size: 9pt; margin-top: 0.04in; }
+  .two-up .kc-steps { font-size: 11pt; }
+  .two-up .kc-steps li { margin-bottom: 0.04in; }
+  .two-up .kc-help { font-size: 11pt; margin-top: 0.08in; }
+  .two-up .kc-foot { font-size: 9pt; margin-top: 0.08in; }
+}

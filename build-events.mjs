@@ -29,7 +29,7 @@ export const ALLOW = [
   'events/js', 'events/congress', 'events/defs', 'events/profiles', 'events/prompts',
   'core',
   'assets/theme-boot.js', 'assets/fonts',
-  'events/manifest.webmanifest', 'events/icons',
+  'events/manifest.webmanifest', 'events/icons', 'events/kit',
 ];
 
 // Allowed paths that may not exist yet (the install manifest and its icons). They are copied when present. Whether
