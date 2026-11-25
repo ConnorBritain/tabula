@@ -56,7 +56,6 @@ const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
 mountSprite(document); // the Lucide sprite (icons.js): every icon on every screen points into it
 const store = createEventsStore(ui);
-watchUpdates(registerOffline(), () => pageBusy({ screen: parseRoute(location.hash).screen, rooms: readRooms(), congress: congressIO(store).read() })); // a new release waits for a quiet screen
 
 // Read one file under events/. A reply that is not JSON (for example a host's HTML error page) names the file.
 async function readJson(path) {
@@ -68,6 +67,7 @@ async function readJson(path) {
 // Every read of the saved rounds and the settings goes through the read-time migration (EXPERIENCE.md §8.1).
 const readRooms = () => migrateRooms(store.get(ROOMS_KEY, []));
 const readSettings = () => migrateSettings(store.get(SETTINGS_KEY, {}));
+watchUpdates(registerOffline(), () => pageBusy({ screen: parseRoute(location.hash).screen, rooms: readRooms(), congress: congressIO(store).read() })); // a new release waits for a quiet screen
 
 // The header (EXPERIENCE.md §1.1): the mode menu shows only when the settings say so; the link for the screen that
 // shows is marked with aria-current (a fill, never an underline); the offline chip shows with the network off.

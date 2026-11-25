@@ -7,6 +7,11 @@
 //   pageBusy(page)       which screens and saved clocks count as "busy". Pure.
 //   watchUpdates(...)    the browser part: reads the worker registration, shows or hides the notice, asks the worker
 //                        to take over, and reloads this tab once it has. It sends nothing off the device.
+// Other tabs: a BroadcastChannel (on this device only) asks them "busy?" before the update starts. A browser with no
+// BroadcastChannel cannot ask, so there only this tab is checked.
+// A tab that did not ask is never reloaded. After another tab starts the update, it keeps running its own code; every
+// module loaded at boot (events/sw.js, "Rule for the page"), so it needs no file from the new release, and it shows the
+// notice once it is quiet.
 //
 // The first install is not gated: no release runs the page yet, so the worker starts at once (events/sw.js).
 
@@ -28,7 +33,7 @@ export function decideUpdate(s) {
   return DECISIONS.OFFER;
 }
 
-/** True when the update may start now (the first install, or the judge may reload into it). */
+/** True when the update may start now (the first install, or the judge may reload into it). For tests and callers that need a yes or no. */
 export const mayStartUpdate = (s) => {
   const d = decideUpdate(s);
   return d === DECISIONS.ACTIVATE || d === DECISIONS.OFFER;
@@ -68,7 +73,7 @@ const ASK_MS = 300; // how long to wait for another tab to say it is busy
 /**
  * Watch for a new release and offer it when the page is quiet. regPromise: the promise registerOffline returns.
  * busy(): { roundOpen, timerRunning } for this tab now (pageBusy). deps (for tests): { win, doc, nav, Channel }.
- * Returns { check() } (check again now), or null where the browser has no workers.
+ * Returns { check() (check again now), start() (what Reload does) }, or null where the browser has no workers.
  */
 export function watchUpdates(regPromise, busy, deps = {}) {
   const win = deps.win || globalThis.window;
@@ -109,23 +114,34 @@ export function watchUpdates(regPromise, busy, deps = {}) {
     offline: nav.onLine === false,
   });
 
-  function hide() { if (note) { note.remove(); note = null; } }
+  // Hide the notice. If its button had focus, focus moves to the main box, not to the page body.
+  function hide() {
+    if (!note) return;
+    const hadFocus = typeof note.contains === 'function' && note.contains(doc.activeElement);
+    note.remove();
+    note = null;
+    const main = doc.getElementById('main');
+    if (hadFocus && main && typeof main.focus === 'function') main.focus();
+  }
   function show() {
     if (note) return;
     note = doc.createElement('div');
     note.className = 'md-note update-note';
     note.setAttribute('role', 'status');
-    Object.assign(note.style, { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px 12px', marginBottom: '16px' });
+    Object.assign(note.style, { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--s2) var(--s3)', marginTop: 'var(--s5)' });
     const text = doc.createElement('span');
-    text.textContent = NOTICE_TEXT;
+    // The status box goes in empty and the text follows, so screen readers announce it (a box added full often is not).
+    const shown = note;
+    win.setTimeout(() => { if (note === shown) text.textContent = NOTICE_TEXT; }, 0);
     const btn = doc.createElement('button');
     btn.className = 'b';
     btn.type = 'button';
     btn.textContent = 'Reload';
     btn.addEventListener('click', start);
     note.append(text, btn);
+    // Below the screen, so nothing the judge is about to tap moves when the notice comes or goes.
     const main = doc.getElementById('main');
-    if (main) main.prepend(note); else doc.body.prepend(note);
+    if (main) main.append(note); else doc.body.append(note);
   }
 
   // Show or hide the notice for the page as it is now. The notice never starts the update by itself.

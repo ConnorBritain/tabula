@@ -154,6 +154,8 @@ test('the page shows the calm notice with a Reload button only when a release wa
   const n = p.note();
   assert.ok(n, 'the notice shows');
   assert.equal(n.attrs.role, 'status');
+  assert.ok(!n.kids[0].textContent, 'the status box goes in empty, so a screen reader announces the text that follows');
+  p.flushTimers();
   assert.equal(n.kids[0].textContent, NOTICE_TEXT);
   assert.equal(n.kids[1].textContent, 'Reload');
   assert.ok(!/primary/.test(n.kids[1].className), 'a plain button: no brand fill');
