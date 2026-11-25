@@ -660,3 +660,7 @@ details.fold[open] > .fold-row { margin-bottom: var(--s2); }
 }
 .screen-head > .back { order: -2; flex-basis: 100%; justify-content: flex-start; min-height: 44px; padding-left: 0; }
 .screen-head > .back:hover { background: transparent; text-decoration: underline; }
+/* Picker (color review §6): a trailing chevron on each card, so it reads as something to tap. */
+.pk-pick { grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--s2); }
+.pk-pick > :not(svg) { grid-column: 1; }
+.pk-pick > svg.i { grid-column: 2; grid-row: 1 / span 3; align-self: center; color: var(--text-3); }

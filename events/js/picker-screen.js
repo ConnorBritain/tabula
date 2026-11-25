@@ -19,7 +19,7 @@ const rowHtml = (r) => `<li class="pk-row">
     <button class="pk-pick" type="button" data-id="${esc(r.id)}">
       <span class="pk-name">${esc(r.name)} <span class="muted">${esc(r.short)}</span></span>
       <span class="pk-line">${esc(r.line)}</span>
-      ${chipsHtml(r.chips)}
+      ${chipsHtml(r.chips)}${icon('chevron-right')}
     </button>
     <a class="b small quiet pk-guide" href="${esc(routeHash('type', r.id))}" aria-label="${esc('Guide for ' + r.name)}">${icon('book-open')}Guide</a></li>`;
 
@@ -28,7 +28,7 @@ export function pickerListHtml(sections) {
   if (!sections.length) return '<p class="muted" id="pk-none">No event matches. Try another word, or pick Custom event.</p>';
   let html = '', allShown = false, congressShown = false;
   for (const s of sections) {
-    const group = s.id !== 'recent' && s.id !== 'results';
+    const group = s.id !== 'recent' && s.id !== 'results' && s.id !== 'today';
     if (group && !allShown) { html += '<h2 class="pk-all">All events</h2>'; allShown = true; }
     if (s.id === 'custom' && !congressShown) { html += congressHtml(); congressShown = true; }
     const H = group ? 'h3' : 'h2';
@@ -44,7 +44,7 @@ function congressHtml() {
   return `<section class="pk-sec" aria-labelledby="pk-h-congress"><h3 id="pk-h-congress">Congress</h3><ul class="pk-list"><li class="pk-row">
     <a class="pk-pick" href="${esc(routeHash('chamber', 'new'))}"><span class="pk-name">Congressional Debate <span class="muted">Congress</span></span>
       <span class="pk-line">Students give short speeches on bills and answer questions. You score each speech and rank the chamber.</span>
-      ${chipsHtml(['Points per speech', 'Top 8'])}</a></li></ul></section>`;
+      ${chipsHtml(['Points per speech', 'Top 8'])}${icon('chevron-right')}</a></li></ul></section>`;
 }
 
 export function pickerHtml() {
@@ -71,7 +71,7 @@ export function sheetHtml(v) {
 // env: { el, ui, data, now, day (day-store.js), settings(), saveSettings(s), go(screen, id) }.
 export function createPickerScreen(env) {
   const $ = (s) => env.el.querySelector(s);
-  let rows = [], recent = [], eventId = null;
+  let rows = [], recent = [], todayIds = [], eventId = null;
 
   // The sheet: made once, outside <main> (a dialog makes <main> inert).
   const wrap = document.createElement('div');
@@ -83,7 +83,7 @@ export function createPickerScreen(env) {
   wrap.querySelector('#cf-x').addEventListener('click', () => dialog.close());
 
   function drawList() {
-    $('#pk-list').innerHTML = pickerListHtml(pickerSections(rows, recent, $('#pk-search').value));
+    $('#pk-list').innerHTML = pickerListHtml(pickerSections(rows, recent, $('#pk-search').value, todayIds));
   }
 
   function openSheet(id) {
@@ -121,7 +121,7 @@ export function createPickerScreen(env) {
     show() {
       rows = pickerRows(env.data);
       const today = env.day.today();
-      const todayIds = today ? env.day.cards().filter((c) => c.dayId === today.id).sort((a, b) => a.createdAt - b.createdAt).map(cardEventId) : [];
+      todayIds = today ? env.day.cards().filter((c) => c.dayId === today.id).sort((a, b) => a.createdAt - b.createdAt).map(cardEventId) : [];
       recent = recentIds(rows, todayIds, env.settings().recentEvents);
       env.el.innerHTML = pickerHtml();
       env.el.addEventListener('click', onClick);

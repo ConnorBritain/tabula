@@ -246,10 +246,14 @@ test('the pick, start and type routes round-trip, and bad ones go to My day', ()
 // event gets them with no new code.
 test('the picker chips come from the event file', () => {
   // Design build 2026-11-24 (review §2.2): the chips moved from all caps to normal case, and the time chip to "10:00".
-  assert.equal(chipsOf(DATA.events.get('hi')).join(' · '), 'Rank · Title · 10:00');
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§6 Picker: no "Rank" chip on every card). Old line:
+  //   assert.equal(chipsOf(DATA.events.get('hi')).join(' · '), 'Rank · Title · 10:00');
+  assert.equal(chipsOf(DATA.events.get('hi')).join(' · '), 'Title · 10:00');
   assert.ok(chipsOf(DATA.events.get('duo')).includes('Pair'));
   assert.ok(chipsOf(DATA.events.get('usx')).includes('Question'));
-  assert.deepEqual(chipsOf(DATA.events.get('imp')), ['Rank', 'Prep in room', '7:00']);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§6 Picker: no "Rank" chip on every card). Old line:
+  //   assert.deepEqual(chipsOf(DATA.events.get('imp')), ['Rank', 'Prep in room', '7:00']);
+  assert.deepEqual(chipsOf(DATA.events.get('imp')), ['Prep in room', '7:00']);
 });
 
 // Why: Recent must put the events of today first so a judge with three HI flights taps once; empty groups would be

@@ -34,6 +34,8 @@ import { setupHtml, previewHtml, levelSummary } from './js/setup-screen.js';
 import { parseRoom } from './js/parse.js';
 import { settingsHtml } from './js/settings-screen.js';
 import { foldSummaryHtml } from './js/fold.js';
+import { pickerRows, pickerSections } from './js/picker.js';
+import { pickerListHtml } from './js/picker-screen.js';
 import { toggleCheck } from './js/comments.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
@@ -643,4 +645,19 @@ test('header: one row on a phone, and every back link is on its own line above t
     for (const m of src.matchAll(/<a class="(b quiet[^"]*)" href="[^"]*">\$\{icon\('chevron-left'\)\}/g)) { backs++; assert.equal(m[1], 'b quiet back', f); }
   }
   assert.ok(backs >= 10, 'the screens have back links');
+});
+
+// ---------- §6 Picker ----------
+
+// Why: a judge with three HI flights wants today's event at the top in one tap, apart from older recent picks; and a
+// "Rank" chip on every card said nothing, so the chips that matter (Title, Prep in room) were harder to see.
+test('picker: a "Judged today" group first, Recent keeps the rest, no Rank chip, a trailing chevron on each card', () => {
+  const rows = pickerRows(DATA);
+  const secs = pickerSections(rows, ['hi', 'oo', 'di'], '', ['hi', 'oo', 'hi']);
+  assert.deepEqual(secs.slice(0, 2).map((s) => [s.title, s.rows.map((r) => r.id)]), [['Judged today', ['hi', 'oo']], ['Recent', ['di']]]);
+  assert.equal(pickerSections(rows, ['di'], '').find((s) => s.id === 'today'), undefined, 'nothing judged today: no empty group');
+  const html = pickerListHtml(secs);
+  assert.ok(html.indexOf('Judged today') < html.indexOf('All events'), 'above All events');
+  assert.doesNotMatch(html, /pk-chip">Rank</);
+  assert.match(html, /<span class="pill outline pk-chip">10:00<\/span><\/span><svg class="i i-16"[^>]*><use href="#i-chevron-right"\/><\/svg>\s*<\/button>/);
 });

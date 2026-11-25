@@ -20,10 +20,11 @@ export const GROUPS = Object.freeze([
 ]);
 
 // The chips for one event file: facts in normal case, read as words, not as code (design review §2.2 change 2). The
-// time chip shows the limit the way the timer does ("10:00").
+// time chip shows the limit the way the timer does ("10:00"). Color review §6 Picker: no "Rank" chip on every card
+// (every room event is ranked, so it said nothing); a "No ranks" chip would show only where it applies.
 export function chipsOf(def) {
-  if (!def) return ['Rank', 'Timer you set'];
-  const out = ['Rank'];
+  if (!def) return ['Timer you set'];
+  const out = [];
   if ((def.checks || []).includes('titleAuthor')) out.push('Title');
   if (def.performers === 2) out.push('Pair');
   if (familyOf(def) === 'f2') out.push('Question');
@@ -58,10 +59,16 @@ export function searchRows(rows, q) {
 }
 
 // The picker as sections: [{ id, title, rows }], with empty sections left out. A search shows one flat "Results" list.
-export function pickerSections(rows, recent, q) {
+// today (optional; color review §6 Picker): the events judged today get their own "Judged today" group first, and
+// Recent keeps the rest.
+export function pickerSections(rows, recent, q, today) {
   if (String(q || '').trim()) return [{ id: 'results', title: 'Results', rows: searchRows(rows, q) }];
   const byId = new Map(rows.map((r) => [r.id, r]));
-  const out = [{ id: 'recent', title: 'Recent', rows: (recent || []).map((id) => byId.get(id)).filter(Boolean) }];
+  const todayIds = [...new Set(today || [])].filter((id) => byId.has(id));
+  const out = [
+    { id: 'today', title: 'Judged today', rows: todayIds.map((id) => byId.get(id)) },
+    { id: 'recent', title: 'Recent', rows: (recent || []).filter((id) => !todayIds.includes(id)).map((id) => byId.get(id)).filter(Boolean) },
+  ];
   for (const g of GROUPS) out.push({ id: g.id, title: g.title, rows: rows.filter((r) => r.group === g.id) });
   return out.filter((s) => s.rows.length);
 }

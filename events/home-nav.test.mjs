@@ -214,7 +214,9 @@ test('picker: each row has a "Guide" text button and plain grey chips, Congress 
   // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§5.3: Lucide icons replace the text marks). Old line:
   //   assert.match(html, /<a class="b small quiet pk-guide" href="#\/type\/hi" aria-label="Guide for Humorous Interpretation">Guide<\/a>/);
   assert.match(html, /<a class="b small quiet pk-guide" href="#\/type\/hi" aria-label="Guide for Humorous Interpretation"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-book-open"\/><\/svg>Guide<\/a>/);
-  assert.match(html, /<span class="pill outline pk-chip">Rank<\/span><span class="pill outline pk-chip">Title<\/span><span class="pill outline pk-chip">10:00<\/span>/);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (§6 Picker: no "Rank" chip on every card). Old line:
+  //   assert.match(html, /<span class="pill outline pk-chip">Rank<\/span><span class="pill outline pk-chip">Title<\/span><span class="pill outline pk-chip">10:00<\/span>/);
+  assert.match(html, /<span class="pk-chips"><span class="pill outline pk-chip">Title<\/span><span class="pill outline pk-chip">10:00<\/span><\/span>/);
   assert.doesNotMatch(html, /POINTS\/SPEECH|TIMER /);
   assert.match(html, /pk-chip">Points per speech</);
 });
