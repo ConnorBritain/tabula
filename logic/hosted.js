@@ -22,8 +22,9 @@
     const site = ACCOUNT_SITES.find((d) => h === d || h.endsWith('.' + d));
     return site ? 'https://' + site + '/account/' : BUY_URL;
   }
-  // The Plans page (prices and packs) on the same account site, for links that must not buy yet (the demo's nudge).
-  function plansUrl(host) { return accountUrl(host).replace(/\/account\/$/, '/plans/'); }
+  // The Pricing page (prices and packs) on the same account site, for links that must not buy yet (the demo's nudge).
+  // The page moved from /plans/ to /pricing/ (the old URL redirects). The function keeps its old name.
+  function plansUrl(host) { return accountUrl(host).replace(/\/account\/$/, '/pricing/'); }
   // The sign-in page on the same account site. An app host the server lets sign-in return to (the
   // server's list: debate. and my.) asks to come back to itself (?return=). Any other host (localhost, a preview, an app
   // not on that list yet, such as events.) gets the plain sign-in page and lands on the account site's own home.
@@ -142,6 +143,7 @@
     ageRequired: 'Add your date of birth on your Tabula account page to use AI. The clock, flow and ballot still work.',
     parentConsent: 'Where you live, a parent or guardian must agree before you use Tabula AI. The clock, flow and ballot still work.',
     billingHold: 'Billing is on hold for this account, so Tabula AI is paused. Your own key still works.',
+    accountHold: 'This account is on hold. Open your account page to see why. The clock, flow and ballot still work.',
     notAllowed: 'AI is not allowed for this round.',
     slowDown: 'Too many AI requests at once. Wait a moment and try again.',
     tooManyRounds: 'Too many rounds today. The round goes on without AI.',
@@ -183,6 +185,11 @@
       if (c === 'age_required') return out('ageRequired', { fallback: true, link: { label: 'Open account', url: page } });
       if (c === 'parent_consent_required') return out('parentConsent', { fallback: true });
       return out('noCredits', { link: buy });
+    }
+    if (s === 403 && c === 'age_hold') {
+      // The under-13 hold (per the server API contracts and the buy-first spec): the account may only sign out. Neutral words in
+      // the round; the account page shows the hold and the review request. No own-key fallback: the account is on hold.
+      return out('accountHold', { link: { label: 'Open account', url: page } });
     }
     if (s === 403) return c === 'billing_hold' ? out('billingHold', { fallback: true }) : out('notAllowed');
     if (s === 404 || c === 'reload_app') return out('reload');

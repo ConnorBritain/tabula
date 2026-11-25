@@ -6,7 +6,7 @@
 (function (root) {
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
-  const { formatFields } = part('format');
+  const { formatFields, labelOf } = part('format');
 
   // The nudge at the end. Buying is not live yet (the owner wants full QA and capacity tests first), so the button
   // opens the Plans page. The "Buy a round" button shows only when the demoBuy flag is on (logic/flags.js, off).
@@ -64,7 +64,7 @@
     const name = (id) => (fmt.speeches.find((s) => s.id === id) || { label: id }).label;
     const steps = [{
       id: 'intro', place: 'setup', title: 'A sample round',
-      body: 'This is a ' + fmt.name + ' round with made-up debaters. The AI answers are saved, so nothing is sent anywhere and nothing is saved. Press Next to start.',
+      body: 'This is a ' + labelOf(fmt) + ' round with made-up debaters. The AI answers are saved, so nothing is sent anywhere and nothing is saved. Press Next to start.',
     }];
     ids.slice(0, 2).forEach((id, i) => steps.push({
       id: 'speech-' + id, place: 'flow', speech: id, title: 'The ' + name(id) + (i ? ', flowed for you' : ', written down'),

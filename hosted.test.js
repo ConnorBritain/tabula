@@ -476,6 +476,17 @@ test('hostedState: a Lincoln-Douglas round sends its own speeches and flow colum
   assert.equal(L.hostedState('flow', r, [], { speech: 'AC' }).transcript, 'Value is justice.');
 });
 
+// Why: an account on the under-13 hold (BUY-FIRST-SPEC §7.2) may do nothing but sign out. If the app read the 403 as
+// "AI not allowed for this round" or offered the judge's own key, a held child could go on using AI tools in the app.
+test('the under-13 hold sends the person to the account page, with no own-key fallback and no word about age', () => {
+  const page = L.accountUrl('debate.tabulaspeech.com');
+  const held = L.hostedError(403, 'age_hold', page);
+  assert.equal(held.kind, 'accountHold');
+  assert.deepEqual([held.link.label, held.link.url, held.fallback, held.retryable], ['Open account', page, false, false]);
+  assert.doesNotMatch(held.text, /\b(13|age|aged|child|birth)\b/i);
+  assert.equal(L.hostedError(403, 'billing_hold', page).kind, 'billingHold', 'the billing hold is unchanged');
+});
+
 // Why: under the new Terms (§3, 2026-11-21) a teen may use hosted AI once a date of birth is on the account, and a state
 // may later need a parent's consent. If the app read either refusal as "buy rounds", a teen would be pushed to pay for
 // something they cannot buy, and an account with no date of birth would never be sent to the page that asks for it.

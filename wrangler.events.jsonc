@@ -1,0 +1,52 @@
+// Speech Events at events.tabulaspeech.com: static files only, no server code.
+// Deploy (owner's yes first): npx wrangler deploy -c wrangler.events.jsonc
+// The build command below runs the gates first; a red test stops the deploy. build-events.mjs then copies the
+// allowlisted files into dist/events/ with the page at the root of the host (see the top of build-events.mjs).
+// Steps for whoever deploys: docs/events/DEPLOY.md.
+//
+// Like wrangler.app.jsonc, this is a Workers assets project on a route, so production needs no new Worker code.
+// The route events.tabulaspeech.com/* needs a proxied DNS record for events.tabulaspeech.com (a placeholder
+// record is enough; the route answers before it is used).
+//
+// html_handling "none": /index.html is served as it is, with no redirect. The default mode answers /index.html
+// with a 307 to /, and the service worker caches index.html by that name (sw-files.js); a browser refuses to
+// show a cached page that came from a redirect, so the page would not open once the worker took over.
+// not_found_handling "single-page-application": with "none", "/" matches no file, so it falls back to
+// /index.html (200). That is how "/" serves the page. A path that is not a file also gets the page; the page
+// routes with #/ links only, so that does no harm, and build-events.mjs fails if a needed file is missing.
+//
+// forensics.tabulaspeech.com: NOT routed to this Worker. If it were, the static files would answer there and
+// never redirect. It is a Cloudflare Redirect Rule on the tabulaspeech.com zone instead (301, keeps the path
+// and the query string), plus a proxied DNS record so the request reaches Cloudflare. wrangler cannot hold a
+// Redirect Rule, so its exact settings are in docs/events/DEPLOY.md, and events/smoke-host.mjs checks it.
+//
+// Staging: events.tabulaspeech.dev, behind Cloudflare Access (like the debate staging site).
+// Deploy: npx wrangler deploy -c wrangler.events.jsonc --env staging
+// It is a custom domain, so the deploy makes its DNS record and certificate. The Access application for
+// events.tabulaspeech.dev must exist before the first staging deploy, or the site is open to anyone.
+{
+  "name": "tabula-events",
+  "account_id": "36bbd78435b2291e928a50731e703509",
+  "compatibility_date": "2026-10-01",
+  "build": {
+    "command": "node --test && node check-publish.mjs && node build-events.mjs"
+  },
+  "assets": {
+    "directory": "./dist/events",
+    "html_handling": "none",
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [
+    { "pattern": "events.tabulaspeech.com/*", "zone_name": "tabulaspeech.com" }
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+  "env": {
+    "staging": {
+      "name": "tabula-events-staging",
+      "routes": [{ "pattern": "events.tabulaspeech.dev", "custom_domain": true }],
+      "workers_dev": false,
+      "preview_urls": false
+    }
+  }
+}

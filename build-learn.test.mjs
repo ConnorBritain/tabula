@@ -239,7 +239,9 @@ test('every page has the site top bar, a link to the app, and the site footer li
     assert.match(top, />Coaches<\/a>/, `learn/${rel}: no site nav`);
     assert.match(top, /href="https:\/\/debate\.tabulaspeech\.com\/" data-app="(\.\.\/)+" data-back-label="Back to the app">Open the app</, `learn/${rel}: no app link (or no in-app way back)`);
     assert.doesNotMatch(top, /Debate Library/, `learn/${rel}: the top bar repeats the Library name`);
-    assert.match(html, /<nav class="foot-nav"[\s\S]*?tabulaspeech\.com\/plans\//, `learn/${rel}: no site links in the footer`);
+    // CHANGED: pricing page moved; old:
+    //   assert.match(html, /<nav class="foot-nav"[\s\S]*?tabulaspeech\.com\/plans\//, `learn/${rel}: no site links in the footer`);
+    assert.match(html, /<nav class="foot-nav"[\s\S]*?tabulaspeech\.com\/pricing\/">Pricing</, `learn/${rel}: no site links in the footer`);
   }
 });
 
