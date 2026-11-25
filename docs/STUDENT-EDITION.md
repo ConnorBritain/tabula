@@ -222,7 +222,7 @@ Allowed = fine in a competitive round where devices are allowed. Practice-only =
   3. The app logs "consent given" with a time, on the device only.
 - For students under 18 using recording features: **school or parent consent through a Program code** (the same rule the judge app uses for student judges).
 - Hosted AI: students aged 13 and over may use it on their own account, with or without a school.
-- Under 13: not allowed (COPPA). No marketing to middle-school students for now.
+- Under 13: not allowed (COPPA). No marketing to middle-school students until a privacy check is done.
 - All-party consent states (CA, FL, IL, MD, MA, MT, NV, NH, PA, WA and others): the app shows a stronger warning there. No-audio mode is always one tap away.
 - Audio stays on the device only until it is transcribed, then the app deletes it (the same rule as the judge app).
 
@@ -274,7 +274,7 @@ Notes:
 | **Unequal access** | Rich programs get AI practice; others do not. | Everything needed in a tournament is free. Paid features are practice only. A discount for UDL and Title I programs. Works on Chromebooks and offline. No-audio mode needs no paid service. |
 | **Skill loss** | Students stop learning to flow. | Flow is manual by default. Transcription is an aid, off by default in tournaments. Flow drills compare the student's flow to the AI's, so the student practices flowing. Coaches can turn transcription off. |
 | **Rule change mid-season** | NSDA adopts the Nov 2025 AI-ban proposal, or a league bans AI tools. | Tournament profiles let a coach turn AI tools off in one tap. Manual flow, locker, and doc sending need no AI and keep working. |
-| **Recording minors without consent** | Legal and trust harm. | Transcription off by default in tournaments. Consent step and visible light. Audio deleted after transcription. No accounts under 13. |
+| **Recording minors without consent** | Legal and trust harm. | Transcription off by default in tournaments. Consent step and visible light. Audio deleted after transcription. Under-18 recording needs school or parent consent (§5b). No accounts under 13. |
 | **SpeechDrop breakage or harm** | Upload breaks when the site changes; load hurts a free community tool. | Talk to the maintainer first. Manual drop fallback. Upload only on click, with rate limits. |
 | **Privacy leaks** | Student names or school data reach AI providers. | Anonymize step in every prompt. No content on the server. DPA. |
 
@@ -386,7 +386,7 @@ Everything in §1 to §9 can run on the device. Join codes and school spaces can
 ### 10g. Fit with the Program plan
 
 - Coach features live in the **Program** plan (the paid plan for schools and clubs). No prices or plan details are in this public doc.
-- One exception (owner decision): a **free school space** for Debate Library tracks. It has only a join code, track assignments, "done or not done", completion badges, and the AI policy switches (amended, `docs/design/AI-POLICY.md` §8: turning AI off is free). See `docs/library/TRACKS.md` §6.
+- One exception (owner decision): a **free school space** for Debate Library tracks. It has only a join code, track assignments, "done or not done", completion badges, and the AI policy switches (see `docs/design/AI-POLICY.md` §8: turning AI off is free). See `docs/library/TRACKS.md` §6.
 - **Free:** a student's own record on the device, and export.
 - Keep a path for programs with no money (a discount or free seats for UDL and Title I programs), so connected roles do not become a rich-school feature.
 
