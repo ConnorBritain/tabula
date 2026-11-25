@@ -197,8 +197,10 @@ test('createUI toast: Tab reaches Undo next, Shift+Tab and the last button lead 
     x4.click();
 
     // Focus fell to the page body (the focused button was removed): Tab still reaches Undo, and Shift+Tab never sticks.
+    const gone = new page.N('button'); page.doc.body.append(gone); gone.focus();
     fresh = UI.toast('Ballot removed.', { action: { label: 'Undo', name: 'Undo: remove ballot', run: () => {} } });
-    page.doc.activeElement = page.doc.body; fresh.origin = page.doc.body;
+    // As in a browser: the focused button is removed, focus falls to the body, and no focusin fires (the origin stays the removed button).
+    gone.remove(); page.doc.activeElement = page.doc.body;
     page.press('Tab');
     const undo2 = fresh.el.children.find((n) => n.tagName === 'BUTTON');
     assert.equal(page.doc.activeElement, undo2);
