@@ -22,8 +22,9 @@
     const site = ACCOUNT_SITES.find((d) => h === d || h.endsWith('.' + d));
     return site ? 'https://' + site + '/account/' : BUY_URL;
   }
-  // The Plans page (prices and packs) on the same account site, for links that must not buy yet (the demo's nudge).
-  function plansUrl(host) { return accountUrl(host).replace(/\/account\/$/, '/plans/'); }
+  // The Pricing page (prices and packs) on the same account site, for links that must not buy yet (the demo's nudge).
+  // The page moved from /plans/ to /pricing/ (the old URL redirects). The function keeps its old name.
+  function plansUrl(host) { return accountUrl(host).replace(/\/account\/$/, '/pricing/'); }
   // The sign-in page on the same account site. An app host the server lets sign-in return to (tabula-cloud
   // RETURN_ORIGINS: debate. and my.) asks to come back to itself (?return=). Any other host (localhost, a preview, an app
   // not on that list yet, such as events.) gets the plain sign-in page and lands on the account site's own home.
