@@ -303,6 +303,7 @@
         },
         "versions": {
           "settings": 0,
+          "entitlements": 0,
           "resolver": 1
         },
         "issuedAt": 1795000000000,
@@ -310,7 +311,7 @@
       }
     },
     "judge-pool": {
-      "note": "Program judge, the school's pool pays. Only possible once pools exist (phase 3).",
+      "note": "Program judge, the school's pool pays: 6 rounds left for this judge (the smaller of the judge's cap left and the pool left).",
       "record": {
         "v": 2,
         "product": "debate",
@@ -342,12 +343,16 @@
           }
         },
         "aiSetup": false,
+        "limits": {
+          "poolRoundsLeft": 6
+        },
         "account": {
           "plan": "free",
           "hosted": false
         },
         "versions": {
           "settings": 4,
+          "entitlements": 1792408000000,
           "resolver": 1
         },
         "issuedAt": 1795000000000,
@@ -393,6 +398,7 @@
         },
         "versions": {
           "settings": 4,
+          "entitlements": 1760440000000,
           "resolver": 1
         },
         "issuedAt": 1795000000000,
@@ -419,6 +425,7 @@
         },
         "versions": {
           "settings": 4,
+          "entitlements": 1760440000000,
           "resolver": 1
         },
         "issuedAt": 1795000000000,
@@ -464,6 +471,7 @@
         },
         "versions": {
           "settings": 4,
+          "entitlements": 1760440000000,
           "resolver": 1
         },
         "issuedAt": 1795000000000,
@@ -490,6 +498,7 @@
         },
         "versions": {
           "settings": 4,
+          "entitlements": 1760440000000,
           "resolver": 1
         },
         "issuedAt": 1795000000000,
@@ -516,6 +525,7 @@
         },
         "versions": {
           "settings": 4,
+          "entitlements": 1760440000000,
           "resolver": 1
         },
         "issuedAt": 1795000000000,
@@ -523,7 +533,7 @@
       }
     },
     "managed-allowed": {
-      "note": "Managed account, AI allowed: a managed coach whose program gives coaches Own AI only. (A managed student is always hidden until pools exist.)",
+      "note": "Managed account, AI allowed: a managed coach whose program gives coaches Own AI only. (A managed student is hidden unless the school's pool pays.)",
       "record": {
         "v": 2,
         "product": "debate",
@@ -561,6 +571,34 @@
         },
         "versions": {
           "settings": 4,
+          "entitlements": 1760440000000,
+          "resolver": 1
+        },
+        "issuedAt": 1795000000000,
+        "expiresAt": 1796209600000
+      }
+    },
+    "pool-no-funds": {
+      "note": "Student AI clerk, school pays, the school has a pool but no funds left: hidden.",
+      "record": {
+        "v": 2,
+        "product": "debate",
+        "edition": "student",
+        "subject": {
+          "role": "student",
+          "programId": "p_fixture",
+          "programName": "Lincoln HS Debate",
+          "managed": false
+        },
+        "features": {},
+        "aiSetup": false,
+        "account": {
+          "plan": "free",
+          "hosted": false
+        },
+        "versions": {
+          "settings": 4,
+          "entitlements": 1792408000000,
           "resolver": 1
         },
         "issuedAt": 1795000000000,
@@ -587,6 +625,7 @@
         },
         "versions": {
           "settings": 4,
+          "entitlements": 1760440000000,
           "resolver": 1
         },
         "issuedAt": 1793704000000,
