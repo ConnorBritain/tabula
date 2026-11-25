@@ -8,6 +8,7 @@
 // The builders are pure (Node tests call them). scoreClick, scoreKey and scoreInput turn a click, a key or a typed
 // value into a new room, so both screens handle them the same way; each screen saves and redraws.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { foldSummaryHtml, foldValueHtml } from './fold.js';
 import { rubricScores, rubricTotal, rubricMax, stepRubric, withRubric, rubricError, layerOf } from './profile-layer.js';
 import { ratingScale } from './rank.js';
 import { withRating, stepRating } from './board.js';
@@ -70,7 +71,9 @@ export function rubricTotalText(e, rubric) {
 
 // The grid for one entry as HTML text ('' when the profile has no rubric): one compact row per criterion, the label
 // on the left and the control on the right (a row of buttons for a short range, else − box +).
-export function rubricHtml(e, rubric) {
+// fold (optional; color review §5.4 "Rubric speaker blocks"): { open } puts the grid in one fold row per speaker whose
+// value is the total, so the bold total line goes. Left out, the grid shows open with its total line, as before.
+export function rubricHtml(e, rubric, fold) {
   if (!rubric.length) return '';
   const s = rubricScores(e);
   const rows = rubric.map((c) => {
@@ -89,6 +92,10 @@ export function rubricHtml(e, rubric) {
       <button class="b small" type="button" data-rub="plus" data-id="${esc(e.id)}" data-crit="${esc(c.id)}" data-key="rplus-${esc(e.id)}-${esc(c.id)}" aria-label="Raise ${esc(c.label)} for ${esc(e.code)}"${v !== '' && Number(v) >= c.max ? ' disabled' : ''}>+</button></span>
       ${errHtml}</div>`;
   }).join('');
+  if (fold) {
+    return `<details class="fold rub-fold" data-rubfold="${esc(e.id)}"${fold.open ? ' open' : ''}>${foldSummaryHtml('Rubric for ' + esc(e.code), foldValueHtml(rubricTotalText(e, rubric)))}
+    <div class="rubric" role="group" aria-label="Rubric for ${esc(e.code)}">${rows}</div></details>`;
+  }
   return `<div class="rubric" role="group" aria-label="Rubric for ${esc(e.code)}">${rows}
     <p class="rub-total" data-total="${esc(e.id)}">${esc(rubricTotalText(e, rubric))}</p></div>`;
 }

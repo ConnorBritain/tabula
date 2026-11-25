@@ -39,6 +39,10 @@ import { foldSummaryHtml } from './js/fold.js';
 import { pickerRows, pickerSections } from './js/picker.js';
 import { pickerListHtml } from './js/picker-screen.js';
 import { overviewHtml } from './congress/chamber-screen.js';
+import { typeHtml, rulesHtml } from './js/type-screen.js';
+import { rubricHtml } from './js/score-view.js';
+import { firstOpenRubric } from './js/ballot-status.js';
+import { boardHtml } from './js/rank-screen.js';
 import { createChamber, newSession, setStatus } from './congress/chamber.js';
 import { congressProfile } from './congress/profiles.js';
 import { migrateCongress, withChamber, withSession } from './congress/store.js';
@@ -710,4 +714,43 @@ test('chamber overview: session pills, Absent and Left words, done docket items 
   assert.match(html, /<span class="pill live"><svg[^>]*><use href="#i-check"\/><\/svg>Done in session 1<\/span>/);
   assert.ok(html.indexOf('id="cg-before"') < html.indexOf('Sessions</h2>'), 'the note sits under the primary, before the lists');
   assert.equal((html.match(/Mark who is absent/g) || []).length, 1);
+});
+
+// ---------- §6 Type page and §5.4 rubric speaker folds ----------
+
+// Why: the type page repeated the same rule lines under every rule set, so the one that differs was hard to find; and a
+// check circle on a rule check reads as "passed". Shared lines show once, today's rules are open, the others are fold
+// rows, rule checks get a neutral square, and the page has one way to start a round.
+test('type page: shared rule lines once, the default rules open, other rule sets as folds, neutral squares, Start a round', () => {
+  const html = typeHtml(DATA, 'hi', []);
+  assert.equal(primaries(html), 1);
+  assert.match(html, /<a class="b primary" id="ty-start" href="#\/new\/hi"><svg[^>]*><use href="#i-plus"\/><\/svg>Start a round<\/a>/);
+  assert.match(html, /<ul class="ty-checks"><li><svg class="i i-16"[^>]*><use href="#i-square"\/><\/svg>/);
+  const profiles = [{ id: 'a', name: 'A rules', rating: 'none' }, { id: 'b', name: 'B rules', rating: 'none', ratingNoTies: true }];
+  const rules = rulesHtml(profiles, 'a');
+  assert.match(rules, /^<h3>Every rule set<\/h3><ul><li>Ranks only, no points\.<\/li>/);
+  assert.equal((rules.match(/Ranks only, no points\./g) || []).length, 1, 'a shared line shows once');
+  assert.match(rules, /<details class="fold ty-rules"><summary class="fold-row"><span class="fold-label">B rules<\/span><span class="fold-value muted">No two speakers can get the same points\.<\/span>/);
+  assert.doesNotMatch(rules, /<details[^>]*>[^]*A rules/, 'the default rules are not folded');
+});
+
+// Why: a 3-speaker rubric page was about 1,600 px on a phone, and a mis-tap that closed a block would hide the grid the
+// judge was scoring. One block per speaker, the first unscored one open; a block closes only when another opens.
+test('rubric folds: one block per speaker with the total as its value, the first unscored open, the bold total gone', () => {
+  const rub = [{ id: 'v', label: 'Voice', min: 1, max: 5 }, { id: 'b', label: 'Body', min: 1, max: 5 }];
+  const prof2 = Object.assign(prof('nsda-district'), { rubric: rub });
+  let r = openBoard(room('di', 'nsda-district', ['A1', 'B2'], { profile: prof2 }), NOW).room;
+  r = withEntry(r, 'A1', (e) => Object.assign({}, e, { rubric: { v: 4, b: 5 } }));
+  assert.equal(firstOpenRubric(r.entries, rub), idOf(r, 'B2'), 'A1 is fully scored');
+  assert.equal(firstOpenRubric([], rub), null);
+  const a1 = r.entries.find((x) => x.code === 'A1');
+  const folded = rubricHtml(a1, rub, { open: false });
+  assert.match(folded, /^<details class="fold rub-fold" data-rubfold="[^"]+"><summary class="fold-row"><span class="fold-label">Rubric for A1<\/span><span class="fold-value muted">Total 9 of 10, all 2 parts added<\/span>/);
+  assert.doesNotMatch(folded, /rub-total/, 'the summary carries the total');
+  assert.match(rubricHtml(a1, rub, { open: true }), /<details class="fold rub-fold" data-rubfold="[^"]+" open>/);
+  const board = boardHtml(r, { tapMode: false, limit: 600, event: DATA.events.get('di'), now: NOW, openRub: idOf(r, 'B2') });
+  assert.equal((board.match(/class="fold rub-fold"/g) || []).length, 2);
+  assert.equal((board.match(/rub-fold" data-rubfold="[^"]+" open>/g) || []).length, 1, 'one block open');
+  // Closing on a score tap cannot happen: only the toggle of another block closes one (ballot-nav.js rubricToggle).
+  assert.match(read('./js/ballot-nav.js'), /if \(d\.open\) \{ for \(const x of root\.querySelectorAll\('details\[data-rubfold\]\[open\]'\)\) if \(x !== d\) x\.open = false;/);
 });

@@ -6,6 +6,7 @@
 // The words are in guide.js (pure); the builders at the top are pure (Node tests call them); createTypeScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from './icons.js';
+import { foldSummaryHtml, foldValueHtml } from './fold.js';
 import { guideModel, rulesLines } from './guide.js';
 import { ENABLED_EVENTS, CUSTOM_EVENT, DEFAULT_PROFILE } from './room.js';
 import { roundLine, dayOf, STATE_LABEL } from './rooms.js';
@@ -18,6 +19,20 @@ export function roundsOfType(rooms, eventId) {
     .sort((a, b) => b.createdAt - a.createdAt);
 }
 
+// The Rules part (color review §6 Type page): the lines every profile shares show once; the default profile is open;
+// each other profile is a fold row with its first own line as the value. profiles: [{ id, ... }].
+export function rulesHtml(profiles, openId) {
+  const all = profiles.map((p) => Object.assign({ id: p.id }, rulesLines(p)));
+  const shared = all.length > 1 ? all[0].lines.filter((l) => all.every((r) => r.lines.includes(l))) : [];
+  const own = (r) => r.lines.filter((l) => !shared.includes(l));
+  const ul = (lines) => `<ul>${lines.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`;
+  const open = all.find((r) => r.id === openId) || all[0];
+  const rest = all.filter((r) => r !== open);
+  return (shared.length ? `<h3>Every rule set</h3>${ul(shared)}` : '')
+    + `<h3>${esc(open.name)}</h3>${ul(own(open))}`
+    + rest.map((r) => `<details class="fold ty-rules">${foldSummaryHtml(esc(r.name), foldValueHtml(own(r)[0] || ''))}${ul(own(r))}</details>`).join('');
+}
+
 // The page as HTML text, or null for an id that is not an event this app has.
 export function typeHtml(data, eventId, rooms) {
   const custom = eventId === CUSTOM_EVENT;
@@ -26,16 +41,17 @@ export function typeHtml(data, eventId, rooms) {
   const g = guideModel(def, data.profiles.get(DEFAULT_PROFILE));
   const dl = [['Time limit', g.limit], ['Grace', g.grace], ['Prep', g.prep], ['Material', g.material], ['Performers', g.performers], ['Topic', g.topic]].filter((x) => x[1])
     .map(([k, v]) => `<div class="ty-row"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
-  const list = (title, items) => (items.length ? `<h3>${esc(title)}</h3><ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '');
-  const rules = profileChoices(data).map((p) => { const r = rulesLines(p); return `<h3>${esc(r.name)}</h3><ul>${r.lines.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`; }).join('');
+  const list = (title, items, mark) => (items.length ? `<h3>${esc(title)}</h3><ul${mark ? ' class="ty-checks"' : ''}>${items.map((x) => `<li>${mark ? icon(mark) : ''}${esc(x)}</li>`).join('')}</ul>` : '');
+  const rules = rulesHtml(profileChoices(data), DEFAULT_PROFILE);
   const mine = roundsOfType(rooms, eventId);
   const rounds = mine.length
     ? `<ul class="ty-rounds">${mine.map((r) => `<li><a href="${esc(routeHash('round', r.id))}">${esc(roundLine(r, true) || 'Untitled round')}</a> <span class="muted">${esc(dayOf(r.createdAt))} · ${esc(STATE_LABEL[r.state] || STATE_LABEL.setup)}</span></li>`).join('')}</ul>`
     : '<p class="muted">No saved rounds of this type yet.</p>';
   const name = custom ? 'Custom event' : def.name;
-  return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">${esc(name)}</h1>${def ? `<span class="pill outline">${esc(def.short)}</span>` : ''}</div>
+  return `<div class="screen-head"><a class="b quiet back" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">${esc(name)}</h1>${def ? `<span class="pill outline">${esc(def.short)}</span>` : ''}
+      <a class="b primary" id="ty-start" href="${esc(routeHash('setup', eventId))}">${icon('plus', 20)}Start a round</a></div>
     <section class="set-part" aria-labelledby="ty-g-h"><h2 id="ty-g-h">Guide</h2>
-      <p>${esc(g.line)}</p><dl class="ty-list">${dl}</dl>${list('Rule checks', g.checks)}${list('Questions to think about for comments', g.prompts)}</section>
+      <p>${esc(g.line)}</p><dl class="ty-list">${dl}</dl>${list('Rule checks', g.checks, 'square')}${list('Questions to think about for comments', g.prompts)}</section>
     <section class="set-part" aria-labelledby="ty-r-h"><h2 id="ty-r-h">Rules</h2>${rules}</section>
     <section class="set-part" aria-labelledby="ty-o-h"><h2 id="ty-o-h">Rounds <span class="muted">${mine.length}</span></h2>${rounds}</section>`;
 }

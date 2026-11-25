@@ -6,15 +6,15 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { statusPillHtml } from './status-pill.js';
 import { icon, iconButton } from './icons.js';
-import { problemsListHtml, readyHtml, rateRowPill, ballotFootHtml } from './ballot-status.js';
-import { ballotNavClick } from './ballot-nav.js';
+import { problemsListHtml, readyHtml, rateRowPill, ballotFootHtml, firstOpenRubric } from './ballot-status.js';
+import { ballotNavClick, rubricToggle } from './ballot-nav.js';
 import {
   orderOf, moveTo, moveUp, moveDown, tapRank, nextRank, overtimeRow, ratingScale, ratingError, rankRatingConflicts,
   ratingFix, ratingTies, RANK_RATING_ROW, graceLineText,
 } from './rank.js';
 import { boardCtx, ranksOf, ratingsOf, withRanks, withRating, openBoard, fillRest, restoreRanks } from './board.js';
 import { attachDrag } from './rank-drag.js';
-import { entryOf, findRoom, roomEvent } from './room.js';
+import { entryOf, findRoom, roomEvent, present } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf, clockText, graceOf } from './timer.js';
 import { rowTrackHtml } from './time-track.js';
@@ -34,7 +34,7 @@ function rowWordsHtml(e) {
     + (first ? `<button class="board-comment" type="button" data-ract="note" data-id="${esc(e.id)}" data-key="note-${esc(e.id)}">${icon('message-square')}<span class="sr-only">Read the comment for ${esc(e.code)}: </span><span class="bc-text">${esc(first)}</span>${icon('chevron-right')}</button>` : '');
 }
 
-// The board as HTML text. view: { tapMode, limit, now }.
+// The board as HTML text. view: { tapMode, limit, now, openRub (the rubric block that is open, §5.4) }.
 // Design build (review top 10 #3, D3-A; Room and timer session): each row with time shows the mini time track
 // (time-track.js rowTrackHtml, the same one the roster uses). view.event: the event file (prep and runs pieces).
 // Step S4 (profile layer): under ranks 'topN' the board still orders everyone and a labelled line falls under rank N
@@ -79,7 +79,7 @@ export function boardHtml(room, view) {
         ${conflict ? `<span class="board-note">${esc(RANK_RATING_ROW)}${fix != null ? ` <button class="b small" type="button" data-ract="fix" data-id="${id}" data-value="${esc(fix)}">Fix: ${esc(fix)}</button>` : ''}</span>` : ''}</span>
       <span class="board-moves">${main}</span>
       ${scale.kind !== 'none' ? `<span class="board-rate">${ratingHtml(e, ratings[id], scale, err)}</span>` : ''}
-      ${rubricHtml(e, layer.rubric)}
+      ${rubricHtml(e, layer.rubric, layer.rubric.length ? { open: view.openRub === id } : null)}
       ${i === 0 && graceLine ? `<span class="board-line grace-line">${icon('info')}${esc(graceLine)}</span>` : ''}${cut && i === cut - 1 && cutLine ? `<span class="board-line cut-line">${esc(cutLine)}</span>` : ''}
     </li>`;
   }).join('');
@@ -98,6 +98,8 @@ export function problemsHtml(room) {
 export function createRankScreen(env) {
   let roomId = null;
   let tapMode = false;
+  let openRub = null; // the open rubric block (§5.4)
+  const onToggle = (ev) => { openRub = rubricToggle(env.el, ev, openRub); };
   let detachDrag = null;
   const $ = (s) => env.el.querySelector(s);
   const room = () => findRoom(env.rooms(), roomId);
@@ -107,7 +109,7 @@ export function createRankScreen(env) {
   function draw(focusKey) {
     const r = room();
     if (!r) return;
-    $('#board-box').innerHTML = boardHtml(r, { tapMode, limit: limitOf(event(r)), event: event(r), now: env.now() });
+    $('#board-box').innerHTML = boardHtml(r, { tapMode, limit: limitOf(event(r)), event: event(r), now: env.now(), openRub });
     $('#problems').innerHTML = problemsHtml(r);
     $('#ballot-foot').innerHTML = ballotFootHtml(r, 'rank'); // the sticky footer (top 10 #6) follows every change
     $('#tap-toggle').textContent = tapMode ? 'Done tapping' : 'Tap in order';
@@ -238,6 +240,7 @@ export function createRankScreen(env) {
       if (opened.room !== r0) save(opened.room);
       const r = room();
       const ev = event(r);
+      openRub = firstOpenRubric(present(r), layerOf(r.profile).rubric);
       env.el.innerHTML = `<div class="screen-head"><a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
           <h1 id="screen-title" tabindex="-1">Rank · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <p class="bias">${esc(r.profile.biasNote || 'Judge the performance, not the person.')}</p>
@@ -254,6 +257,7 @@ export function createRankScreen(env) {
       env.el.addEventListener('input', onInput);
       env.el.addEventListener('change', onChange);
       env.el.addEventListener('keydown', onKey);
+      env.el.addEventListener('toggle', onToggle, true);
       detachDrag = attachDrag($('#board-box'), { enabled: () => !tapMode, onDrop });
       $('#rank-reason').addEventListener('input', (e) => save(setReason(room(), e.target.value, env.now())));
       draw();
@@ -262,6 +266,7 @@ export function createRankScreen(env) {
     },
     hide() {
       for (const [t, f] of [['click', onClick], ['input', onInput], ['change', onChange], ['keydown', onKey]]) env.el.removeEventListener(t, f);
+      env.el.removeEventListener('toggle', onToggle, true);
       if (detachDrag) detachDrag();
       roomId = null;
     },
