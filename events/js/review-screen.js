@@ -1,8 +1,9 @@
 // Speech Events step E8: the Review and copy screen (ARCHITECTURE.md §5 screen 6; DESIGN.md §4.4, §4.7; N11, N12).
 // Stage 1 "Ranks to submit": the ranks and ratings, one Copy ranks button (the tab room wants these first).
 // Stage 2: one card per entry with its comment and its own Copy comment button, then the reason for rank. Copy all
-// (one block) and Print / PDF (core/sheets.js print sheet). Last, "Save a copy": Save as PDF, the primary step once all is copied. The rules are in ballot.js. Step E13 adds "Clean up" on each
+// (one block) and Print / PDF (core/sheets.js print sheet). The rules are in ballot.js. Step E13 adds "Clean up" on each
 // card (cleanup-view.js), built only when the AI gate allows it.
+// Last, "Save a copy": Save as PDF, the one main step once everything is copied.
 // The builders at the top are pure (Node tests call them); createReviewScreen does the DOM.
 import { escapeHtml as esc, showPrintSheet, removePrintSheet } from '../../core/sheets.js';
 import { icon } from './icons.js';
