@@ -92,8 +92,8 @@ test('every button token pair passes in light and dark', () => {
   }
 });
 
-// Why: Speech Events puts status words, tool tracks and hover on the two quiet tints (EVENTS-COLOR-ICON-REVIEW.md §5.1
-// rule 4); under 4.5:1 a judge cannot read "Judging" or "−10 s" on them, and if a tint ever reached 3:1 against the
+// Why: Speech Events puts status words, tool tracks and hover on the two quiet tints (the Speech Events color and icon
+// review); under 4.5:1 a judge cannot read "Judging" or "−10 s" on them, and if a tint ever reached 3:1 against the
 // panel someone could use it as a control's only edge, which the review forbids.
 test('the quiet tints carry text in light, dark and print, and stay too faint to be an edge', () => {
   const pairs = [

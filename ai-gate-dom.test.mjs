@@ -79,7 +79,7 @@ test('a managed record with some tools: only those show, and no key card', () =>
   for (const id of ['tab-eval', 'insights', 'lens-go', 'draft-open', 'conn-card', 'ins-cta']) assert.ok(!visible(id, off), id);
 });
 
-// Why: CONTRACTS §5 rule 6. A new device whose fetch fails, judging for a school as a coach, must show no AI until a
+// Why: the server's gate rule fails closed. A new device whose fetch fails, judging for a school as a coach, must show no AI until a
 // record arrives; it only removes, so the round itself never waits.
 test('new device, fetch fails, judging for a school as coach: all AI is hidden', () => {
   const g = L.gateFor({ record: null, programId: P, now: NOW, profile: { programs: [{ id: P, name: 'Lincoln HS Debate', role: 'coach' }] } });

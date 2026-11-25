@@ -19,14 +19,14 @@ const print = (model) => { const sheet = L.printSheet(model); return { cls: Sh.p
 
 // Why: a judge pastes these sheets into the tournament site and prints them for the tab room; if moving the code
 // changed one character, a ballot could print or paste differently from what the judge saw before.
-test('debate print sheets are the same HTML as before step C10', () => {
+test('debate print sheets are the same HTML as before the move to core/', () => {
   assert.deepEqual(print(L.printModel(r, { range: { min: 25, max: 30 } })), GOLD['print-plain']);
   assert.deepEqual(print(L.printModel(r, { flow: true, transcripts: true, aiNotes: true, orientation: 'landscape', liveEval: { summary: 'S <s>' }, analysis: [['Round Map', ''], ['Impact Calculus', 'I & J']] })), GOLD['print-all']);
   assert.deepEqual(print(L.printModel(ld, { range: null })), GOLD['print-ld']);
 });
 
 // Why: same reason, for the text blocks a judge copies into the tournament site's boxes.
-test('debate copy sheets are the same HTML as before step C10', () => {
+test('debate copy sheets are the same HTML as before the move to core/', () => {
   assert.equal(Sh.copyBlocksHtml(L.tournamentBlocks(r, { tips: true })), GOLD['copy-policy'].html);
   assert.equal(Sh.copyBlocksHtml(L.tournamentBlocks(ld, {})), GOLD['copy-ld'].html);
 });

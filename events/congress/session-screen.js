@@ -3,12 +3,13 @@
 // runs the tick (timer and session clock), and saves after each change: every action writes the whole Congress value
 // at once (env.store, key tabulaEvents.congress.v1). The comment box saves after a short pause and on leaving it.
 import { congressIO, findSession, findChamber, withSession, withChamber, chamberSessions } from './store.js';
-import { startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, timerView, clockText, refusesAction } from './speech.js';
+import { startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, timerView, clockText, isOver, refusesAction } from './speech.js';
 import { startTerm, endTerm, reopenTerm, setHourScore } from './po.js';
 import { toggleRank } from './rank.js';
 import { reviewBlocks, rankProblems } from './review.js';
 import { markDebated, firstOpenItem, reopenItem, setSubmitted, closeSession } from './chamber.js';
-import { barHtml, logHtml, rankHtml, reviewHtml, sessionClock, enterPick, pickerMatches, poFocusKey } from './views.js';
+import { barHtml, logHtml, rankHtml, reviewHtml, sessionClock, enterPick, pickerMatches, poFocusKey, poCardHtml } from './views.js';
+import { keepAwake } from './wake.js';
 import { copyText } from '../js/review-screen.js';
 import { newId } from '../js/room.js';
 
@@ -56,7 +57,8 @@ export function mountSession(el, env, sessionId, stage) {
   }
 
   // The tick: only the timer digits and the session clock change, so a draw never steals the comment box's focus.
-  // A full hour of a PO term redraws once, so its score prompt shows.
+  // A full hour of a PO term redraws once, so its score prompt shows. While the judge types in the comment box, only
+  // the PO card is redrawn: the prompt shows now, and the typing and the focus stay in the box.
   let lastHourKey = '';
   const tick = setInterval(() => {
     const { s, c } = parts();
@@ -69,8 +71,8 @@ export function mountSession(el, env, sessionId, stage) {
     if (t && digits) {
       digits.textContent = clockText(t.leftMs);
       const card = el.querySelector('#cg-timer');
-      card.classList.toggle('stage-over', t.leftMs < 0);
-      card.classList.toggle('stage-last', t.leftMs >= 0 && t.leftMs <= 30000);
+      card.classList.toggle('stage-over', isOver(t.leftMs));
+      card.classList.toggle('stage-last', !isOver(t.leftMs) && t.leftMs <= 30000);
       card.classList.toggle('stage-speaking', t.leftMs > 30000);
       const sub = el.querySelector('#cg-timer-sub');
       if (t.phase === 'questions' && sub) sub.textContent = `Question block ${Math.min(t.block, t.blocks)} of ${t.blocks} · ${clockText(t.blockLeftMs)} left in this block`;
@@ -82,9 +84,16 @@ export function mountSession(el, env, sessionId, stage) {
       // Focus inside the screen goes back to the same control (or the page title if it has none); focus outside is left alone.
       const a = document.activeElement;
       const inside = Boolean(a && el.contains(a));
-      if (!first && stage === 'log' && a && a.id !== 'cg-comment') draw(inside ? (a.id === 'cg-search' ? 'search' : a.dataset.key || null) : null, !inside);
+      if (!first && stage === 'log' && a && a.id === 'cg-comment') redrawPO(s, c, now);
+      else if (!first && stage === 'log' && a && a.id !== 'cg-comment') draw(inside ? (a.id === 'cg-search' ? 'search' : a.dataset.key || null) : null, !inside);
     }
   }, 250);
+
+  // Redraw the PO card alone (the comment box is outside it, so it is never touched).
+  function redrawPO(s, c, now) {
+    const card = el.querySelector('.cg-po');
+    if (card) card.outerHTML = poCardHtml(c, s, now, view.choosingPO);
+  }
 
   async function copyBlock(id) {
     const { s, c } = parts();
@@ -242,7 +251,10 @@ export function mountSession(el, env, sessionId, stage) {
   el.addEventListener('focusout', onBlur);
   window.addEventListener('pagehide', onHide);
   draw();
+  // A chamber can run three hours: keep the screen awake while this session is open.
+  const releaseWake = keepAwake();
   return function unmount() {
+    releaseWake();
     flushComment();
     clearInterval(tick);
     el.removeEventListener('click', onClick);

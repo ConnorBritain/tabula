@@ -4,7 +4,7 @@
 import { escapeHtml as esc } from '../../core/sheets.js';
 import { icon } from '../js/icons.js';
 import { legislatorOf, codeOf, itemOf, houseWord, statusIn } from './chamber.js';
-import { TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS, legislatorLines, openCount, precedenceOrder, timerView, clockText, minSec, needsReason, countedPoints } from './speech.js';
+import { TYPES, TYPE_WORDS, SIDES, SIDE_WORDS, PENALTY_WORDS, legislatorLines, openCount, precedenceOrder, timerView, clockText, isOver, minSec, needsReason, countedPoints } from './speech.js';
 import { hoursDue, openTerm, ordinal, fullHours, poLockLine } from './po.js';
 import { rankModel } from './rank.js';
 import { reviewBlocks, rankProblems, unscoredSpeeches, unscoredLine } from './review.js';
@@ -77,7 +77,7 @@ export function pickerHtml(chamber, session, query) {
 export function timerHtml(session, now, blockMs) {
   const t = timerView(session, now, blockMs);
   if (!t) return '';
-  const stageCls = t.leftMs < 0 ? 'stage-over' : t.leftMs <= 30000 ? 'stage-last' : 'stage-speaking';
+  const stageCls = isOver(t.leftMs) ? 'stage-over' : t.leftMs <= 30000 ? 'stage-last' : 'stage-speaking';
   const sub = t.phase === 'questions' ? `Question block ${Math.min(t.block, t.blocks)} of ${t.blocks} · ${clockText(t.blockLeftMs)} left in this block` : 'Speech · 3:00';
   return `<div class="timer-card cg-timer ${stageCls}" id="cg-timer">
     <p class="timer-word">${t.phase === 'questions' ? 'Questions' : 'Speaking'}</p>

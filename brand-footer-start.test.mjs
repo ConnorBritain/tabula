@@ -106,7 +106,7 @@ test('the Connect AI prompt is one row, hidden as a whole outside the no-AI edge
   // CHANGED 2026-11-20 because the design review asked for the AI-POLICY §3d.1 marker data-ai="liveEval" on the row.
   // Old check: /<div class="ins-cta" id="ins-cta"><span class="ins-cta-text">Live insights need AI\.<\/span>.../
   // CHANGED 2026-11-20 (platform 1B): the row also carries data-ai-setup="invite", so the CSS gate hides it before the first paint
-  // when no Connect AI invite may show (CONTRACTS §5 rule 1).
+  // when no Connect AI invite may show (the server's gate rules).
   assert.match(HTML, /<div class="ins-cta" id="ins-cta" data-ai="liveEval" data-ai-setup="invite"><span class="ins-cta-text">Live insights need AI\.<\/span><button class="b small ins-edge-btn" type="button" id="ins-connect" data-tab-go="ai"/);
   assert.match(APP, /\$\('#ins-cta'\)\.hidden = mode !== 'edge-connect';/);
   assert.doesNotMatch(APP, /\$\('#ins-connect'\)\.hidden/, 'the button alone is never the thing hidden');

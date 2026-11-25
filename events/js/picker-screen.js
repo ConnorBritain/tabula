@@ -77,7 +77,9 @@ export function createPickerScreen(env) {
   // The sheet: made once, outside <main> (a dialog makes <main> inert).
   const wrap = document.createElement('div');
   wrap.className = 'overlay'; wrap.id = 'confirm'; wrap.hidden = true;
-  wrap.innerHTML = '<form class="overlay-card cf-card" id="cf-card" role="dialog" aria-modal="true" aria-labelledby="cf-title" novalidate><button class="iconbtn ask-x" id="cf-x" type="button" aria-label="Close">×</button><div id="cf-body"></div></form>';
+  // The dialog is a div with the form inside (a form may not take role="dialog"; axe aria-allowed-role). Submit bubbles
+  // up to the card, so the listeners below stay on it.
+  wrap.innerHTML = '<div class="overlay-card cf-card" id="cf-card" role="dialog" aria-modal="true" aria-labelledby="cf-title"><form id="cf-form" novalidate><button class="iconbtn ask-x" id="cf-x" type="button" aria-label="Close">×</button><div id="cf-body"></div></form></div>';
   document.body.append(wrap);
   const card = wrap.querySelector('#cf-card');
   const dialog = env.ui.modalDialog(wrap, card, { name: 'confirm', rank: 86 });
