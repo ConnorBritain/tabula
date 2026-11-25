@@ -4,7 +4,7 @@
 
 Do not open a public issue, pull request, or discussion for a security problem.
 
-Send an email to **support@tabulaspeech.com**. Use the subject line `Security`.
+Send an email to **support@tabulaspeech.com**. Start the subject line with `[security]`.
 
 GitHub private vulnerability reporting is not on for this repository now. The maintainers can turn it on later. If they do, this file will say so.
 
