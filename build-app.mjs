@@ -1,4 +1,4 @@
-// App builder for debate.tabulaspeech.com (docs/architecture/MARKETING-SITE.md §6.1).
+// App builder for debate.tabulaspeech.com.
 // Copies an ALLOWLIST of the app's public files into dist/app/. A new file in the repo
 // root (a plan, a test, private notes) never ships unless someone adds it here.
 // Then it checks that every local file index.html and about.html link to is in the output.
