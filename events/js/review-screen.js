@@ -128,8 +128,10 @@ export function summaryHtml(room) {
 // lasts. next: nextCopy(room, cards as shown).
 export function saveStageHtml(room, next) {
   const ready = next === '' && !(hasRanksStage(room) && ranksProblems(room).length);
+  // "All copied." only when something was copied (a room with nothing typed has nothing to copy).
+  const copied = Boolean(room.ranksCopiedAt || room.reasonCopiedAt || (room.entries || []).some((e) => e && e.commentCopiedAt));
   return `<section class="review-stage review-save" aria-labelledby="stage-save"><h2 id="stage-save">${hasRanksStage(room) ? '3. ' : ''}Save a copy</h2>
-    <p class="muted">${ready ? 'All copied. ' : ''}Your ballot is saved only on this device. Save it as a PDF to keep a copy: in the print window, choose "Save as PDF".</p>
+    <p class="muted">${ready && copied ? 'All copied. ' : ''}Your ballot is saved only on this device. Save it as a PDF to keep a copy: in the print window, choose "Save as PDF".</p>
     <button class="b${ready ? ' primary' : ''}" type="button" data-vact="print" data-key="print-save">${icon('printer')}Save as PDF</button></section>`;
 }
 

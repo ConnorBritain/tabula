@@ -240,3 +240,20 @@ test('the print sheet holds codes and the judge\'s words, not student names', ()
   assert.doesNotMatch(html, /Sam Rivera|Jo Park/);
   assert.doesNotMatch(html, /tabulaEvents|apiKey|sk-/);
 });
+
+// Why: on iPhone the storage answer arrives while the sheet is open; redrawing then removed the element focus returns
+// to, so a screen-reader judge was dropped on the page body when the sheet closed.
+test('My day waits for the sheet to close before redrawing, then focuses the title', () => {
+  const src = read('js/myday-screen.js');
+  assert.match(src, /if \(sheet\.isOpen\(\)\) \{ redrawAfterSheet = true; return; \}/);
+  assert.match(src, /redrawAfterSheet = false;\s*draw\(null\);/, 'draw(null) focuses #screen-title');
+  assert.match(read('js/install-sheet.js'), /onClose: \(\) => \{ snooze\(\); if \(afterClose\) afterClose\(\); \}/);
+});
+
+// Why: telling a judge "All copied." when nothing was copied could send them home without handing in a ballot.
+test('"All copied." shows only after something was copied', () => {
+  const r = judged();
+  const blank = Object.assign({}, r, { ranksCopiedAt: null, reasonCopiedAt: null, entries: r.entries.map((e) => Object.assign({}, e, { commentCopiedAt: null })) });
+  assert.doesNotMatch(saveStageHtml(blank, ''), /All copied/);
+  assert.match(saveStageHtml(markCopied(r, 'ranks', 5), ''), /All copied/);
+});

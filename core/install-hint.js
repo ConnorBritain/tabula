@@ -18,7 +18,7 @@ export function isStandalone(win = globalThis) {
 const IOS_OTHER = /CriOS|FxiOS|EdgiOS|OPiOS|OPT\/|YaBrowser|DuckDuckGo|Brave|GSA\/|FBAN|FBAV|FBIOS|Instagram|LinkedInApp|Snapchat|Twitter|Line\/|MicroMessenger|Pinterest|TikTok|musical_ly/;
 
 const IOS_WHY = 'Safari can delete this app\'s data if you do not open it for about 7 days. Adding it to your Home Screen keeps it.';
-const OTHER_WHY = 'An installed app opens in its own window, works with no internet, and is less likely to have its data cleared.';
+const OTHER_WHY = 'An installed app opens in its own window and is less likely to have its data cleared.';
 
 /**
  * The hint for this browser, or null when there is none to give.

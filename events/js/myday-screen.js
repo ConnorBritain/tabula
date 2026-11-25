@@ -172,7 +172,13 @@ export function createMydayScreen(env) {
   let menuFor = null; // the key of the item whose "⋯" menu is open
   let dismissedAt = null; // the last-change time the judge said "Not now" to (this tab only: it shows again after a new change)
   let kept = 'unknown'; // storageKept's answer, read each time My day shows
-  const sheet = createInstallSheet(env, () => downloadBackup(env, false));
+  let redrawAfterSheet = false; // the storage answer came while the sheet was open
+  // When the sheet closes after a deferred redraw, the element it would give focus back to is gone: focus the title.
+  const sheet = createInstallSheet(env, () => downloadBackup(env, false), () => {
+    if (!redrawAfterSheet || !showing) return;
+    redrawAfterSheet = false;
+    draw(null);
+  });
   const congressState = () => (env.store ? congressIO(env.store).read() : null);
   const hasWork = () => lastChangeAt(env.rooms(), env.day.cards(), congressState()) > 0;
 
@@ -293,6 +299,8 @@ export function createMydayScreen(env) {
         if (state === kept) return;
         kept = state;
         if (!showing) return;
+        // A redraw now would remove the element the open sheet gives focus back to, so it waits for the sheet to close.
+        if (sheet.isOpen()) { redrawAfterSheet = true; return; }
         const inside = env.el.contains(document.activeElement), was = inside ? document.activeElement.id : '';
         draw();
         if (inside) { const el = was && document.getElementById(was); (el || $('#screen-title')).focus(); }
@@ -303,6 +311,8 @@ export function createMydayScreen(env) {
     },
     hide() {
       showing = false;
+      redrawAfterSheet = false;
+      sheet.close(); // leaving My day (browser Back) never leaves the sheet over the next screen
       clearInterval(tick); tick = null;
       env.el.removeEventListener('click', onClick);
     },

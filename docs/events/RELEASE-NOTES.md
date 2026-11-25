@@ -35,7 +35,7 @@ optional and uses the judge's own key.
 - **May delete warning.** When the browser says it may delete the saved data, My day shows one line with "Download a
   backup" and, where it helps, "How to keep it". "Not today" hides it until the next day.
 - **Save as PDF.** The Review screen ends with "Save a copy". Once the ranks and comments are copied, "Save as PDF" is
-  the one main button. The PDF holds the entry codes and what the judge typed, not student names.
+  the one main button. The PDF holds the entry codes, times and what the judge typed, not student names.
 - **Clear this device.** Settings removes every Speech Events value on a shared computer, with an Undo while the tab
   is open. Tabula Debate data is not touched.
 - **Congress (beta).** Chambers and sessions for Student Congress, marked as beta.

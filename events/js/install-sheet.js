@@ -66,9 +66,10 @@ export function installSheetHtml(hint, { hasWork = false, auto = false } = {}) {
 }
 
 // The sheet in the page. env: { ui (core/ui.js: modalDialog), store, now() }. onBackup(): download a backup.
+// afterClose() (optional): runs as the sheet closes, before focus goes back to the opener (My day redraws then).
 // open(hint, { hasWork, auto }) shows it; focus moves to its first button and comes back to the opener; Esc, ×, "Got
 // it" and the dim layer close it. Every close snoozes the sheet for today; "Don't show again" stops it for good.
-export function createInstallSheet(env, onBackup) {
+export function createInstallSheet(env, onBackup, afterClose) {
   let wrap = null, card = null, dialog = null;
   function build() {
     if (dialog) return;
@@ -80,7 +81,7 @@ export function createInstallSheet(env, onBackup) {
     card.setAttribute('aria-labelledby', 'ins-title'); card.setAttribute('aria-describedby', 'ins-body');
     wrap.append(card);
     document.body.append(wrap);
-    dialog = env.ui.modalDialog(wrap, card, { name: 'install-sheet', rank: 86, onClose: snooze });
+    dialog = env.ui.modalDialog(wrap, card, { name: 'install-sheet', rank: 86, onClose: () => { snooze(); if (afterClose) afterClose(); } });
     card.addEventListener('click', (e) => {
       const b = e.target.closest('[data-ins]');
       if (!b) return;
@@ -100,6 +101,7 @@ export function createInstallSheet(env, onBackup) {
       dialog.open(card.querySelector('.ask-btns .primary'));
     },
     isOpen: () => Boolean(dialog && dialog.isOpen()),
+    close() { if (dialog && dialog.isOpen()) dialog.close(); },
     pref,
   };
 }
