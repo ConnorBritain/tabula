@@ -1,6 +1,6 @@
 # Marketing copy deck (draft 2, 2026-11-20)
 
-This file holds the final copy for the three Tabula sites. The copy is now in the page files in the site repo.
+This file holds the final copy for the three Tabula sites. The copy is now in the page files in `~/Code/tabula-sites`.
 Use this file to review the words. Use [ANTI-PATTERNS.md](ANTI-PATTERNS.md) section 5 to check each change.
 
 This file is public. It has no prices.

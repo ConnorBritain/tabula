@@ -2,7 +2,7 @@
 
 Status: none of these images exist yet. The pages work without them. `build.mjs` copies `sites/<site>/img/` when the folder exists (Markdown notes are skipped).
 
-These prompts make the illustrations for the three marketing sites. Paste one prompt into ChatGPT image generation. Save the result with the file name given. Put it in the site's image folder in the site repo.
+These prompts make the illustrations for the three marketing sites. Paste one prompt into ChatGPT image generation. Save the result with the file name given. Put it in `~/Code/tabula-sites/sites/<site>/img/`.
 
 The look matches the Debate Library pictures ([`docs/library/visuals/STYLE.md`](../library/visuals/STYLE.md)). Read §2 to §5 there first. This file adds only what is new for marketing.
 

@@ -186,5 +186,5 @@ Context: PLAN.md Q8 put Congress in P5, after league packs (P3) and coach tools 
 ## 6. What this plan does not change
 
 - No change to PLAN.md §5 decisions Q1–Q11 except what Q12 B and Q13 B changed: P1 and R2 (Q12), Q8 and the phase table (Q13).
-- No change to the server. The cloud items for Speech Events (the `events.cleanup` task, the Q2 round rule) stay with the cloud session (PLAN.md §5 follow-ups).
+- No change to `tabula-cloud`. The cloud items for Speech Events (the `events.cleanup` task, the Q2 round rule) stay with the cloud session (PLAN.md §5 follow-ups).
 - The owner approved this plan on 2026-11-21. App code starts with C0.

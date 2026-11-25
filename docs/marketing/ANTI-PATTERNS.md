@@ -128,7 +128,7 @@ Evidence that plain words help:
 
 ## 4. Our draft's offenders
 
-Files are in the site repo's page files. Quotes are exact.
+Files are in `tabula-sites/sites/*/pages/`. Quotes are exact.
 
 ### tabuladebate.com, `debate/pages/index.html`
 

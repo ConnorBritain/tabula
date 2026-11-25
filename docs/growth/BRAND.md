@@ -130,7 +130,7 @@ Rule: **one account, one wallet, many products.**
 
 ## 6. The open-source repo
 
-Today: one public repo (`TabulaSpeech/tabula`, https://github.com/TabulaSpeech/tabula, AGPL-3.0). Server, billing and coach backend may be private (owner decision).
+Today: one public repo (`ConnorBritain/tabula`, AGPL-3.0). Server, billing and coach backend may be private (owner decision).
 
 Recommendation: **keep one public repo.** Split by folder, not by repo.
 

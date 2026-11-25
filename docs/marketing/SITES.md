@@ -6,7 +6,7 @@ This file is public. Approved prices live in `layout.mjs` (`LINKS.priceMonth`, `
 
 ## 1. Where the code lives
 
-- Owner decision (2026-11-20): a new site repo. It is not in the app repo.
+- Owner decision (2026-11-20): a new repo at `~/Code/tabula-sites`. It is not in the app repo.
 - Plain HTML and CSS. One tiny build script (`node build.mjs`, no dependencies) wraps each page in the shared header and footer.
 - Layout:
 
@@ -32,7 +32,7 @@ This file is public. Approved prices live in `layout.mjs` (`LINKS.priceMonth`, `
 | URL | Page | Status in draft 1 |
 |---|---|---|
 | `/` | The Tabula family: what we make, products, one account, trust, open source | Built |
-| `/plans/` | Free; Pass (prices: see the Pricing page); Round packs coming soon; Programs and the two-app plan as rows; trial line; comparison table; FAQ | Built |
+| `/plans/` | Free; Pass $5 a month or $50 a year (owner-approved); Round packs coming soon; Programs and the two-app plan as rows; trial line; comparison table; FAQ | Built |
 | `/trust/` | Privacy and student data: what we keep, what we never keep, AI controls for admins | Built |
 | `/about/` | Who makes it, the company, the rules we keep | Built |
 | `/signin/` | Sign-in entry. Accounts are not open yet, so it says so and links to the free app | Built (placeholder) |
@@ -108,7 +108,7 @@ Rules: plain words, short sentences, benefit-led headlines. No model or company 
 
 ## 7. Gates (Tier 1)
 
-`node --test` in the site repo runs `build.test.mjs` (11 tests, built into a temp folder):
+`node --test` in `~/Code/tabula-sites` runs `build.test.mjs` (11 tests, built into a temp folder):
 
 1. The Debate Library is present for the build.
 2. Every internal and cross-site link resolves.
