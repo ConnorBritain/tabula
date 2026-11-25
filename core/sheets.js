@@ -1,9 +1,9 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C10): the copy sheet (text
+// Shared code for Tabula Debate and Tabula Speech Events: the copy sheet (text
 // blocks a judge pastes into the tournament site) and the print sheet, built from a model the app makes. The
 // builders return HTML text, so Node tests can compare it exactly; showPrintSheet and removePrintSheet do the DOM.
 // Generic words only (core-words.test.mjs). Loaded as described in core/defs.js.
 
-// Exported for app code that builds HTML text (Speech Events lists; step E1).
+// Exported for app code that builds HTML text (Speech Events lists).
 export const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const e = escapeHtml;
 const cls = (c) => (c === undefined ? '' : ` class="${c}"`);

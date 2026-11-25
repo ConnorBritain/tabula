@@ -1,4 +1,4 @@
-/* Tabula design tokens shared by every Tabula app (docs/events/LANDING.md §3, step C4): surface, text, border,
+/* Tabula design tokens shared by every Tabula app: surface, text, border,
    status, accent, button, type, space and layer tokens, the fonts and the theme helpers. Generic only: the debate side
    colours live in assets/tokens.css, which imports this file first, so every page still links one file.
    assets/theme-boot.js sets <html data-theme="light|dark"> before this file loads, so there is no flash.
