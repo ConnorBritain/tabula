@@ -12,7 +12,12 @@ import { eventChoices } from './js/setup-screen.js';
 import { stoppedTiming, adjustTiming, resetTiming, timerFace, graceOf } from './js/timer.js';
 import { runsAt, syncRuns, resetRunFields, markNextRun, unmarkLastRun, runsPhase, runsBarModel, runsLine, setTopic, TOPIC_MAX, hasRuns } from './js/runs.js';
 import { phasesHtml, phaseState } from './js/phase-bar.js';
-import { runsHeadHtml, runCardsHtml, runsRowHtml } from './js/runs-view.js';
+import { runCardsHtml, runsRowHtml } from './js/runs-view.js';
+// CHANGED 2026-11-24 (design build, review §2.7): runsHeadHtml is gone. The topic field moved to quote-view.js (the
+// quote line at the top of the card) and the phase bar moved into the timer card's signal track (timer-view.js
+// cardTrack). The old head assertions below now read those two places, with the same strictness.
+import { quoteHtml } from './js/quote-view.js';
+import { cardTrack } from './js/timer-view.js';
 import { migrateRoom, migrateRooms } from './js/migrate.js';
 import { ranksBlock, cards, printModel, copyAllText } from './js/ballot.js';
 import { cardHtml } from './js/review-screen.js';
@@ -243,20 +248,27 @@ test('the PCC bar model follows the entry: ready, Pro, Con, done', () => {
 test('the run parts of the Room screen: topic field, bar, run cards, the Con started button, the roster line', () => {
   const r = pccRoom();
   const base = Object.assign({}, r.entries[0], { topic: 'Resolved: <b>x</b>' });
-  const head = runsHeadHtml(base, PCC, 1, LIMIT);
-  assert.match(head, /id="run-topic"[^>]*value="Resolved: &lt;b&gt;x&lt;\/b&gt;"/);
+  // Old: const head = runsHeadHtml(base, PCC, 1, LIMIT);
+  //      assert.match(head, /id="run-topic"[^>]*value="Resolved: &lt;b&gt;x&lt;\/b&gt;"/);
+  // A filled topic now shows as the quote line; the field (opened with Edit) keeps the escaped value.
+  assert.match(quoteHtml(base, PCC, false), /class="quote-line">.*“Resolved: &lt;b&gt;x&lt;\/b&gt;”/);
+  assert.match(quoteHtml(base, PCC, true), /id="topic"[^>]*value="Resolved: &lt;b&gt;x&lt;\/b&gt;"/);
+  const head = cardTrack(base, PCC, timerFace(base, LIMIT, 30, 1), LIMIT, 30, 1, runsBarModel).phases;
   assert.match(head, /Pro, then Con/);
   assert.match(head, /class="phase-next">Next: Pro\./);
   assert.doesNotMatch(runCardsHtml(base, PCC, 1, LIMIT), /data-ract="next"/, 'before Pro starts there is no Con started button');
   const pro = sync(withTiming(base, running(base.timing, 30, 40_000)), 40_000);
   const cards = runCardsHtml(pro, PCC, 40_000, LIMIT);
-  assert.match(cards, /data-ract="next"[^>]*>Con started</);
+  // CHANGED 2026-11-24 because the owner approved EVENTS-COLOR-ICON-REVIEW.md (top 10 #1: the PCC primary reads "Pro done · start Con"). Old line:
+  //   assert.match(cards, /data-ract="next"[^>]*>Con started</);
+  assert.match(cards, /data-ract="next"[^>]*>Pro done · start Con<svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"\/><\/svg></);
   assert.match(cards, /data-run-word="pro">Now</);
   assert.match(cards, /data-run-word="con">Not started</);
   assert.match(runsRowHtml(pro, PCC, 40_000, LIMIT), /Pro 0:30/);
   assert.equal(runsRowHtml(base, PCC, 1, LIMIT), '');
   const noShow = Object.assign({}, base, { status: 'noShow' });
-  assert.equal(runsHeadHtml(noShow, PCC, 1, LIMIT) + runCardsHtml(noShow, PCC, 1, LIMIT), '');
+  // Old: assert.equal(runsHeadHtml(noShow, PCC, 1, LIMIT) + runCardsHtml(noShow, PCC, 1, LIMIT), '');
+  assert.equal(quoteHtml(noShow, PCC, true) + runCardsHtml(noShow, PCC, 1, LIMIT), '');
   assert.equal(setTopic(base, 'x'.repeat(TOPIC_MAX + 50)).topic.length, TOPIC_MAX);
 });
 

@@ -65,6 +65,10 @@ export function ranksShown(profile) {
   return !l.critiqueOnly && l.ranks !== 'off';
 }
 
+// The name of the whole-room note (one word everywhere, from the profile; color review §4 repair): "Reason for rank"
+// under ranks, "Notes for the room" when the rules turn ranks off.
+export const reasonLabel = (profile) => (layerOf(profile).ranks === 'off' ? 'Notes for the room' : 'Reason for rank');
+
 export function rankStageLabel(profile) {
   if (layerOf(profile).critiqueOnly) return '';
   return ranksShown(profile) ? 'Rank' : 'Rate';
@@ -81,6 +85,12 @@ export function shownRank(rank, profile) {
 }
 // The words for an entry with no rank on a top-N ballot.
 export const notRankedText = (profile) => 'Not in top ' + layerOf(profile).topN;
+// The labelled line under rank N on a top-N board of n entries (design review 2026-11-24 §2.8); '' when every entry is
+// inside the top N or the profile is not top N.
+export function cutLineText(profile, n) {
+  const l = layerOf(profile);
+  return l.ranks === 'topN' && n > l.topN ? 'Top ' + l.topN + ' get a rank. The rest are not ranked on the ballot.' : '';
+}
 
 // ---------- rubric ----------
 
@@ -155,6 +165,6 @@ export function layerProblems(room) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).profileLayer = Object.freeze({
-  rubricOf, layerOf, stagesOf, ranksShown, rankStageLabel, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax,
+  rubricOf, layerOf, stagesOf, ranksShown, rankStageLabel, reasonLabel, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax,
   stepRubric, withRubric, rubricError, layerProblems,
 });

@@ -6,6 +6,9 @@
 // tournament) with the paste box in focus. Start makes the round, links the card, and opens #/round/<id>. A round
 // started from #/new gets a card too (decision 2a), so it shows on My day.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from './icons.js';
+import { statusPillHtml } from './status-pill.js';
+import { foldSummaryHtml, foldValueHtml } from './fold.js';
 import { parseRoom } from './parse.js';
 import { ENABLED_EVENTS, CUSTOM_EVENT, DEFAULT_PROFILE, createRoom, setupError, findRoom, entryCap } from './room.js';
 import { levelFieldsHtml, makePanel } from './round-frame.js';
@@ -27,20 +30,24 @@ export const isBallotShape = (p) => Boolean(p) && p.group === 'shape';
 export const profileChoices = (data) => allProfiles(data).filter((p) => !isBallotShape(p));
 export const shapeChoices = (data) => allProfiles(data).filter(isBallotShape);
 
-// The preview under the paste box as HTML text. parsed: parseRoom's result.
+// The live preview beside the paste box (under it on a phone) as HTML text. parsed: parseRoom's result. One row per
+// entry: its place, code, name and piece title; the lines the parser is not sure of wait under "Check these (N)"
+// (design review §2.3 change 2, DESIGN.md §4.8).
 export function previewHtml(parsed) {
-  const n = parsed.entries.length;
-  const rows = parsed.entries.map((e) => `<li><span class="code">${esc(e.code)}</span>${e.name ? ` <span>${esc(e.name)}</span>` : ''}${e.late ? ' <span class="pill">Late add</span>' : ''}</li>`).join('');
+  const n = parsed.entries.length, k = parsed.check.length;
+  const rows = parsed.entries.map((e) => `<li><span class="code">${esc(e.code)}</span>${e.name ? ` <span class="pv-name">${esc(e.name)}</span>` : ''}${e.title ? ` <span class="muted pv-title">${esc(e.title)}</span>` : ''}${e.late ? ' <span class="pill">Late add</span>' : ''}</li>`).join('');
   const checks = parsed.check.map((c, i) => `<li class="check-row">
       <p class="mono">${esc(c.line)}</p><p class="muted">${esc(c.why)}</p>
       <div class="check-act"><label class="sr-only" for="chk-${i}">Code for this line</label>
         <input id="chk-${i}" class="chk-code" data-key="${esc(c.key)}" value="${esc(c.guess || '')}" placeholder="Code" autocomplete="off" spellcheck="false">
         <button class="b small" type="button" data-act="use" data-key="${esc(c.key)}">Use code</button>
         <button class="b small quiet" type="button" data-act="skip" data-key="${esc(c.key)}">Skip line</button></div></li>`).join('');
-  const skipped = parsed.skipped.length ? `<details class="skipped"><summary>Lines left out (${parsed.skipped.length})</summary><ul>${parsed.skipped.map((s) => `<li><span class="mono">${esc(s.line)}</span></li>`).join('')}</ul></details>` : '';
+  const skipped = parsed.skipped.length ? `<details class="skipped fold">${foldSummaryHtml('Lines left out', statusPillHtml('caution', parsed.skipped.length + ' left out'))}<ul>${parsed.skipped.map((s) => `<li><span class="mono">${esc(s.line)}</span></li>`).join('')}</ul></details>` : '';
+  const count = n || k ? `<p class="muted pv-count">${n} ${n === 1 ? 'entry' : 'entries'} found${k ? ' · ' + k + ' to check' : ''}</p>` : '<p class="muted pv-count">Paste the room and each entry shows here as you type.</p>';
   return `<h2 class="preview-title">${n ? n + (n === 1 ? ' entry' : ' entries') + ', in speaking order' : 'No entries yet'}</h2>
+    ${count}
     ${n ? `<ol class="preview-list">${rows}</ol>` : ''}
-    ${checks ? `<h3>Check these</h3><ul class="check-list">${checks}</ul>` : ''}${skipped}`;
+    ${checks ? `<h3>Check these (${k})</h3><ul class="check-list">${checks}</ul>` : ''}${skipped}`;
 }
 
 // The Custom event fields (step E12) as HTML text: shown only when the judge picks "Custom event". grace: the picked
@@ -58,12 +65,15 @@ export function customHtml(grace) {
 }
 
 // The whole setup form as HTML text.
+// The current value of the "Elim or panel?" fold in words (§5.4): "Prelim · Only me", "Elim · Panel of 3".
+export const levelSummary = (level, panel) => (level === 'elim' ? 'Elim' : 'Prelim') + ' · ' + (String(panel) === '1' ? 'Only me' : 'Panel of ' + panel);
+
 export function setupHtml(data) {
   const evOpts = eventChoices(data).map((e) => `<option value="${esc(e.id)}">${esc(e.name)} (${esc(e.limitMinutes)} min)</option>`).join('');
   const opt = (p) => `<option value="${esc(p.id)}"${p.id === DEFAULT_PROFILE ? ' selected' : ''}>${esc(p.name)}</option>`;
   const shapes = shapeChoices(data);
   const prOpts = shapes.length ? `<optgroup label="League rules">${profileChoices(data).map(opt).join('')}</optgroup><optgroup label="Other ballot shapes">${shapes.map(opt).join('')}</optgroup>` : profileChoices(data).map(opt).join('');
-  return `<div class="screen-head"><a class="b quiet" href="#/">‹ My day</a><h1 id="screen-title" tabindex="-1">New room</h1></div>
+  return `<div class="screen-head"><a class="b quiet" href="#/">${icon('chevron-left')}My day</a><h1 id="screen-title" tabindex="-1">New room</h1></div>
   <form class="setup" id="setup-form" novalidate>
     <div class="setup-fields">
       <label class="field"><span>Event</span><select id="setup-event"><option value="">Pick the event</option>${evOpts}<option value="${CUSTOM_EVENT}">Custom event (set the time)</option></select></label>
@@ -71,13 +81,20 @@ export function setupHtml(data) {
       <label class="field"><span>Round</span><input id="setup-round" autocomplete="off" placeholder="Round 1"></label>
       <label class="field"><span>Flight <span class="muted">(optional)</span></span><input id="setup-flight" autocomplete="off"></label>
       <label class="field wide"><span>Tournament <span class="muted">(optional)</span></span><input id="setup-tournament" autocomplete="off"></label>
-      ${levelFieldsHtml()}
     </div>
+    <!-- The rare fields (design review §2.3 change 3): closed for a prelim, open when the ballot card says elim. -->
+    <details class="setup-more fold" id="setup-more">${foldSummaryHtml('Elim or panel?', foldValueHtml(levelSummary('prelim', '1'), 'setup-more-value'))}
+      <div class="setup-fields">${levelFieldsHtml()}</div></details>
     ${customHtml(graceOf({ profile: data.profiles.get(DEFAULT_PROFILE) }))}
-    <label class="field wide" for="setup-paste"><span>Paste the room from Tabroom or SpeechWire, or type one code per line</span></label>
-    <textarea id="setup-paste" rows="8" spellcheck="false" placeholder="1. A12&#10;2. B07&#10;3. C33"></textarea>
-    <p class="field-help">The text stays on this device. Codes are enough; names are optional.</p>
-    <div class="preview" id="setup-preview" aria-live="polite"></div>
+    <!-- Laptop: the paste box on the left and the live preview on the right. Phone: the preview under the box. -->
+    <div class="setup-paste-area">
+      <div class="setup-paste-col">
+        <label class="field wide" for="setup-paste"><span>Paste the room from Tabroom or SpeechWire, or type one code per line</span></label>
+        <textarea id="setup-paste" rows="8" spellcheck="false" placeholder="1. A12&#10;2. B07&#10;3. C33"></textarea>
+        <p class="field-help">The text stays on this device. Codes are enough; names are optional.</p>
+      </div>
+      <div class="preview" id="setup-preview" aria-live="polite"></div>
+    </div>
     <p class="form-err" id="setup-err" role="status"></p>
     <div class="setup-btns"><button class="b primary" type="submit" id="setup-start">Start room</button></div>
   </form>`;
@@ -104,6 +121,8 @@ export function createSetupScreen(env) {
 
   // The Custom event fields show only for the Custom event.
   function showCustom() { $('#setup-custom').hidden = $('#setup-event').value !== CUSTOM_EVENT; }
+  // The fold's value follows the Level and Judges fields (§5.4: the closed row still says what is set).
+  function showLevel() { $('#setup-more-value').textContent = levelSummary($('#setup-level').value, $('#setup-panel').value); }
 
   function start(e) {
     e.preventDefault();
@@ -172,6 +191,8 @@ export function createSetupScreen(env) {
         $('#setup-flight').value = card.flight || '';
         $('#setup-tournament').value = card.tournament || '';
         $('#setup-level').value = card.level === 'elim' ? 'elim' : 'prelim'; // the S4 Level field starts as the card's level
+        $('#setup-more').open = card.level === 'elim'; // an elim card opens the rare fields
+        showLevel();
         $('#screen-title').textContent = 'Paste the room';
         showCustom();
       }
@@ -180,7 +201,8 @@ export function createSetupScreen(env) {
       // The grace starts as the picked rules' grace, until the judge types their own.
       $('#custom-grace').addEventListener('input', () => { graceTouched = true; });
       $('#setup-profile').addEventListener('change', () => { if (!graceTouched) $('#custom-grace').value = String(graceOf({ profile: env.data.profiles.get($('#setup-profile').value) })); });
-      $('#setup-panel').addEventListener('change', () => { $('#setup-panel-note-box').hidden = $('#setup-panel').value === '1'; });
+      $('#setup-panel').addEventListener('change', () => { $('#setup-panel-note-box').hidden = $('#setup-panel').value === '1'; showLevel(); });
+      $('#setup-level').addEventListener('change', showLevel);
       $('#setup-form').addEventListener('submit', start);
       $('#setup-preview').addEventListener('click', onClick);
       $('#setup-preview').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.classList.contains('chk-code')) { e.preventDefault(); e.target.parentElement.querySelector('[data-act="use"]').click(); } });

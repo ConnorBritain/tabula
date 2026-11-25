@@ -4,10 +4,14 @@
 // #/round/<id>/rank. The rules are in profile-layer.js and rank.js; this file draws them.
 // The builders at the top are pure (Node tests call them); createRateScreen does the DOM.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { statusPillHtml } from './status-pill.js';
+import { icon } from './icons.js';
+import { problemsListHtml, readyHtml, rateRowPill, ballotFootHtml } from './ballot-status.js';
+import { ballotNavClick } from './ballot-nav.js';
 import { ratingScale, ratingError, ratingTies, overtimeRow } from './rank.js';
 import { boardCtx, ratingsOf } from './board.js';
 import { layerOf, layerProblems } from './profile-layer.js';
-import { ratingHtml, rubricHtml, scoreClick, scoreInput, isScoreBox } from './score-view.js';
+import { ratingHtml, rubricHtml, scoreClick, scoreInput, scoreKey, isScoreBox } from './score-view.js';
 import { findRoom, present, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf, clockText } from './timer.js';
@@ -27,10 +31,10 @@ export function rateListHtml(room, view) {
     const ot = overtimeRow(e.id, ctx);
     const used = totalUsedAt(e.timing, view.now, view.limit);
     const err = ratingError(ratings[e.id], scale) || (tied.has(e.id) ? 'Another speaker has this rating.' : '');
-    return `<li class="rate-row" data-row="${esc(e.id)}">
+    return `<li class="rate-row" data-row="${esc(e.id)}" tabindex="-1">
       <span class="board-main"><span class="code">${esc(e.code)}</span>${e.name ? `<span class="row-name">${esc(e.name)}</span>` : ''}
-        <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ` <span class="pill err">${esc(ot.pill)}</span>` : ''}</span>
-        ${ot.pill && panel ? `<span class="board-note">${esc(panel)}</span>` : ''}</span>
+        <span class="board-meta">${used ? clockText(used) : 'No time'}${ot.pill ? ' ' + statusPillHtml('err', ot.pill) : ''}</span>
+        ${ot.pill && panel ? `<span class="board-note">${esc(panel)}</span>` : ''}${rateRowPill(e, ratings[e.id], scale, rubric)}</span>
       ${scale.kind !== 'none' ? `<span class="board-rate">${ratingHtml(e, ratings[e.id], scale, err)}</span>` : ''}
       ${rubricHtml(e, rubric)}
     </li>`;
@@ -41,8 +45,7 @@ export function rateListHtml(room, view) {
 // The checklist under the list, from profile-layer.js layerProblems.
 export function rateProblemsHtml(room) {
   const list = layerProblems(room);
-  return list.length ? `<div class="problems" role="status"><h2>Before you review</h2><ul>${list.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>`
-    : '<p class="problems ok" role="status"><span class="pill outline">Ready</span> Every speaker is rated.</p>';
+  return list.length ? problemsListHtml(room, list) : readyHtml('Every speaker is rated.');
 }
 
 // env: { el, ui, data, now, rooms(), saveRoom(room), go(screen, id) }.
@@ -58,14 +61,20 @@ export function createRateScreen(env) {
     if (!r) return;
     $('#rate-box').innerHTML = rateListHtml(r, { limit: limitOf(event(r)), now: env.now() });
     $('#problems').innerHTML = rateProblemsHtml(r);
+    $('#ballot-foot').innerHTML = ballotFootHtml(r, 'rate'); // the sticky footer (top 10 #6) follows every change
     if (focusKey) { const el = $(`[data-key="${CSS.escape(focusKey)}"]`); if (el && !el.disabled) el.focus(); }
   }
 
   // The score controls work as on the Rank screen (score-view.js); typing saves on every change, and the error shows
   // when the box is left.
-  function onClick(ev) { const res = scoreClick(ev.target, room(), env.now()); if (res) { save(res.room); draw(res.focusKey); } }
+  function onClick(ev) {
+    if (ballotNavClick(env.el, ev, env.ui.announce)) return; // a "Before you review" item, or the footer while work is open
+    const res = scoreClick(ev.target, room(), env.now()); if (res) { save(res.room); draw(res.focusKey); }
+  }
   function onInput(ev) { const next = scoreInput(ev.target, room(), env.now()); if (next) save(next); }
   function onChange(ev) { if (isScoreBox(ev.target)) draw(); }
+  // The arrow, Home, End and digit keys on a row of number buttons (score-view.js scoreKey).
+  function onKey(ev) { const r = room(); const res = scoreKey(ev, r, env.now()); if (!res) return; ev.preventDefault(); if (res.room !== r) save(res.room); draw(res.focusKey); }
 
   return {
     scope: 'rank',
@@ -75,7 +84,7 @@ export function createRateScreen(env) {
       roomId = id;
       if (r.state === 'judging') save(Object.assign({}, r, { state: 'ranking', updatedAt: env.now() }));
       const ev = event(r);
-      env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/room/${encodeURIComponent(id)}">‹ Room</a>
+      env.el.innerHTML = `<div class="screen-head"><a class="b quiet" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
           <h1 id="screen-title" tabindex="-1">Rate · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <p class="bias">${esc(r.profile.biasNote || 'Judge the performance, not the person.')}</p>
         <p class="muted board-help">These rules have no ranks. Rate each speaker on their own.</p>
@@ -83,16 +92,17 @@ export function createRateScreen(env) {
         <div id="problems"></div>
         <label class="field" for="rank-reason"><span>Notes for the whole room <span class="muted">(optional)</span></span></label>
         <textarea id="rank-reason" rows="3">${esc(r.reasonForRank || '')}</textarea>
-        <div class="rank-foot"><a class="b primary" id="go-review" href="#/review/${encodeURIComponent(id)}">Review and copy</a></div>`;
+        <div class="ballot-foot" id="ballot-foot"></div>`;
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('input', onInput);
       env.el.addEventListener('change', onChange);
+      env.el.addEventListener('keydown', onKey);
       $('#rank-reason').addEventListener('input', (e) => save(setReason(room(), e.target.value, env.now())));
       draw();
       $('#screen-title').focus();
     },
     hide() {
-      for (const [t, f] of [['click', onClick], ['input', onInput], ['change', onChange]]) env.el.removeEventListener(t, f);
+      for (const [t, f] of [['click', onClick], ['input', onInput], ['change', onChange], ['keydown', onKey]]) env.el.removeEventListener(t, f);
       roomId = null;
     },
   };

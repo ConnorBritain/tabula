@@ -24,6 +24,9 @@
   --accent: #16191d; --on-accent: #fff; --ring: #16191d;
   /* Buttons: primary hover and press. The solid danger fill is only for the confirm button of a danger dialog. */
   --accent-hover: #3c434c; --accent-press: #000000;
+  /* Quiet neutral tints (Speech Events control ladder, EVENTS-COLOR-ICON-REVIEW.md §5.1 rule 4): status pills, tool
+     tracks and hover only. Under 3:1 as a shape, so a control that needs an edge keeps its 1 px outline. */
+  --fill-quiet: #e9ecf0; --fill-press: #dce0e5;
   --danger-fill: #b93d0a; --on-danger: #ffffff; --danger-hover: #9a3208; --danger-press: #7f2906;
   /* Shadow: --shadow-1 is for the main work card only; --shadow-2 pop-ups and tips; --shadow-3 dialogs */
   --shadow-1: 0 1px 2px rgb(0 0 0 / .06), 0 4px 16px rgb(0 0 0 / .06);
@@ -63,6 +66,7 @@
   --ok: #6fd190; --ok-tint: #12291a;
   --accent: #e9ecef; --on-accent: #0f1114; --ring: #e9ecef;
   --accent-hover: #c3c9d0; --accent-press: #ffffff;
+  --fill-quiet: #252a31; --fill-press: #2f353d;
   --danger-fill: #ff9a5c; --on-danger: #0f1114; --danger-hover: #ffb382; --danger-press: #ffc8a3;
   --shadow-1: 0 1px 2px rgb(0 0 0 / .4), 0 4px 16px rgb(0 0 0 / .3);
 }
@@ -77,6 +81,7 @@
     --ok: #6fd190; --ok-tint: #12291a;
     --accent: #e9ecef; --on-accent: #0f1114; --ring: #e9ecef;
     --accent-hover: #c3c9d0; --accent-press: #ffffff;
+    --fill-quiet: #252a31; --fill-press: #2f353d;
     --danger-fill: #ff9a5c; --on-danger: #0f1114; --danger-hover: #ffb382; --danger-press: #ffc8a3;
     --shadow-1: 0 1px 2px rgb(0 0 0 / .4), 0 4px 16px rgb(0 0 0 / .3);
   }
@@ -93,6 +98,7 @@
     --ok: #1a7a3a; --ok-tint: #e8f6ec;
     --accent: #16191d; --on-accent: #fff; --ring: #16191d;
     --accent-hover: #3c434c; --accent-press: #000000;
+    --fill-quiet: #e9ecf0; --fill-press: #dce0e5;
     --danger-fill: #b93d0a; --on-danger: #ffffff; --danger-hover: #9a3208; --danger-press: #7f2906;
     --shadow-1: none;
   }

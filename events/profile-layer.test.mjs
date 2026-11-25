@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { loadEventData } from './js/data.js';
-import { createRoom, addEntry, setupError, entryCap, nextWaiting, present, updateEntry, MAX_ENTRIES, STATUS_LABEL } from './js/room.js';
+import { createRoom, addEntry, setupError, entryCap, nextWaiting, present, updateEntry, entryOf, MAX_ENTRIES, STATUS_LABEL } from './js/room.js';
 import { openBoard, withRanks, withRating } from './js/board.js';
 import { layerOf, stagesOf, rankStageLabel, shownRank, layerProblems, rubricTotal, stepRubric, withRubric, rubricOf } from './js/profile-layer.js';
 import { ranksBlock, checklist, markCopied, statusText, cards, copyAllText, printModel } from './js/ballot.js';
@@ -13,7 +13,7 @@ import { stages, mount, rankModel } from './js/room-workspace.js';
 import { boardHtml, problemsHtml } from './js/rank-screen.js';
 import { rateListHtml } from './js/rate-screen.js';
 import { rubricHtml } from './js/score-view.js';
-import { ranksStageHtml, cardHtml } from './js/review-screen.js';
+import { ranksStageHtml, cardHtml, summaryHtml } from './js/review-screen.js';
 import { frameLine, frameHtml, overtimeNote, panelOf, makePanel, PANEL_OVERTIME_NOTE } from './js/round-frame.js';
 import { markCrossEntered, clearCrossEntered, crossNote } from './js/cross-entry.js';
 import { cxOn, cxLimit, askerOf, setAsker, setSchool, sameSchoolWarning, startCx, stopCx, cxUsed, phases } from './js/cross-ex.js';
@@ -160,7 +160,11 @@ test('ranks off: the round opens the Rate screen, needs a rating for each entry,
   mount(env.el, env, r, 'rank')();
   mount(env.el, env, mk('hi', 'nsda-district', 3), 'rank')();
   assert.deepEqual(shown, ['rate', 'rank']);
-  assert.match(rateListHtml(r, { limit: 600, now: 1 }), /data-ract="plus"/);
+  // Design review 2026-11-24 (top 10 #5, bug 5): a 1 to 10 scale is short (DESIGN.md §4.6), so each speaker gets a
+  // row of 10 number buttons, not the − / + stepper this line pinned before.
+  const rateHtml = rateListHtml(r, { limit: 600, now: 1 });
+  assert.equal((rateHtml.match(/data-ract="pick"/g) || []).length, 30, '10 number buttons for each of the 3 speakers');
+  assert.doesNotMatch(rateHtml, /data-ract="plus"/);
 });
 
 // Why: a rubric ballot is scored per criterion (§2.4: a grid of steppers); a missing criterion must stop the copy,
@@ -181,7 +185,10 @@ test('rubric: steppers stay in range, every criterion is needed, and the copy ca
   assert.equal(rubricTotal(r.entries[1], rub), 18);
   assert.match(ranksBlock(r).text.split('\n')[1], /^A2\tContent 4\tOrganization 4\tDelivery 4\tLanguage 4\tOverall 2\tTotal 18 of 25\tOver time: No$/);
   const html = rubricHtml(r.entries[0], rub);
-  assert.equal((html.match(/data-rub="plus"/g) || []).length, 5);
+  // Design review 2026-11-24 (top 10 #5): each 1 to 5 criterion is a row of 5 number buttons, not a stepper (this
+  // line counted 5 "+" buttons before).
+  assert.equal((html.match(/data-rub="pick"/g) || []).length, 25);
+  assert.doesNotMatch(html, /data-rub="plus"/);
   assert.match(html, /Total 20 of 25/);
   assert.ok(printModel(r, DATA.events.get('dec'), 600).sections[1].head.some((h) => h.text === 'Rubric'));
 });
@@ -196,7 +203,10 @@ test('critiqueOnly: no Rank stage, no ranks to copy, and the round is done when 
   assert.deepEqual(layerProblems(r), []);
   assert.equal(statusText(r), 'Comments open');
   assert.deepEqual(checklist(r).map((c) => c.label), ['0 of 2 comments']);
-  assert.match(ranksStageHtml(r), /comments only/);
+  // Design review 2026-11-24 bug 6: the Ranks stage is gone for comments only (it used to show a "1. Ranks" section
+  // saying there were none); the summary at the top now says the rules are comments only.
+  assert.equal(ranksStageHtml(r), '');
+  assert.match(summaryHtml(r), /These rules are comments only/);
   assert.doesNotMatch(copyAllText(r, null), /\nRanks\n/);
   assert.match(rosterHtml(r, null), /A1/);
   for (const e of r.entries) r = updateEntry(r, e.id, (x) => Object.assign({}, x, { comment: 'Clear voice. Next time slow the ending.' }), 1);
@@ -274,7 +284,11 @@ test('cross-ex shows only for F2 in elims with a cx profile; it chains the asker
   r = setSchool(setSchool(r, a, 'North High', 1), b, ' north  high ', 1);
   assert.match(sameSchoolWarning(r, a), /^Same school: A2 would ask A1\./);
   assert.equal(sameSchoolWarning(r, c), '');
-  assert.match(crossExHtml(r, r.entries[0], ix, 1), /Q: asked by[\s\S]*Same school/);
+  // CHANGED 2026-11-24 (design build, review §2.5 change 3): the cross-ex block opens after the speech stops, so the
+  // asker and the warning show for an entry whose speech has time. Old: crossExHtml(r, r.entries[0], ix, 1) matched.
+  const spoke = updateEntry(r, a, (x) => Object.assign({}, x, { timing: Object.assign({}, x.timing, { usedMs: 300000 }) }), 1);
+  assert.match(crossExHtml(spoke, entryOf(spoke, a), ix, 1), /Q: asked by[\s\S]*Same school/);
+  assert.doesNotMatch(crossExHtml(r, r.entries[0], ix, 1), /Q: asked by|Start cross-ex/, 'before the speech: closed');
   assert.equal(crossExHtml(mk('ix', 'elim-large', 3), r.entries[0], ix, 1), '', 'no part in a prelim');
   // The clock: one clock at a time for a speaker.
   const speaking = updateEntry(r, a, (x) => Object.assign({}, x, { timing: Object.assign({}, x.timing, { run: { endAt: 9e9, startLeft: 420 } }) }), 1);

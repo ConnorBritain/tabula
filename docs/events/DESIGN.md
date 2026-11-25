@@ -35,7 +35,8 @@ These rules come over unchanged. They are already tested in debate.
 
 ## 3. Color for Speech Events
 
-- **The two sage tints stay in the mark** (logo, app icon, marketing). Inside the app, no product color is used for chrome (`docs/growth/BRAND.md` §7: a brand color never carries meaning inside an app).
+- **The two Speech Events greens stay in the mark** (logo, app icon, marketing): deep `#1e7a55` and light `#5ec796`, locked by the owner on 2026-11-23 (they replace the earlier sage drafts).
+- **One exception, the app header (owner decision OD3 A, 2026-11-24, `docs/design/EVENTS-DESIGN-REVIEW.md` §4):** the green Speech Events mark sits next to "Tabula Speech Events" in the header bar, and nowhere else in the chrome. It is a mark only: it never changes with state, it is never a button, pill, outline or fill, and it carries no meaning. Every other part of the chrome stays black, white and gray (`docs/growth/BRAND.md` §7: a brand color never carries meaning inside an app).
 - **No side colors.** Speech has no Aff and Neg, so `--aff` and `--neg` are not loaded in `events/`.
 - **Rust stays out of the app** (it is too close to `--error`; BRAND.md §7).
 - **Timer stage colors use the existing status tokens only:**
@@ -63,6 +64,7 @@ Each component lists the decision, why, and the Mobbin references behind it.
 - **Phone:** the roster is a row of code pills across the top (scrolls sideways), plus a "Roster" sheet with the full rows.
 - **Late arrivals:** drag a row, or use "Move up / Move down" in the row menu. Row menu also has "Mark no show" and "Remove" (with Undo).
 - **Keyboard:** number keys 1–8 pick an entry.
+- **Time shape (D3-A, owner decision 2026-11-23; built 2026-11-24):** under the name, each row with time shows a mini time track: the same zones as the timer's signal track (speech, grace, over), the speaker's time as a fill and a dot. An over-grace row also says "Over grace" in a pill. The time stays as text, so colour never carries the meaning alone. The rank board rows show the same track. A speaking row shows no time (the timer shows it). Extemp and impromptu rows show the first words of the question or topic.
 
 References:
 - Luma guest check-in: status pill per row with counts per status. https://mobbin.com/screens/e02a3aa3-e02c-4019-82cf-163fa8b1eafd
@@ -76,7 +78,9 @@ References:
 
 - **Signal plan:** the event file and the rules profile set the signal points (for example 5, 4, 3, 2, 1 min, 30 s, 0, grace end). At each point, the judge's screen shows the signal for 3 seconds in a small chip ("Show 2"), so the judge knows to raise a card or fingers. Optional soft vibration on phones.
 - **Correct the time:** "−10 s / +10 s" buttons and a "Set time" field, for a late start. A correction never clears a sticky "over grace" flag by itself; the judge must tap "Clear over grace" and confirm.
-- **In-room prep (impromptu):** a two-step bar above the digits: "Prep" then "Speech". The judge taps "Speech started". Both share one limit when the event says so.
+- **Signal track (D2-A, owner decision 2026-11-23; built 2026-11-24):** under the digits, one bordered data bar: speech (neutral), grace (caution tint), over (error tint), a 1 px tick at each signal point with short labels (whole minutes and 0), and an outlined "now" dot.
+- **In-room prep (impromptu):** the track starts with a prep piece, and the phase row "Prep" then "Speech" sits inside the track's box (one phase control). The judge taps "Speech started". Both share one limit when the event says so. Pro Con Challenge uses the same track with a Pro piece and a Con piece.
+- **Phone (OD1 A, 2026-11-24):** when the big card scrolls away, a compact bar pins to the top: stage word, time, mini track, the main button and, after a stop, "Next speaker". It is a second render of the same timer state: no second clock, and Space stays the one start and stop key.
 
 **Speaker view** (off by default; PLAN.md Q4): a full-screen view with only the stage word and the time, in the largest size that fits. No speaker code, no comments. Tap anywhere or press Esc to leave. On a laptop, this view can open in a second window.
 

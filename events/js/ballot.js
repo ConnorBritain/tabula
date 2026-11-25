@@ -14,7 +14,7 @@ import { boardCtx, ranksOf, isOverGrace } from './board.js';
 import { clockText } from './timer.js';
 import { pieceLine } from './piece.js';
 import { questionOf } from './question.js';
-import { layerOf, layerProblems, ranksShown, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax } from './profile-layer.js';
+import { layerOf, layerProblems, ranksShown, shownRank, notRankedText, rubricScores, rubricTotal, rubricMax, reasonLabel } from './profile-layer.js';
 import { storedRunsLine, topicOf } from './runs.js';
 
 // "Over time" on the ranks line: the sticky over-grace flag (inside grace is still on time, ARCHITECTURE.md §6.2).
@@ -60,15 +60,21 @@ export const ranksProblems = (room) => layerProblems(room);
 // The critique helper under each comment (N11, DESIGN.md §4.4): three quiet checks in words that tick themselves
 // from simple text checks. No score, and it never blocks copying. The word lists are a starting guess.
 const STRENGTH = /\b(good|great|strong|clear|well|liked?|loved?|enjoyed|effective|excellent|nice|impressive|engaging|confident|natural|kept my interest|easy to (follow|listen|understand))\b/i;
-const TO_WORK = /\b(try|work on|next time|could|consider|should|would|more|less|improve|instead|remember|watch|slow|faster|louder|tighten|add|cut)\b/i;
+// TO_WORK also takes an order to change something ("Make the cutting tell a clearer story.", design review 2026-11-24
+// bug 8): the words that ask for more of a quality (clearer, stronger, …) and plain asks such as "focus on". "Make"
+// counts only as an order at the start of a sentence (TO_WORK_ORDER), so "You make the room laugh" stays praise.
+const TO_WORK = /\b(try|work on|next time|could|consider|should|would|more|less|improve|instead|remember|watch|slow|faster|louder|tighten|add|cut|avoid|focus on|practi[cs]e|vary|clearer|stronger|sharper|smoother|tighter|cleaner|bigger|deeper|fuller|crisper|needs? to)\b/i;
+const TO_WORK_ORDER = /(^|[.!?]\s+|\n\s*)(please\s+)?make\b/i;
 const WHY_RANK = /\b(rank(ed)?|placed?|1st|2nd|3rd|[4-8]th|first|second|third|top|because|compared|over the others|in this round)\b/i;
-export function critique(text) {
+// opts.ranked false (a round with no ranks: ranks 'off' or comments only): no "Says why this rank" check, since there
+// is no rank to explain (design review 2026-11-24 bug 6).
+export function critique(text, opts) {
   const t = String(text || '');
+  const ranked = !opts || opts.ranked !== false;
   return [
     { id: 'strength', label: 'Names one strength', ok: STRENGTH.test(t) },
-    { id: 'toWork', label: 'Names one thing to work on', ok: TO_WORK.test(t) },
-    { id: 'why', label: 'Says why this rank', ok: WHY_RANK.test(t) },
-  ];
+    { id: 'toWork', label: 'Names one thing to work on', ok: TO_WORK.test(t) || TO_WORK_ORDER.test(t) },
+  ].concat(ranked ? [{ id: 'why', label: 'Says why this rank', ok: WHY_RANK.test(t) }] : []);
 }
 
 // Stage 2: one card per entry. Returns [{ id, code, name, piece, rank, rating, comment, copied, critique, question, ranked }].
@@ -81,7 +87,7 @@ export function cards(room, order, event) {
   const ranked = ranksShown(room.profile);
   return entriesIn(room, order).map((e) => {
     const comment = ballotComment(e);
-    return { id: e.id, code: e.code, name: e.name || '', piece: pieceLine(e), rank: shownRank(e.rank, room.profile), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment), question: questionOf(e), ranked,
+    return { id: e.id, code: e.code, name: e.name || '', piece: pieceLine(e), rank: shownRank(e.rank, room.profile), rating: ratingText(e), comment, copied: Boolean(e.commentCopiedAt), critique: critique(comment, { ranked }), question: questionOf(e), ranked,
       topic: topicOf(e), runs: storedRunsLine(e, event) };
   });
 }
@@ -105,7 +111,7 @@ export function checklist(room) {
     const ranked = list.filter((e) => e.rank).length;
     first = { label: ranked + ' of ' + n + ' ranked', ok: ranked === n };
   }
-  return [first, comments, { label: layer.ranks === 'off' ? 'Notes for the room written' : 'Reason for rank written', ok: Boolean(String(room.reasonForRank || '').trim()) }];
+  return [first, comments, { label: reasonLabel(room.profile) + ' written', ok: Boolean(String(room.reasonForRank || '').trim()) }];
 }
 
 // Does this round copy ranks at all? Not under critiqueOnly (step S4): its ballot is comments only.
@@ -115,8 +121,10 @@ export const hasRanksStage = (room) => !layerOf(room.profile).critiqueOnly;
 export function statusText(room) {
   if (room.state === 'done') return 'Copied';
   if (!hasRanksStage(room)) return 'Comments open';
-  if (room.ranksCopiedAt) return 'Ranks sent, comments open';
-  return 'Ranks not sent';
+  // A Rate round (ranks 'off') copies ratings, so its status says ratings (seen on the phone Review, 2026-11-24).
+  const word = ranksShown(room.profile) ? 'Ranks' : 'Ratings';
+  if (room.ranksCopiedAt) return word + ' sent, comments open';
+  return word + ' not sent';
 }
 
 // After a copy: the room with its copy marks and state. what: 'ranks' | 'reason' | an entry id.

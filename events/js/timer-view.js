@@ -5,7 +5,18 @@
 // Step E11 (Impromptu, prep in the room on a shared limit, N6): a second driver (kind 'prep') times prep, the two-step
 // bar "Prep" then "Speech" sits above the digits, and "Speech started" stops prep and starts the speech on what is left
 // of the shared limit. The rules are in prep.js.
+// Design build (docs/design/EVENTS-DESIGN-REVIEW.md §2.4–§2.7, top 10 #1, #2 and #3): the signal track under the
+// digits (time-track.js, D2-A) replaces the old "Prep, then Speech" pills: on a prep event the phase row
+// (phase-bar.js) sits inside the track's box, so the card has one phase control. A roster row shows the mini track
+// (D3-A) and drops its time while the speaker speaks (the card shows it). On a phone the sticky compact bar (OD1 A)
+// pins to the top while the big card is out of view: it is a second render of the same face, and its button sends
+// the same data-tact action to the same handler. It adds no driver, no tick and no key binding.
 import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from './icons.js';
+import { statusPillHtml } from './status-pill.js';
+import { roomPrimary, nextTopHtml } from './room-primary.js';
+import { phasesHtml } from './phase-bar.js';
+import { trackModel, trackHtml, miniTrackHtml, piecesFor, pointsFor, rowTrackHtml } from './time-track.js';
 import { createDriver } from '../../core/clock.js';
 import {
   limitOf, graceOf, clockText, parseClock, usedAt, timerFace, startLeft, stoppedTiming, adjustTiming, setUsedTiming,
@@ -19,62 +30,162 @@ import {
 
 // The timer card for one entry as HTML text. face: timerFace(...). The stage shows as a fill of the whole card plus a
 // word (DESIGN.md §3); colour never carries the meaning alone.
-// The over-grace line under the card ('' when the flag is off).
-export const overGraceHtml = (face) => (face.overGrace ? `<div class="timer-flag"><span class="pill err">Over grace</span>
-      <button class="b small" type="button" data-tact="clear">Clear over grace</button></div>` : '');
+// The over-grace line inside the card ('' when the flag is off). Design build (top 10 #2): it sits in the card, and
+// "Clear over grace" is a quiet button (a rare fix). After a stop the result pill under the digits says it, so the
+// line keeps only the clear button.
+export const overGraceHtml = (face) => (face.overGrace ? `<div class="timer-flag">${face.stage === 'stopped' && face.used > 0 ? '' : statusPillHtml('err', 'Over grace')}
+      <button class="b small quiet" type="button" data-tact="clear">Clear over grace</button></div>` : '');
 
-// The two-step bar of a prep event (DESIGN.md §4.2), in words: the step on now is marked, a step done shows its time.
-// face: prep.js sharedFace(...).
-export function phaseBarHtml(face) {
+// The result of a stopped speech (top 10 #2), or null before any time and while the clock runs: 'inside', 'grace'
+// or 'over', with the amount past the limit. On a prep event the face's left is of the speech part.
+export function stoppedResult(face, grace) {
+  if (!face || face.stage !== 'stopped' || !(face.used > 0)) return null;
+  const past = -face.left;
+  if (past <= 0) return { kind: 'inside', past: 0 };
+  return { kind: past <= grace ? 'grace' : 'over', past };
+}
+const RESULT_PILL = { inside: ['', 'circle-check', () => 'Inside time'], grace: ['caution', 'info', (p) => 'Grace +' + clockText(p)], over: ['err', 'triangle-alert', (p) => 'Over grace +' + clockText(p)] };
+// The pill under the digits after a stop ('' otherwise).
+export function resultPillHtml(face, grace) {
+  const r = stoppedResult(face, grace);
+  if (!r) return '';
+  const [tone, ic, word] = RESULT_PILL[r.kind];
+  return statusPillHtml(tone, word(r.past), ic, 'id="timer-result"');
+}
+// What the card shows: after a stop the big digits are the final time used (9:20), not the time left (top 10 #2).
+export function cardFace(face) {
+  return face && face.stage === 'stopped' && face.used > 0 ? Object.assign({}, face, { digits: clockText(face.used), sub: 'used' }) : face;
+}
+
+// The phase row of a prep event (DESIGN.md §4.2 "Prep" then "Speech"), as a phase-bar.js model. face: prep.js
+// sharedFace(...). Prep shows its time once it has some; it freezes when the speech starts.
+export function prepPhaseModel(face) {
   const inSpeech = face.phase === 'speech';
-  const prep = 'Prep' + (face.prepUsed ? ' ' + clockText(face.prepUsed) : '');
-  const step = (label, on, done) => `<li class="${on ? 'on' : done ? 'done' : ''}"${on ? ' aria-current="step"' : ''}>${esc(label)}</li>`;
-  return `<ol class="phase-bar" id="phase-bar" aria-label="Prep, then speech">${step(prep, !inSpeech && face.phase !== 'ready', inSpeech)}${step('Speech', inSpeech, false)}</ol>`;
+  const current = face.phase === 'ready' ? -1 : !inSpeech ? 0 : face.running || !face.used ? 1 : 2;
+  const next = current === -1 ? 'Next: Prep. Tap Start prep when the speaker has the topic.'
+    : current === 0 ? 'Next: Speech. Tap Speech started when the speech begins.'
+      : current === 2 ? 'Prep and speech are done.' : '';
+  return {
+    label: 'Prep, then speech',
+    phases: [{ id: 'prep', label: 'Prep', time: face.prepUsed ? clockText(face.prepUsed) : '' }, { id: 'speech', label: 'Speech', time: inSpeech && face.used ? clockText(face.used) : '' }],
+    current, next,
+  };
+}
+
+// The track for the card (time-track.js model, plus the phase row HTML). Pure. phasesFor(entry, event, now, limit):
+// optional, the phase model of a family with phases of its own (F4 runs.js runsBarModel); a prep event uses
+// prepPhaseModel; other events have no phase row.
+export function cardTrack(entry, event, face, limit, grace, now, phasesFor) {
+  const model = trackModel({ limit, grace, pieces: piecesFor(entry, event, limit, now), points: pointsFor(entry, event, limit, grace, now), running: face.running });
+  const pm = phasesFor ? phasesFor(entry, event, now, limit) : face.phase ? prepPhaseModel(face) : null;
+  return { model, phases: pm ? phasesHtml(pm, { id: 'card-phases' }) : '' };
 }
 
 // The buttons under the card before the speech starts on a prep event: ready, prep running, prep stopped.
-function prepButtons(face) {
-  if (face.phase === 'ready') return `<button class="b primary timer-go" type="button" data-tact="prep" data-key="startstop">Start prep</button>
+function prepButtons(face, primary) {
+  if (face.phase === 'ready') return `${bigButton(face, primary)}
       <button class="b" type="button" data-tact="speech">Start speech</button>`;
-  return `<button class="b primary timer-go" type="button" data-tact="speech" data-key="startstop">Speech started</button>
+  return `${bigButton(face, primary)}
       <button class="b" type="button" data-tact="prep">${face.running ? 'Stop prep' : 'Resume prep'}</button>
-      <button class="b" type="button" data-tact="minus" aria-label="Take 10 seconds off the prep time">−10 s</button>
-      <button class="b" type="button" data-tact="plus" aria-label="Add 10 seconds to the prep time">+10 s</button>
-      ${face.running ? '' : '<button class="b quiet" type="button" data-tact="reset">Reset time</button>'}`;
+      ${toolGroup('prep')}
+      ${face.running ? '' : resetHtml}`;
 }
 
-// limit: the event's limit (on a prep event, the shared limit for prep and speech).
-export function timerHtml(entry, face, limit, grace) {
+// The one main button of the card, as { tact, label } (the big button and the sticky bar's button both draw it).
+export function mainButton(face) {
+  if (face.phase === 'ready') return { tact: 'prep', label: 'Start prep' };
+  if (face.phase && face.phase !== 'speech') return { tact: 'speech', label: 'Speech started' };
+  return { tact: 'startstop', label: face.running ? 'Stop' : face.used ? 'Resume' : 'Start' };
+}
+
+// The play or pause icon of the main button (§5.3): pause while a clock runs, play otherwise.
+const goIcon = (face) => icon(face.running ? 'pause' : 'play', 20);
+// The big main button of the card (data-key="startstop": the focus and the Space rule find it first). primary: false
+// when another step holds the room's one solid fill (top 10 #1: Next speaker after a stop, Rank the room at the end).
+const bigButton = (face, primary) => { const b = mainButton(face); return `<button class="b${primary === false ? '' : ' primary'} timer-go" type="button" data-tact="${b.tact}" data-key="startstop">${goIcon(face)}${esc(b.label)}</button>`; };
+
+// −10 s and +10 s in one quiet track (top 10 #8): rare fixes, not peers of the primary. what: 'prep' or 'speech'.
+function toolGroup(what) {
+  const of = what === 'prep' ? 'the prep time' : 'the time used';
+  return `<span class="tool-group" role="group" aria-label="Correct ${of}">
+        <button class="b" type="button" data-tact="minus" aria-label="Take 10 seconds off ${of}">−10 s</button>
+        <button class="b" type="button" data-tact="plus" aria-label="Add 10 seconds to ${of}">+10 s</button></span>`;
+}
+// "Reset time" is quiet, with the rotate icon (top 10 #8).
+const resetHtml = `<button class="b quiet" type="button" data-tact="reset">${icon('rotate-ccw')}Reset time</button>`;
+
+// The sticky compact bar (OD1 A; review §2.4 change 2): stage word, time, mini track, the main button, and after a
+// stop, "Next speaker". It shows only on a narrow screen while the big card is out of view (the CSS and an
+// IntersectionObserver turn it on). The digits are hidden from screen readers, as on the card (the word says the stage).
+// primary (design build, top 10 #1): which step holds the solid fill, as on the card ('timer' when left out).
+export function stickyBarHtml(face, track, primary) {
+  const b = mainButton(face);
+  const p = primary || 'timer';
+  const shown = cardFace(face);
+  const next = face.stage === 'stopped' && face.used > 0 ? `<button class="b small${p === 'next' ? ' primary' : ''}" type="button" data-act="next">Next speaker</button>` : '';
+  return `<div class="timer-mini stage-${face.stage}" id="timer-mini" role="group" aria-label="Timer">
+      <span class="tm-word" id="tm-word">${esc(face.word)}</span>
+      <span class="tm-digits" id="tm-digits" aria-hidden="true">${esc(shown.digits)}</span>
+      <span class="tm-track" id="tm-track">${track ? miniTrackHtml(track.model) : ''}</span>
+      <button class="b small${p === 'timer' ? ' primary' : ''}" type="button" data-tact="${b.tact}">${esc(b.label)}</button>${next}</div>`;
+}
+
+// limit: the event's limit (on a prep event, the shared limit for prep and speech). track: cardTrack(...) (optional;
+// without it the card has no signal track and no sticky bar).
+// opts (design build, top 10 #1; optional): { primary: 'timer' | 'next' | 'rank' | 'other' (room-primary.js; 'other':
+// another part of the room holds it, as the F4 run button), nextHtml: the "Next speaker: U2" button }. Left out, the
+// big button is the primary, as before.
+export function timerHtml(entry, face, limit, grace, track, opts) {
   if (entry.status === 'noShow') return '<p class="muted timer-none">No show. Undo it in the roster menu to time this speaker.</p>';
+  const o = opts || {};
+  const p = o.primary || 'timer';
   const over = overGraceHtml(face);
   const shared = Boolean(face.phase);
-  const btns = shared && face.phase !== 'speech' ? prepButtons(face) : `<button class="b primary timer-go" type="button" data-tact="startstop" data-key="startstop">${face.running ? 'Stop' : face.used ? 'Resume' : 'Start'}</button>
-      <button class="b" type="button" data-tact="minus" aria-label="Take 10 seconds off the time used">−10 s</button>
-      <button class="b" type="button" data-tact="plus" aria-label="Add 10 seconds to the time used">+10 s</button>
+  const shown = cardFace(face);
+  const result = resultPillHtml(face, grace);
+  const next = p === 'next' && o.nextHtml ? o.nextHtml : '';
+  const btns = shared && face.phase !== 'speech' ? prepButtons(face, p === 'timer') : `${next}${bigButton(face, p === 'timer')}
+      ${toolGroup('speech')}
       <button class="b" type="button" data-tact="set">Set time</button>
-      ${!face.running && face.used ? '<button class="b quiet" type="button" data-tact="reset">Reset time</button>' : ''}`;
+      ${!face.running && face.used ? resetHtml : ''}`;
   return `<div class="timer-box" id="timer-box">
-    <div class="timer-card stage-${face.stage}" id="timer-card">
-      ${shared ? phaseBarHtml(face) : ''}
+    <div class="timer-card stage-${face.stage}" id="timer-card"${result ? ` data-result="${stoppedResult(face, grace).kind}"` : ''}>
       <p class="timer-word" id="timer-word">${esc(face.word)}</p>
-      <p class="timer-digits" id="timer-digits" aria-hidden="true">${esc(face.digits)}</p>
-      <p class="timer-sub" id="timer-sub">${esc(face.sub)}</p>
+      <p class="timer-digits" id="timer-digits" aria-hidden="true">${esc(shown.digits)}</p>
+      <p class="timer-sub" id="timer-sub">${esc(shown.sub)}</p>
+      ${result ? `<p class="timer-result">${result}</p>` : ''}
+      ${track ? trackHtml(track.model, { id: 'timer-track', phases: track.phases }) : ''}
       <p class="signal-chip" id="signal-chip" hidden></p>
       <p class="timer-limit">Limit ${clockText(limit)}${shared ? ' for prep and speech' : ''} · grace ${clockText(grace)}</p>
+      <div id="timer-flagbox">${over}</div>
     </div>
-    <div id="timer-flagbox">${over}</div>
     <div class="timer-btns">
       ${btns}
-    </div></div>`;
+    </div>${track ? stickyBarHtml(face, track, p) : ''}</div>`;
 }
 
 // The time on a roster row (after the code): the time used (on a prep event, prep and speech), once there is some.
 export const rowTimeHtml = (entry, used) => (used > 0 || (entry.timing && (entry.timing.run || entry.timing.prepRun)) ? `<span class="row-time" data-time="${esc(entry.id)}">${clockText(used)}</span>` : '');
 
-// opts (step S5, optional; the F4 run split, runs.js, uses both):
+// The roster row's time while the room is open: none while the speaker speaks (the timer card shows it, and the name
+// keeps its room; review §2.4 change 6), else rowTimeHtml.
+export const rosterTimeHtml = (entry, used) => (entry.status === 'speaking' ? '' : rowTimeHtml(entry, used));
+
+// The line under a roster row's name (D3-A): the mini track of a speech with time, and "Over grace" in words when the
+// flag is on. Nothing while the speaker speaks, for a no show, or before any time. track: time-track.js rowTrackHtml.
+export function rowTrackLine(entry, used, track) {
+  if (!entry || entry.status === 'speaking' || entry.status === 'noShow' || !(used > 0)) return '';
+  const over = entry.timing && entry.timing.overGrace ? ' ' + statusPillHtml('err', 'Over grace', 'triangle-alert') : '';
+  return `<span class="row-track">${track}${over}</span>`;
+}
+
+// opts (step S5, optional; the F4 run split, runs.js, uses all three):
+//   phasesFor(entry, event, now, limit) -> model  the phase row under the track (phase-bar.js model); design build
 //   syncEntry(entry, event, now, limit) -> entry   runs after every change this view makes to an entry, so data kept
 //                                                 beside the clock (the runs of a PCC entry) follows the clock
 //   resetFields(entry) -> { field: value }         more fields that "Reset time" sets (its Undo puts the old ones back)
+//   yieldsPrimary(entry, event, now, limit) -> bool another part of the room holds the one primary (design build,
+//                                                 top 10 #1; F4: the next run's button), so the big button is secondary
 export function createTimerView(opts) {
   const o = opts || {};
   let ctx = null;
@@ -188,11 +299,20 @@ export function createTimerView(opts) {
     if (!e || !card) return;
     const face = faceOf(e, now);
     card.className = 'timer-card stage-' + face.stage;
-    const bar = $('#phase-bar');
-    if (bar && face.phase) bar.outerHTML = phaseBarHtml(face);
     $('#timer-word').textContent = face.word;
-    $('#timer-digits').textContent = face.digits;
-    $('#timer-sub').textContent = face.sub;
+    $('#timer-digits').textContent = cardFace(face).digits;
+    $('#timer-sub').textContent = cardFace(face).sub;
+    // The track and the sticky bar follow the same face (no second clock: this is the one tick).
+    const track = cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor);
+    const tr = $('#timer-track');
+    if (tr) tr.outerHTML = trackHtml(track.model, { id: 'timer-track', phases: track.phases });
+    const mini = $('#timer-mini');
+    if (mini) {
+      mini.className = 'timer-mini stage-' + face.stage + (mini.classList.contains('is-on') ? ' is-on' : '');
+      $('#tm-word').textContent = face.word;
+      $('#tm-digits').textContent = cardFace(face).digits;
+      $('#tm-track').innerHTML = miniTrackHtml(track.model);
+    }
     const chip = $('#signal-chip');
     if (chip && now >= chipUntil) chip.hidden = true;
     // The flag line changes in place: a redraw of the main pane would take the cursor out of the notes box.
@@ -201,6 +321,22 @@ export function createTimerView(opts) {
     // Screen readers hear the stage when it changes, not every second.
     if (face.stage !== lastStage && face.running && (face.stage === 'last' || face.stage === 'grace' || face.stage === 'over')) env().ui.announce(e.code + ': ' + face.word.replace(/ \+.*/, ''));
     lastStage = face.stage;
+  }
+
+  // The sticky bar shows while the big card is out of view (the CSS shows it on a narrow screen only). One observer
+  // at a time; a redraw of the stage makes a new card, so it watches the new one.
+  // A redraw keeps the bar on when it was on, so a tap in the bar does not make it blink off and on.
+  let seen = null;
+  let barOn = false;
+  function unwatch() { if (seen) { seen.disconnect(); seen = null; } }
+  function watchCard() {
+    unwatch();
+    const card = $('#timer-card');
+    const mini = $('#timer-mini');
+    if (!card || !mini || typeof IntersectionObserver !== 'function') return;
+    mini.classList.toggle('is-on', barOn);
+    seen = new IntersectionObserver((list) => { const it = list[list.length - 1]; barOn = !it.isIntersecting && it.boundingClientRect.top < 0; mini.classList.toggle('is-on', barOn); });
+    seen.observe(card);
   }
 
   // Only one clock runs in a room: stop the one running for another entry (speech or prep), with a toast.
@@ -251,7 +387,14 @@ export function createTimerView(opts) {
     if (e && shared() && prepPhase(e.timing) === 'ready') return prepStartStop(id);
     return startStop(id);
   }
-  const focusGo = () => { const b = $('[data-tact="startstop"]'); if (b) b.focus(); };
+  // After a start or stop the focus goes to the main button. A tap in the sticky bar keeps the focus in the bar, so
+  // the page does not jump back up to the big card while the judge writes.
+  let fromBar = false;
+  // Design build (top 10 #1): after a stop with speakers left, the focus goes to "Next speaker", the room's primary.
+  const focusGo = () => {
+    const b = fromBar ? $('#timer-mini [data-tact]') : ($('.timer-btns .next-top') || $('[data-tact="startstop"]'));
+    if (b) b.focus({ preventScroll: fromBar });
+  };
 
   // The card's buttons, one handler each. e: the entry on screen.
   const correct = (e, delta, t) => {
@@ -296,6 +439,7 @@ export function createTimerView(opts) {
   };
   function onClick(ev) {
     const b = ev.target.closest('[data-tact]');
+    fromBar = Boolean(b && b.closest('#timer-mini'));
     const r = room();
     const e = r && entryOf(r, r.current);
     if (b && e && handlers[b.dataset.tact]) handlers[b.dataset.tact](e);
@@ -304,11 +448,19 @@ export function createTimerView(opts) {
 
   return {
     // The roster row's time.
-    rowExtra: (r, e) => rowTimeHtml(e, totalUsedAt(e.timing, env().now(), limit())),
-    stageHtml: (r, e) => timerHtml(e, faceOf(e, env().now()), limit(), grace()),
-    mounted() { const box = $('#timer-box'); if (box) box.addEventListener('click', onClick); },
+    rowExtra: (r, e) => rosterTimeHtml(e, totalUsedAt(e.timing, env().now(), limit())),
+    rowSub: (r, e) => { const now = env().now(); return rowTrackLine(e, totalUsedAt(e.timing, now, limit()), rowTrackHtml(e, event(), limit(), grace(), now)); },
+    stageHtml: (r, e) => {
+      const now = env().now();
+      const face = faceOf(e, now);
+      // Top 10 #1: the room's one primary. A family part may hold it instead (F4: the next run's button).
+      const yields = o.yieldsPrimary && o.yieldsPrimary(e, event(), now, limit());
+      const primary = yields ? 'other' : roomPrimary(r, e);
+      return timerHtml(e, face, limit(), grace(), cardTrack(e, event(), face, limit(), grace(), now, o.phasesFor), { primary, nextHtml: nextTopHtml(r) });
+    },
+    mounted() { const box = $('#timer-box'); if (box) box.addEventListener('click', onClick); watchCard(); },
     show(c) {
-      ctx = c; active = true; runId = null; prepId = null; prevLeft = null; lastStage = '';
+      ctx = c; active = true; runId = null; prepId = null; prevLeft = null; lastStage = ''; fromBar = false;
       // A reload: bring back each saved run (timer.js restoreRoom; on a prep event prep.js restoreSharedRoom, which
       // brings back the prep runs too; only one clock may run).
       const res = shared() ? restoreSharedRoom(room(), env().now(), limit(), grace()) : restoreRoom(room(), env().now(), limit(), grace());
@@ -320,8 +472,8 @@ export function createTimerView(opts) {
       if (runId || prepId) wake(true);
     },
     // Leave the screen: the tick stops (get() reads nothing while not active); the run stays saved and keeps time.
-    hide() { active = false; driver.follow(); prepDriver.follow(); wake(false); },
+    hide() { active = false; driver.follow(); prepDriver.follow(); wake(false); unwatch(); barOn = false; },
     stopFor(id) { if (runId === id) driver.stop(); if (prepId === id) prepDriver.stop(); },
-    run(action) { if (action !== 'startStop') return false; const r = room(); if (r && r.current) mainAction(r.current); return true; },
+    run(action) { if (action !== 'startStop') return false; fromBar = false; const r = room(); if (r && r.current) mainAction(r.current); return true; },
   };
 }

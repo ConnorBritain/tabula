@@ -1,6 +1,6 @@
 // Speech Events step S5 (docs/events/EXPERIENCE.md §3, note "Phase bar"): the phase bar, one shared part for every
-// family that splits an entry's time into phases. F4 (PCC: Pro, then Con) uses it first; F3 (IMP: Prep, then Speak)
-// and the F2 cross-ex (Speech, then Questions) can use it later. Pure: it turns a model into HTML text.
+// family that splits an entry's time into phases: F4 (PCC: Pro, then Con), F3 (IMP: Prep, then Speech) and the F2
+// cross-ex (Speak, then Cross-ex). Pure: it turns a model into HTML text.
 //
 // The rules (§3): a done phase gets a check, the phase on now is filled, and a "Next: ..." line sits below. The house
 // look (docs/events/DESIGN.md): black, white and gray; the state is in words and a mark too, never in colour alone.
@@ -11,8 +11,9 @@
 //   current  the index of the phase on now; -1 = none started yet; phases.length = every phase is done
 //   next     the line below the bar ('' for none)
 // }
-// Name: phasesHtml, not phaseBarHtml, because timer-view.js still has its own older IMP bar (phaseBarHtml, the
-// "Prep, then Speech" pills of step E11). IMP moves onto this module in a later step; until then the two stay apart.
+// Since the design build (2026-11-24) this is the one phase renderer of the Room screen: F3 prep (timer-view.js
+// prepPhaseModel), F4 runs (runs.js runsBarModel) and the F2 cross-ex (cross-ex-view.js cxPhaseModel). On the timer card
+// it sits inside the signal track's box (time-track.js), so a screen has one phase control.
 // opts: { id } the element id of the bar's box (default 'phase-bar-box'), so a view can replace it in place each tick.
 import { escapeHtml as esc } from '../../core/sheets.js';
 

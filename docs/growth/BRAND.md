@@ -151,13 +151,14 @@ The folder split is a refactor of app files. It is **not** part of this plan's s
 
 ## 7. Colors and marks
 
-Owner decisions, 2026-11-20. Drafts of the marks are in [`marks/`](marks/). Open [`marks/preview.html`](marks/preview.html) in a browser to see all marks on light and dark. These are drafts. They are not in `assets/` and the app does not use them yet.
+Owner decisions, 2026-11-20. Drafts of the marks are in [`marks/`](marks/). Open [`marks/preview.html`](marks/preview.html) in a browser to see all marks on light and dark. These are drafts. They are not in `assets/`. One use is live: the Speech Events header (`events/index.html`) has an inline copy of the Speech Events mark, with the locked greens in place of the sage drafts.
 
 ### Rules for every product
 
 - **The clipboard is constant.** The black-and-white clipboard with the flow grid lines is in every mark. On dark backgrounds the clipboard turns white and the paper turns dark.
 - **The two speech bubbles change by product.** They tell you which app you are in.
 - **A brand color never carries meaning inside an app.** Meaning comes only from data colors (Aff and Neg) and status colors (error, warning, done). App chrome (buttons, menus) stays neutral.
+- **The product mark may sit in its own app header, and nowhere else in the chrome** (owner decision OD3 A, 2026-11-24, for Speech Events; Debate already shows its mark there). The mark is a logo, not a control: it never changes with state and it carries no meaning. Buttons, menus, pills, outlines and fills stay neutral.
 - **The clipboard must read alone at small sizes.** A small icon (clipboard only, 3 thick grid bars) is for 64 px and below: `marks/tabula-icon-light.svg` and `-dark.svg`.
 
 ### Per product
@@ -166,7 +167,7 @@ Owner decisions, 2026-11-20. Drafts of the marks are in [`marks/`](marks/). Open
 |---|---|---|---|
 | **Tabula Speech** (parent) | **Decided: option C**, outline bubbles in the clipboard's ink color, no fill. Option A (clipboard only) at very small sizes. Option B (purple gradient) was not chosen. | Purple core, gold as a small paired accent | Mature, corporate look: mostly black, white and gray. Purple is the mix of debate's blue and red. |
 | **Tabula Debate** | Blue (left) and red (right), as today | – | Same meaning as Aff and Neg. All debate formats keep red and blue; the format shows as a text label (Policy, LD, PF, Parli), never a new color. |
-| **Tabula Speech Events** | Deep sage (left) and light sage (right), same hue | Rust, logo and marketing only | Harmonious, not competitive, but still two distinct speakers. |
+| **Tabula Speech Events** | Deep green `#1e7a55` (left) and light green `#5ec796` (right), same hue. Locked 2026-11-23; replaces the sage drafts below. | Rust, logo and marketing only | Harmonious, not competitive, but still two distinct speakers. The mark shows in the app header only (OD3 A). |
 
 ### Palette (proposed hex values)
 

@@ -36,11 +36,12 @@ export const eventLine = (id) => EVENT_LINES[id] || '';
 const MATERIAL = Object.freeze({ memorized: 'From memory', manuscript: 'Read from a binder', noNotes: 'No notes' });
 
 // The Guide part of the type page. def: the event file (null for the Custom event); profile: the rules profile the
-// grace comes from. Returns { line, limit, grace, prep, material, performers, checks [labels], prompts [lines] }.
+// grace comes from. Returns { line, limit, grace, prep, material, performers, topic, checks [labels], prompts [lines] }.
+// topic: the event file's topic hint ('' when none; design build: the Room screen's topic field no longer shows it).
 export function guideModel(def, profile) {
   const g = Number(profile && profile.overtime && profile.overtime.grace);
   const grace = (Number.isFinite(g) && g >= 0 ? g : 30) + ' seconds over the limit';
-  if (!def) return { line: eventLine(CUSTOM_EVENT), limit: 'You set it when you start the round', grace, prep: 'No prep in the room.', material: '', performers: '', checks: [], prompts: [] };
+  if (!def) return { line: eventLine(CUSTOM_EVENT), limit: 'You set it when you start the round', grace, prep: 'No prep in the room.', material: '', performers: '', topic: '', checks: [], prompts: [] };
   const limit = clockText(Number(def.timing && def.timing.limit) || 0);
   return {
     line: eventLine(def.id),
@@ -49,6 +50,7 @@ export function guideModel(def, profile) {
     prep: def.timing && def.timing.inRoomPrep ? 'Prep happens in the room. Prep and speech share the ' + limit + ' limit.' : 'No prep in the room.',
     material: MATERIAL[def.material] || '',
     performers: def.performers === 2 ? 'Two students (a pair)' : 'One student',
+    topic: (def.topic && def.topic.hint) || '',
     checks: (def.checks || []).map((id) => CHECK_LABELS[id] || id),
     prompts: (def.prompts || []).slice(),
   };

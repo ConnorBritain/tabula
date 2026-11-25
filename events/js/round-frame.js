@@ -41,12 +41,18 @@ export function frameLine(room) {
 // The overtime reminder for a round: the panel note under a panel, else ''.
 export const overtimeNote = (room) => (panelOf(room) ? PANEL_OVERTIME_NOTE : '');
 
-// The frame as HTML text ('' when there is nothing to show).
+// The panel sentence under the frame pills (design review §2.5 change 2: one plain sentence, no repeated number).
+export const PANEL_FRAME_LINE = 'Agree on overtime with the panel before you flag.';
+
+// The frame as HTML text ('' when there is nothing to show): the facts as a row of pills ("Elim", "Panel of 3", the
+// panel note), then the panel sentence. The words are the same as frameLine; only the look changed.
 export function frameHtml(room) {
-  const line = frameLine(room);
-  const ot = overtimeNote(room);
-  if (!line) return '';
-  return `<p class="round-frame" id="round-frame"><span>${esc(line)}</span>${ot ? ` <span class="muted">${esc(ot)}</span>` : ''}</p>`;
+  const p = panelOf(room);
+  const facts = [...(levelOf(room) === 'elim' ? ['Elim'] : []), ...(p ? ['Panel of ' + p.size] : [])];
+  if (!facts.length) return '';
+  const note = p && p.note ? `<span class="muted round-frame-note">${esc(p.note)}</span>` : '';
+  return `<div class="round-frame" id="round-frame"><p class="round-frame-pills">${facts.map((f) => `<span class="pill outline">${esc(f)}</span>`).join(' ')}${note ? ' ' + note : ''}</p>`
+    + `${overtimeNote(room) ? `<p class="muted round-frame-line">${esc(PANEL_FRAME_LINE)}</p>` : ''}</div>`;
 }
 
 // The level and panel fields of the setup form, as HTML text. picked: { level, panelSize } to start with.
@@ -59,5 +65,5 @@ export function levelFieldsHtml(picked) {
 }
 
 (globalThis.TabulaEvents = globalThis.TabulaEvents || {}).roundFrame = Object.freeze({
-  PANEL_SIZES, PANEL_OVERTIME_NOTE, levelOf, panelOf, makePanel, frameLine, overtimeNote, frameHtml, levelFieldsHtml,
+  PANEL_SIZES, PANEL_OVERTIME_NOTE, PANEL_FRAME_LINE, levelOf, panelOf, makePanel, frameLine, overtimeNote, frameHtml, levelFieldsHtml,
 });

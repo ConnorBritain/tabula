@@ -32,7 +32,6 @@ button.b:disabled { opacity: .5; cursor: default; }
 .code, .mono { font-family: var(--font-mono); }
 .mono { margin: 0; overflow-wrap: anywhere; }
 .pill { display: inline-flex; align-items: center; min-height: 24px; padding: 0 var(--s2); border-radius: var(--r-pill); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font-size: var(--fs-1); font-weight: var(--fw-3); white-space: nowrap; }
-.pill.solid { background: var(--text); color: var(--canvas); border-color: var(--text); }
 .pill.outline { background: transparent; color: var(--text-2); }
 .pill.err { background: var(--error-tint); border-color: var(--error); color: var(--text); }
 .field { display: grid; gap: var(--s1); font-size: var(--fs-2); font-weight: var(--fw-3); }
@@ -71,7 +70,7 @@ main:has(.room-grid) { max-width: 1120px; }
 .roster-list { list-style: none; margin: 0 0 var(--s3); padding: 0; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); }
 .roster-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; border-top: 1px solid var(--border); }
 .roster-row:first-child { border-top: 0; }
-.roster-row.is-current { background: var(--sunk); }
+.roster-row.is-current { background: var(--sunk); box-shadow: inset 0 0 0 2px var(--text); border-radius: var(--r-md); } /* §5.1 rule 3: a tint, a full outline and the word "Now" */
 .row-pick { display: flex; align-items: center; gap: var(--s2); min-height: var(--h-lg); padding: var(--s2) var(--s2) var(--s2) var(--s3); border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: var(--r-md); }
 .row-num { color: var(--text-3); font-size: var(--fs-2); min-width: 1.2em; }
 .row-main { display: grid; flex: 1; min-width: 0; }
@@ -83,7 +82,7 @@ main:has(.room-grid) { max-width: 1120px; }
 .stage { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); padding: var(--s4); min-width: 0; }
 .stage-head { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s3); align-items: center; margin-bottom: var(--s3); }
 .stage-name:empty { display: none; }
-/* Step E9: the piece fields (title, author; Duo performers) above the timer. */
+/* Step E9: the piece fields (title, author; Duo performers), under the timer since the design build. */
 .piece, .setup-custom { border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s2) var(--s3) var(--s3); margin: 0 0 var(--s3); }
 .setup-custom { margin: var(--s3) 0 0; }
 .piece legend, .setup-custom legend { font-size: var(--fs-2); font-weight: var(--fw-3); padding: 0 var(--s1); }
@@ -100,7 +99,7 @@ main:has(.room-grid) { max-width: 1120px; }
   .room-head h1 { flex-basis: 100%; order: -1; font-size: var(--fs-4); }
   .strip { display: flex; gap: var(--s2); overflow-x: auto; padding-bottom: var(--s1); }
   .strip-pill { flex: none; display: inline-flex; gap: var(--s1); align-items: center; min-height: 44px; padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); cursor: pointer; }
-  .strip-pill.is-current { background: var(--text); color: var(--canvas); border-color: var(--text); }
+  .strip-pill.is-current { background: var(--panel); border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); font-weight: var(--fw-4); } /* never solid (D4) */
   .strip-status { font-size: var(--fs-1); }
   .roster-full { display: none; margin-top: var(--s2); }
   .roster.open .roster-full { display: block; }
@@ -116,9 +115,11 @@ main:has(.room-grid) { max-width: 1120px; }
 .timer-card.stage-over { background: var(--error-tint); border-color: var(--error); }
 .timer-card.stage-stopped { background: var(--sunk); }
 .timer-card p { margin: 0; }
+/* The Congress step bar (events/congress/views.js, class "phase-bar cg-steps") still uses these pill rules. The room's
+   phase rows use .phase-steps (js/phase-bar.js) since the design build. */
 .phase-bar { display: flex; justify-content: center; gap: var(--s2); list-style: none; margin: 0 0 var(--s2); padding: 0; font-size: var(--fs-2); }
 .phase-bar li { padding: var(--s1) var(--s3); border: 1px solid var(--border); border-radius: var(--r-pill); color: var(--text-2); }
-.phase-bar li.on { background: var(--text); color: var(--canvas); border-color: var(--text); font-weight: var(--fw-4); }
+.phase-bar li.on { background: var(--panel); color: var(--text); border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); font-weight: var(--fw-4); }
 .phase-bar li.done { color: var(--text); }
 .timer-word { font-size: var(--fs-3); font-weight: var(--fw-4); }
 .timer-card .timer-digits { font-family: var(--font-display); font-size: var(--fs-clock); line-height: 1; font-variant-numeric: tabular-nums; margin: var(--s2) 0 var(--s1); }
@@ -137,11 +138,8 @@ main:has(.room-grid) { max-width: 1120px; }
 .chip-title { margin: 0 0 var(--s1); font-size: var(--fs-2); font-weight: var(--fw-3); color: var(--text-2); }
 .chips, .chks { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .chip { min-height: var(--h-md); padding: 0 var(--s3); border-radius: var(--r-pill); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); cursor: pointer; }
-.chip.on { background: var(--text); color: var(--canvas); border-color: var(--text); }
 .chk { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--h-md); padding: 0 var(--s1) 0 var(--s3); border-radius: var(--r-md); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); cursor: pointer; text-align: left; }
-.chk.flag { border-color: var(--error); }
 .sheet-notes { margin-top: var(--s1); }
-.sheet-question { margin-bottom: var(--s3); }
 .sheet textarea { font-size: var(--fs-3); }
 .prompts, .reason { font-size: var(--fs-2); color: var(--text-2); }
 .prompts ul { margin: var(--s1) 0 0; }
@@ -186,7 +184,6 @@ main:has(.room-grid) { max-width: 1120px; }
   .board-rate { grid-column: 2 / -1; }
   .board-moves .b.small { min-width: 44px; min-height: 44px; }
 }
-.rank-foot { display: flex; justify-content: flex-end; margin-top: var(--s4); }
 
 /* ---------- Review and copy (step E8; DESIGN.md §4.4, §4.7; §5: cards in one column, max 720 px) ---------- */
 .review-summary { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); align-items: center; margin-bottom: var(--s4); }
@@ -200,7 +197,6 @@ main:has(.room-grid) { max-width: 1120px; }
 .ranks-table th, .ranks-table td { text-align: left; padding: var(--s2) var(--s3); border-top: 1px solid var(--border); }
 .ranks-table thead th { border-top: 0; font-size: var(--fs-2); color: var(--text-2); font-weight: var(--fw-3); }
 .order-toggle { display: flex; gap: var(--s1); margin-bottom: var(--s3); }
-.order-toggle .b.on { background: var(--text); color: var(--canvas); border-color: var(--text); }
 .cards { list-style: none; margin: 0 0 var(--s3); padding: 0; display: grid; gap: var(--s3); }
 .card { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); padding: var(--s3) var(--s4); display: grid; gap: var(--s2); justify-items: start; }
 .card-head { display: flex; gap: var(--s3); align-items: baseline; width: 100%; }
@@ -294,7 +290,7 @@ kbd { font-family: var(--font-mono); font-size: var(--fs-2); }
 .md-sec { margin-top: var(--s5); }
 .md-sec h2, .pk-sec h2, .pk-all { font-size: var(--fs-3); color: var(--text-2); }
 .md-list, .pk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
-.md-card, .md-standby { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); padding: var(--s3) var(--s4); }
+.md-standby { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); padding: var(--s3) var(--s4); }
 .md-standby { margin-bottom: var(--s4); }
 .md-standby h2 { font-size: var(--fs-4); }
 .md-standby p { margin: 0 0 var(--s2); }
@@ -303,7 +299,6 @@ kbd { font-family: var(--font-mono); font-size: var(--fs-2); }
 a.md-ev { text-decoration: none; }
 a.md-ev:hover { background: var(--sunk); }
 .md-meta { margin: var(--s1) 0 0; font-size: var(--fs-2); }
-.md-due { margin: var(--s2) 0 0; font-family: var(--font-mono); font-weight: var(--fw-3); }
 .md-act { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s3); }
 .md-note { border: 1px solid var(--border-ctl); border-radius: var(--r-lg); background: var(--sunk); padding: var(--s3) var(--s4); }
 .md-foot { margin-top: var(--s5); font-size: var(--fs-2); }
@@ -318,9 +313,6 @@ a.md-ev:hover { background: var(--sunk); }
 a.pk-pick { text-decoration: none; } /* the Congress row is a link (step S6) */
 .pk-name { font-weight: var(--fw-3); }
 .pk-line { font-size: var(--fs-2); color: var(--text-2); }
-.pk-chips { font-family: var(--font-mono); font-size: var(--fs-1); color: var(--text-3); }
-.pk-chip { white-space: nowrap; }
-a.pk-info { display: grid; place-items: center; align-self: center; margin-right: var(--s2); text-decoration: none; font-family: var(--font-display); font-style: italic; }
 .cf-card h2 { font-size: var(--fs-4); padding-right: var(--s6); }
 .cf-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); }
 .cf-fields .wide { grid-column: 1 / -1; }
@@ -342,7 +334,6 @@ a.pk-info { display: grid; place-items: center; align-self: center; margin-right
 .round-frame { margin: 0 0 var(--s3); font-size: var(--fs-2); }
 .cross-note, .waiting-line { margin: 0 0 var(--s2); font-size: var(--fs-2); }
 .crossex { margin: var(--s3) 0; padding: var(--s3); border: 1px solid var(--border); border-radius: var(--r-md); }
-.crossex .phase-bar { justify-content: flex-start; }
 .cx-fields { display: flex; flex-wrap: wrap; gap: var(--s3); }
 .cx-warn { margin: var(--s2) 0; padding: var(--s2) var(--s3); background: var(--error-tint); border: 1px solid var(--error); border-radius: var(--r-md); }
 .cx-clock { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin-top: var(--s2); }
@@ -362,12 +353,10 @@ a.pk-info { display: grid; place-items: center; align-self: center; margin-right
 
 /* Step S5 (EXPERIENCE.md §3): the phase bar (js/phase-bar.js, shared by F4 and later F3 and the F2 cross-ex) and the
    F4 run parts (js/runs-view.js). Black, white and gray: a done phase has a check, the phase on now is filled. */
-.runs-head { margin-bottom: var(--s3); }
-.runs-topic input { width: 100%; }
 .phases { margin-top: var(--s3); }
 .phase-steps { display: flex; flex-wrap: wrap; gap: var(--s2); list-style: none; margin: 0; padding: 0; font-size: var(--fs-2); }
 .phase { display: inline-flex; align-items: center; gap: var(--s1); padding: var(--s1) var(--s3); border: 1px solid var(--border); border-radius: var(--r-pill); color: var(--text-2); }
-.phase.is-on { background: var(--text); color: var(--canvas); border-color: var(--text); font-weight: var(--fw-4); }
+.phase.is-on { background: var(--panel); color: var(--text); border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); font-weight: var(--fw-4); }
 .phase.is-done { color: var(--text); border-color: var(--text); }
 .phase-time { font-variant-numeric: tabular-nums; }
 .phase-next { margin: var(--s2) 0 0; color: var(--text-2); font-size: var(--fs-2); }
@@ -380,3 +369,284 @@ a.pk-info { display: grid; place-items: center; align-self: center; margin-right
 .run-btns { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .row-pick:has(.row-runs) { flex-wrap: wrap; }
 .row-runs { order: 9; flex-basis: 100%; padding-left: calc(1.2em + var(--s2)); font-size: var(--fs-1); white-space: nowrap; }
+
+/* ---------- Design build 2026-11-24, "Ballot screens" session (EVENTS-DESIGN-REVIEW.md §2.8–§2.10). ----------
+   Number-button rows for short scales (DESIGN.md §4.6), the compact rubric, the rules as lines on the Rank board,
+   the comment line on Rank rows, and the Review ballot preview. Black, white and gray; the words carry the meaning. */
+.pick-row { display: inline-grid; grid-auto-flow: column; grid-auto-columns: minmax(36px, 44px); gap: var(--s1); }
+.pick { min-height: 36px; padding: 0; border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); font-variant-numeric: tabular-nums; cursor: pointer; }
+.pick:hover { border-color: var(--text-2); }
+.pick.on { background: var(--text); color: var(--canvas); border-color: var(--text); font-weight: var(--fw-4); }
+.pick:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.rubric .rub-row { display: grid; grid-template-columns: minmax(7rem, 10rem) auto; justify-content: start; align-items: center; gap: var(--s1) var(--s3); }
+.rubric .rub-row .rate-err { grid-column: 2; }
+.rub-step { display: inline-flex; gap: var(--s1); align-items: center; }
+.rate-row:has(.rubric) { grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); align-items: start; }
+.rate-row .rubric { grid-column: 2; grid-row: 1 / span 3; margin-top: 0; }
+.board-line { grid-column: 1 / -1; margin-top: var(--s1); padding-top: var(--s1); font-size: var(--fs-1); color: var(--text-2); }
+.board-line.cut-line { border-top: 1px solid var(--border-ctl); color: var(--text); font-weight: var(--fw-3); }
+.board-line.grace-line { border-top: 1px dashed var(--border-ctl); }
+.board-row.below-cut .board-rank { color: var(--text-3); font-weight: var(--fw-2); }
+.board-piece { font-size: var(--fs-2); color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-comment { justify-self: start; max-width: 100%; min-height: 24px; padding: 0; border: 0; background: none; color: var(--text-2); font: inherit; font-size: var(--fs-2); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.board-comment:hover { color: var(--text); text-decoration: underline; }
+.board-comment:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.ballot-preview { max-width: 560px; }
+.preview-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); }
+.preview-head h2 { margin: 0; }
+.preview-head .b { margin-left: auto; }
+.ballot-preview > .muted { margin: var(--s2) 0 var(--s3); font-size: var(--fs-2); }
+.preview-rank { font-family: var(--font-display); font-size: var(--fs-4); font-weight: var(--fw-4); }
+.preview-rank .preview-out { font-family: var(--font-sans); font-size: var(--fs-2); font-weight: var(--fw-2); }
+.review-note { margin: calc(-1 * var(--s2)) 0 var(--s4); font-size: var(--fs-2); }
+.review-summary .checklist { flex: 1 1 16rem; min-width: 0; }
+@media (max-width: 560px) {
+  .pick-row { display: grid; width: 100%; grid-auto-columns: minmax(0, 1fr); }
+  .pick { min-height: 44px; }
+  .rubric .rub-row { grid-template-columns: 1fr; }
+  .rubric .rub-row .rate-err { grid-column: 1; }
+  .rate-row:has(.rubric) { grid-template-columns: 1fr; }
+  .rate-row .rubric { grid-column: 1; grid-row: auto; }
+  .rate-row .board-rate { grid-column: 1; } /* the 820 px rule puts .board-rate in column 2, which a Rate row has not got */
+  .preview-head .b { margin-left: 0; }
+}
+/* ---------- Home and navigation (design build 2026-11-24, the "Home and navigation" session) ----------
+   docs/design/EVENTS-DESIGN-REVIEW.md §2.1–§2.3, §2.11–§2.15. Gray chrome, no stripes; a word goes with every color. */
+/* OD3 A: the green Speech Events mark in the header, the only brand color in the chrome. It never changes with state. */
+a.brand { display: inline-flex; align-items: center; gap: var(--s2); }
+.brand-mark { flex: none; color: var(--text); }
+.pill.caution { background: var(--caution-tint); border-color: var(--caution); color: var(--text); }
+/* My day (OD2 A): one large "Up next" card, then compact rows with a status pill and a "⋯" menu. */
+.md-next { margin-top: var(--s4); }
+.md-next h2 { font-size: var(--fs-3); color: var(--text-2); }
+.md-next-card { border: 1px solid var(--border-ctl); border-radius: var(--r-xl); background: var(--panel); box-shadow: var(--shadow-1); padding: var(--s4) var(--s5); }
+.md-next-title { flex: 1; min-width: 8em; font-family: var(--font-display); font-size: var(--fs-5); font-weight: var(--fw-4); line-height: var(--lh-ui); }
+.md-next-meta { margin: var(--s2) 0 0; color: var(--text-2); }
+.md-facts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); margin: var(--s3) 0 0; }
+.md-progress { font-weight: var(--fw-3); }
+a.b.md-go { min-height: var(--h-lg); padding: 0 var(--s5); font-size: var(--fs-3); }
+.md-act .md-more { margin-left: auto; }
+.md-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); padding: var(--s2) var(--s2) var(--s2) var(--s3); border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); }
+.md-row:hover { background: var(--sunk); }
+.md-row-main { flex: 1; min-width: 9em; display: grid; align-content: center; min-height: var(--h-md); color: inherit; text-decoration: none; }
+a.md-row-main:hover .md-title { text-decoration: underline; }
+.md-row .md-meta { margin: 0; font-size: var(--fs-2); }
+.md-pills { display: flex; flex-wrap: wrap; gap: var(--s1); }
+.md-menu { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: var(--s2); padding-top: var(--s2); }
+.md-next-card .md-menu { padding-top: var(--s3); }
+.md-menu .md-cancel { margin-left: auto; }
+/* Setup (design review §2.3, bug 2): every field fills its own column and never runs under the next one (a long
+   option made the Event select wider than its column). Laptop: the paste box and the live preview side by side. */
+.setup-fields .field { min-width: 0; }
+.setup-fields .field select, .setup-fields .field input { width: 100%; min-width: 0; max-width: 100%; text-overflow: ellipsis; }
+.setup-more[open] > .setup-fields { margin: var(--s2) 0 var(--s1); }
+.setup-paste-area { display: grid; gap: var(--s3); }
+.setup-paste-col { display: grid; gap: var(--s1); align-content: start; }
+.pv-count { margin: calc(-1 * var(--s1)) 0 var(--s2); font-size: var(--fs-2); }
+.preview-list .pv-title { font-size: var(--fs-2); }
+main:has(#setup-form) { max-width: 1040px; }
+@media (min-width: 900px) {
+  .setup-paste-area { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .setup-paste-area #setup-paste { min-height: 18rem; }
+  .setup-paste-area .preview { position: sticky; top: var(--s3); max-height: calc(100dvh - 2 * var(--s3)); overflow: auto; }
+}
+.pal-hint { color: var(--text-2); font-size: var(--fs-1); white-space: nowrap; }
+/* History (design review §2.11): the row opens the round; Delete sits in a quiet "⋯" menu; the state is a pill. */
+.hist-table tbody tr[data-id] { cursor: pointer; }
+.hist-table td.hist-more { white-space: nowrap; text-align: right; padding-top: 0; padding-bottom: 0; }
+.hist-menu { display: inline-flex; margin-left: var(--s1); }
+.hist-menu[hidden] { display: none; }
+.hist-table td[data-col="state"] .pill + .pill { margin-left: var(--s1); }
+/* Picker (design review §2.2): chips are grey pills in normal case; "Guide" is a text button; rows are shorter and
+   each family heading stays in view while its group scrolls. */
+.pk-pick { padding: var(--s2) var(--s4); gap: 2px; }
+.pk-chips { display: flex; flex-wrap: wrap; gap: var(--s1); margin-top: var(--s1); }
+.pill.pk-chip { min-height: 20px; font-weight: var(--fw-2); }
+a.b.pk-guide { align-self: center; margin-right: var(--s2); }
+.pk-sec h3 { position: sticky; top: 0; z-index: 1; background: var(--canvas); padding: var(--s1) 0; margin-bottom: var(--s1); }
+/* A two-option segmented control on real radios (Congress House or Senate; design review §2.15). The radio is
+   hidden from sight only; the option it is on is filled, and its word says which. */
+.seg { display: inline-flex; border: 1px solid var(--border-ctl); border-radius: var(--r-md); overflow: hidden; width: max-content; }
+.seg-opt { position: relative; display: inline-flex; align-items: center; min-height: var(--h-lg); padding: 0 var(--s4); font-size: var(--fs-3); font-weight: var(--fw-3); cursor: pointer; background: var(--panel); color: var(--text); }
+.seg-opt + .seg-opt { border-left: 1px solid var(--border-ctl); }
+.seg-opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg-opt:has(input:checked) { background: var(--panel); color: var(--text); box-shadow: inset 0 0 0 2px var(--text); font-weight: var(--fw-4); }
+.seg:has(.seg-opt) { background: var(--fill-quiet); }
+.seg-opt { background: transparent; }
+.seg-opt:has(input:focus-visible) { outline: 2px solid var(--ring); outline-offset: -2px; }
+/* ---------- Design build, Room and timer session (2026-11-24; docs/design/EVENTS-DESIGN-REVIEW.md §2.4–§2.7) ----------
+   The phone room fits the screen (bug 1), the signal track under the digits (D2-A), the mini track on roster and rank
+   rows (D3-A), the sticky compact timer bar on a narrow screen (OD1 A), the question or topic quote line, the folded
+   piece line, the elim pills. Data bars only: a full bordered track, 1 px neutral ticks, an outlined dot (NO-STRIPES). */
+.stage > *, .sheet > *, .chip-group, .chk-group { min-width: 0; }
+.stage textarea, .stage input, .stage select { max-width: 100%; }
+.chk { max-width: 100%; }
+.chk > span:first-child { white-space: normal; }
+.track { display: block; margin: var(--s3) auto 0; max-width: 560px; text-align: left; }
+.track-img { display: block; padding: 0 var(--s2); }
+.track-bar { position: relative; display: block; height: 14px; border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: var(--panel); }
+.track-zone, .track-fill { position: absolute; top: 0; bottom: 0; }
+.track-zone:first-child { border-radius: var(--r-pill) 0 0 var(--r-pill); }
+.track-zone.z-over { border-radius: 0 var(--r-pill) var(--r-pill) 0; }
+.track-zone.z-grace { background: color-mix(in srgb, var(--caution) 38%, transparent); }
+.track-zone.z-over { background: color-mix(in srgb, var(--error) 34%, transparent); }
+.track-fill { top: 3px; bottom: 3px; border-radius: var(--r-pill); background: var(--text); }
+.track-fill.f-alt { background: var(--text-2); opacity: .7; }
+.track-fill.f-prep { background: var(--text-3); opacity: .55; }
+.track-tick { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--border-ctl); transform: translateX(-50%); }
+.track-now { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--text); background: var(--panel); transform: translate(-50%, -50%); }
+.track-ticks { position: relative; display: block; height: 1.4em; margin-top: 2px; }
+.track-tlabel { position: absolute; top: 0; transform: translateX(-50%); font-family: var(--font-mono); font-size: var(--fs-1); color: var(--text-2); white-space: nowrap; }
+.track .phases { margin-top: var(--s2); }
+.timer-card .phase-steps { justify-content: center; }
+.track-mini { display: block; flex: 1 1 auto; min-width: 3rem; max-width: 12rem; margin: 0; }
+.track-mini .track-bar { height: 8px; }
+.track-mini .track-fill { top: 2px; bottom: 2px; }
+.track-mini .track-now { width: 8px; height: 8px; border-width: 1.5px; }
+.row-track { display: flex; align-items: center; gap: var(--s2); margin-top: var(--s1); }
+.row-track .pill { font-size: var(--fs-1); }
+.row-quote { font-size: var(--fs-1); color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-main .track-mini { margin-top: var(--s1); }
+.quote { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s2); margin: 0 0 var(--s3); }
+.quote-line { margin: 0; flex: 1 1 16rem; min-width: 0; font-size: var(--fs-3); line-height: var(--lh-read); overflow-wrap: anywhere; }
+.quote-field { flex: 1 1 100%; }
+.quote-field input { width: 100%; }
+.piece.is-folded { border: 0; padding: 0; }
+.piece-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); margin: 0 0 var(--s2); color: var(--text-2); font-size: var(--fs-2); overflow-wrap: anywhere; }
+.timer-box + .piece, .timer-box + .piece.is-folded { margin-top: var(--s3); }
+.round-frame-pills { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1); margin: 0; }
+.round-frame-line { margin: var(--s1) 0 0; }
+.crossex.is-closed .phases { margin-top: var(--s1); }
+.timer-mini { display: none; }
+@media (max-width: 820px) {
+  .timer-mini.is-on { display: flex; align-items: center; gap: var(--s2); position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-bar); padding: var(--s2) var(--s3); background: var(--panel); border: 1px solid var(--border); box-shadow: 0 6px 18px rgb(0 0 0 / .14); }
+  .timer-mini.stage-last { border-color: var(--text); }
+  .timer-mini.stage-grace { background: var(--caution-tint); border-color: var(--caution); }
+  .timer-mini.stage-over { background: var(--error-tint); border-color: var(--error); }
+  .timer-mini.stage-stopped { background: var(--sunk); }
+  .tm-word { flex: none; font-size: var(--fs-2); font-weight: var(--fw-4); max-width: 34%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tm-digits { flex: none; font-family: var(--font-display); font-size: var(--fs-4); font-variant-numeric: tabular-nums; }
+  .tm-track { flex: 1 1 auto; min-width: 2.5rem; display: flex; }
+  .tm-track .track-mini { max-width: none; }
+  .timer-mini .b { flex: none; min-height: 44px; }
+}
+@media (forced-colors: active) {
+  .track-fill, .track-tick { background: CanvasText; forced-color-adjust: none; }
+  .track-zone.z-grace, .track-zone.z-over { background: GrayText; forced-color-adjust: none; }
+}
+
+/* ---------- Control ladder (design build 2026-11-24; docs/design/EVENTS-COLOR-ICON-REVIEW.md §5.1, owner D1 B) ----------
+   Neutral chrome, one solid fill per view. Primary: the next step only. Secondary: panel and a 1 px control edge.
+   Quiet: no fill and no edge. Tool group: one quiet track. Toggle chip and segment: never the solid fill. Status pill:
+   a tint and a word, never the solid fill. Destructive: a word in --error inside a menu; the dialog has the fill. */
+button.b { display: inline-flex; align-items: center; justify-content: center; }
+a.b, button.b { gap: var(--s1); font-weight: var(--fw-2); }
+a.b.primary, button.b.primary { min-height: var(--h-lg); padding: 0 var(--s4); font-weight: var(--fw-3); }
+a.b.primary:hover, button.b.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+a.b.primary:active, button.b.primary:active { background: var(--accent-press); border-color: var(--accent-press); }
+/* Rule 2: the ring always shows; on a solid control a 2 px panel gap sits between the fill and the ring. */
+a.b.primary:focus-visible, button.b.primary:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; box-shadow: 0 0 0 2px var(--panel); }
+a.b.quiet, button.b.quiet { color: var(--text-2); font-weight: var(--fw-2); }
+a.b.quiet:hover, button.b.quiet:hover { background: var(--fill-quiet); color: var(--text); }
+button.b.quiet:active { background: var(--fill-press); }
+button.b.danger-text, a.b.danger-text { color: var(--error); }
+.tool-group { display: inline-flex; align-items: center; gap: var(--s0); padding: var(--s0); border-radius: var(--r-md); background: var(--fill-quiet); }
+.tool-group .b { border-color: transparent; background: transparent; color: var(--text); }
+.tool-group .b:hover { background: var(--fill-press); }
+/* Toggle chip on: panel fill, a 2 px full --text edge (1 px border plus 1 px inset), weight 600 and a leading check. */
+.chip.on { background: var(--panel); color: var(--text); border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); font-weight: var(--fw-3); }
+/* Segmented control: one track with a 1 px edge; the selected segment is panel, a full 1 px edge, bold. */
+.seg-track { display: inline-flex; gap: var(--s0); padding: var(--s0); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--fill-quiet); width: max-content; max-width: 100%; }
+.seg-track .b { border-color: transparent; background: transparent; color: var(--text-2); }
+.seg-track .b.on, .seg-track .b[aria-pressed="true"] { background: var(--panel); border-color: var(--border-ctl); color: var(--text); font-weight: var(--fw-4); }
+/* Status pills: a tint and a word (the icon helps; the word carries it). Never the solid fill. */
+.pill { gap: var(--s1); }
+.pill.live { background: var(--fill-quiet); border-color: var(--border-ctl); color: var(--text); }
+.pill.ok { background: var(--ok-tint); border-color: var(--ok); color: var(--text); }
+/* Radios and check boxes take the neutral accent, not the browser's blue (DESIGN.md §1.1 repair). */
+input[type="radio"], input[type="checkbox"] { accent-color: var(--accent); }
+@media (max-width: 820px) {
+  a.b, button.b, a.b.small, button.b.small, .timer-btns .b { min-height: 44px; } /* touch targets (§5.1 secondary: 44 px on a phone) */
+  a.b.primary, button.b.primary, .timer-btns .b.primary { min-height: 48px; }
+  .tool-group .b, .seg-track .b { min-height: 44px; }
+}
+
+/* ---------- Icons (design build 2026-11-24; EVENTS-COLOR-ICON-REVIEW.md §5.3) ----------
+   Lucide outline icons from the inline sprite (js/icons.js). currentColor only, a 1.5 px stroke, never a brand color. */
+.icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+svg.i { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; }
+svg.i.i-14 { width: 14px; height: 14px; vertical-align: -2px; }
+svg.i.i-20 { width: 20px; height: 20px; vertical-align: -5px; }
+.iconbtn svg.i { display: block; margin: auto; }
+/* Icon places: a trailing chevron on rows that open a page; quiet move arrows; the drag grip. */
+.md-row-main { grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--s2); }
+.md-row-main > :not(svg) { grid-column: 1; }
+.md-row-main > svg.i { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--text-3); }
+.board-moves .b.move { min-width: var(--h-md); padding: 0; justify-content: center; }
+.drag svg.i { color: var(--text-2); }
+.checklist li, .critique li { display: inline-flex; align-items: center; gap: var(--s1); }
+.checklist .is-ok svg.i, .critique .is-ok svg.i { color: var(--ok); }
+/* Progress (top 10 #7, D2-A): the caution "Before you review" box and the Review blocker have a full 1 px caution
+   edge (never a side bar); each item jumps to its row. Row status pills sit under the row's name. */
+.problems.caution { background: var(--caution-tint); border-color: var(--caution); }
+.problems.caution h2, .problems.caution h3 { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
+.problems.caution .b.primary { margin-top: var(--s3); }
+.prob-jump { display: inline-flex; align-items: center; gap: var(--s1); min-height: var(--hit-min); padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.row-status { display: flex; flex-wrap: wrap; gap: var(--s1); }
+.problems.ok .pill { margin-right: var(--s1); }
+/* The stopped timer card keeps the result (top 10 #2): the stage tint stays after Stop and a pill says it in words.
+   An inside-time stop gets a full 1 px control edge, so the card stays visible in dark mode (--sunk is 1.06:1). */
+.timer-card.stage-stopped { background: var(--panel); border: 1px solid var(--border-ctl); }
+.timer-card.stage-stopped[data-result="grace"] { background: var(--caution-tint); border: 2px solid var(--caution); }
+.timer-card.stage-stopped[data-result="over"] { background: var(--error-tint); border: 2px solid var(--error); }
+.timer-result { display: flex; justify-content: center; margin-top: var(--s1); }
+.timer-card .timer-flag { justify-content: center; }
+.timer-btns { align-items: center; }
+@media (max-width: 820px) { .timer-btns .next-top { flex: 1 0 100%; } }
+.row-pick:has(.row-now) { flex-wrap: wrap; }
+.row-now { order: 10; flex-basis: 100%; display: flex; padding-left: calc(1.2em + var(--s2)); }
+/* Ballot and private zones (top 10 #3): two named panels with full outlines (never a side bar). The heading words and
+   icons carry the difference; both text fields keep their full control edge. */
+.zone { display: grid; gap: var(--s3); padding: var(--s3) var(--s4) var(--s4); border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); min-width: 0; }
+.zone-private { background: var(--sunk); border-color: var(--border-ctl); }
+.zone-h { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin: 0; font-family: var(--font-display); font-size: var(--fs-3); }
+.zone-h .muted { font-family: var(--font-sans); font-size: var(--fs-2); font-weight: var(--fw-2); }
+.chip-title { display: flex; align-items: center; gap: var(--s1); }
+.chk-group .field-help { margin: 0 0 var(--s2); }
+.chk-state { display: inline-flex; align-items: center; gap: var(--s1); margin-left: auto; padding: 0 var(--s2); font-size: var(--fs-1); font-weight: var(--fw-3); color: var(--text-2); }
+.chk { width: 100%; justify-content: space-between; }
+.chks { display: grid; gap: var(--s2); }
+.chk.flag { background: var(--caution-tint); border-color: var(--caution); }
+.chk.flag .chk-state { color: var(--text); }
+.prompts { font-size: var(--fs-2); color: var(--text-2); }
+.prompts .chip-title { margin: 0; }
+.prompts ul { margin: var(--s1) 0 0; padding-left: var(--s5); }
+.prompts-more { margin-top: var(--s1); }
+.room-foot { margin-top: var(--s4); max-width: 760px; }
+.room-foot .field { margin-bottom: var(--s1); }
+.chip svg.i { margin-right: var(--s1); }
+/* The sticky ballot footer (top 10 #6, D4 B): the progress word and a full-height primary, pinned to the bottom of the
+   view on Rank and Rate. A full 1 px edge, never a stripe. The Room's timer bar lives on another screen. */
+.ballot-foot { position: sticky; bottom: 0; z-index: var(--z-sticky); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s3); margin-top: var(--s4); padding: var(--s2) var(--s3); background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); box-shadow: var(--shadow-2); }
+.bf-progress { display: inline-flex; align-items: center; gap: var(--s1); font-size: var(--fs-3); font-weight: var(--fw-3); }
+.ballot-foot .b.primary { min-height: 48px; font-size: var(--fs-3); }
+@media (max-width: 820px) { .ballot-foot { margin-left: calc(-1 * var(--s1)); margin-right: calc(-1 * var(--s1)); } .ballot-foot .b.primary { flex: 1 0 auto; } }
+/* The one fold style (§5.4, top 10 #9): native details, the marker hidden, a full-width row of 44 px with a full 1 px
+   control edge and a chevron that points down at its end, turned 180° when open. Never display:flex on a summary
+   without the chevron. */
+details.fold > summary { list-style: none; }
+details.fold > summary::-webkit-details-marker { display: none; }
+.fold-row { display: flex; align-items: center; gap: var(--s2); min-height: 44px; padding: var(--s1) var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); cursor: pointer; font-size: var(--fs-2); font-weight: var(--fw-3); }
+.fold-row:hover { background: var(--fill-quiet); }
+.fold-label { flex: 1; min-width: 0; }
+.fold-label h2 { margin: 0; font-size: var(--fs-3); }
+.fold-value { font-weight: var(--fw-2); }
+.fold-row > svg.i { color: var(--text-2); transition: transform var(--dur-2); }
+details.fold[open] > .fold-row > svg.i { transform: rotate(180deg); }
+details.fold[open] > .fold-row { margin-bottom: var(--s2); }
+@media (hover: none) and (pointer: coarse) { .set-keys { display: none; } }
+/* More icon places (§5.3): the Rank comment line, the grace line, the Congress session rows. */
+.board-comment { display: inline-flex; align-items: center; gap: var(--s1); }
+.board-comment .bc-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.board-line.grace-line { display: flex; align-items: center; gap: var(--s1); color: var(--text); }
+.room-link > svg.i { align-self: center; color: var(--text-3); }

@@ -4,7 +4,7 @@
 //   All events: grouped by family (Interp, Public address, Limited prep, Custom). An empty group is not shown. There
 //   is no league pack yet, so there is no Suggested section.
 // Each row: the name, one plain line (guide.js), and gray chips made from the event file, for example
-//   RANK · TITLE · TIMER 10:00
+//   Rank · Title · 10:00
 // A new event file gets its chips with no new code.
 import { ENABLED_EVENTS, CUSTOM_EVENT } from './room.js';
 import { familyOf } from './data.js';
@@ -19,16 +19,17 @@ export const GROUPS = Object.freeze([
   { id: 'custom', title: 'Custom' },
 ]);
 
-// The chips for one event file.
+// The chips for one event file: facts in normal case, read as words, not as code (design review §2.2 change 2). The
+// time chip shows the limit the way the timer does ("10:00").
 export function chipsOf(def) {
-  if (!def) return ['RANK', 'TIMER YOU SET'];
-  const out = ['RANK'];
-  if ((def.checks || []).includes('titleAuthor')) out.push('TITLE');
-  if (def.performers === 2) out.push('PAIR');
-  if (familyOf(def) === 'f2') out.push('QUESTION');
-  if (def.timing && def.timing.inRoomPrep) out.push('PREP IN ROOM');
-  if (familyOf(def) === 'f4') out.push('PRO THEN CON');
-  out.push('TIMER ' + clockText(Number(def.timing && def.timing.limit) || 0));
+  if (!def) return ['Rank', 'Timer you set'];
+  const out = ['Rank'];
+  if ((def.checks || []).includes('titleAuthor')) out.push('Title');
+  if (def.performers === 2) out.push('Pair');
+  if (familyOf(def) === 'f2') out.push('Question');
+  if (def.timing && def.timing.inRoomPrep) out.push('Prep in room');
+  if (familyOf(def) === 'f4') out.push('Pro then con');
+  out.push(clockText(Number(def.timing && def.timing.limit) || 0));
   return out;
 }
 

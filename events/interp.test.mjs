@@ -88,7 +88,9 @@ test('the two performer boxes edit one name field; a solo event shows no perform
   assert.equal(e.name, 'Ava Moreno & Ben Li');
   assert.deepEqual(pairNames(setPieceField(e, 'name1', 'Ava M.').name), ['Ava M.', 'Ben Li']);
   assert.equal(setPieceField(e, 'title', ''), e, 'no change gives the same entry, so nothing is saved');
-  const html = pieceHtml(e, duo);
+  // CHANGED 2026-11-24 (design build, review §2.4 change 3): filled fields fold into one line, so the boxes show when
+  // the judge taps Edit (editing = true). Old: const html = pieceHtml(e, duo);
+  const html = pieceHtml(e, duo, true);
   assert.match(html, /Performer 1/); assert.match(html, /value="Ben Li"/); assert.match(html, /id="piece-title"/);
   const di = pieceHtml(e, ev('di'));
   assert.doesNotMatch(di, /Performer/); assert.match(di, /id="piece-author"/);
