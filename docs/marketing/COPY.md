@@ -205,7 +205,7 @@ You do not need an account to judge tonight. Later, one account and one plan wil
 
 - A Program will cover a whole school team, with its judges and students in debate and speech.
 
-###### What a Program admin will control
+###### What a school admin will control
 
 - Turn AI on or off for students. With AI off, students will see no AI at all.
 
@@ -337,7 +337,7 @@ Which AI does Tabula use?
 You pick. Tabula works with more than one provider and does not favor any of them.
 
 Can a school turn AI off?
-Yes, once Programs open. A Program admin will be able to turn AI off for students. Those students will then see no AI in the app.
+Yes, once Programs open. A school admin will be able to turn AI off for students. Those students will then see no AI in the app.
 
 What if I run out mid-round?
 The round keeps going. Hosted AI steps down to the free tools until you add more, and the flow, clock and ballot keep working.
@@ -454,7 +454,7 @@ The app swaps debater names for speaker labels (1A, 2N) before any AI request. T
 
 ##### For schools
 
-Programs are coming later. When they open, a Program admin will be able to turn AI off for students, and those students will see no AI anywhere in the app. Coaches will see "done or not done" for Library tracks, with no ranking of students.
+Programs are coming later. When they open, a school admin will be able to turn AI off for students, and those students will see no AI anywhere in the app. Coaches will see "done or not done" for Library tracks, with no ranking of students.
 
 School IT can find install and microphone policy steps on the For school IT page. We plan to publish a list of subprocessors and a data agreement before accounts open.
 
