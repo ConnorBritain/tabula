@@ -41,8 +41,7 @@ test('ships the security headers file', () => {
   assert.match(readFileSync(join(out, '_headers'), 'utf8'), /Content-Security-Policy: default-src 'self'; script-src 'self'/);
 });
 
-// Why: after a deploy, version.json is how we tell which commit is live. Wrong field
-// names would break the shared health checks; a stale file would hide a failed deploy.
+// Why: wrong field names break the shared deploy checks, so nobody can tell which commit is live.
 test('writes version.json with sha and builtAt', () => {
   const v = JSON.parse(readFileSync(join(out, 'version.json'), 'utf8'));
   assert.deepEqual(Object.keys(v).sort(), ['builtAt', 'sha']);
@@ -50,15 +49,13 @@ test('writes version.json with sha and builtAt', () => {
   assert.ok(!Number.isNaN(Date.parse(v.builtAt)), 'builtAt is a date');
 });
 
-// Why: the deploy step sets BUILD_SHA and BUILD_TIME; if they were ignored, the live
-// file would name the wrong commit.
+// Why: if BUILD_SHA and BUILD_TIME were ignored, the live version.json would name the wrong commit.
 test('BUILD_SHA and BUILD_TIME override version.json', () => {
   const o = build(tmp(), ALLOW, { BUILD_SHA: 'abc123', BUILD_TIME: '2026-01-02T03:04:05Z' });
   assert.deepEqual(JSON.parse(readFileSync(join(o, 'version.json'), 'utf8')), { sha: 'abc123', builtAt: '2026-01-02T03:04:05Z' });
 });
 
-// Why: a build without git (a bare download, a CI step with no .git) must still ship;
-// version.json then says "dev" instead of failing the deploy.
+// Why: a build with no git must still ship (version.json says "dev"), or the deploy fails.
 test('version.json falls back to git, then to "dev", and never throws', () => {
   const v = versionInfo({}, new Date('2026-01-01T00:00:00Z'));
   assert.equal(v.builtAt, '2026-01-01T00:00:00.000Z');
@@ -70,8 +67,7 @@ test('version.json falls back to git, then to "dev", and never throws', () => {
   assert.equal(noGit.stdout.trim(), 'dev');
 });
 
-// Why: if the CDN cached version.json, a check right after a deploy would read the old
-// commit and call a failed deploy a success.
+// Why: a cached version.json would show the old commit and make a failed deploy look fine.
 test('version.json is served uncached', () => {
   assert.match(readFileSync(join(out, '_headers'), 'utf8'), /\/version\.json\n\s+Cache-Control: no-store/);
 });

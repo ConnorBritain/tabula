@@ -23,8 +23,8 @@ export const ALLOW = [
 const BLOCK = [/\.test\.(m?js)$/, /(^|\/)README\.md$/, /\.local\./, /(^|\/)\./, /^core\/package\.json$/];
 
 /**
- * What version.json says: { sha, builtAt }. The field names match the server's health
- * route and the marketing sites, so one check reads all three.
+ * What version.json says: { sha, builtAt }. Other Tabula services use the same field
+ * names, so one deploy check can read them all.
  * BUILD_SHA and BUILD_TIME override; else `git rev-parse HEAD` and the clock; else "dev".
  * It never throws: a missing git must not stop a deploy.
  */
