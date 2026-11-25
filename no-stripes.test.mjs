@@ -30,14 +30,14 @@ const SOURCES = {
   'page code (js/*.js + app.js)': readSource('app.js'),
   'ui.js': readSource('ui.js'),
   'tour.js': readSource('tour.js'),
-  // Added 2026-11-21: the Speech Events prototype follows the same rule (docs/events/DESIGN.md §1 rule 3).
+  // The Speech Events prototype follows the same rule.
   'events/prototype/index.html': readSource('events/prototype/index.html'),
   'events/prototype/proto.css': readSource('events/prototype/proto.css'),
   'events/prototype/proto.js': readSource('events/prototype/proto.js'),
-  // Added in step E1: the Speech Events page and its styles.
+  // The Speech Events page and its styles.
   'events/index.html': readSource('events/index.html'),
   'events/app.css': readSource('events/app.css'),
-  // Added in step C4 (docs/events/LANDING.md §3): every file in core/, shared by both apps.
+  // Every file in core/, shared by both apps.
   ...Object.fromEntries(readdirSync(new URL('core/', import.meta.url)).filter((f) => /\.(js|css)$/.test(f) && !/\.test\./.test(f)).map((f) => ['core/' + f, readSource('core/' + f)])),
 };
 
@@ -57,7 +57,7 @@ function splitTop(v) {
   return [...out, cur];
 }
 // Length tokens from tokens.css (for example --s1: 4px), so a bar written as var(--s1) is measured too.
-// The length tokens: the shared ones in core/tokens.css (step C4), debate's layout sizes in assets/tokens.css.
+// The length tokens: the shared ones in core/tokens.css, debate's layout sizes in assets/tokens.css.
 const TOKEN_CSS = ['core/tokens.css', 'assets/tokens.css'].map((f) => readFileSync(new URL(f, import.meta.url), 'utf8')).join('\n');
 const LEN = Object.fromEntries([...TOKEN_CSS.matchAll(/(--[a-z0-9-]+):\s*(-?\d*\.?\d+)px\s*;/g)].map((m) => [m[1], parseFloat(m[2])]));
 const px = (t) => {

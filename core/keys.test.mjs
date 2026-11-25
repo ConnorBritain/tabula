@@ -1,4 +1,4 @@
-// Tests for the shared keyboard rules and palette search, core/keys.js (docs/events/LANDING.md §3, step C5).
+// Tests for the shared keyboard rules and palette search, core/keys.js.
 // Run with: node --test. Debate's own shortcuts and commands keep their tests in keys.test.js.
 import test from 'node:test';
 import assert from 'node:assert/strict';

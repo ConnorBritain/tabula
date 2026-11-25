@@ -1,4 +1,4 @@
-// Tests for the shared copy and print sheets, core/sheets.js (docs/events/LANDING.md §3, step C10). Run with: node --test
+// Tests for the shared copy and print sheets, core/sheets.js. Run with: node --test
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

@@ -1,4 +1,4 @@
-// Tests for the shared AI review, core/review.js (docs/events/LANDING.md §3, step C12). Run with: node --test
+// Tests for the shared AI review, core/review.js. Run with: node --test
 // Debate's ballot-draft review keeps its tests in logic-slice4.test.js; it runs through this file now.
 import test from 'node:test';
 import assert from 'node:assert/strict';

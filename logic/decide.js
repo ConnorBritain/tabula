@@ -44,7 +44,7 @@
     if (a === 'row') return name + (fm.ballot.speakerRanks ? ' points and rank' : ' points');
     return name + (a === 'pts' ? ' points' : ' rank');
   }
-  // The field states, the review cards, the word diff and the insert are shared code (core/review.js, step C12); the
+  // The field states, the review cards, the word diff and the insert are shared code (core/review.js); the
   // ballot is the record. Debate adds its groups, its draft fields and the points range.
   const { fieldValue, isEmptyValue, fieldState, markFields, wordDiff } = CORE_REVIEW;
   // A deep copy of the ballot for Undo; later edits never reach the copy.
@@ -321,7 +321,7 @@
     return { title, orientation: o.flow ? 'landscape' : (o.orientation === 'landscape' ? 'landscape' : 'portrait'), sections };
   }
   // The print model as the shared print sheet (core/sheets.js): the winner line, the speakers table and the flow
-  // table become its generic sections. The HTML is the same as before step C10 (core/sheets.test.mjs checks it).
+  // table become its generic sections. The HTML is the same as before the move to core/ (core/sheets.test.mjs checks it).
   function printSheet(model) {
     const sections = model.sections.map((s) => {
       if (s.kind === 'winner') return { kind: 'lead', title: s.title, text: s.text };

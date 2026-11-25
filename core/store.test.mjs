@@ -1,4 +1,4 @@
-// Tests for the shared store and backup files, core/store.js (docs/events/LANDING.md §3, step C2). Run with: node --test
+// Tests for the shared store and backup files, core/store.js. Run with: node --test
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createStore, buildBackup, parseBackup } from './store.js';

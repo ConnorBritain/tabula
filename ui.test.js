@@ -78,7 +78,7 @@ test('index.html loads ui.js after logic.js and before app.js, and the local hel
 
 // Why: a radio group with one Tab stop per option makes a keyboard judge Tab through every choice in the print dialog; the platform rule is one stop, arrows inside.
 test('modalDialog: a radio group is one Tab stop in the focus trap', () => {
-  // modalDialog moved into createUI() in core/ui.js (step C3).
+  // modalDialog moved into createUI() in core/ui.js.
   const ui = fs.readFileSync(path.join(__dirname, 'core', 'ui.js'), 'utf8');
   const start = ui.indexOf('function modalDialog(');
   const body = ui.slice(start, ui.indexOf('\n  }\n', start));
