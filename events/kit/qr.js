@@ -1,9 +1,22 @@
 // Speech Events judge card: a small QR code encoder that runs on the device (no network, no library). It makes the
 // code for the app link printed on the judge card (events/kit/index.html).
 // Scope: byte mode only, versions 1 to 10 (up to 213 bytes at level M), error correction L, M, Q or H. A link fits
-// easily. It follows ISO/IEC 18004 in the same steps as Project Nayuki's public QR code generator: data bits, Reed-
-// Solomon blocks, interleave, function patterns, zigzag placement, the mask with the lowest penalty, format and version
-// bits. events/kit/qr.test.mjs checks the matrix against a known answer and reads the text back out of it.
+// easily. It follows ISO/IEC 18004. Its steps and formulas are adapted from Project Nayuki's QR Code generator library
+// (https://www.nayuki.io/page/qr-code-generator-library), which is under the MIT License below.
+// events/kit/qr.test.mjs checks the matrix against a known answer and reads the text back out of it.
+//
+// Copyright (c) Project Nayuki. (MIT License)
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+// documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the following conditions:
+// - The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+//   the Software.
+// - The Software is provided "as is", without warranty of any kind, express or implied, including but not limited to
+//   the warranties of merchantability, fitness for a particular purpose and noninfringement. In no event shall the
+//   authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract,
+//   tort or otherwise, arising from, out of or in connection with the Software or the use or other dealings in the
+//   Software.
 
 // Error correction words per block and the number of blocks, for each level and version 1..10 (index 0 unused).
 const ECC_PER_BLOCK = {

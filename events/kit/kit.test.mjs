@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { APP_URL, MAX_LEN, cardLine, appQrSvg } from './kit.js';
+import { APP_URL, MAX_LEN, AFFILIATION_LINE, cardLine, appQrSvg } from './kit.js';
 import { encodeQr, qrSvg } from './qr.js';
 import { aboutHtml } from '../js/settings-screen.js';
 import { pageFiles } from '../build-sw.mjs';
@@ -58,7 +58,9 @@ test('the card has the app name, the mark, the link, five steps and the two requ
   assert.match(steps[3], /paste .*codes/);
   assert.match(steps[4], /copy the ranks into the tournament's online ballot/);
   assert.match(html, /<p>Your rounds are stored on this device\.<\/p>/);
-  assert.match(html, /<p>Tabula is not affiliated with the NSDA\.<\/p>/);
+  assert.equal(AFFILIATION_LINE, 'Tabula is not affiliated with the NSDA.');
+  assert.match(html, /<footer class="kc-foot">[\s\S]*<p data-kit="affiliation"><\/p>[\s\S]*<\/footer>/);
+  assert.match(js, /\[data-kit="affiliation"\]'\)\.textContent = AFFILIATION_LINE;/);
   assert.doesNotMatch(html, /store nothing/i);
 });
 
@@ -104,5 +106,12 @@ test('Settings, About links to the card, and the page is in the offline cache an
   assert.match(aboutHtml('r1'), /<a id="set-kit" href="kit\/index\.html">Print a judge card<\/a>/);
   const files = await pageFiles();
   for (const f of ['events/kit/index.html', 'events/kit/kit.js', 'events/kit/kit.css', 'events/kit/qr.js']) assert.ok(files.includes(f), f + ' is cached');
-  assert.ok(ALLOW.includes('events/kit'), 'the build ships events/kit');
+  for (const f of ['events/kit/index.html', 'events/kit/kit.css', 'events/kit/kit.js', 'events/kit/qr.js']) assert.ok(ALLOW.includes(f), 'the build ships ' + f);
+  assert.ok(!ALLOW.some((n) => /^events\/kit\/.*\.test\./.test(n) || n === 'events/kit'), 'only the page files ship');
+});
+
+test('the card styles have no stripes: no one-sided border and no inset shadow', () => {
+  assert.doesNotMatch(css, /border-(?:left|right|top|bottom|inline|block)[\w-]*\s*:/);
+  assert.doesNotMatch(css, /box-shadow[^;]*\binset\b/);
+  assert.doesNotMatch(css, /#1e7a55|#5ec796/i);
 });

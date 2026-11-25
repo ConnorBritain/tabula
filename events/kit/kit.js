@@ -7,6 +7,8 @@ import { encodeQr, qrSvg } from './qr.js';
 /** The link in the QR code. A constant: no typed text, no query string, nothing about the device. */
 export const APP_URL = 'https://events.tabulaspeech.com/';
 export const MAX_LEN = 80;
+/** The not-affiliated line on the card. One constant, so a wording change is one edit. */
+export const AFFILIATION_LINE = 'Tabula is not affiliated with the NSDA.';
 
 /** The card line for a typed value: trimmed, one line, at most MAX_LEN characters; '' hides the line. */
 export const cardLine = (v) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, MAX_LEN);
@@ -32,6 +34,7 @@ export function start(doc) {
     nameEl.hidden = !name;
     card.querySelector('[data-kit="help"]').textContent = help;
     card.querySelector('[data-kit="help-line"]').hidden = !help;
+    card.querySelector('[data-kit="affiliation"]').textContent = AFFILIATION_LINE;
   }
 
   // Two cards: a copy of the first. Screen readers read the first card only, so the copy is hidden from them.
