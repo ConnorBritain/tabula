@@ -16,6 +16,7 @@ const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const STARTERS = JSON.parse(read('starters.json'));
 const WORDS = JSON.parse(read('words.json'));
 const DATA = await loadEventData(async (p) => JSON.parse(readFileSync(new URL('../' + p, import.meta.url), 'utf8')));
+const view0 = read('kit-view.js');
 const cats = (text) => checkComment(text).map((h) => h.category);
 
 test('kit-data.js is up to date with starters.json and words.json (if not: run node events/comment-kit/build-data.mjs)', () => {
@@ -311,16 +312,42 @@ test('a flagged comment never blocks ranking, review or copy: the ballot checks 
   assert.doesNotMatch(view, /preventDefault|stopPropagation|\.disabled\b|setAttribute\('disabled'/);
   const { readdirSync } = await import('node:fs');
   const users = readdirSync(new URL('../js/', import.meta.url)).filter((f) => f.endsWith('.js') && read('../js/' + f).includes('comment-kit/'));
-  assert.deepEqual(users.sort(), ['comment-view.js', 'rank-screen.js']);
+  assert.deepEqual(users.sort(), ['comment-view.js', 'rank-screen.js', 'review-screen.js']);
 });
 
 // ---------- The hooks stay small ----------
 
-test('each screen hooks the kit with one import and one call, and the kit never calls the network', () => {
-  for (const [f, call] of [['../js/comment-view.js', 'mountCommentKit('], ['../js/rank-screen.js', 'mountReasonKit(']]) {
+test('each screen hooks the kit with one import and one call per box, and the kit never calls the network', () => {
+  const hooks = [
+    ['../js/comment-view.js', ['mountCommentKit(', 'mountRoomReasonKit(']],
+    ['../js/rank-screen.js', ['mountReasonKit(']],
+    ['../js/review-screen.js', ['mountReviewKit(']],
+  ];
+  for (const [f, calls] of hooks) {
     const src = read(f);
-    assert.equal(src.split('../comment-kit/').length - 1, 1, f + ': one import');
-    assert.equal(src.split(call).length - 1, 1, f + ': one call');
+    assert.equal(src.split('../comment-kit/').length - 1, 1, f + ': one import line');
+    for (const call of calls) assert.equal(src.split(call).length - 1, 1, f + ': one ' + call + ' call');
   }
+  // The Room reason box mounts in footMounted (it shows up on "+ Add reason for rank"); the Review edit boxes on the
+  // comments stage that holds them (each shows up on Edit), so both join boxes drawn later.
+  assert.match(read('../js/comment-view.js'), /footMounted\(\) \{[\s\S]*?mountRoomReasonKit\(foot,/);
+  assert.match(read('../js/review-screen.js'), /mountReviewKit\(\$\('#review-comments'\), id\)/);
+  const view = read('kit-view.js');
+  assert.match(view, /export function mountRoomReasonKit[\s\S]*?querySelector\('#reason'\)[\s\S]*?addEventListener\('focusin'/);
+  assert.match(view, /export function mountReviewKit[\s\S]*?addEventListener\('focusin'[\s\S]*?dataset\.vfield === 'reason' \? 'reason:'[\s\S]*?'notes:'/);
   for (const f of ['kit.js', 'kit-view.js', 'kit-data.js']) assert.doesNotMatch(read(f), /\bfetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|localStorage|indexedDB/, f);
+});
+
+// Why: the kit's look lives in its own stylesheet so a stricter style rule cannot break it, and its chrome must stay
+// neutral (the note is a question, not an error): a status tint or the brand green on it would read as a verdict.
+test('the kit styles live in kit.css, linked once by the page, in neutral chrome only', () => {
+  assert.doesNotMatch(read('kit-view.js'), /style=/, 'no inline styles');
+  const html = read('../index.html');
+  assert.equal(html.split('href="comment-kit/kit.css"').length - 1, 1);
+  const css = read('kit.css');
+  assert.doesNotMatch(css, /--(ok|caution|error|brand|green)\b|#[0-9a-f]{3,6}\b|rgb\(/i, 'tokens only, no status or brand colours');
+  for (const cls of ['kit-rows', 'kit-note', 'kit-note-text', 'kit-note-words', 'kit-note-acts', 'kit-reason-starters']) {
+    assert.ok(css.includes('.' + cls), cls + ' is styled');
+    assert.ok(view0.includes(cls), cls + ' is used');
+  }
 });

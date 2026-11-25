@@ -25,19 +25,18 @@ export function sheetStartersHtml(def, open) {
   const rows = ['strength', 'toWork'].map((k) => starterRowHtml(def, k, 'kit')).join('');
   if (!rows) return '';
   return `<details class="fold kit-starters"${open ? ' open' : ''}>${foldSummaryHtml('Sentence starters', '<span class="fold-value muted">tap one, then finish it</span>')}
-      <div class="kit-rows" style="display:grid;gap:var(--s2);margin-top:var(--s2)">${rows}</div></details>`;
+      <div class="kit-rows">${rows}</div></details>`;
 }
 
 // The calm note under the box. text: the box text; hits: the hits to name. '' when there are none.
 export function noteHtml(text, hits) {
   if (!hits.length) return '';
   const list = hitWords(text, hits).map((w) => '“' + esc(w) + '”').join(', ');
-  return `<p style="margin:0;display:flex;gap:var(--s2);align-items:flex-start">${icon('info')}<span>${esc(NOTE_TEXT)}</span></p>
-    <p class="muted" style="margin:var(--s1) 0 0">Words to check: ${list}</p>
-    <div style="display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s2)"><button class="b small" type="button" data-kit-act="edit">Edit</button><button class="b small quiet" type="button" data-kit-act="keep">Keep</button></div>`;
+  return `<p class="kit-note-text">${icon('info')}<span>${esc(NOTE_TEXT)}</span></p>
+    <p class="muted kit-note-words">Words to check: ${list}</p>
+    <div class="kit-note-acts"><button class="b small" type="button" data-kit-act="edit">Edit</button><button class="b small quiet" type="button" data-kit-act="keep">Keep</button></div>`;
 }
 
-const NOTE_STYLE = 'margin-top:var(--s2);padding:var(--s2) var(--s3);border:1px solid var(--border-ctl);border-radius:var(--r-md);background:var(--sunk);font-size:var(--fs-2);color:var(--text)';
 
 // "Keep" per comment: the hit words the judge chose to keep, by box key. The note comes back only for a new word.
 // It lives for the page visit (memory only); a reload asks again.
@@ -74,7 +73,7 @@ function attach(box, def, key, startersBefore, startersHtml) {
   const starters = startersHtml ? make(startersHtml) : null;
   if (starters) (startersBefore || box).before(starters);
   const nid = (box.id || 'box') + '-kit-note';
-  const note = make(`<div class="kit-note" id="${esc(nid)}" hidden style="${NOTE_STYLE}"></div>`);
+  const note = make(`<div class="kit-note" id="${esc(nid)}" hidden></div>`);
   const count = make(`<p class="field-help kit-count" hidden></p>`);
   box.after(note, count);
 
@@ -153,9 +152,33 @@ export function mountCommentKit(sheet, def, entryId) {
   if (update) sheet.addEventListener('click', (ev) => { if (ev.target.closest('[data-cact="chip"]')) update(true); });
 }
 
-// The reason for rank (rank-screen.js). box: the reason text box; key: one per room.
+// The reason for rank (rank-screen.js, and the Room screen's own reason box). box: the reason text box; key: the
+// room id (one "Keep" for the room's one reason, on every screen).
 export function mountReasonKit(box, def, key) {
   if (!box) return;
-  const row = starterRowHtml(def, 'reason', 'kit-reason');
-  attach(box, def, 'reason:' + (key || ''), box.ownerDocument.querySelector(`label[for="${box.id}"]`), row ? `<div class="kit-starters" style="margin-bottom:var(--s2)">${row}</div>` : '');
+  const row = starterRowHtml(def, 'reason', 'kit-reason-' + box.id);
+  attach(box, def, 'reason:' + (key || ''), box.ownerDocument.querySelector(`label[for="${box.id}"]`), row ? `<div class="kit-starters kit-reason-starters">${row}</div>` : '');
+}
+
+// The Room screen's reason for rank (comment-view.js footMounted). foot: the room-foot box; the reason box is there
+// once it has text, or shows up when the judge opens it ("+ Add reason for rank"), so the kit joins it then.
+export function mountRoomReasonKit(foot, def, roomId) {
+  if (!foot) return;
+  const join = () => mountReasonKit(foot.querySelector('#reason'), def, roomId);
+  join();
+  foot.addEventListener('focusin', join);
+}
+
+// The Review screen's edit boxes (review-screen.js show): the performance check and the length note, no starters
+// (the Review screen is the last look before the copy). box: the comments stage, which holds the cards; each edit box
+// shows up when the judge taps Edit. roomId: the room. A comment box shares "Keep"
+// with that speaker's comment on the Room screen; the reason box shares it with the reason on the other screens.
+export function mountReviewKit(stage, roomId) {
+  if (!stage) return;
+  stage.addEventListener('focusin', (ev) => {
+    const box = ev.target;
+    if (!box || box.tagName !== 'TEXTAREA' || !box.dataset.vfield) return;
+    const key = box.dataset.vfield === 'reason' ? 'reason:' + (roomId || '') : 'notes:' + (box.dataset.id || '');
+    attach(box, null, key, null, '');
+  });
 }

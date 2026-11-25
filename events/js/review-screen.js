@@ -14,6 +14,7 @@ import { limitOf } from './timer.js';
 import { createCleanup } from './cleanup-view.js';
 import { rankStageLabel, ranksShown, layerOf, notRankedText, reasonLabel } from './profile-layer.js';
 import { OVER_GRACE_PILL } from './rank.js';
+import { mountReviewKit } from '../comment-kit/kit-view.js';
 
 // A met check is a check circle, an open one an empty circle (§5.3: icons, not the "✓" and "○" characters); the word
 // and the hidden "(not yet)" carry the meaning.
@@ -245,6 +246,7 @@ export function createReviewScreen(env) {
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('input', onInput);
       window.addEventListener('afterprint', afterPrint);
+      mountReviewKit($('#review-comments'), id); // performance check and length note on the edit boxes
       draw();
       $('#screen-title').focus();
     },
