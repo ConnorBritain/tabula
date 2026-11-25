@@ -28,6 +28,8 @@ import { timerHtml, cardTrack, stickyBarHtml, stoppedResult } from './js/timer-v
 import { timerFace } from './js/timer.js';
 import { sharedFace } from './js/prep.js';
 import { runCardsHtml, nextRunWaits } from './js/runs-view.js';
+import { syncRuns } from './js/runs.js';
+import { mainButton } from './js/timer-view.js';
 import { sheetHtml, reasonFootHtml, promptsHtml, PROMPTS_SHOWN } from './js/comment-view.js';
 import { checklist } from './js/ballot.js';
 import { setupHtml, previewHtml, levelSummary } from './js/setup-screen.js';
@@ -660,4 +662,26 @@ test('picker: a "Judged today" group first, Recent keeps the rest, no Rank chip,
   assert.ok(html.indexOf('Judged today') < html.indexOf('All events'), 'above All events');
   assert.doesNotMatch(html, /pk-chip">Rank</);
   assert.match(html, /<span class="pill outline pk-chip">10:00<\/span><\/span><svg class="i i-16"[^>]*><use href="#i-chevron-right"\/><\/svg>\s*<\/button>/);
+});
+
+// ---------- §6 PCC: the run cards ----------
+
+// Why: the two run cards looked the same ("–", "Not started"), so a lay judge could not tell which run the clock was on
+// or which came next; the main button said only "Start". One card stands out ("Next", then "Live"), and an empty
+// card shows the shared limit.
+test('PCC: Start Pro, the next run card says Next, the run on the clock says Live, an empty card shows "of 10:30"', () => {
+  const pcc = DATA.events.get('pcc');
+  const e0 = room('pcc', 'nsda-invitational', ['A1']).entries[0];
+  const before = runCardsHtml(e0, pcc, T, 630);
+  assert.match(before, /<li class="run-card is-on" data-side="pro">[\s\S]*?of 10:30<\/span>\s*<span class="run-word pill" data-run-word="pro">Next<\/span>/);
+  assert.match(before, /<li class="run-card" data-side="con">[\s\S]*?of 10:30<\/span>\s*<span class="run-word muted" data-run-word="con">Not started<\/span>/);
+  assert.equal(mainButton(timerFace(e0, 630, 30, T), 'Start Pro').label, 'Start Pro');
+  assert.equal(mainButton(timerFace(e0, 630, 30, T)).label, 'Start', 'other events keep Start');
+  const live = syncRuns(runningE(e0, 30, 630), pcc, T, 630);
+  const html = runCardsHtml(live, pcc, T, 630);
+  assert.match(html, /<li class="run-card is-on" data-side="pro">[\s\S]*?<span class="run-word pill live" data-run-word="pro">Live<\/span>/);
+  assert.equal((html.match(/run-card is-on/g) || []).length, 1, 'one card stands out');
+  assert.match(CSS, /\.run-card\.is-on \{ border-color: var\(--text\); border-width: 2px; \}/);
+  // The timer view names the first run before any time ("Start Pro") through its startWord option.
+  assert.match(read('./js/runs-view.js'), /startWord: \(e, ev, now, lim\) => \(runsPhase\(e, ev, now, lim\)\.index === -1 \? 'Start ' \+ eventRuns\(ev\)\[0\]\.label : ''\)/);
 });
