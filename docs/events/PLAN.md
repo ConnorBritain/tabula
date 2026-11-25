@@ -1,6 +1,6 @@
 # Tabula Speech Events: plan (draft 1)
 
-Status: **approved by the owner, 2026-11-20** ("Yes, all my picks": Q1–Q10 all option A). Q2, Q5, Q6 and Q7 still need a short lawyer check before P2 ships. No Speech Events code is built. Nothing in Cloudflare, Stripe or DNS changed. Plan committed in `1ef78f9`. Build order (owner, 2026-11-21): debate format refactor and LD first, then the safe Speech Events pieces (17 event data files with a schema test, and a clickable Room, Rank and Review prototype for a lay-judge test). Q11 (2026-11-21, owner): A, v1 is high school only. Q12 and Q13 (2026-11-21, owner): both B. The `core/` lift starts now, before PF; Congress comes right after v1.
+Status: the Speech Events beta code is on main. The hosting config is ready (see [DEPLOY.md](DEPLOY.md)). It is not live yet. What each release holds is in [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
 Read in this order: this file, then [ARCHITECTURE.md](ARCHITECTURE.md), [EVENTS.md](EVENTS.md), [SHARED-VS-NEW.md](SHARED-VS-NEW.md), [DESIGN.md](DESIGN.md).
 
