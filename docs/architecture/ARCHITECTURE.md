@@ -231,7 +231,7 @@ The student edition must never show live judging tools (STUDENT-EDITION §1e). *
 
 - Follows STUDENT-EDITION §10h: accounts, then school spaces and join codes.
 - Each program's rows carry a `program_id`, and one shared query helper always filters by it.
-- Retention jobs (120 days after the season; 12 and 24 months after last sign-in) run on a daily Cron Trigger and write counts only.
+- Retention jobs: Automatic deletion after a set time is planned with the Library feature. It is not in place today. When built, they run on a daily Cron Trigger and write counts only.
 
 ## 8. Public and private code
 

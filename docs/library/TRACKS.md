@@ -1,12 +1,12 @@
 # Debate Library: guided tracks, checks and completion badges (design doc, draft 3)
 
 Status: owner decisions recorded (§9). **Phase 1 (first and second release) is built** (2026-11-19): `tracks.json`, the 6 parent judge checks (status: draft, waiting for coach review), `learn-tracks.mjs`, `check.js`, track pages, certificate, save/load/clear progress. The parent judge track shows as a draft (noindex, out of the sitemap) until each check has `status: reviewed`. Phases 2 and 3 are not built.
-Related docs: `docs/library/PLAN.md` (the library), `PLAN.md` (the app), `docs/STUDENT-EDITION.md` §10 (coach and student roles), `BUSINESS-PLAN.md` §10 (legal table; private, git-ignored).
+Related docs: `docs/library/PLAN.md` (the library), `PLAN.md` (the app), `docs/STUDENT-EDITION.md` §10 (coach and student roles).
 
 ## 0. Summary
 
 - A **track** is an ordered list of library pages with a short **check** (a quiz) after each page.
-- The name is **track** ("Guided tracks"), decided 2026-11-19. "Program" stays the name of the paid school plan only (`BUSINESS-PLAN.md` §2, `STUDENT-EDITION.md` §10g).
+- The name is **track** ("Guided tracks"), decided 2026-11-19. "Program" stays the name of the paid school plan only (`STUDENT-EDITION.md` §10g).
 - Build in three phases:
   1. **Phase 1:** tracks and checks, with progress saved only in the browser. No account. Safe for every age, because Tabula collects nothing.
   2. **Phase 2:** a **completion badge** for the judge tracks, on an account, for adults (18+) only. The judge earns it by passing a **server-graded final check**. A judge can share a verify link. It ships with the round-pack accounts.
@@ -334,7 +334,7 @@ The existing tests read every built page. Track pages must pass them too: a 140 
 
 ### 5.2 Who can get one
 
-- **Adults only (18+).** The account sign-up asks the user to confirm they are 18 or older. This is like the buyer rule in `BUSINESS-PLAN.md` §10 row 6 (buyers must be 18+), but it is a separate rule: a badge account buys nothing.
+- **Adults only (18+).** The account sign-up asks the user to confirm they are 18 or older. This is like the rule that buyers must be 18+, but it is a separate rule: a badge account buys nothing.
 - Only tracks marked `badge: true` and `audience: judge`: at first, **New parent judge** (2.1); later **Judging well** (2.5).
 - Student judges (often 16 or 17) do not get a judge badge, in Phase 2 or Phase 3, until the owner decides otherwise (§9, item 10). They can still read the judge tracks and do the per-step checks.
 
@@ -402,7 +402,7 @@ A signed link (a link that carries its own digital signature, so it can be check
 | During a try: an attempt token and the served question IDs (deleted when graded, or after 1 hour) | |
 | While a retry wait runs: the time of the last failed try and the count of fails today, per track (deleted on pass, or after 1 day) | The weak-section list (made at grading time, shown once, not kept) |
 
-Delete on request. Delete the account and all badges on "Delete my account". **Inactive accounts** (§9, item 19): delete the account, its badges and verify links 24 months after the last sign-in, with reminders 30 days before, 7 days before and on the day, each with an export link. Short security logs (for abuse and rate limits) expire on a fixed schedule.
+Delete on request. Delete the account and all badges on "Delete my account". **Inactive accounts** (§9, item 19): Automatic deletion after a set time is planned with the Library feature. It is not in place today. Short security logs (for abuse and rate limits) expire on a fixed schedule.
 
 **Size:** after the round-pack accounts exist: about 2 to 3 weeks of code (final-check endpoints and grading, retry wait and timer, badge table, verify page, revoke and delete, certificate with QR, tests). Plus writing and reviewing the hidden pool for the parent judge track (about 40 questions, about 1 to 2 weeks). Plus updates to the privacy policy and ToS: the single policy and terms on `tabulaspeech.com` cover the final check and verify pages. The move to `tabulaspeech.com` adds about 2 to 3 days (the static check page on that site, the Back to Library link, the old-version and retired-track pages). It needs accounts on `tabulaspeech.com` first (`docs/architecture/ARCHITECTURE.md` §11, steps 4 and 7).
 
@@ -431,7 +431,7 @@ Students are minors, so this phase follows the coach and student rules in `STUDE
 - **No automatic messages** (retention reminders excepted) about progress to the student, the coach, or parents.
 - **Same final check, on the student host.** A student badge (for example the novice track) needs the same server-graded final check as a judge badge (§5.3), with its own hidden pool. It runs on `student.tabulaspeech.com/badges/check/<track>`, with the student's own host-only cookie (`docs/architecture/ARCHITECTURE.md` §3.2), so a student device never gets the judge and coach session. The library's final-check link depends on the track's audience: `debater` tracks link to the student host, `judge` tracks to `tabulaspeech.com`. `tracks.json` gets a per-audience target. The `tabulaspeech.com` check page refuses student accounts.
 - **Students own their record.** Badges are in the student export (`STUDENT-EDITION.md` §10e). The student can delete their own badge at any time. On the school path, the school can also delete the whole space. The export is the student's copy. It does not give the student control of the school's data.
-- **Retention.** School-space data is deleted 120 days after the season ends, with the reminders in `STUDENT-EDITION.md` §10i. A parent-path account is deleted 12 months after its last sign-in. Reminders go 30 days before, 7 days before and on the day, each with an export link, to the account email and the consenting parent's email. The student's export stays theirs.
+- **Retention.** Automatic deletion after a set time is planned with the Library feature. It is not in place today. The student's export stays theirs.
 
 ### 6.3 Laws and the existing rules
 
@@ -442,7 +442,7 @@ Students are minors, so this phase follows the coach and student rules in `STUDE
 | **State student-privacy laws** (for example CA SOPIPA, NY Education Law 2-d, IL SOPPA) | No ads, no sale, no profiling, no training AI on student data. List every subprocessor (each outside service that touches the data). Badge data is never used for marketing. |
 | **Parent consent** (the parent path) | COPPA does not apply at 13 to 17, but state laws for minors still do. Keep each consent record (who, when, notice version). Send the parent a plain notice. Give the parent a way to see, export and delete the data. Check each state's minor-privacy law in the legal review. |
 | **Age-appropriate design rules** (for example California's Age-Appropriate Design Code and similar state laws for users under 18) | Highest privacy settings by default. No public profiles. No nudges to share. No features that push a minor to stay longer. |
-| **Student names** (`BUSINESS-PLAN.md` §10 row 11) | **Changed (§9, item 14):** a school-space account stores a **real display name**, so the coach can tell students apart. This matches `STUDENT-EDITION.md` §10e ("Names"). Row 11 is amended to match (2026-11-19). A parent-path account needs no display name. AI prompts still never get names. The name on a printed certificate is still typed at print time and never sent. |
+| **Student names** | **Changed (§9, item 14):** a school-space account stores a **real display name**, so the coach can tell students apart. This matches `STUDENT-EDITION.md` §10e ("Names"). A parent-path account needs no display name. AI prompts still never get names. The name on a printed certificate is still typed at print time and never sent. |
 
 Get a legal review before Phase 3 launches. The age-design laws change often and some are under court challenge.
 
@@ -462,9 +462,9 @@ Not stored: final-check answers, time on pages, device data, activity trails. "L
 **Account-life rules** (owner decisions, 2026-11-19; §9, items 15 to 18):
 
 - **Parent account (data rights only).** The consenting parent gets a light account, with emailed-link sign-in. It shows only: a plain list of what is stored, export, delete, and withdraw consent. It shows no progress, no badge view beyond that list, and sends no alerts except the retention reminders. So it is not a parent dashboard (`STUDENT-EDITION.md` §10i item 5). It is deleted with the student's account.
-- **Consent record after deletion.** Keep the consent record (parent email, date, notice version, and the deleted account's random ID) for 3 years after the account is deleted, as proof of consent, then delete it. The random ID ties the record to one account. The record holds no student name, email or birth year.
-- **Turning 18.** Every student account stores a **birth year**. In the year the student turns 18, at the start of the next season, the account becomes an adult account, and the parent link and parent account end (with a notice to both). At that point the birth year is deleted (adults store none, §8.3), and the adult rules apply, including the 24-month inactivity rule (§5.5). A school-space account stays in its space until the season ends. Exact check: an account is 18+ when the current year minus the birth year is 19 or more; when it is exactly 18, the account asks once "Have you had your 18th birthday?".
-- **When school consent ends** (§9, item 20). If the school space is deleted, or the student leaves it, the student has **30 days** to add parent consent and move to the parent path, with reminders and an export link. If not, the account is deleted. Reminders go 30 days, 7 days and 0 days before the deadline. If the account moves to the parent path, the student's own badges (moving rule, below) move with it. If the account is deleted, those badges survive only in the export the student can download during the 30 days. School-space badges stay with the school until the space is deleted.
+- **Consent record after deletion.** Keep the consent record (parent email, date, notice version, and the deleted account's random ID) as proof of consent. Deletion of the record after a set time is planned with the Library feature. It is not in place today. The random ID ties the record to one account. The record holds no student name, email or birth year.
+- **Turning 18.** Every student account stores a **birth year**. In the year the student turns 18, at the start of the next season, the account becomes an adult account, and the parent link and parent account end (with a notice to both). At that point the birth year is deleted (adults store none, §8.3), and the adult rules apply, including the planned inactivity rule (§5.5). A school-space account stays in its space until the season ends. Exact check: an account is 18+ when the current year minus the birth year is 19 or more; when it is exactly 18, the account asks once "Have you had your 18th birthday?".
+- **When school consent ends** (§9, item 20). If the school space is deleted, or the student leaves it, the student can add parent consent and move to the parent path. A deadline for this, with reminders and an export link, and deletion of the account after it, is planned with the Library feature. It is not in place today. If the account moves to the parent path, the student's own badges (moving rule, below) move with it. If the account is deleted, those badges survive only in the export the student can download before the deadline. School-space badges stay with the school until the space is deleted.
 - **Moving between paths.** Badges earned before joining a school space stay the student's. Badges earned inside the school space are the school's data (the student keeps a copy in the export). Leaving a school space keeps the student's own badges.
 
 **Size:** about 4 to 6 weeks of code **after** these exist: accounts (round packs, §9 item 4), join codes (`STUDENT-EDITION.md` §10h step 3), Phase 2 server grading, and the novice track's hidden pool (Phase 1b). The free school space and a paid Program's space are **one thing**, built once in §10h step 3, with a free-tier flag (`STUDENT-EDITION.md` §10h now says so). The narrow track assignment sits between steps 3 and 4. Phase 3 adds only the narrow track assignment (assign a track, see done or not done), the badge view, the age gate and the parent flow. It does not need the full assignment system (§10h step 4). The work: the age gate, the free school space, the parent-consent flow with notice and records, the light parent account, retention reminder jobs, the coach view, and the badges. Plus legal review and the data agreement.
@@ -537,14 +537,14 @@ School Google and Microsoft accounts for students under 18 often need the school
 10. **Students and judge tracks:** students may read the judge tracks and do their per-step checks, but cannot earn a judge badge for now.
 11. **The retry wait grows.** After several fails in one day: 5 minutes, then 15, then 60. Tries stay unlimited (§5.3).
 12. **The free school space covers badges and tracks only:** join code, assign a track, see done or not done, badges. **Track assignments** are this narrow thing. Other paid features stay in the paid Program (`STUDENT-EDITION.md` §10g).
-13. **A parent-path account is deleted 12 months after its last sign-in**, with reminders 30 days before, 7 days before and on the day, each with an export link.
-14. **Coaches see a real display name** for each student in a school space. `BUSINESS-PLAN.md` §10 row 11 is amended to match (§6.3).
+13. **Retention for parent-path accounts: planned.** Automatic deletion after a set time is planned with the Library feature. It is not in place today.
+14. **Coaches see a real display name** for each student in a school space (§6.3).
 15. **Parents get a light account for data rights only:** see what is stored, export, delete, withdraw consent. No progress view, no alerts (§6.4).
-16. **Consent records are kept 3 years** after the account is deleted, then deleted.
+16. **Consent records are kept** as proof of consent after the account is deleted. Deletion of the record after a set time is planned with the Library feature. It is not in place today.
 17. **Every student account stores a birth year** (not month or day). It blocks under-13 sign-up and ends parent consent at 18. A one-time "Have you had your birthday?" question settles the edge year (§8.3, §6.4).
 18. **Badges split by where they were earned** when a student moves between the parent path and a school space (§6.4).
-19. **Inactive judge accounts are deleted 24 months after the last sign-in**, with reminders and an export link (§5.5).
-20. **When school consent ends** (space deleted, or the student leaves), the student has 30 days to add parent consent. If not, the account is deleted (§6.4).
+19. **Inactive judge accounts: planned.** Automatic deletion after a set time is planned with the Library feature. It is not in place today. (§5.5)
+20. **When school consent ends** (space deleted, or the student leaves), the student can add parent consent. A deadline, and deletion of the account after it, is planned with the Library feature. It is not in place today (§6.4).
 21. **Badge pages move to `tabulaspeech.com` (2026-11-20).** The final check and verify pages live where accounts live (`tabulaspeech.com/badges/check/<track>`, `tabulaspeech.com/v/<id>`). The library on `tabuladebate.com` links to them and never calls the server (§5.3, §5.4, §8.1; `docs/architecture/ARCHITECTURE.md` §3.5).
 
 ## 10. Rough size, by phase

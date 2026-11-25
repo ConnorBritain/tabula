@@ -295,7 +295,7 @@ Notes:
 5. **Evidence playbooks v1**: save, name and reuse sets of the student's own cards; save a speech doc as a playbook. No AI.
 6. **Post-mortem v1**: after the student confirms the round is closed and the decision is in, a "What did I drop?" list with pointers to the flow, next to the judge's feedback. BYOK only at first.
 7. **Badge check for judges** (owner decision, §9 item 7). A judge on Tabula sees that a debater in the round is in tournament mode, with the same badge code and start time.
-   - **DECIDED (owner): a tiny server.** The student's app posts only `{badge code, mode, start time, end time}`. No names, no school, no content, no account. The judge's app looks up the code the student shows. Entries are deleted 24 hours after the round.
+   - **DECIDED (owner): a tiny server.** The student's app posts only `{badge code, mode, start time, end time}`. No names, no school, no content, no account. The judge's app looks up the code the student shows. Automatic deletion of entries after a set time is planned with this feature. It is not in place today.
    - It must handle peak Saturdays and must never block a round: if the server is down, the badge still shows on the student's screen, and the judge app says "cannot check right now".
    - Rejected: a signed receipt file in the SpeechDrop room. It needs no server, but it depends on SpeechDrop and a manual drop.
    - Honest limit: this shows the mode is on in this app on this device. It cannot prove the student uses no other device (§7).
@@ -372,7 +372,7 @@ Everything in §1 to §9 can run on the device. Join codes and school spaces can
 - **COPPA.** No accounts under 13. Students 13 to 17 join a school space only with school consent, or with parent consent.
 - **State student-privacy laws** (SOPIPA, NY Ed Law 2-d, IL SOPPA, and others): no ads, no sale, no profiling, no training on student data. List every subprocessor.
 - **Consent.** Recording still needs the consent step in §5b.
-- **Retention and deletion.** Free school-space data is deleted 120 days after the season ends (a parent-consent library account is deleted 12 months after its last sign-in; a school-path student whose space ends has 30 days to add parent consent, or the account is deleted; see `docs/library/TRACKS.md` §6), with reminders 30 days before, 7 days before, and on the day (§10i). Anything the student exported stays theirs. A student can delete any item at any time. A school can delete its whole space. Backups expire on a fixed schedule.
+- **Retention and deletion.** Automatic deletion after a set time is planned with the Library feature. It is not in place today. The planned rules are in `docs/library/TRACKS.md` §6. Anything the student exported stays theirs. A student can delete any item at any time. A school can delete its whole space. Backups expire on a fixed schedule.
 - **Student export.** One click exports the student's whole record (feedback, flows they saved, badges) as plain files. The student keeps it after they graduate or change schools.
 - **Encryption.** In transit always. At rest on the server.
 
@@ -400,7 +400,7 @@ Build in this order. Each step is useful alone.
 
 ### 10i. Decisions (owner)
 
-1. **Retention after the season: DECIDED — 120 days after the season ends** (about one debate season), then delete. The app sends reminders 30 days before, 7 days before, and on the day of deletion, each with an export link.
+1. **Retention after the season: planned.** Automatic deletion after a set time is planned with the Library feature. It is not in place today.
 2. **Coach view of tournament round logs: DECIDED — only if the student shares them.** Never automatic.
 3. **Parents: DECIDED — no parent dashboard.** Parents ask the student or the school for an export. Exception: for a free Debate Library account made with parent consent (`docs/library/TRACKS.md` §6.1), the consenting parent gets a light account for data rights only: see what is stored, export, delete, withdraw consent. It shows no progress and sends no alerts except the retention reminders, so it is not a parent dashboard.
 
