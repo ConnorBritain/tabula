@@ -329,9 +329,9 @@ Note: the Hevy reference in the Mobbin notes shows "Score 1 to 6". Use the profi
 
 ## 10. Open questions
 
-1. **District PO scale.** One reading of the manual gives 1 to 8 for each speech and each full hour of presiding. Another gives 4 to 8 for the PO. Owner answer: keep 4 to 8 for each full hour as the default, say "Check your tournament's rule", and let the judge change it (done, §11).
+1. **District PO scale.** One reading of the manual gives 1 to 8 for each speech and each full hour of presiding. Another gives 4 to 8 for the PO. Default: 4 to 8 for each full hour, say "Check your tournament's rule", and let the judge change it (done, §11).
 2. **`reasonBelow`** for Nationals, UIL, TFA and districts.
-3. **Rank pool at NSDA.** The manual does not limit it. Last Chance does. Owner answer: the default is every student present, shown with "Check your tournament's rule", and the judge can switch to "spoke or presided" (done, §11).
+3. **Rank pool at NSDA.** The manual does not limit it. Last Chance does. Default: every student present, shown with "Check your tournament's rule", and the judge can switch to "spoke or presided" (done, §11).
 4. **Parliamentarian full rank.** NSDA uses it only as the last tiebreak. Is a 30-row rank UI worth it in C6, or is a top-8 rank plus "unranked" enough?
 5. **Scorer rotation.** No NSDA rule found. The design assumes a new ballot each session in all leagues.
 6. **NCFL and CHSSA scales and PO rules.** Not verified. Nationals Senate and House elims may use other PO hour rules.
@@ -360,7 +360,7 @@ Each open fact in §10 was checked against primary sources. A fact that is not c
 
 Update after the screen review ([CONGRESS-REVIEW.md](CONGRESS-REVIEW.md)): the app no longer decides rows 1 and 5 for the judge. Setup shows each unverified value as a choice with "Check your tournament's rule": the PO points for each full hour (4 to 8 first, or 1 to 8) and who can be ranked (every present legislator first, or only those who spoke or presided). The chamber keeps the pick. UIL's PO range (2 to 6, or 1 to 6) gets the same choice. Congress shows a "Beta" tag.
 
-Owner-confirmed defaults for rows 1 and 5: the district PO default is 4 to 8 for each full hour, and the NSDA rank pool default is every present legislator. Both show "Check your tournament's rule" and both can be changed at setup.
+Defaults for rows 1 and 5: the district PO default is 4 to 8 for each full hour, and the NSDA rank pool default is every present legislator. Both show "Check your tournament's rule" and both can be changed at setup.
 
 Still open for the owner: §10 items 4 (parliamentarian full rank, S7), 8 (seat chart), 9 (timekeeper view), 10 (slowest device). The TFA State profile (`tfa-state`) and the rank-only NCFL and CHSSA profiles (`ncfl`, `chssa`, `chssa-elim`) are written (rows 9 and 11).
 

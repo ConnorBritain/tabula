@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parseRoom } from './js/parse.js';
 import { congressProfile, poScaleChoices, rankPoolChoices } from './congress/profiles.js';
-import { createChamber, newSession, setStatus, closeSession, frozenProfile, sessionsToClose, markDebated, reopenItem } from './congress/chamber.js';
+import { createChamber, newSession, setStatus, closeSession, frozenProfile, sessionsToClose, setSubmitted, markDebated, reopenItem } from './congress/chamber.js';
 import { startSpeech, endSpeech, updateSpeech, legislatorLines } from './congress/speech.js';
 import { startTerm, endTerm, reopenTerm, setHourScore, HOUR_MS } from './congress/po.js';
 import { rankPool, toggleRank, rankModel } from './congress/rank.js';
@@ -38,9 +38,7 @@ const primaries = (html) => (html.match(/class="b primary/g) || []).length;
 
 // ---------- open rule facts ----------
 
-// Why: the district PO range (4 to 8, or 1 to 8) and the NSDA rank pool are not settled in the sources. If the app
-// fixed them silently, a judge at a tournament with the other rule would hand in wrong PO points or rank a student who
-// may not be ranked. The setup screen must offer both, say "Check your tournament's rule", and keep the pick.
+// Why: a silent PO range or rank pool means a judge at a tournament with the other rule hands in wrong PO points or ranks.
 test('setup offers the unverified PO range and rank pool as choices, with "Check your tournament\'s rule"', () => {
   assert.deepEqual(poScaleChoices(DIST).map((s) => s.min + '-' + s.max), ['4-8', '1-8'], 'the rules\' range first, then the manual\'s other reading');
   assert.deepEqual(rankPoolChoices(DIST), ['present', 'spokeOrPresided']);
@@ -60,8 +58,7 @@ test('setup offers the unverified PO range and rank pool as choices, with "Check
   assert.equal(congressProfile('nsda-nationals').rankPool, 'present');
 });
 
-// Why: a pick that the chamber did not keep would mean the PO buttons and the rank pool silently fall back to the
-// rules' default during a 3-hour session.
+// Why: if the chamber dropped the pick, the PO buttons and rank pool would fall back to the default mid-session.
 test('the chamber keeps the judge\'s PO range and rank pool, and ignores a value that was never offered', () => {
   const c = chamberOf(10, DIST, { poScale: { min: 1, max: 8 }, rankPool: 'spokeOrPresided' });
   assert.deepEqual({ ...c.profile.poScale }, { min: 1, max: 8 });
@@ -101,8 +98,7 @@ test('every Congress screen shows the Beta tag, and setup, the list and Review s
   assert.ok(reviewHtml(c, s, 0).includes(BETA_LINE));
 });
 
-// Why: the event picker is where a judge first opens Congress; without the tag there, they start a chamber not knowing
-// the scorer is new.
+// Why: the picker is where a judge first opens Congress; without the tag they start a chamber not knowing it is new.
 test('the picker\'s Congress row carries the Beta tag', async () => {
   const data = await loadEventData(async (p) => JSON.parse(read('./' + p)));
   const html = pickerListHtml(pickerSections(pickerRows(data), [], ''));
@@ -112,9 +108,7 @@ test('the picker\'s Congress row carries the Beta tag', async () => {
 
 // ---------- statuses ----------
 
-// Why: status lives on the chamber. Marking a student absent before session 2 used to drop them from session 1's rank
-// pool too, emptying a slot on a ballot the judge already handed in. This follows the screen's order: the judge marks
-// the absence on the overview first, then starts the next session.
+// Why: marking a student absent for session 2 must not empty a slot on session 1's ballot (screen order: mark, then start).
 test('marking someone absent before the next session leaves earlier and submitted ballots as they were', () => {
   const c = chamberOf(10);
   let s1 = newSession(c, [], { now: 0, makeId }).session;
@@ -143,6 +137,25 @@ test('marking someone absent before the next session leaves earlier and submitte
   assert.deepEqual(sessionsToClose([{ number: 1 }, { number: 2, submittedAt: 3 }]).map((x) => x.number), [1, 2]);
 });
 
+// Why: after "Mark submitted" then Undo, the latest session stayed frozen, so a student who left stayed rankable.
+test('taking back "submitted" on the latest session makes it follow the chamber again; an earlier one keeps its copy', () => {
+  const c = chamberOf(10);
+  let s = newSession(c, [], { now: 0, makeId }).session;
+  s = setSubmitted(s, c, true, 5, true);
+  assert.equal(s.submittedAt, 5);
+  assert.ok(s.statuses);
+  const back = setSubmitted(s, c, false, 6, true);
+  assert.equal(back.submittedAt, null);
+  assert.equal('statuses' in back, false);
+  const left = setStatus(c, c.legislators[0].id, 'left', 7);
+  assert.ok(!rankPool(left, back).some((x) => x.legislator.id === c.legislators[0].id), 'the student who left is out');
+  assert.ok(setSubmitted(s, c, false, 6, false).statuses, 'an earlier session keeps its copy');
+  // The picker and the PO list of an earlier session use its own statuses.
+  const st = statusChange(withSession(withChamber(migrateCongress(null), c), s), c.id, c.legislators[1].id, 'absent', 8);
+  assert.ok(enterPick(findChamber(st, c.id), findSession(st, s.id), c.legislators[1].code), 'still pickable in the submitted session');
+  assert.match(poCardHtml(findChamber(st, c.id), findSession(st, s.id), 9, true), new RegExp('data-id="' + c.legislators[1].id + '"'));
+});
+
 // ---------- rank notes and unscored speeches ----------
 
 // Why: a 6-way tie printed 15 pair lines that pushed the pool off the phone screen; one line per group says the same.
@@ -159,8 +172,7 @@ test('a points tie among ranked legislators is one line per group', () => {
   assert.match(html, /1001, 1002, 1003, 1004, 1005 and 1006 have the same points\./);
 });
 
-// Why: an empty point box read as a total of 0, and Review copied "No points" with no warning, so a judge could hand
-// in a ballot with a missing speech score.
+// Why: an empty point box read as 0 and Review copied "No points" silently, so a ballot could go in missing a score.
 test('speeches with no points are named on Rank and Review, but a capped, off-floor or live speech is not', () => {
   const c = chamberOf(10);
   let s = newSession(c, [], { now: 0, makeId }).session;
@@ -190,8 +202,7 @@ test('speeches with no points are named on Rank and Review, but a capped, off-fl
 
 // ---------- Review ----------
 
-// Why: each Review card printed the same title line twice, which doubled a 45-speech page; the copied text must still
-// hold the title line first, because that is what goes into the ballot row.
+// Why: a doubled title line doubled a 45-speech Review; Copy must still put the title line first for the ballot row.
 test('a Review card shows its title once; Copy still gives the title then the notes', () => {
   const c = chamberOf(8);
   let s = newSession(c, [], { now: 0, makeId }).session;
@@ -205,8 +216,7 @@ test('a Review card shows its title once; Copy still gives the title then the no
 
 // ---------- picker ----------
 
-// Why: typing "1" and pressing Enter gave the floor to the first of 30 codes that contain a 1, so the wrong student got
-// the speech and its points.
+// Why: "1" then Enter gave the floor to the first of many codes with a 1, so the wrong student got the speech.
 test('Enter in the picker takes an exact code or the only match, never the first of many', () => {
   const c = chamberOf(20);
   const s = newSession(c, [], { now: 0, makeId }).session;
@@ -222,8 +232,7 @@ test('Enter in the picker takes an exact code or the only match, never the first
 
 // ---------- overview ----------
 
-// Why: "Start session 2" was the one big button while session 1 was still open, so one stray tap opened a new ballot
-// mid-session. Until a session is marked submitted, the primary goes back to it.
+// Why: one stray tap on "Start session 2" opened a new ballot while session 1 was still open.
 test('the overview\'s primary opens the open session; Start is primary only once it is submitted', () => {
   const c0 = chamberOf(8);
   const made = newSession(c0, [], { now: 0, makeId });
@@ -240,8 +249,7 @@ test('the overview\'s primary opens the open session; Start is primary only once
 
 // ---------- undo ----------
 
-// Why: "Next item" and "End term" each change the chamber with one tap mid-session. Without Undo, a slip marks a bill
-// as debated or restarts the PO's hour count; and an Undo that put back an old copy would wipe changes made since.
+// Why: without Undo a slip marks a bill debated or restarts PO hours; a whole-copy Undo would wipe later changes.
 test('Undo for Next item reopens only that item; Undo for End term reopens the term and keeps its scores', () => {
   const c = chamberOf(8);
   const s = newSession(c, [], { now: 0, makeId }).session;
@@ -270,7 +278,8 @@ test('the session page wires Undo, the Enter pick and the submitted copy to the 
   assert.match(src, /const back = reopenItem\(cur\.c, cur\.s, before\)/);
   assert.match(src, /save\(reopenTerm\(cur\)\)/);
   assert.match(src, /enterPick\(c, s, q\)/);
-  assert.match(src, /was \? s : closeSession\(s, c\)/);
+  assert.match(src, /save\(setSubmitted\(s, c, !was, now, latest\(\)\)\)/);
+  assert.match(src, /save\(setSubmitted\(cur\.s, cur\.c, false, env\.now\(\), latest\(\)\)\)/);
   const cs = read('./congress/chamber-screen.js');
   assert.match(cs, /io\.write\(statusChange\(io\.read\(\), id, sel\.dataset\.status, sel\.value, env\.now\(\)\)\)/);
   assert.match(cs, /for \(const old of earlier\) next = withSession\(next, closeSession\(old, c\)\);/);

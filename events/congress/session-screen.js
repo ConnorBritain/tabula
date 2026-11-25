@@ -2,12 +2,12 @@
 // views.js builds the HTML; the rules are in speech.js, po.js, rank.js and review.js. This file wires the buttons,
 // runs the tick (timer and session clock), and saves after each change: every action writes the whole Congress value
 // at once (env.store, key tabulaEvents.congress.v1). The comment box saves after a short pause and on leaving it.
-import { congressIO, findSession, findChamber, withSession, withChamber } from './store.js';
+import { congressIO, findSession, findChamber, withSession, withChamber, chamberSessions } from './store.js';
 import { startSpeech, updateSpeech, removeSpeech, startQuestions, endSpeech, timerView, clockText, refusesAction } from './speech.js';
 import { startTerm, endTerm, reopenTerm, setHourScore } from './po.js';
 import { toggleRank } from './rank.js';
 import { reviewBlocks, rankProblems } from './review.js';
-import { markDebated, firstOpenItem, reopenItem, closeSession } from './chamber.js';
+import { markDebated, firstOpenItem, reopenItem, setSubmitted } from './chamber.js';
 import { barHtml, logHtml, rankHtml, reviewHtml, sessionClock, enterPick, pickerMatches } from './views.js';
 import { copyText } from '../js/review-screen.js';
 import { newId } from '../js/room.js';
@@ -172,10 +172,11 @@ export function mountSession(el, env, sessionId, stage) {
       case 'copy': copyBlock(b.dataset.id); return undefined;
       case 'submitted': {
         const was = s.submittedAt || null;
+        const latest = () => { const st = state(); const list = chamberSessions(st, c.id); return !list.some((x) => x.number > s.number); };
         // Submitted: the session keeps the statuses it has now, so a later absence never changes this ballot.
-        save(Object.assign({}, was ? s : closeSession(s, c), { submittedAt: was ? null : now }));
+        save(setSubmitted(s, c, !was, now, latest()));
         draw('submitted');
-        if (!was) env.ui.toast('Marked as submitted.', { key: 'cg-undo', action: { label: 'Undo', name: 'Undo: submitted', run: () => { save(Object.assign({}, parts().s, { submittedAt: null })); draw('submitted'); } } });
+        if (!was) env.ui.toast('Marked as submitted.', { key: 'cg-undo', action: { label: 'Undo', name: 'Undo: submitted', run: () => { const cur = parts(); if (cur.s && cur.c) save(setSubmitted(cur.s, cur.c, false, env.now(), latest())); draw('submitted'); } } });
         return undefined;
       }
       default: return undefined;
