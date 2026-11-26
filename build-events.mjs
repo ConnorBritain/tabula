@@ -30,7 +30,7 @@ export const ALLOW = [
   'events/comment-kit/kit.js', 'events/comment-kit/kit-view.js', 'events/comment-kit/kit-data.js', 'events/comment-kit/kit.css',
   'core',
   'assets/theme-boot.js', 'assets/fonts',
-  'events/manifest.webmanifest', 'events/icons',
+  'events/manifest.webmanifest', 'events/icons', 'events/kit/index.html', 'events/kit/kit.css', 'events/kit/kit.js', 'events/kit/qr.js',
 ];
 
 // Allowed paths that may not exist yet (the install manifest and its icons). They are copied when present. Whether
