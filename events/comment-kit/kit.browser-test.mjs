@@ -92,11 +92,15 @@ async function focusedStarter(page, kind, index) {
     const strip = button.closest('.chips');
     const b = button.getBoundingClientRect(), s = strip.getBoundingClientRect();
     const left = s.left + strip.clientLeft;
-    return { kind: button.dataset.kitKind, index: Number(button.dataset.kitI), left: b.left, right: b.right, clipLeft: left, clipRight: left + strip.clientWidth };
+    const text = document.createRange();
+    text.selectNodeContents(button);
+    return { kind: button.dataset.kitKind, index: Number(button.dataset.kitI), left: b.left, right: b.right, top: b.top, bottom: b.bottom, clipLeft: left, clipRight: left + strip.clientWidth,
+      textRects: [...text.getClientRects()].map((r) => ({ left: r.left, right: r.right, top: r.top, bottom: r.bottom })) };
   });
   assert.equal(view.kind, kind);
   assert.equal(view.index, index);
   assert.ok(view.left >= view.clipLeft - 1 && view.right <= view.clipRight + 1, 'The focused starter must be fully readable: ' + JSON.stringify(view));
+  assert.ok(view.textRects.length > 0 && view.textRects.every((r) => r.left >= view.left - 1 && r.right <= view.right + 1 && r.top >= view.top - 1 && r.bottom <= view.bottom + 1), 'The complete starter label must fit inside its button: ' + JSON.stringify(view));
 }
 
 async function walkStarters(page, kind) {
@@ -117,10 +121,17 @@ async function walkStarters(page, kind) {
   await focusedStarter(page, kind, 1);
 }
 
-for (const viewport of [{ width: 390, height: 667 }, { width: 1366, height: 768 }]) {
+for (const viewport of [{ width: 390, height: 667 }, { width: 1366, height: 768 }]) for (const wideFont of [false, true]) {
   // Why: a keyboard judge cannot choose a useful starter if focus moves to a clipped label or insertion loses the writing cursor.
-  test(`focused starters stay readable and activate at ${viewport.width} pixels`, async () => {
+  test(`focused starters stay readable and activate at ${viewport.width} pixels${wideFont ? ' with a wide fallback font' : ''}`, async () => {
     await inRoom(async (page) => {
+      if (wideFont) {
+        await page.addStyleTag({ content: '.kit-chip { font-family: monospace; }' });
+        const shortLines = await page.locator('[data-kit-kind="strength"]').nth(1).evaluate((button) => {
+          const range = document.createRange(); range.selectNodeContents(button); return range.getClientRects().length;
+        });
+        assert.equal(shortLines, 1, 'A short starter keeps its single-line shape.');
+      }
       const notes = page.locator('#notes');
       await notes.fill('Clear open. Clear close.');
       await notes.evaluate((box) => box.setSelectionRange(12, 12));

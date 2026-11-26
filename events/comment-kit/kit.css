@@ -3,6 +3,7 @@
    asks a question and is not an error. The starter chips use the sheet's own .chip look (app.css). */
 .kit-rows { display: grid; gap: var(--s2); margin-top: var(--s2); }
 .kit-reason-starters { margin-bottom: var(--s2); }
+.kit-chip { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 .kit-note { margin-top: var(--s2); padding: var(--s2) var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--sunk); font-size: var(--fs-2); color: var(--text); }
 .kit-note[hidden] { display: none; }
 .kit-note-text { display: flex; gap: var(--s2); align-items: flex-start; margin: 0; }
