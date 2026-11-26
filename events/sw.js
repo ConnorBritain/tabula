@@ -5,7 +5,8 @@
 // made by node events/build-sw.mjs). A release is installed whole or not at all, and the page is served from one
 // release only. So a browser never runs an old core/ file beside a new events/ file.
 //   install:  fetch every file past the HTTP cache into the new release's cache. One failure fails the install, and
-//             the old release stays in use.
+//             the old release stays in use. A first install starts at once; an update then waits (see 'message').
+//   message:  { type: 'start-update' } from the page: the waiting release takes over (events/js/update-gate.js).
 //   activate: delete every older tabula-events-* cache. Other caches on this host are not touched.
 //   fetch:    a listed file comes from the release cache. Everything else (other files, /api/, other hosts, POST)
 //             goes to the network as if no worker were here, and nothing is ever added to the cache.
@@ -32,10 +33,22 @@ function cachedUrl(request) {
   return LISTED.has(url.href) ? url.href : null;
 }
 
+// A new release does not take over by itself. It waits until the page asks with { type: 'start-update' }, and the page
+// asks only when the judge presses Reload while no round is open and no clock runs (events/js/update-gate.js). The
+// first install has no release to replace, so it starts at once.
 self.addEventListener('install', (event) => {
+  const firstInstall = !(self.registration && self.registration.active);
   event.waitUntil(caches.open(CACHE)
     .then((cache) => cache.addAll(URLS.map((u) => new Request(u, { cache: 'reload' }))))
-    .then(() => self.skipWaiting()));
+    // An older release that started while this one installed deletes every other cache, this one too. Then fail the
+    // install, so the browser tries again later, and never start with an empty cache.
+    .then(() => caches.keys())
+    .then((keys) => { if (!keys.includes(CACHE)) throw new Error('the release cache was deleted during install'); })
+    .then(() => (firstInstall ? self.skipWaiting() : undefined)));
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'start-update') event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', (event) => {
