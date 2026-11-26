@@ -703,8 +703,8 @@
   .clock-chip { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--h-md); padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); font-variant-numeric: tabular-nums; white-space: nowrap; cursor: pointer; flex: none; }
   .clock-chip:hover { background: var(--sunk); border-color: var(--text-2); }
   .clock-chip[hidden] { display: none; }
-  /* The format chip: always on, quiet, the same pill shape. It opens Round setup; it never changes the format itself. */
-  .fmt-chip { display: inline-flex; align-items: center; min-height: var(--h-md); padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: none; color: var(--text-2); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); white-space: nowrap; cursor: pointer; flex: none; }
+  /* The format control uses the same corner radius as Help and Settings. It opens Round setup. */
+  .fmt-chip { display: inline-flex; align-items: center; min-height: var(--h-md); padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: none; color: var(--text-2); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); white-space: nowrap; cursor: pointer; flex: none; }
   .fmt-chip:hover { background: var(--sunk); border-color: var(--text-2); color: var(--text); }
   .fmt-chip .fmt-short { display: none; }
   @media (max-width: 479.98px) { .fmt-chip .fmt-full { display: none; } .fmt-chip .fmt-short { display: inline; } }

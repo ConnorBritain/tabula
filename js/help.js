@@ -167,7 +167,7 @@ async function openWelcome(signedOut) {
   if (signedOut === true) choices.push({ label: 'Sign in', value: 'signin', kind: 'link', desc: 'Bought rounds?' });
   // "Start judging", × and Esc all mean the same thing: one click to Flow. cancelValue is the one place that says so,
   // so v is only ever 'start' or 'setup'. A click on the dim layer does nothing.
-  const v = await ask({ title: `Welcome to ${window.TabulaBrand.NAME}`, body: 'Your clock, flow and ballot are ready.', buttons: choices, variant: 'choices', backdrop: false, cancelValue: 'start' });
+  const v = await ask({ title: `Welcome to ${window.TabulaBrand.NAME}`, body: 'Your clock, flow and ballot are ready. Open Round to set up the speakers and format.', buttons: choices, variant: 'choices', backdrop: false, cancelValue: 'start' });
   if (v === 'start') return startJudging();
   if (v === 'signin') { location.href = L.signinUrl(location.host); return; } // setupDone stays unset: a judge who does not finish sign-in still gets the welcome
   S.setupDone = true; saveSettings(); showTab('ai'); setTimeout(offerTour, 400);
