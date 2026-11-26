@@ -13,7 +13,7 @@ test('startup opens Flow for new and returning judges without replacing their ro
   const navigation=core.slice(core.indexOf('const PLACES ='),core.indexOf("$('#nav').innerHTML"));
   for(const tab of [undefined,'ai','setup','ballot','flow']){
     const round={tab,flows:[{name:'Case',cells:{'1AC':'Saved argument'}}],cur:3};
-    const before={...round,tab:undefined},saved=[];
+    const before=structuredClone({...round,tab:undefined}),saved=[];
     const element={classList:{toggle(){}},removeAttribute(){},setAttribute(){}};
     const world={R:round,S:{},L:logic,can:()=>false,$:()=>element,document:{body:{dataset:{}},querySelectorAll:()=>[],addEventListener(){}},sdState:()=>({}),acctBoot:Promise.resolve()};
     world.save=()=>saved.push(JSON.parse(JSON.stringify(world.R)));
