@@ -20,7 +20,8 @@ bindAll(); renderSpeeches(); renderClock(); renderPrep(); renderTranscript(); re
 renderSingleKeys(); renderNetNote(); // the Start and Speeches tips follow the single-key switch (5.5); the offline note (5.1)
 renderConnections(); checkHelper(); renderReadLevel(); renderRange(); applyPanes(); renderAudio(); listMics();
 applyCapabilities(); // the AI gate, before the first place is drawn (js/caps.js)
-showTab(R.tab || 'flow'); renderPrepPresets(); showDrawer(Boolean(S.trDrawer)); resumeClips();
+// Reopening the app starts in the round workspace, even if Settings was last open.
+showTab('flow'); renderPrepPresets(); showDrawer(Boolean(S.trDrawer)); resumeClips();
 renderSdList(); if (sdState().code) { sdFetchList(true); sdWatch(); } // resume watching this round's SpeechDrop room
 booted = true;
 studyBoot(); // study mode (5.7): only with ?study=1
