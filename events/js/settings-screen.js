@@ -13,6 +13,7 @@ import { createStore, downloadFile } from '../../core/store.js';
 import { isMacPlatform } from '../../core/keys.js';
 import { THEMES, RANKS_DUE_MAX, DRAW_GAPS, withSetting, validRanksDue, ranksDueMinOf, makeBackup, backupName, readBackup, restoreItems, keptText, CLEAR_WHAT, releaseId, feedbackMailto, KNOWN_ISSUES_URL } from './settings.js';
 import { PREFIX, BACKUP_AT_KEY, storageKept } from './store.js';
+import { isStandalone } from '../../core/install-hint.js';
 import { KEYS_KEY } from './ai-key.js';
 import { keymap } from './keys.js';
 import { checkOffline, CACHE_PREFIX } from './offline.js';
@@ -109,11 +110,9 @@ export function downloadBackup(env, includeKeys) {
   env.ui.toast('The backup file is in your downloads.', { key: 'backup' });
 }
 
-// Is the page running as an installed app? (Page only; false where the browser cannot say.)
-const installed = () => {
-  try { return Boolean((globalThis.matchMedia && globalThis.matchMedia('(display-mode: standalone)').matches) || (globalThis.navigator && globalThis.navigator.standalone)); }
-  catch { return false; }
-};
+// Is the page running as an installed app? (core/install-hint.js, shared with Tabula Debate; false where the browser
+// cannot say.)
+const installed = () => isStandalone();
 
 // The whole screen as HTML text. v: { settings, ai, keys (keySheetHtml), offline ({ text } or null while checking),
 // kept (keptText's line, or null while checking), release (the release id) }.

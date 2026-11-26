@@ -1,0 +1,16 @@
+/* Comment kit (events/comment-kit/kit-view.js): the sentence starters, the performance note and the length note.
+   Neutral chrome only: the note is a calm grey panel with a full 1 px control edge, never a status tint, because it
+   asks a question and is not an error. The starter chips use the sheet's own .chip look (app.css). */
+.kit-rows { display: grid; gap: var(--s2); margin-top: var(--s2); }
+.kit-reason-starters { margin-bottom: var(--s2); }
+.kit-chip { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.kit-note { margin-top: var(--s2); padding: var(--s2) var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--sunk); font-size: var(--fs-2); color: var(--text); }
+.kit-note[hidden] { display: none; }
+.kit-note-text { display: flex; gap: var(--s2); align-items: flex-start; margin: 0; }
+.kit-note-text svg.i { flex: none; margin-top: 2px; }
+.kit-note-words { margin: var(--s1) 0 0; }
+.kit-note-acts { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s2); }
+.kit-count { margin-top: var(--s1); }
+@media (max-width: 820px) {
+  .kit-note-acts .b { min-height: 44px; }
+}

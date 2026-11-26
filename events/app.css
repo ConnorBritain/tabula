@@ -697,3 +697,46 @@ details.fold[open] > .fold-row { margin-bottom: var(--s2); }
 .md-backup { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); padding: var(--s3) var(--s4); margin-bottom: var(--s4); }
 .md-backup h2 { font-size: var(--fs-4); }
 .md-backup p { margin: 0 0 var(--s2); }
+
+/* Speaker view (speaker-view.js): the room timer, full screen, turned toward the speaker. Off until the judge opens
+   it. The stage tints follow the timer card: neutral while speaking, a strong outline in the last minute, the caution
+   tint in grace and the error tint over time; the phase pill says the same in words. */
+.speaker-open { display: flex; justify-content: center; margin: var(--s3) 0 0; }
+.speaker-view { position: fixed; inset: 0; z-index: var(--z-dialog); display: flex; flex-direction: column; gap: var(--s3);
+  padding: max(var(--s3), env(safe-area-inset-top)) max(var(--s4), env(safe-area-inset-right)) max(var(--s3), env(safe-area-inset-bottom)) max(var(--s4), env(safe-area-inset-left));
+  background: var(--canvas); color: var(--text); border: 4px solid var(--border); overflow: auto; overscroll-behavior: contain; }
+.speaker-view.stage-last { border-color: var(--text); }
+.speaker-view.stage-grace { background: var(--caution-tint); border-color: var(--caution); }
+.speaker-view.stage-over { background: var(--error-tint); border-color: var(--error); }
+.speaker-view.stage-stopped { background: var(--sunk); }
+.speaker-view .sv-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
+.speaker-view .sv-title { margin: 0; font-family: var(--font-mono); font-size: var(--fs-4); }
+.speaker-view .sv-main { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 0; }
+.speaker-view p { margin: 0; }
+.speaker-view .sv-phase .pill { font-size: clamp(18px, 4vw, 32px); padding: .2em .7em; }
+.speaker-view .sv-phase .pill svg.i { width: 1em; height: 1em; }
+.speaker-view .sv-digits { font-family: var(--font-display); font-size: clamp(72px, min(26vw, 42vh), 400px); line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; margin: var(--s2) 0 var(--s1); }
+.speaker-view .sv-sub { font-size: clamp(16px, 3vw, 28px); color: var(--text-2); }
+.speaker-view .track { width: min(900px, 100%); max-width: none; }
+.speaker-view .track-bar { height: 22px; }
+.speaker-view .track-now { width: 20px; height: 20px; }
+.speaker-view .sv-foot { display: flex; flex-direction: column; align-items: center; gap: var(--s2); }
+.speaker-view .sv-go { min-height: 64px; min-width: min(320px, 100%); font-size: clamp(20px, 4vw, 28px); justify-content: center; }
+.speaker-view .sv-go svg.i { width: 28px; height: 28px; }
+.speaker-view .sv-hint { font-size: var(--fs-2); color: var(--text-2); }
+.speaker-view:fullscreen { width: 100%; height: 100%; }
+/* A phone on its side: digits and button side by side would crowd; keep one column, smaller gaps. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .speaker-view { gap: var(--s1); }
+  .speaker-view .sv-digits { font-size: clamp(56px, 30vh, 200px); margin: 0; }
+  .speaker-view .sv-phase .pill { font-size: 18px; }
+  .speaker-view .track-ticks { display: none; }
+  .speaker-view .sv-go { min-height: 48px; }
+  .speaker-view .sv-hint { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .speaker-view { transition: background-color .3s ease, border-color .3s ease; }
+}
+@media (forced-colors: active) {
+  .speaker-view { border-color: CanvasText; }
+}
