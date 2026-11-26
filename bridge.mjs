@@ -16,14 +16,16 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { learningExportPage } from './scripts/learning-export-page.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8765);
 const FILES = { '/': 'index.html', '/index.html': 'index.html', '/logic.js': 'logic.js', '/keys.js': 'keys.js', '/ui.js': 'ui.js', '/providers.js': 'providers.js', '/tour.js': 'tour.js', '/app.js': 'app.js', '/tap.js': 'tap.js', '/clipqueue.js': 'clipqueue.js', '/about': 'about.html', '/about.html': 'about.html' };
+FILES['/learning-progress/export.js'] = 'vendor/learning-export.js';
 for (const f of ['tabula-mark-black.webp', 'tabula-mark-white.webp', 'tabula-wordmark-black.webp', 'tabula-wordmark-white.webp', 'tabula-mark-black.png', 'tabula-mark-white.png', 'tabula-icon-64.png', 'fonts/InterTight-latin.woff2', 'fonts/InterTight-Italic-latin.woff2', 'tokens.css', 'theme-boot.js', 'brand.js', 'caps-boot.js', 'demo-boot.js']) FILES['/assets/' + f] = 'assets/' + f;
 // The page code and the pure logic are split by job into js/ and logic/ (the files index.html loads in order).
 for (const f of ['demo', 'core', 'formatsetup', 'pairing', 'caps', 'clock', 'recording', 'flow', 'docs', 'ai', 'limits', 'consent', 'settings', 'preferences', 'help', 'insights', 'decide', 'shell', 'palette', 'study', 'judging', 'account']) FILES['/js/' + f + '.js'] = 'js/' + f + '.js';
-for (const f of ['format', 'round', 'audio', 'flow', 'files', 'pairing', 'rules', 'decide', 'prompts', 'shell', 'account', 'flags', 'caps', 'limits', 'hosted', 'demo']) FILES['/logic/' + f + '.js'] = 'logic/' + f + '.js';
+for (const f of ['format', 'round', 'audio', 'flow', 'files', 'pairing', 'rules', 'decide', 'prompts', 'shell', 'account', 'flags', 'caps', 'limits', 'hosted', 'demo', 'learning-routes', 'learning']) FILES['/logic/' + f + '.js'] = 'logic/' + f + '.js';
 for (const f of ['policy-hs.v1', 'ld.v1', 'pf.v1']) FILES['/formats/' + f + '.js'] = 'formats/' + f + '.js';
 for (const f of ['policy', 'ld', 'pf']) FILES['/demo/' + f + '.js'] = 'demo/' + f + '.js'; // the demo's sample rounds
 // Shared ES modules (the core both apps use). index.html loads them with type="module".
@@ -54,6 +56,7 @@ async function learnFile(pathname) {
 }
 const MAX_BODY = 30 * 1024 * 1024;
 const L = createRequire(import.meta.url)('./logic.js');
+const LEARNING = createRequire(import.meta.url)('./logic/learning.js');
 // The same security rule (CSP) the hosted site sends (from _headers), so local testing blocks what the site blocks.
 const CSP = await readFile(path.join(ROOT, '_headers'), 'utf8').then((t) => (t.match(/Content-Security-Policy: (.+)/) || [])[1] || '').catch(() => '');
 // SPEECHDROP_URL / SPEECHDROP_MEDIA: test-only overrides (bridge.test.mjs points them at a fake SpeechDrop on this computer).
@@ -225,7 +228,15 @@ const server = http.createServer(async (req, res) => {
       const out = sd[2] == null ? await speechDropList(code) : await speechDropFile(code, Number(sd[2]));
       return out.error ? send(res, out.status, { error: out.error }) : send(res, 200, out.body, out.type);
     }
+    if (req.method === 'GET' && url.pathname === '/learning-progress') { res.writeHead(301, { Location: '/learning-progress/', 'Cache-Control': 'no-store' }); return res.end(); }
+    // Local-helper readers transfer to the public library; no offline learning copy is promised.
+    if (req.method === 'GET' && url.pathname === '/learning-progress/') return send(res, 200, learningExportPage('prod'), 'text/html');
     if (req.method === 'GET' && isLearnPath(url.pathname)) {
+      if (LEARNING.learningCutover) {
+        const target = LEARNING.legacyLearningPath(url.pathname);
+        if (target) { res.writeHead(301, { Location: 'https://tabulaspeech.com' + target + url.search, 'Cache-Control': 'no-store' }); return res.end(); }
+        return send(res, 404, 'Learning page not found.', 'text/plain');
+      }
       const r = await learnFile(url.pathname);
       if (r.redirect) { res.writeHead(301, { Location: r.redirect, 'Cache-Control': 'no-store' }); return res.end(); }
       return r.body ? send(res, 200, r.body, r.type) : send(res, r.status, { error: 'not found' });
