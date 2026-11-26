@@ -1,14 +1,62 @@
 // Run with: node --test
 // Starts the real local helper (bridge.mjs) on a spare port, pointed at a fake SpeechDrop on this computer.
+// This suite keeps the legacy library contract. bridge-learning-cutover.test.mjs covers the shipped cutover mode.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { cpSync, lstatSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
+import { dirname, extname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ALLOW } from './build-app.mjs';
+import { snapshotScript } from './scripts/sync-learning-routes.mjs';
 
 const dir = fileURLToPath(new URL('.', import.meta.url));
+const require = createRequire(import.meta.url);
 const BIG = 26 * 1024 * 1024;
-let fake, bridge, base;
+let fake, bridge, base, fixtureDir;
+
+function legacyFixture() {
+  fixtureDir = mkdtempSync(join(tmpdir(), 'bridge-legacy-'));
+  // Copy only the app's public allowlist and the helper's two source dependencies. No repo configuration,
+  // credentials, environment files, or arbitrary JSON enters the fixture. core/package.json sets its module type.
+  const runtimeTypes = new Set(['.html', '.js', '.mjs', '.css', '.xml', '.png', '.webp', '.woff2', '.svg', '.webmanifest']);
+  const filter = (file) => {
+    const rel = relative(dir, file).split(sep).join('/');
+    if (rel.split('/').some((part) => part.startsWith('.')) || /\.test\.(?:m?js)$|\.local\./.test(rel)) return false;
+    const info = lstatSync(file);
+    if (info.isSymbolicLink()) return false;
+    return info.isDirectory() || rel === '_headers' || rel === 'core/package.json' || runtimeTypes.has(extname(file));
+  };
+  for (const name of [...ALLOW, 'bridge.mjs', 'scripts/learning-export-page.mjs', 'core/package.json']) {
+    mkdirSync(dirname(join(fixtureDir, name)), { recursive: true });
+    cpSync(join(dir, name), join(fixtureDir, name), { recursive: true, filter });
+  }
+  const routes = require('./logic/learning-routes.js');
+  writeFileSync(join(fixtureDir, 'logic/learning-routes.js'), snapshotScript({ ...routes, enabled: false }));
+  return fixtureDir;
+}
+
+async function sparePort() {
+  const server = http.createServer();
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const { port } = server.address();
+  await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  return port;
+}
+
+async function stopBridge() {
+  if (!bridge?.pid || bridge.exitCode !== null || bridge.signalCode !== null) return;
+  const child = bridge;
+  const exited = once(child, 'exit');
+  child.kill();
+  const timer = setTimeout(() => child.kill('SIGKILL'), 2000);
+  try { await exited; } finally { clearTimeout(timer); }
+}
 
 // A fake SpeechDrop: room "room1" has two files (slot 1 was deleted) and one file over the 25 MB cap.
 function startFake() {
@@ -25,24 +73,57 @@ function startFake() {
 function startBridge(port, fakePort) {
   return new Promise((resolve, reject) => {
     bridge = spawn(process.execPath, ['bridge.mjs'], {
-      cwd: dir,
+      cwd: fixtureDir,
       env: { ...process.env, PORT: String(port), SPEECHDROP_URL: `http://127.0.0.1:${fakePort}/`, SPEECHDROP_MEDIA: `http://127.0.0.1:${fakePort}/media/` },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
-    bridge.stdout.on('data', (d) => { if (/running at/.test(String(d))) resolve(); });
-    bridge.on('exit', (c) => reject(new Error('bridge exited ' + c)));
-    setTimeout(() => reject(new Error('bridge did not start')), 10000);
+    let output = '', portBusy = false;
+    const timer = setTimeout(() => finish(new Error('bridge did not start')), 10000);
+    const finish = (error) => {
+      clearTimeout(timer);
+      bridge.stdout.off('data', onOutput);
+      bridge.stderr.off('data', onErrorOutput);
+      bridge.off('error', onError);
+      bridge.off('exit', onExit);
+      error ? reject(error) : resolve();
+    };
+    const onOutput = (data) => {
+      output += String(data);
+      if (output.includes('Tabula running at http://localhost:' + port)) finish();
+    };
+    const onErrorOutput = (data) => { if (String(data).includes('EADDRINUSE')) portBusy = true; };
+    const onError = (error) => finish(error);
+    const onExit = (code, signal) => finish(Object.assign(new Error(`bridge exited before startup (${code ?? signal})`), { portBusy }));
+    bridge.stdout.on('data', onOutput);
+    bridge.stderr.on('data', onErrorOutput);
+    bridge.once('error', onError);
+    bridge.once('exit', onExit);
   });
 }
 const get = (path, headers = {}) => fetch(base + path, { headers });
 
 test.before(async () => {
+  legacyFixture();
   const fakePort = await startFake();
-  const port = 20000 + Math.floor(Math.random() * 20000);
-  base = `http://127.0.0.1:${port}`;
-  await startBridge(port, fakePort);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const port = await sparePort();
+    try {
+      await startBridge(port, fakePort);
+      base = `http://127.0.0.1:${port}`;
+      return;
+    } catch (error) {
+      await stopBridge();
+      if (!error.portBusy || attempt === 2) throw error;
+    }
+  }
 });
-test.after(() => { if (bridge) bridge.kill(); if (fake) fake.close(); });
+test.after(async () => {
+  try { await stopBridge(); }
+  finally {
+    try { if (fake?.listening) await new Promise((resolve, reject) => fake.close((error) => error ? reject(error) : resolve())); }
+    finally { if (fixtureDir) rmSync(fixtureDir, { recursive: true, force: true }); }
+  }
+});
 
 // Why: the helper fetches other sites for the page; without these guards any website a judge visits could use it to read SpeechDrop rooms or probe the network.
 test('the SpeechDrop route refuses requests that are not from Tabula, and bad codes', async () => {
