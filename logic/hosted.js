@@ -11,6 +11,7 @@
   const { APP_FEATURES, canUse, payerOf } = part('caps');
   const { hostedAiBody } = part('account');
   const { parseRound } = part('limits');
+  const PREFS = typeof module !== 'undefined' && module.exports ? require('../core/ai-preferences.js') : root.TabulaCore['ai-preferences'];
 
   // Where a judge buys rounds (the buy page lives on the account site). The staging app (debate.tabulaspeech.dev)
   // links to the staging account site, so a test purchase never opens the live one.
@@ -88,7 +89,10 @@
     const r = round || {};
     if (job === 'flow') {
       const speech = text(extra && extra.speech);
-      return { speech, transcript: text((r.transcripts || {})[speech]), flow: block(flowSoFarLines(r, speech)) };
+      const state = { speech, transcript: text((r.transcripts || {})[speech]), flow: block(flowSoFarLines(r, speech)) };
+      const preferences = PREFS.preferenceText(extra && extra.aiPreferences, false);
+      if (preferences) state.notes = preferences;
+      return state;
     }
     const e = extra || {};
     const flow = judgeFlowLines(r);
@@ -96,6 +100,8 @@
     const flowText = [flow.length ? "JUDGE'S FLOW\n" + block(flow) : '', ai.length ? 'AI FLOW\n' + ai.join('\n') : ''].filter(Boolean).join('\n\n');
     let notes = judgeNotes(r, e);
     if (job === 'ballot') notes = [notes, ...ballotRequestLines(r, e.judgeInput, e)].join('\n').trim();
+    const preferences = PREFS.preferenceText(e.aiPreferences, true);
+    if (preferences) notes = [notes, preferences].filter(Boolean).join('\n\n');
     const state = { transcript: block(transcriptLines(r, docs)), flow: flowText, notes };
     // The server owns the guide text for each reading level and the points scale (the server API's AI reply contract).
     // The round map gets no level (callAI passes reading: null for it, as on the own-key path): its text is short labels.

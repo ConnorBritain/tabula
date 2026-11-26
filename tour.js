@@ -17,7 +17,7 @@
         { place: 'flow', target: '.rb-rec', feature: 'transcription', title: 'Record the speech', body: 'Tick Transcribe. Recording runs only while the speech clock runs. A short bar shows the mic level, and a note warns you if no words come through.' },
         { place: 'flow', target: '#tab-flow', title: 'Flow the round', body: '"My flow" is yours to type. "AI flow" fills itself from the transcript and docs. You can edit any AI cell. The AI never changes what you type.', mentions: 'aiFlow', plainBody: 'Type the flow here. Keep each argument on one line across the columns, so the clash lines up.' },
         { place: 'eval', target: '#subnav', title: 'Decide', body: 'After the round: the Live Eval, deeper analysis and the ballot. Each one works with or without AI.', mentions: 'liveEval', plainBody: 'After the round: the round at a glance, the round map and the ballot.' },
-        { place: 'ballot', target: '#draft-open', feature: 'ballotDraft', title: 'Fill the ballot', body: 'Type the ballot, or let the AI draft it. You check each AI field first. The AI never changes what you type. Then print or copy it.' },
+        { place: 'ballot', target: '#draft-open', feature: 'ballotDraft', title: 'Fill the ballot', body: 'Type the ballot, or let the AI draft it. You check each AI field first. Typing protects a field automatically. Click its icon to switch. Then print or copy it.' },
         { place: null, target: '#help-btn', title: 'Help is always here', body: 'Click ? to replay this tour or tour this page. Connect AI with the gear. The clock, flow and ballot work without it.', mentions: 'setup', plainBody: 'Click ? to replay this tour, or to get a short tour of the page you are on.' },
       ],
     },
@@ -51,7 +51,7 @@
       steps: [
         { place: 'setup', target: '#round-card', title: 'Round details', body: 'The tournament, round, judge and resolution. They show on the ballot and in History.' },
         { place: 'setup', target: '#docs-card', title: 'Round documents', body: 'Add speech docs and pick which speech each one belongs to. The AI maps them onto that speech on the flow.', mentions: 'aiFlow', plainBody: 'Add speech docs and pick which speech each one belongs to.' },
-        { place: 'setup', target: '#writing-card', feature: 'any', title: 'How the AI writes', body: 'Expert writes like a college judge. Plain: short sentences, everyday words. The decision stays the same.' },
+        { place: 'ai', target: '#writing-settings', feature: 'any', title: 'How the AI writes', body: 'Expert writes like a college judge. Plain: short sentences, everyday words. The decision stays the same.' },
         { place: 'setup', target: '#times-card', title: 'Times and points', body: 'Prep time for each team, and the speaker points range your tournament uses. Most leagues use 25–30.' },
       ],
     },

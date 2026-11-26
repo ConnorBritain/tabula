@@ -46,6 +46,7 @@ function renderEvalStatus() {
   const ev = LV().liveEval;
   const go = $('#eval-go');
   go.textContent = L.runVerb(Boolean(ev));
+  go.insertAdjacentHTML('afterbegin', TabulaCore['ai-mark'].aiMark());
   const empty = !L.insightsReady(R, DOCS);
   go.disabled = evalBusy || !ready() || empty;
   tone(el);
@@ -245,6 +246,7 @@ function renderAnalysis() {
   // Lens
   const lens = R.analysis.lens[currentLensKey()];
   $('#lens-go').textContent = L.runVerb(Boolean(lens));
+  $('#lens-go').insertAdjacentHTML('afterbegin', TabulaCore['ai-mark'].aiMark());
   $('#lens-go').disabled = busy.lens;
   statusLine($('#lens-status'), 'lens', lens, 'Not weighed under this paradigm yet. Click Run.');
   if ($('#lens-pick').value === 'custom' && !myParadigm().trim()) $('#lens-status').innerHTML = acctProfile ? '<span class="is-caution">Your account has no paradigm yet. Add it in Settings.</span>' : '<span class="is-caution">Paste your paradigm below first.</span>';
@@ -258,6 +260,7 @@ function renderAnalysis() {
   const imp = LV().impacts;
   $('#impact-go').disabled = busy.impacts;
   $('#impact-go').textContent = L.runVerb(Boolean(imp));
+  $('#impact-go').insertAdjacentHTML('afterbegin', TabulaCore['ai-mark'].aiMark());
   statusLine($('#impact-status'), 'impacts', imp, 'Not run yet. Click Run.');
   const id = imp && imp.data;
   $('#impact-out').innerHTML = id ? `
@@ -272,6 +275,7 @@ function renderAnalysis() {
   const map = R.analysis.map;
   $('#map-go').disabled = busy.map;
   $('#map-go').textContent = L.runVerb(Boolean(map));
+  $('#map-go').insertAdjacentHTML('afterbegin', TabulaCore['ai-mark'].aiMark());
   statusLine($('#map-status'), 'map', map, 'Not drawn yet. Click Run.');
   const view = R.mapView === 'diagram' ? 'diagram' : 'sheet';
   document.querySelectorAll('[data-mapview]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mapview === view)));

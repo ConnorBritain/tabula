@@ -79,13 +79,16 @@ export function reviewCard(record, group, opts) {
 }
 
 // A field the judge changed while the review waits: the card says "Changed since the draft", gets a fresh diff against
-// the new text, and goes back to "Keep mine" (the judge's newer text wins until they choose). isText: as above.
-export function staleCards(review, record, isText) {
+// the new text, and goes back to "Keep mine" (the judge's newer text wins until they choose). A new lock does the
+// same even when the text has not changed. isText: as above.
+export function staleCards(review, record, isText, previousRecord) {
   if (!review) return review;
   const cards = review.cards.map((c) => {
     const now = byField(c.fields, (f) => fieldValue(record, f) ?? '');
     const moved = c.fields.some((f) => String(now[f]) !== String(c.base[f]));
-    if (!moved) return c;
+    const newlyProtected = c.fields.some((f) => fieldState(record, f) === 'yours'
+      && (previousRecord ? fieldState(previousRecord, f) !== 'yours' : c.state !== 'yours'));
+    if (!moved && !newlyProtected) return c;
     const n = Object.assign({}, c, { base: now, changed: true, state: 'yours', choice: 'keep' });
     if (isText && isText(c)) n.diff = wordDiff(now[c.fields[0]], c.after[c.fields[0]]);
     return n;

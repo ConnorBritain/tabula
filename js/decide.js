@@ -50,7 +50,7 @@ for (const q of [wideBallot, narrowBallot]) q.addEventListener('change', () => {
 
 function renderDraftButton() {
   const b = $('#draft-open'); if (!b) return;
-  b.textContent = R.ballotReview ? 'Draft ready' : 'Draft with AI';
+  b.innerHTML = TabulaCore['ai-mark'].aiMark() + (R.ballotReview ? 'Draft ready' : 'Draft with AI');
 }
 const STATE_TEXT = {
   empty: 'Nothing to draft from yet. The AI needs at least one speech, flow or doc.',
@@ -75,7 +75,7 @@ function renderDraftPanel() {
   const focusId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.pick : null;
   box.innerHTML = keep + draftGroupsNow().map((g) => {
     const yours = L.fieldState(R.ballot, g.fields) === 'yours';
-    return `<label class="row check-row"><input type="checkbox" data-pick="${g.id}"${picks.has(g.id) ? ' checked' : ''}> ${escapeHtml(g.label)}${yours ? ' <span class="muted">(yours)</span>' : ''}</label>`;
+    return `<label class="row check-row"><input type="checkbox" data-pick="${g.id}"${picks.has(g.id) ? ' checked' : ''}> ${escapeHtml(g.label)}${yours ? ' <span class="muted">(locked)</span>' : ''}</label>`;
   }).join('');
   if (focusId) { const el = box.querySelector(`[data-pick="${focusId}"]`); if (el) el.focus(); }
   const fb = $('#dp-feedback');
@@ -225,7 +225,7 @@ function renderReview() {
     <p class="status-line" id="rv-status" role="status" aria-live="polite">${busy ? busyHtml(draftUi.busyText || 'Drafting…') : draftUi.err ? '<span class="is-error">' + escapeHtml(L.AI_ERROR_PREFIX.ballot + ' ' + draftUi.err) + '</span>' : draftUi.stopped ? '<span class="is-quiet">' + STATE_TEXT.stopped + '</span>' : ''}</p>
     ${narrow && n > 1 ? `<div class="rv-pager"><button class="b small" type="button" id="rv-prev"${draftUi.idx === 0 ? ' disabled' : ''}>Previous</button><p class="rv-count" aria-live="polite">${draftUi.idx + 1} of ${n}: ${escapeHtml(rv.cards[draftUi.idx].label)}</p><button class="b small" type="button" id="rv-next"${draftUi.idx === n - 1 ? ' disabled' : ''}>Next</button></div>` : ''}
     ${rv.cards.map((c, i) => `<section class="rv-card${i === draftUi.idx ? ' rv-current' : ''}" aria-labelledby="rv-h-${c.id}">
-      <div class="rv-card-head"><h4 id="rv-h-${c.id}">${escapeHtml(c.label)}</h4>${c.changed ? '<span class="pill is-caution">Changed since the draft</span>' : ''}${c.state === 'yours' ? '<span class="b-tag-ai">Yours</span>' : ''}</div>
+      <div class="rv-card-head"><h4 id="rv-h-${c.id}">${escapeHtml(c.label)}</h4>${c.changed ? '<span class="pill is-caution">Changed since the draft</span>' : ''}${L.fieldState(R.ballot, c.fields) === 'yours' ? `<span class="b-tag-ai">${LOCK_SVG} Protected from AI</span>` : ''}</div>
       ${cardBody(c)}
       <div class="rv-card-foot">${cardChoice(c)}<button class="b small" type="button" data-rv-redo="${c.id}" aria-describedby="rv-cost"${busy ? ' disabled' : ''}>Redo this</button></div>
     </section>`).join('')}
@@ -420,34 +420,59 @@ $('#restore-file').addEventListener('change', async (e) => {
 
 // ---------- ballot (spec 4.1, 4.2, 4.7, 4.8, 4.12, and the narrow ballot 4.15 / 5.6c) ----------
 const ranksOn = () => FMT().ballot.speakerRanks;
-const LOCK_SVG = '<svg class="lock" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
+const LOCK_SVG = TabulaCore['ai-mark'].lockMark();
+const AI_SPARKLE_SVG = TabulaCore['ai-mark'].aiMark();
 // One tag per field group: the winner, each speaker row (points, and rank when the format has ranks), the RFD and
 // each team's comments.
 const tagGroups = () => Object.assign({ winner: ['winner'], rfd: ['rfd'], affFb: ['affFb'], negFb: ['negFb'] }, Object.fromEntries(FMT().speakerIds.map((s) => ['row.' + s, ranksOn() ? ['pts.' + s, 'ranks.' + s] : ['pts.' + s]])));
 function tagHtml(key) {
-  const st = L.fieldState(R.ballot, tagGroups()[key]);
-  if (st === 'yours') return `<button type="button" class="b-tag-btn" data-unlock="${key}" aria-label="Yours: ${escapeHtml(L.fieldLabel(key, FMT()))}. Unlock it for the AI" data-tip="The AI will not change this. Click to let it.">${LOCK_SVG}Yours</button>`;
-  if (st === 'ai') return '<span class="b-tag-ai">AI draft</span>';
-  return '';
+  const locked = L.fieldState(R.ballot, tagGroups()[key]) === 'yours';
+  const tip = locked ? 'Protected from AI. Click to allow changes.' : 'AI editing allowed. Click to protect.';
+  return `<button type="button" class="b-tag-btn" data-ai="ballotDraft" data-protect="${key}" aria-label="Protect ${escapeHtml(L.fieldLabel(key, FMT()))} from AI" aria-pressed="${locked}" aria-description="${tip}" data-tip="${tip}">${locked ? LOCK_SVG : AI_SPARKLE_SVG}</button>`;
 }
 function renderBallotTags() {
+  const focused = document.activeElement && document.activeElement.dataset.protect;
   document.querySelectorAll('#tab-ballot [data-tag]').forEach((el) => { const h = tagHtml(el.dataset.tag); if (el.innerHTML !== h) el.innerHTML = h; });
+  if (focused) document.querySelector(`[data-protect="${focused}"]`).focus();
   renderDraftPanel();
 }
-// "Yours" is a button: it unlocks the field at once, with an Undo toast and no dialog (spec 4.2).
-document.addEventListener('click', (e) => {
-  const b = e.target.closest && e.target.closest('[data-unlock]'); if (!b) return;
-  const key = b.dataset.unlock, fields = tagGroups()[key];
+// The icon stays visible in both states. Editing still protects the field automatically.
+function toggleBallotProtection(key) {
+  const fields = tagGroups()[key];
+  const locked = L.fieldState(R.ballot, fields) === 'yours';
   const before = { touched: Object.assign({}, R.ballot.touched), aiFilled: Object.assign({}, R.ballot.aiFilled) };
-  R.ballot = L.markFields(R.ballot, fields, 'free'); save(); renderBallotTags();
-  const to = key === 'winner' ? document.querySelector('input[name="winner"]:checked') || document.querySelector('input[name="winner"]')
-    : key.startsWith('row.') ? document.querySelector(`[data-bind="ballot.pts.${key.slice(4)}"]`) : document.querySelector(`[data-bind="ballot.${key}"]`);
-  if (to) to.focus();
-  undoToast('The AI may now change ' + L.fieldLabel(key, FMT()) + '.', 'unlock ' + L.fieldLabel(key, FMT()), () => { Object.assign(R.ballot, before); save(); renderBallotTags(); }, 'It is yours again.');
+  const values = fields.map((f) => L.fieldValue(R.ballot, f));
+  const reviewBefore = R.ballotReview;
+  const previousBallot = R.ballot;
+  R.ballot = L.markFields(R.ballot, fields, locked ? 'free' : 'yours');
+  if (R.ballotReview) R.ballotReview = L.staleReviewCards(R.ballotReview, R.ballot, previousBallot);
+  const reviewAfter = R.ballotReview;
+  const reviewSnapshot = reviewAfter && JSON.stringify(reviewAfter);
+  save(); renderBallotTags();
+  const label = L.fieldLabel(key, FMT());
+  undoToast(locked ? 'The AI may now change ' + label + '.' : 'The AI cannot change ' + label + '.',
+    (locked ? 'allow AI changes to ' : 'protect ') + label, () => {
+      if (fields.some((f, i) => L.fieldValue(R.ballot, f) !== values[i])) {
+        toast('Kept your newer edits protected.');
+        return false;
+      }
+      for (const set of ['touched', 'aiFilled']) for (const f of fields) {
+        if (before[set][f] === undefined) delete R.ballot[set][f];
+        else R.ballot[set][f] = before[set][f];
+      }
+      if (R.ballotReview === reviewAfter && JSON.stringify(R.ballotReview) === reviewSnapshot) R.ballotReview = reviewBefore;
+      if (R.ballotReview) R.ballotReview = L.staleReviewCards(R.ballotReview, R.ballot);
+      save(); renderBallotTags();
+    }, locked ? 'Protected from AI again.' : 'AI changes allowed again.');
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('[data-protect]'); if (!b) return;
+  toggleBallotProtection(b.dataset.protect);
 });
 
 function renderBallot() {
   const r = ptsRangeNow();
+  $('#ballot-ai-help').innerHTML = `<strong>AI editing</strong><span class="tip-line">${LOCK_SVG} Lock: AI cannot change this field.</span><span class="tip-line">${AI_SPARKLE_SVG} Star: AI can change this field.</span><span class="tip-line">Typing protects a field automatically. Click its icon to switch.</span>`;
   $('#ballot-title').textContent = 'Ballot' + (R.roundName ? ' · ' + R.roundName : '');
   $('#w-aff').textContent = R.aff.team ? '(' + R.aff.team + ')' : '';
   $('#w-neg').textContent = R.neg.team ? '(' + R.neg.team + ')' : '';

@@ -15,6 +15,10 @@ import { reviewCard, staleCards, applyReview } from '../../core/review.js';
 import { buildAIRequest, parseAIResponse, extractJson } from '../../core/ai.js';
 import { CLEANUP_PROMPT, CLEANUP_SCHEMA } from '../prompts/cleanup.v1.js';
 import { SPELLING_PROMPT } from '../prompts/spelling.v1.js';
+import { REWRITE_PROMPTS } from '../prompts/rewrite.v2.js';
+import { PREFERENCE_LIMIT, preferenceText } from '../../core/ai-preferences.js';
+import { EDIT_MODES, editDefaults } from './edit-options.js';
+export { EDIT_MODES, editDefaults } from './edit-options.js';
 import { ballotComment } from './comments.js';
 import { setComment } from './ballot.js';
 
@@ -48,7 +52,7 @@ export function hostedAllowed({ level, hostedOptIn } = {}) {
 // app knows this person has a hosted plan or a school that pays; E14 sets it), level, hostedOptIn }.
 //   'hosted'  : the Worker path (E14), allowed by plan and by the middle school rule.
 //   'own'     : the judge's own key.
-//   'connect' : AI is allowed but nothing is connected; the button opens the Connect AI invite.
+//   'connect' : AI is allowed but nothing is connected; Preview changes opens the key invite.
 //   'none'    : remove the button.
 export function cleanupPath(o) {
   const P = policy();
@@ -147,26 +151,47 @@ export function leaks(text, swaps) {
 
 // ---------- request and reply ----------
 
-// The two modes (DESIGN.md §4.9): 'full' (Full clean-up, the default) and 'spelling' (Spelling only).
-export const MODES = Object.freeze({ full: CLEANUP_PROMPT, spelling: SPELLING_PROMPT });
+// Original v1 operations plus scoped v2 wording operations. The picker does not start a request.
+export const MODES = Object.freeze({ full: CLEANUP_PROMPT, spelling: SPELLING_PROMPT, ...REWRITE_PROMPTS });
+// A selection uses offsets into the exact saved comment; malformed ranges never fall back to a full send.
+export function editTarget(entry, range) {
+  const base = sourceText(entry);
+  if (range == null) return { base, start: 0, end: base.length, text: base, selected: false };
+  const { start, end } = range;
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start || end > base.length || !base.slice(start, end).trim()) throw new Error('Select the words you want to edit again.');
+  return { base, start, end, text: base.slice(start, end), selected: true };
+}
+
+// Rebuild locally so text outside a selection never depends on the AI response.
+export function selectionDraft(target, draft) {
+  if (typeof draft !== 'string' || !draft.trim()) return null;
+  const leading = target.selected ? target.text.match(/^\s*/)[0] : '';
+  const trailing = target.selected ? target.text.match(/\s*$/)[0] : '';
+  return target.base.slice(0, target.start) + leading + draft.trim() + trailing + target.base.slice(target.end);
+}
 
 // The scrubbed prompt for some entries of a room. Returns { system, prompt, schema, swaps, sent, mode } where sent lists
 // { id, speaker } in order. No code, name, title or author is in system or prompt. Throws if one is (a bug guard).
-export function cleanupMessages(room, event, ids, mode = 'full') {
+export function cleanupMessages(room, event, ids, mode = 'full', options = {}) {
   const P = MODES[mode];
   if (!P) throw new Error('unknown clean-up mode ' + mode);
   const swaps = scrubMap(room);
   const list = cleanableEntries(room, ids);
   const sent = list.map((e) => ({ id: e.id, speaker: speakerTag(room, e.id) }));
+  if (options.selection != null && list.length !== 1) throw new Error('Select text in one comment only.');
   const blocks = sent.map((x) => {
     const e = list.find((y) => y.id === x.id);
-    return x.speaker + '\n' + scrub(sourceText(e), swaps).trim();
+    return x.speaker + '\n' + scrub(editTarget(e, options.selection).text, swaps).trim();
   });
   const eventName = scrub((event && event.name) || 'Speech', swaps);
+  const request = mode === 'custom' && typeof options.request === 'string' ? options.request.slice(0, PREFERENCE_LIMIT).trim() : '';
+  if (mode === 'custom' && !request) throw new Error('Describe the change you want, then preview it.');
+  const preferences = scrub(preferenceText(options.preferences, false), swaps);
+  const requestNote = request ? 'CUSTOM WORDING REQUEST (optional; keep the original meaning):\n' + scrub(JSON.stringify(request), swaps) : '';
   // The guard looks at the judge's text and the event name only: the fixed prompt words are ours, not personal.
-  if (leaks(eventName + '\n' + blocks.join('\n'), swaps).length) throw new Error('a code or name was left in the clean-up text');
-  const prompt = P.intro.replace('{event}', () => eventName) + '\n\n' + blocks.join('\n\n');
-  return { system: P.system, prompt, schema: CLEANUP_SCHEMA, swaps, sent, mode };
+  if (leaks([eventName, ...blocks, preferences, requestNote].join('\n'), swaps).length) throw new Error('a code or name was left in the clean-up text');
+  const prompt = [P.intro.replace('{event}', () => eventName), blocks.join('\n\n'), preferences, requestNote].filter(Boolean).join('\n\n');
+  return { system: P.system + (options.selection != null ? '\nOnly the selected excerpt is supplied. Edit that excerpt alone. Do not add an introduction, conclusion, or text outside it.' : ''), prompt, schema: CLEANUP_SCHEMA, swaps, sent, mode };
 }
 
 // The fetch request for the judge's own key (any provider in core/ai.js; Anthropic too, by a plain fetch, because the
@@ -261,7 +286,7 @@ export function undoCleanup(room, before, id, cleanText, now) {
   return Object.assign({}, room, { state: before.state, copiedAt: before.copiedAt, updatedAt: now, entries: room.entries.map((x) => (x.id === id ? old : x)) });
 }
 
-(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).cleanup = Object.freeze({ FEATURE, TASK, levelOf, hostedAllowed,
+(globalThis.TabulaEvents = globalThis.TabulaEvents || {}).cleanup = Object.freeze({ FEATURE, TASK, editDefaults, editTarget, selectionDraft, levelOf, hostedAllowed,
   cleanupPath, showCleanupButton, sourceText, cleanableEntries, scrubMap, speakerTag, scrub, restore, leaks,
   cleanupMessages, cleanupRequest, draftsFromText, readCleanupReply, cleanupGroups, cleanupRecord, cleanupReview,
-  refreshReview, setChoice, applyCleanup, acceptCleanup, undoCleanup, MODES });
+  refreshReview, setChoice, applyCleanup, acceptCleanup, undoCleanup, MODES, EDIT_MODES });

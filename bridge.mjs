@@ -22,13 +22,15 @@ const PORT = Number(process.env.PORT || 8765);
 const FILES = { '/': 'index.html', '/index.html': 'index.html', '/logic.js': 'logic.js', '/keys.js': 'keys.js', '/ui.js': 'ui.js', '/providers.js': 'providers.js', '/tour.js': 'tour.js', '/app.js': 'app.js', '/tap.js': 'tap.js', '/clipqueue.js': 'clipqueue.js', '/about': 'about.html', '/about.html': 'about.html' };
 for (const f of ['tabula-mark-black.webp', 'tabula-mark-white.webp', 'tabula-wordmark-black.webp', 'tabula-wordmark-white.webp', 'tabula-mark-black.png', 'tabula-mark-white.png', 'tabula-icon-64.png', 'fonts/InterTight-latin.woff2', 'fonts/InterTight-Italic-latin.woff2', 'tokens.css', 'theme-boot.js', 'brand.js', 'caps-boot.js', 'demo-boot.js']) FILES['/assets/' + f] = 'assets/' + f;
 // The page code and the pure logic are split by job into js/ and logic/ (the files index.html loads in order).
-for (const f of ['demo', 'core', 'formatsetup', 'pairing', 'caps', 'clock', 'recording', 'flow', 'docs', 'ai', 'limits', 'consent', 'settings', 'help', 'insights', 'decide', 'shell', 'palette', 'study', 'judging', 'account']) FILES['/js/' + f + '.js'] = 'js/' + f + '.js';
+for (const f of ['demo', 'core', 'formatsetup', 'pairing', 'caps', 'clock', 'recording', 'flow', 'docs', 'ai', 'limits', 'consent', 'settings', 'preferences', 'help', 'insights', 'decide', 'shell', 'palette', 'study', 'judging', 'account']) FILES['/js/' + f + '.js'] = 'js/' + f + '.js';
 for (const f of ['format', 'round', 'audio', 'flow', 'files', 'pairing', 'rules', 'decide', 'prompts', 'shell', 'account', 'flags', 'caps', 'limits', 'hosted', 'demo']) FILES['/logic/' + f + '.js'] = 'logic/' + f + '.js';
 for (const f of ['policy-hs.v1', 'ld.v1', 'pf.v1']) FILES['/formats/' + f + '.js'] = 'formats/' + f + '.js';
 for (const f of ['policy', 'ld', 'pf']) FILES['/demo/' + f + '.js'] = 'demo/' + f + '.js'; // the demo's sample rounds
 // Shared ES modules (the core both apps use). index.html loads them with type="module".
-for (const f of ['defs', 'store', 'ui', 'keys', 'clock', 'ranks', 'points', 'sheets', 'review', 'ai', 'install-hint', 'keep-data']) FILES['/core/' + f + '.js'] = 'core/' + f + '.js';
+for (const f of ['defs', 'store', 'ui', 'keys', 'clock', 'ranks', 'points', 'sheets', 'review', 'ai', 'install-hint', 'keep-data', 'ai-mark', 'ai-preferences']) FILES['/core/' + f + '.js'] = 'core/' + f + '.js';
 FILES['/core/tokens.css'] = 'core/tokens.css'; // the shared tokens; assets/tokens.css imports it
+FILES['/core/ai-mark.css'] = 'core/ai-mark.css';
+FILES['/core/ai-preferences.css'] = 'core/ai-preferences.css';
 FILES['/core/policy.js'] = 'core/policy.js'; // the head file: a plain script, loaded in <head> before logic/caps.js
 for (const f of ['mammoth-1.6.0.browser.min.js', 'mermaid-10.9.1.min.js', 'anthropic-sdk-0.137.0.bundle.mjs']) FILES['/vendor/' + f] = 'vendor/' + f;
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.webp': 'image/webp', '.png': 'image/png', '.woff2': 'font/woff2', '.css': 'text/css; charset=utf-8', '.xml': 'application/xml; charset=utf-8' };
