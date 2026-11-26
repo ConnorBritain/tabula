@@ -12,17 +12,20 @@ const read = (p) => readFileSync(new URL(p, ROOT), 'utf8');
 
 // ---------- the decision ----------
 
+// Why: A running clock must keep its page and elapsed time through a new release.
 test('a running timer holds the update back and shows nothing', () => {
   assert.equal(decideUpdate({ waiting: true, timerRunning: true }), DECISIONS.WAIT);
   assert.equal(mayStartUpdate({ waiting: true, timerRunning: true }), false);
 });
 
+// Why: A judge must keep the round open until the work is complete, including work in another tab.
 test('an open round holds the update back and shows nothing', () => {
   assert.equal(decideUpdate({ waiting: true, roundOpen: true }), DECISIONS.WAIT);
   assert.equal(decideUpdate({ waiting: true, otherBusy: true }), DECISIONS.WAIT, 'a round open in another tab holds it too');
   assert.equal(mayStartUpdate({ waiting: true, roundOpen: true }), false);
 });
 
+// Why: A quiet page must let the judge choose when to leave the current release.
 test('with no round open and no clock running, the notice is offered; the update never starts by itself', () => {
   assert.equal(decideUpdate({ waiting: true, roundOpen: false, timerRunning: false }), DECISIONS.OFFER);
   assert.equal(mayStartUpdate({ waiting: true }), true);
@@ -30,12 +33,14 @@ test('with no round open and no clock running, the notice is offered; the update
   assert.equal(decideUpdate(), DECISIONS.NONE);
 });
 
+// Why: A judge must be able to use a fully cached release without internet while a live round stays protected.
 test('offline does not block a quiet page (the waiting release is complete in its cache), and does not unblock a round', () => {
   assert.equal(decideUpdate({ waiting: true, offline: true }), DECISIONS.OFFER);
   assert.equal(decideUpdate({ waiting: true, offline: true, roundOpen: true }), DECISIONS.WAIT);
   assert.equal(decideUpdate({ waiting: true, offline: true, timerRunning: true }), DECISIONS.WAIT);
 });
 
+// Why: A new device needs its first offline copy before the judge leaves the network.
 test('the first install starts at once, even on a busy page', () => {
   assert.equal(decideUpdate({ firstInstall: true }), DECISIONS.ACTIVATE);
   assert.equal(decideUpdate({ firstInstall: true, roundOpen: true, timerRunning: true }), DECISIONS.ACTIVATE);
@@ -44,6 +49,7 @@ test('the first install starts at once, even on a busy page', () => {
 
 // ---------- what counts as busy ----------
 
+// Why: An unfinished form or round must keep typed work when a release becomes ready.
 test('a round, a chamber, the setup form and an unknown screen are busy; My day, History and Settings are quiet', () => {
   for (const screen of ['round', 'room', 'rank', 'review', 'chamber', 'setup', 'start', 'nope', undefined]) {
     assert.equal(pageBusy({ screen }).roundOpen, true, String(screen));
@@ -52,6 +58,7 @@ test('a round, a chamber, the setup form and an unknown screen are busy; My day,
   assert.ok(QUIET_SCREENS.includes('rooms') && QUIET_SCREENS.includes('settings') && QUIET_SCREENS.includes('history'));
 });
 
+// Why: Route changes must not expose a live round to an update through an alias address.
 test('the real addresses map to busy and quiet as the page sees them (app.js passes parseRoute(location.hash).screen)', () => {
   for (const hash of ['#/round/r1', '#/round/r1/rank', '#/room/r1', '#/review/r1', '#/chamber/c1', '#/new', '#/start/c1']) {
     assert.equal(pageBusy({ screen: parseRoute(hash).screen }).roundOpen, true, hash);
@@ -61,6 +68,7 @@ test('the real addresses map to busy and quiet as the page sees them (app.js pas
   }
 });
 
+// Why: Every saved clock must protect the round even when the judge views another screen.
 test('a speech, prep or cross-ex clock, or a live Congress speech, counts as a running timer on any screen', () => {
   const room = (entry) => [{ entries: [{ timing: { run: null, runs: [] } }, entry] }];
   assert.equal(clockRunning(room({ timing: { run: null } }), null), false);
@@ -108,6 +116,7 @@ function runWorker({ active }) {
   return { fire, stores, caches, skips: () => skips, release: ctx.self.TABULA_EVENTS_RELEASE };
 }
 
+// Why: A release without its install cache cannot provide a complete offline app.
 test('the worker: an install whose cache another release deleted meanwhile fails, so it never starts empty', async () => {
   const w = runWorker({ active: true });
   const open = w.caches.open;
@@ -116,6 +125,7 @@ test('the worker: an install whose cache another release deleted meanwhile fails
   assert.equal(w.skips(), 0);
 });
 
+// Why: An update must preserve the running release until the judge chooses to replace it.
 test('the worker: a first install takes over at once; an update waits, keeps the old cache, and starts only when asked', async () => {
   const first = runWorker({ active: false });
   await first.fire('install');
@@ -134,6 +144,7 @@ test('the worker: a first install takes over at once; an update waits, keeps the
 
 // Why this test sits here: while a release waits, two tabula-events-* caches exist. Browsers list caches in the order
 // they were made, so the offline release id must still name the older one, which runs the page.
+// Why: An offline judge needs the running release name to identify the code that handled the round.
 test('the offline release id names the running release while a newer one waits', async () => {
   const caches = { async keys() { return ['other-app', 'tabula-events-1111111aaaa', 'tabula-events-2222222bbbb']; } };
   assert.equal(await lookupRelease({ fetch: null, caches, online: () => false }), 'offline 1111111');
@@ -167,6 +178,7 @@ function fakePage({ busy = { roundOpen: false, timerRunning: false }, waiting = 
   return { gate, state, note, posted, reloads: () => reloads, winL, swL, reg, nav, flushTimers, settle: () => new Promise((r) => setTimeout(r, 0)) };
 }
 
+// Why: A judge needs a clear update choice without changing the page during round work.
 test('the page shows the calm notice with a Reload button only when a release waits and the page is quiet', async () => {
   const p = fakePage();
   await p.settle();
@@ -192,6 +204,7 @@ test('the page shows the calm notice with a Reload button only when a release wa
   assert.ok(p.note(), 'back on a quiet screen it shows again');
 });
 
+// Why: A notice during judging can distract the judge or suggest an unsafe reload.
 test('the page shows nothing during a round, with no waiting release, or on a first install', async () => {
   const inRound = fakePage({ busy: { roundOpen: true } });
   await inRound.settle();
@@ -204,6 +217,7 @@ test('the page shows nothing during a round, with no waiting release, or on a fi
   assert.equal(first.note(), null, 'no release runs the page yet, so there is nothing to reload into');
 });
 
+// Why: The requesting tab must finish switching workers before it leaves the old release.
 test('Reload asks the worker to take over, and this tab reloads only after it has', async () => {
   const p = fakePage();
   await p.settle();
@@ -214,6 +228,7 @@ test('Reload asks the worker to take over, and this tab reloads only after it ha
   assert.equal(p.reloads(), 1);
 });
 
+// Why: A round opened during takeover must retain its clock and typed work.
 test('a tab that asked but opened a round before the new release took over is not reloaded', async () => {
   const p = fakePage();
   await p.settle();
@@ -227,6 +242,7 @@ test('a tab that asked but opened a round before the new release took over is no
   assert.equal(p.reloads(), 0);
 });
 
+// Why: A stale notice must not reload a round that began after the notice appeared.
 test('Reload re-checks first: a round opened since the notice showed stops it, and nothing reloads', async () => {
   const p = fakePage();
   await p.settle();
@@ -237,6 +253,7 @@ test('Reload re-checks first: a round opened since the notice showed stops it, a
   assert.equal(p.note(), null);
 });
 
+// Why: One tab must not interrupt round work or reload a different tab without its request.
 test('a round open in another tab stops the update; a tab that did not ask never reloads by itself', async () => {
   // Two tabs on one channel: tab B is in a round.
   const tabs = [];
@@ -267,6 +284,7 @@ test('a round open in another tab stops the update; a tab that did not ask never
   assert.equal(b.reloads(), 1, 'Reload in tab B now just reloads into the new release');
 });
 
+// Why: A browser without worker support must still open the judging app.
 test('the page part does nothing in a browser with no workers', () => {
   assert.equal(watchUpdates(Promise.resolve(null), () => ({}), { win: {}, doc: {}, nav: {} }), null);
 });
