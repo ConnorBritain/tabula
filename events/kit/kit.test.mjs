@@ -13,6 +13,7 @@ const html = read('./index.html');
 const js = read('./kit.js');
 const css = read('./kit.css');
 
+// Why: A printed card must open the public app without carrying a tournament or contact value.
 test('the QR code holds the app link and nothing else', () => {
   assert.equal(APP_URL, 'https://events.tabulaspeech.com/');
   assert.equal(appQrSvg(), qrSvg(encodeQr(APP_URL, { level: 'M' }), 'QR code for ' + APP_URL));
@@ -21,6 +22,7 @@ test('the QR code holds the app link and nothing else', () => {
   assert.deepEqual([...js.matchAll(/encodeQr\(([^,)]*)/g)].map((m) => m[1]), ['APP_URL']);
 });
 
+// Why: A coach must be able to type a contact without sending it or leaving it saved on the device.
 test('typed text is never sent, saved or put in the URL', () => {
   for (const re of [/\bfetch\s*\(/, /XMLHttpRequest/, /sendBeacon/, /WebSocket/, /EventSource/, /localStorage/, /sessionStorage/, /indexedDB/, /document\.cookie/, /\blocation\b/, /history\.(push|replace)State/, /\bimport\s*\(/]) {
     assert.doesNotMatch(js, re, 'kit.js uses ' + re);
@@ -39,6 +41,7 @@ test('typed text is never sent, saved or put in the URL', () => {
   assert.doesNotMatch(js, /innerHTML\s*=(?!\s*svg;)/);
 });
 
+// Why: Unexpected field length or line breaks could damage the printed card layout.
 test('a typed line is trimmed to one short line', () => {
   assert.equal(cardLine('  Spring   Invitational\n2027 '), 'Spring Invitational 2027');
   assert.equal(cardLine(null), '');
@@ -46,6 +49,7 @@ test('a typed line is trimmed to one short line', () => {
   assert.equal(cardLine('x'.repeat(200)).length, MAX_LEN);
 });
 
+// Why: A printed card needs all setup steps and device-storage limits to guide a new judge.
 test('the card has the app name, the mark, the link, five steps and the two required lines', () => {
   assert.match(html, /<span class="kc-app">Tabula Speech Events<\/span>/);
   assert.match(html, /class="kc-mark"[^>]*><use href="#kit-mark"\/>/);
@@ -64,6 +68,7 @@ test('the card has the app name, the mark, the link, five steps and the two requ
   assert.doesNotMatch(html, /store nothing/i);
 });
 
+// Why: A different mark or stray brand fill could misidentify the app or imply a control state.
 test('the mark is the app header mark, and the brand greens appear only in it', () => {
   const app = read('../index.html');
   const paths = (src) => [...src.matchAll(/<path fill="([^"]+)" fill-rule="evenodd" d="([^"]+)"\/>/g)].map((m) => m[1] + m[2]);
@@ -73,6 +78,7 @@ test('the mark is the app header mark, and the brand greens appear only in it', 
   assert.doesNotMatch(outside, /#1e7a55|#5ec796/i, 'a brand green outside the mark');
 });
 
+// Why: The card must run from the shipped local files without exposing it to inline code or outside assets.
 test('the page runs no inline script, loads only files from this site and sets no inline style', () => {
   for (const m of html.matchAll(/<script\b([^>]*)>/g)) assert.match(m[1], /\bsrc="/, 'an inline script would break the security rule');
   for (const m of html.matchAll(/\b(?:src|href)="([^"]+)"/g)) assert.doesNotMatch(m[1], /^(?:[a-z]+:)?\/\//i, 'remote file: ' + m[1]);
@@ -80,6 +86,7 @@ test('the page runs no inline script, loads only files from this site and sets n
   assert.doesNotMatch(css, /@import|url\(/, 'no remote or extra files from the CSS');
 });
 
+// Why: A dark printed background would waste ink and make the card hard to read.
 test('print is black on white, with no dark page background', () => {
   const print = /@media print \{([\s\S]*)\}\s*$/.exec(css)[1];
   assert.match(print, /html, body \{ background: #fff !important; color: #000 !important; \}/);
@@ -89,6 +96,7 @@ test('print is black on white, with no dark page background', () => {
   assert.match(appQrSvg(), /<rect width="\d+" height="\d+" fill="#fff"\/><path fill="#000"/);
 });
 
+// Why: A card that runs beyond its paper would hide instructions or leave an incomplete second copy.
 test('one card and two cards each fit a US Letter and an A4 page', () => {
   const print = /@media print \{([\s\S]*)\}\s*$/.exec(css)[1];
   const inch = (re) => Number(re.exec(print)[1]);
@@ -102,6 +110,7 @@ test('one card and two cards each fit a US Letter and an A4 page', () => {
   }
 });
 
+// Why: A coach must be able to find and open the card from both the published app and its offline copy.
 test('Settings, About links to the card, and the page is in the offline cache and the build', async () => {
   assert.match(aboutHtml('r1'), /<a id="set-kit" href="kit\/index\.html">Print a judge card<\/a>/);
   const files = await pageFiles();
@@ -110,6 +119,7 @@ test('Settings, About links to the card, and the page is in the offline cache an
   assert.ok(!ALLOW.some((n) => /^events\/kit\/.*\.test\./.test(n) || n === 'events/kit'), 'only the page files ship');
 });
 
+// Why: Accent stripes would break the shared visual language of the judge app.
 test('the card styles have no stripes: no one-sided border and no inset shadow', () => {
   assert.doesNotMatch(css, /border-(?:left|right|top|bottom|inline|block)[\w-]*\s*:/);
   assert.doesNotMatch(css, /box-shadow[^;]*\binset\b/);

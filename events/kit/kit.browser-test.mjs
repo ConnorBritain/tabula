@@ -1,4 +1,3 @@
-// Why: if the judge card page breaks in a real browser (typed text does not show, the QR code changes, the two-card copy goes wrong, or long text pushes the required lines off a printed card), a tournament prints a card that is wrong or unreadable.
 // Needs Playwright and Chromium. Plain `node --test` runs it; the deploy build runs only the *.test.* files.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -25,6 +24,7 @@ function serve() {
 
 const LONG = 'W'.repeat(80); // the most a field takes (maxlength), in a wide letter
 
+// Why: printed cards must stay usable with long event text, or judges can lose the instructions they need in the room.
 test('the judge card fills, switches layout, keeps its QR code, and fits the paper with the longest text', { timeout: 60000 }, async () => {
   const { chromium } = require('playwright');
   const server = await serve();

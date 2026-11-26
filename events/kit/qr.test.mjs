@@ -41,6 +41,7 @@ const KNOWN = [
 
 const rows = (qr) => qr.modules.map((r) => r.map((d) => (d ? '1' : '0')).join(''));
 
+// Why: A wrong QR matrix could send every printed card to an unreadable code.
 test('the app link gives the known matrix: version 3, level M, mask 2', () => {
   const qr = encodeQr(URL_TEXT);
   assert.equal(qr.version, 3);
@@ -124,12 +125,14 @@ function readQr(m) {
   return { text: new TextDecoder().decode(new Uint8Array(bytes)), level, mask, ver };
 }
 
+// Why: A code must carry the public app address when a judge scans the printed card.
 test('the reader reads the app link back from the encoder and from the known matrix', () => {
   const qr = encodeQr(URL_TEXT);
   assert.deepEqual(readQr(qr.modules), { text: URL_TEXT, level: 'M', mask: 2, ver: 3 });
   assert.equal(readQr(KNOWN.map((r) => [...r].map((c) => c === '1'))).text, URL_TEXT);
 });
 
+// Why: Longer QR payloads must remain readable across the supported error-correction levels.
 test('text of many lengths reads back at every level and every version up to 10', () => {
   const seen = new Set();
   for (const level of ['L', 'M', 'Q', 'H']) {
@@ -147,10 +150,12 @@ test('text of many lengths reads back at every level and every version up to 10'
   for (const level of ['L', 'M', 'Q', 'H']) for (let v = 1; v <= MAX_VERSION; v++) assert.ok(seen.has(level + v), level + v + ' was tested');
 });
 
+// Why: A mask choice must not make an otherwise valid code unreadable.
 test('every forced mask still reads back', () => {
   for (let mask = 0; mask < 8; mask++) assert.equal(readQr(encodeQr(URL_TEXT, { mask }).modules).text, URL_TEXT);
 });
 
+// Why: Damaged format or version information can prevent a camera from reading an intact payload.
 test('both format copies agree, and version 7 carries the standard version bits', () => {
   for (const level of ['L', 'M', 'Q', 'H']) {
     const m = encodeQr('x'.repeat(level === 'H' ? 60 : 90), { level, mask: 5 }).modules;
@@ -179,6 +184,7 @@ test('both format copies agree, and version 7 carries the standard version bits'
   assert.equal(left, 0x07c94);
 });
 
+// Why: Wrong format information would make a scanner use the wrong mask or error-correction level.
 test('format bits match the standard table', () => {
   assert.equal(formatBits('M', 0), 0b101010000010010);
   assert.equal(formatBits('L', 0), 0b111011111000100);
@@ -187,12 +193,14 @@ test('format bits match the standard table', () => {
   assert.equal(formatBits('M', 2), 0b101111001111100);
 });
 
+// Why: Unsupported QR input must fail before a coach prints a code that cannot be read.
 test('text that does not fit and an unknown level are refused', () => {
   assert.throws(() => encodeQr('x'.repeat(214), { level: 'M' }), /too long/);
   assert.doesNotThrow(() => encodeQr('x'.repeat(213), { level: 'M' }));
   assert.throws(() => encodeQr('x', { level: 'Z' }), /Unknown/);
 });
 
+// Why: A QR needs clear light margins and safe label text to remain readable on the page.
 test('the SVG is black on a white square with a quiet zone, and its label is escaped', () => {
   const qr = encodeQr(URL_TEXT);
   const svg = qrSvg(qr, 'a "b" <c> & d');
