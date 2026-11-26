@@ -1,0 +1,218 @@
+// Comment kit: the screen parts. Sentence starters above a comment box, and under it the performance note and the
+// length note. Two mounts, each one call from the screen that owns the box:
+//   mountCommentKit(sheet, def, entryId)   the comment sheet on the Room screen (comment-view.js mounted)
+//   mountReasonKit(box, def, key)          the reason for rank on the Rank screen (rank-screen.js show)
+// The kit adds its parts around the box after the screen draws it. A starter tap writes into the box and sends an
+// input event, so the screen saves the text the same way as typing (no second save path). Nothing is ever put in
+// the box without a tap. The builders at the top are pure (Node tests call them).
+import { escapeHtml as esc } from '../../core/sheets.js';
+import { icon } from '../js/icons.js';
+import { foldSummaryHtml } from '../js/fold.js';
+import { STARTER_TITLE, startersFor, insertStarter, settledHits, hitWords, hitKeys, NOTE_TEXT, lengthNote } from './kit.js';
+
+// One row of starters. Each chip shows the starter with "…" (the judge writes the rest).
+export function starterRowHtml(def, kind, idp) {
+  const list = startersFor(def, kind);
+  if (!list.length) return '';
+  const id = idp + '-' + kind;
+  return `<div class="chip-group kit-row" role="group" aria-labelledby="${esc(id)}">
+      <p class="chip-title" id="${esc(id)}">${esc(STARTER_TITLE[kind])}</p>
+      <div class="chips">${list.map((s, i) => `<button class="chip kit-chip" type="button" data-kit-kind="${esc(kind)}" data-kit-i="${i}" aria-label="Start a sentence: ${esc(s)}">${esc(s)}…</button>`).join('')}</div></div>`;
+}
+
+// The starters for the comment sheet: a fold "Sentence starters" with a Strength row and a To work on row.
+export function sheetStartersHtml(def, open) {
+  const rows = ['strength', 'toWork'].map((k) => starterRowHtml(def, k, 'kit')).join('');
+  if (!rows) return '';
+  return `<details class="fold kit-starters"${open ? ' open' : ''}>${foldSummaryHtml('Sentence starters', '<span class="fold-value muted">tap one, then finish it</span>')}
+      <div class="kit-rows">${rows}</div></details>`;
+}
+
+// The calm note under the box. text: the box text; hits: the hits to name. '' when there are none.
+export function noteHtml(text, hits) {
+  if (!hits.length) return '';
+  const list = hitWords(text, hits).map((w) => '“' + esc(w) + '”').join(', ');
+  return `<p class="kit-note-text">${icon('info')}<span>${esc(NOTE_TEXT)}</span></p>
+    <p class="muted kit-note-words">Words to check: ${list}</p>
+    <div class="kit-note-acts"><button class="b small" type="button" data-kit-act="edit">Edit</button><button class="b small quiet" type="button" data-kit-act="keep">Keep</button></div>`;
+}
+
+
+// "Keep" per comment: the hit words the judge chose to keep, by box key. The note comes back only for a new word.
+// It lives for the page visit (memory only); a reload asks again.
+const kept = new Map();
+// The hit words last announced, by box key, so a redraw of the screen does not read the same note out again.
+const told = new Map();
+let startersOpen = true; // the fold, for this page visit
+// How long after the box loses focus a new note shows: the tap that took the focus lands first, so the note never
+// moves a button (Private note, Flag, Next speaker) out from under the judge's finger.
+const BLUR_WAIT = 400;
+
+// Add or take out one id in an aria-describedby list, keeping the ids already there (the prompts list).
+function describedBy(box, id, on) {
+  const ids = (box.getAttribute('aria-describedby') || '').split(/\s+/).filter((x) => x && x !== id);
+  if (on) ids.push(id);
+  if (ids.length) box.setAttribute('aria-describedby', ids.join(' ')); else box.removeAttribute('aria-describedby');
+}
+
+// Attach the kit to one text box. key: the "Keep" key; startersBefore: the element the starters go in front of (the
+// box's label), else the box; startersHtml: the starters ('' for none). Returns update(done), or null.
+function attach(box, def, key, startersBefore, startersHtml) {
+  if (!box || box.dataset.kit) return null;
+  box.dataset.kit = '1';
+  const doc = box.ownerDocument;
+  const make = (html) => { const t = doc.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+  const starters = startersHtml ? make(startersHtml) : null;
+  if (starters) (startersBefore || box).before(starters);
+  const nid = (box.id || 'box') + '-kit-note';
+  const note = make(`<div class="kit-note" id="${esc(nid)}" hidden></div>`);
+  const count = make(`<p class="field-help kit-count" hidden></p>`);
+  box.after(note, count);
+
+  let shown = []; // the hits the note names now
+  let blurTimer = null, announceTimer = null;
+  function cancelPending() {
+    clearTimeout(blurTimer); clearTimeout(announceTimer);
+    blurTimer = null; announceTimer = null;
+  }
+  // Only the box still on the page may speak. Remember a message once it was delivered, so a cancelled one can
+  // still be read when the judge finishes the word later.
+  function announce(said) {
+    const r = doc.getElementById('sr-status');
+    if (!r) return;
+    r.textContent = '';
+    announceTimer = setTimeout(() => {
+      announceTimer = null;
+      if (!box.isConnected || note.hidden) return;
+      r.textContent = 'Check this comment. ' + NOTE_TEXT;
+      told.set(key, said);
+    }, 60);
+  }
+  // done: the judge left the box (a word at the end counts); first: the screen just drew the box (no announcement).
+  function update(done, first) {
+    clearTimeout(announceTimer); announceTimer = null;
+    if (!box.isConnected) return;
+    const text = box.value;
+    const hits = settledHits(text, done);
+    const keys = hitKeys(hits);
+    const keep = new Set(kept.get(key) || []);
+    const show = keys.some((k) => !keep.has(k));
+    shown = show ? hits : [];
+    // Redraw only when the words change: a blur comes just before a tap on Edit or Keep, and a redraw then would
+    // swap the button under the judge's finger and lose the tap.
+    const html = show ? noteHtml(text, hits) : '';
+    if (show && html !== note.dataset.html) { note.innerHTML = html; note.dataset.html = html; }
+    note.hidden = !show;
+    describedBy(box, nid, show);
+    const said = show ? keys.join('|') : '';
+    if (!first && said && told.get(key) !== said) announce(said);
+    if (first || !said) told.set(key, said);
+    const len = lengthNote(text);
+    count.textContent = len;
+    count.hidden = !len;
+  }
+
+  function onStarter(ev) {
+    const b = ev.target.closest('[data-kit-i]');
+    if (!b) return;
+    const s = startersFor(def, b.dataset.kitKind)[Number(b.dataset.kitI)];
+    if (!s) return;
+    // Where the cursor was when the box lost focus (the comment sheet keeps data-cursor; the kit keeps its own), else
+    // the end of the text when the box was not used yet.
+    const mark = box.dataset.cursor !== undefined ? box.dataset.cursor : box.dataset.kitCursor;
+    const at = mark !== undefined ? Number(mark) : box.value.length;
+    const res = insertStarter(box.value, s, at);
+    box.value = res.text;
+    box.focus();
+    box.setSelectionRange(res.cursor, res.cursor);
+    box.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  // Native focus can leave a starter only partly visible in the phone's horizontal strip. Reveal its nearest edge
+  // in that strip only; scrolling the page or moving focus here would interrupt the judge's writing path.
+  function revealStarter(ev) {
+    const button = ev.target.closest('[data-kit-i]');
+    if (!button) return;
+    const strip = button.closest('.chips');
+    if (!strip || strip.scrollWidth <= strip.clientWidth) return;
+    const b = button.getBoundingClientRect(), s = strip.getBoundingClientRect();
+    const left = s.left + strip.clientLeft, right = left + strip.clientWidth;
+    if (b.left < left) strip.scrollLeft += b.left - left;
+    else if (b.right > right) strip.scrollLeft += b.right - right;
+  }
+
+  function onNote(ev) {
+    const b = ev.target.closest('[data-kit-act]');
+    if (!b) return;
+    if (b.dataset.kitAct === 'keep') {
+      kept.set(key, [...new Set([...(kept.get(key) || []), ...hitKeys(shown)])]);
+      update(true);
+      box.focus();
+      return;
+    }
+    const h = shown[0];
+    box.focus();
+    if (h) box.setSelectionRange(h.start, h.end);
+  }
+
+  if (starters) {
+    starters.addEventListener('click', onStarter);
+    starters.addEventListener('focusin', revealStarter);
+    starters.addEventListener('toggle', () => { startersOpen = starters.open; });
+  }
+  note.addEventListener('click', onNote);
+  box.addEventListener('focus', cancelPending);
+  box.addEventListener('input', () => { cancelPending(); update(false); });
+  box.addEventListener('blur', () => {
+    cancelPending();
+    box.dataset.kitCursor = String(box.selectionStart);
+    blurTimer = setTimeout(() => {
+      blurTimer = null;
+      if (box.isConnected && doc.activeElement !== box) update(true);
+    }, BLUR_WAIT);
+  });
+  update(true, true);
+  return update;
+}
+
+// The comment sheet (comment-view.js). sheet: the #sheet element; def: the room's event file; entryId: the speaker.
+export function mountCommentKit(sheet, def, entryId) {
+  if (!sheet) return;
+  const box = sheet.querySelector('#notes');
+  if (!box) return;
+  const update = attach(box, def, 'notes:' + (entryId || ''), sheet.querySelector('label[for="notes"]'), sheetStartersHtml(def, startersOpen));
+  // A Strengths or To work on chip writes a sentence into the box without an input event (comments.js tapChip). This
+  // listener runs after the sheet's own click handler, so the note and the count follow the new text.
+  if (update) sheet.addEventListener('click', (ev) => { if (ev.target.closest('[data-cact="chip"]')) update(true); });
+}
+
+// The reason for rank (rank-screen.js, and the Room screen's own reason box). box: the reason text box; key: the
+// room id (one "Keep" for the room's one reason, on every screen).
+export function mountReasonKit(box, def, key) {
+  if (!box) return;
+  const row = starterRowHtml(def, 'reason', 'kit-reason-' + box.id);
+  attach(box, def, 'reason:' + (key || ''), box.ownerDocument.querySelector(`label[for="${box.id}"]`), row ? `<div class="kit-starters kit-reason-starters">${row}</div>` : '');
+}
+
+// The Room screen's reason for rank (comment-view.js footMounted). foot: the room-foot box; the reason box is there
+// once it has text, or shows up when the judge opens it ("+ Add reason for rank"), so the kit joins it then.
+export function mountRoomReasonKit(foot, def, roomId) {
+  if (!foot) return;
+  const join = () => mountReasonKit(foot.querySelector('#reason'), def, roomId);
+  join();
+  foot.addEventListener('focusin', join);
+}
+
+// The Review screen's edit boxes (review-screen.js show): the performance check and the length note, no starters
+// (the Review screen is the last look before the copy). box: the comments stage, which holds the cards; each edit box
+// shows up when the judge taps Edit. roomId: the room. A comment box shares "Keep"
+// with that speaker's comment on the Room screen; the reason box shares it with the reason on the other screens.
+export function mountReviewKit(stage, roomId) {
+  if (!stage) return;
+  stage.addEventListener('focusin', (ev) => {
+    const box = ev.target;
+    if (!box || box.tagName !== 'TEXTAREA' || !box.dataset.vfield) return;
+    const key = box.dataset.vfield === 'reason' ? 'reason:' + (roomId || '') : 'notes:' + (box.dataset.id || '');
+    attach(box, null, key, null, '');
+  });
+}
