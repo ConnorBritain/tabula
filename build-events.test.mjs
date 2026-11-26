@@ -134,8 +134,8 @@ test('gitSha says "unknown" where there is no git repo', () => {
 });
 
 // Why: if the browser or the service worker kept an old version.json, Settings would show a judge the wrong release, and feedback would name a version they do not have.
-test('version.json is never cached: no-cache in _headers and not in the worker list', () => {
+test('version.json is never cached: no-cache, no-store in _headers and not in the worker list', () => {
   const h = readFileSync(join(out, '_headers'), 'utf8');
-  assert.match(h, /^\/version\.json\n  Cache-Control: no-cache$/m);
+  assert.match(h, /^\/version\.json\n  Cache-Control: no-cache, no-store, max-age=0, must-revalidate$/m);
   assert.ok(!cached.includes('version.json'), 'the service worker lists version.json');
 });

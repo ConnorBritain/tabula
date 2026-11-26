@@ -25,6 +25,7 @@ import { layerOf, layerProblems, notRankedText, cutLineText } from './profile-la
 import { ratingHtml, rubricHtml, scoreClick, scoreInput, scoreKey, isScoreBox } from './score-view.js';
 import { overtimeNote } from './round-frame.js';
 import { rankHelpHtml } from './help/help.js';
+import { mountReasonKit } from '../comment-kit/kit-view.js';
 
 // What a row shows of the judge's words: the piece (F1: "“Title” by Author") and the comment's first sentence
 // (comments.js firstSentence). A tap on the comment line opens the whole comment in a sheet.
@@ -260,6 +261,7 @@ export function createRankScreen(env) {
       folds.start(r);
       detachDrag = attachDrag($('#board-box'), { enabled: () => !tapMode, onDrop });
       $('#rank-reason').addEventListener('input', (e) => save(setReason(room(), e.target.value, env.now())));
+      mountReasonKit($('#rank-reason'), ev, id); // reason starters, performance check, length note
       draw();
       if (opened.started) env.ui.announce('The ranks start in speaking order.');
       $('#screen-title').focus();

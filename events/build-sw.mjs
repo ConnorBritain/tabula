@@ -46,7 +46,7 @@ export const jsRefs = (src, path) => {
 export async function pageFiles() {
   const seen = new Set();
   const registry = new URL('js/workspaces.js', EVENTS);
-  const todo = [new URL('index.html', EVENTS), ...Object.values(WORKSPACES).map((p) => resolve(p, registry))];
+  const todo = [new URL('index.html', EVENTS), ...Object.values(WORKSPACES).map((p) => resolve(p, registry)), new URL('kit/index.html', EVENTS)];
   while (todo.length) {
     const u = todo.pop();
     const path = u.href.slice(ROOT.href.length);

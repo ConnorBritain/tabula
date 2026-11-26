@@ -1,9 +1,9 @@
-// Shared code for Tabula Debate and Tabula Speech Events (docs/events/LANDING.md §3, step C10): the copy sheet (text
+// Shared code for Tabula Debate and Tabula Speech Events: the copy sheet (text
 // blocks a judge pastes into the tournament site) and the print sheet, built from a model the app makes. The
 // builders return HTML text, so Node tests can compare it exactly; showPrintSheet and removePrintSheet do the DOM.
 // Generic words only (core-words.test.mjs). Loaded as described in core/defs.js.
 
-// Exported for app code that builds HTML text (Speech Events lists; step E1).
+// Exported for app code that builds HTML text (Speech Events lists).
 export const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const e = escapeHtml;
 const cls = (c) => (c === undefined ? '' : ` class="${c}"`);
@@ -39,6 +39,10 @@ export function printSheetHtml(sheet) {
 }
 // The class of the print sheet element (exported so the tests can check it with no DOM).
 export const printSheetClass = (sheet) => 'print-sheet' + (sheet.landscape ? ' landscape' : '');
+// The print sheet's landmark. When printing, the page's own <main> is hidden and the sheet is all there is, so the sheet
+// is the main landmark, named by its title (axe: landmark-one-main, region). On screen the sheet is never shown, so a
+// page never has two main landmarks in view.
+export const printSheetAttrs = (sheet) => ({ role: 'main', 'aria-label': String((sheet && sheet.title) || 'Sheet to print') });
 
 // Put the print sheet on the page (as #print-sheet, with body.printing) for the print window; removePrintSheet takes
 // it away again after printing.
@@ -46,6 +50,8 @@ export function showPrintSheet(sheet) {
   removePrintSheet();
   const el = document.createElement('div');
   el.id = 'print-sheet'; el.className = printSheetClass(sheet);
+  const mark = printSheetAttrs(sheet);
+  el.setAttribute('role', mark.role); el.setAttribute('aria-label', mark['aria-label']);
   el.innerHTML = printSheetHtml(sheet);
   document.body.append(el); document.body.classList.add('printing');
 }
@@ -55,5 +61,5 @@ export function removePrintSheet() {
   document.body.classList.remove('printing');
 }
 
-(globalThis.TabulaCore = globalThis.TabulaCore || {}).sheets = Object.freeze({ escapeHtml, copyBlocksHtml, printSheetHtml, printSheetClass,
+(globalThis.TabulaCore = globalThis.TabulaCore || {}).sheets = Object.freeze({ escapeHtml, copyBlocksHtml, printSheetHtml, printSheetClass, printSheetAttrs,
   showPrintSheet, removePrintSheet });

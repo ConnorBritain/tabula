@@ -2,6 +2,7 @@
 // other name), so it can never read or write a judge's debate data. A failed save shows one warning toast.
 // Every events/js file is an ES module with named exports; only app.js boots the page and imports the screens.
 import { createStore } from '../../core/store.js';
+import { storageKept as coreStorageKept, askToKeepOnce as coreAskToKeepOnce } from '../../core/keep-data.js';
 
 export const PREFIX = 'tabulaEvents.';
 export const ROOMS_KEY = PREFIX + 'rooms.v1';
@@ -18,31 +19,16 @@ export const PERSIST_ASKED_KEY = PREFIX + 'persistAsked.v1';
 const WORK_KEYS = Object.freeze([ROOMS_KEY, CARDS_KEY, PREFIX + 'congress.v1']);
 
 // ---------- keeping the data (navigator.storage.persist) ----------
-// Safari and other browsers may clear a site's saved data when the site is not used for a while, unless the browser
-// agrees to keep it (or the app is installed). These helpers never throw: a browser without the API reads 'unknown'.
+// The rules are shared with Tabula Debate (core/keep-data.js). These two stay here so every events file keeps its import.
 
 /** Does this browser keep the saved data? Resolves to 'kept', 'may-clear' or 'unknown' (no API, or it failed). */
-export async function storageKept(nav = globalThis.navigator) {
-  try {
-    if (!nav || !nav.storage || typeof nav.storage.persisted !== 'function') return 'unknown';
-    return (await nav.storage.persisted()) ? 'kept' : 'may-clear';
-  } catch { return 'unknown'; }
-}
+export const storageKept = (nav = globalThis.navigator) => coreStorageKept(nav);
 
 /**
- * Ask the browser once to keep the saved data. store: the events store; now(): the clock.
- * Resolves to 'kept', 'may-clear', 'unknown', or 'asked-before' (the app asked on an earlier save, so it does not ask
- * again). The ask is marked before the browser answers, so two quick saves never ask twice.
+ * Ask the browser once to keep the saved data. store: the events store; now(): the clock. The ask is saved under
+ * PERSIST_ASKED_KEY. Resolves to 'kept', 'may-clear', 'unknown', or 'asked-before'.
  */
-export async function askToKeepOnce(store, now, nav = globalThis.navigator) {
-  if (store.get(PERSIST_ASKED_KEY, null) !== null) return 'asked-before';
-  if (!nav || !nav.storage || typeof nav.storage.persist !== 'function') return 'unknown';
-  store.set(PERSIST_ASKED_KEY, now());
-  try {
-    if (typeof nav.storage.persisted === 'function' && await nav.storage.persisted()) return 'kept';
-    return (await nav.storage.persist()) ? 'kept' : 'may-clear';
-  } catch { return 'unknown'; }
-}
+export const askToKeepOnce = (store, now, nav = globalThis.navigator) => coreAskToKeepOnce(store, PERSIST_ASKED_KEY, now, nav);
 
 // The store for this page. ui: the page's core/ui.js parts, for the warning toast.
 // opts: { nav (navigator, for tests), now (the clock) }. The first good save of a judge's work asks the browser to keep
