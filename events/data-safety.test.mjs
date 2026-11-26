@@ -227,7 +227,7 @@ function settingsRig(local, tab, answer) {
   globalThis.sessionStorage = tab;
   const toasts = [], asks = [];
   let forgot = 0, reloads = 0, clickHandler = null;
-  const node = () => ({ focus() {}, textContent: '', innerHTML: '', checked: false, click() {} });
+  const node = () => ({ focus() {}, textContent: '', innerHTML: '', checked: false, value: 'defaults', click() {}, addEventListener() {}, removeEventListener() {}, querySelector: () => node() });
   const ui = {
     toast: (msg, opts) => toasts.push({ msg, opts: opts || {} }),
     dismissToast() {},

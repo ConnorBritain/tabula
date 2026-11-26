@@ -51,3 +51,17 @@ test('PolicyLogic uses the shared review functions', () => {
   const res = L.applyReview({}, { cards: [] }, true);
   assert.deepEqual([Object.keys(res).sort(), res.ballot.pts, res.ballot.ranks], [['ballot', 'count', 'fields'], {}, {}], 'debate keeps its { ballot } shape with pts and ranks');
 });
+
+// Why: locking text must protect it from a pending draft and show the comparison before an explicit replacement.
+test('a new lock refreshes the review even when the text is unchanged', () => {
+  const record = { comments: { '101': 'Original comment' } };
+  const review = { cards: [Rv.reviewCard(record, groups[0], { draftValue, isText })] };
+  const locked = Rv.markFields(record, ['comments.101'], 'yours');
+  const updated = Rv.staleCards(review, locked, isText);
+  assert.equal(updated.cards[0].state, 'yours');
+  assert.equal(updated.cards[0].choice, 'keep');
+  assert.ok(updated.cards[0].diff.some((run) => run.op === 'del'));
+  assert.ok(updated.cards[0].diff.some((run) => run.op === 'ins'));
+  assert.equal(Rv.applyReview(locked, updated, true).record.comments['101'], 'Original comment');
+  assert.equal(review.cards[0].choice, 'insert');
+});

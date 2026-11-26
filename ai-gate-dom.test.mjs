@@ -31,7 +31,7 @@ function hiddenBy(node, off) {
 }
 const visible = (id, off) => !hiddenBy(byId(ROOT, id), off);
 const gatedNodes = () => [...walk(ROOT)].filter((n) => 'data-ai' in n.attrs || 'data-ai-setup' in n.attrs);
-const AI_IDS = ['tab-eval', 'insights', 'eval-go', 'lens-go', 'impact-go', 'map-go', 'draft-open', 'draft-panel', 'rec-on', 'tr-toggle', 'tr-drawer', 'audio-card', 'live-flow', 'writing-card', 'writing-settings', 'cv-rec-on'];
+const AI_IDS = ['tab-eval', 'insights', 'eval-go', 'lens-go', 'impact-go', 'map-go', 'draft-open', 'draft-panel', 'rec-on', 'tr-toggle', 'tr-drawer', 'audio-card', 'live-flow', 'writing-settings', 'cv-rec-on'];
 
 for (const name of ['coach-hidden', 'student-judge-off', 'student-clerk-no-pool', 'managed-expired']) {
   // Why: for a hidden role nothing about AI may show and nothing may call out (R1, R4); one leftover control is a taunt

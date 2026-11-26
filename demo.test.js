@@ -240,10 +240,10 @@ function demoCallAI({ demoOn, sample }) {
   const calls = [];
   const fetch = (url) => { calls.push(url); throw new Error('network called: ' + url); };
   const STOPPED = () => Object.assign(new Error('Stopped.'), { kind: 'stopped' });
-  const make = new Function('L', 'demoSample', 'demoOn', 'can', 'useHosted', 'aiReady', 'noAiText', 'fetch', 'STOPPED', 'S', 'DOCS', 'navigator', 'callHosted', 'hostedResult',
+  const make = new Function('L', 'demoSample', 'demoOn', 'can', 'useHosted', 'aiReady', 'noAiText', 'fetch', 'STOPPED', 'S', 'DOCS', 'navigator', 'callHosted', 'hostedResult', 'requestPreferences',
     'const DEMO_AI_MS = 0, DEMO_NOT_HERE = "not in the demo";\n' + bodySource(read('js/demo.js'), 'function demoAnswer(') + '\n' + bodySource(read('js/ai.js'), 'async function callAI(') + '\nreturn callAI;');
   const callAI = make(L, sample, demoOn, () => true, () => true, () => true, () => 'no AI', fetch, STOPPED, { aiEngine: 'anthropic' }, [], { onLine: true },
-    async () => fetch('/api/v1/ai/eval.live'), (text) => text); // hosted access: the path a signed-in judge would take
+    async () => fetch('/api/v1/ai/eval.live'), (text) => text, () => ({ style: '', guidance: '' })); // hosted access: the path a signed-in judge would take
   return { callAI, calls };
 }
 

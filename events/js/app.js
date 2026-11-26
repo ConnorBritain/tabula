@@ -95,7 +95,7 @@ function boot(data) {
     go: (screen, id) => { location.hash = routeHash(screen, id); },
     ai: createPageAI(store), // step E13: the AI gate and the judge's own key (Review screen clean-up, Settings)
     settings: readSettings,
-    saveSettings: (s) => { store.set(SETTINGS_KEY, s); renderHeader(parseRoute(location.hash).screen); },
+    saveSettings: (s) => { const saved = store.set(SETTINGS_KEY, s); renderHeader(parseRoute(location.hash).screen); return saved; },
     // Delete a round, with Undo in the toast that puts it back in the same place (EXPERIENCE.md §7; events/js/delete-round.js).
     // after(): the asking screen redraws and moves focus. After an Undo, the screen that shows then redraws.
     deleteRound: createDeleteRound({ get: () => store.get(ROOMS_KEY, []), set: (list) => store.set(ROOMS_KEY, list), ui,

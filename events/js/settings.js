@@ -7,6 +7,8 @@
 // Step S3 adds ranksDueMin (1 to 60 minutes) and recentEvents (up to 5 public event ids, for the picker).
 // Step S4 adds drawGapMin (the F2 draw gap, 7 or 10 minutes).
 import { buildBackup, parseBackup } from '../../core/store.js';
+import { editDefaults } from './edit-options.js';
+import { normalizePreferences, cleanPreferenceText as roomPriorities } from '../../core/ai-preferences.js';
 import { PREFIX, ROOMS_KEY, SETTINGS_KEY, DAYS_KEY, CARDS_KEY } from './store.js';
 import { KEYS_KEY } from './ai-key.js';
 import { migrateRooms, migrateSettings, migrateDays, migrateCards, RANKS_DUE_DEFAULT } from './migrate.js';
@@ -62,6 +64,9 @@ export const modeMenuShown = (settings) => migrateSettings(settings).mode !== 'j
 // bad value from the page can never be saved.
 export function withSetting(settings, key, value) {
   const s = migrateSettings(settings);
+  if (key === 'roomJudging') return Object.assign({}, s, { roomJudging: { priorities: roomPriorities(value?.priorities) } });
+  if (key === 'feedbackEdit') return Object.assign({}, s, { feedbackEdit: editDefaults(value) });
+  if (key === 'aiPreferences') return Object.assign({}, s, { aiPreferences: normalizePreferences(value) });
   if (key === 'mode' && !MODES.some((m) => m.id === value)) return s;
   if (key === 'theme' && !THEMES.some((t) => t.id === value)) return s;
   // showModeMenu is retired (copy trim E46): still accepted so old backups load, but modeMenuShown no longer reads it.

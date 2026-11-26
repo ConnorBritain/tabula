@@ -9,7 +9,7 @@
 export async function askConnectKey(ui, own) {
   const key = await ui.ask({
     title: 'Connect your AI key',
-    body: ['Clean-up uses your own API key from Anthropic, OpenAI, Google, xAI or OpenRouter. You pay that company for each use, usually less than a cent.', 'The key stays in this browser. It is sent only to that company.'],
+    body: ['AI editing uses your own API key from Anthropic, OpenAI, Google, xAI or OpenRouter. You pay that company for each use, usually less than a cent.', 'The key stays in this browser. It is sent only to that company.'],
     input: { label: 'API key', placeholder: 'Paste the key', emptyError: 'Paste a key first.' },
     buttons: [{ label: 'Cancel', value: null }, { label: 'Connect', kind: 'primary' }],
   });

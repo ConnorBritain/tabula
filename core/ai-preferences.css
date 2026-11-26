@@ -1,0 +1,8 @@
+.ai-prefs { margin-top: var(--s3); }
+.ai-prefs > summary { min-height: var(--hit-min); cursor: pointer; font-weight: var(--fw-3); }
+.ai-prefs-body { display: grid; gap: var(--s3); padding-top: var(--s3); }
+.ai-prefs-pickers { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--s3); }
+.ai-prefs label { display: grid; gap: var(--s1); margin: 0; }
+.ai-prefs textarea, .ai-prefs select { width: 100%; }
+.ai-prefs p { margin: 0; }
+.ai-prefs [hidden] { display: none; }

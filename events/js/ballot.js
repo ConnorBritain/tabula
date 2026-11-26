@@ -144,7 +144,8 @@ export function markCopied(room, what, now) {
 // The judge edits a comment on its card. A changed comment must be copied again, so its copy mark goes (and a room
 // that was 'done' is back to 'review').
 export function setComment(room, id, text, now) {
-  const r = Object.assign({}, room, { updatedAt: now, entries: room.entries.map((e) => (e.id === id ? Object.assign({}, e, { comment: String(text), commentSource: 'judge', commentCopiedAt: null }) : e)) });
+  // Keep AI provenance through later manual edits: a wording draft must not become original judging evidence.
+  const r = Object.assign({}, room, { updatedAt: now, entries: room.entries.map((e) => (e.id === id ? Object.assign({}, e, e.commentSource === 'judgeEditedAi' ? { commentHadAi: true } : {}, { comment: String(text), commentSource: 'judge', commentCopiedAt: null }) : e)) });
   if (r.state === 'done') { r.state = 'review'; r.copiedAt = null; }
   return r;
 }

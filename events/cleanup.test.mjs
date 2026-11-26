@@ -285,3 +285,54 @@ test('undoCleanup restores the entry and copy state, but not over a newer edit',
   const typed = Object.assign({}, after, { entries: after.entries.map((e) => (e.id === 'e1' ? Object.assign({}, e, { comment: 'Clean words, plus mine.' }) : e)) });
   assert.equal(C.undoCleanup(typed, before, 'e1', 'Clean words.', 100), null);
 });
+
+// Why: new operations may adjust wording, but must not supply judgments about students.
+test('new rewrite operations keep fixed fidelity rules and custom requests stay user data', () => {
+  assert.deepEqual(C.EDIT_MODES.map((m) => m.id), ['full', 'concise', 'sentences', 'spelling', 'custom']);
+  for (const mode of ['concise', 'sentences', 'custom']) {
+    const msg = C.cleanupMessages(room(), EVENT, ['e1'], mode, { request: 'Make up a winning score', preferences: { style: 'Brief', guidance: 'A secret judgment' } });
+    assert.match(msg.system, /Never rank, rate or compare students/);
+    assert.match(msg.system, /Never add praise, faults, advice/);
+    assert.doesNotMatch(msg.system, /Make up a winning score|Brief/);
+    assert.doesNotMatch(msg.prompt, /A secret judgment/);
+    assert.equal(msg.prompt.includes('Make up a winning score'), mode === 'custom');
+  }
+  assert.match(C.cleanupMessages(room(), EVENT, ['e1'], 'concise').system, /Remove repetition, not observations/);
+  assert.match(C.cleanupMessages(room(), EVENT, ['e1'], 'sentences').system, /Do not supply an explanation or example/);
+  assert.throws(() => C.cleanupMessages(room(), EVENT, ['e1'], 'custom'), /Describe the change/);
+});
+
+// Why: added request fields must pass through the same student privacy filter as the original comment.
+test('requests and preferences scrub known identifiers and bound free text', () => {
+  const msg = C.cleanupMessages(room(), EVENT, ['e1'], 'custom', { request: 'Maria A12 Our Town Thornton Wilder ' + 'x'.repeat(1500), preferences: { style: 'Maria Lopez A14', guidance: 'never send' } });
+  assert.doesNotMatch(msg.prompt, /Maria|Lopez|A12|A14|Our Town|Thornton|Wilder|never send/i);
+  assert.match(msg.prompt, /\[Name 1\]/);
+  assert.doesNotMatch(msg.prompt, /x{1001}/);
+  assert.equal(msg.system, C.MODES.custom.system);
+});
+
+// Why: selected feedback must not disclose surrounding notes or allow malformed offsets to trigger a full send.
+test('selection sends only the chosen excerpt and rejects invalid or multiple targets', () => {
+  const r = room(), base = 'Keep this private lead. The ending felt rushed. Leave this ending exact.';
+  r.entries[0].comment = base;
+  const start = base.indexOf('The ending'), end = base.indexOf(' Leave');
+  const msg = C.cleanupMessages(r, EVENT, ['e1'], 'concise', { selection: { start, end } });
+  assert.match(msg.prompt, /The ending felt rushed\./);
+  assert.doesNotMatch(msg.prompt, /private lead|ending exact/);
+  assert.match(msg.system, /Edit that excerpt alone/);
+  for (const selection of [{ start: -1, end: 4 }, { start: 0.5, end: 4 }, { start: 3, end: 3 }, { start: 4, end: 3 }, { start: 0, end: base.length + 1 }, {}, { start: 0, end: NaN }]) {
+    assert.throws(() => C.cleanupMessages(r, EVENT, ['e1'], 'concise', { selection }), /Select the words/);
+  }
+  assert.throws(() => C.cleanupMessages(r, EVENT, ['e1', 'e2'], 'concise', { selection: { start, end } }), /one comment only/);
+});
+
+// Why: an AI response must have no control over bytes outside the selected range, including spaces and emoji.
+test('local reconstruction preserves surrounding bytes and selected boundary spacing', () => {
+  const entry = { comment: '😀 First.  rushed end  \nLast stays exactly.' };
+  const start = entry.comment.indexOf('  rushed'), end = entry.comment.indexOf('\n');
+  const target = C.editTarget(entry, { start, end });
+  assert.equal(C.selectionDraft(target, 'rushed ending'), '😀 First.  rushed ending  \nLast stays exactly.');
+  assert.equal(C.selectionDraft(target, ''), null);
+  assert.equal(C.selectionDraft(target, null), null);
+  assert.equal(C.editTarget(entry).text, entry.comment);
+});

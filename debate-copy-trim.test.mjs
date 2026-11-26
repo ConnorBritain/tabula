@@ -9,6 +9,7 @@ const read = (f) => readFileSync(new URL(f, import.meta.url), 'utf8');
 const HTML = read('index.html');
 const DECIDE = read('js/decide.js');
 const T = createRequire(import.meta.url)('./tour.js');
+const { parseHtml, byId, walk } = createRequire(import.meta.url)('./test-html.js');
 const step = (tour, target) => T.TOURS[tour].steps.find((s) => s.target === target);
 
 // Why: on a first run the Analysis button says "Run"; a help line that says "click Update" sends the judge to a button that is not there.
@@ -23,10 +24,22 @@ test('the Insights tour step names the Insights button as it reads', () => {
   assert.match(read('js/insights.js'), />Update with AI<\/button>/);
 });
 
-// Why: the lock rule must read the same everywhere, or a judge doubts that what they type on the ballot is safe from the AI.
-test('the ballot and its tour step use the one lock line', () => {
-  assert.ok(HTML.includes('data-ai="ballotDraft">The AI never changes what you type.</p>'));
-  assert.match(step('main', '#draft-open').body, /The AI never changes what you type\./);
+// Why: AI editing help must stay reachable without adding instructions above every ballot field.
+test('the ballot keeps its editing rule in a hidden help bubble beside Draft with AI', () => {
+  const root = parseHtml(HTML);
+  const help = byId(root, 'ballot-ai-help');
+  assert.ok(help && 'hidden' in help.attrs);
+  const trigger = [...walk(root)].find((n) => n.attrs['aria-controls'] === 'ballot-ai-help');
+  assert.equal(trigger.tag, 'button');
+  assert.equal(trigger.attrs['aria-label'], 'About AI editing');
+  assert.equal(trigger.attrs['aria-expanded'], 'false');
+  assert.ok(byId(trigger.parent.parent, 'draft-open'));
+  assert.equal(byId(root, 'ballot-key'), null);
+  assert.doesNotMatch(HTML, /class="muted ballot-note"/);
+  assert.match(DECIDE, /Lock: AI cannot change this field/);
+  assert.match(DECIDE, /Star: AI can change this field/);
+  assert.match(DECIDE, /Typing protects a field automatically\./);
+  assert.match(step('main', '#draft-open').body, /Typing protects a field automatically\./);
 });
 
 // Why: the RFD goes to both teams and their coaches; a judge who does not know that may write a private note in it.
@@ -60,9 +73,10 @@ test('the Ask me first help keeps the consent fact', () => {
   assert.match(HTML, /<strong>Ask me first<\/strong><span class="muted field-help">Tabula asks first\. No round is used until you say yes\.<\/span>/);
 });
 
-// Why: the nav says "Round"; help that says "Round setup" sends the judge looking for a place name that is not in the nav.
-test('the Settings writing help calls the place by its nav name', () => {
-  assert.ok(HTML.includes('Change it per round in Round.</p>'));
+// Why: writing preferences now live in Settings; help must not send users to removed Round controls.
+test('the Settings writing help describes a single saved setting for all rounds', () => {
+  assert.ok(HTML.includes('Change this setting here for all rounds.</p>'));
+  assert.doesNotMatch(HTML, /data-read-scope="round"/);
   assert.doesNotMatch(HTML, /in Round setup\./);
 });
 

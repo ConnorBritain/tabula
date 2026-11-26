@@ -8,6 +8,7 @@
 // No DOM. fetch, the two stores and online() are passed in, so Node tests run it with a fake provider.
 import { PROVIDERS, detectProvider, modelsRequest, modelIds, pickModel, chatModels, retryOnce404, createKeyStore, outputCap } from '../../core/ai.js';
 import { FEATURE, cleanupRequest, readCleanupReply } from './cleanup.js';
+import { ROOM_FEATURE, comparisonRequest, readComparisonReply } from './room-comparison.js';
 import { PREFIX } from './store.js';
 
 export const KEYS_KEY = PREFIX + 'aiKeys.v1';
@@ -42,9 +43,10 @@ export function createOwnKey(o) {
   const provider = () => Object.keys(PROVIDERS).find((p) => keys[p]) || null;
   const models = () => o.local.get(MODELS_KEY, {}) || {};
 
-  async function send(req) {
-    try { return await o.fetch(req.url, Object.assign({}, req.init, { signal: AbortSignal.timeout(TIMEOUT_MS) })); }
-    catch (err) { console.warn('AI call failed:', err); throw aiError(o.online() ? 'failed' : 'offline'); }
+  async function send(req, signal) {
+    const timeout = AbortSignal.timeout(TIMEOUT_MS);
+    try { return await o.fetch(req.url, Object.assign({}, req.init, { signal: signal ? AbortSignal.any([signal, timeout]) : timeout })); }
+    catch (err) { if (signal && signal.aborted) throw err; console.warn('AI call failed:', err); throw aiError(o.online() ? 'failed' : 'offline'); }
   }
 
   // The provider's live model list, and the cheap routine model from it (core/ai.js pickModel: never a premium one).
@@ -58,6 +60,29 @@ export function createOwnKey(o) {
   }
   function saveModel(p, id) { const m = models(); if (id) m[p] = id; else delete m[p]; o.local.set(MODELS_KEY, m); }
   async function modelFor(p) { const m = models()[p]; if (m) return m; const id = await listModels(p, keys[p]); saveModel(p, id); return id; }
+
+  // One transport for wording edits and read-only room reviews. Each keeps its own task gate and reply reader.
+  async function request(gate, feature, msg, signal, build, read, cap) {
+    const check = () => {
+      if (!gate || !o.policy.canUse(gate, feature)) throw aiError('failed');
+      signal?.throwIfAborted();
+    };
+    check();
+    const p = provider();
+    if (!p) throw aiError('rejected');
+    if (!o.online()) throw aiError('offline', p);
+    const res = await retryOnce404(async () => {
+      check();
+      const model = await modelFor(p);
+      check();
+      return send(build(p, msg, { key: keys[p], model, maxTokens: cap }), signal);
+    }, () => saveModel(p, null));
+    if (!res.ok) { console.warn('AI call:', res.status, await res.text().catch(() => '')); throw aiError(statusKind(res.status), p); }
+    const json = await res.json().catch(() => null);
+    check();
+    try { return read(p, json, msg); }
+    catch (err) { console.warn('AI reply:', err); throw aiError('reply', p); }
+  }
 
   return Object.freeze({
     provider,
@@ -80,17 +105,12 @@ export function createOwnKey(o) {
     forget() { keys = {}; keyStore.save({}, false); o.local.del(MODELS_KEY); },
     // The clean-up call. gate: the AI gate for this screen, checked again here so no path can call with the feature off
     // (AI-POLICY.md §3b R4). msg: cleanupMessages(...). Returns the drafts { [entryId]: text }.
-    async cleanup(gate, msg) {
-      if (!gate || !o.policy.canUse(gate, FEATURE)) throw aiError('failed');
-      const p = provider();
-      if (!p) throw aiError('rejected');
-      if (!o.online()) throw aiError('offline', p);
-      // A retired model (404) is forgotten and picked again once.
-      const res = await retryOnce404(async () => send(cleanupRequest(p, msg, { key: keys[p], model: await modelFor(p), maxTokens: outputCap('routine', CAPS) })), () => saveModel(p, null));
-      if (!res.ok) { console.warn('AI call:', res.status, await res.text().catch(() => '')); throw aiError(statusKind(res.status), p); }
-      const json = await res.json().catch(() => null);
-      try { return readCleanupReply(p, json, msg); }
-      catch (err) { console.warn('AI reply:', err); throw aiError('reply', p); }
+    async cleanup(gate, msg, { signal } = {}) {
+      return request(gate, FEATURE, msg, signal, cleanupRequest, readCleanupReply, outputCap('routine', CAPS));
+    },
+    async compareRoom(gate, msg, { signal } = {}) {
+      if (!gate || !o.policy.setupAllowed(gate)) throw aiError('failed');
+      return request(gate, ROOM_FEATURE, msg, signal, comparisonRequest, readComparisonReply, 4000);
     },
   });
 }

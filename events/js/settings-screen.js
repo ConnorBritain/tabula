@@ -19,6 +19,11 @@ import { keymap } from './keys.js';
 import { checkOffline, CACHE_PREFIX } from './offline.js';
 import { askConnectKey, askForgetKey } from './ai-connect.js';
 import { mountTipsPart } from './help/help-view.js';
+import { EDIT_MODES, editDefaults } from './edit-options.js';
+import { PREFERENCE_LIMIT, cleanPreferenceText as roomPriorities } from '../../core/ai-preferences.js';
+import { preferencesHtml, bindPreferences } from '../../core/ai-preferences.js';
+
+const FEEDBACK_SCOPE = [{ id: 'defaults', label: 'Feedback', guidance: false }];
 
 const radios = (name, list, picked) => list.map((x) => `<label class="radio"><input type="radio" name="${name}" value="${esc(x.id)}"${x.id === picked ? ' checked' : ''}> ${esc(x.label)}</label>`).join('');
 
@@ -29,12 +34,17 @@ export function keySheetHtml(groups) {
 
 // The AI part as HTML text. ai: { allowed (the gate lets the judge set up a key), connected, providerName }. With AI
 // setup not allowed, the part is not built at all (AI-POLICY.md §3: removed means gone).
-export function aiPartHtml(ai) {
+export function aiPartHtml(ai, settings = {}) {
   if (!ai || !ai.allowed) return '';
+  const edit = editDefaults(settings.feedbackEdit);
+  const defaults = `<div class="edit-defaults"><label class="field" for="set-edit-default">Default AI edit<select id="set-edit-default">${EDIT_MODES.map((m) => `<option value="${m.id}"${edit.mode === m.id ? ' selected' : ''}>${esc(m.label)}</option>`).join('')}</select></label>
+    <div id="set-edit-request-wrap"${edit.mode === 'custom' ? '' : ' hidden'}><label class="field" for="set-edit-request">Saved wording request<textarea id="set-edit-request" rows="3" maxlength="${PREFERENCE_LIMIT}">${esc(edit.request)}</textarea></label></div>
+    <p class="field-help">The star runs this edit using your saved feedback style. Your words stay until you accept the suggestion.</p><p class="field-help" id="set-edit-status" role="status"></p><details class="fold">${foldSummaryHtml('About AI editing')}<p class="field-help">Your words go to the AI provider you connect with your own key. Known codes, names, titles and authors are swapped out first. A name you wrote only in your notes is sent as you wrote it. Other private details in your request or preferences are sent as written.</p></details></div>`;
   const body = ai.connected
     ? `<p>Connected: ${esc(ai.providerName)}.</p><button class="b" type="button" id="set-ai-forget">Forget my key</button>`
-    : `<p class="field-help">Use your own AI key for Clean-up. The key stays in this browser.</p><button class="b" type="button" id="set-ai-connect">Connect AI</button>`;
-  return `<section class="set-part" aria-labelledby="set-ai-h"><h2 id="set-ai-h">AI clean-up</h2>${body}</section>`;
+    : `<p class="field-help">Use your own AI key to edit feedback. The key stays in this browser.</p><button class="b" type="button" id="set-ai-connect">Connect AI</button>`;
+  const judging = ai.comparisonAllowed === true ? `<details class="fold room-judging-settings">${foldSummaryHtml('Room comparison')}<label class="field" for="set-room-priorities">Judging priorities<textarea id="set-room-priorities" rows="3" maxlength="${PREFERENCE_LIMIT}" placeholder="For example: Give clear reasoning more weight than polish.">${esc(roomPriorities(settings.roomJudging?.priorities))}</textarea></label><p class="field-help">Optional. Compare the room follows the event criteria first. These priorities guide the comparison, not feedback wording. Your final ranks stay yours.</p><p class="field-help">Only use AI review where the tournament permits it. Public notes and these priorities go to your connected provider. Known names and codes are replaced first. Private notes stay on this device.</p><p class="field-help" id="set-room-status" role="status"></p></details>` : '';
+  return `<section class="set-part" aria-labelledby="set-ai-h"><h2 id="set-ai-h">AI editing</h2>${body}${ai.feedbackAllowed === false ? '' : defaults}<div id="event-ai-preferences">${ai.feedbackAllowed === false ? '' : preferencesHtml({ id: 'event-pref', scopes: FEEDBACK_SCOPE, title: 'Feedback preferences', summary: foldSummaryHtml })}</div>${judging}</section>`;
 }
 
 // The offline state (D2-A, under the owner's reading of DESIGN.md §1.2: the app files are saved, so the work is done):
@@ -131,7 +141,7 @@ export function settingsHtml(v) {
     <fieldset class="radios"><legend class="sr-only">Extemp draw gap</legend>${radios('set-gap', DRAW_GAPS.map((n) => ({ id: String(n), label: n + ' minutes' })), String(s.drawGapMin))}</fieldset>
     <p class="field-help">How long the room shows "Waiting for next speaker" between Extemp speakers.</p>
   </section>
-  ${aiPartHtml(v.ai)}
+  ${aiPartHtml(v.ai, s)}
   <section class="set-part set-keys" aria-labelledby="set-keys-h"><details class="fold">${foldSummaryHtml('<h2 id="set-keys-h">Keyboard</h2>')}${v.keys}</details></section>
   <section class="set-part" aria-labelledby="set-off-h"><h2 id="set-off-h">Ready for offline</h2>
     <p id="set-offline" role="status">${offlineHtml(v.offline)}</p>
@@ -163,12 +173,17 @@ export function createSettingsScreen(env) {
   const aiView = () => {
     const P = globalThis.TabulaCore.policy;
     const own = env.ai.own;
-    return { allowed: P.setupAllowed(env.ai.gate), connected: own.hasKey(), providerName: own.providerName() };
+    return { allowed: P.setupAllowed(env.ai.gate), feedbackAllowed: P.canUse(env.ai.gate, 'ballotDraft'), comparisonAllowed: P.canUse(env.ai.gate, 'analysis'), connected: own.hasKey(), providerName: own.providerName() };
   };
 
   function draw(focusSel) {
     env.el.innerHTML = settingsHtml({ settings: env.settings(), ai: aiView(), keys: keySheetHtml(keymap.shortcutRows(mac(), true)), offline, kept, release: currentRelease() });
     mountTipsPart(env, env.el);
+    const preferences = $('#event-ai-preferences');
+    if (preferences && aiView().feedbackAllowed) bindPreferences(preferences, {
+      scopes: FEEDBACK_SCOPE, read: () => env.settings().aiPreferences,
+      write: (value) => env.saveSettings(withSetting(env.settings(), 'aiPreferences', value)),
+    });
     const f = focusSel && $(focusSel);
     if (f) f.focus();
   }
@@ -275,6 +290,15 @@ export function createSettingsScreen(env) {
   }
   function onChange(e) {
     const t = e.target;
+    if (t.id === 'set-edit-default') {
+      const old = editDefaults(env.settings().feedbackEdit);
+      // A blank custom default starts with a useful wording request that can be changed below.
+      const request = old.request || 'Use short, direct sentences.';
+      const ok = env.saveSettings(withSetting(env.settings(), 'feedbackEdit', { mode: t.value, request }));
+      $('#set-edit-request-wrap').hidden = t.value !== 'custom';
+      $('#set-edit-request').value = request;
+      $('#set-edit-status').textContent = ok === false ? 'Could not save. Try again.' : 'Saved.';
+    }
     if (t.id === 'set-due') {
       const n = Number(t.value);
       if (validRanksDue(n)) { env.saveSettings(withSetting(env.settings(), 'ranksDueMin', n)); env.ui.toast('Ranks are due ' + n + ' min after the last speaker.', { key: 'due' }); }
@@ -288,12 +312,26 @@ export function createSettingsScreen(env) {
     if (t.id === 'set-restore') restore(t);
   }
 
+  const onInput = (e) => {
+    if (e.target.id === 'set-room-priorities') {
+      const P = globalThis.TabulaCore.policy;
+      if (!P.canUse(env.ai.gate, 'analysis') || !P.setupAllowed(env.ai.gate)) return;
+      const ok = env.saveSettings(withSetting(env.settings(), 'roomJudging', { priorities: e.target.value }));
+      $('#set-room-status').textContent = ok === false ? 'Could not save. Try again.' : 'Saved.';
+      return;
+    }
+    if (e.target.id !== 'set-edit-request') return;
+    const value = { mode: $('#set-edit-default').value, request: e.target.value };
+    const ok = env.saveSettings(withSetting(env.settings(), 'feedbackEdit', value));
+    $('#set-edit-status').textContent = ok === false ? 'Could not save. Try again.' : value.request.trim() ? 'Saved.' : 'Add a request. Until then, the star uses Clarify.';
+  };
   return {
     scope: 'settings',
     show() {
       shown = true;
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('change', onChange);
+      env.el.addEventListener('input', onInput);
       draw('#screen-title');
       check();
       checkKept();
@@ -303,6 +341,7 @@ export function createSettingsScreen(env) {
       shown = false;
       env.el.removeEventListener('click', onClick);
       env.el.removeEventListener('change', onChange);
+      env.el.removeEventListener('input', onInput);
     },
   };
 }

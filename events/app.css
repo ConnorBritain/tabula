@@ -234,16 +234,58 @@ main:has(.room-grid) { max-width: 1120px; }
   #print-sheet th, #print-sheet td { border: 1px solid #000; padding: 2px 8px; text-align: left; }
 }
 
-/* "Clean up my comments" (step E13; DESIGN.md §4.9). Built only when the AI gate allows it. */
-.card-head .b + .b { margin-left: 0; }
-.cleanup { width: 100%; display: grid; gap: var(--s2); border-top: 1px solid var(--border); padding-top: var(--s3); }
-.cleanup .order-toggle { margin-bottom: 0; flex-wrap: wrap; }
-.cleanup-h { margin: 0; font-size: var(--fs-2); color: var(--text-2); font-weight: var(--fw-3); }
-.cleanup-note { margin: 0; font-size: var(--fs-2); }
+/* Contextual feedback edits. Only the active card or text selection shows the star actions. */
+.ai-edit-actions { display: inline-flex; flex: none; margin-left: auto; align-self: center; border: 1px solid transparent; border-radius: var(--r-md); opacity: 0; }
+.card:hover .ai-edit-actions, .card:focus-within .ai-edit-actions { opacity: 1; border-color: var(--border-ctl); }
+#screen:has([data-ai-selection]) .ai-edit-actions { visibility: hidden; }
+.card-head .ai-edit-actions + .b { margin-left: 0; }
+.ai-edit-actions > .b { margin-left: 0; display: inline-flex; align-items: center; justify-content: center; width: var(--h-md); min-width: var(--h-md); padding: 0; border: 0; border-radius: 0; }
+.ai-edit-actions > .b:first-child { border-radius: var(--r-md) 0 0 var(--r-md); }
+.ai-edit-actions > .b:last-child { border-radius: 0 var(--r-md) var(--r-md) 0; }
+.ai-selection-toolbar { position: fixed; z-index: var(--z-pop); display: flex; align-items: center; gap: var(--s1); max-width: calc(100vw - 24px); padding: var(--s1); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--raised); box-shadow: var(--shadow-2); }
+.ai-selection-toolbar .ai-edit-more { padding: 0 var(--s2); }
+.cleanup { position: fixed; z-index: var(--z-pop); width: min(420px, calc(100vw - 24px)); max-height: min(620px, calc(100dvh - 24px)); overflow: auto; display: grid; gap: var(--s3); padding: var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); background: var(--raised); box-shadow: var(--shadow-2); }
+.ai-edit-options { width: min(360px, calc(100vw - 24px)); }
+.edit-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+.edit-head h3 { margin: 0; font-size: var(--fs-3); }
+.edit-close { width: var(--h-md); min-height: var(--h-md); padding: 0; flex: none; }
+.ai-request-row { display: flex; align-items: flex-end; gap: var(--s2); }
+.ai-request-row textarea { min-width: 0; flex: 1; }
+.ai-quick-edits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s1); }
+.ai-quick-edits > .b { justify-content: flex-start; }
+.ai-edit-foot { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); font-size: var(--fs-2); }
+.ai-edit-foot > a { white-space: nowrap; color: var(--text-2); text-underline-offset: 3px; }
+.ai-selected-quote { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-2); color: var(--text-2); }
+.ai-edit-foot .field-help { margin: 0; }
+.ai-compare { justify-self: start; }
+.edit-defaults { display: grid; gap: var(--s2); margin-top: var(--s3); max-width: 36rem; }
+@media (any-hover: none), (max-width: 600px) { .ai-edit-actions { opacity: 1; border-color: var(--border-ctl); } }
+@media (max-width: 600px) { .ai-edit-actions > .b, .edit-close, .cleanup .b, .ai-selection-toolbar .b { min-height: 44px; min-width: 44px; } .edit-close { width: 44px; } }
 .cleanup-err { margin: 0; color: var(--text); background: var(--error-tint); border: 1px solid var(--error); border-radius: var(--r-md); padding: var(--s2) var(--s3); }
 .cleanup-btns { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
 .cleanup-diff del { color: var(--text-3); text-decoration: line-through; }
+.cleanup-diff del + ins { margin-left: var(--s1); }
 .cleanup-diff ins { background: var(--sunk); color: var(--text); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; }
+
+/* The room aid opens in the document flow. It never covers the ballot or writes into it. */
+#review-compare-action > .b { display: inline-flex; align-items: center; gap: var(--s1); border: 1px solid var(--border-ctl); border-radius: var(--r-md); }
+#review-compare-action:empty { display: none; }
+.room-comparison { display: grid; justify-items: stretch; gap: var(--s3); margin-bottom: var(--s4); overflow-wrap: anywhere; }
+.room-comparison .edit-head h2 { margin: 0; font-size: var(--fs-3); }
+.room-comparison p { margin: 0; }
+.room-comparison-points, .room-suggested-order { display: grid; gap: var(--s3); padding-left: var(--s4); margin: 0; }
+.room-comparison-points { list-style: none; padding-left: 0; }
+.room-comparison summary { cursor: pointer; font-size: var(--fs-2); color: var(--text-2); }
+.room-evidence ul { list-style: none; padding-left: var(--s3); display: grid; gap: var(--s2); }
+.room-evidence blockquote { margin: var(--s1) 0; padding: var(--s2) var(--s3); border: 1px solid var(--border); border-radius: var(--r-md); background: var(--sunk); white-space: pre-wrap; }
+.room-source-notes { white-space: pre-wrap; font-size: var(--fs-2); color: var(--text-2); }
+.room-gaps { font-size: var(--fs-2); color: var(--text-2); }
+.room-gaps ul { margin-block: var(--s1); padding-left: var(--s4); }
+.room-comparison-actions { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.room-comparison-actions > .b { border: 1px solid var(--border-ctl); }
+.room-comparison-about { border-top: 1px solid var(--border); padding-top: var(--s2); }
+.room-judging-settings { margin-top: var(--s3); }
+@media (max-width: 600px) { #review-compare-action > .b, .room-comparison .b, .room-comparison summary { min-height: 44px; } }
 
 /* ---------- Header, History, Settings and the palette (step S2; EXPERIENCE.md §1.1, §7) ----------
    Black, white and gray chrome. The link for the screen that shows has a fill, never an underline (DESIGN.md §1). */

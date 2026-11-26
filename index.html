@@ -16,6 +16,8 @@
 <script src="assets/caps-boot.js"></script>
 <script src="assets/sw-register.js"></script>
 <link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="core/ai-mark.css">
+<link rel="stylesheet" href="core/ai-preferences.css">
 <style>
   /* Tokens (colours, type, space, layers) live in assets/tokens.css and the core/tokens.css it imports (spec Part 2). This block only uses them.
      Spend colour on data, not chrome: Aff blue and Neg red are for the round's content only. */
@@ -558,7 +560,6 @@
   .ballot-card { padding: var(--s3) var(--s4); }
   .ballot-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
   .ballot-head h2 { margin: 0; }
-  .ballot-note { margin: var(--s1) 0 var(--s2); }
   .b-winner { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
   .b-legend { display: inline-flex; align-items: center; gap: var(--s2); float: left; margin-right: var(--s2); padding: 0; font-size: var(--fs-2); font-weight: var(--fw-2); color: var(--text-2); }
   .win-card { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--h-md); margin: 0; padding: 0 var(--s3); border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); font-size: var(--fs-3); font-weight: var(--fw-3); cursor: pointer; }
@@ -573,7 +574,7 @@
   .rank-cell { text-align: center; }
   .rank-cell input { width: 18px; height: 18px; min-width: 0; } /* not the 80 px number-input minimum from "td input" */
   .rank-sel-cell { display: none; }
-  .tag-cell { width: 92px; text-align: right; white-space: nowrap; } /* fixed, so the columns do not jump when a tag changes */
+  .tag-cell { width: var(--hit-min); text-align: right; white-space: nowrap; } /* fixed, so the columns do not jump when a tag changes */
   .stepper { display: inline-flex; align-items: center; gap: var(--s1); }
   .stepper input { width: 5.5em; min-width: 0; text-align: center; }
   .step { width: var(--h-md); height: var(--h-md); flex: none; border: 1px solid var(--border-ctl); border-radius: var(--r-md); background: var(--panel); color: var(--text); font: inherit; font-size: var(--fs-3); font-weight: var(--fw-3); cursor: pointer; }
@@ -587,7 +588,8 @@
   .b-comments .b-label { min-height: var(--hit-min); } /* the Aff and Neg boxes line up, whatever tag each label row shows */
   .b-tag { display: inline-flex; }
   .b-tag:empty { display: none; }
-  .b-tag-btn { display: inline-flex; align-items: center; gap: var(--s1); min-height: var(--hit-min); padding: 0 var(--s2); border: 1px solid var(--border-ctl); border-radius: var(--r-pill); background: var(--sunk); color: var(--text); font: inherit; font-size: var(--fs-1); font-weight: var(--fw-3); cursor: pointer; }
+  .b-tag-btn { display: inline-flex; align-items: center; justify-content: center; width: var(--hit-min); min-height: var(--hit-min); padding: 0; border: 1px solid var(--border-ctl); border-radius: var(--r-sm); background: var(--sunk); color: var(--text); font: inherit; cursor: pointer; }
+  .b-tag svg { flex: none; }
   .b-tag-btn:hover { border-color: var(--text); }
   .b-tag-ai { display: inline-flex; align-items: center; min-height: var(--hit-min); color: var(--text-3); font-size: var(--fs-1); font-weight: var(--fw-3); }
   .ballot-check .warn, .ballot-check .good { margin: var(--s2) 0 0; }
@@ -688,7 +690,7 @@
     .step { width: 44px; height: 44px; }
     .stepper input { min-height: 44px; }
     .ranks-set { display: inline; margin-left: var(--s2); }
-    .b-tag-btn { min-height: 44px; }
+    .b-tag-btn { width: 44px; min-height: 44px; }
     .draft-panel { position: fixed; inset: 0; z-index: var(--z-pop); border: 0; border-radius: 0; background: var(--canvas); padding: var(--s4); }
     .rv-card:not(.rv-current) { display: none; }
     .ballot-bar { margin: var(--s3) calc(-1 * var(--s3)) 0; border-radius: 0; border-width: 1px 0 0; }
@@ -985,11 +987,6 @@
       </div>
     </div>
   </div>
-  <div class="card" id="writing-card" data-ai="any">
-    <h2>AI writing</h2>
-    <div class="row"><span class="row-label" id="read-round-label">How the AI writes</span><div class="seg" role="group" aria-labelledby="read-round-label" aria-describedby="read-round-help"><button data-read="expert" data-read-scope="round">Expert</button><button data-read="plain" data-read-scope="round">Plain</button></div></div>
-    <p class="muted field-help" id="read-round-help">Plain: short sentences, everyday words. The decision stays the same. Set the default in Settings.</p>
-  </div>
   <div class="card" id="docs-card">
     <h2>Round documents</h2>
     <p class="muted">Add speech docs (PDF, .docx or text) and pick each doc's speech. <span data-ai="aiFlow">The AI maps each doc onto that speech's column and fills transcript gaps from it (marked [doc]).</span> Docs stay in this browser until a new round.</p>
@@ -1102,7 +1099,7 @@
       <h2>Live Eval</h2>
       <div class="row">
         <label class="row check-row"><input type="checkbox" id="auto-eval"> Update after each speech <span class="muted">(uses AI)</span></label>
-        <button class="b primary" id="eval-go" aria-describedby="eval-cost eval-status">Run</button><span class="muted" id="eval-cost">Uses AI</span>
+        <button class="b primary ai-action" id="eval-go" aria-describedby="eval-cost eval-status">Run</button><span class="muted" id="eval-cost">Uses AI</span>
       </div>
     </div>
     <p class="muted help-line">Advice from the transcripts, flows and docs. Not a decision. <span id="eval-meta"></span></p>
@@ -1124,7 +1121,7 @@
       <h2>Paradigm Lens</h2>
       <div class="row">
         <label for="lens-pick" class="inline-label">Weigh as</label><select id="lens-pick" class="w-auto"></select>
-        <button class="b primary" id="lens-go">Run</button>
+        <button class="b primary ai-action" id="lens-go">Run</button>
       </div>
     </div>
     <p class="muted help-line">Each paradigm keeps its own answer, so switching is free. "(yours)" is your Settings paradigm.</p>
@@ -1139,7 +1136,7 @@
   <div class="card" id="impact-card" data-ai="analysis">
     <div class="row card-head">
       <h2>Impact Calculus</h2>
-      <button class="b" id="impact-go">Run</button>
+      <button class="b ai-action" id="impact-go">Run</button>
     </div>
     <p id="impact-status" class="status-line" role="status" aria-live="polite"></p>
     <div id="impact-out" class="mt-3"></div>
@@ -1149,7 +1146,7 @@
       <h2>Round Map</h2>
       <div class="row">
         <div class="seg" role="group" aria-label="Map view"><button data-mapview="sheet">Flow sheet</button><button data-mapview="diagram">Diagram</button></div>
-        <button class="b" id="map-add">+ Argument</button><button class="b" id="map-copy">Copy Mermaid code</button><button class="b" id="map-go" data-ai="analysis">Run</button>
+        <button class="b" id="map-add">+ Argument</button><button class="b" id="map-copy">Copy Mermaid code</button><button class="b ai-action" id="map-go" data-ai="analysis">Run</button>
       </div>
     </div>
     <p class="muted help-line" id="map-legend"><span class="mk">↩ answers</span> <span class="mk">↻ turns</span> <span class="mk">→ extends</span> <span class="mk">= concedes</span> <span class="chip drop">Dropped</span> marks an argument the other side never answered.</p>
@@ -1218,8 +1215,9 @@
   </div>
   <div class="card" id="writing-settings" data-ai="any">
     <h2>AI writing and decisions</h2>
-    <div class="row"><span class="row-label" id="read-device-label">How the AI writes</span><div class="seg" role="group" aria-labelledby="read-device-label" aria-describedby="read-device-help"><button data-read="expert" data-read-scope="device">Expert</button><button data-read="plain" data-read-scope="device">Plain</button></div><span class="muted">Default for new rounds</span></div>
-    <p class="muted field-help" id="read-device-help">Plain: short sentences, everyday words. The decision stays the same. Change it per round in Round.</p>
+    <div class="row"><span class="row-label" id="read-device-label">How the AI writes</span><div class="seg" role="group" aria-labelledby="read-device-label" aria-describedby="read-device-help"><button data-read="expert" data-read-scope="device">Expert</button><button data-read="plain" data-read-scope="device">Plain</button></div><span class="muted">Applies to all rounds</span></div>
+    <p class="muted field-help" id="read-device-help">Plain: short sentences, everyday words. The decision stays the same. Change this setting here for all rounds.</p>
+    <div id="ai-device-preferences"></div>
     <div class="grid mt-3">
       <div><label for="paradigm-pick">Paradigm for the decision</label>
         <select id="paradigm-pick" data-bind="ai.paradigm">
@@ -1285,9 +1283,12 @@
       <div class="card ballot-card">
         <div class="ballot-head">
           <h2 id="ballot-title">Ballot</h2>
-          <button class="b" id="draft-open" data-ai="ballotDraft" type="button" aria-expanded="false" aria-controls="draft-panel">Draft with AI</button>
+          <div class="row" data-ai="ballotDraft">
+            <button class="b ai-action" id="draft-open" data-ai="ballotDraft" type="button" aria-expanded="false" aria-controls="draft-panel">Draft with AI</button>
+            <span class="tip-wrap"><button class="tip" type="button" aria-label="About AI editing" aria-expanded="false" aria-controls="ballot-ai-help">ⓘ</button>
+              <span class="tip-box" id="ballot-ai-help" role="tooltip" hidden></span></span>
+          </div>
         </div>
-        <p class="muted ballot-note" data-ai="ballotDraft">The AI never changes what you type.</p>
         <fieldset class="b-winner">
           <legend class="b-legend">Winner <span class="b-tag" data-tag="winner"></span></legend>
           <label class="win-card aff"><input type="radio" name="winner" value="aff"> <span class="aff" data-side-word="aff" data-side-after=" wins">Aff wins</span> <span id="w-aff" class="muted"></span></label>
@@ -1513,6 +1514,8 @@
 <script type="module" src="core/ai.js"></script>
 <script type="module" src="core/install-hint.js"></script>
 <script type="module" src="core/keep-data.js"></script>
+<script type="module" src="core/ai-mark.js"></script>
+<script type="module" src="core/ai-preferences.js"></script>
 <script defer src="formats/policy-hs.v1.js"></script>
 <script defer src="formats/ld.v1.js"></script>
 <script defer src="formats/pf.v1.js"></script>
@@ -1554,6 +1557,7 @@
 <script defer src="js/limits.js"></script>
 <script defer src="js/consent.js"></script>
 <script defer src="js/settings.js"></script>
+<script defer src="js/preferences.js"></script>
 <script defer src="js/help.js"></script>
 <script defer src="js/insights.js"></script>
 <script defer src="js/decide.js"></script>
