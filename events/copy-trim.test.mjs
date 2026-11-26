@@ -137,7 +137,7 @@ test('review and clean-up: short summary, result-only toasts, one copy-error str
   assert.equal((src.match(/'This browser blocked copying\. Select the text and press Ctrl\+C \(⌘C on Mac\)\.'/g) || []).length, 2);
   assert.doesNotMatch(src, /'This browser blocked copying\.'/);
   const cv = read('js/cleanup-view.js');
-  assert.match(cv, /announce\('Clean version ready\.'\)/);
+  assert.match(cv, /announce\('Suggested edit ready\.'\)/);
   assert.match(cv, /AI rewrote your words\. Check them before you copy\./);
 });
 
@@ -180,7 +180,7 @@ test('Settings: one-line help, privacy facts kept, no vendor name', () => {
   assert.match(view, /How long the room shows "Waiting for next speaker" between Extemp speakers\./);
   assert.match(view, /Your rounds stay on this device\. A backup lets you keep or move them\./);
   assert.doesNotMatch(view, /Tabroom/);
-  assert.match(aiPartHtml({ allowed: true, connected: false }), /Use your own AI key for Clean-up\. The key stays in this browser\./);
+  assert.match(aiPartHtml({ allowed: true, connected: false }), /Use your own AI key to edit feedback\. The key stays in this browser\./);
   assert.match(aiPartHtml({ allowed: true, connected: true, providerName: 'X' }), /<p>Connected: X\.<\/p>/);
   assert.match(read('js/guide.js'), /'Two students'/);
 });

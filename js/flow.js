@@ -162,7 +162,7 @@ function sheetLearnLink(name) {
 }
 function viewToggle() {
   if (!can('aiFlow')) return ''; // no AI flow: no one-tab view switch
-  return `<button data-view="mine" class="${R.flowView !== 'ai' ? 'on' : ''}">My flow</button><button data-view="ai" class="${R.flowView === 'ai' ? 'on' : ''}">AI flow</button><span class="tab-gap"></span>`;
+  return `<button data-view="mine" class="${R.flowView !== 'ai' ? 'on' : ''}">My flow</button><button data-view="ai" class="ai-action${R.flowView === 'ai' ? ' on' : ''}">${TabulaCore['ai-mark'].aiMark()}AI flow</button><span class="tab-gap"></span>`;
 }
 let aiIdx = 0;
 function agoText(t) {
@@ -218,7 +218,7 @@ function renderAIFlow() {
     ? FMT().flowColumns.map((c, i) => {
       const ed = sh.edits && sh.edits[i];
       const behind = L.editIsBehind(sh, i, FMT());
-      return `<div class="col ${c.side}"><h3><span>${c.label}</span>${ed ? '<span class="chip con" data-tip="You edited this cell. AI updates will not overwrite it.">Edited</span>' : ''}<span class="col-mark"></span></h3>`
+      return `<div class="col ${c.side}"><h3><span>${c.label}</span>${ed ? `<span class="chip con ai-protected" data-tip="You edited this cell. AI updates will not overwrite it.">${TabulaCore['ai-mark'].lockMark()}Edited</span>` : ''}<span class="col-mark"></span></h3>`
         + (behind ? `<div class="aibar">AI has a newer version. <button data-ai-use="${i}">Use AI</button><button data-ai-keep="${i}">Keep mine</button></div>` : ed ? `<div class="aibar quiet"><button data-ai-use="${i}">Undo my edit</button></div>` : '')
         + `<div class="flow-cell"><div class="flow-hl" aria-hidden="true"></div><textarea data-aicol="${i}" spellcheck="false" aria-label="${c.label} column, sheet ${escapeHtml(sh.name)}">${escapeHtml(L.flowCellText(sh, i, level, FMT()))}</textarea></div></div>`;
     }).join('')
@@ -316,7 +316,7 @@ $('#flow').addEventListener('input', (e) => {
     const wasEdited = Boolean(sh.edits && sh.edits[aicol]);
     (sh.edits ??= {})[aicol] = { text: e.target.value, base: (sh.edits[aicol] && sh.edits[aicol].base) ?? L.aiFlowCell(sh, Number(aicol), 'standard', FMT()) };
     save();
-    if (!wasEdited) { const h = e.target.closest('.col').querySelector('h3'); if (h && !h.querySelector('.chip')) h.querySelector('.col-mark').insertAdjacentHTML('beforebegin', '<span class="chip con" data-tip="You edited this cell. AI updates will not overwrite it.">Edited</span>'); }
+    if (!wasEdited) { const h = e.target.closest('.col').querySelector('h3'); if (h && !h.querySelector('.chip')) h.querySelector('.col-mark').insertAdjacentHTML('beforebegin', `<span class="chip con ai-protected" data-tip="You edited this cell. AI updates will not overwrite it.">${TabulaCore['ai-mark'].lockMark()}Edited</span>`); }
     return;
   }
   const col = e.target.dataset.col; if (col == null) return;

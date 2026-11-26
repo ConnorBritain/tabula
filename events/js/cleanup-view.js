@@ -1,158 +1,179 @@
-// Speech Events step E13: "Clean up my comments" on the Review screen (docs/events/DESIGN.md §4.9; ARCHITECTURE.md §7;
-// LANDING.md §4.1). One speaker at a time, only on a tap. The judge picks "Full clean-up" or "Spelling only", sees
-// their own words above the clean version with a word diff, and chooses "Use this", "Keep mine" or "Try again". Nothing
-// changes until "Use this"; Undo is in a toast. With AI off by policy, none of this is built: no button, no hole.
-//
-// The HTML builders at the top are pure (Node tests call them). createCleanup does the clicks, the dialogs and the call;
-// the rules are in cleanup.js and the key in ai-key.js.
+// Contextual AI edits: the primary star runs saved defaults. More reveals quick edits and a custom request.
+// A captured selection is the only text sent or replaced. Every suggestion still needs Use this.
 import { escapeHtml as esc } from '../../core/sheets.js';
-import { cleanupPath, cleanableEntries, cleanupMessages, cleanupReview, acceptCleanup, undoCleanup } from './cleanup.js';
+import { wordDiff } from '../../core/review.js';
+import { aiMark } from '../../core/ai-mark.js';
+import { PREFERENCE_LIMIT, resolvePreferences } from '../../core/ai-preferences.js';
+import { iconButton } from './icons.js';
+import { cleanupPath, cleanableEntries, cleanupMessages, cleanupReview, acceptCleanup, undoCleanup, EDIT_MODES, editDefaults, editTarget, selectionDraft, sourceText } from './cleanup.js';
 import { findRoom } from './room.js';
-import { askConnectKey, askForgetKey } from './ai-connect.js';
+import { askConnectKey } from './ai-connect.js';
 
-const MODE_LABELS = { full: 'Full clean-up', spelling: 'Spelling only' };
+const label = (mode) => EDIT_MODES.find((m) => m.id === mode)?.label || 'Clarify';
+export const diffHtml = (diff) => (diff || []).map((d) => d.op === 'del' ? `<del><span class="sr-only">removed: </span>${esc(d.text)}</del>` : d.op === 'ins' ? `<ins><span class="sr-only">added: </span>${esc(d.text)}</ins>` : esc(d.text)).join('');
+const action = (id, act, text, cls = '', attrs = '') => `<button class="b ${cls}" type="button" data-vact="${act}" data-id="${esc(id)}" data-key="${act}-${esc(id)}"${attrs}>${text}</button>`;
 
-// The word diff as HTML: removed words struck through, added words marked, each with words for a screen reader.
-export const diffHtml = (diff) => (diff || []).map((d) => (d.op === 'del' ? `<del><span class="sr-only">removed: </span>${esc(d.text)}</del>`
-  : d.op === 'ins' ? `<ins><span class="sr-only">added: </span>${esc(d.text)}</ins>` : esc(d.text))).join('');
-
-// The "Clean up" button on a card. Empty when the path is 'none' (AI off: the button is not built) or there is no text.
-export function cleanupButtonHtml(c, path, open) {
-  if (path === 'none' || !path || !String(c.comment || '').trim()) return '';
-  return `<button class="b small quiet" type="button" data-vact="clean" data-id="${esc(c.id)}" data-key="clean-${esc(c.id)}" aria-expanded="${Boolean(open)}" aria-controls="clean-${esc(c.id)}">Clean up</button>`;
+export function cleanupButtonHtml(c, path, mode = 'full') {
+  if (!path || path === 'none' || !String(c.comment || '').trim()) return '';
+  const title = label(mode) + ' feedback with AI';
+  return `<span class="ai-edit-actions" role="group" aria-label="AI feedback edits">${action(c.id, 'clean', aiMark('events', 'edit-' + c.id), 'quiet ai-action ai-edit-star', ` aria-label="${esc(title)}" title="${esc(title)}" aria-haspopup="dialog"`)}${iconButton('chevron-down', 'More AI edits', 'b quiet ai-edit-more', `data-vact="clean-more" data-id="${esc(c.id)}" data-key="clean-more-${esc(c.id)}" aria-haspopup="dialog" title="More AI edits"`)}</span>`;
 }
 
-// The panel under a card's text. st: { id, mode, status ('idle'|'busy'|'ready'|'error'), card (the review card),
-// error, errorKind, providerName }. c: the Review card (code, comment).
-export function cleanupPanelHtml(c, st) {
-  const btn = (act, label, extra = '') => `<button class="b${extra}" type="button" data-vact="${act}" data-id="${esc(c.id)}" data-key="${act}-${esc(c.id)}">${label}</button>`;
-  const modes = `<div class="order-toggle seg-track" role="group" aria-label="How much to change">${['full', 'spelling'].map((m) =>
-    `<button class="b small${st.mode === m ? ' on' : ''}" type="button" data-vact="clean-mode" data-mode="${m}" data-id="${esc(c.id)}" data-key="clean-mode-${m}" aria-pressed="${st.mode === m}"${st.status === 'busy' ? ' disabled' : ''}>${MODE_LABELS[m]}</button>`).join('')}</div>`;
-  let body = '';
-  if (st.status === 'idle') {
-    body = `<p class="muted cleanup-note">Your words go to ${esc(st.providerName || 'the AI')} with your own key. Codes, and the names, titles and authors you typed in setup, are swapped out first. A name you wrote only in your notes is sent as you wrote it.</p>
-      <div class="cleanup-btns">${btn('clean-go', 'Clean up', ' primary')}${btn('clean-close', 'Cancel', ' quiet')}${btn('clean-forget', 'Forget my key', ' quiet small')}</div>`;
+export function selectionToolbarHtml(selection, mode) {
+  return `<div class="ai-selection-toolbar" data-ai-selection role="toolbar" aria-label="AI for selected text">${action(selection.id, 'clean-selected', aiMark('events', 'selected-' + selection.id) + esc(label(mode)), 'quiet ai-action', ` aria-label="${esc(label(mode))} selected text with AI"`)}${iconButton('chevron-down', 'More edits for selected text', 'b quiet ai-edit-more', `data-vact="clean-selection-more" data-id="${esc(selection.id)}" aria-haspopup="dialog"`)}</div>`;
+}
+
+export function cleanupPanelHtml(st) {
+  const id = st.id, scope = st.target.selected ? 'Selected text' : 'Feedback';
+  const btn = (act, text, cls = '', attrs = '') => action(id, act, text, cls, attrs);
+  let body;
+  if (st.status === 'options') {
+    body = `<label class="sr-only" for="edit-request-${esc(id)}">Your wording request</label><div class="ai-request-row"><textarea id="edit-request-${esc(id)}" rows="2" maxlength="${PREFERENCE_LIMIT}" data-clean-request data-id="${esc(id)}" data-key="clean-request-${esc(id)}" placeholder="How should this text change?">${esc(st.request)}</textarea>${btn('clean-custom', 'Apply', 'primary')}</div>
+      ${st.error ? `<p class="cleanup-err" role="alert">${esc(st.error)}</p>` : ''}
+      <div class="ai-quick-edits" role="group" aria-label="Quick edits">${EDIT_MODES.filter((m) => m.id !== 'custom').map((m) => btn('clean-op', esc(m.label), 'small quiet', ` data-mode="${m.id}"`)).join('')}</div>`;
   } else if (st.status === 'busy') {
-    body = `<p class="muted" role="status">Cleaning up…</p><div class="cleanup-btns">${btn('clean-close', 'Cancel', ' quiet')}</div>`;
-  } else if (st.status === 'error') {
-    // A rejected key: the judge needs a way to a new one, so "Forget my key" shows here too.
-    body = `<p class="cleanup-err" role="alert">${esc(st.error)}</p><div class="cleanup-btns">${btn('clean-go', 'Try again', ' primary')}${btn('clean-close', 'Close', ' quiet')}${st.errorKind === 'rejected' ? btn('clean-forget', 'Forget my key', ' quiet small') : ''}</div>`;
+    body = '<p class="muted" role="status">Preparing an edit…</p>';
   } else if (st.status === 'ready') {
-    const card = st.card;
-    const before = card.base[card.fields[0]];
-    const after = card.after[card.fields[0]];
-    const same = !card.empty && String(before).trim() === String(after).trim();
-    const result = card.empty ? '<p class="muted">The AI sent back no text for this speaker. Keep your words, or try again.</p>'
-      : same ? '<p class="muted">No changes needed. Your words are already clean.</p>'
-      : `<h4 class="cleanup-h">Clean version</h4><div class="card-text cleanup-diff">${diffHtml(card.diff)}</div>
-        <p class="muted cleanup-note">AI rewrote your words. Check them before you copy.</p>`;
-    body = `<h4 class="cleanup-h">Your words</h4><div class="card-text">${esc(before)}</div>${result}
-      <div class="cleanup-btns">${card.empty || same ? '' : btn('clean-use', 'Use this', ' primary')}${btn('clean-keep', 'Keep mine', card.empty || same ? ' primary' : '')}${btn('clean-go', 'Try again', ' quiet')}</div>`;
+    const original = st.showOriginal === true;
+    body = `<div class="seg-track ai-compare" role="tablist" aria-label="Compare edit">${btn('clean-original', 'Original', 'small' + (original ? ' on' : ''), ` role="tab" tabindex="${original ? 0 : -1}" aria-selected="${original}" aria-controls="edit-comparison-${esc(id)}"`)}${btn('clean-suggested', 'Suggested', 'small' + (!original ? ' on' : ''), ` role="tab" tabindex="${original ? -1 : 0}" aria-selected="${!original}" aria-controls="edit-comparison-${esc(id)}"`)}</div>
+      <div class="card-text cleanup-diff" id="edit-comparison-${esc(id)}" role="tabpanel" aria-label="${original ? 'Original' : 'Suggested'}">${original ? esc(st.target.text) : st.empty ? 'The AI sent no text. Your comment stays as written.' : st.same ? 'No changes suggested.' : diffHtml(st.diff)}</div>
+      <p class="field-help">AI rewrote your words. Check them before you copy.</p>
+      <div class="cleanup-btns">${st.empty || st.same ? '' : btn('clean-use', 'Use this', 'primary')}${btn('clean-keep', 'Keep mine', st.empty || st.same ? 'primary' : '')}${btn('clean-go', 'Try again', 'quiet small')}</div>`;
+  } else {
+    body = `<p class="cleanup-err" role="alert">${esc(st.error || 'The edit did not work. Your comment is safe.')}</p><div class="cleanup-btns">${btn('clean-go', 'Try again', 'primary')}${btn('clean-keep', 'Keep mine', 'quiet')}</div>`;
   }
-  return `<div class="cleanup" id="clean-${esc(c.id)}" role="region" aria-label="Clean up the comment for ${esc(c.code)}">${modes}${body}</div>`;
+  return `<div class="cleanup${st.status === 'options' ? ' ai-edit-options' : ''}" data-clean-panel data-id="${esc(id)}" role="dialog" aria-modal="false" aria-labelledby="edit-title-${esc(id)}"><div class="edit-head"><h3 id="edit-title-${esc(id)}">${st.status === 'options' ? 'Edit with AI' : esc(label(st.mode))} <span class="muted">· ${scope}</span></h3>${iconButton('x', 'Close AI editor', 'b quiet edit-close', `data-vact="clean-close" data-id="${esc(id)}"`)}</div>${st.target.selected && st.status !== 'ready' ? `<p class="ai-selected-quote" title="${esc(st.target.text)}">“${esc(st.target.text)}”</p>` : ''}${body}<div class="ai-edit-foot"><span class="field-help">${st.target.selected ? 'Only selected text will change.' : 'Your original stays until you accept.'}</span><a href="#/settings">AI settings</a></div></div>`;
 }
 
-// env: the Review screen's env ({ ui, now, rooms, saveRoom, data, ai: { gate, own } }). hooks: { roomId(), event(room),
-// draw(focusKey) }. Returns { path(), view(c) -> { button, panel }, click(act, el), reset() }.
 export function createCleanup(env, hooks) {
-  const P = globalThis.TabulaCore.policy;
-  let st = null; // the open panel, or null
-  let token = 0; // a reply for an older request is thrown away
+  let st = null, selection = null, controller = null, token = 0;
   const room = () => findRoom(env.rooms(), hooks.roomId());
   const own = env.ai.own;
-  // The path is worked out at each draw from the gate made at app start (AI-POLICY.md §6a: never mid-session).
-  // hosted: false until E14 builds the hosted path.
+  const settings = () => env.settings?.() || {};
+  const defaults = () => editDefaults(settings().feedbackEdit);
   const path = () => cleanupPath({ gate: env.ai.gate, hasKey: own.hasKey(), hosted: false });
-
-  function close(focusKey) { token++; const id = st && st.id; st = null; hooks.draw(focusKey || (id ? 'clean-' + id : undefined)); }
-  function open(id) { token++; st = { id, mode: 'full', status: 'idle', providerName: own.providerName() }; hooks.draw('clean-go-' + id); }
-
-  // The Connect AI invite (path 'connect'): paste a key, then choose where it is kept (ai-connect.js, shared with
-  // Settings). Not remembered unless chosen.
-  async function connect(id) {
-    if (!(await askConnectKey(env.ui, own))) return;
-    if (path() === 'own') open(id); else hooks.draw('clean-' + id);
+  const draw = (key) => hooks.draw(key);
+  const changed = (key) => (hooks.changed || hooks.draw)(key);
+  const cancel = () => { token++; controller?.abort(); controller = null; };
+  function close(restore = true) {
+    const id = st?.id || selection?.id;
+    cancel(); st = null; selection = null;
+    draw(restore && id ? 'clean-' + id : undefined);
   }
-
+  function begin(id, selected, options = false) {
+    if (path() === 'none') return false;
+    const e = room()?.entries.find((x) => x.id === id);
+    if (!e || !sourceText(e).trim() || e.status === 'noShow') return false;
+    if (selected && (selected.id !== id || selected.base !== sourceText(e))) { close(); return false; }
+    cancel();
+    const prefs = resolvePreferences(settings().aiPreferences, 'feedback');
+    const target = editTarget(e, selected);
+    st = { id, ...defaults(), status: options ? 'options' : 'idle', style: prefs.style, target, anchor: selected, request: options ? '' : defaults().request };
+    selection = null;
+    return true;
+  }
   async function run() {
     const r = room();
-    if (!st || !r || path() !== 'own') return;
-    const id = st.id;
-    const mine = ++token;
-    const entries = cleanableEntries(r, [id]);
-    if (!entries.length) { close(); return; }
-    st = Object.assign({}, st, { status: 'busy', error: '' });
-    hooks.draw();
-    env.ui.announce('Cleaning up.');
+    if (!st || !r || st.status === 'busy' || path() === 'none') return;
+    if (st.mode === 'custom' && !st.request.trim()) { st.error = 'Describe the wording change you want.'; st.status = 'options'; draw('clean-request-' + st.id); return; }
+    const chosen = st, mine = ++token;
+    controller?.abort(); controller = new AbortController();
+    const signal = controller.signal;
+    st.status = 'busy'; st.error = ''; draw();
+    env.ui.announce('Preparing an edit.');
     try {
-      const msg = cleanupMessages(r, hooks.event(r), [id], st.mode);
-      const drafts = await own.cleanup(env.ai.gate, msg);
+      if (path() === 'connect' && !(await askConnectKey(env.ui, own))) {
+        if (mine === token) { st.status = 'error'; st.error = 'Connect an AI key in Settings to make edits.'; draw(); }
+        return;
+      }
+      if (mine !== token || st !== chosen || room()?.id !== r.id || path() !== 'own') return;
+      const entries = cleanableEntries(r, [st.id]).map((e) => ({ ...e }));
+      if (!entries.length || sourceText(entries[0]) !== st.target.base) throw new Error('Your comment changed. Select the text again or start a new edit.');
+      const range = st.target.selected ? { start: st.target.start, end: st.target.end } : undefined;
+      const msg = cleanupMessages(r, hooks.event(r), [st.id], st.mode, { selection: range, request: st.request, preferences: { style: st.style } });
+      const drafts = await own.cleanup(env.ai.gate, msg, { signal });
       if (mine !== token || !st) return;
-      const card = cleanupReview(entries, drafts).cards[0];
-      st = Object.assign({}, st, { status: 'ready', card });
-      hooks.draw(card.empty || String(card.base[card.fields[0]]).trim() === String(card.after[card.fields[0]]).trim() ? 'clean-keep-' + id : 'clean-use-' + id);
-      env.ui.announce('Clean version ready.');
+      const draft = drafts[st.id], full = selectionDraft(st.target, draft);
+      st = { ...st, status: 'ready', card: cleanupReview(entries, full == null ? {} : { [st.id]: full }).cards[0], empty: full == null, same: typeof draft === 'string' && st.target.text.trim() === draft.trim(), diff: wordDiff(st.target.text, draft || ''), showOriginal: false };
+      draw(st.empty || st.same ? 'clean-keep-' + st.id : 'clean-use-' + st.id);
+      env.ui.announce('Suggested edit ready.');
     } catch (err) {
       if (mine !== token || !st) return;
-      st = Object.assign({}, st, { status: 'error', error: err.message || 'The clean-up did not work. Your comment is safe.', errorKind: err.kind || '' });
-      hooks.draw('clean-go-' + id);
+      st.status = 'error'; st.error = err.message || 'The edit did not work. Your comment is safe.';
+      draw('clean-go-' + st.id);
     }
   }
-
   function use() {
     const r = room();
-    if (!st || st.status !== 'ready' || !r) return;
-    const id = st.id;
-    const out = acceptCleanup(r, { cards: [st.card] }, id, env.now());
-    if (!out.changed) {
-      st = Object.assign({}, st, { status: 'error', error: 'Your comment changed after the clean-up started. Try again.' });
-      hooks.draw('clean-go-' + id);
-      return;
-    }
+    if (!st || st.status !== 'ready' || st.empty || st.same || !r || path() === 'none') return;
+    const id = st.id, out = acceptCleanup(r, { cards: [st.card] }, id, env.now());
+    if (!out.changed) { st.status = 'error'; st.error = 'Your comment changed after the preview started. Try a new edit.'; draw(); return; }
     env.saveRoom(out.room);
-    const inText = out.room.entries.find((e) => e.id === id).comment;
-    token++; st = null;
-    hooks.draw('copy-' + id);
-    // Undo puts the old entry and room state back, only if the comment is still the clean version.
-    env.ui.toast('Clean version in. Copy it again before you paste.', { key: 'clean', action: { label: 'Undo', name: 'Undo: clean-up', run: () => {
+    const inText = sourceText(out.room.entries.find((e) => e.id === id));
+    cancel(); st = null; selection = null; changed('copy-' + id);
+    env.ui.toast('Edit applied. Copy it again before you paste.', { key: 'clean', action: { label: 'Undo', name: 'Undo: AI edit', run: () => {
       const back = undoCleanup(room(), r, id, inText, env.now());
       if (!back) { env.ui.toast('The comment changed since, so it was not put back.', { key: 'clean' }); return; }
-      env.saveRoom(back);
-      hooks.draw();
-      env.ui.toast('Your words are back.', { key: 'clean' });
+      env.saveRoom(back); changed(); env.ui.toast('Your words are back.', { key: 'clean' });
     } } });
   }
-
-  async function forget() {
-    if (!(await askForgetKey(env.ui, own))) return;
-    const id = st && st.id;
-    token++; st = null;
-    hooks.draw(id ? 'clean-' + id : undefined);
-    env.ui.toast('Your AI key is gone from this browser.', { key: 'ai' });
+  function position() {
+    if ((!st && !selection) || !env.el || typeof window === 'undefined') return;
+    const box = env.el.querySelector(st ? '[data-clean-panel]' : '[data-ai-selection]');
+    const anchor = st?.anchor || selection;
+    const trigger = !anchor && env.el.querySelector(`[data-vact="clean"][data-id="${CSS.escape(st.id)}"]`);
+    if (!box || (!anchor && !trigger)) return;
+    const a = anchor ? { ...anchor.rect, top: anchor.rect.top - (window.scrollY - anchor.scrollY), bottom: anchor.rect.bottom - (window.scrollY - anchor.scrollY) } : trigger.getBoundingClientRect();
+    const b = box.getBoundingClientRect(), gap = 12, below = a.bottom + 8, above = a.top - b.height - 8;
+    box.style.left = Math.max(gap, Math.min(anchor ? a.left : a.right - b.width, innerWidth - b.width - gap)) + 'px';
+    box.style.top = Math.max(gap, Math.min(anchor && above >= gap ? above : below + b.height <= innerHeight - gap ? below : above, innerHeight - b.height - gap)) + 'px';
   }
-
   return {
-    path,
-    // The button and panel for one card ('' when AI is off). editing: the card's edit box is open (no clean-up then).
-    view(c, editing) {
-      const p = path();
-      if (p === 'none' || editing) return { button: '', panel: '' };
-      const isOpen = Boolean(st && st.id === c.id);
-      return { button: cleanupButtonHtml(c, p, isOpen), panel: isOpen ? cleanupPanelHtml(c, st) : '' };
+    path, position,
+    button(c) { return cleanupButtonHtml(c, path(), defaults().mode); },
+    panel() { return st ? cleanupPanelHtml(st) : selection ? selectionToolbarHtml(selection, defaults().mode) : ''; },
+    select(value) {
+      if (path() === 'none') return;
+      if (!value) { if (selection) { selection = null; draw(); } return; }
+      const e = room()?.entries.find((x) => x.id === value.id);
+      if (!e || sourceText(e) !== value.base) return;
+      try { editTarget(e, value); } catch { return; }
+      const current = st?.anchor || selection;
+      if (current && current.id === value.id && current.start === value.start && current.end === value.end && current.base === value.base) return;
+      cancel(); st = null; selection = value; draw();
+    },
+    input(e) { if (!st || st.status !== 'options' || e.target.dataset.cleanRequest === undefined || e.target.dataset.id !== st.id) return false; st.request = e.target.value.slice(0, PREFERENCE_LIMIT); return true; },
+    key(e) {
+      if ((st || selection) && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
+      if (st?.status === 'ready' && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) && e.target?.closest?.('[role="tablist"]')) { e.preventDefault(); st.showOriginal = e.key === 'Home' ? true : e.key === 'End' ? false : !st.showOriginal; draw((st.showOriginal ? 'clean-original-' : 'clean-suggested-') + st.id); }
+      if (st?.status === 'options' && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); st.mode = 'custom'; return run(); }
+    },
+    outside(e) {
+      if (!(st || selection) || e.target.closest?.('[data-ai-layer], .ai-edit-actions')) return;
+      if (selection && e.target.closest?.('[data-ai-text], textarea[data-vfield="comment"]')) return;
+      close(false);
     },
     click(act, el) {
       const id = el.dataset.id;
-      if (act === 'clean') { if (st && st.id === id) return close(); if (path() === 'connect') return connect(id); if (path() === 'own') return open(id); return; }
+      if (['clean', 'clean-more', 'clean-selected', 'clean-selection-more'].includes(act)) {
+        const selected = act.startsWith('clean-selection') || act === 'clean-selected' ? selection : null;
+        if (act === 'clean' && st?.id === id && st.status === 'busy') return;
+        if ((act === 'clean-selected' || act === 'clean-selection-more') && !selected) return;
+        const more = act.endsWith('more');
+        if (!begin(id, selected, more)) return;
+        if (more) return draw('clean-request-' + id);
+        return run();
+      }
       if (!st || st.id !== id) return;
-      if (act === 'clean-mode') { st = Object.assign({}, st, { mode: el.dataset.mode, status: 'idle', card: null }); token++; return hooks.draw('clean-mode-' + el.dataset.mode); }
+      if (act === 'clean-op' && st.status === 'options' && EDIT_MODES.some((m) => m.id === el.dataset.mode && m.id !== 'custom')) { st.mode = el.dataset.mode; return run(); }
+      if (act === 'clean-custom' && st.status === 'options') { st.mode = 'custom'; return run(); }
       if (act === 'clean-go') return run();
       if (act === 'clean-use') return use();
+      if (act === 'clean-original' || act === 'clean-suggested') { st.showOriginal = act === 'clean-original'; return draw(act + '-' + id); }
       if (act === 'clean-keep') { env.ui.announce('Kept your words.'); return close(); }
       if (act === 'clean-close') return close();
-      if (act === 'clean-forget') return forget();
     },
-    // An edit on this card closes its panel (the edit wins; a card made before it could not go in anyway).
-    closeFor(id) { if (st && st.id === id) { token++; st = null; } },
-    reset() { token++; st = null; },
+    closeFor(id) { if (st?.id === id || selection?.id === id) { cancel(); st = null; selection = null; draw(); } },
+    reset() { cancel(); st = null; selection = null; },
   };
 }

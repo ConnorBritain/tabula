@@ -162,7 +162,7 @@ test('callHosted asks before the fetch, and callAI passes the feature', () => {
   const check = body.indexOf('if (!(await roundConsent(feature))) throw STOPPED();');
   assert.ok(check > 0);
   assert.ok(check < body.indexOf('await fetch(req.url'));
-  assert.ok(ai.includes('await callHosted({ job: hosted.job, extra: Object.assign({}, hosted.extra, { reading }), signal, feature })'));
+  assert.ok(ai.includes('await callHosted({ job: hosted.job, extra: Object.assign({}, hosted.extra, { reading, aiPreferences: preferences }), signal, feature })'));
 });
 
 // Why: moving the round code once dropped the "Turn AI back on" handler; an idle-paused round could not be resumed.

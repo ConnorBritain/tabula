@@ -22,7 +22,7 @@ const AI_IDS = {
   liveEval: ['insights', 'insights-body', 'ins-show', 'tab-eval', 'auto-eval', 'eval-go', 'eval-body'],
   analysis: ['lens-card', 'lens-go', 'impact-card', 'impact-go', 'map-go'],
   ballotDraft: ['draft-open', 'draft-panel', 'auto-ballot', 'dp-go', 'ballot-input'],
-  any: ['writing-card', 'writing-settings', 'mini-rec', 'paradigm-pick'],
+  any: ['writing-settings', 'mini-rec', 'paradigm-pick'],
 };
 // The Connect AI surfaces: each must sit under data-ai-setup (the server's gate rules).
 const SETUP_IDS = ['ins-cta', 'conn-card', 'key-paste', 'key-connect', 'prov-list', 'remember-keys', 'remember-help', 'ai-engine', 'tr-engine', 'sub-box', 'sub-body', 'backup-keys', 'show-welcome'];

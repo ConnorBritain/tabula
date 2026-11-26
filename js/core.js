@@ -173,6 +173,7 @@ function showTab(id) {
   if (id === 'flow') { renderFlow(); renderInsights(); }
   if (id === 'eval') renderEval();
   if (id === 'analysis') renderAnalysis();
+  if (id === 'ai') renderAIPreferences();
   renderChip();
 }
 $('#nav').innerHTML = PLACES.map(([id, t]) => `<button type="button" class="b quiet" data-tab="${id}">${t}</button>`).join('');

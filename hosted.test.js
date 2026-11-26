@@ -1,3 +1,4 @@
+require('./core/ai-preferences.js');
 // Tests for the hosted AI caller: AI features call the Tabula server (POST /api/v1/ai/<task>) when the account has
 // hosted access. Spec: the server API's app client contract. Run with: node --test
 const test = require('node:test');
@@ -177,11 +178,11 @@ function world({ g, ownKey = false, answers, host, consent = true }) {
     return answers.shift();
   };
   // demoOn: the page is not the staged demo (js/demo.js), so callAI takes its real path.
-  const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console', 'location', 'demoOn', 'roundConsent', 'acctSignedOut',
+  const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console', 'location', 'demoOn', 'roundConsent', 'acctSignedOut', 'requestPreferences', 'AI_PREFERENCES',
     PAGE + '\nreturn [callAI, () => hostedLimits, (v) => { hostedLimits = v; }];');
   const [callAI, limits, setLimits] = make(L, P, S, R, [], g, (f) => L.canUse(g, f), () => ownKey, () => L.NO_AI, fetch,
-    (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} }, { host: host || 'debate.tabulaspeech.com' }, false, async () => consent, () => { signedOut++; }); // the round question's answer (default yes; consent tests: round-consent.test.js)
-  return { callAI, calls, toasts, opened, R, cleared: () => cleared, signedOut: () => signedOut, limits, setLimits };
+    (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} }, { host: host || 'debate.tabulaspeech.com' }, false, async () => consent, () => { signedOut++; }, (feature) => globalThis.TabulaCore['ai-preferences'].resolvePreferences(S.aiPreferences, feature, feature !== 'aiFlow'), globalThis.TabulaCore['ai-preferences']); // the round question's answer (default yes; consent tests: round-consent.test.js)
+  return { callAI, calls, toasts, opened, R, S, cleared: () => cleared, signedOut: () => signedOut, limits, setLimits };
 }
 const EVAL_CALL = { feature: 'liveEval', system: 'sys', prompt: 'p', schema: L.EVAL_SCHEMA, hosted: { job: 'eval' } };
 
@@ -500,4 +501,32 @@ test('the age refusals send the judge to the account page or explain the parent 
   assert.equal(parent.kind, 'parentConsent');
   assert.match(parent.text, /parent or guardian/);
   assert.deepEqual([parent.link, parent.fallback], [null, true]);
+});
+
+// Why: custom settings must reach each request path with names scrubbed, and Flow must never receive judging instructions.
+test('saved preferences reach hosted and helper requests with safe tool scope', async () => {
+  const prefs = { defaults: { mode: 'custom', style: 'Brief for Alice', guidance: 'Explain weighing for Carol' } };
+  const hosted = world({ g: gate(record(ALL_SELF, true)), answers: [sse([{ t: '{}' }, { done: true }]), sse([{ t: '{}' }, { done: true }])] });
+  hosted.S.aiPreferences = prefs;
+  await hosted.callAI(EVAL_CALL);
+  let body = JSON.parse(hosted.calls[0].init.body);
+  assert.match(body.state.notes, /Explain weighing for 1N/);
+  assert.match(body.state.notes, /Brief for 1A/);
+  assert.doesNotMatch(JSON.stringify(body), /Alice|Carol/);
+  await hosted.callAI({ ...EVAL_CALL, feature: 'aiFlow', hosted: { job: 'flow', extra: { speech: '1AC' } } });
+  body = JSON.parse(hosted.calls[1].init.body);
+  assert.match(body.state.notes, /Brief for 1A/);
+  assert.doesNotMatch(body.state.notes, /weighing|evaluation_guidance/);
+  const own = world({ g: gate(record(ALL_SELF, false)), ownKey: true, answers: [] });
+  own.S.aiPreferences = prefs;
+  await own.callAI({ ...EVAL_CALL, schema: null });
+  body = JSON.parse(own.calls[0].init.body);
+  assert.match(JSON.stringify(body), /Explain weighing for 1N/);
+  assert.doesNotMatch(JSON.stringify(body), /Alice|Carol/);
+  own.R.aiPreferences = { defaults: { mode: 'off' } };
+  await own.callAI({ ...EVAL_CALL, schema: null });
+  assert.match(own.calls[1].init.body, /OPTIONAL USER PREFERENCES/, 'legacy round settings do not override saved general settings');
+  own.S.aiPreferences = { defaults: { mode: 'off' } };
+  await own.callAI({ ...EVAL_CALL, schema: null });
+  assert.doesNotMatch(own.calls[2].init.body, /OPTIONAL USER PREFERENCES/);
 });

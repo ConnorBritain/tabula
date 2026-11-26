@@ -1,0 +1,7 @@
+/* Shared AI identity. A star on an action is decorative; permissions stay in the named control. */
+.ai-sparkle, .lock { flex: none; vertical-align: middle; }
+.ai-action { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); }
+.ai-protected { display: inline-flex; align-items: center; gap: var(--s1); }
+@media (forced-colors: active) {
+  .ai-sparkle path { fill: CanvasText; stroke: CanvasText; }
+}

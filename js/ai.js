@@ -5,9 +5,9 @@
 
 // ---------- reading level: "How the AI writes" (spec 4.9, Q15) ----------
 // Results are saved per reading level, so switching is instant and does not re-ask the AI.
-// One rule: this round's choice (R.reading, set in Round setup), else the device default (S.readLevel, in Settings).
+// The writing level is configured in Settings and applies to every round.
 S.readLevel ??= 'expert';
-const lvl = () => L.readingFor(R.reading, S.readLevel);
+const lvl = () => L.readingFor(null, S.readLevel);
 R.byLevel ??= {};
 (() => { // move results saved by older versions into the "expert" box
   const ex = (R.byLevel.expert ??= {});
@@ -20,13 +20,12 @@ const LV = (level) => (R.byLevel[level || lvl()] ??= {});
 function renderReadLevel() {
   const device = L.readingFor(null, S.readLevel);
   document.querySelectorAll('[data-read]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.read === (b.dataset.readScope === 'device' ? device : lvl()))));
-  const st = $('#dp-style'); if (st) st.textContent = 'Writing style: ' + L.READING_LEVELS[lvl()].label + '. Change it in Round setup.';
+  const st = $('#dp-style'); if (st) st.textContent = 'Writing style: ' + L.READING_LEVELS[lvl()].label + '. Change it in Settings.';
 }
 document.addEventListener('click', (e) => {
   const b = e.target.closest && e.target.closest('[data-read]');
   if (!b) return;
-  if (b.dataset.readScope === 'device') { S.readLevel = b.dataset.read; saveSettings(); }
-  else { R.reading = b.dataset.read; save(); }
+  S.readLevel = b.dataset.read; saveSettings();
   renderReadLevel();
   if (R.tab === 'eval') renderEval();
   if (R.tab === 'analysis') renderAnalysis();
@@ -253,11 +252,12 @@ async function callAI({ feature, system, prompt, note, schema, effort = 'medium'
   if (!can(feature)) throw STOPPED();
   if (signal && signal.aborted) throw STOPPED();
   if (demoOn) return demoAnswer({ hosted, signal }); // the staged demo: a saved answer, never a provider or the server (js/demo.js)
+  const preferences = requestPreferences(feature);
   const eng = S.aiEngine;
   if (hosted && useHosted(feature)) {
     if (navigator.onLine === false) throw aiError({ online: false }, '');
     // The reading level goes as a key; the server owns its guide text.
-    try { return hostedResult(await callHosted({ job: hosted.job, extra: Object.assign({}, hosted.extra, { reading }), signal, feature }), schema); }
+    try { return hostedResult(await callHosted({ job: hosted.job, extra: Object.assign({}, hosted.extra, { reading, aiPreferences: preferences }), signal, feature }), schema); }
     catch (err) {
       if (!(err.fallback && aiReady())) throw err;
       console.warn('Hosted AI is not available now (' + err.hosted + '); using the own key.');
@@ -270,6 +270,8 @@ async function callAI({ feature, system, prompt, note, schema, effort = 'medium'
   const purpose = kind === 'ballot' || kind === 'decision' ? 'deep' : 'ai';
   // Reading level: the same analysis, worded for an expert judge or in plain words.
   if (reading) system = system + '\n\n' + L.readingGuide(reading, FMT());
+  const preferenceNote = AI_PREFERENCES.preferenceText(preferences, feature !== 'aiFlow');
+  if (preferenceNote) prompt += '\n\n' + preferenceNote;
   // Students' names are swapped for positions (1A, 2N...) in everything typed or transcribed, and in text docs,
   // before it goes to the AI; names come back in the reply. PDFs are sent as they are (their text cannot be edited here).
   system = L.anonymize(system, R); prompt = L.anonymize(prompt, R);

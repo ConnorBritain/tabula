@@ -12,7 +12,9 @@ import { ranksBlock, ranksProblems, cards, checklist, statusText, markCopied, se
 import { findRoom, roomEvent } from './room.js';
 import { roundLine } from './rooms.js';
 import { limitOf } from './timer.js';
+import { trackFeedbackSelection } from './edit-selection.js';
 import { createCleanup } from './cleanup-view.js';
+import { createRoomComparison } from './room-comparison-view.js';
 import { rankStageLabel, ranksShown, layerOf, notRankedText, reasonLabel } from './profile-layer.js';
 import { OVER_GRACE_PILL } from './rank.js';
 import { mountReviewKit } from '../comment-kit/kit-view.js';
@@ -73,7 +75,7 @@ export function cardHtml(c, editing, ai, next) {
   const a = ai || { button: '', panel: '' };
   const body = editing
     ? `<label class="sr-only" for="edit-${c.id}">Comment for ${esc(c.code)}</label><textarea id="edit-${c.id}" class="card-edit" data-vfield="comment" data-id="${c.id}" rows="6">${esc(c.comment)}</textarea>`
-    : `<div class="card-text">${c.comment ? esc(c.comment) : '<span class="muted">No comment yet.</span>'}</div>`;
+    : `<div class="card-text"${a.button ? ` data-ai-text="${esc(c.id)}"` : ''}>${c.comment ? esc(c.comment) : '<span class="muted">No comment yet.</span>'}</div>`;
   return `<li class="card" data-card="${c.id}">
     <div class="card-head"><span class="code">${esc(c.code)}</span><span class="muted">${[c.ranked === false ? '' : c.rank ? 'Rank ' + esc(c.rank) : 'No rank', c.rating ? 'Rating ' + esc(c.rating) : ''].filter(Boolean).join(' · ')}</span>
       ${a.button}<button class="b small quiet" type="button" data-vact="edit" data-id="${c.id}" data-key="edit-${c.id}" aria-expanded="${editing}">${editing ? 'Done' : icon('pencil') + 'Edit'}</button></div>
@@ -156,13 +158,34 @@ export async function copyText(text) {
 export function createReviewScreen(env) {
   let roomId = null;
   let view = { order: 'speaking', editing: null };
+  let stopSelection = null;
   const $ = (s) => env.el.querySelector(s);
   const room = () => findRoom(env.rooms(), roomId);
   const event = (r) => roomEvent(env.data.events, r);
   const save = (r) => { env.saveRoom(r); return r; };
   // "Clean up my comments" (E13). Only with env.ai: a page with no AI part has no clean-up at all.
-  const cleanup = env.ai ? createCleanup(env, { roomId: () => roomId, event: (r) => event(r), draw: (k) => draw(k) }) : null;
-  const viewNow = () => Object.assign({}, view, { ai: cleanup ? (c, editing) => cleanup.view(c, editing) : null, event: event(room()) });
+  const cleanup = env.ai ? createCleanup(env, { roomId: () => roomId, event: (r) => event(r), draw: (k) => drawEditor(k), changed: (k) => { view.editing = null; draw(k); } }) : null;
+  const comparison = env.ai ? createRoomComparison(env, { roomId: () => roomId, event, draw: (key) => drawComparison(key), beforeRun: () => cleanup?.reset() }) : null;
+  const viewNow = () => Object.assign({}, view, { ai: cleanup ? (c) => ({ button: cleanup.button(c), panel: '' }) : null, event: event(room()) });
+
+  function drawEditor(focusKey) {
+    const layer = $('#review-ai-layer');
+    if (!layer) return;
+    layer.innerHTML = cleanup ? cleanup.panel() : '';
+    if (focusKey) { const el = document.getElementById(focusKey) || $(`[data-key="${CSS.escape(focusKey)}"]`); if (el) el.focus(); }
+    if (cleanup) cleanup.position();
+  }
+
+  function drawComparison(focusKey) {
+    const action = $('#review-compare-action'), panel = $('#review-room-comparison');
+    if (action) action.innerHTML = comparison ? comparison.button() : '';
+    if (panel) panel.innerHTML = comparison ? comparison.panel() : '';
+    drawEditor();
+    if (focusKey) {
+      const el = document.getElementById(focusKey) || $(`[data-key="${CSS.escape(focusKey)}"]`);
+      if (el) el.focus();
+    }
+  }
 
   function draw(focusKey) {
     const r = room();
@@ -171,8 +194,10 @@ export function createReviewScreen(env) {
     $('#review-ranks').innerHTML = ranksStageHtml(r);
     $('#review-comments').innerHTML = commentsStageHtml(r, viewNow());
     $('#review-save').innerHTML = saveStageHtml(r, nextCopy(r, cards(r, view.order, event(r))));
+    if (comparison) { comparison.invalidate(); drawComparison(); }
     // An element with that id first (the edit box), else the control with that data-key.
     if (focusKey) { const el = document.getElementById(focusKey) || $(`[data-key="${CSS.escape(focusKey)}"]`); if (el) el.focus(); }
+    drawEditor();
   }
 
   async function copy(what) {
@@ -193,9 +218,11 @@ export function createReviewScreen(env) {
 
   async function onClick(ev) {
     const b = ev.target.closest('[data-vact]');
-    if (!b) return;
+    if (!b) { if (cleanup) cleanup.outside(ev); return; }
     const act = b.dataset.vact;
-    if (act.startsWith('clean')) return cleanup && cleanup.click(act, b);
+    if (act.startsWith('room-')) return comparison && comparison.click(act, b);
+    if (act.startsWith('clean')) { comparison?.close(false); return cleanup && cleanup.click(act, b); }
+    if (cleanup) cleanup.outside(ev);
     if (act === 'copy') return copy(b.dataset.what);
     if (act === 'order') { view.order = b.dataset.order; return draw('order-' + view.order); }
     if (act === 'edit') {
@@ -221,10 +248,13 @@ export function createReviewScreen(env) {
 
   // Editing a comment or the reason: saved on every keystroke; a changed text must be copied again (ballot.js).
   function onInput(ev) {
+    if (cleanup && cleanup.input(ev)) return;
     const f = ev.target.dataset.vfield;
     const r = room();
     if (!f || !r) return;
+    if (cleanup && f === 'comment') cleanup.closeFor(ev.target.dataset.id);
     save(f === 'reason' ? setReasonReview(r, ev.target.value, env.now()) : setComment(r, ev.target.dataset.id, ev.target.value, env.now()));
+    comparison?.invalidate();
     $('#review-top').innerHTML = summaryHtml(room());
     // The card's check list and Copy button change in place (the copy mark is gone now); the edit box keeps focus.
     const id = f === 'reason' ? 'reason' : ev.target.dataset.id;
@@ -246,6 +276,8 @@ export function createReviewScreen(env) {
   }
 
   const afterPrint = () => removePrintSheet();
+  const onKey = (ev) => { if (comparison) comparison.key(ev); if (!ev.defaultPrevented && cleanup) cleanup.key(ev); };
+  const onPosition = () => { if (cleanup) cleanup.position(); };
 
   return {
     scope: 'review',
@@ -254,24 +286,36 @@ export function createReviewScreen(env) {
       if (!r) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
       roomId = id; view = { order: 'speaking', editing: null };
       if (cleanup) cleanup.reset();
+      if (comparison) comparison.reset();
       const ev = event(r);
       const back = hasRanksStage(r) ? `<a class="b quiet back" href="#/rank/${encodeURIComponent(id)}">${icon('chevron-left')}${rankStageLabel(r.profile)}</a>` : `<a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>`;
       env.el.innerHTML = `<div class="screen-head">${back}
-          <h1 id="screen-title" tabindex="-1">Review · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
-        <div id="review-top"></div><div id="review-ranks"></div><div id="review-comments"></div><div id="review-save"></div>`;
+          <h1 id="screen-title" tabindex="-1">Review · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1><span id="review-compare-action"></span></div>
+        <div id="review-room-comparison"></div><div id="review-top"></div><div id="review-ranks"></div><div id="review-comments"></div><div id="review-save"></div><div id="review-ai-layer" data-ai-layer></div>`;
       env.el.addEventListener('click', onClick);
       env.el.addEventListener('input', onInput);
+      env.el.addEventListener('keydown', onKey);
+      env.el.addEventListener('toggle', onPosition, true);
+      window.addEventListener('resize', onPosition);
+      window.addEventListener('scroll', onPosition, true);
       window.addEventListener('afterprint', afterPrint);
       mountReviewKit($('#review-comments'), id); // performance check and length note on the edit boxes
+      if (cleanup && cleanup.path() !== 'none') stopSelection = trackFeedbackSelection(env.el, (value) => cleanup.select(value));
       draw();
       $('#screen-title').focus();
     },
     hide() {
       env.el.removeEventListener('click', onClick);
       env.el.removeEventListener('input', onInput);
+      env.el.removeEventListener('keydown', onKey);
+      env.el.removeEventListener('toggle', onPosition, true);
+      window.removeEventListener('resize', onPosition);
+      window.removeEventListener('scroll', onPosition, true);
       window.removeEventListener('afterprint', afterPrint);
+      if (stopSelection) stopSelection(); stopSelection = null;
       removePrintSheet();
       if (cleanup) cleanup.reset();
+      if (comparison) comparison.reset();
       roomId = null;
     },
   };

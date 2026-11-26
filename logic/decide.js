@@ -117,7 +117,7 @@
   }
   // A field the judge changed while the review waits: the card says "Changed since the draft", gets a fresh diff
   // against the new text, and goes back to "Keep mine" (the judge's newer text wins until they choose).
-  const staleReviewCards = (review, ballot) => CORE_REVIEW.staleCards(review, ballot, isTextGroup);
+  const staleReviewCards = (review, ballot, previousBallot) => CORE_REVIEW.staleCards(review, ballot, isTextGroup, previousBallot);
   // The fields an insert writes (all = "Accept all": every card that is not on "Keep mine").
   const reviewInsertFields = CORE_REVIEW.insertFields;
   // 4.4 Insert from the review: the chosen cards' AI text goes into the ballot and becomes "yours". AI points outside
