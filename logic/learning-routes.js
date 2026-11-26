@@ -2,9 +2,9 @@
 (function (root) {
   const routes = {
   "version": 1,
-  "enabled": false,
-  "releaseReady": false,
-  "sourceDigest": "33cc905fd2156cff66d1439f6c083ed1902fecb999d53f242d0a18fd08ee86d6",
+  "enabled": true,
+  "releaseReady": true,
+  "sourceDigest": "69966b921d03c30f8f7890b7db7a90b1dee88c12a5d0eb10fbffd65921852194",
   "articles": {
     "policy-advantages": {
       "path": "/learn/debate/policy/advantages/",
