@@ -5,7 +5,7 @@
 // Run with: node events/js/help/grade.mjs     (events/js/help/grade.test.mjs holds the same line in the test run)
 // Not shipped: build-events.mjs leaves out every .mjs file.
 import { fileURLToPath } from 'node:url';
-import { WALK_STEPS, rankHelpLines, tipsPartHtml } from './help.js';
+import { WALK_STEPS, walkSteps, rankHelpLines, tipsPartHtml } from './help.js';
 import { layerOf } from '../profile-layer.js';
 import { LISTEN_FOR } from './listen-for.js';
 
@@ -45,6 +45,7 @@ export function fkGrade(text) {
 // Each block of new judge-facing words: { name, text }. Rank help is read for the published rules profiles' shapes.
 export function helpBlocks(profiles) {
   const blocks = [{ name: 'First-room walk', text: WALK_STEPS.map((s) => s.title + '. ' + s.text).join(' ') }];
+  for (const p of profiles || []) blocks.push({ name: 'First-room walk: ' + p.id, text: walkSteps(p).map((s) => s.title + '. ' + s.text).join(' ') });
   for (const [id, list] of Object.entries(LISTEN_FOR)) blocks.push({ name: 'What to listen for: ' + id, text: list.join(' ') });
   // Only profiles with ranks reach the Rank screen (a rate-only or comments-only round never shows "How to rank").
   const ranked = (profiles || [{ id: 'default', overtime: { grace: 30, effect: 'noFirst' } }]).filter((p) => { const L = layerOf(p); return !L.critiqueOnly && L.ranks !== 'off'; });

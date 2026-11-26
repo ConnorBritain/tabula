@@ -23,7 +23,7 @@ export function mountRoomHelp(env, room, el) {
   const box = document.createElement('div');
   box.className = 'help-room';
   const showWalk = Boolean(env.store) && walkDue(env.store) && !walkShownHere;
-  box.innerHTML = (showWalk ? walkHtml(0) : '') + listenHtml(listenModel(roomEvent(env.data.events, room), room), listenOpen(env.rooms(), room.id, narrow()));
+  box.innerHTML = (showWalk ? walkHtml(0, room.profile) : '') + listenHtml(listenModel(roomEvent(env.data.events, room), room), listenOpen(env.rooms(), room.id, narrow()));
   grid.parentNode.insertBefore(box, grid);
   // Shown once per device: marked as soon as it shows, so a judge who walks away mid-round never sees it twice.
   if (showWalk) { walkShownHere = true; markWalkSeen(env.store); }
@@ -36,7 +36,7 @@ export function mountRoomHelp(env, room, el) {
     const act = b.dataset.hact;
     if (act === 'next' || act === 'back') {
       const to = Math.min(Math.max(at + (act === 'next' ? 1 : -1), 0), WALK_STEPS.length - 1);
-      walk.outerHTML = walkHtml(to);
+      walk.outerHTML = walkHtml(to, room.profile);
       const h = box.querySelector('#help-walk-h');
       if (h) h.focus();
       return;

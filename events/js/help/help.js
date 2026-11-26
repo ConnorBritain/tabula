@@ -12,7 +12,7 @@ import { foldSummaryHtml } from '../fold.js';
 import { guideModel, eventLine } from '../guide.js';
 import { overtimeEffect, ratingScale } from '../rank.js';
 import { graceOf, clockText } from '../timer.js';
-import { layerOf } from '../profile-layer.js';
+import { rankStageLabel } from '../profile-layer.js';
 import { CUSTOM_EVENT } from '../room.js';
 import { LISTEN_FOR } from './listen-for.js';
 
@@ -37,10 +37,19 @@ export const WALK_STEPS = Object.freeze([
 ]);
 
 // The walk card at step i (0, 1 or 2) as HTML text. Not a dialog: the room and the timer work around it.
-export function walkHtml(i) {
+export function walkSteps(profile) {
+  const label = rankStageLabel(profile);
+  if (label === 'Rank') return WALK_STEPS;
+  const last = label === 'Rate'
+    ? { title: 'Rate, then copy', text: 'When all have spoken, tap Rate the room. Give each speaker a rating. Then copy the ratings and comments into the tournament site.' }
+    : { title: 'Review, then copy', text: 'When all have spoken, tap Review and copy. Check the comments. Then copy them into the tournament site.' };
+  return [...WALK_STEPS.slice(0, 2), last];
+}
+
+export function walkHtml(i, profile) {
   const n = WALK_STEPS.length;
   const at = Math.min(Math.max(Number(i) || 0, 0), n - 1);
-  const s = WALK_STEPS[at];
+  const s = walkSteps(profile)[at];
   const last = at === n - 1;
   return `<section class="help-walk" id="help-walk" aria-labelledby="help-walk-h" data-step="${at}">
     <p class="help-walk-count muted">First time here? Step ${at + 1} of ${n}</p>
@@ -94,7 +103,6 @@ export function listenHtml(model, open) {
 // (DESIGN.md §4.4). No top-N line: the screen's help line under the tools already says it.
 export function rankHelpLines(room) {
   const p = (room && room.profile) || {};
-  const L = layerOf(p);
   const lines = ['Rank 1 is the best. Then 2, then 3, down to the last.', 'No ties. Each speaker gets a different rank.'];
   const g = graceOf(room);
   const over = g > 0 ? 'more than ' + g + ' seconds over the time limit' : 'over the time limit';

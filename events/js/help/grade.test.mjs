@@ -9,6 +9,7 @@ const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const PUB = JSON.parse(read('../../published.json'));
 const PROFILES = PUB.profiles.map((f) => JSON.parse(read('../../profiles/' + f)));
 
+// Why: A broken reading-level check could approve help that a first-time judge cannot easily read.
 test('the grade rule tells easy words from hard ones', () => {
   assert.equal(syllables('cat'), 1);
   assert.equal(syllables('table'), 2);
@@ -20,6 +21,7 @@ test('the grade rule tells easy words from hard ones', () => {
   assert.equal(fkGrade(''), 0);
 });
 
+// Why: Long or complex help can keep a new judge from finding the next step during a round.
 test('every block of new judge help words reads at US grade 6 or lower', () => {
   const blocks = helpBlocks(PROFILES);
   assert.ok(blocks.length >= 3 + PROFILES.length);

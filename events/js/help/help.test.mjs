@@ -29,6 +29,7 @@ const newStore = () => createStore({ prefixes: [PREFIX], storage: memStorage() }
 const roomFor = (id, profileId = DEFAULT_PROFILE, extra = {}) => Object.assign(createRoom({ event: DATA.events.get(id), profile: DATA.profiles.get(profileId), entries: [{ code: 'A1' }, { code: 'B2' }], now: 1 }), extra);
 
 // ---------- 1. the first-room walk ----------
+// Why: A new judge needs a short path through timing, comments, and ballot copy.
 test('the walk has 3 short steps: timer, comments, then rank and copy', () => {
   assert.equal(WALK_STEPS.length, 3);
   assert.match(WALK_STEPS[0].title + WALK_STEPS[0].text, /Start/);
@@ -38,6 +39,7 @@ test('the walk has 3 short steps: timer, comments, then rank and copy', () => {
   for (const s of WALK_STEPS) assert.ok(s.text.length <= 140, s.title + ' is short');
 });
 
+// Why: Tips must let the judge reach the timer without trapping the page in a dialog.
 test('the walk is a card in the page, never a modal, and it can be skipped at every step', () => {
   for (let i = 0; i < 3; i++) {
     const h = walkHtml(i);
@@ -52,6 +54,7 @@ test('the walk is a card in the page, never a modal, and it can be skipped at ev
   assert.match(walkHtml(-1), /Step 1 of 3/);
 });
 
+// Why: Repeated tips would distract a returning judge, while reset must help a new judge on the same device.
 test('the walk shows once per device: due until marked, then not, and Settings can bring it back', () => {
   const store = newStore();
   assert.equal(walkDue(store), true);
@@ -62,6 +65,7 @@ test('the walk shows once per device: due until marked, then not, and Settings c
   assert.equal(walkDue(store), true);
 });
 
+// Why: Damaged saved tips must not prevent a judge from opening the room.
 test('a damaged or odd help value reads as "not seen", never as an error', () => {
   for (const raw of ['{bad json', '"yes"', '[]', 'null', '{"walkSeen":"true"}']) {
     const s = memStorage();
@@ -70,6 +74,7 @@ test('a damaged or odd help value reads as "not seen", never as an error', () =>
   }
 });
 
+// Why: A moved or cleared device must carry or remove its tip history with the rest of the judge data.
 test('the help flag is a tabulaEvents.* value: in the backup, back on restore, gone after Clear this device', () => {
   assert.ok(HELP_KEY.startsWith(PREFIX));
   const store = newStore();
@@ -85,6 +90,7 @@ test('the help flag is a tabulaEvents.* value: in the backup, back on restore, g
 });
 
 // ---------- 2. what to listen for ----------
+// Why: A judge needs useful listening guidance for every available event.
 test('every published event and the Custom event has 3 to 5 plain bullets; no list for an unknown event', () => {
   const published = new Set(PUB.defs.map((f) => f.split('/').pop().split('.')[0]));
   for (const id of new Set([...ENABLED_EVENTS, ...published, CUSTOM_EVENT])) {
@@ -102,6 +108,7 @@ test('every published event and the Custom event has 3 to 5 plain bullets; no li
   assert.deepEqual(listenBullets('nope'), []);
 });
 
+// Why: Drift between the Guide and room help could make a judge apply the wrong time rule.
 test('the card takes its line, time and grace from the type page Guide (one source, no copy drift)', () => {
   for (const id of ENABLED_EVENTS) {
     const room = roomFor(id);
@@ -117,6 +124,7 @@ test('the card takes its line, time and grace from the type page Guide (one sour
   }
 });
 
+// Why: A custom room must show the time rules the judge chose for that round.
 test('the card follows the round: its own grace, and a Custom round gets the Custom list with no limit', () => {
   const room = roomFor('oo');
   room.profile = Object.assign({}, room.profile, { overtime: { grace: 15, effect: 'noFirst' } });
@@ -131,6 +139,7 @@ test('the card follows the round: its own grace, and a Custom round gets the Cus
   assert.ok(imp.facts.includes(guideModel(DATA.events.get('imp'), roomFor('imp').profile).prep));
 });
 
+// Why: Help must leave room for the phone timer and avoid repeating itself after first use.
 test('the card is open in the device\'s first round on a wide screen, and closed after that or on a phone', () => {
   assert.equal(listenOpen([], 'r1'), true);
   assert.equal(listenOpen([{ id: 'r1', state: 'done' }], 'r1'), true, 'this room itself does not count');
@@ -141,6 +150,7 @@ test('the card is open in the device\'s first round on a wide screen, and closed
   assert.doesNotMatch(listenHtml({ intro: 'x', facts: 'y', bullets: ['a.'] }, false), / open>/);
 });
 
+// Why: Wrong material or performer advice could make a judge penalize a valid performance.
 test('no bullet contradicts the event file: binder, chair and two-performer words only where the data says so', () => {
   for (const id of ENABLED_EVENTS) {
     const def = DATA.events.get(id);
@@ -155,12 +165,14 @@ test('no bullet contradicts the event file: binder, chair and two-performer word
 });
 const eventLineOf = (id) => guideModel(DATA.events.get(id), DATA.profiles.get(DEFAULT_PROFILE)).line;
 
+// Why: Event text must remain text so it cannot change the page controls.
 test('the listen card escapes its words', () => {
   const h = listenHtml({ intro: '<b>', facts: '&', bullets: ['<i>.'] }, false);
   assert.doesNotMatch(h, /<b>|<i>/);
 });
 
 // ---------- 3. how to rank ----------
+// Why: A new judge needs the rank order and tie rule before submitting a ballot.
 test('How to rank: 1 is best and no ties, folded by default', () => {
   const lines = rankHelpLines(roomFor('oo'));
   assert.match(lines[0], /Rank 1 is the best/);
@@ -170,6 +182,7 @@ test('How to rank: 1 is best and no ties, folded by default', () => {
   assert.doesNotMatch(rankHelpHtml(roomFor('oo')), / open>/, 'folded by default');
 });
 
+// Why: Wrong overtime advice could make a judge assign an invalid rank or rating.
 test('How to rank reads the time rule from the round\'s profile, never a fixed number', () => {
   const at = (overtime, more = {}) => rankHelpLines({ profile: Object.assign({ overtime }, more) }).join(' ');
   assert.match(at({ grace: 30, effect: 'noFirst' }), /more than 30 seconds over the time limit cannot get rank 1/);
@@ -189,12 +202,14 @@ test('How to rank reads the time rule from the round\'s profile, never a fixed n
   }
 });
 
+// Why: Duplicate cutoff guidance could confuse a judge about which speakers receive ranks.
 test('How to rank leaves the top-N line to the Rank screen, which already says it', () => {
   const text = rankHelpLines({ profile: JSON.parse(read('../../profiles/v2/top-three.v1.json')) }).join(' ');
   assert.doesNotMatch(text, /top 3/);
   assert.match(read('../rank-screen.js'), /Only the top ' \+ layerOf\(r\.profile\)\.topN \+ ' are ranked on the ballot\./);
 });
 
+// Why: The tournament bias reminder must remain clear without a competing copied reminder.
 test('the judge help copies no league text: the tournament\'s own bias note is never in the fold', () => {
   const room = roomFor('oo');
   room.profile = Object.assign({}, room.profile, { biasNote: 'OFFICIAL LEAGUE TEXT' });
@@ -202,6 +217,7 @@ test('the judge help copies no league text: the tournament\'s own bias note is n
 });
 
 // ---------- the hooks and the file area ----------
+// Why: Judges must receive help on the screens where they need it without losing the bias reminder.
 test('each screen hooks in with one import and one call; the Rank screen keeps its bias reminder', () => {
   const room = read('../room-screen.js'), rank = read('../rank-screen.js'), set = read('../settings-screen.js');
   assert.equal((room.match(/help\/help-view\.js/g) || []).length, 1);
@@ -214,13 +230,29 @@ test('each screen hooks in with one import and one call; the Rank screen keeps i
   assert.match(read('../../index.html'), /<link rel="stylesheet" href="js\/help\/help\.css">/);
 });
 
+// Why: A returning judge must be able to find and restart the first-room tips.
 test('the Settings line names the reset in plain words', () => {
   assert.equal(TIPS_AGAIN, 'Show the first-room tips again');
   assert.match(tipsPartHtml(), /id="help-tips-again"/);
 });
 
+// Why: Judge help must keep device work private and preserve the neutral app controls.
 test('the help files make no network calls and use no brand fill or stripes', () => {
   for (const f of ['help.js', 'help-view.js', 'listen-for.js']) assert.doesNotMatch(read(f), /\bfetch\(|XMLHttpRequest|sendBeacon|WebSocket|https?:\/\//, f);
   const css = read('help.css');
   assert.doesNotMatch(css, /--brand|repeating-linear-gradient|text-decoration:\s*underline|--ok|--caution|--error/);
+});
+
+// Why: a new judge must find the named action and follow the rules of the room they opened.
+test('walk step three follows ranked, rate-only, and comments-only rooms', () => {
+  const ranked = walkHtml(2, { ranks: 'all' });
+  assert.match(ranked, /Rank the room/);
+  assert.match(ranked, /Put the best first/);
+  const rated = walkHtml(2, { ranks: 'off' });
+  assert.match(rated, /Rate the room/);
+  assert.match(rated, /Give each speaker a rating/);
+  assert.doesNotMatch(rated, /Rank|best first/);
+  const comments = walkHtml(2, { critiqueOnly: true });
+  assert.match(comments, /Review and copy/);
+  assert.doesNotMatch(comments, /Rank|rating|best first/);
 });
