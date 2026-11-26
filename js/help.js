@@ -99,6 +99,14 @@ escLayer('tour', 100, () => Boolean(tourState), () => tourEnd(false)); // Esc en
 const helpItems = () => [...$('#help-menu').querySelectorAll('[role="menuitem"]')].filter((el) => el.getClientRects().length > 0);
 function closeHelpMenu() { $('#help-menu').hidden = true; $('#help-btn').setAttribute('aria-expanded', 'false'); }
 function openHelpMenu(at) {
+  if (L.learningCutover) {
+    const mode = location.hostname.endsWith('.tabulaspeech.dev') ? 'staging' : 'prod';
+    const link = L.learningLink(L.formatOf(R).id, null, { mode });
+    const anchor = $('#library-link');
+    anchor.href = link.href;
+    anchor.textContent = 'Learning library';
+    anchor.setAttribute('aria-label', `${link.title} (opens a new tab)`);
+  }
   $('#help-menu').hidden = false; $('#help-btn').setAttribute('aria-expanded', 'true');
   const items = helpItems();
   items[at === 'last' ? items.length - 1 : 0].focus();

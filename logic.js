@@ -50,8 +50,10 @@
     roundMode, consentStep, consentAsk, roundsLeftText, consentLine } = part('limits');
   const { BUY_URL, accountUrl, plansUrl, signinUrl, HOSTED_TASKS, HOSTED_TEXT, hostedOn, useHosted, hostedAny, selfPays, selfPaidHosted, hasHostedPlan, hostedState, hostedRequest, readSse, sseStep, hostedError } = part('hosted');
   const { DEMO_CTA, demoSample, demoParamFor, demoCtaButtons, demoSeed, demoSteps, demoReply, transcriptChunks, demoTranscript } = part('demo');
+  const { learningLink, learningCutover, learningSource } = part('learning');
 
   const api = {
+    learningLink, learningCutover, learningSource,
     NARROW_TOOL, // the narrow-tool line that every own-key system text carries (AI-POLICY §9)
     SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS, PARADIGMS,
     BALLOT_HEADER, JUDGE_SYSTEM, POINTS_GUIDE,

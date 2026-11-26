@@ -153,6 +153,11 @@ function markFlowColumns() {
 // tooltip, so keyboard and screen-reader users can reach it. Sheets with no page (for example "Notes") show nothing.
 function sheetLearnLink(name) {
   const p = L.sheetPage(name);
+  if (p && L.learningCutover) {
+    const mode = location.hostname.endsWith('.tabulaspeech.dev') ? 'staging' : 'prod';
+    const link = L.learningLink(L.formatOf(R).id, p, { mode });
+    return `<a class="sheet-learn" href="${esc(link.href)}" target="_blank" rel="noopener" aria-label="Learn about ${esc(link.title)} (opens a new tab)" data-tip="Learn about ${esc(link.title)}">ⓘ Learn</a>`;
+  }
   return p ? `<a class="sheet-learn" href="learn/${p.slug}/" target="_blank" rel="noopener" aria-label="Learn about ${p.topic} in the Debate Library (opens a new tab)" data-tip="Learn about ${p.topic}">ⓘ Learn</a>` : '';
 }
 function viewToggle() {

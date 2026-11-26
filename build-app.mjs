@@ -10,6 +10,9 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+import { learningRedirects } from './scripts/learning-redirects.mjs';
+import { learningExportPage } from './scripts/learning-export-page.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 
@@ -73,6 +76,13 @@ export function build(out = join(ROOT, 'dist', 'app'), allow = ALLOW, env = proc
       filter: (p) => !BLOCK.some((re) => re.test(relative(ROOT, p).split('\\').join('/'))),
     });
   }
+  const learning = createRequire(import.meta.url)('./logic/learning-routes.js');
+  if (createHash('sha256').update(readFileSync(join(ROOT, 'vendor', 'learning-export.js'))).digest('hex') !== learning.exporterDigest) throw new Error('build-app: learning exporter differs from its pinned route artifact. Run scripts/sync-learning-routes.mjs.');
+  const redirects = learningRedirects(learning, version.mode);
+  if (redirects) writeFileSync(join(out, '_redirects'), redirects);
+  mkdirSync(join(out, 'learning-progress'), { recursive: true });
+  writeFileSync(join(out, 'learning-progress', 'index.html'), learningExportPage(version.mode));
+  cpSync(join(ROOT, 'vendor', 'learning-export.js'), join(out, 'learning-progress', 'export.js'));
   // The deploy build names its mode (wrangler.app.jsonc: --mode=prod or --mode=staging). _headers never caches it.
   writeFileSync(join(out, 'version.json'), JSON.stringify(version) + '\n');
   const missing = missingRefs(out);
@@ -98,7 +108,7 @@ export function missingRefs(out) {
 // The AI SDK only runs with AI, which needs the network anyway. The diagram library (3 MB) draws the
 // optional map view; judging a round does not need it, and offline the map says it needs the internet.
 // sw.js, _headers and version.json are for the host and the browser, not the page.
-export const NOT_CACHED = [/^learn\//, /^vendor\/mermaid-/, /^vendor\/anthropic-sdk-/, /^sw\.js$/, /^_headers$/, /^version\.json$/];
+export const NOT_CACHED = [/^learn\//, /^learning-progress\//, /^vendor\/learning-export\.js$/, /^vendor\/mermaid-/, /^vendor\/anthropic-sdk-/, /^sw\.js$/, /^_headers$/, /^_redirects$/, /^version\.json$/];
 
 /** The files the service worker caches: every shipped file the app needs to open and judge a round. */
 export function shellFiles(out) {
