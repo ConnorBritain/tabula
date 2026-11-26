@@ -254,6 +254,10 @@ events/
 - **Install:** `events/manifest.webmanifest` (name, relative start URL and scope, standalone, grey colors, 192, 512 and
   maskable icons in `events/icons/`). `events/index.html` links it with an apple-touch-icon and a grey theme color, so
   the offline cache holds it too.
+- **Judge card:** `events/kit/index.html` is a print page for the judges' table (Settings, About, "Print a judge card").
+  It draws a QR code to the app link on the device (`events/kit/qr.js`) and sends nothing. The tournament name and help
+  contact a coach types stay in the open page: not saved, not sent, not in the QR code or the URL. Link it as
+  `kit/index.html`: the host serves .html paths as they are, so a bare `kit/` opens the app. The offline cache holds it.
 
 ### Data safety
 

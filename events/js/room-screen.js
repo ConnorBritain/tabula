@@ -16,6 +16,7 @@ import { roundLine } from './rooms.js';
 import { crossNote } from './cross-entry.js';
 import { createNumberPicker, crossEntryAction } from './room-actions.js';
 import { frameHtml } from './round-frame.js';
+import { mountRoomHelp } from './help/help-view.js';
 
 // The status pill in words (DESIGN.md §4.1) with a shape (§5.3) and a tint (D2-A): Waiting is plain words with an
 // empty circle, Speaking a quiet tint with a play circle, Done green with a check. A Done speech over grace keeps a
@@ -226,6 +227,7 @@ export function createRoomScreen(env, parts) {
       $('#room-foot').innerHTML = views.map((v) => (v.footHtml ? v.footHtml(r) : '')).join('');
       draw();
       for (const v of views) if (v.footMounted) v.footMounted(ctx);
+      mountRoomHelp(env, r, env.el);
       $('#screen-title').focus();
     },
     hide() {

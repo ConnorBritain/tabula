@@ -24,10 +24,10 @@
 /sw-files.js
   Cache-Control: no-cache
 
-# version.json names the commit this build came from (Settings, About shows it). Always checked for a new copy, so a
-# new deploy shows at once. The service worker never caches it.
+# version.json names the commit this build came from (Settings, About shows it). Never stored by the browser or a
+# proxy, so a new deploy shows at once (the same rule as the debate app's _headers). The service worker never caches it.
 /version.json
-  Cache-Control: no-cache
+  Cache-Control: no-cache, no-store, max-age=0, must-revalidate
 
 # The install manifest (when the page has one): its standard type, and always checked for a new copy.
 /manifest.webmanifest

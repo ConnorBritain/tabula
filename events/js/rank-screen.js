@@ -24,6 +24,8 @@ import { pieceLine } from './piece.js';
 import { layerOf, layerProblems, notRankedText, cutLineText } from './profile-layer.js';
 import { ratingHtml, rubricHtml, scoreClick, scoreInput, scoreKey, isScoreBox } from './score-view.js';
 import { overtimeNote } from './round-frame.js';
+import { rankHelpHtml } from './help/help.js';
+import { mountReasonKit } from '../comment-kit/kit-view.js';
 
 // What a row shows of the judge's words: the piece (F1: "“Title” by Author") and the comment's first sentence
 // (comments.js firstSentence). A tap on the comment line opens the whole comment in a sheet.
@@ -242,6 +244,7 @@ export function createRankScreen(env) {
       env.el.innerHTML = `<div class="screen-head"><a class="b quiet back" href="#/room/${encodeURIComponent(id)}">${icon('chevron-left')}Room</a>
           <h1 id="screen-title" tabindex="-1">Rank · ${esc([ev ? ev.short : 'Custom', roundLine(r, false)].filter(Boolean).join(' · '))}</h1></div>
         <p class="bias">${esc(r.profile.biasNote || 'Judge the performance, not the person.')}</p>
+        ${rankHelpHtml(r)}
         <div class="board-tools"><button class="b" type="button" id="tap-toggle" aria-pressed="false">Tap in order</button>
           <button class="b quiet" type="button" id="restart">Start again</button></div>
         <p class="muted" id="tap-help" hidden>Tap best to last. Tap again to undo.</p>
@@ -258,6 +261,7 @@ export function createRankScreen(env) {
       folds.start(r);
       detachDrag = attachDrag($('#board-box'), { enabled: () => !tapMode, onDrop });
       $('#rank-reason').addEventListener('input', (e) => save(setReason(room(), e.target.value, env.now())));
+      mountReasonKit($('#rank-reason'), ev, id); // reason starters, performance check, length note
       draw();
       if (opened.started) env.ui.announce('The ranks start in speaking order.');
       $('#screen-title').focus();
