@@ -2,24 +2,25 @@
 
 > **What this is.** The public contract between the Tabula apps and the Tabula server: what an app sends and what it gets back.
 > **The server is closed source.** This folder lets schools and families check what the server sends to a device.
-> **Source.** Edited from the server's docs, as of 2026-11-21.
-> **Date.** 2026-11-25.
+> **Source.** API and schema snapshots were edited from the server's docs as of 2026-11-21. The data rules state their own checked sources and date.
+> **Date.** 2026-11-26.
 
 ## Why this is public
 
-The owner decided ([docs/architecture/ARCHITECTURE.md](../architecture/ARCHITECTURE.md) §8): the app stays AGPL in this repo. The server may be private. The contract is public, so anyone can check the API shapes and, later, the data rules.
+The owner decided ([docs/architecture/ARCHITECTURE.md](../architecture/ARCHITECTURE.md) §8): the app stays AGPL in this repo. The server may be private. The contract is public, so anyone can check the API shapes and the data rules.
 
 ## Files
 
 | File | What it holds |
 |---|---|
 | [API.md](API.md) | The routes an app calls, the request and reply shapes, the error codes and the cookies. |
+| [DATA-RULES.md](DATA-RULES.md) | Public server data rules, current controls and held capabilities. The [data lists](../data/README.md) give the field inventory. |
 | [ai-replies-v1.json](ai-replies-v1.json) | The JSON Schema for each hosted AI reply. The server checks each reply against it. The app reads the reply with the same shape. A byte copy of the server's file. |
 | [../../fixtures/platform-v2.json](../../fixtures/platform-v2.json) | The feature keys, the settings registry, and sample capability records made by the real server. The app tests read this file. |
 
 ## What is not here
 
-These docs cover only what a device sends and gets back. Data rules: coming later. They do not cover how the server works inside: billing, prices, plans, cost, abuse checks, limit values, AI prompts, the admin console, or server settings that only operators use.
+These docs cover what a device sends and gets back, plus the public data rules. They do not expose the server's internal billing implementation, price configuration, cost controls, abuse checks, limit values, AI prompts or operator settings.
 
 `fixtures/platform-v2.json` is the public part of the server's contract file. Plan, entitlement, invite and limit-default entries are left out. One sample record name and its note were made neutral (`pool-no-funds`). All other kept values are as the server made them.
 
