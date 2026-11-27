@@ -29,7 +29,8 @@ export const ALLOW = [
   'events/js', 'events/congress', 'events/defs', 'events/profiles', 'events/prompts',
   'events/comment-kit/kit.js', 'events/comment-kit/kit-view.js', 'events/comment-kit/kit-data.js', 'events/comment-kit/kit.css',
   'core',
-  'assets/theme-boot.js', 'assets/fonts',
+  'assets/theme-boot.js', 'assets/demo-boot.js', 'assets/fonts',
+  'events/sample-guide/demo.css', 'events/sample-guide/journey.js', 'events/sample-guide/rules.js', 'events/sample-guide/scenario.js',
   'events/manifest.webmanifest', 'events/icons', 'events/kit/index.html', 'events/kit/kit.css', 'events/kit/kit.js', 'events/kit/qr.js',
 ];
 

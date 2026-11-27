@@ -92,7 +92,9 @@ function loadMammoth() {
 }
 async function readDoc(file) {
   const name = file.name;
-  if (/\.pdf$/i.test(name) || file.type === 'application/pdf') return { kind: 'pdf', data: await fileToBase64(file) };
+  if (/\.pdf$/i.test(name) || file.type === 'application/pdf') {
+    return { kind: 'pdf', data: await fileToBase64(file) };
+  }
   if (/\.docx$/i.test(name)) {
     const m = await loadMammoth();
     let out;
@@ -117,9 +119,8 @@ function speechPicker(d) {
 // Re-flow a speech after its docs change. If nothing is left to flow it from, clear its AI notes.
 function reflowForDocs(speechId) {
   if (!speechId || !can('aiFlow')) return;
-  const hasSource = (R.transcripts[speechId] || '').trim() || DOCS.some((d) => L.docSpeech(d, FMT()) === speechId);
-  if (hasSource) scheduleFlow(speechId, true);
-  else { R.aiFlows = L.applyLiveFlow(R.aiFlows, speechId, { sheets: [] }); save(); if (R.tab === 'flow') renderFlow(); }
+  if (hasFlowSource(speechId)) scheduleFlow(speechId, true);
+  else if (!FlowItems.flow()) { R.aiFlows = L.applyLiveFlow(R.aiFlows, speechId, { sheets: [] }); save(); if (R.tab === 'flow') renderFlow(); }
 }
 function renderDocs() {
   const total = DOCS.reduce((n, d) => n + docBytes(d), 0);
@@ -129,15 +130,24 @@ function renderDocs() {
       + `<tr><td colspan="5" class="muted">Total ${Math.round(total / 1024)} KB${total > MAX_DOC_BYTES ? ' — too big; remove some docs' : ''}</td></tr>`
     : '<tr><td class="muted">No documents yet.</td></tr>';
 }
+function importFlowDocument(doc) {
+  const flow = FlowItems.flow();
+  if (!flow || !L.flowReconcile.importDoc(flow, doc, FMT()).length) return;
+  save();
+  FlowItems.redraw();
+}
 // One upload path for every place a doc can be added (Setup, Timer, Flow, drag and drop).
 // Returns the docs that were added (a file that fails is left out).
 async function addDocFiles(files, side, statusEl, speech) {
   const added = [];
+  const round = R;
   for (const file of files) {
     if (!/\.(pdf|docx|txt|md)$/i.test(file.name)) { statusEl.textContent = file.name + ': only PDF, .docx, .txt or .md files'; continue; }
     statusEl.textContent = 'Reading ' + file.name + '…';
     try {
+      if (file.size > MAX_DOC_BYTES) throw new Error('too big. Keep all docs under 15 MB');
       const { kind, data } = await readDoc(file);
+      if (R !== round) return added;
       if (!data.trim()) throw new Error('no text found');
       const doc = { id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())), roundId: R.id, name: file.name, side, kind, data, addedAt: Date.now() };
       // The speech is set on every new doc (the format's default when none was picked), so a doc never depends on
@@ -151,8 +161,9 @@ async function addDocFiles(files, side, statusEl, speech) {
       const sp = L.docSpeech(doc, FMT());
       statusEl.textContent = 'Added ' + file.name + ' (' + L.DOC_SIDES[side] + (sp ? ', mapped to ' + sp : '') + ')';
       if (sp) {
+        importFlowDocument(doc);
         if (S.liveFlow && ready()) scheduleFlow(sp, true);
-        else if (can('aiFlow')) statusEl.textContent += showSetup() ? '. Connect AI and turn on Live AI flow to map it onto the flow.' : '. Turn on Live AI flow in Settings to map it onto the flow.';
+        if (doc.kind === 'pdf' && FlowItems.flow()) statusEl.textContent += '. The flow shows a file marker. Use a text or Word file to add entries.';
       }
       docStore.put(doc).catch(() => toast(file.name + ' is kept for this page only. It will be gone after a refresh.'));
     } catch (err) {
@@ -282,24 +293,59 @@ $('#doc-file').addEventListener('change', (e) => {
 document.querySelectorAll('.doc-quick').forEach((inp) => inp.addEventListener('change', (e) => {
   const bar = e.target.closest('.docbar');
   const files = [...e.target.files]; e.target.value = '';
-  const side = bar.querySelector('.doc-quick-side').value;
+  const side = docBarSide(bar);
   addDocFiles(files, side, bar.querySelector('.doc-quick-status'), timerSpeechFor(bar, side));
 }));
 // In the Flow workspace, a doc for the side that is speaking maps to the current speech.
 // The only doc bar outside Round lives in the Flow workspace's left pane (#tab-timer).
 function timerSpeechFor(bar, side) {
+  if (bar.classList.contains('flow-docbar')) return bar.querySelector('.flow-doc-speech').value;
   if (!bar.closest('#tab-timer')) return undefined;
   const cur = runSp(); // the speech the clock times, not one the judge is only looking back at
   return cur.side === side && L.speechColumn(cur.id, FMT()) != null ? cur.id : undefined;
 }
+function docBarSide(bar) {
+  const speech = bar.querySelector('.flow-doc-speech');
+  return speech ? L.speechSide(speech.value, FMT()) || 'other' : bar.querySelector('.doc-quick-side').value;
+}
+function closeFlowDocuments() {
+  $('#flow-documents').hidden = true;
+  document.querySelectorAll('[data-flow-documents]').forEach((button) => button.setAttribute('aria-expanded', 'false'));
+  if (R.tab === 'flow') document.querySelector('[data-flow-documents]')?.focus();
+}
+function showFlowDocuments() {
+  const panel = $('#flow-documents');
+  if (!panel.hidden) return closeFlowDocuments();
+  const picker = $('#flow-doc-speech');
+  const format = FMT();
+  const layout = format.id + ':' + format.flowSpeeches.join('|');
+  if (picker.dataset.format !== layout || picker.dataset.round !== R.id) {
+    picker.innerHTML = format.flowSpeeches.map((id) => `<option value="${escapeHtml(id)}">${escapeHtml(id)}</option>`).join('') + '<option value="">Context only</option>';
+    picker.value = format.flowSpeeches.includes(runSp().id) ? runSp().id : format.flowSpeeches[0];
+    picker.dataset.format = layout;
+    picker.dataset.round = R.id;
+  }
+  if (FlowMobile.active() && format.flowSpeeches.includes(FlowMobile.speech())) picker.value = FlowMobile.speech();
+  panel.hidden = false;
+  document.querySelectorAll('[data-flow-documents]').forEach((button) => button.setAttribute('aria-expanded', 'true'));
+  $('#flow-speechdrop-help').hidden = LOCAL_ORIGIN;
+  layerOpened('flow-documents');
+  picker.focus();
+}
+document.addEventListener('click', (event) => {
+  if (event.target.closest('[data-flow-documents]')) showFlowDocuments();
+});
+$('#flow-documents-close').addEventListener('click', closeFlowDocuments);
+$('#flow-doc-add').addEventListener('click', () => $('#flow-doc-file').click());
+escLayer('flow-documents', () => 30 + layerRank('flow-documents'), () => R.tab === 'flow' && !$('#flow-documents').hidden, closeFlowDocuments);
 // Drag and drop: the side comes from the picker on the tab you are on.
 document.addEventListener('dragover', (e) => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
 document.addEventListener('drop', (e) => {
   if (!e.dataTransfer || !e.dataTransfer.files.length) return;
   e.preventDefault();
   const tab = document.querySelector('section.tab.on');
-  const bar = tab && tab.querySelector('.docbar');
-  const side = bar ? bar.querySelector('.doc-quick-side').value : $('#doc-side').value;
+  const bar = e.target.closest?.('.docbar') || document.querySelector('#tab-flow.on #flow-documents:not([hidden]) .docbar') || (tab && tab.querySelector('.docbar'));
+  const side = bar ? docBarSide(bar) : $('#doc-side').value;
   // Tabs without a doc bar show the result as a pop-up message instead.
   const status = bar ? bar.querySelector('.doc-quick-status') : { set textContent(v) { toast(v); } };
   addDocFiles([...e.dataTransfer.files], side, status, bar ? timerSpeechFor(bar, side) : undefined);
@@ -308,24 +354,36 @@ $('#doc-list').addEventListener('change', (e) => {
   const id = e.target.dataset.docSpeech; if (!id) return;
   const d = DOCS.find((x) => x.id === id); if (!d) return;
   const old = L.docSpeech(d, FMT());
-  d.speech = e.target.value;
-  docStore.put(d).catch(() => {});
+  // Replace the document value so in-flight passes can detect a changed assignment.
+  const next = { ...d, speech: e.target.value };
+  DOCS = DOCS.map((value) => value === d ? next : value);
+  docStore.put(next).catch(() => {});
+  const flow = FlowItems.flow();
+  if (flow) { L.flowReconcile.reassignDocument(flow, next, old, FMT()); save(); FlowItems.redraw(); }
   renderDocs();
-  reflowForDocs(old); reflowForDocs(d.speech);
-  if (d.speech && !S.liveFlow) toast('Turn on "Live AI flow" in Settings to map docs onto the flow.');
+  reflowForDocs(old); reflowForDocs(next.speech);
 });
 $('#doc-list').addEventListener('click', async (e) => {
   const id = e.target.dataset.docDel; if (!id) return;
   const gone = DOCS.find((d) => d.id === id);
   DOCS = DOCS.filter((d) => d.id !== id);
+  const round = R;
+  const flow = FlowItems.flow();
+  if (gone && flow) { L.flowReconcile.removeDocument(flow, id); save(); }
   try { await docStore.del(id); } catch {}
+  if (R !== round) return;
   renderDocs();
-  if (gone) reflowForDocs(L.docSpeech(gone, FMT()));
+  if (gone) {
+    const speech = L.docSpeech(gone, FMT());
+    if (flow) FlowItems.redraw();
+    reflowForDocs(speech);
+  }
 });
 docStore.open().then(async () => {
   const all = (await docStore.tx('readonly', (st) => st.getAll())) || [];
   // Remove docs left over from older rounds.
   for (const d of all) if (d.roundId !== R.id) { try { await docStore.del(d.id); } catch {} }
   DOCS = all.filter((d) => d.roundId === R.id).sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0));
+  for (const doc of DOCS) importFlowDocument(doc);
   renderDocs();
 }).catch(() => renderDocs());

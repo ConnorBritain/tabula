@@ -182,7 +182,8 @@ function hostedFail(info) {
 // One hosted call. job: an L.HOSTED_TASKS key; extra: what that job needs from the caller (L.hostedState).
 // Returns the answer text. The judge's Stop (signal) cancels the stream, and the server charges only what it sent.
 async function callHosted({ job, extra, signal, feature }) {
-  const anon = (v) => L.anonymize(v, R);
+  const round = R;
+  const anon = (v) => L.anonymize(v, round);
   const state = L.hostedState(job, R, DOCS, extra);
   for (const k of Object.keys(state)) if (typeof state[k] === 'string') state[k] = anon(state[k]); // names only live in text
   // All of the round's text docs, the same text in the same order on every call (§3a: the provider caches them).
@@ -193,7 +194,8 @@ async function callHosted({ job, extra, signal, feature }) {
   if (blocked) throw hostedFail(Object.assign(L.hostedError(409, blocked), { status: 409 }));
   // "Ask me first": the judge's yes before the round's first AI call; "Not this round" sends nothing (js/limits.js).
   if (!(await roundConsent(feature))) throw STOPPED();
-  const req = L.hostedRequest(R, job, state, newCallId(), hostedResume);
+  if (R !== round || signal?.aborted) throw STOPPED();
+  const req = L.hostedRequest(round, job, state, newCallId(), hostedResume);
   let res;
   try { res = await fetch(req.url, { ...req.init, signal: withStop(signal, 240000) }); }
   catch (err) {
@@ -266,6 +268,7 @@ async function callAI({ feature, system, prompt, note, schema, effort = 'medium'
   if (!aiReady()) throw Object.assign(new Error(noAiText()), { kind: 'noAI' });
   // Offline: show the offline text and make no call (spec 2.3).
   if (navigator.onLine === false) throw aiError({ online: false }, eng);
+  note ||= L.atomicFlow.supported(R.itemFlow) ? L.ITEM_DOC_NOTE : L.DOC_NOTE;
   const maxTokens = P.outputCap(kind);
   const purpose = kind === 'ballot' || kind === 'decision' ? 'deep' : 'ai';
   // Reading level: the same analysis, worded for an expert judge or in plain words.

@@ -167,7 +167,7 @@ const sse = (frames) => {
 const refusal = (status, error) => ({ ok: false, status, json: async () => ({ error }), body: null });
 
 // A page world: the gate, an optional own key (the subscription helper path), a fetch stub, and the toasts shown.
-function world({ g, ownKey = false, answers, host, consent = true }) {
+function world({ g, ownKey = false, answers, host, consent = true, docs = [] }) {
   const calls = [], toasts = [], opened = [];
   let cleared = 0, signedOut = 0;
   const S = { aiEngine: ownKey ? 'claude-cli' : '', helper: { 'claude-cli': ownKey } };
@@ -180,7 +180,7 @@ function world({ g, ownKey = false, answers, host, consent = true }) {
   // demoOn: the page is not the staged demo (js/demo.js), so callAI takes its real path.
   const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console', 'location', 'demoOn', 'roundConsent', 'acctSignedOut', 'requestPreferences', 'AI_PREFERENCES',
     PAGE + '\nreturn [callAI, () => hostedLimits, (v) => { hostedLimits = v; }];');
-  const [callAI, limits, setLimits] = make(L, P, S, R, [], g, (f) => L.canUse(g, f), () => ownKey, () => L.NO_AI, fetch,
+  const [callAI, limits, setLimits] = make(L, P, S, R, docs, g, (f) => L.canUse(g, f), () => ownKey, () => L.NO_AI, fetch,
     (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} }, { host: host || 'debate.tabulaspeech.com' }, false, async () => consent, () => { signedOut++; }, (feature) => globalThis.TabulaCore['ai-preferences'].resolvePreferences(S.aiPreferences, feature, feature !== 'aiFlow'), globalThis.TabulaCore['ai-preferences']); // the round question's answer (default yes; consent tests: round-consent.test.js)
   return { callAI, calls, toasts, opened, R, S, cleared: () => cleared, signedOut: () => signedOut, limits, setLimits };
 }
@@ -206,6 +206,24 @@ test('callAI with hosted access calls the server, sends no names, and returns th
   assert.equal(b.roundId, a.roundId, 'one round id per round');
   assert.notEqual(b.callId, a.callId, 'a new call id per call');
   assert.equal(a.programId, PROG, 'the "Judging for" school');
+});
+
+// Why: a hosted evaluation must still use the judge's text context and must send only the names of attached PDFs.
+test('hosted evaluation includes text context and keeps PDF contents on the device with item flow', async () => {
+  const body = 'The private PDF text belongs only in its document.';
+  const answer = sse([{ t: '{}' }, { done: true, charged: 1 }]);
+  const docs = [
+    { name: 'Context.md', kind: 'text', speech: '', data: 'My judging context.' },
+    { name: 'Marked evidence.pdf', kind: 'pdf', speech: '1AC', data: 'encoded-PDF-fixture', extractedText: body },
+  ];
+  const w = world({ g: gate(record(ALL_SELF, true)), answers: [answer], docs });
+  L.atomicFlow.migrate(w.R);
+  await w.callAI(EVAL_CALL);
+  const { state } = JSON.parse(w.calls[0].init.body);
+  assert.match(state.docs, /My judging context\./);
+  assert.match(state.docs, /Marked evidence\.pdf/);
+  assert.ok(!w.calls[0].init.body.includes('encoded-PDF-fixture'));
+  assert.ok(!w.calls[0].init.body.includes(body));
 });
 
 // Why: a judge out of rounds must see plain words and a way to buy more, and must not be switched to a paid key in

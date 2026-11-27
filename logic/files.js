@@ -5,6 +5,7 @@
   'use strict';
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
   const F = part('format');
+  const atomic = part('atomic-flow');
   const { num } = part('round');
 
   // ---------- SpeechDrop (speechdrop.net) ----------
@@ -91,8 +92,12 @@
     const people = [r.tournament, r.roundName, r.aff && r.aff.team, r.aff && r.aff.d1, r.aff && r.aff.d2, r.neg && r.neg.team, r.neg && r.neg.d1, r.neg && r.neg.d2];
     if (people.some((x) => String(x || '').trim())) return false;
     if (Object.values(r.transcripts || {}).some((t) => String(t || '').trim())) return false;
-    if ((r.aiFlows || []).length) return false;
-    if ((r.flows || []).some((f) => Object.values(f.cells || {}).some((c) => String(c || '').trim()))) return false;
+    if (atomic.supported(r.itemFlow)) {
+      if (atomic.present(r)) return false;
+    } else {
+      if ((r.aiFlows || []).length) return false;
+      if ((r.flows || []).some((f) => Object.values(f.cells || {}).some((c) => String(c || '').trim()))) return false;
+    }
     if (Object.keys(r.timeLeft || {}).length) return false;
     if (r.ballot && r.ballot.winner) return false;
     return true;
@@ -104,12 +109,19 @@
     if (!r) return false;
     if (r.run) return true;
     if (Object.values(r.transcripts || {}).some((t) => String(t || '').trim())) return true;
-    if ((r.aiFlows || []).length) return true;
-    if ((r.flows || []).some((f) => Object.values(f.cells || {}).some((c) => String(c || '').trim()))) return true;
+    if (atomic.supported(r.itemFlow)) {
+      if (atomic.present(r)) return true;
+    } else {
+      if ((r.aiFlows || []).length) return true;
+      if ((r.flows || []).some((f) => Object.values(f.cells || {}).some((c) => String(c || '').trim()))) return true;
+    }
     return Object.keys(r.timeLeft || {}).length > 0;
   }
   function buildRoundFile(round, docs, savedAt) {
-    return { app: 'tabula', kind: ROUND_FILE_KIND, version: 1, savedAt: savedAt || new Date().toISOString(), round, docs: (docs || []).filter((d) => d && d.roundId === round.id) };
+    const saved = atomic.supported(round.itemFlow)
+      ? { ...round, flows: atomic.projectedSheets(round, { level: 'standard' }).map((s) => ({ ...s, cells: { ...s.cells } })), aiFlows: [], flowView: 'mine' }
+      : round;
+    return { app: 'tabula', kind: ROUND_FILE_KIND, version: 1, savedAt: savedAt || new Date().toISOString(), round: saved, docs: (docs || []).filter((d) => d && d.roundId === round.id) };
   }
   // Reads a .tab file. The round gets a new id (newId), and its docs move to that id,
   // so opening the same file twice never mixes two rounds' docs.
@@ -145,6 +157,10 @@
     const clocks = F.prepClocks(F.formatOf(r)).map((c) => c.id);
     if (r.prepLeft != null && clocks.some((id) => num(obj(r.prepLeft)[id]) == null)) delete round.prepLeft;
     const docs = cleanDocs(f.docs).map((d) => Object.assign({}, d, { id: newId + ':' + d.id, roundId: newId }));
+    if (atomic.supported(round.itemFlow)) {
+      const refs = new Map(cleanDocs(f.docs).map((d) => [d.id, newId + ':' + d.id]));
+      for (const item of round.itemFlow.items) if (refs.has(item.document)) item.document = refs.get(item.document);
+    }
     return { round, docs, savedAt: f.savedAt || '' };
   }
   // A file name people can recognize in Downloads: tournament, round, and the two teams.
@@ -229,6 +245,8 @@
     + 'When a speech has a transcript, the transcript wins; a card in the doc that the transcript does not show may have been skipped, and it does not count unless the judge\'s own flow shows it. '
     + 'AI flow lines marked [doc] come from the speech doc; [doc?] (used only when a transcript exists) means it is in the doc but was not heard in the transcript, so do not score a [doc?] line unless the judge\'s own flow shows that argument.';
 
+  const ITEM_DOC_NOTE = 'Speech documents may contain material that was skipped. Check the transcript or confirmed read status before treating document material as part of the speech. A transcript gap does not make a card known unread.';
+
   // Which speech a doc belongs to. If the judge has not picked one: an Aff doc goes to the format's first Aff speech
   // (the 1AC, the AC), a Neg doc to its first Neg speech (the 1NC, the NC). fmt: policy-hs when not given.
   function docSpeech(doc, fmt) {
@@ -274,7 +292,7 @@
 
   const api = { parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, orderInUse,
     buildRoundFile, parseRoundFile, roundFileName, KEYS_ENTRY, OLD_KEY_ENTRIES, buildBackup, parseBackup,
-    backupSummary, backupDayOver, backupDue, backupReminderDue, stampRestoredBackup, DOC_SIDES, DOC_NOTE, docSpeech, docsForSpeech, DOC_FLOW_NOTE, docTitle, buildDocBlocks,
+    backupSummary, backupDayOver, backupDue, backupReminderDue, stampRestoredBackup, DOC_SIDES, DOC_NOTE, ITEM_DOC_NOTE, docSpeech, docsForSpeech, DOC_FLOW_NOTE, docTitle, buildDocBlocks,
     buildUserContent };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else (root.PolicyLogicParts = root.PolicyLogicParts || {}).files = api;

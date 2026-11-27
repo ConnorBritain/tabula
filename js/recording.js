@@ -239,7 +239,7 @@ function startBrowserRec() {
       else interim += r[0].transcript;
     }
     R.transcripts[recSpeechId] = base; save(); lastTextAt = Date.now();
-    if (sp().id === recSpeechId) setTranscriptView(base + (interim ? ' ' + interim : ''));
+    if (transcriptSpeech()?.id === recSpeechId) setTranscriptView(base + (interim ? ' ' + interim : ''));
     scheduleFlow(recSpeechId, false);
   };
   rec.onstart = () => markRecLive();
@@ -408,7 +408,7 @@ const CQ = window.ClipQueue.createClipQueue({
       if (rec.overlap) text = L.mergeOverlap(R.transcripts[rec.speechId], text);
       R.transcripts[rec.speechId] = L.appendChunk(R.transcripts[rec.speechId], text);
       lastTextAt = Date.now();
-      if (sp().id === rec.speechId) setTranscriptView(R.transcripts[rec.speechId]);
+      if (transcriptSpeech()?.id === rec.speechId) setTranscriptView(R.transcripts[rec.speechId]);
       renderSpeeches();
     }
     save(); // the text and the applied-clip list are saved together

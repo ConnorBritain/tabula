@@ -11,6 +11,10 @@
   const { APP_FEATURES, canUse, payerOf } = part('caps');
   const { hostedAiBody } = part('account');
   const { parseRound } = part('limits');
+  const { formatOf } = part('format');
+  const atomic = part('atomic-flow');
+  const { context, hostedGuide } = part('flow-reconcile');
+  const { ITEM_DOC_NOTE } = part('files');
   const PREFS = typeof module !== 'undefined' && module.exports ? require('../core/ai-preferences.js') : root.TabulaCore['ai-preferences'];
 
   // Where a judge buys rounds (the buy page lives on the account site). The staging app (debate.tabulaspeech.dev)
@@ -91,7 +95,10 @@
       const speech = text(extra && extra.speech);
       const state = { speech, transcript: text((r.transcripts || {})[speech]), flow: block(flowSoFarLines(r, speech)) };
       const preferences = PREFS.preferenceText(extra && extra.aiPreferences, false);
-      if (preferences) state.notes = preferences;
+      if (atomic.supported(r.itemFlow)) {
+        state.flow = context(r, speech, formatOf(r), extra?.includeJudgeItems !== false);
+        state.notes = [preferences, hostedGuide].filter(Boolean).join('\n\n');
+      } else if (preferences) state.notes = preferences;
       return state;
     }
     const e = extra || {};
@@ -102,6 +109,7 @@
     if (job === 'ballot') notes = [notes, ...ballotRequestLines(r, e.judgeInput, e)].join('\n').trim();
     const preferences = PREFS.preferenceText(e.aiPreferences, true);
     if (preferences) notes = [notes, preferences].filter(Boolean).join('\n\n');
+    if (atomic.supported(r.itemFlow)) notes = [notes, ITEM_DOC_NOTE].filter(Boolean).join('\n\n');
     const state = { transcript: block(transcriptLines(r, docs)), flow: flowText, notes };
     // The server owns the guide text for each reading level and the points scale (the server API's AI reply contract).
     // The round map gets no level (callAI passes reading: null for it, as on the own-key path): its text is short labels.

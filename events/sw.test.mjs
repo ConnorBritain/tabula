@@ -53,7 +53,7 @@ test('the crawl reads each import form and stops on one it cannot read', () => {
 test('the cache list holds only core/, events/ and the needed assets/ files, and each one exists', async () => {
   const files = await pageFiles();
   for (const p of files) {
-    assert.ok(/^(core|events)\//.test(p) || p === 'assets/theme-boot.js' || /^assets\/fonts\/[^/]+\.woff2$/.test(p), p + ' is outside core/, events/ and the needed assets/');
+    assert.ok(/^(core|events)\//.test(p) || p === 'assets/theme-boot.js' || p === 'assets/demo-boot.js' || /^assets\/fonts\/[^/]+\.woff2$/.test(p), p + ' is outside core/, events/ and the needed assets/');
     assert.doesNotMatch(p, /\.test\.|^events\/(prototype|fixtures|sw\.js|sw-files\.js|build-sw)|(^|\/)api\//, p + ' must not be cached');
     assert.ok(existsSync(new URL(p, ROOT)), p + ' exists');
   }

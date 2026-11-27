@@ -14,6 +14,14 @@ before(() => {
   files = listFiles(out);
 });
 
+// Why: a theme-dependent or missing tab icon would lose the Debate mark on some browser themes.
+test('Debate ships its theme-independent browser favicon', () => {
+  const icon = 'assets/debate-favicon-64.png';
+  assert.match(readFileSync(join(out, 'index.html'), 'utf8'), /<link rel="icon" type="image\/png" sizes="64x64" href="assets\/debate-favicon-64\.png">/);
+  const png = readFileSync(join(out, icon));
+  assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [64, 64]);
+});
+
 // Why: the app host is public. If the business plan, private notes, evals or plans
 // shipped, prices, margins and student speech would be on the open web.
 test('ships no private, planning, eval or test files', () => {

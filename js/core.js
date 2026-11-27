@@ -87,6 +87,7 @@ function freshRound(prev, fmt) {
     flows: f.defaultSheets.map((name) => ({ name, cells: {} })),
     transcripts: {}, timeLeft: {}, aiFlows: [], aiFlowAt: 0, flowView: 'mine',
     ai: { paradigm: 'policymaker', notes: '', evidence: '', output: '' },
+    byLevel: {}, analysis: { lens: {}, map: null },
     ballot: { winner: '', pts: {}, ranks: {}, rfd: '', touched: {}, aiFilled: {} },
     id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), cur: 0, flowIdx: 0, tab: 'flow',
     programId: null, // "Judging for": the school whose AI policy and credits apply (js/judging.js); null = Just me
@@ -115,6 +116,7 @@ function fitPrepToFormat() {
 }
 fitPrepToFormat();
 R.id ??= String(Date.now());
+L.atomicFlow.migrate(R);
 // Save at once so the round id is fixed before any doc is tied to it.
 const bootSaved = store.set(STORE, R);
 // While a backup is being restored, nothing may write the old in-memory data back.
@@ -202,9 +204,14 @@ function applyPanes() {
   $('#ins-cta').hidden = mode !== 'edge-connect';
   $('#ins-show').hidden = mode !== 'edge-show';
   const btn = $('#speeches-btn');
-  btn.hidden = !(overlay || S.hideLeft);
+  btn.hidden = false;
   btn.setAttribute('aria-expanded', String(overlay ? leftOpen : !S.hideLeft));
   btn.dataset.tip = K.speechesTip(IS_MAC, S.singleKeys !== false);
+  if (overlay && leftOpen) {
+    const controls = document.querySelector('.flowbar').getBoundingClientRect();
+    const header = document.querySelector('header').getBoundingClientRect();
+    document.documentElement.style.setProperty('--speeches-anchor', Math.max(controls.bottom, header.bottom) + 'px');
+  }
 }
 const insightsMode = () => L.insightsMode({ allowed: can('liveEval'), setup: showSetup(), aiReady: ready(), hideRight: Boolean(S.hideRight) });
 function focusSpeechTile() { const t = $('#speech-list .sp.run') || $('#speech-list .sp.on'); if (t) t.focus(); }
@@ -259,9 +266,15 @@ document.addEventListener('pointerdown', (e) => {
   if (e.target.closest('#workspace')) closeSpeeches(false);
 });
 escLayer('speeches', 40, () => leftOpen, () => closeSpeeches());
-addEventListener('resize', () => { applyPanes(); renderRecStrip(); measureRoundBar(); }); // cheap class toggles, so no frame wait (frames pause in hidden tabs)
+function resizeWorkspace() {
+  // A phone may resize while deferred scripts are still loading. Startup draws the
+  // panes once settings, recording and AI capability state are all available.
+  if (typeof booted === 'undefined' || !booted) return;
+  applyPanes(); renderRecStrip(); measureRoundBar();
+}
+addEventListener('resize', resizeWorkspace); // cheap class toggles, so no frame wait (frames pause in hidden tabs)
 // The pane mode changes at 1440 and 820 px; listen to those breakpoints too (some zoom and emulation changes fire no resize).
-for (const q of ['(min-width: 1440px)', '(min-width: 820px)']) matchMedia(q).addEventListener('change', () => { applyPanes(); renderRecStrip(); measureRoundBar(); });
+for (const q of ['(min-width: 1440px)', '(min-width: 820px)']) matchMedia(q).addEventListener('change', resizeWorkspace);
 
 // ---------- simple two-way binding ----------
 function bindAll() {
@@ -376,6 +389,7 @@ $('#round-open').addEventListener('change', async (e) => {
   CQ.clear(); await clipStore.clear().catch(() => {}); // the old round's waiting audio is deleted now
   const oldId = R.id;
   R = Object.assign(freshRound(), opened.round, { tab: 'flow', started: true, run: null, prepRun: null, programId: null, aiConsent: null }); // a saved file never brings a clock back, another judge's school, nor a yes to use a round
+  L.atomicFlow.migrate(R);
   fitPrepToFormat(); // the file's round keeps its own format (none = an old policy round; unknown ones were refused)
   save();
   docStore.clearRound(oldId).finally(() => location.reload());

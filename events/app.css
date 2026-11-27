@@ -694,6 +694,13 @@ details.fold > summary::-webkit-details-marker { display: none; }
 details.fold[open] > .fold-row > svg.i { transform: rotate(180deg); }
 details.fold[open] > .fold-row { margin-bottom: var(--s2); }
 @media (hover: none) and (pointer: coarse) { .set-keys { display: none; } }
+/* Room setup uses a compact disclosure; the fields still expand into the form grid. */
+.setup-more > .fold-row { width: fit-content; max-width: 100%; gap: var(--s3); }
+.setup-more > .fold-row .fold-label { flex: none; min-width: 0; }
+.setup-more > .fold-row .fold-value { max-width: none; }
+.setup-round-help { margin-top: calc(-1 * var(--s2)); max-width: 68ch; }
+.setup-more .field-help { font-weight: var(--fw-2); }
+.setup-more [hidden] { display: none; }
 /* More icon places (§5.3): the Rank comment line, the grace line, the Congress session rows. */
 .board-comment { display: inline-flex; align-items: center; gap: var(--s1); }
 .board-comment .bc-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }

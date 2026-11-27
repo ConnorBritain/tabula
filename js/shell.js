@@ -56,7 +56,7 @@ function renderChip() {
 $('#clock-chip').addEventListener('click', () => {
   showTab('flow');
   // The narrow layout shows the clock view's Start; wider ones the round bar's.
-  const start = narrowNow() ? $('#cv-start') : $('#t-start');
+  const start = narrowNow() && !document.body.classList.contains('show-phone-flow') ? $('#cv-start') : $('#t-start');
   setTimeout(() => start.focus(), 0);
 });
 

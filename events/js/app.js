@@ -11,6 +11,9 @@
 // ballot cards are read and saved through events/js/day-store.js (env.day). New routes: #/pick, #/start/<cardId>,
 // #/type/<eventId>.
 // Every events/js file is an ES module with named exports. Only this file boots the page.
+import { rules as demoRules } from '../sample-guide/rules.js';
+import { savedDraft, createSampleWriter } from '../sample-guide/scenario.js';
+import { mountDemo } from '../sample-guide/journey.js';
 import { createUI } from '../../core/ui.js';
 import { focusKind } from '../../core/keys.js';
 import { escapeHtml as esc } from '../../core/sheets.js';
@@ -53,13 +56,19 @@ import { findRound as findCongressRound } from '../congress/workspace.js';
 import { congressIO, congressToday } from '../congress/store.js';
 import { autoDeleteAtStart, finishLifetimeRecovery } from './lifetime.js';
 import { createDataRecoveryView } from './data-recovery-view.js';
-import { eventsWriter as writer } from './writer.js';
+import { eventsWriter as realWriter } from './writer.js';
 import { createWriterWaitingView } from './writer-view.js';
 
+const demoParam = new URLSearchParams(location.search).get('demo');
+const demoRequested = demoParam !== null && !['off', '0', 'false'].includes(demoParam.trim().toLowerCase());
+if (demoRequested && !globalThis.TabulaDemo) throw new Error('The sample could not start safely. Close this tab.');
+const isDemo = Boolean(globalThis.TabulaDemo);
+const writer = isDemo ? createSampleWriter() : realWriter;
+let stopDemo = null;
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
 mountSprite(document); // the Lucide sprite (icons.js): every icon on every screen points into it
-const store = createEventsStore(ui);
+const store = isDemo ? createEventsStore(ui, undefined, { writer }) : createEventsStore(ui);
 let loadedData = null;
 let booted = false;
 let skipAutoDelete = false;
@@ -113,7 +122,7 @@ async function acquireWriter() {
   }
   startWhenSafe();
 }
-writer.onLost(() => { stalePage = true; showWaiting(); });
+writer.onLost(() => { stalePage = true; stopDemo?.(); stopDemo = null; showWaiting(); });
 window.addEventListener('pagehide', () => {
   stalePage = true;
   if (stopCurrent) stopCurrent();
@@ -143,6 +152,10 @@ function startWhenSafe() {
 
 // Read one file under events/. A reply that is not JSON (for example a host's HTML error page) names the file.
 async function readJson(path) {
+  if (isDemo) {
+    if (!(path in demoRules)) throw new Error('Missing sample rules: ' + path);
+    return structuredClone(demoRules[path]);
+  }
   const res = await fetch(new URL('../' + path, import.meta.url));
   if (!res.ok) throw new Error(path + ': HTTP ' + res.status);
   try { return await res.json(); } catch { throw new Error(path + ': not JSON'); }
@@ -151,7 +164,7 @@ async function readJson(path) {
 // Every read of the saved rounds and the settings goes through the read-time migration (EXPERIENCE.md §8.1).
 const readRooms = () => migrateRooms(store.get(ROOMS_KEY, []));
 const readSettings = () => migrateSettings(store.get(SETTINGS_KEY, {}));
-watchUpdates(registerOffline(), () => !writer.isHeld() || store.journal.state().blocked || pageBusy({ screen: parseRoute(location.hash).screen, rooms: readRooms(), congress: congressIO(store).read() })); // a new release waits for a quiet screen
+if (!isDemo) watchUpdates(registerOffline(), () => !writer.isHeld() || store.journal.state().blocked || pageBusy({ screen: parseRoute(location.hash).screen, rooms: readRooms(), congress: congressIO(store).read() })); // a new release waits for a quiet screen
 
 // The header (EXPERIENCE.md §1.1): the mode menu shows only when the settings say so; the link for the screen that
 // shows is marked with aria-current (a fill, never an underline); the offline chip shows with the network off.
@@ -175,6 +188,7 @@ function boot(data) {
   const env = {
     el: $('#screen'), ui, data, store,
     now: () => Date.now(),
+    sampleDraft: isDemo ? savedDraft : null,
     rooms: readRooms,
     saveRoom: (room) => store.set(ROOMS_KEY, upsertRoom(store.get(ROOMS_KEY, []), room)),
     go: (screen, id) => { location.hash = routeHash(screen, id); },
@@ -213,6 +227,7 @@ function boot(data) {
   function showScreen(name, id) {
     current = screens[name] || screens.rooms;
     current.show(id);
+    env.onRendered?.();
     window.scrollTo(0, 0);
   }
 
@@ -227,6 +242,7 @@ function boot(data) {
     const stage = target.stage || ws.stages(round)[0];
     if (!ws.stages(round).includes(stage)) { showScreen('rooms'); return; } // an unknown stage is like an unknown address
     const hide = ws.mount(env.el, env, round, stage);
+    env.onRendered?.();
     const k = ws.keys(round, stage);
     current = { scope: k.scope, run: k.run, hide };
     window.scrollTo(0, 0);
@@ -270,7 +286,7 @@ function boot(data) {
 
   // One key handler for the page: core/keys.js matches the key in the 'global' scope and the showing screen's scope.
   document.addEventListener('keydown', (ev) => {
-    if (ev.defaultPrevented || !writer.isHeld() || store.journal.state().blocked) return;
+    if (ev.defaultPrevented || (isDemo && env.el.inert) || !writer.isHeld() || store.journal.state().blocked) return;
     const key = keyOf(ev);
     // ⌘K again closes the open palette (its own dialog makes every other shortcut wait).
     if (palette.isOpen()) {
@@ -284,6 +300,7 @@ function boot(data) {
   });
   stopCurrent = () => { routeNo++; if (current?.hide) current.hide(); current = null; palette.close(); };
   route();
+  if (isDemo) stopDemo = mountDemo(env);
 }
 
 loadEventData(readJson).then((data) => {

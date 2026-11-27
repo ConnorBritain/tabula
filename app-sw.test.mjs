@@ -108,8 +108,8 @@ test('the deploy runs every *.test file; only the browser test is left to the fu
   for (const c of evCmds) assert.match(c, /^node --test "\*\*\/\*\.test\.\*js" && /, 'events: ' + c);
   // Files plain `node --test` runs that the deploy pattern does not: the *-test.*js files at the root.
   const rootOnly = readdirSync(new URL('./', import.meta.url)).filter((f) => /-test\.[cm]?js$/.test(f));
-  assert.deepEqual(rootOnly, ['offline-open.browser-test.mjs']);
-  assert.ok(!/\.test\.[cm]?js$/.test(rootOnly[0]), 'the deploy pattern does not list the browser test');
+  assert.deepEqual(rootOnly.sort(), ['demo-journey.browser-test.mjs', 'mobile-flow.browser-test.mjs', 'offline-open.browser-test.mjs']);
+  for (const file of rootOnly) assert.ok(!/\.test\.[cm]?js$/.test(file), 'the deploy pattern does not list browser tests: ' + file);
 });
 
 // Why: caching the AI SDK, the Library or host files would waste judges' storage; caching sw.js itself would freeze updates.

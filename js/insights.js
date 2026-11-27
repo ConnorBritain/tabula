@@ -14,9 +14,9 @@ function scheduleEvalSoon() {
   clearTimeout(evalSoonTimer);
   evalSoonTimer = setTimeout(() => { if (!S.autoEval) return; if (navigator.onLine === false) { evalWaitsOnline = true; return; } scheduleEval(); }, 20000);
 }
-// No Live Eval before the round has something to read (L.insightsReady): not from a button, not from the auto path.
-function scheduleEval() {
-  if (!can('liveEval') || !ready() || resetting || !L.insightsReady(R, DOCS)) return;
+// An explicit demo run can show the saved sample before the round has any speeches.
+function scheduleEval(savedSample = false) {
+  if (!can('liveEval') || !ready() || resetting || (!L.insightsReady(R, DOCS) && !(savedSample && demoOn))) return;
   if (evalBusy) { evalAgain = true; return; }
   runEval();
 }
@@ -48,15 +48,15 @@ function renderEvalStatus() {
   go.textContent = L.runVerb(Boolean(ev));
   go.insertAdjacentHTML('afterbegin', TabulaCore['ai-mark'].aiMark());
   const empty = !L.insightsReady(R, DOCS);
-  go.disabled = evalBusy || !ready() || empty;
+  go.disabled = evalBusy || !ready() || (empty && !demoOn);
   tone(el);
-  if (evalBusy) el.innerHTML = busyHtml('Updating… usually 20–60 seconds');
+  if (evalBusy) el.innerHTML = busyHtml(demoOn ? 'Loading sample…' : 'Updating… usually 20–60 seconds');
   else if (!ready()) el.innerHTML = noAiHtml('', 'Connect AI');
-  else if (empty && !ev) el.innerHTML = '<span class="is-quiet">' + INS_WAIT + '</span>';
+  else if (empty && !ev && !demoOn) el.innerHTML = '<span class="is-quiet">' + INS_WAIT + '</span>';
   else if (evalErr) { tone(el, errColor(evalErr)); el.textContent = L.AI_ERROR_PREFIX.eval + ' ' + evalErr; }
   else el.textContent = '';
-  const stale = ev ? L.outOfDateText(ev.through, R) : '';
-  $('#eval-meta').innerHTML = ev ? escapeHtml('Last updated ' + agoText(ev.at) + ', through ' + ((ev.through || []).length ? ev.through[ev.through.length - 1] : 'no speeches') + '.')
+  const stale = ev && !demoOn ? L.outOfDateText(ev.through, R) : '';
+  $('#eval-meta').innerHTML = ev ? escapeHtml(demoOn ? 'Saved sample evaluation.' : 'Last updated ' + agoText(ev.at) + ', through ' + ((ev.through || []).length ? ev.through[ev.through.length - 1] : 'no speeches') + '.')
     + (stale ? ' <span class="pill is-caution">' + escapeHtml(stale) + '</span>' : '') : '';
 }
 setInterval(() => { if (R.tab === 'eval') renderEvalStatus(); syncInsightsReady(); }, 5000);
@@ -64,17 +64,18 @@ const sideClass = (x) => (x === 'aff' ? 'aff' : x === 'neg' ? 'neg' : '');
 const sideLabel = (x) => ({ aff: L.sideLabel(FMT(), 'aff'), neg: L.sideLabel(FMT(), 'neg'), even: 'Even', unclear: 'Unclear', 'toss-up': 'Toss-up' }[x] || x);
 // The small Live Eval summary in the Flow workspace (V9). With no AI the pane is folded to its edge, so it stays empty.
 // States: empty ("No read of the round yet."), loading ("Updating…"), error (the aiErrorText line and Try again),
-// offline (the offline line; Update is off and the line says why). Before the round has something to read
-// (L.insightsReady), one quiet line and no Update button.
+// Offline, real rounds cannot update. Until a real round has something to read, show only the waiting line.
 function renderInsights() {
   const box = document.getElementById('insights-body'); if (!box) return;
   if (!ready()) { box.textContent = ''; return; }
-  if (!L.insightsReady(R, DOCS)) { box.innerHTML = '<p class="muted ins-msg" id="ins-wait">' + INS_WAIT + '</p>'; return; }
+  if (!demoOn) {
+    if (!L.insightsReady(R, DOCS)) { box.innerHTML = '<p class="muted ins-msg" id="ins-wait">' + INS_WAIT + '</p>'; return; }
+  }
   const e = escapeHtml;
   const entry = LV().liveEval, ev = entry && entry.data;
-  const offline = navigator.onLine === false;
+  const offline = !demoOn && navigator.onLine === false;
   let msg = '';
-  if (evalBusy) msg = busyHtml('Updating…');
+  if (evalBusy) msg = busyHtml(demoOn ? 'Loading sample…' : 'Updating…');
   else if (offline) msg = '<span class="is-quiet">' + e(L.aiErrorText('offline')) + '</span>';
   else if (evalErr) msg = '<span class="is-error">' + e(evalErr) + '</span>';
   const why = evalBusy || offline ? ' aria-describedby="ins-msg"' : '';
@@ -84,12 +85,12 @@ function renderInsights() {
   const open = '<button class="b small" data-tab-go="eval">Open Live Eval</button>';
   const status = msg ? `<p class="ins-msg" id="ins-msg">${msg}</p>` : '';
   if (!ev) {
-    box.innerHTML = (status || '<p class="muted ins-msg">No read of the round yet.</p>') + `<div class="row">${action}${open}</div>`;
+    box.innerHTML = (status || '<p class="muted ins-msg">' + (demoOn ? 'Load the saved sample evaluation.' : 'No read of the round yet.') + '</p>') + `<div class="row">${action}${open}</div>`;
     return;
   }
   const lean = ev.leaning || {};
   box.innerHTML = `<div class="ins-lean ${sideClass(lean.side)}">Leaning ${e(sideLabel(lean.side))}${lean.side === 'aff' && R.aff.team ? ' (' + e(R.aff.team) + ')' : lean.side === 'neg' && R.neg.team ? ' (' + e(R.neg.team) + ')' : ''}</div>
-    <p class="muted ins-meta">${e(lean.confidence || '')} confidence · ${e(agoText(entry.at))}</p>
+    <p class="muted ins-meta">${e(lean.confidence || '')} confidence · ${demoOn ? 'Saved sample' : e(agoText(entry.at))}</p>
     <p class="ins-why">${e(lean.why || '')}</p>
     <h3 class="ins-h">Listen for next</h3>
     <ul class="ins-list">${(ev.watch_for || []).slice(0, 4).map((w) => '<li>' + e(w) + '</li>').join('')}</ul>
@@ -100,14 +101,14 @@ function renderInsights() {
 // catches the rest (flow text typed, a doc mapped, another tab's clock).
 function syncInsightsReady() {
   const box = document.getElementById('insights-body');
-  if (!box || !ready()) return;
+  if (!box || !ready() || demoOn) return;
   if (L.insightsReady(R, DOCS) === !box.querySelector('#ins-wait')) return;
   renderInsights();
 }
 addEventListener('online', () => renderInsights());
 addEventListener('offline', () => renderInsights());
 document.addEventListener('click', (e) => {
-  if (e.target.id === 'ins-update') { scheduleEval(); setTimeout(renderInsights, 0); }
+  if (e.target.id === 'ins-update') { scheduleEval(demoOn); setTimeout(renderInsights, 0); }
   const go = e.target.closest && e.target.closest('[data-tab-go]');
   if (go) showTab(go.dataset.tabGo);
 });
@@ -157,7 +158,7 @@ function renderEval() {
 }
 $('#eval-go').addEventListener('click', () => {
   if (!ready()) return toast(noAiText());
-  scheduleEval();
+  scheduleEval(demoOn);
 });
 $('#auto-eval').checked = S.autoEval; // off unless the judge turned it on (spec 2.7, D2)
 $('#auto-eval').addEventListener('change', (e) => { S.autoEval = e.target.checked; saveSettings(); });
