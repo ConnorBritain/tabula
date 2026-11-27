@@ -206,11 +206,21 @@ Never queue live transcription or the live flow.
 
 ### 6.7 Database
 
-**D1** (Cloudflare's SQLite database) for accounts, sessions, ledger, usage, badges and programs.
-- Scales to zero. Billed per row read and written.
-- One database holds up to 10 GB. Usage rows are about 200 bytes × 8 speeches per round. At "Many formats", that is about 100 MB a month, about 2.4 GB over the 24-month retention. Watch this, but it fits.
-- **Durable Objects with SQLite** for the per-user meter, and later one per large program (a data boundary, and one-call deletion).
-- **Not chosen now:** a managed Postgres such as Supabase. It has a flat monthly fee that runs all summer, and adds a second vendor that can fail. The owner chose all Cloudflare on 2026-11-20 (`STACK.md` §3).
+**D1** is Cloudflare's SQLite database. The current server uses it for accounts, sessions, the money ledger, usage counts, badges and school-account records. It bills row reads, row writes and storage.
+
+- A Workers Paid D1 database holds at most **10 GB**. This per-database limit cannot be raised. The Free limit is 500 MB. See [Cloudflare's current limits](https://developers.cloudflare.com/d1/platform/limits/).
+- **Durable Objects with SQLite** hold each person's live meter. The shared money and usage records still need D1 capacity planning.
+- **Not chosen now:** a managed Postgres service. The owner chose all Cloudflare on 2026-11-20 (`STACK.md` §3).
+
+**Capacity estimate, not a measured result.** A hosted call adds a usage record and may add ledger records. The earlier planning example assumes about 150 calls and 85 KB per round. Under that assumption, 20,000 rounds add about 1.7 GB. These are estimates. Format, call count, indexes and ledger growth change the result. Measure the actual database and a representative workload before using these numbers for a traffic limit.
+
+**Current release boundary.** Automatic usage archival and ledger compaction are not active in the reviewed production release. The usage and money records still occupy D1. Do not assume a 30-day archive job, nightly archive reconciliation, or database-size alerts already protect that storage. Existing queues and operations metrics do not prove that their archive consumers, recording callers and capacity alerts are wired.
+
+**Archive plan, pending implementation and release checks.** Cloud PR46 proposes moving older per-call detail to R2, Cloudflare's object store, while keeping per-round totals in D1. The proposed detail window is 30 days. Before activation, finish the queue and scheduled job, verify each archive write before deleting source rows, include archived data in exports and deletion, and test recovery. Retained ledger rows also count toward the database limit. Cloud PR61 proposes separate ledger compaction; it needs its own money and recovery checks. Neither plan is a current data-retention guarantee.
+
+**Proposed action thresholds.** The planning triggers are 4 GB of money-database storage or 10,000 rounds in one weekend, with a second storage warning at 5 GB. These require measured callers, alerts and an operator runbook. Crossing a threshold must start a reviewed change; it must not silently switch the money path. Planned direct-to-R2 usage detail also needs its queue, export, deletion and reconciliation checks before a switch.
+
+A claim that the service can run 20,000 rounds in a weekend still needs the load, failover and recovery tests below. Creating queues or passing unit tests does not establish that capacity.
 
 ## 7. Before the first paid Saturday
 
