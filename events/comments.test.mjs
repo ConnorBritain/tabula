@@ -11,7 +11,10 @@ import {
 } from './js/comments.js';
 import { sourceText } from './js/cleanup.js';
 import { sheetHtml, reasonFootHtml } from './js/comment-view.js';
-import { createEventsStore, ROOMS_KEY } from './js/store.js';
+import { createEventsStore as makeEventsStore, ROOMS_KEY } from './js/store.js';
+
+import { heldWriter } from './fixtures/held-writer.mjs';
+const createEventsStore = (ui, storage, opts = {}) => makeEventsStore(ui, storage, { ...opts, writer: heldWriter });
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const DATA = await loadEventData(async (p) => JSON.parse(read(p)));

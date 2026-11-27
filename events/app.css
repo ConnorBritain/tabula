@@ -614,7 +614,7 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--accent); }
 @media (max-width: 820px) {
   a.b, button.b, a.b.small, button.b.small, .timer-btns .b { min-height: 44px; } /* touch targets (§5.1 secondary: 44 px on a phone) */
   a.b.primary, button.b.primary, .timer-btns .b.primary { min-height: 48px; }
-  .tool-group .b, .seg-track .b { min-height: 44px; }
+  .tool-group .b, .seg-track .b, .set-auto-options .radio { min-height: 44px; }
 }
 
 /* ---------- Icons (design build 2026-11-24; EVENTS-COLOR-ICON-REVIEW.md §5.3) ----------

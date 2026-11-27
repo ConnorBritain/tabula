@@ -89,6 +89,8 @@ export function createOwnKey(o) {
     hasKey: () => Boolean(provider()),
     providerName: () => (provider() ? PROVIDERS[provider()].name : ''),
     remembered: () => keyStore.hasSaved(),
+    // A backup restore changes storage without closing the tab, so refresh the in-memory key without a provider call.
+    reloadFromStore() { keys = keyStore.load(); },
     // Checks a pasted key against the provider (its model list), then keeps it. Returns the provider id.
     // remember: keep it on this device; else only in this tab (ARCHITECTURE.md §11: not remembered by default).
     async connect(raw, remember) {
@@ -102,7 +104,7 @@ export function createOwnKey(o) {
       saveModel(p, id);
       return p;
     },
-    forget() { keys = {}; keyStore.save({}, false); o.local.del(MODELS_KEY); },
+    forget({ memoryOnly = false } = {}) { keys = {}; if (!memoryOnly) { keyStore.save({}, false); o.local.del(MODELS_KEY); } },
     // The clean-up call. gate: the AI gate for this screen, checked again here so no path can call with the feature off
     // (AI-POLICY.md §3b R4). msg: cleanupMessages(...). Returns the drafts { [entryId]: text }.
     async cleanup(gate, msg, { signal } = {}) {

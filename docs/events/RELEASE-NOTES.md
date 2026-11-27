@@ -36,6 +36,13 @@ optional and uses the judge's own key.
   backup" and, where it helps, "How to keep it". "Not today" hides it until the next day.
 - **Save as PDF.** The Review screen ends with "Save a copy". Once the ranks and comments are copied, "Save as PDF" is
   the one main button. The PDF holds the entry codes, times and what the judge typed, not student names.
+- **One Events tab at a time.** A second tab waits until you close the active tab and choose Retry. After an update,
+  close or reload every other Events tab before you use the data controls. An older page must reload before the new
+  one-tab protection can apply to it.
+- **Data lifetime.** Settings, Data can auto-delete old rounds 7, 30 or 90 days after the round (off by default), and a
+  past day left with no rounds. It keeps a round not yet marked submitted, a round with comments open, and a Congress
+  chamber still open, and shows Undo while the tab is open. **Check a backup** lists what a backup file holds before any restore. **Wrap up the
+  season** saves a backup, asks whether it saved, then offers Clear this device.
 - **Clear this device.** Settings removes every Speech Events value on a shared computer, with an Undo while the tab
   is open. Tabula Debate data is not touched.
 - **Congress (beta).** Chambers and sessions for Student Congress, marked as beta.

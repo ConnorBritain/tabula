@@ -51,11 +51,95 @@ import { focusIfLost } from './focus.js';
 import { createChamberScreen } from '../congress/chamber-screen.js';
 import { findRound as findCongressRound } from '../congress/workspace.js';
 import { congressIO, congressToday } from '../congress/store.js';
+import { autoDeleteAtStart, finishLifetimeRecovery } from './lifetime.js';
+import { createDataRecoveryView } from './data-recovery-view.js';
+import { eventsWriter as writer } from './writer.js';
+import { createWriterWaitingView } from './writer-view.js';
 
 const $ = (s) => document.querySelector(s);
 const ui = createUI({ behind: 'header, main' });
 mountSprite(document); // the Lucide sprite (icons.js): every icon on every screen points into it
 const store = createEventsStore(ui);
+let loadedData = null;
+let booted = false;
+let skipAutoDelete = false;
+let resumeCurrent = null;
+let resumeSettingsRecovery = null;
+let stopCurrent = null;
+let stalePage = false;
+let recoveryStarted = false;
+const waitingView = createWriterWaitingView({ el: $('#screen'), writer, retry: acquireWriter });
+const recoveryView = createDataRecoveryView({ el: $('#screen'), journal: store.journal, ui,
+  onRecovered(result) {
+    skipAutoDelete = skipAutoDelete || result.recovered;
+    finishLifetimeRecovery(result);
+    if (booted && resumeSettingsRecovery?.(result)) return;
+    document.querySelector('header').inert = false;
+    if (booted) resumeCurrent(); else startWhenSafe();
+  },
+});
+function showWaiting() {
+  if (stopCurrent) stopCurrent();
+  recoveryView.hide();
+  document.documentElement.dataset.writer = writer.state().status;
+  document.documentElement.dataset.ready = 'false';
+  document.querySelector('header').inert = true;
+  $('#main').inert = false;
+  $('#toasts').inert = true;
+  $('#boot-status').hidden = true;
+  waitingView.show();
+}
+function quarantine() {
+  if (!writer.isHeld()) { showWaiting(); return; }
+  document.documentElement.dataset.recovery = 'blocked';
+  document.documentElement.dataset.ready = 'false';
+  document.querySelector('header').inert = true;
+  $('#boot-status').hidden = true;
+  recoveryView.show();
+}
+// The native lock comes before recovery, saved-data views, startup deletion, AI keys and clocks.
+async function acquireWriter() {
+  const status = await writer.acquire();
+  if (!status.held || !writer.isHeld()) { showWaiting(); return; }
+  if (stalePage) { location.reload(); return; }
+  waitingView.hide();
+  document.documentElement.dataset.writer = 'held';
+  $('#toasts').inert = false;
+  if (!recoveryStarted) {
+    recoveryStarted = true;
+    const initialRecovery = store.journal.recover();
+    skipAutoDelete = initialRecovery.recovered;
+    if (!initialRecovery.ok) { quarantine(); return; }
+  }
+  startWhenSafe();
+}
+writer.onLost(() => { stalePage = true; showWaiting(); });
+window.addEventListener('pagehide', () => {
+  stalePage = true;
+  if (stopCurrent) stopCurrent();
+  writer.release();
+  if (ui.askIsOpen()) $('#ask-x').click();
+  showWaiting();
+});
+window.addEventListener('pageshow', (event) => { if (event.persisted) { stalePage = true; showWaiting(); } });
+acquireWriter();
+function startWhenSafe() {
+  if (!writer.isHeld()) { showWaiting(); return; }
+  if (store.journal.state().blocked) { quarantine(); return; }
+  if (!loadedData || booted) return;
+  if (!skipAutoDelete) {
+    skipAutoDelete = true;
+    autoDeleteAtStart({ store, ui, now: () => Date.now(), refresh: () => { if (resumeCurrent) resumeCurrent(); } });
+    if (store.journal.state().blocked) { quarantine(); return; }
+  }
+  recoveryView.hide();
+  document.querySelector('header').inert = false;
+  document.documentElement.dataset.recovery = 'ready';
+  boot(loadedData);
+  booted = true;
+  $('#boot-status').hidden = true;
+  document.documentElement.dataset.ready = 'true';
+}
 
 // Read one file under events/. A reply that is not JSON (for example a host's HTML error page) names the file.
 async function readJson(path) {
@@ -67,11 +151,12 @@ async function readJson(path) {
 // Every read of the saved rounds and the settings goes through the read-time migration (EXPERIENCE.md §8.1).
 const readRooms = () => migrateRooms(store.get(ROOMS_KEY, []));
 const readSettings = () => migrateSettings(store.get(SETTINGS_KEY, {}));
-watchUpdates(registerOffline(), () => pageBusy({ screen: parseRoute(location.hash).screen, rooms: readRooms(), congress: congressIO(store).read() })); // a new release waits for a quiet screen
+watchUpdates(registerOffline(), () => !writer.isHeld() || store.journal.state().blocked || pageBusy({ screen: parseRoute(location.hash).screen, rooms: readRooms(), congress: congressIO(store).read() })); // a new release waits for a quiet screen
 
 // The header (EXPERIENCE.md §1.1): the mode menu shows only when the settings say so; the link for the screen that
 // shows is marked with aria-current (a fill, never an underline); the offline chip shows with the network off.
 function renderHeader(screen) {
+  if (!writer.isHeld() || store.journal.state().blocked) { $('#mode-menu').hidden = true; return; }
   const s = readSettings();
   const menu = $('#mode-menu'), sel = $('#mode-select');
   menu.hidden = !modeMenuShown(s); // Shows only for a saved Coach or Student mode (copy trim E46); Settings cannot set one now.
@@ -102,14 +187,18 @@ function boot(data) {
       refresh: () => { if (current && current.refresh) current.refresh(); focusIfLost(document, ['#screen-title', '#main']); } }),
     // After a restore: the theme, the header and the screen read the new data.
     reload() {
+      if (!writer.isHeld()) { showWaiting(); return; }
+      if (store.journal.state().blocked) { route(); return; }
       if (globalThis.TabulaTheme) globalThis.TabulaTheme.set(readSettings().theme);
       route();
     },
   };
+  resumeCurrent = () => env.reload();
   env.day = createDayStore({ store, now: env.now });
   env.congressToday = (now) => congressToday(congressIO(store).read(), now); // My day lists today's Congress chambers (S6 keeps them apart)
   const screens = { rooms: createMydayScreen(env), setup: createSetupScreen(env), history: createHistoryScreen(env), settings: createSettingsScreen(env),
     pick: createPickerScreen(env), type: createTypeScreen(env), chamber: createChamberScreen(env) };
+  resumeSettingsRecovery = (result) => screens.settings.finishRecovery(result);
   screens.start = { scope: 'setup', show: (cardId) => screens.setup.show(null, { cardId }) }; // #/start/<cardId>: setup filled from the card
   // The room workspace's stages are the shipped screens, made once here (only app.js makes screens).
   // Step S4: the F2 cross-ex part under the timer, and the Rate screen for a profile with ranks off (room-workspace.js).
@@ -134,7 +223,7 @@ function boot(data) {
     const round = room || findCongressRound(store, target.id);
     if (!round) { env.ui.toast('That room is not on this device.', { key: 'noroom' }); env.go('rooms'); return; }
     const ws = await loadWorkspace(room ? roundFamily(data.events, round) : 'congress');
-    if (no !== routeNo) return;
+    if (no !== routeNo || !writer.isHeld()) return;
     const stage = target.stage || ws.stages(round)[0];
     if (!ws.stages(round).includes(stage)) { showScreen('rooms'); return; } // an unknown stage is like an unknown address
     const hide = ws.mount(env.el, env, round, stage);
@@ -148,6 +237,10 @@ function boot(data) {
     const r = parseRoute(location.hash);
     if (current && current.hide) current.hide();
     current = null;
+    if (!writer.isHeld()) { current = waitingView; showWaiting(); return; }
+    if (store.journal.state().blocked) { current = recoveryView; quarantine(); return; }
+    document.querySelector('header').inert = false;
+    document.documentElement.dataset.recovery = 'ready';
     renderHeader(r.screen);
     const target = roundTarget(r);
     if (target) {
@@ -177,7 +270,7 @@ function boot(data) {
 
   // One key handler for the page: core/keys.js matches the key in the 'global' scope and the showing screen's scope.
   document.addEventListener('keydown', (ev) => {
-    if (ev.defaultPrevented) return;
+    if (ev.defaultPrevented || !writer.isHeld() || store.journal.state().blocked) return;
     const key = keyOf(ev);
     // ⌘K again closes the open palette (its own dialog makes every other shortcut wait).
     if (palette.isOpen()) {
@@ -189,13 +282,13 @@ function boot(data) {
     if (action === 'palette') { ev.preventDefault(); palette.open(); return; }
     if (action && current && current.run && current.run(action)) ev.preventDefault();
   });
+  stopCurrent = () => { routeNo++; if (current?.hide) current.hide(); current = null; palette.close(); };
   route();
 }
 
 loadEventData(readJson).then((data) => {
-  boot(data);
-  $('#boot-status').hidden = true;
-  document.documentElement.dataset.ready = 'true';
+  loadedData = data;
+  startWhenSafe();
 }).catch((err) => {
   console.error('Speech Events: the event rules did not load.', err);
   $('#boot-status').textContent = 'The event rules did not load. Check the connection, then reload the page.';

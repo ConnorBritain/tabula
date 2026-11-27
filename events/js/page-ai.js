@@ -9,9 +9,11 @@ import { PREFIX } from './store.js';
 // switch that proves the no-AI look (AI-POLICY.md §3e). core/policy.js is a head file, so it is on globalThis.
 // store: the events store (localStorage). The tab-only key goes in a store over sessionStorage.
 export function createPageAI(store) {
+  store.writer.assertHeld();
   const policy = globalThis.TabulaCore.policy;
   const off = new URLSearchParams(location.search).get('ai') === 'off';
-  const session = createStore({ prefixes: [PREFIX], storage: globalThis.sessionStorage });
-  const own = createOwnKey({ local: store, session, fetch: (url, init) => fetch(url, init), online: () => navigator.onLine !== false, policy });
+  const rawSession = createStore({ prefixes: [PREFIX], storage: globalThis.sessionStorage });
+  const session = Object.fromEntries(Object.keys(rawSession).map((name) => [name, (...args) => { store.writer.assertHeld(); return rawSession[name](...args); }]));
+  const own = createOwnKey({ local: store, session, fetch: (url, init) => { store.writer.assertHeld(); return fetch(url, init); }, online: () => navigator.onLine !== false, policy });
   return Object.freeze({ gate: policy.gateFor({ record: null, now: Date.now(), off }), own });
 }

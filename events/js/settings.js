@@ -13,7 +13,7 @@ import { PREFIX, ROOMS_KEY, SETTINGS_KEY, DAYS_KEY, CARDS_KEY } from './store.js
 import { KEYS_KEY } from './ai-key.js';
 import { migrateRooms, migrateSettings, migrateDays, migrateCards, RANKS_DUE_DEFAULT } from './migrate.js';
 import { backupDue } from '../../core/keep-data.js';
-import { congressToday, chamberSessions } from '../congress/store.js';
+import { CONGRESS_KEY, congressToday, chamberSessions } from '../congress/store.js';
 import { handedIn } from '../congress/chamber.js';
 import { dayOf } from './rooms.js';
 
@@ -124,6 +124,14 @@ export function readBackup(text) {
     const r = parseJson(storage[key]);
     if (!r.ok || !Array.isArray(r.value)) throw new Error('The ' + what + ' in this backup are damaged, so nothing was restored.');
     storage[key] = JSON.stringify(mig(r.value));
+  }
+  if (CONGRESS_KEY in storage) {
+    const saved = parseJson(storage[CONGRESS_KEY]);
+    const c = saved.value;
+    if (!saved.ok || !c || typeof c !== 'object' || Array.isArray(c)
+      || ('chambers' in c && !Array.isArray(c.chambers)) || ('sessions' in c && !Array.isArray(c.sessions))) {
+      throw new Error('The Congress data in this backup is damaged, so nothing was restored.');
+    }
   }
   if (SETTINGS_KEY in storage) {
     const s = parseJson(storage[SETTINGS_KEY]);
