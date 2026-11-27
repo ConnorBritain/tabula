@@ -7,6 +7,8 @@
 // Docs can be large (PDFs), so they live in IndexedDB, not localStorage.
 // If IndexedDB is not available, they are kept in memory for this page only.
 let DOCS = [];
+const pageOnlyDocs = new WeakSet();
+const flowDocuments = () => DOCS.filter((doc) => !pageOnlyDocs.has(doc));
 const docStore = {
   db: null,
   opening: null,
@@ -157,15 +159,21 @@ async function addDocFiles(files, side, statusEl, speech) {
       const textChars = DOCS.concat([doc]).filter((d) => d.kind !== 'pdf').reduce((n, d) => n + d.data.length, 0);
       if (textChars > MAX_TEXT_CHARS) throw new Error('too much text. Keep Word/text docs under about 400,000 characters in total');
       DOCS.push(doc); added.push(doc);
+      // Keep uploads out of the saved flow until their source document is stored.
+      pageOnlyDocs.add(doc);
+      try { await docStore.put(doc); pageOnlyDocs.delete(doc); }
+      catch { if (R === round) toast(file.name + ' is kept for this page only. It will be gone after a refresh.'); }
+      if (R !== round) return added;
+      if (!DOCS.includes(doc)) continue;
       renderDocs();
       const sp = L.docSpeech(doc, FMT());
-      statusEl.textContent = 'Added ' + file.name + ' (' + L.DOC_SIDES[side] + (sp ? ', mapped to ' + sp : '') + ')';
-      if (sp) {
+      const map = sp && !pageOnlyDocs.has(doc);
+      statusEl.textContent = 'Added ' + file.name + ' (' + L.DOC_SIDES[side] + (map ? ', mapped to ' + sp : '') + ')';
+      if (map) {
         importFlowDocument(doc);
         if (S.liveFlow && ready()) scheduleFlow(sp, true);
         if (doc.kind === 'pdf' && FlowItems.flow()) statusEl.textContent += '. The flow shows a file marker. Use a text or Word file to add entries.';
       }
-      docStore.put(doc).catch(() => toast(file.name + ' is kept for this page only. It will be gone after a refresh.'));
     } catch (err) {
       statusEl.textContent = file.name + ': ' + err.message;
     }
@@ -357,9 +365,11 @@ $('#doc-list').addEventListener('change', (e) => {
   // Replace the document value so in-flight passes can detect a changed assignment.
   const next = { ...d, speech: e.target.value };
   DOCS = DOCS.map((value) => value === d ? next : value);
-  docStore.put(next).catch(() => {});
+  const pageOnly = pageOnlyDocs.has(d);
+  if (pageOnly) pageOnlyDocs.add(next);
+  else docStore.put(next).catch(() => {});
   const flow = FlowItems.flow();
-  if (flow) { L.flowReconcile.reassignDocument(flow, next, old, FMT()); save(); FlowItems.redraw(); }
+  if (flow && !pageOnly) { L.flowReconcile.reassignDocument(flow, next, old, FMT()); save(); FlowItems.redraw(); }
   renderDocs();
   reflowForDocs(old); reflowForDocs(next.speech);
 });

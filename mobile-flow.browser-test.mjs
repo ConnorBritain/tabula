@@ -56,6 +56,21 @@ test('view selection is independent from paused, running and prep clocks',()=>pa
   assert.equal(await page.evaluate(()=>Boolean(R.prepRun)&&!R.run),true);
   await page.getByRole('button',{name:'Show flow',exact:true}).click(); assert.equal(await page.locator('#mobile-speech').inputValue(),fixture.speeches[1]);
 }));
+// Why: a temporary document must remain usable for this page without leaving its text in the saved flow.
+test('a failed document write leaves no saved flow entries for that file', () => pageFor(async page => {
+  await page.evaluate(() => { docStore.put = async () => { throw new Error('Storage unavailable'); }; });
+  await page.locator('#flow-doc-file').setInputFiles({
+    name: 'Page only.txt', mimeType: 'text/plain',
+    buffer: Buffer.from('## Temporary source\nThis evidence belongs to this page only.'),
+  });
+  await page.getByText(/Page only.txt is kept for this page only/).waitFor();
+  assert.deepEqual(await page.evaluate(() => ({
+    docs: DOCS.map(doc => doc.name),
+    source: hasFlowSource(DOCS[0].speech),
+    imported: L.atomicFlow.live(R.itemFlow).map(entry => entry.title),
+    persisted: localStorage.getItem(L.STORE_KEYS.round).includes('This evidence belongs to this page only.'),
+  })), { docs: ['Page only.txt'], source: false, imported: [], persisted: false });
+}));
 // Why: opening or editing the transcript on a phone must follow the viewed speech without changing the timed speech.
 test('the phone drawer reads and edits only the viewed speech transcript', () => pageFor(async page => {
   await sample(page);

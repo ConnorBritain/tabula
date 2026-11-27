@@ -21,6 +21,38 @@ async function visit(fn, format='policy', width=1280, theme='light') {
 }
 async function mapSaved(page) { if (!(await page.locator('#demo-map').isVisible())) await page.locator('#demo-more').click(); await page.locator('#demo-map').click(); }
 async function chapter(page,id) { const i=await page.evaluate(id=>demoUi.steps.findIndex(s=>s.id===id),id);await page.locator('#demo-chapter').selectOption(String(i)); }
+// Why: a pause on the last caption must hold the sample clock until the visitor resumes or leaves.
+test('pausing the last caption holds the clock and leaving cancels completion', () => visit(async page => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await chapter(page, 'speech-1AC');
+  const startingTime = await page.evaluate(() => R.timeLeft['1AC']);
+  await page.evaluate(() => {
+    document.querySelector('#demo-watch').click();
+    document.querySelector('#demo-pause').click();
+  });
+  assert.equal(await page.evaluate(() => R.transcripts['1AC']),
+    await page.evaluate(() => L.demoTranscript(demoSample, '1AC')));
+  await page.waitForTimeout(250);
+  assert.equal(await page.evaluate(() => R.timeLeft['1AC']), startingTime);
+  await chapter(page, 'options');
+  await page.waitForTimeout(250);
+  assert.equal(await page.evaluate(() => R.timeLeft['1AC']), startingTime);
+  assert.equal(await page.evaluate(() => demoUi.busy), false);
+}));
+
+// Why: restoring a cached page must reconnect the cue so it can follow controls the visitor opens.
+test('restoring a cached demo reconnects the cue for newly shown controls', () => visit(async page => {
+  await chapter(page, 'manual');
+  const add = page.locator('[data-item-action="new"].demo-target');
+  await add.waitFor();
+  await page.evaluate(() => {
+    dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true }));
+    dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+  });
+  await add.click();
+  await page.locator('.item-editor [name="title"].demo-target').waitFor();
+}));
+
 // Why: a paused or abandoned sample must not replace notes or leave late AI changes in the practice round.
 test('pause, resume, replay and chapter changes preserve practice edits',()=>visit(async page=>{
   await chapter(page,'manual');

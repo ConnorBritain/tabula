@@ -60,7 +60,7 @@ records are discarded. The guide says that reload clears practice.
 `events/demo.test.mjs` covers fixture fidelity, draft protection, playback
 cancellation, sandbox wiring, and rejection of unsupported sample edit requests.
 
-`events/demo-browser.test.mjs` drives the built app, including setup handoff,
+`events/demo-browser-test.mjs` drives the built app, including setup handoff,
 Watch/restart preservation, normal review controls, draft cancellation, real
 ranking and completion, active-playback exit, offline in-page use, transport
 and microphone blocking, storage isolation, keyboard focus and six viewport /

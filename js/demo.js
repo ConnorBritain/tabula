@@ -132,6 +132,9 @@ async function demoSpeech(id, run) {
     if (transcriptSpeech()?.id === id) setTranscriptView(text);
     await demoWait(DEMO_TYPE_MS);
   }
+  while (demoUi.paused && run === demoUi.run) await demoWait(100);
+  if (run !== demoUi.run) return;
+  if ((R.transcripts[id] || '') !== (replay ? initial : text)) throw new Error('Playback stopped to keep your transcript edit.');
   if (!replay) demoMarkSpoken(id);
   return !replay;
 }
@@ -440,8 +443,11 @@ function demoBoot() {
     demoCue.target?.focus({ preventScroll: true });
   });
   demoCue.observer = new MutationObserver(demoCueSchedule);
-  demoCue.observer.observe(document.querySelector('main'), {childList:true, subtree:true});
-  demoCue.observer.observe(document.body, {attributes:true, attributeFilter:['data-place']});
+  const observeCue = () => {
+    demoCue.observer.observe(document.querySelector('main'), { childList: true, subtree: true });
+    demoCue.observer.observe(document.body, { attributes: true, attributeFilter: ['data-place'] });
+  };
+  observeCue();
   window.addEventListener('resize', demoCueSchedule);
   document.addEventListener('click', e => {
     if (demoCue.target?.contains(e.target)) {
@@ -456,7 +462,19 @@ function demoBoot() {
     }
     demoCueSchedule();
   });
-  window.addEventListener('pagehide', () => { demoCue.observer.disconnect(); cancelAnimationFrame(demoCue.frame); demoCue.target?.classList.remove('demo-target'); });
+  window.addEventListener('pagehide', () => {
+    demoCue.observer.disconnect();
+    cancelAnimationFrame(demoCue.frame);
+    demoCue.frame = null;
+    demoCue.target?.classList.remove('demo-target');
+    demoCue.target = null;
+  });
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    demoCue.dismissed = null;
+    observeCue();
+    renderDemoBar();
+  });
 
   const chapter = $('#demo-chapter');
   chapter.addEventListener('change', () => {

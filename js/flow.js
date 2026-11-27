@@ -14,7 +14,8 @@ const FLOW_EVERY_MS = 30000;
 function hasFlowSource(speechId) {
   if ((R.transcripts[speechId] || '').trim()) return true;
   const itemFlow = Boolean(FlowItems.flow());
-  return DOCS.some((doc) => L.docSpeech(doc, FMT()) === speechId && (!itemFlow || doc.kind !== 'pdf'));
+  const docs = itemFlow ? flowDocuments() : DOCS;
+  return docs.some((doc) => L.docSpeech(doc, FMT()) === speechId && (!itemFlow || doc.kind !== 'pdf'));
 }
 function scheduleFlow(speechId, force) {
   if (!can('aiFlow')) return false;
@@ -39,7 +40,7 @@ let flowRunningId = null;
 async function runFlow(speechId, forced) {
   const round = R;
   const atomic = FlowItems.flow();
-  const snapshot = atomic && L.flowReconcile.capture(round, DOCS, speechId, FMT());
+  const snapshot = atomic && L.flowReconcile.capture(round, flowDocuments(), speechId, FMT());
   flowBusy = true; flowRunningId = speechId; lastFlowAt = Date.now(); renderRecBadge();
   try {
     const matchMode = L.flowReconcile.modeFor(S.itemFlowAssist);
@@ -55,7 +56,7 @@ async function runFlow(speechId, forced) {
     // The docs for this speech may have been removed while Claude was working. Then drop the result.
     if (!hasFlowSource(speechId)) return;
     if (atomic) {
-      if (!L.flowReconcile.current(snapshot, R, DOCS, FMT())) return;
+      if (!L.flowReconcile.current(snapshot, R, flowDocuments(), FMT())) return;
       const currentMode = L.flowReconcile.modeFor(S.itemFlowAssist);
       const matches = L.flowReconcile.reconcile(atomic, data, snapshot, FMT(), currentMode, forced && Boolean(snapshot.transcript.trim()) && R.run?.id !== speechId);
       const human = matches.filter((token) => L.atomicFlow.byId(atomic.items, token.item)?.source !== 'transcript');
