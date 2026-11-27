@@ -5,13 +5,16 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import '../core/policy.js'; // a head file: it sets globalThis.TabulaCore.policy, which the Settings screen reads
 import { pageFiles } from './build-sw.mjs';
-import { createEventsStore, askToKeepOnce, storageKept, PREFIX, ROOMS_KEY, CARDS_KEY, SETTINGS_KEY, DAYS_KEY, BACKUP_AT_KEY, PERSIST_ASKED_KEY } from './js/store.js';
+import { createEventsStore as makeEventsStore, askToKeepOnce, storageKept, PREFIX, ROOMS_KEY, CARDS_KEY, SETTINGS_KEY, DAYS_KEY, BACKUP_AT_KEY, PERSIST_ASKED_KEY } from './js/store.js';
 import { keptText, lastChangeAt, backupReminderDue, CLEAR_WHAT } from './js/settings.js';
 import { createSettingsScreen, settingsHtml } from './js/settings-screen.js';
 import { mydayHtml } from './js/myday-screen.js';
 import { makeDay, makeCard, submitCard, mydayModel, withStandby } from './js/cards.js';
 import { dayOf } from './js/rooms.js';
 import { KEYS_KEY } from './js/ai-key.js';
+
+import { heldWriter } from './fixtures/held-writer.mjs';
+const createEventsStore = (ui, storage, opts = {}) => makeEventsStore(ui, storage, { ...opts, writer: heldWriter });
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 

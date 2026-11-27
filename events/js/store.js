@@ -2,6 +2,8 @@
 // other name), so it can never read or write a judge's debate data. A failed save shows one warning toast.
 // Every events/js file is an ES module with named exports; only app.js boots the page and imports the screens.
 import { createStore } from '../../core/store.js';
+import { createDataJournal } from './data-journal.js';
+import { eventsWriter } from './writer.js';
 import { storageKept as coreStorageKept, askToKeepOnce as coreAskToKeepOnce } from '../../core/keep-data.js';
 
 export const PREFIX = 'tabulaEvents.';
@@ -37,20 +39,41 @@ export function createEventsStore(ui, storage, opts = {}) {
   let warned = false;
   let asking = false;
   const now = opts.now || (() => Date.now());
+  const writer = opts.writer || eventsWriter;
+  const journal = createDataJournal(() => storage || globalThis.localStorage, undefined, writer);
   const inner = createStore({
     prefixes: [PREFIX],
     storage,
     onSaved: () => { if (warned) { warned = false; ui.dismissToast('storage'); } },
     onFail: () => { if (!warned) { warned = true; ui.toast('This browser is not saving. Keep this tab open until you copy your ballot.', { kind: 'error', key: 'storage' }); } },
   });
-  return Object.freeze(Object.assign({}, inner, {
+  const api = Object.assign({}, inner, {
+    journal, writer,
+    get(key, fallback) { journal.assertReady(); return inner.get(key, fallback); },
+    snapshot(prefix) {
+      if (prefix !== PREFIX) throw new Error('This store does not own that prefix.');
+      return journal.snapshot();
+    },
+    replaceAll(prefix, items) {
+      if (prefix !== PREFIX) throw new Error('This store does not own that prefix.');
+      return journal.write(items);
+    },
+    del(key) {
+      if (journal.state().blocked) return false;
+      inner.del(key); return true;
+    },
     set(k, v) {
+      if (journal.state().blocked) {
+        ui.toast('Device data needs recovery before another change. Open Settings to recover it.', { kind: 'error', key: 'storage' });
+        return false;
+      }
       const ok = inner.set(k, v);
       if (ok && !asking && WORK_KEYS.includes(k)) {
         asking = true;
-        askToKeepOnce(inner, now, 'nav' in opts ? opts.nav : globalThis.navigator).catch(() => {});
+        askToKeepOnce(api, now, 'nav' in opts ? opts.nav : globalThis.navigator).catch(() => {});
       }
       return ok;
     },
-  }));
+  });
+  return Object.freeze(api);
 }

@@ -4,7 +4,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { loadEventData } from './js/data.js';
 import { groupRoomsByDay, roomRow, roomsHtml } from './js/rooms.js';
-import { createEventsStore, ROOMS_KEY, PREFIX, SETTINGS_KEY } from './js/store.js';
+import { createEventsStore as makeEventsStore, ROOMS_KEY, PREFIX, SETTINGS_KEY } from './js/store.js';
+
+import { heldWriter } from './fixtures/held-writer.mjs';
+const createEventsStore = (ui, storage, opts = {}) => makeEventsStore(ui, storage, { ...opts, writer: heldWriter });
 
 const at = (p) => new URL(p, import.meta.url);
 const read = (p) => readFileSync(at(p), 'utf8');
