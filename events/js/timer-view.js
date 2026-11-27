@@ -20,6 +20,7 @@ import { overGraceHtml, cardFace, cardTrack, timerHtml, rosterTimeHtml, rowTrack
 import { createWakeLock } from './wake-lock.js';
 import { createSpeakerView, speakerModel, showSpeakerButton, speakerButtonHtml } from './speaker-view.js';
 import { createDriver } from '../../core/clock.js';
+import { cueTick, cueMount, resetSpeechCues } from './timer-cue-view.js';
 import {
   limitOf, graceOf, clockText, parseClock, usedAt, timerFace, startLeft, stoppedTiming, adjustTiming, setUsedTiming,
   clearedTiming, resetTiming, restoreRoom, signalPoints, crossedSignal,
@@ -80,7 +81,6 @@ export function createTimerView(opts) {
   let runId = null;
   let prepId = null; // the entry whose prep runs (a prep event)
   let prevLeft = null;
-  let lastStage = '';
   let chipUntil = 0;
   let speaker = null; // the speaker view, made on the first show (it needs the page's Esc stack)
   const speakerOpen = () => Boolean(speaker && speaker.isOpen());
@@ -150,6 +150,7 @@ export function createTimerView(opts) {
       const sig = crossedSignal(prevLeft, face.left, signalPoints(lim(e, now), grace()));
       prevLeft = face.left;
       if (sig) showChip(e, sig.label, now);
+      cueTick(env(), r, e, face, lim(e, now), grace(), speakerOpen()); // the buzz and the one spoken line at a signal point (timer-cue.js)
       rowTime(runId, totalUsedAt(e.timing, now, limit()));
     }
     if (prepId) {
@@ -169,7 +170,6 @@ export function createTimerView(opts) {
     chipUntil = now + 3000;
     const chip = $('#signal-chip');
     if (chip && room().current === e.id) { chip.textContent = label; chip.hidden = false; }
-    env().ui.announce(e.code + ': ' + label);
   }
 
   // Update the card in place (no redraw, so the notes box keeps its cursor).
@@ -199,9 +199,7 @@ export function createTimerView(opts) {
     // The flag line changes in place: a redraw of the main pane would take the cursor out of the notes box.
     const flagBox = $('#timer-flagbox');
     if (flagBox && face.overGrace !== Boolean(flagBox.firstElementChild)) flagBox.innerHTML = overGraceHtml(face);
-    // Screen readers hear the stage when it changes, not every second.
-    if (face.stage !== lastStage && face.running && (face.stage === 'last' || face.stage === 'grace' || face.stage === 'over')) env().ui.announce(e.code + ': ' + face.word.replace(/ \+.*/, ''));
-    lastStage = face.stage;
+    // Screen readers hear each signal point once from cueTick (timer-cue-view.js), not every second.
   }
 
   // The sticky bar shows while the big card is out of view (the CSS shows it on a narrow screen only). One observer
@@ -244,7 +242,7 @@ export function createTimerView(opts) {
     stopOther(id);
     // "Speech started" on a prep event: prep stops first; what it used comes off the shared limit.
     if (prepId === id) prepDriver.stop();
-    runId = id; prevLeft = null; lastStage = '';
+    runId = id; prevLeft = null;
     const cur = entryOf(room(), id);
     driver.start({ kind: 'speech' }, startLeft(cur.timing, env().now(), lim(cur)));
     ctx.draw(); focusGo();
@@ -342,8 +340,9 @@ export function createTimerView(opts) {
       const extra = o.resetFields ? o.resetFields(e) : {};
       const before = Object.assign({ timing: e.timing, status: e.status }, Object.fromEntries(Object.keys(extra).map((k) => [k, e[k]])));
       change(e.id, (x) => Object.assign({}, x, { status: 'waiting', timing: shared() ? resetAll(x.timing) : resetTiming(x.timing) }, extra));
+      const undoCues = resetSpeechCues(room(), e);
       ctx.draw();
-      env().ui.toast('Time reset for ' + e.code + '.', { action: { label: 'Undo', name: 'Undo: reset time for ' + e.code, run: () => { change(e.id, (x) => Object.assign({}, x, before)); ctx.draw(); } } });
+      env().ui.toast('Time reset for ' + e.code + '.', { action: { label: 'Undo', name: 'Undo: reset time for ' + e.code, run: () => { change(e.id, (x) => Object.assign({}, x, before)); undoCues(); ctx.draw(); } } });
     },
   };
   function onClick(ev) {
@@ -372,9 +371,10 @@ export function createTimerView(opts) {
       const box = $('#timer-box'); if (box) box.addEventListener('click', onClick);
       const sv = $('[data-sv="open"]'); if (sv) sv.addEventListener('click', openSpeaker);
       watchCard();
+      cueMount(env(), box);
     },
     show(c) {
-      ctx = c; active = true; runId = null; prepId = null; prevLeft = null; lastStage = ''; fromBar = false;
+      ctx = c; active = true; runId = null; prepId = null; prevLeft = null; fromBar = false;
       // Back from the speaker view, the focus goes to its button on the card (or the card's main button).
       if (!speaker) speaker = createSpeakerView({ onMain: speakerMain, escLayer: c.env.ui && c.env.ui.escLayer, onClose: () => { if (!active) return; const b = $('[data-sv="open"]') || $('[data-key="startstop"]'); if (b) b.focus(); } });
       // A reload: bring back each saved run (timer.js restoreRoom; on a prep event prep.js restoreSharedRoom, which

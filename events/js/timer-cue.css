@@ -1,0 +1,8 @@
+/* Timer cues (timer-cue-view.js): Big digits on the timer card, and the Timer switches in Settings. Neutral chrome
+   only; no motion (the global reduced-motion rule in core/tokens.css covers the page). */
+/* Big digits: the card's time fills more of the width; the sticky phone bar grows a little and stays one line. The
+   floor is width-based, so "+10:00" fits a 320 px phone with no sideways scroll. */
+.timer-box.cue-big .timer-card .timer-digits { font-size: clamp(64px, 20vw, 240px); }
+.timer-box.cue-big .timer-card .timer-word { font-size: var(--fs-5); }
+.timer-box.cue-big .tm-digits { font-size: var(--fs-5); }
+@media (max-width: 820px) { .cue-switch { min-height: 44px; } } /* touch targets on a phone */

@@ -57,11 +57,19 @@ self.addEventListener('activate', (event) => {
     .map((k) => caches.delete(k)))));
 });
 
+// Static hosts redirect index.html to /. A redirected cached response cannot answer a navigation request.
+// Copy its body and headers into a plain response. This also repairs pages held by an older release cache.
+async function navigationResponse(response) {
+  if (!response.redirected) return response;
+  return new Response(await response.blob(), { status: response.status, statusText: response.statusText, headers: response.headers });
+}
+
 self.addEventListener('fetch', (event) => {
   const key = cachedUrl(event.request);
   if (!key) return;
   // Read this release's cache only. If the file is missing (a cleared cache), use the network, but do not store it.
   event.respondWith(caches.open(CACHE)
     .then((cache) => cache.match(key))
-    .then((hit) => hit || fetch(event.request)));
+    .then((hit) => hit || fetch(event.request))
+    .then((response) => event.request.mode === 'navigate' ? navigationResponse(response) : response));
 });

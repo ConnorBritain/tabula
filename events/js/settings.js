@@ -60,6 +60,10 @@ export const withRecentEvent = (settings, eventId) => {
 // gone and no longer counts; a judge left in Coach or Student uses this menu to go back to Judge, and then it hides.
 export const modeMenuShown = (settings) => migrateSettings(settings).mode !== 'judge';
 
+// The timer switches (timer-cue-view.js): Vibrate at signals and Big digits. Booleans; missing means off.
+export const TIMER_VIBRATE_KEY = 'timerVibrate';
+export const TIMER_BIG_KEY = 'timerBig';
+
 // The settings with one change. A value that is not on the list is refused (the settings come back unchanged), so a
 // bad value from the page can never be saved.
 export function withSetting(settings, key, value) {
@@ -74,7 +78,8 @@ export function withSetting(settings, key, value) {
   if (key === 'ranksDueMin' && !validRanksDue(value)) return s;
   if (key === 'recentEvents' && !(Array.isArray(value) && value.length <= RECENT_MAX && value.every((x) => typeof x === 'string' && /^[a-z0-9-]{1,20}$/.test(x)))) return s;
   if (key === 'drawGapMin' && !DRAW_GAPS.includes(value)) return s;
-  if (!['mode', 'theme', 'showModeMenu', 'ranksDueMin', 'recentEvents', 'drawGapMin'].includes(key)) return s;
+  if ((key === TIMER_VIBRATE_KEY || key === TIMER_BIG_KEY) && typeof value !== 'boolean') return s;
+  if (!['mode', 'theme', 'showModeMenu', 'ranksDueMin', 'recentEvents', 'drawGapMin', TIMER_VIBRATE_KEY, TIMER_BIG_KEY].includes(key)) return s;
   return Object.assign({}, s, { [key]: Array.isArray(value) ? value.slice() : value });
 }
 

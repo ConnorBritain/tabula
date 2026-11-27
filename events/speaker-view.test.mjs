@@ -155,11 +155,12 @@ function rig() {
   const el = new El(fakeDoc(), 'main');
   el.querySelector = ((orig) => (sel) => (sel === '[data-sv="open"]' ? orig.call(el, sel) : null))(el.querySelector);
   const layers = [];
-  const env = { el, now: () => now, data: { events: null }, ui: { announce() {}, toast() {}, ask: async () => null, escLayer: (...a) => layers.push(a) } };
+  const said = [];
+  const env = { el, now: () => now, settings: () => ({}), data: { events: null }, ui: { announce: (text) => said.push(text), toast() {}, ask: async () => null, escLayer: (...a) => layers.push(a) } };
   const ctx = { env, room: () => room, save: (r) => { room = r; return r; }, draw() {}, drawStage() {}, drawRoster() {}, primary: () => 'timer' };
   const view = createTimerView();
   view.show(ctx);
-  return { view, el, room: () => room, tick: (ms) => { now += ms; }, layers };
+  return { view, el, room: () => room, tick: (ms) => { now += ms; }, layers, said };
 }
 
 // Why: two clocks for one speech drift apart; the speaker and the judge would see different times and the ballot would record the judge's.
@@ -215,6 +216,41 @@ test('the open speaker view follows the room timer\'s tick', () => {
     assert.equal(sv.querySelector('#sv-digits').textContent, '3:45');
     t.view.hide();
   } finally { globalThis.CSS = prevCss; globalThis.document = prevDoc; globalThis.setInterval = prevSet; globalThis.clearInterval = prevClear; }
+});
+
+// Why: opening the speaker view must not make two live regions announce the same signal, and closing it must restore the judge's cues.
+test('the room timer gives spoken cues to the active view and keeps each point once', () => {
+  const doc = fakeDoc();
+  const prevDoc = globalThis.document, prevSet = globalThis.setInterval, prevClear = globalThis.clearInterval, prevCss = globalThis.CSS;
+  let tickFn;
+  globalThis.document = doc;
+  globalThis.CSS = { escape: (x) => String(x) };
+  globalThis.setInterval = (fn) => { tickFn = fn; return 1; };
+  globalThis.clearInterval = () => {};
+  let t;
+  try {
+    t = rig();
+    t.view.mounted();
+    t.view.run('startStop');
+    t.tick(1000); tickFn();
+    t.tick(179000); tickFn();
+    assert.deepEqual(t.said, ['A12: 2 minutes left']);
+    tickFn();
+    assert.equal(t.said.length, 1, 'a second tick at the same point stays quiet');
+    t.el.querySelector('[data-sv="open"]').fire('click');
+    const sv = doc.added[0];
+    t.tick(60000); tickFn();
+    assert.equal(sv.querySelector('#sv-live').textContent, '1:00 left');
+    assert.deepEqual(t.said, ['A12: 2 minutes left'], 'the judge live region stays quiet while the speaker view speaks');
+    sv.fire('click', { target: sv.querySelector('[data-sv="back"]') });
+    t.tick(30000); tickFn();
+    assert.deepEqual(t.said, ['A12: 2 minutes left', 'A12: 30 seconds left']);
+    tickFn();
+    assert.equal(t.said.length, 2, 'returning to the judge still speaks each point once');
+  } finally {
+    if (t) t.view.hide();
+    globalThis.document = prevDoc; globalThis.setInterval = prevSet; globalThis.clearInterval = prevClear; globalThis.CSS = prevCss;
+  }
 });
 
 // ---------- Esc, Space, fullscreen, focus ----------
