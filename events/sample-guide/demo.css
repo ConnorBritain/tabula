@@ -27,6 +27,7 @@ html[data-demo] .events-demo-target { animation: events-demo-cue 1.5s ease-in-ou
 @media (prefers-reduced-motion: reduce) { html[data-demo] .events-demo-target { animation: none; } }
 @media (max-width: 819.98px) {
   .events-demo { padding: var(--s2) var(--s3); gap: var(--s2); max-height: 40dvh; overflow: auto; }
+  .demo-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
   .demo-task, .demo-actions { grid-column: 1 / -1; }
   .demo-actions { justify-content: flex-start; }
   .demo-nav { margin-left: auto; }
