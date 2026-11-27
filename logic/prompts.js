@@ -8,6 +8,7 @@
   const { paradigmText, ballotFields, speechesSoFar, ptsRange, isDefaultRange } = part('round');
   const { speechColumn, aiFlowCell, flowCellText } = part('flow');
   const { docSpeech } = part('files');
+  const atomic = part('atomic-flow');
   const { fieldLabel, markFields, feedbackLines, outOfRangePoints, draftValue, andList } = part('decide');
 
   // Every prompt below is keyed by format: it reads the round's format (F.formatOf(round)) or takes one, and the
@@ -28,7 +29,8 @@
       if (t && t.trim()) lines.push(head, t.trim());
       else {
         const mine = (docs || []).filter((d) => docSpeech(d, f) === sp.id).map((d) => d.name);
-        if (mine.length) lines.push(head, '(No transcript. Treat the speech doc as what was said: ' + mine.join(', ') + '.)');
+        const docLabel = atomic.supported(round.itemFlow) ? 'These documents are unconfirmed: ' : 'Treat the speech doc as what was said: ';
+        if (mine.length) lines.push(head, '(No transcript. ' + docLabel + mine.join(', ') + '.)');
       }
     }
     return lines;
@@ -37,7 +39,8 @@
   function judgeFlowLines(round, fmt) {
     const f = fmt || F.formatOf(round);
     const lines = [];
-    for (const sh of round.flows || []) {
+    const sheets = atomic.supported(round.itemFlow) ? atomic.projectedSheets(round, { source: 'manual' }) : round.flows;
+    for (const sh of sheets || []) {
       const cols = f.flowColumns.map((c, i) => [c.label, (sh.cells || {})[i]]).filter(([, v]) => v && v.trim());
       if (!cols.length) continue;
       lines.push('### Sheet: ' + sh.name);
@@ -48,6 +51,10 @@
   // The AI flow, one text block per sheet that has cells.
   function aiFlowSheets(round, fmt) {
     const f = fmt || F.formatOf(round);
+    if (atomic.supported(round.itemFlow)) return atomic.projectedSheets(round, { source: 'ai' }).flatMap((sh) => {
+      const cols = f.flowColumns.flatMap((c, i) => sh.cells[i] ? ['[' + c.label + ']\n' + sh.cells[i]] : []);
+      return cols.length ? ['### Sheet: ' + sh.name + '\n' + cols.join('\n')] : [];
+    });
     return (round.aiFlows || []).map((sh) => {
       const cols = f.flowColumns.map((c, i) => [c.label + (sh.edits && sh.edits[i] ? ' (edited by the judge)' : ''), flowCellText(sh, i, 'detailed', f)]).filter(([, v]) => v);
       return cols.length ? '### Sheet: ' + sh.name + '\n' + cols.map(([l, v]) => '[' + l + ']\n' + v).join('\n') : '';
@@ -59,6 +66,14 @@
     const FLOW_COLUMNS = f.flowColumns;
     const col = speechColumn(speechId, f);
     const lines = [];
+    if (atomic.supported(round.itemFlow)) {
+      const sheets = atomic.projectedSheets(round, { level: 'standard', excludeSpeech: speechId });
+      for (const sheet of sheets) {
+        const cols = FLOW_COLUMNS.flatMap((c, i) => sheet.cells[i] ? ['[' + c.label + ']\n' + sheet.cells[i]] : []);
+        if (cols.length) lines.push('### ' + sheet.name, cols.join('\n'));
+      }
+      return lines;
+    }
     for (const sheet of round.aiFlows || []) {
       const cols = [];
       for (let c = 0; c < FLOW_COLUMNS.length; c++) {
@@ -102,7 +117,7 @@
     const aiSheets = aiFlowSheets(round, fmt);
     if (aiSheets.length) {
       lines.push('');
-      lines.push('AI FLOW (machine-made from the transcript during the round; less reliable than the judge\'s flow)');
+      lines.push('AI FLOW (machine-made notes and imported material; use read status and transcript evidence)');
       lines.push(aiSheets.join('\n'));
     }
     if (ai.evidence && ai.evidence.trim()) {
@@ -366,7 +381,7 @@
     'You help a human judge follow ' + debateName(fmt) + ' WHILE it is happening.',
     'The round may be unfinished. Judge only what has been said so far, under the given paradigm, and say what could still change.',
     fmt.ai.evalNorms,
-    'Transcripts are machine speech-to-text with errors. A speech with no transcript but a speech doc: treat the doc as what was said. In the AI flow, [doc] lines come from the speech doc; [doc?] lines are in the doc but were not heard.',
+    'Transcripts are machine speech-to-text with errors. Speech documents can contain material the debater skipped. Count document entries only when the transcript, judge notes, or a confirmed read status identifies what was spoken.',
     'Be concrete: name the arguments, cards and speeches. Keep each item short enough to read in a few seconds.',
     NARROW_TOOL,
   ].join('\n');

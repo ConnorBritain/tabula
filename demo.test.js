@@ -178,7 +178,7 @@ for (const sample of SAMPLES) {
     const rest = steps.find((s) => s.id === 'rest').speeches;
     assert.deepEqual(live.concat(rest), sample.speeches.map((s) => s.id));
     assert.deepEqual(steps.slice(-4).map((s) => s.id), ['eval', 'draft', 'decision', 'end']);
-    assert.equal(steps[steps.length - 1].title, 'Try your first round for $2');
+    assert.equal(steps[steps.length - 1].title, 'Try your first round');
     for (const s of steps) assert.ok(s.title && s.body, s.id + ' has words');
   });
 }

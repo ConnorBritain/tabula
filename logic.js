@@ -19,7 +19,7 @@
     micTestVerdict, stallWarning, recStatus, REC_PROBLEM_WORD, encodeWav, rms, mergeOverlap } = part('audio');
   const { speechColumn, FLOW_LEVELS, partText, aiFlowCell, flowCellText, editIsBehind, mergeMap, applyLiveFlow,
     FLOW_MARK_KINDS, flowMarkTokens, flowMarkHtml, flowLinesChanged, AI_FLOW_EMPTY, emptyFlowHtml } = part('flow');
-  const { buildBackup, parseBackup, backupSummary, backupDayOver, backupDue, backupReminderDue, stampRestoredBackup, DOC_SIDES, DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech,
+  const { buildBackup, parseBackup, backupSummary, backupDayOver, backupDue, backupReminderDue, stampRestoredBackup, DOC_SIDES, DOC_NOTE, ITEM_DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech,
     parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, orderInUse,
     buildRoundFile, parseRoundFile, roundFileName, docTitle, buildDocBlocks, buildUserContent } = part('files');
   const { parseRoundPaste, roundPasteChanges, swapSides } = part('pairing');
@@ -54,6 +54,7 @@
 
   const api = {
     learningLink, learningCutover, learningSource,
+    atomicFlow: part('atomic-flow'), flowReconcile: part('flow-reconcile'),
     NARROW_TOOL, // the narrow-tool line that every own-key system text carries (AI-POLICY §9)
     SPEECHES, FLOW_COLUMNS, DEFAULT_FLOWS, sheetLabel, SHEET_PAGES, sheetPage, DEFAULT_PREP_SECONDS, SPEAKERS, PARADIGMS,
     BALLOT_HEADER, JUDGE_SYSTEM, POINTS_GUIDE,
@@ -65,7 +66,7 @@
     buildBackup, parseBackup, backupSummary, backupDayOver, backupDue, backupReminderDue, stampRestoredBackup,
     READING_LEVELS, readingGuide, BALLOT_SCHEMA, BALLOT_TASK, BALLOT_FIELDS, buildBallotPrompt, applyBallotDraft,
     speechesSoFar, nextSpeech, EVAL_SYSTEM, EVAL_SCHEMA, buildEvalPrompt,
-    DOC_SIDES, DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech, parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, orderInUse, buildRoundFile, parseRoundFile, roundFileName, docTitle, buildDocBlocks, buildUserContent,
+    DOC_SIDES, DOC_NOTE, ITEM_DOC_NOTE, DOC_FLOW_NOTE, docSpeech, docsForSpeech, parseSpeechDropCode, speechDropFiles, guessSpeech, speechSide, anonymize, deanonymize, isRoundEmpty, orderInUse, buildRoundFile, parseRoundFile, roundFileName, docTitle, buildDocBlocks, buildUserContent,
     speechColumn, FLOW_LEVELS, partText, aiFlowCell, flowCellText, editIsBehind, mergeMap, applyLiveFlow, LIVE_FLOW_SCHEMA, LIVE_FLOW_SYSTEM, buildLiveFlowPrompt,
     // Slice 1: round safety
     OVER_LIMIT, leftAt, restoreRun, restorePrep, restoreClocks, beepDecision, storageErrorKind, clockUnitIsNewer, shortSpeech, viewingLabel, toastMs, leftPaneMode, needsRecNotice, recStripState, beepedElsewhere,

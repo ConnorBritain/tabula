@@ -2,7 +2,7 @@
 // answers. The browser run is in offline-open.browser-test.mjs. Run with: node --test
 import test, { before } from 'node:test';
 import assert from 'node:assert/strict';
-import { appendFileSync, cpSync, existsSync, mkdtempSync, readFileSync, readdirSync } from 'node:fs';
+import { appendFileSync, cpSync, existsSync, globSync, mkdtempSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import vm from 'node:vm';
@@ -108,8 +108,19 @@ test('the deploy runs every *.test file; only the browser test is left to the fu
   for (const c of evCmds) assert.match(c, /^node --test "\*\*\/\*\.test\.\*js" && /, 'events: ' + c);
   // Files plain `node --test` runs that the deploy pattern does not: the *-test.*js files at the root.
   const rootOnly = readdirSync(new URL('./', import.meta.url)).filter((f) => /-test\.[cm]?js$/.test(f));
-  assert.deepEqual(rootOnly, ['offline-open.browser-test.mjs']);
-  assert.ok(!/\.test\.[cm]?js$/.test(rootOnly[0]), 'the deploy pattern does not list the browser test');
+  assert.deepEqual(rootOnly.sort(), ['demo-journey.browser-test.mjs', 'mobile-flow.browser-test.mjs', 'offline-open.browser-test.mjs']);
+  for (const file of rootOnly) assert.ok(!/\.test\.[cm]?js$/.test(file), 'the deploy pattern does not list browser tests: ' + file);
+});
+
+// Why: nested browser suites must stay in CI and out of the deploy command, which has no Playwright dependency.
+test('the deploy glob excludes Playwright suites anywhere in the app', () => {
+  const root = new URL('./', import.meta.url);
+  const deploy = globSync('**/*.test.*js', { cwd: root });
+  const browserOnly = globSync('**/*-test.*js', { cwd: root });
+  assert.ok(browserOnly.includes('events/demo-browser-test.mjs'));
+  for (const file of deploy) {
+    assert.doesNotMatch(readFileSync(new URL(file, root), 'utf8'), /['"]playwright['"]/, file);
+  }
 });
 
 // Why: caching the AI SDK, the Library or host files would waste judges' storage; caching sw.js itself would freeze updates.

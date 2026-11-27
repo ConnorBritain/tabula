@@ -236,7 +236,11 @@
   function speechesSoFar(round) {
     const r = round || {};
     const flowIds = new Set();
-    for (const sh of r.aiFlows || []) for (const id of Object.keys(sh.parts || {})) flowIds.add(id);
+    if (r.itemFlow?.version === 1 && Array.isArray(r.itemFlow.items)) {
+      for (const item of r.itemFlow.items) if (item?.status === 'read' && !item.removed && item.speech) flowIds.add(item.speech);
+    } else {
+      for (const sh of r.aiFlows || []) for (const id of Object.keys(sh.parts || {})) flowIds.add(id);
+    }
     return F.formatOf(r).speeches.filter((s) => {
       const t = ((r.transcripts || {})[s.id] || '').trim();
       const left = (r.timeLeft || {})[s.id];

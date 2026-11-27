@@ -58,7 +58,11 @@ const STATE_TEXT = {
   stopped: 'Stopped. Nothing on the ballot changed.',
 };
 function draftState() {
-  return L.draftPanelState({ busy: draftUi.busy, aiReady: ready(), offline: navigator.onLine === false, hasContent: L.roundHasContent(R, DOCS), picked: (draftUi.picks || defaultPicks()).size, error: draftUi.err, stopped: draftUi.stopped });
+  return L.draftPanelState({
+    busy: draftUi.busy, aiReady: ready(), offline: !demoOn && navigator.onLine === false,
+    hasContent: demoOn || L.roundHasContent(R, DOCS), picked: (draftUi.picks || defaultPicks()).size,
+    error: draftUi.err, stopped: draftUi.stopped,
+  });
 }
 function renderDraftPanel() {
   renderDraftButton();
@@ -85,7 +89,7 @@ function renderDraftPanel() {
   const st = draftState();
   const el = $('#dp-status');
   tone(el);
-  if (st === 'loading') el.innerHTML = busyHtml(draftUi.busyText || 'Drafting… usually 20–60 seconds');
+  if (st === 'loading') el.innerHTML = busyHtml(demoOn ? 'Loading sample…' : draftUi.busyText || 'Drafting… usually 20–60 seconds');
   else if (st === 'noAI') el.innerHTML = showSetup() ? '<span class="is-quiet">Drafting needs AI. <button class="linkish" type="button" data-tab-go="ai" data-ai-setup="invite">Connect AI</button></span>' : '<span class="is-quiet">The ballot works by hand.</span>';
   else if (st === 'offline') { tone(el, 'quiet'); el.textContent = L.AI_ERROR_PREFIX.ballot + ' ' + L.aiErrorText('offline'); }
   else if (st === 'error') { tone(el, errColor(draftUi.err)); el.innerHTML = escapeHtml(L.AI_ERROR_PREFIX.ballot + ' ' + draftUi.err) + ' <button class="b small" type="button" id="dp-retry">Try again</button>'; }
@@ -162,7 +166,7 @@ $('#dp-prompt').addEventListener('click', async () => {
   const fields = draftGroupsNow().filter((g) => (draftUi.picks || defaultPicks()).has(g.id)).flatMap((g) => g.fields);
   const textDocs = DOCS.filter((d) => d.kind !== 'pdf').map((d) => '=== ' + L.docTitle(d, FMT()) + ' ===\n' + d.data).join('\n\n');
   const pdfs = DOCS.filter((d) => d.kind === 'pdf').map((d) => d.name);
-  const text = L.anonymize(BALLOT_SYSTEM() + '\n\n' + L.readingGuide(lvl(), FMT()) + '\n\n' + (textDocs ? textDocs + '\n\n' + L.DOC_NOTE + '\n\n' : '')
+  const text = L.anonymize(BALLOT_SYSTEM() + '\n\n' + L.readingGuide(lvl(), FMT()) + '\n\n' + (textDocs ? textDocs + '\n\n' + (L.atomicFlow.supported(R.itemFlow) ? L.ITEM_DOC_NOTE : L.DOC_NOTE) + '\n\n' : '')
     + L.buildBallotPrompt(R, DOCS, R.ballotInput || '', { only: fields, range: ptsRangeNow(), liveEvalFeedback: draftUi.feedback ? evalFeedback() : null }), R);
   const ok = await copy(text);
   toast(ok ? (pdfs.length ? 'Prompt copied. Attach these PDFs by hand: ' + pdfs.join(', ') : 'Prompt copied. Paste it into any AI chat.') : 'Copy did not work in this browser.');

@@ -19,6 +19,19 @@ before(() => {
   cached = swFiles(readFileSync(join(out, 'sw-files.js'), 'utf8')).map((p) => new URL(p, 'https://h.invalid/sw.js').pathname.slice(1));
 });
 
+// Why: opening Events offline should still show its own browser tab mark in either theme.
+test('Speech Events ships and caches its theme-independent browser favicon', () => {
+  const icon = 'icons/favicon-64.png';
+  const html = readFileSync(join(out, 'index.html'), 'utf8');
+  assert.deepEqual(html.match(/<link rel="icon"[^>]*>/g), ['<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">']);
+  const png = readFileSync(join(out, icon));
+  assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [64, 64]);
+  assert.ok(cached.includes(icon));
+  for (const installed of manifestIcons(readFileSync(join(out, 'manifest.webmanifest'), 'utf8'), 'manifest.webmanifest')) {
+    assert.ok(cached.includes(installed), installed + ' remains available offline');
+  }
+});
+
 // Why: the host serves the page at /; without index.html at the root of the output, judges opening the events site would get no page at all.
 test('the page is index.html at the root of the output, with its core and assets beside it', () => {
   for (const f of ['index.html', 'sw.js', 'sw-files.js', '_headers', 'core/ui.js', 'assets/theme-boot.js', 'js/app.js']) assert.ok(files.includes(f), f);

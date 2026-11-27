@@ -65,6 +65,7 @@ function renderClock() {
     }
   }
   renderViewChip();
+  if (typeof FlowMobile !== 'undefined') FlowMobile.clockLabel();
 }
 // The clock face: the time, and the last-30-s and over-time looks (the words beside it carry the meaning).
 function renderClockInto(el, shown) {

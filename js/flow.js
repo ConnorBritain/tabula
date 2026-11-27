@@ -12,7 +12,10 @@ let flowBusy = false, lastFlowAt = 0, flowTimer = null, lastFlowErr = '';
 const flowPending = new Map(); // speechId -> force
 const FLOW_EVERY_MS = 30000;
 function hasFlowSource(speechId) {
-  return Boolean((R.transcripts[speechId] || '').trim()) || DOCS.some((d) => L.docSpeech(d, FMT()) === speechId);
+  if ((R.transcripts[speechId] || '').trim()) return true;
+  const itemFlow = Boolean(FlowItems.flow());
+  const docs = itemFlow ? flowDocuments() : DOCS;
+  return docs.some((doc) => L.docSpeech(doc, FMT()) === speechId && (!itemFlow || doc.kind !== 'pdf'));
 }
 function scheduleFlow(speechId, force) {
   if (!can('aiFlow')) return false;
@@ -35,23 +38,39 @@ function pumpFlow() {
 }
 let flowRunningId = null;
 async function runFlow(speechId, forced) {
+  const round = R;
+  const atomic = FlowItems.flow();
+  const snapshot = atomic && L.flowReconcile.capture(round, flowDocuments(), speechId, FMT());
   flowBusy = true; flowRunningId = speechId; lastFlowAt = Date.now(); renderRecBadge();
   try {
-    const data = await callAI({ feature: 'aiFlow', system: L.promptsFor(FMT()).liveFlowSystem, prompt: L.buildLiveFlowPrompt(R, speechId, DOCS), note: L.DOC_FLOW_NOTE, schema: L.LIVE_FLOW_SCHEMA, effort: 'low', kind: 'flow', docs: L.docsForSpeech(DOCS, speechId), hosted: { job: 'flow', extra: { speech: speechId } } });
+    const matchMode = L.flowReconcile.modeFor(S.itemFlowAssist);
+    const data = atomic ? await callAI({
+      feature: 'aiFlow', system: L.flowReconcile.instructions,
+      prompt: L.flowReconcile.request(round, snapshot, FMT(), matchMode !== 'off'), note: L.ITEM_DOC_NOTE,
+      schema: L.flowReconcile.schema, effort: 'low', kind: 'flow', docs: snapshot.docs,
+      hosted: { job: 'flow', extra: { speech: speechId, includeJudgeItems: matchMode !== 'off' } },
+    }) : await callAI({ feature: 'aiFlow', system: L.promptsFor(FMT()).liveFlowSystem, prompt: L.buildLiveFlowPrompt(R, speechId, DOCS), note: L.DOC_FLOW_NOTE, schema: L.LIVE_FLOW_SCHEMA, effort: 'low', kind: 'flow', docs: L.docsForSpeech(DOCS, speechId), hosted: { job: 'flow', extra: { speech: speechId } } });
     // (No format needed above: addDocFiles sets each new doc's speech, so only docs from before formats, all policy,
     // use the default speech rule. cost.test.js checks this exact call.)
-    if (resetting) return;
+    if (resetting || R !== round || !S.liveFlow || !can('aiFlow')) return;
     // The docs for this speech may have been removed while Claude was working. Then drop the result.
     if (!hasFlowSource(speechId)) return;
-    R.aiFlows = L.applyLiveFlow(R.aiFlows, speechId, data);
+    if (atomic) {
+      if (!L.flowReconcile.current(snapshot, R, flowDocuments(), FMT())) return;
+      const currentMode = L.flowReconcile.modeFor(S.itemFlowAssist);
+      const matches = L.flowReconcile.reconcile(atomic, data, snapshot, FMT(), currentMode, forced && Boolean(snapshot.transcript.trim()) && R.run?.id !== speechId);
+      const human = matches.filter((token) => L.atomicFlow.byId(atomic.items, token.item)?.source !== 'transcript');
+      if (human.length) FlowItems.undoMatch(human);
+    } else R.aiFlows = L.applyLiveFlow(R.aiFlows, speechId, data);
     R.aiFlowAt = Date.now(); save(); lastFlowErr = '';
     // A forced pass is the end-of-speech (or doc) pass: refresh the Live Eval after it.
     if (forced && S.autoEval) scheduleEvalSoon();
     if (forced && S.autoBallot) scheduleBallotSoon();
-    if (R.tab === 'flow' && R.flowView === 'ai') redrawAIFlowSafely();
+    if (atomic) FlowItems.redraw();
+    else if (R.tab === 'flow' && R.flowView === 'ai') redrawAIFlowSafely();
   } catch (err) {
     // Shown with the AI flow (its status line and a toast), not in the transcription note.
-    if (err.kind === 'stopped') return; // the AI policy turned off (hosted 403 policyOff): stop quietly
+    if (R !== round || err.kind === 'stopped') return; // the AI policy turned off (hosted 403 policyOff): stop quietly
     if (err.kind === 'offline') { flowPending.set(speechId, Boolean(flowPending.get(speechId) || forced)); return; } // tried again when online
     if (err.status === 413 || /too long|too large|exceed/i.test(err.raw || '')) {
       S.liveFlow = false; saveSettings(); $('#live-flow').checked = false; flowPending.clear();
@@ -67,9 +86,16 @@ async function runFlow(speechId, forced) {
 
 // The transcript lives only in the drawer above the round bar (V8, Q7). It shows the speech on screen (the viewed
 // one, spec 1.2); live words still go to the running speech's transcript.
+function transcriptSpeech() {
+  if (typeof FlowMobile === 'undefined' || !FlowMobile.active()) return sp();
+  const viewed = FlowMobile.speech();
+  return FMT().speeches.find((speech) => speech.id === viewed) || null;
+}
 function renderTranscript() {
-  $('#tr-drawer-label').textContent = sp().label;
-  setTranscriptView(R.transcripts[sp().id] || '');
+  const speech = transcriptSpeech();
+  $('#tr-drawer-label').textContent = speech?.label || 'Speech unspecified';
+  $('#transcript-big').disabled = !speech;
+  setTranscriptView(speech ? R.transcripts[speech.id] || '' : '');
 }
 function setTranscriptView(text) {
   const el = $('#transcript-big');
@@ -79,7 +105,14 @@ function setTranscriptView(text) {
   el.value = text;
   if (atEnd && document.activeElement !== el) el.scrollTop = el.scrollHeight;
 }
-$('#transcript-big').addEventListener('input', (e) => { R.transcripts[sp().id] = e.target.value; save(); });
+$('#transcript-big').addEventListener('input', (e) => {
+  const speech = transcriptSpeech();
+  if (speech) { R.transcripts[speech.id] = e.target.value; save(); }
+});
+$('#transcript-big').addEventListener('change', () => {
+  const speech = transcriptSpeech();
+  if (speech && R.transcripts[speech.id]?.trim()) scheduleFlow(speech.id, R.run?.id !== speech.id);
+});
 function showDrawer(on) {
   if (on && $('#tr-drawer').hidden) layerOpened('drawer');
   S.trDrawer = on; saveSettings();
@@ -87,7 +120,7 @@ function showDrawer(on) {
   $('#tr-toggle').setAttribute('aria-expanded', String(on));
   $('#tr-toggle').classList.toggle('on', on);
   document.body.classList.toggle('drawer-open', on);
-  if (on) { const t = $('#transcript-big'); t.scrollTop = t.scrollHeight; }
+  if (on) { renderTranscript(); const t = $('#transcript-big'); t.scrollTop = t.scrollHeight; }
 }
 $('#tr-toggle').addEventListener('click', () => showDrawer($('#tr-drawer').hidden));
 $('#tr-drawer-close').addEventListener('click', () => showDrawer(false));
@@ -111,12 +144,17 @@ function renderStart() {
   $('#start-panel').hidden = !on;
 }
 $('#start-new').addEventListener('click', () => { R.started = true; save(); showTab('setup'); });
-$('#start-flow').addEventListener('click', () => { R.started = true; save(); renderFlow(); });
+$('#start-flow').addEventListener('click', () => { R.started = true; save(); renderFlow(); FlowItems.startEntry(); });
 // "Open a round file (.tab)" is a real button (owner, 2026-11-20), so Tab reaches it and Enter and Space press it;
 // it opens the hidden file input's picker. The input's change handler (core.js) does the rest.
 $('#start-open').addEventListener('click', () => $('#round-open').click());
 function renderFlow() {
   renderStart();
+  FlowItems.showPhoneNavigation(Boolean(FlowItems.flow()));
+  if (FlowItems.flow()) return FlowItems.render();
+  $('#flow-tools').hidden = true;
+  $('#flow-tools').replaceChildren();
+  $('#flow').classList.remove('item-flow');
   if (R.flowView === 'ai') return renderAIFlow();
   const f = R.flows[R.flowIdx] || R.flows[0];
   $('#flow-tabs').innerHTML = viewToggle() + R.flows.map((x, i) => sheetTab(x.name, `data-i="${i}"`, i === R.flowIdx)).join('')
@@ -136,6 +174,7 @@ function renderFlow() {
 // The grid has one column per flow column of the round's format (7 in policy, 5 in LD).
 function setFlowCols() { $('#flow').style.setProperty('--flow-cols', FMT().flowColumns.length); }
 function markFlowColumns() {
+  if ($('#flow').classList.contains('item-flow')) return FlowItems.mark();
   const m = L.flowMarks(R.run ? R.run.id : null, sp().id, FMT());
   document.querySelectorAll('#flow .col').forEach((col, i) => {
     col.classList.toggle('is-current', i === m.current);
@@ -180,11 +219,13 @@ function flowStatusHtml() {
 }
 // Keep the status line and "updated" time fresh without redrawing the flow.
 setInterval(() => {
-  if (R.tab !== 'flow' || R.flowView !== 'ai') return;
   const st = document.getElementById('ai-flow-status');
+  // The mount is drawn after the deferred scripts finish. A slow/offline reload
+  // can start this timer before FlowItems or aiReady exists.
+  if (!st || R.tab !== 'flow') return;
   const html = flowStatusHtml();
-  if (st && st.innerHTML !== html) st.innerHTML = html;
-  const ag = document.getElementById('ai-flow-ago'); if (ag) ag.textContent = 'Updated ' + agoText(R.aiFlowAt) + '.';
+  if (st.innerHTML !== html) st.innerHTML = html;
+  const ag = document.getElementById('ai-flow-ago'); if (ag) ag.textContent = R.aiFlowAt ? 'Updated ' + agoText(R.aiFlowAt) + '.' : 'No AI updates yet.';
 }, 1000);
 function mapDocsNow() {
   if (!can('aiFlow')) return;
@@ -226,7 +267,7 @@ function renderAIFlow() {
   markFlowColumns();
   paintAllFlowMarks();
 }
-$('#flow-tabs').addEventListener('click', (e) => {
+function handleFlowSheetAction(e) {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.view) { R.flowView = b.dataset.view; save(); return renderFlow(); }
   if (b.dataset.aiSheet != null) { aiIdx = Number(b.dataset.aiSheet); return renderFlow(); }
@@ -236,33 +277,78 @@ $('#flow-tabs').addEventListener('click', (e) => {
   else if (b.dataset.act === 'add') return addSheet();
   else if (b.dataset.act === 'rename') return renameSheet();
   else if (b.dataset.act === 'del') return deleteSheet();
+  else return;
   save(); renderFlow();
-});
+}
+$('#flow-tabs').addEventListener('click', handleFlowSheetAction);
+$('#flow-tools').addEventListener('click', handleFlowSheetAction);
+$('#flow-doc-ai').addEventListener('click', handleFlowSheetAction);
 // Sheet names come from the in-app dialog (spec 2.4 #5, #6); a deleted sheet has an Undo (#7).
 // renderFlow() redraws the tab row, so focus goes back to a tab (the new or current sheet, or the clicked action).
-function focusFlowTab(sel) { const el = $('#flow-tabs ' + sel) || $('#flow-tabs button.on[data-i]'); if (el) el.focus(); }
+function focusFlowTab(sel) {
+  const el = $('.flowbar ' + sel) || $('#flow-tabs button.on[data-i]');
+  if (!el) return;
+  const disclosure = el.closest('details');
+  if (disclosure) disclosure.open = true;
+  el.focus();
+}
 const SHEET_INPUT = { label: 'Sheet name', placeholder: 'For example: DA, Cap K, T', maxLength: 40, emptyError: 'Type a name.' };
 async function addSheet() {
   const n = await ask({ title: 'New sheet', input: SHEET_INPUT, buttons: [{ label: 'Cancel', value: null, kind: 'plain' }, { label: 'Add sheet', kind: 'primary' }] });
   if (!n) return;
-  R.flows.push({ name: n, cells: {} }); R.flowIdx = R.flows.length - 1; save(); renderFlow(); focusFlowTab('button.on[data-i]');
+  const f = FlowItems.flow();
+  if (f) { L.atomicFlow.addSheet(f, n); R.flowIdx = f.sheets.length - 1; }
+  else { R.flows.push({ name: n, cells: {} }); R.flowIdx = R.flows.length - 1; }
+  save(); renderFlow(); focusFlowTab('button.on[data-i]');
 }
 async function renameSheet() {
-  const f = R.flows[R.flowIdx]; if (!f) return;
+  const sheets = flowSheets();
+  const f = sheets[R.flowIdx]; if (!f) return;
   const n = await ask({ title: 'Rename sheet', input: Object.assign({}, SHEET_INPUT, { value: f.name }), buttons: [{ label: 'Cancel', value: null, kind: 'plain' }, { label: 'Save', kind: 'primary' }] });
-  if (!n || !R.flows.includes(f)) return;
+  if (!n || !flowSheets().includes(f)) return;
   f.name = n; save(); renderFlow(); focusFlowTab('[data-act="rename"]');
 }
 // Duplicate the open sheet (palette, spec 5.4): the copy goes right after it, with "copy" in the name, and opens.
 function duplicateSheet() {
+  const atomic = FlowItems.flow();
+  if (atomic) return duplicateItemSheet(atomic);
   const f = R.flows[R.flowIdx]; if (!f) return;
   const name = (f.name + ' copy').slice(0, 40);
   R.flows.splice(R.flowIdx + 1, 0, { name, cells: JSON.parse(JSON.stringify(f.cells || {})) });
   R.flowIdx += 1; save(); renderFlow(); focusFlowTab('button.on[data-i]');
   toast('Sheet "' + name + '" added.');
 }
+function flowSheets() { return FlowItems.flow()?.sheets || R.flows; }
+
+function duplicateItemSheet(flow) {
+  const copy = L.atomicFlow.cloneSheet(flow, R.flowIdx);
+  if (!copy) return;
+  R.flowIdx += 1;
+  save(); renderFlow(); focusFlowTab('button.on[data-i]');
+  toast('Sheet "' + copy.name + '" added.');
+}
+
+function deleteItemSheet(flow) {
+  if (flow.sheets.length < 2) return toast(ONE_SHEET);
+  const index = R.flowIdx;
+  const [sheet] = flow.sheets.splice(index, 1);
+  const entries = L.atomicFlow.live(flow).filter((entry) => sheet.groups.some((group) => group.id === entry.group));
+  entries.forEach(L.atomicFlow.removeItem);
+  R.flowIdx = Math.min(index, flow.sheets.length - 1);
+  save(); renderFlow(); focusFlowTab('[data-act="del"]');
+  undoToast('Sheet "' + sheet.name + '" deleted.', 'delete sheet ' + sheet.name, () => {
+    if (R.itemFlow !== flow) { toast('A new round started, so the sheet cannot come back.'); return false; }
+    flow.sheets.splice(index, 0, sheet);
+    entries.forEach(L.atomicFlow.restoreItem);
+    R.flowIdx = index;
+    save(); if (R.tab === 'flow') renderFlow();
+  }, 'Sheet restored.');
+}
+
 const ONE_SHEET = 'A round needs at least one sheet.';
 function deleteSheet() {
+  const atomic = FlowItems.flow();
+  if (atomic) return deleteItemSheet(atomic);
   if (R.flows.length < 2) return toast(ONE_SHEET);
   const { list, undo } = L.removeAt(R.flows, R.flowIdx);
   if (!undo) return;

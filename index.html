@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title data-brand-text="{name}">Tabula Debate</title>
 <meta name="description" content="Tabula Debate: a free judging tool for high school policy debate. Timers, flows, live transcripts, AI analysis and ballots.">
-<link rel="icon" type="image/png" href="assets/tabula-icon-64.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/debate-favicon-64.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#16191d">
 <link rel="preload" href="assets/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -16,6 +16,8 @@
 <script src="assets/caps-boot.js"></script>
 <script src="assets/sw-register.js"></script>
 <link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/flow-items.css">
+<link rel="stylesheet" href="assets/flow-mobile.css">
 <link rel="stylesheet" href="core/ai-mark.css">
 <link rel="stylesheet" href="core/ai-preferences.css">
 <style>
@@ -45,6 +47,11 @@
      --border fill, which stays on hover. */
   nav button { font-size: var(--fs-2); }
   nav button.b.on, nav button.b.on:hover { color: var(--text); background: var(--border); }
+  html[data-demo] #nav button[aria-current="page"]:not([data-tab="flow"]),
+  html[data-demo] body:not(:has(#demo-bar[data-intro="home"])) #nav button[data-tab="flow"][aria-current="page"] {
+    background: color-mix(in srgb, var(--caution-tint) 75%, var(--panel));
+    border-color: color-mix(in srgb, var(--caution) 40%, var(--border));
+  }
   main { padding: var(--s4); max-width: 1440px; margin: 0 auto; }
   section.tab { display: none; } section.tab.on { display: block; }
   .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s4); margin-bottom: var(--s3); }
@@ -65,16 +72,16 @@
   input[type="file"] { padding: var(--s1); font-size: var(--fs-2); }
   input.w-auto, select.w-auto { width: auto; }
   textarea { resize: vertical; line-height: var(--lh-read); }
-  button.b { min-height: var(--h-md); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); padding: 0 var(--s3); border-radius: var(--r-md); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); cursor: pointer; white-space: nowrap; }
-  button.b:hover { background: var(--sunk); border-color: var(--text-2); }
-  button.b:active { background: var(--border); }
+  .demo-actions a.b, button.b { min-height: var(--h-md); font: inherit; font-size: var(--fs-2); font-weight: var(--fw-3); padding: 0 var(--s3); border-radius: var(--r-md); border: 1px solid var(--border-ctl); background: var(--panel); color: var(--text); cursor: pointer; white-space: nowrap; }
+  .demo-actions a.b:hover, button.b:hover { background: var(--sunk); border-color: var(--text-2); }
+  .demo-actions a.b:active, button.b:active { background: var(--border); }
   button.b.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
   button.b.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
   button.b.primary:active { background: var(--accent-press); border-color: var(--accent-press); }
   /* Quiet: a text-only button for low-priority actions in a dense row (no fill, no edge at rest; a fill on hover). */
-  button.b.quiet { background: none; border-color: transparent; color: var(--text-2); }
-  button.b.quiet:hover { background: var(--sunk); border-color: transparent; color: var(--text); }
-  button.b.quiet:active { background: var(--border); color: var(--text); }
+  .demo-actions a.b.quiet, button.b.quiet { background: none; border-color: transparent; color: var(--text-2); }
+  .demo-actions a.b.quiet:hover, button.b.quiet:hover { background: var(--sunk); border-color: transparent; color: var(--text); }
+  .demo-actions a.b.quiet:active, button.b.quiet:active { background: var(--border); color: var(--text); }
   /* Danger: a solid fill, used only on the confirm button of a danger dialog (ui.js ask, kind 'danger'). */
   button.b.danger { background: var(--danger-fill); color: var(--on-danger); border-color: var(--danger-fill); }
   button.b.danger:hover { background: var(--danger-hover); border-color: var(--danger-hover); }
@@ -357,14 +364,16 @@
   .start-panel .start-judging { margin: var(--s4) 0 0; }
   .start-panel .start-judging p { margin: var(--s1) 0 0; }
   label.b { display: inline-flex; align-items: center; margin: 0; cursor: pointer; color: var(--text); font-size: var(--fs-2); font-weight: var(--fw-3); }
-  #tab-flow.starting > :not(.start-panel):not(#round-open) { display: none !important; }
+  #tab-flow.starting > :not(.start-panel):not(#round-open):not(#phone-show-clock) { display: none !important; }
   /* The Flow tab row starts with the Speeches button (spec 1.5); app.js shows it when the pane is not inline. */
-  .flowbar { display: flex; gap: var(--s1); align-items: flex-start; }
-  .flowbar .flowtabs { flex: 1; min-width: 0; }
-  .flowbar .tip-wrap { margin-top: 2px; }
-  #speeches-btn { min-height: var(--h-sm); flex: none; }
+  .flowbar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s2) var(--s3); align-items: center; margin-bottom: var(--s3); }
+  .flowbar .flow-arguments { display: flex; align-items: center; gap: var(--s2); min-width: 0; padding-left: var(--s3); border-left: 1px solid var(--border); }
+  .flowbar .flowtabs { flex: 1; min-width: 0; margin-bottom: 0; }
+  .flowbar .flow-arguments-label { color: var(--text-3); font-size: var(--fs-1); }
+  .flowbar .tip-wrap { margin: 0; }
+  #speeches-btn { min-height: var(--h-lg); flex: none; padding: 0 var(--s4); font-weight: var(--fw-4); }
   #speeches-btn[hidden] { display: none; }
-  #speeches-btn[aria-expanded="true"] { background: var(--sunk); border-color: var(--text); }
+  #speeches-btn[aria-expanded="true"] { outline: 2px solid var(--ring); outline-offset: 2px; }
   /* The transcript lives only in the drawer above the round bar (V8, Q7). 16 px text. */
   .tr-drawer { position: fixed; left: var(--s3); right: var(--s3); bottom: calc(var(--rb-h) + var(--s2)); z-index: var(--z-drawer); height: min(42vh, 420px); height: min(42dvh, 420px); display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-xl) var(--r-xl) 0 0; box-shadow: var(--shadow-2); padding: var(--s3); }
   .tr-drawer[hidden] { display: none; }
@@ -375,6 +384,8 @@
   body.drawer-open main { padding-bottom: calc(min(42vh, 420px) + var(--s5)); padding-bottom: calc(min(42dvh, 420px) + var(--s5)); }
   #tr-toggle.on { background: var(--sunk); border-color: var(--text); }
   .roundbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-bar); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); padding: var(--s2) var(--s4); background: var(--panel); border-top: 1px solid var(--border-ctl); font-size: var(--fs-2); }
+  .rb-main { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); width: 100%; min-width: 0; }
+  .rb-preps { display: flex; align-items: center; gap: var(--s6); width: 100%; padding-top: var(--s2); border-top: 1px solid var(--border); }
   .rb-speech { display: flex; align-items: baseline; gap: var(--s2); min-width: 190px; }
   .rb-speech #cur-label { font-size: var(--fs-2); }
   .roundbar .clock { font-size: var(--fs-clock-bar); margin: 0; line-height: 1; letter-spacing: -0.02em; text-align: left; }
@@ -390,7 +401,7 @@
   @media (min-width: 820px) and (max-width: 1439.98px) {
     #workspace, #workspace.no-left { grid-template-columns: minmax(0, 1fr) var(--right-w); }
     #workspace.ins-none { grid-template-columns: minmax(0, 1fr); }
-    #workspace .pane-left { display: none !important; position: fixed; top: calc(var(--header-h) + var(--s2)); bottom: calc(var(--rb-h) + var(--s2)); left: var(--s4); width: min(300px, calc(100vw - 32px)); max-height: none; z-index: var(--z-pop); padding: var(--s3); background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); box-shadow: none; }
+    #workspace .pane-left { display: none !important; position: fixed; top: calc(var(--speeches-anchor, var(--header-h)) + var(--s2)); bottom: calc(var(--rb-h) + var(--s2)); left: var(--s4); width: min(300px, calc(100vw - 32px)); max-height: none; z-index: var(--z-pop); padding: var(--s3); background: var(--panel); border: 1px solid var(--border-ctl); border-radius: var(--r-lg); box-shadow: none; }
     #workspace.left-open .pane-left { display: flex !important; }
   }
   /* 820 to 1180 px: Insights goes under the grid. Its edge is one line there (V9). */
@@ -784,17 +795,49 @@
   .study-card { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); padding: var(--s1) var(--s4); background: var(--panel); border-top: 1px solid var(--border-ctl); font-size: var(--fs-2); font-weight: var(--fw-3); font-variant-numeric: tabular-nums; }
   .study-x { margin-left: auto; }
   .study-card[hidden] { display: none; }
-  /* The staged demo (?demo=policy or ?demo=ld; js/demo.js): a header row that names the demo on every screen,
-     says what the step shows, and has Next, Start over and Leave demo. Its last step is the nudge to try a round. */
-  .demo-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); padding: var(--s2) var(--s4); background: var(--caution-tint); border-top: 1px solid var(--border-ctl); }
+  /* The sample-round guide keeps utility controls apart from the current task. */
+  .demo-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--s2) var(--s4); padding: var(--s2) var(--s4) var(--s3); background: color-mix(in srgb, var(--caution-tint) 48%, var(--panel)); border-block: 1px solid var(--border); }
   .demo-bar[hidden] { display: none; }
-  .demo-tag { padding: 0 var(--s2); border: 1px solid var(--text); border-radius: var(--r-sm); font-size: var(--fs-1); font-weight: var(--fw-4); line-height: var(--lh-ui); }
-  .demo-text { flex: 1 1 22rem; min-width: 0; }
+  .demo-heading, .demo-tools, .demo-actions, .demo-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); min-width: 0; }
+  .demo-heading { grid-column: 1 / -1; justify-content: space-between; }
+  .demo-count { color: var(--text-2); font-size: var(--fs-1); font-variant-numeric: tabular-nums; }
+  .demo-chapter-pick { position: relative; color: var(--text-2); }
+  .demo-chapter-pick::after { content: ''; position: absolute; inset-inline-end: var(--s3); top: 50%; width: var(--s1); height: var(--s1); border: solid currentColor; border-width: 0 1px 1px 0; transform: translateY(-75%) rotate(45deg); pointer-events: none; }
+  #demo-chapter { appearance: none; width: 7rem; max-width: 100%; min-height: var(--h-md); padding-inline: var(--s3) var(--s5); font-size: var(--fs-2); }
+  .demo-tools #demo-leave { margin-inline-start: var(--s1); }
+  .demo-text { min-width: 0; }
   .demo-text p { margin: 0; }
   .demo-title { font-weight: var(--fw-4); font-size: var(--fs-3); }
-  .demo-end .demo-title { font-size: var(--fs-4); }
-  .demo-count { font-size: var(--fs-1); font-variant-numeric: tabular-nums; }
-  .demo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
+  #demo-body { color: var(--text-2); font-size: var(--fs-2); }
+  #demo-status, #demo-detail { margin: 0; color: var(--text-2); font-size: var(--fs-2); }
+  #demo-status:empty { display: none; }
+  .demo-actions { justify-content: end; gap: var(--s2) var(--s3); padding-inline: var(--s1); }
+  .demo-actions a.b:not([hidden]) { display: inline-flex; align-items: center; text-decoration: none; }
+  html[data-demo] :is(#auto-eval, #auto-ballot) + .muted { display: none; }
+  .demo-bar:has(.demo-actions > .primary:not([hidden])) #demo-next { background: var(--panel); color: var(--text); border-color: var(--border-ctl); }
+  .demo-detail { grid-column: 1 / -1; border-top: 1px solid var(--border-ctl); padding-top: var(--s2); }
+  .demo-detail-tools { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s2); }
+  html[data-demo] body .demo-target { outline: var(--s0) solid var(--ai-blue); outline-offset: var(--s1); }
+  html[data-demo] body .demo-target:focus-visible { outline-width: var(--s1); outline-offset: var(--s0); }
+  /* The selected card echoes the opening format cue while the header owns the handoff to Begin. */
+  html[data-demo] body:has(#format-chip.demo-target) #format-cards .fmt-card:has(input:checked) { outline: var(--s0) solid var(--ai-blue); outline-offset: var(--s1); }
+  @media (prefers-reduced-motion: no-preference) {
+    html[data-demo] .demo-target,
+    html[data-demo] body:has(#format-chip.demo-target) #format-cards .fmt-card:has(input:checked) { animation: demo-cue 1.5s ease-in-out 3; }
+  }
+  @keyframes demo-cue { 50% { filter: drop-shadow(0 0 var(--s2) var(--ai-blue)) drop-shadow(0 0 var(--s1) var(--ai-blue)); } }
+  @media (max-width: 819.98px) {
+    .demo-bar { padding: var(--s2) var(--s3); max-height: 40dvh; overflow: auto; }
+    .demo-text, .demo-actions { grid-column: 1 / -1; }
+    .demo-heading .b, #demo-chapter { min-height: 44px; }
+    html[data-demo] .draft-panel { inset-block-start: var(--header-h); }
+  }
+  @media (max-width: 359.98px) {
+    .demo-heading, .demo-tools { gap: var(--s1); }
+    .demo-tools .b { padding-inline: var(--s1); }
+    #demo-chapter { width: 6rem; padding-inline: var(--s2) var(--s4); }
+    .demo-chapter-pick::after { inset-inline-end: var(--s2); }
+  }
   /* Where the header row has no room for "Tabula Debate" beside the ? and gear (under 360 px), or beside the clock
      chip too (under 480 px, while a clock runs off the Flow tab), it shows the mark alone; the link keeps its name for
      screen readers. The whole wordmark goes, never only the product word. */
@@ -826,7 +869,7 @@
     .help-menu button.b, .help-menu a { min-height: 44px; }
     .study-card { padding: var(--s1) var(--s3); }
     .demo-bar { padding: var(--s2) var(--s3); }
-    .demo-actions .b { min-height: 44px; }
+    .demo-actions .b, .demo-actions a.b { min-height: 44px; }
   }
   /* The print sheet (4.10): built from data just before printing, hidden on screen. */
   @media screen { #print-sheet { display: none; } }
@@ -910,16 +953,39 @@
   <button class="iconbtn study-x" id="study-x" type="button" aria-label="Hide the study result">×</button>
 </div>
   <!-- The staged demo (only with ?demo=policy or ?demo=ld; js/demo.js). A sample round with saved AI answers; nothing is sent or saved. -->
-  <div class="demo-bar noprint" id="demo-bar" role="region" aria-label="Demo" hidden>
-    <span class="demo-tag">Demo</span>
-    <div class="demo-text"><p class="demo-title" id="demo-title" aria-live="polite"></p><p class="muted" id="demo-body"></p></div>
-    <span class="muted demo-count" id="demo-count"></span>
+  <div class="demo-bar noprint" id="demo-bar" role="region" aria-label="Demo" data-intro="home" hidden>
+    <div class="demo-heading">
+      <span class="demo-count" id="demo-count"></span>
+      <div class="demo-tools">
+        <div class="demo-chapter-pick"><select id="demo-chapter" aria-label="Jump to chapter"><option value="" disabled selected>Chapters</option></select></div>
+        <button class="b quiet" id="demo-more" type="button" aria-expanded="false" aria-controls="demo-details">Details</button>
+        <button class="b quiet" id="demo-leave" type="button" aria-label="Leave demo">Exit</button>
+      </div>
+    </div>
+    <div class="demo-text">
+      <p class="demo-title" id="demo-title" aria-live="polite"></p>
+      <p id="demo-body"></p>
+      <p id="demo-status" role="status"></p>
+    </div>
     <div class="demo-actions">
-      <a class="b primary" id="demo-plans" target="_blank" rel="noopener" hidden>See plans</a>
+      <button class="b primary" id="demo-watch" type="button" hidden>Watch sample</button>
+      <button class="b primary" id="demo-pause" type="button" hidden>Pause</button>
+      <button class="b primary" id="demo-document" type="button" hidden>Add sample document</button>
+      <button class="b quiet" id="demo-show" type="button" hidden>Show me</button>
+      <a class="b" id="demo-plans" target="_blank" rel="noopener" hidden>See plans</a>
+      <a class="b quiet" id="demo-account" target="_blank" rel="noopener" hidden>Check my rounds</a>
       <a class="b" id="demo-buy" target="_blank" rel="noopener" hidden>Buy a round</a>
-      <button class="b primary" id="demo-next" type="button">Next</button>
-      <button class="b" id="demo-again" type="button">Start over</button>
-      <button class="b quiet" id="demo-leave" type="button">Leave demo</button>
+      <div class="demo-nav" role="group" aria-label="Step navigation">
+        <button class="b quiet" id="demo-back" type="button" hidden>Back</button>
+        <button class="b primary" id="demo-next" type="button">Begin</button>
+      </div>
+    </div>
+    <div class="demo-detail" id="demo-details" hidden>
+      <p id="demo-detail"></p>
+      <div class="demo-detail-tools">
+        <button class="b" id="demo-again" type="button">Start over</button>
+        <button class="b" id="demo-map" type="button" hidden>Apply saved flow</button>
+      </div>
     </div>
   </div>
 </header>
@@ -1043,7 +1109,8 @@
   <p class="muted cv-pauses" id="cv-pauses"></p>
   <div class="speeches cv-speeches" id="cv-speech-list" role="group" aria-label="Speeches"></div>
   <div class="cv-rec" data-ai="transcription"><label class="row check-row"><input type="checkbox" id="cv-rec-on"> Transcribe</label><span class="muted" id="cv-rec-status" tabindex="0"></span></div>
-  <p class="muted cv-note">Flow on a tablet or laptop. Clock and ballot work here.</p>
+  <button class="b cv-note" id="phone-show-flow" type="button" aria-controls="workspace" hidden>Show flow</button>
+  <p class="muted cv-note" id="phone-legacy-note">Flow on a tablet or laptop. Clock and ballot work here.</p>
 </section>
 
 <div id="workspace" class="workspace">
@@ -1062,6 +1129,7 @@
 </section>
 
 <section class="tab pane pane-center" id="tab-flow" aria-label="Flow">
+  <button class="b" id="phone-show-clock" type="button" aria-controls="clock-view" hidden>Show clock</button>
   <div class="start-panel" id="start-panel" hidden>
     <img src="assets/tabula-mark-black.png" alt="" width="48" height="39" class="start-mark on-light"><img src="assets/tabula-mark-white.png" alt="" width="48" height="39" class="start-mark on-dark">
     <h2>Ready for a round</h2>
@@ -1078,10 +1146,30 @@
     </div>
   </div>
   <input type="file" id="round-open" accept=".tab,application/json" hidden>
-  <div class="flowbar"><button class="b small" id="speeches-btn" type="button" aria-expanded="false" aria-controls="tab-timer" hidden>Speeches</button><div class="flowtabs" id="flow-tabs"></div>
+  <section id="flow-mobile-head" aria-label="Speech navigation" hidden>
+    <div class="mobile-speech-nav"><button class="b" id="mobile-previous" type="button" aria-label="Previous viewed speech">‹</button><div class="mobile-speech-pick"><label class="sr-only" for="mobile-speech">Viewed speech</label><select id="mobile-speech"></select></div><button class="b" id="mobile-next" type="button" aria-label="Next viewed speech">›</button></div>
+    <div class="mobile-view-line"><span id="mobile-view-label"></span><button class="b quiet" id="mobile-return" type="button" hidden></button></div>
+    <div class="mobile-flow-actions"><button class="b quiet" id="mobile-compare" type="button" aria-pressed="false">Compare</button><button class="b quiet" id="mobile-check" type="button">Flow Check</button><button class="b quiet" id="mobile-tools" type="button" aria-expanded="false" aria-controls="flow-tools">Flow tools</button></div>
+  </section>
+  <div class="flowbar"><button class="b primary" id="speeches-btn" type="button" aria-expanded="false" aria-controls="tab-timer" hidden>Speeches</button><div class="flow-arguments"><span class="flow-arguments-label" id="flow-arguments-label">Arguments</span><div class="flowtabs" id="flow-tabs" role="group" aria-labelledby="flow-arguments-label"></div></div>
     <span class="tip-wrap"><button class="tip" type="button" aria-label="About the flow columns" aria-expanded="false" aria-controls="flow-legend">?</button>
-      <span class="tip-box" id="flow-legend" role="tooltip" hidden><span data-side-word="aff">Aff</span> blue, <span data-side-word="neg">Neg</span> red. Keep each argument on one line across columns. "Now" is the timed speech. Shaded marks: *, dropped, conc, ext, turn, L/T, O/W.</span></span></div>
+      <span class="tip-box" id="flow-legend" role="tooltip" hidden><span data-side-word="aff">Aff</span> blue, <span data-side-word="neg">Neg</span> red. Entries in the same row line up across speeches. "Now" is the timed speech. Shaded marks: *, dropped, conc, ext, turn, L/T, O/W.</span></span>
+    <div id="flow-tools" class="flow-tools" hidden></div>
+  </div>
+  <section id="flow-documents" class="flow-documents" aria-labelledby="flow-documents-title" hidden>
+    <div class="flow-documents-head"><h2 id="flow-documents-title">Documents</h2><button class="b small" type="button" id="flow-documents-close">Close documents</button></div>
+    <div class="docbar flow-docbar">
+      <label for="flow-doc-speech">For speech</label><select id="flow-doc-speech" class="flow-doc-speech w-auto"></select>
+      <button class="b" type="button" id="flow-doc-add">Add document</button><input id="flow-doc-file" class="doc-quick flow-doc-file" type="file" multiple accept=".pdf,.docx,.txt,.md,application/pdf" aria-label="Add document files" hidden>
+      <span class="muted doc-quick-status" role="status" aria-live="polite"></span>
+    </div>
+    <div class="flow-documents-info"><span>PDF, Word, or text. You can also drop files here.</span><button class="linkish" type="button" data-tab-go="setup">Manage round documents</button></div>
+    <div class="sd-mount"></div>
+    <p class="muted" id="flow-speechdrop-help" hidden>To use SpeechDrop here, download its files and add them above. Direct room import is available with the local helper.</p>
+    <div id="flow-doc-ai" hidden><button class="b small" type="button" data-act="map-docs">Refresh document matches with AI</button><span id="ai-flow-ago" class="muted"></span></div>
+  </section>
   <div class="flow" id="flow"></div>
+  <form id="flow-mobile-compose" hidden aria-label="Quick analytic"><div class="mobile-compose-target"><label for="mobile-analytic" id="mobile-add-label">Add an analytic</label><label for="mobile-group" class="sr-only">Argument group</label><select id="mobile-group"></select></div><div class="mobile-compose-row"><textarea id="mobile-analytic" rows="1" aria-label="New analytic" placeholder="Add an analytic…" enterkeyhint="enter"></textarea><button class="b primary" type="submit">Add</button></div></form>
 </section>
 <aside class="pane pane-right" id="insights" aria-label="Insights" data-mode="open" data-ai="liveEval">
   <div class="pane-head"><h2>Insights</h2><button class="b small" data-pane="right" aria-label="Hide the insights pane">Hide</button></div>
@@ -1396,9 +1484,11 @@
   </div>
 </div>
 <footer class="roundbar noprint" aria-label="Round controls">
+  <div class="rb-main" role="group" aria-label="Speech clock and transcription">
   <div class="rb-speech"><span id="cur-label"></span><span class="clock" id="clock" aria-live="off">8:00</span><span class="view-chip" id="view-chip" hidden><span id="view-text"></span><button class="b small" id="view-back" type="button"></button></span></div>
   <div class="rb-ctl">
     <button class="b primary" id="t-start" data-tip="Start or pause (Space, or Ctrl+Enter while typing)" aria-keyshortcuts="Meta+Enter Control+Enter">Start</button>
+    <button class="b" id="mobile-clock" type="button">Clocks</button>
     <button class="b" id="t-reset">Reset</button>
     <button class="b" id="t-next">Next speech</button>
     <button class="b" id="tr-toggle" data-ai="transcription" aria-expanded="false" aria-controls="tr-drawer" data-tip="Show or hide the transcript">Transcript<span class="sr-only" id="tr-problem-sr"></span></button>
@@ -1409,10 +1499,13 @@
     <span id="rec-status" class="rb-status" role="status" aria-live="polite" tabindex="0"></span>
     <button class="b small" id="discard-audio" hidden>Discard waiting audio</button>
   </div>
-  <div class="rb-prep"><span class="aff" data-side-word="aff" data-side-after=" prep">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
-  <div class="rb-prep"><span class="neg" data-side-word="neg" data-side-after=" prep">Neg prep</span><span class="t" id="prep-neg">8:00</span><button class="b small" data-prep="neg">Start</button></div>
   <span id="mini-rec" class="rb-ai" data-ai="any"></span>
   <span id="ai-round" class="rb-ai" role="status" aria-live="polite" hidden><span id="ai-round-text"></span> <button class="b small" id="ai-resume" type="button" hidden>Turn AI back on</button><button class="b small" id="ai-consent-on" type="button" hidden>Turn on AI</button></span>
+  </div>
+  <div class="rb-preps" role="group" aria-label="Team prep clocks">
+    <div class="rb-prep"><span class="aff" data-side-word="aff" data-side-after=" prep">Aff prep</span><span class="t" id="prep-aff">8:00</span><button class="b small" data-prep="aff">Start</button></div>
+    <div class="rb-prep"><span class="neg" data-side-word="neg" data-side-after=" prep">Neg prep</span><span class="t" id="prep-neg">8:00</span><button class="b small" data-prep="neg">Start</button></div>
+  </div>
 </footer>
 <div id="node-editor" class="overlay" role="dialog" aria-modal="true" aria-labelledby="ne-title" hidden>
   <div class="overlay-card narrow">
@@ -1526,7 +1619,9 @@
 <script defer src="logic/round.js"></script>
 <script defer src="logic/audio.js"></script>
 <script defer src="logic/flow.js"></script>
+<script defer src="logic/atomic-flow.js"></script>
 <script defer src="logic/files.js"></script>
+<script defer src="logic/flow-reconcile.js"></script>
 <script defer src="logic/pairing.js"></script>
 <script defer src="logic/rules.js"></script>
 <script defer src="logic/decide.js"></script>
@@ -1554,6 +1649,8 @@
 <script defer src="js/clock.js"></script>
 <script defer src="js/recording.js"></script>
 <script defer src="js/flow.js"></script>
+<script defer src="js/flow-mobile.js"></script>
+<script defer src="js/flow-items.js"></script>
 <script defer src="js/docs.js"></script>
 <script defer src="js/ai.js"></script>
 <script defer src="js/limits.js"></script>

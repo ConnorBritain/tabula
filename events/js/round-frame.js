@@ -60,8 +60,8 @@ export function frameHtml(room) {
 export function levelFieldsHtml(picked) {
   const p = picked || {};
   const lv = p.level === 'elim' ? 'elim' : 'prelim';
-  return `<label class="field"><span>Level</span><select id="setup-level">${LEVELS.map((l) => `<option value="${l.id}"${l.id === lv ? ' selected' : ''}>${l.label}</option>`).join('')}</select></label>
-      <label class="field"><span>Judges in the room</span><select id="setup-panel">${PANEL_SIZES.map((n) => `<option value="${n}"${n === (p.panelSize || 1) ? ' selected' : ''}>${n === 1 ? 'Only me' : 'Panel of ' + n}</option>`).join('')}</select></label>
+  return `<label class="field"><span id="setup-level-label">Round stage</span><select id="setup-level" aria-labelledby="setup-level-label" aria-describedby="setup-level-help">${LEVELS.map((l) => `<option value="${l.id}"${l.id === lv ? ' selected' : ''}>${l.label}</option>`).join('')}</select><span class="field-help" id="setup-level-help">Prelim is an early round. Elim is an elimination round, such as a semifinal or final.</span></label>
+      <label class="field"><span id="setup-panel-label">Judges in the room</span><select id="setup-panel" aria-labelledby="setup-panel-label" aria-describedby="setup-panel-help">${PANEL_SIZES.map((n) => `<option value="${n}"${n === (p.panelSize || 1) ? ' selected' : ''}>${n === 1 ? 'Only me' : 'Panel of ' + n}</option>`).join('')}</select><span class="field-help" id="setup-panel-help">A panel is a group of judges for the same room. Count yourself. Each judge keeps their own ballot.</span></label>
       <label class="field wide" id="setup-panel-note-box" hidden><span>Panel note ${statusPillHtml('outline', 'Not on ballot')}</span><input id="setup-panel-note" autocomplete="off" maxlength="${PANEL_NOTE_MAX}" placeholder="Seats 1–3"></label>`;
 }
 

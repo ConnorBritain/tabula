@@ -28,6 +28,7 @@ const local = (ref) => ref && !/^[a-z][a-z0-9+.-]*:|^\/\/|^#/i.test(ref);
 const resolve = (ref, from) => { const u = new URL(ref, from); u.search = ''; u.hash = ''; return u; };
 
 const htmlRefs = (src) => [...src.matchAll(/<(?:script|link)\b[^>]*?\b(?:src|href)\s*=\s*"([^"]+)"/gi)].map((m) => m[1]);
+const manifestRefs = (src) => (JSON.parse(src).icons || []).map((icon) => icon.src);
 const cssRefs = (src) => [
   ...[...src.matchAll(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi)].map((m) => m[2]),
   ...[...src.matchAll(/@import\s+(['"])([^'"]+)\1/gi)].map((m) => m[2]),
@@ -54,9 +55,9 @@ export async function pageFiles() {
     if (!u.href.startsWith(ROOT.href)) throw new Error('the events page loads a file outside the repo: ' + u.href);
     seen.add(path);
     const ext = path.slice(path.lastIndexOf('.'));
-    if (!['.html', '.js', '.css'].includes(ext)) continue;
+    if (!['.html', '.js', '.css', '.webmanifest'].includes(ext)) continue;
     const src = read(u);
-    const refs = ext === '.html' ? htmlRefs(src) : ext === '.css' ? cssRefs(src) : jsRefs(src, path);
+    const refs = ext === '.webmanifest' ? manifestRefs(src) : ext === '.html' ? htmlRefs(src) : ext === '.css' ? cssRefs(src) : jsRefs(src, path);
     for (const r of refs) if (local(r)) todo.push(resolve(r, u));
   }
   // The event data: ask the real loader which files it reads.

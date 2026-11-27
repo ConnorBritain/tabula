@@ -12,6 +12,7 @@
 async function switchFormat(id) {
   const fmt = L.getFormat(id);
   if (!fmt || id === R.format || L.formatLocked(R)) return renderFormatSetup();
+  if (demoOn) return demoSwitchFormat(fmt);
   const docs = await docStore.list(R.id).catch(() => []);
   if (!(L.isRoundEmpty(R) && !R.started && !docs.length)) {
     const ok = await ask({

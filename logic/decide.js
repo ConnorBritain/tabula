@@ -10,6 +10,7 @@
   const CORE_REVIEW = typeof module !== 'undefined' && module.exports ? require('../core/review.js') : root.TabulaCore.review;
   const part = (name) => (typeof module !== 'undefined' && module.exports ? require('./' + name + '.js') : root.PolicyLogicParts[name]);
   const F = part('format');
+  const atomic = part('atomic-flow');
   const { formatClock, BALLOT_HEADER, LOG_SLOTS, ballotRow, num, ballotFields, speechesSoFar, ptsRange, isLowPointWin } = part('round');
   const { speechSide } = part('files');
 
@@ -55,6 +56,7 @@
     const r = round || {};
     if ((docs || []).length) return true;
     if (Object.values(r.transcripts || {}).some((t) => String(t || '').trim())) return true;
+    if (atomic.supported(r.itemFlow)) return atomic.present(r);
     if ((r.flows || []).some((f) => Object.values(f.cells || {}).some((c) => String(c || '').trim()))) return true;
     return (r.aiFlows || []).some((sh) => Object.keys(sh.parts || {}).length > 0);
   }
@@ -302,7 +304,8 @@
     sections.push({ kind: 'text', title: fmt.sides.aff.label + ' comments' + ((r.aff || {}).team ? ' (' + r.aff.team + ')' : ''), side: 'aff', text: String(b.affFb || '') });
     sections.push({ kind: 'text', title: fmt.sides.neg.label + ' comments' + ((r.neg || {}).team ? ' (' + r.neg.team + ')' : ''), side: 'neg', text: String(b.negFb || '') });
     if (o.flow) {
-      for (const f of r.flows || []) {
+      const sheets = atomic.supported(r.itemFlow) ? atomic.projectedSheets(r, { level: r.flowLevel || 'standard' }) : r.flows;
+      for (const f of sheets || []) {
         const cols = fmt.flowColumns.map((c, i) => ({ label: c.label, side: c.side, text: String((f.cells || {})[i] || '') }));
         if (cols.some((c) => c.text.trim())) sections.push({ kind: 'flow', title: 'Flow: ' + f.name, cols });
       }

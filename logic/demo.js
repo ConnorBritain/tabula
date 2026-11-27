@@ -11,8 +11,7 @@
   // The nudge at the end. Buying is not live yet (the owner wants full QA and capacity tests first), so the button
   // opens the Plans page. The "Buy a round" button shows only when the demoBuy flag is on (logic/flags.js, off).
   const DEMO_CTA = Object.freeze({
-    title: 'Try your first round for $2',
-    body: 'That was a sample round with saved AI answers. In your own round, Tabula transcribes the speeches, flows them, and drafts the ballot and the decision. You check and change every word.',
+    title: 'Try your first round',
     plans: 'See plans',
     buy: 'Buy a round',
   });
@@ -48,11 +47,11 @@
         id: 'demo-' + fmt.id,
         tournament: r.tournament, roundName: r.roundName, judge: r.judge, topic: r.topic,
         aff: copy(r.aff), neg: copy(r.neg),
-        tab: 'setup', flowView: 'ai', cur: 0,
+        tab: 'flow', flowView: 'ai', cur: 0,
       }),
       // The welcome, the D2 note and the one-time D2 reset (L.d2Reset) are for the real app; the demo skips them. Live AI flow is on,
       // so the AI flow pass runs as it would in a real round. Auto Live Eval and auto ballot stay off: the steps run them.
-      settings: { setupDone: true, d2NoteShown: true, d2Reset: true, liveFlow: true, autoEval: false, autoBallot: false },
+      settings: { setupDone: true, d2NoteShown: true, d2Reset: true, liveFlow: true, autoEval: false, autoBallot: false, recOn: false },
     };
   }
 
@@ -63,24 +62,54 @@
     const ids = (sample.speeches || []).map((s) => s.id); // the sample has only the speeches the format flows
     const name = (id) => (fmt.speeches.find((s) => s.id === id) || { label: id }).label;
     const steps = [{
-      id: 'intro', place: 'setup', title: 'A sample round',
-      body: 'This is a ' + labelOf(fmt) + ' round with made-up debaters. The AI answers are saved, so nothing is sent anywhere and nothing is saved. Press Next to start.',
+      id: 'intro', place: 'flow', title: 'Select your round type',
+      body: 'This is a ' + labelOf(fmt) + ' round with made-up debaters. Your changes stay on this page.',
+      detail: 'Use the same controls as a real round. The demo uses saved AI replies and never opens your microphone.',
+    }, {
+      id: 'manual', place: 'flow', title: 'Add your first note',
+      body: 'Choose + Entry in the first speech to open the editor.',
+      detail: 'An analytic is a reason in your own words. Citation fields are optional. Use Tab to reach them and Shift+Enter for a new line.',
     }];
-    ids.slice(0, 2).forEach((id, i) => steps.push({
-      id: 'speech-' + id, place: 'flow', speech: id, title: 'The ' + name(id) + (i ? ', flowed for you' : ', written down'),
-      body: i ? 'The next speech. The AI flow adds each answer next to the argument it answers.'
-        : 'Tabula listens and writes down each speech. When the speech ends, the AI flows it for you on the AI flow.',
-    }));
+    const speech = id => ({
+      id: 'speech-' + id, place: 'flow', speech: id, title: name(id) + ' · Speech to flow',
+      body: 'See silent sample captions turn into flow entries.',
+      detail: 'A saved AI reply maps the transcript. Your notes stay in place. Pause or replay the sample at any time.',
+    });
+    if (ids[0]) steps.push(speech(ids[0]));
+    steps.push(
+      { id: 'options', place: 'flow', title: 'Set the note detail',
+        body: 'Open Flow options. Try a different AI note length.',
+        detail: 'The AI help setting controls how Tabula handles your own notes. The saved sample replies stay the same.' },
+      { id: 'documents', place: 'setup', title: 'Import a speech',
+        body: 'Try a sample document. It starts as unconfirmed.',
+        detail: 'An imported document does not show what was actually read aloud. You can also use SpeechDrop in a real round.' },
+      { id: 'organize', place: 'flow', title: 'Link and organize arguments',
+        body: 'Open the ⋯ menu on an entry. Try Respond or Extend.',
+        detail: 'Move changes where an entry sits. Extend keeps the original and adds notes for a later speech. Use Flow Check to compare spoken order with the flow. Undo restores a removed entry.' },
+      { id: 'clocks', place: 'flow', title: 'Run the speech clock',
+        body: 'Start the speech clock, then pause it. Try a prep clock next.',
+        detail: 'On a phone, you can view one speech while timing another. Open Round to change clock settings.' },
+    );
+    if (ids[1]) steps.push(speech(ids[1]));
     const rest = ids.slice(2);
     if (rest.length) steps.push({
-      id: 'rest', place: 'flow', speeches: rest, title: 'The rest of the round',
-      body: 'We skip ahead: ' + rest.map(name).join(', ') + '. Each speech is transcribed and flowed the same way.',
+      id: 'rest', place: 'flow', speeches: rest, title: 'Fill the rest of the round',
+      body: 'Load the remaining sample speeches and keep your notes.',
+      detail: 'This adds sample transcripts and flow entries for untouched speeches. Existing transcripts stay in place.',
     });
     steps.push(
-      { id: 'eval', place: 'eval', title: 'Live Eval', body: 'Live Eval reads the flow and tells you who is ahead, on which issues, and what to listen for.' },
-      { id: 'draft', place: 'ballot', title: 'Draft the ballot', body: 'One press drafts the winner, the points, the reason for decision and the comments. Review each part before it goes on the ballot.' },
-      { id: 'decision', place: 'ballot', title: 'Your decision, drafted', body: 'The draft is on the ballot. Every field stays yours to change.' },
-      { id: 'end', place: 'ballot', title: DEMO_CTA.title, body: DEMO_CTA.body },
+      { id: 'eval', place: 'eval', title: 'Check who is ahead',
+        body: 'Choose Run to see the sample Live Eval.',
+        detail: 'Live Eval compares arguments across the round. You can view the saved sample in any order. It uses no rounds.' },
+      { id: 'draft', place: 'ballot', title: 'Draft a ballot',
+        body: 'Pick the fields you want help with, then choose Draft.',
+        detail: 'The saved draft includes a sample decision and feedback. You choose what goes onto the ballot.' },
+      { id: 'decision', place: 'ballot', title: 'Review your decision',
+        body: 'Insert the suggestions you want. Edit the ballot in your own words.',
+        detail: 'You can change the reason for decision and speaker feedback before you finish.' },
+      { id: 'end', place: 'ballot', title: DEMO_CTA.title,
+        body: 'Keep practicing here, or choose “See plans” to try your own round.',
+        detail: 'The demo uses no rounds. In a real round, your first use of Tabula AI on a personal plan uses one round from your balance. Choose “Check my rounds” to see your balance or buy more in your account.' },
     );
     return steps;
   }

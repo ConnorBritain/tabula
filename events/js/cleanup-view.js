@@ -37,7 +37,7 @@ export function cleanupPanelHtml(st) {
     const original = st.showOriginal === true;
     body = `<div class="seg-track ai-compare" role="tablist" aria-label="Compare edit">${btn('clean-original', 'Original', 'small' + (original ? ' on' : ''), ` role="tab" tabindex="${original ? 0 : -1}" aria-selected="${original}" aria-controls="edit-comparison-${esc(id)}"`)}${btn('clean-suggested', 'Suggested', 'small' + (!original ? ' on' : ''), ` role="tab" tabindex="${original ? -1 : 0}" aria-selected="${!original}" aria-controls="edit-comparison-${esc(id)}"`)}</div>
       <div class="card-text cleanup-diff" id="edit-comparison-${esc(id)}" role="tabpanel" aria-label="${original ? 'Original' : 'Suggested'}">${original ? esc(st.target.text) : st.empty ? 'The AI sent no text. Your comment stays as written.' : st.same ? 'No changes suggested.' : diffHtml(st.diff)}</div>
-      <p class="field-help">AI rewrote your words. Check them before you copy.</p>
+      <p class="field-help">${st.sample ? 'Saved synthetic rewrite. No AI service was called.' : 'AI rewrote your words. Check them before you copy.'}</p>
       <div class="cleanup-btns">${st.empty || st.same ? '' : btn('clean-use', 'Use this', 'primary')}${btn('clean-keep', 'Keep mine', st.empty || st.same ? 'primary' : '')}${btn('clean-go', 'Try again', 'quiet small')}</div>`;
   } else {
     body = `<p class="cleanup-err" role="alert">${esc(st.error || 'The edit did not work. Your comment is safe.')}</p><div class="cleanup-btns">${btn('clean-go', 'Try again', 'primary')}${btn('clean-keep', 'Keep mine', 'quiet')}</div>`;
@@ -51,7 +51,7 @@ export function createCleanup(env, hooks) {
   const own = env.ai.own;
   const settings = () => env.settings?.() || {};
   const defaults = () => editDefaults(settings().feedbackEdit);
-  const path = () => cleanupPath({ gate: env.ai.gate, hasKey: own.hasKey(), hosted: false });
+  const path = () => cleanupPath({ gate: env.ai.gate, hasKey: Boolean(env.sampleDraft) || own.hasKey(), hosted: false });
   const draw = (key) => hooks.draw(key);
   const changed = (key) => (hooks.changed || hooks.draw)(key);
   const cancel = () => { token++; controller?.abort(); controller = null; };
@@ -68,7 +68,7 @@ export function createCleanup(env, hooks) {
     cancel();
     const prefs = resolvePreferences(settings().aiPreferences, 'feedback');
     const target = editTarget(e, selected);
-    st = { id, ...defaults(), status: options ? 'options' : 'idle', style: prefs.style, target, anchor: selected, request: options ? '' : defaults().request };
+    st = { id, sample: Boolean(env.sampleDraft), ...defaults(), status: options ? 'options' : 'idle', style: prefs.style, target, anchor: selected, request: options ? '' : defaults().request };
     selection = null;
     return true;
   }
@@ -82,7 +82,7 @@ export function createCleanup(env, hooks) {
     st.status = 'busy'; st.error = ''; draw();
     env.ui.announce('Preparing an edit.');
     try {
-      if (path() === 'connect' && !(await askConnectKey(env.ui, own))) {
+      if (!env.sampleDraft && path() === 'connect' && !(await askConnectKey(env.ui, own))) {
         if (mine === token) { st.status = 'error'; st.error = 'Connect an AI key in Settings to make edits.'; draw(); }
         return;
       }
@@ -91,7 +91,7 @@ export function createCleanup(env, hooks) {
       if (!entries.length || sourceText(entries[0]) !== st.target.base) throw new Error('Your comment changed. Select the text again or start a new edit.');
       const range = st.target.selected ? { start: st.target.start, end: st.target.end } : undefined;
       const msg = cleanupMessages(r, hooks.event(r), [st.id], st.mode, { selection: range, request: st.request, preferences: { style: st.style } });
-      const drafts = await own.cleanup(env.ai.gate, msg, { signal });
+      const drafts = env.sampleDraft ? await env.sampleDraft(entries, signal, { mode: st.mode, selection: range, request: st.request }) : await own.cleanup(env.ai.gate, msg, { signal });
       if (mine !== token || !st) return;
       const draft = drafts[st.id], full = selectionDraft(st.target, draft);
       st = { ...st, status: 'ready', card: cleanupReview(entries, full == null ? {} : { [st.id]: full }).cards[0], empty: full == null, same: typeof draft === 'string' && st.target.text.trim() === draft.trim(), diff: wordDiff(st.target.text, draft || ''), showOriginal: false };

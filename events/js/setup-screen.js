@@ -85,6 +85,7 @@ export function setupHtml(data) {
     <!-- The rare fields (design review §2.3 change 3): closed for a prelim, open when the ballot card says elim. -->
     <details class="setup-more fold" id="setup-more">${foldSummaryHtml('Elim or panel?', foldValueHtml(levelSummary('prelim', '1'), 'setup-more-value'))}
       <div class="setup-fields">${levelFieldsHtml()}</div></details>
+    <p class="field-help setup-round-help">Check your ballot or room posting for the round stage and judges. Not sure? Ask tournament staff.</p>
     ${customHtml(graceOf({ profile: data.profiles.get(DEFAULT_PROFILE) }))}
     <!-- Laptop: the paste box on the left and the live preview on the right. Phone: the preview under the box. -->
     <div class="setup-paste-area">

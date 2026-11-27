@@ -68,7 +68,7 @@ export function createEventsStore(ui, storage, opts = {}) {
         return false;
       }
       const ok = inner.set(k, v);
-      if (ok && !asking && WORK_KEYS.includes(k)) {
+      if (ok && !globalThis.TabulaDemo && !asking && WORK_KEYS.includes(k)) {
         asking = true;
         askToKeepOnce(api, now, 'nav' in opts ? opts.nav : globalThis.navigator).catch(() => {});
       }
