@@ -167,7 +167,7 @@ const sse = (frames) => {
 const refusal = (status, error) => ({ ok: false, status, json: async () => ({ error }), body: null });
 
 // A page world: the gate, an optional own key (the subscription helper path), a fetch stub, and the toasts shown.
-function world({ g, ownKey = false, answers, host, consent = true, docs = [] }) {
+function world({ g, ownKey = false, answers, host, consent = true, docs = [], durableDocs = docs }) {
   const calls = [], toasts = [], opened = [];
   let cleared = 0, signedOut = 0;
   const S = { aiEngine: ownKey ? 'claude-cli' : '', helper: { 'claude-cli': ownKey } };
@@ -178,9 +178,9 @@ function world({ g, ownKey = false, answers, host, consent = true, docs = [] }) 
     return answers.shift();
   };
   // demoOn: the page is not the staged demo (js/demo.js), so callAI takes its real path.
-  const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console', 'location', 'demoOn', 'roundConsent', 'acctSignedOut', 'requestPreferences', 'AI_PREFERENCES',
+  const make = new Function('L', 'P', 'S', 'R', 'DOCS', 'flowDocuments', 'capsGate', 'can', 'aiReady', 'noAiText', 'fetch', 'toast', 'clearCaps', 'navigator', 'window', 'console', 'location', 'demoOn', 'roundConsent', 'acctSignedOut', 'requestPreferences', 'AI_PREFERENCES',
     PAGE + '\nreturn [callAI, () => hostedLimits, (v) => { hostedLimits = v; }];');
-  const [callAI, limits, setLimits] = make(L, P, S, R, docs, g, (f) => L.canUse(g, f), () => ownKey, () => L.NO_AI, fetch,
+  const [callAI, limits, setLimits] = make(L, P, S, R, docs, () => durableDocs, g, (f) => L.canUse(g, f), () => ownKey, () => L.NO_AI, fetch,
     (msg, o) => toasts.push({ msg, o }), () => { cleared++; }, { onLine: true }, { open: (u) => opened.push(u) }, { warn() {} }, { host: host || 'debate.tabulaspeech.com' }, false, async () => consent, () => { signedOut++; }, (feature) => globalThis.TabulaCore['ai-preferences'].resolvePreferences(S.aiPreferences, feature, feature !== 'aiFlow'), globalThis.TabulaCore['ai-preferences']); // the round question's answer (default yes; consent tests: round-consent.test.js)
   return { callAI, calls, toasts, opened, R, S, cleared: () => cleared, signedOut: () => signedOut, limits, setLimits };
 }
@@ -224,6 +224,23 @@ test('hosted evaluation includes text context and keeps PDF contents on the devi
   assert.match(state.docs, /Marked evidence\.pdf/);
   assert.ok(!w.calls[0].init.body.includes('encoded-PDF-fixture'));
   assert.ok(!w.calls[0].init.body.includes(body));
+});
+
+// Why: a transcript-triggered hosted flow pass must not turn an unsaved attachment into saved flow text.
+test('hosted item flow leaves page-only documents out while evaluation can use them as context', async () => {
+  const durable = { name: 'Stored.md', kind: 'text', speech: '', data: 'Stored judging context.' };
+  const pageOnly = { name: 'Temporary.md', kind: 'text', speech: '1AC', data: 'Temporary evidence.' };
+  const answer = sse([{ t: '{}' }, { done: true, charged: 1 }]);
+  const w = world({ g: gate(record(ALL_SELF, true)), answers: [answer, answer], docs: [durable, pageOnly], durableDocs: [durable] });
+  L.atomicFlow.migrate(w.R);
+  await w.callAI({ ...EVAL_CALL, feature: 'aiFlow', hosted: { job: 'flow', extra: { speech: '1AC' } } });
+  assert.equal(w.calls[0].url, '/api/v1/ai/flow.update');
+  const { state } = JSON.parse(w.calls[0].init.body);
+  assert.match(state.transcript, /1A reads the plan/);
+  assert.match(state.docs, /Stored judging context\./);
+  assert.ok(!w.calls[0].init.body.includes(pageOnly.data));
+  await w.callAI(EVAL_CALL);
+  assert.match(JSON.parse(w.calls[1].init.body).state.docs, /Temporary evidence\./);
 });
 
 // Why: a judge out of rounds must see plain words and a way to buy more, and must not be switched to a paid key in

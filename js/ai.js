@@ -184,10 +184,11 @@ function hostedFail(info) {
 async function callHosted({ job, extra, signal, feature }) {
   const round = R;
   const anon = (v) => L.anonymize(v, round);
-  const state = L.hostedState(job, R, DOCS, extra);
+  const suppliedDocs = job === 'flow' && L.atomicFlow.supported(round.itemFlow) ? flowDocuments() : DOCS;
+  const state = L.hostedState(job, round, suppliedDocs, extra);
   for (const k of Object.keys(state)) if (typeof state[k] === 'string') state[k] = anon(state[k]); // names only live in text
-  // All of the round's text docs, the same text in the same order on every call (§3a: the provider caches them).
-  const docs = P.docsAsText(anonDocs(DOCS), L.docTitle);
+  // Keep the same order for caching. Atomic Flow uses documents that can have saved entries.
+  const docs = P.docsAsText(anonDocs(suppliedDocs), L.docTitle);
   if (docs) state.docs = docs;
   // A limit already reached: no request (Terms §6.4: the round goes on with the free tools).
   const blocked = L.roundBlocks(job, hostedLimits && hostedLimits.round);

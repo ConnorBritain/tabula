@@ -8,6 +8,7 @@
 // If IndexedDB is not available, they are kept in memory for this page only.
 let DOCS = [];
 const pageOnlyDocs = new WeakSet();
+const pendingDocWrites = new Set();
 const flowDocuments = () => DOCS.filter((doc) => !pageOnlyDocs.has(doc));
 const docStore = {
   db: null,
@@ -155,16 +156,19 @@ async function addDocFiles(files, side, statusEl, speech) {
       // The speech is set on every new doc (the format's default when none was picked), so a doc never depends on
       // which format's default rule reads it later.
       doc.speech = speech !== undefined ? speech : L.docSpeech({ side }, FMT());
-      if (DOCS.reduce((n, d) => n + docBytes(d), 0) + docBytes(doc) > MAX_DOC_BYTES) throw new Error('too big. Keep all docs under 15 MB');
-      const textChars = DOCS.concat([doc]).filter((d) => d.kind !== 'pdf').reduce((n, d) => n + d.data.length, 0);
+      const counted = DOCS.concat([...pendingDocWrites].filter((pending) => pending.roundId === round.id), doc);
+      if (counted.reduce((n, d) => n + docBytes(d), 0) > MAX_DOC_BYTES) throw new Error('too big. Keep all docs under 15 MB');
+      const textChars = counted.filter((d) => d.kind !== 'pdf').reduce((n, d) => n + d.data.length, 0);
       if (textChars > MAX_TEXT_CHARS) throw new Error('too much text. Keep Word/text docs under about 400,000 characters in total');
-      DOCS.push(doc); added.push(doc);
       // Keep uploads out of the saved flow until their source document is stored.
-      pageOnlyDocs.add(doc);
-      try { await docStore.put(doc); pageOnlyDocs.delete(doc); }
-      catch { if (R === round) toast(file.name + ' is kept for this page only. It will be gone after a refresh.'); }
+      pendingDocWrites.add(doc);
+      try { await docStore.put(doc); }
+      catch {
+        pageOnlyDocs.add(doc);
+        if (R === round) toast(file.name + ' is kept for this page only. It will be gone after a refresh.');
+      } finally { pendingDocWrites.delete(doc); }
       if (R !== round) return added;
-      if (!DOCS.includes(doc)) continue;
+      DOCS.push(doc); added.push(doc);
       renderDocs();
       const sp = L.docSpeech(doc, FMT());
       const map = sp && !pageOnlyDocs.has(doc);
